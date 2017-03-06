@@ -1,0 +1,3 @@
+[submodule "cc7"]
+	path = cc7
+	url = https://github.com/lime-company/cc7.git

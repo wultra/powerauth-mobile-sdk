@@ -1,0 +1,53 @@
+/*
+ * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.getlime.security.powerauth.core;
+
+/**
+ Parameters for second step of device activation.
+ */
+public class ActivationStep2Param {
+    
+    /**
+     Real Activation ID received from server.
+     */
+    public final String activationId;
+    /**
+     Ephemeral nonce, generated on the server, in Base64 format.
+     */
+    public final String ephemeralNonce;
+    /**
+     Server's part for ephemeral key in Base64 format.
+     */
+    public final String ephemeralPublicKey;
+    /**
+     Encrypted server public key, in Base64 format.
+     */
+    public final String encryptedServerPublicKey;
+    /**
+     Siganture, calculated from activationId &amp; encryptedServerPublicKey,
+     in Base64 format.
+     */
+    public final String serverDataSignature;
+
+    public ActivationStep2Param(String activationId, String ephemeralNonce, String ephemeralPublicKey, String encryptedServerPublicKey, String serverDataSignature) {
+        this.activationId = activationId;
+        this.ephemeralNonce = ephemeralNonce;
+        this.ephemeralPublicKey = ephemeralPublicKey;
+        this.encryptedServerPublicKey = encryptedServerPublicKey;
+        this.serverDataSignature = serverDataSignature;
+    }
+}

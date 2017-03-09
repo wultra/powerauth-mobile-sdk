@@ -83,12 +83,19 @@ static PowerAuthSDK *inst;
 	
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:PA2Keychain_Initialized] == NO) {
+	// By default, the code uses standard user defaults, use `PA2KeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
+	NSUserDefaults *userDefaults = nil;
+	if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
+		userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+	} else {
+		userDefaults = [NSUserDefaults standardUserDefaults];
+	}
+	if ([userDefaults boolForKey:PA2Keychain_Initialized] == NO) {
 		[_statusKeychain deleteAllData];
 		[_sharedKeychain deleteAllData];
 		[_biometryOnlyKeychain deleteAllData];
-		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:PA2Keychain_Initialized];
-		[[NSUserDefaults standardUserDefaults] synchronize];
+		[userDefaults setBool:YES forKey:PA2Keychain_Initialized];
+		[userDefaults synchronize];
 	}
 	
 	// Initialize encryptor factory

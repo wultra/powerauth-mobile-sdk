@@ -22,9 +22,15 @@
  */
 @interface PA2KeychainConfiguration : NSObject
 
-/** Access group name used by the PowerAuthSDK keychain isntances.
+/** Access group name used by the PowerAuthSDK keychain instances.
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainAttribute_AccessGroup;
+@property (nonatomic, strong, nullable) NSString	*keychainAttribute_AccessGroup;
+
+/** Suite name used by the NSUserDefaults that check for Keychain data presence.
+ 
+ If the value is not set, `standardUserDefaults` are used. Otherwise, user defaults with given suite name are created. In case a developer started using SDK with no suite name specified, the developer is responsible for migrating data to the new `NSUserDefaults` before using the SDK with the new suite name.
+ */
+@property (nonatomic, strong, nullable) NSString	*keychainAttribute_UserDefaultsSuiteName;
 
 /** Name of the Keychain service used to store statuses for different PowerAuth instances.
  */

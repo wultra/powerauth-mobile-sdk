@@ -536,21 +536,13 @@ namespace protocol
 		return cc7::ToBase64String(signature);
 	}
 
-	// Workaround for GNU STL
-	inline static std::string __to_string(int value)
-	{
-	#if defined(CC7_ANDROID)
-		char buffer[64];
-		sprintf(buffer, "%d", value);
-		return std::string(buffer);
-	#else
-		return std::to_string(value);
-	#endif
-	}
-
+	/**
+	 Convers |val| to normalized string. Zero characters are used for the indentation padding
+	 when the string representation is shorter than 8 characters (e.g. 123 is converted to "00000123").
+	 */
 	static std::string _ValToNormString(cc7::U32 val)
 	{
-		std::string result = __to_string(val);
+		std::string result = std::to_string(val);
 		static const std::string zero("00000000");
 		if (result.length() < protocol::HK_DEVICE_PUBLIC_KEY_SIZE) {
 			result.insert(0, zero.substr(0, protocol::HK_DEVICE_PUBLIC_KEY_SIZE - result.length()));
@@ -571,9 +563,9 @@ namespace protocol
 		size_t offset = signature.size() - 4;
 		// "dynamic binary code" from HOTP draft
 		cc7::U32 dbc = (signature[offset + 0] & 0x7F) << 24 |
-		signature[offset + 1] << 16 |
-		signature[offset + 2] << 8  |
-		signature[offset + 3];
+						signature[offset + 1] << 16 |
+						signature[offset + 2] << 8  |
+						signature[offset + 3];
 		return _ValToNormString(dbc % 100000000);
 	}
 

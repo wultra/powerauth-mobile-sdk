@@ -669,6 +669,69 @@ namespace powerAuthTests
 					ccstAssertEqual(ec, EC_WrongState);
 				}
 				
+				// Sign with possession, when EEK is used, but is not set yet
+				if (eek && eek_setter) {
+					auto state = s1.saveSessionState();
+					ccstAssertTrue(state.size() > 0);
+					// Try several attempts for calculating just possession, when EEK is not set.
+					for (int attempt_count = 1; attempt_count <= 2; attempt_count++) {
+						// Create a fresh new Session object
+						Session s2(_setup);
+						ec = s2.loadSessionState(state);
+						ccstAssertEqual(ec, EC_Ok);
+						ccstAssertFalse(s2.hasExternalEncryptionKey());
+						
+						SignatureUnlockKeys keys;
+						keys.possessionUnlockKey = possessionUnlock;
+						std::string sigValue;
+						ec = s2.signHTTPRequest(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", keys, SF_Possession, sigValue);
+						ccstAssertEqual(ec, EC_Ok);
+						ccstAssertTrue(!sigValue.empty());
+						
+						StringMap parsedSignature = T_parseSignature(sigValue);
+						std::string nonceB64 = parsedSignature["pa_nonce"];
+						ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
+						std::string signature = parsedSignature["pa_signature"];
+						ccstAssertTrue(!signature.empty());
+						std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession, 3 + attempt_count);
+						// Signatures must match.
+						ccstAssertEqual(signature, our_signature);
+						// Save state for next loop or for subsequent tests...
+						state = s2.saveSessionState();
+						ccstAssertTrue(state.size() > 0);
+					}
+					// Now, try to calculate 2FA, on yet another fresh Session object
+					Session s3(_setup);
+					ec = s3.loadSessionState(state);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertFalse(s3.hasExternalEncryptionKey());
+					
+					// Try to use 2FA when EEK is not set. Must fail.
+					SignatureUnlockKeys keys;
+					keys.possessionUnlockKey = possessionUnlock;
+					keys.userPassword = cc7::MakeRange(new_password);
+					std::string sigValue;
+					ec = s3.signHTTPRequest(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					ccstAssertEqual(ec, EC_Encryption);
+
+					// Now set EEK and try again... Must pass!
+					ec = s3.setExternalEncryptionKey(*eek);
+					ccstAssertEqual(ec, EC_Ok);
+
+					ec = s3.signHTTPRequest(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertTrue(!sigValue.empty());
+					
+					StringMap parsedSignature = T_parseSignature(sigValue);
+					std::string nonceB64 = parsedSignature["pa_nonce"];
+					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
+					std::string signature = parsedSignature["pa_signature"];
+					ccstAssertTrue(!signature.empty());
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3 + 3);
+					// Signatures must match.
+					ccstAssertEqual(signature, our_signature);
+				}
+				
 				// remove biometry factor
 				{
 					// check if BF exists

@@ -139,11 +139,13 @@ namespace protocol
 	// MARK: - Data serialization -
 	//
 	
+	const cc7::byte PD_VERSION = '3';
+	
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer)
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		writer.openVersion('P', '3');
+		writer.openVersion('P', PD_VERSION);
 		
 		writer.writeU64		(pd.signatureCounter);
 		writer.writeString	(pd.activationId);
@@ -168,7 +170,7 @@ namespace protocol
 	
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
 	{
-		bool result = reader.openVersion('P', '3');
+		bool result = reader.openVersion('P', PD_VERSION);
 		
 		result = result && reader.readU64		(pd.signatureCounter);
 		result = result && reader.readString	(pd.activationId);

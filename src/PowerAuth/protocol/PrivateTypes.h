@@ -240,20 +240,21 @@ namespace protocol
 	bool ValidateSessionSetup(const SessionSetup & setup, bool also_validate_key);
 	
 	/**
-	 Validates content of presistent data. The method typically validates key sizes
+	 Validates content of presistent data. The method simply validates key sizes
 	 and presence of required attributes in the PD structure.
 	 */
 	bool ValidatePersistentData(const PersistentData & pd);
 	
 	/**
-	 Validates unlock keys. The combination of factors must match with appropriate keys in
-	 the unlock structure.
+	 Validates |unlock| keys and the external key, if the key is present. The function simply checks whether
+	 the provided keys in the structure have correct lengths and there's an appropriate key for each required 
+	 signature factor. The |ext_key| parameter is optional and may be NULL.
 	 */
 	bool ValidateUnlockKeys(const SignatureUnlockKeys & unlock, const cc7::ByteArray * ext_key, SignatureFactor factor);
 	
 	/**
-	 Validates internal signature keys structure. The combination oof factors must match
-	 with keys available in the structure.
+	 Validates internal signature |keys| structure. The function simply checks whether the provided keys
+	 in the structure have correct lengths and there's an appropriate key for each required signature factor.
 	 */
 	bool ValidateSignatureKeys(const SignatureKeys & keys, SignatureFactor factor);
 	
@@ -273,7 +274,16 @@ namespace protocol
 	// MARK: - Serialization -
 	//
 	
+	/**
+	 Serializes a persistent data from |pd| structure into the provided |writer|. The current
+	 implementation of the function always returns true.
+	 */
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer);
+	
+	/**
+	 Deserializes apersistent data from the |reader| into the |pd| reference.
+	 Returns false if the byte stream contains invalid data.
+	 */
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
 		
 } // io::getlime::powerAuth::detail

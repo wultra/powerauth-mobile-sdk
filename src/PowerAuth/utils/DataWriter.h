@@ -94,13 +94,21 @@ namespace utils
 		const cc7::ByteArray & serializedData() const;
 		
 		/**
-		 Writes count to the stream. The count parameter must be
-		 less or equal than DataWriter::maxCount();
+		 Writes a count to the stream in optimized binary format. The count
+		 parameter must be less or equal than value returned from
+		 DataWriter::maxCount(); method.
+		 
+		 You should prefer this method for counter-type values over the writing
+		 U32 or U64 to the stream, because it usually produces a shorter byte 
+		 streams. For example, if count value is lesser than 128, then just
+		 one byte is serialized.
 		 */
 		bool writeCount(size_t count);
 		
 		/**
-		 Returns maximum supported
+		 Returns maximum supported value which can be serialized as 
+		 a counter. The returned value is the same for all supported
+		 platforms and CPU architectures.
 		 */
 		static size_t maxCount();
 

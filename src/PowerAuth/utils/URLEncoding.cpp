@@ -24,7 +24,7 @@ namespace powerAuth
 {
 namespace utils
 {
-	static size_t _UREncodingEstimateResultLength(std::string::const_iterator begin, std::string::const_iterator end)
+	static size_t _URLEncodingEstimateResultLength(std::string::const_iterator begin, std::string::const_iterator end)
 	{
 		size_t result = 0;
 		bool escape = false;
@@ -67,7 +67,7 @@ namespace utils
 		}
 		
 		// Calculate expected length
-		size_t buffer_length = _UREncodingEstimateResultLength(str.cbegin(), str.cend());
+		size_t buffer_length = _URLEncodingEstimateResultLength(str.cbegin(), str.cend());
 		if (buffer_length == 0) {
 			// There's no escaping, we can return input string directly.
 			return cc7::ByteArray(str.cbegin(), str.cend());

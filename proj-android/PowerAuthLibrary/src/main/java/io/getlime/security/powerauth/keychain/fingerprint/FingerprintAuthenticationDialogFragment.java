@@ -231,8 +231,8 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         // Customize Dialog Appearance
         alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
-            public void onShow(DialogInterface arg0) {
-                int COLOR_BUTTON_POSITIVE = getContext().getColor(R.color.color_fingerprint_close_button);
+            public void onShow(DialogInterface dialogInterface) {
+                int COLOR_BUTTON_POSITIVE = alertDialog.getContext().getColor(R.color.color_fingerprint_close_button);
                 alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(COLOR_BUTTON_POSITIVE);
             }
         });

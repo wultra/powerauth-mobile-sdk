@@ -11,7 +11,7 @@ set +v
 # The result of the build process is one multi-architecture static library (also 
 # called as "fat") with all supported microprocessor architectures in one file.
 # 
-# Script is using following folders:
+# Script is using following folders (if not changed):
 #
 #    ./Lib/Debug       - result of debug configuration
 #    ./Lib/Release     - result of release configuration
@@ -32,11 +32,9 @@ if [ -z "$TOP" ]; then
     exit 1
 fi
 #
-# Working directories
+# Source headers
 #
-OUTPUT_DIR="${TOP}/Lib"
-TMP_DIR="${TOP}/Tmp"
-HEADERS_DIR="${TOP}/Classes"
+SOURCES_DIR="${TOP}/Classes"
 #
 # Architectures & Target libraries
 #
@@ -44,7 +42,9 @@ ALL_ARCHITECTURES=("i386" "x86_64" "armv7" "armv7s" "arm64")
 ALL_LIBRARIES=("libPowerAuth2.a" "libPowerAuth2Tests.a")
 
 # -----------------------------------------------------------------------------
-# USAGE prints help and exits the script with error code 1
+# USAGE prints help and exits the script with error code from provided parameter
+# Parameters:
+#   $1   - error code to be used as return code from the script
 # -----------------------------------------------------------------------------
 function USAGE
 {
@@ -56,14 +56,18 @@ function USAGE
 	echo "  release     for RELEASE build"
 	echo ""
 	echo "options are:"
-	echo "  -nc | --no-clean"
-	echo "              disable 'clean' before 'build'"
-	echo "              also disables derived data cleanup after build"
-	echo "  -v0         turn off all prints to stdout"
-	echo "  -v1         print only basic log about build progress"
-	echo "  -v2         print full build log with rich debug info"
+	echo "  -nc | --no-clean  disable 'clean' before 'build'"
+	echo "                    also disables derived data cleanup after build"
+	echo "  -v0               turn off all prints to stdout"
+	echo "  -v1               print only basic log about build progress"
+	echo "  -v2               print full build log with rich debug info"
+	echo "  --lib-dir path    changes directory where final FAT libraries"
+	echo "                    will be stored"
+	echo "  --hdr-dir path    changes directory where public headers"
+	echo "                    will be copied"
+	echo "  --tmp-dir path    changes temporary directory to |path|"
 	echo ""
-	exit 1
+	exit $1
 }
 # -----------------------------------------------------------------------------
 # FAILURE prints error to stderr and exits the script with error code 1
@@ -153,7 +157,7 @@ function BUILD_SCHEME
 	for LIB in ${ALL_LIBRARIES[@]}
 	do
 		LIB_NAME=$(basename $LIB)
-		FATLIB="${OUTPUT_DIR}/${CONF}/${LIB_NAME}"		
+		FATLIB="${LIB_DIR}/${LIB_NAME}"		
 		PLATFORM_LIBS=`find ${TMP_DIR}/${SCHEME} -name ${LIB_NAME}`
       	LOG "FATalizing library  ${LIB_NAME}"
       	${LIPO} -create ${PLATFORM_LIBS} -output "${FATLIB}"
@@ -165,12 +169,13 @@ function BUILD_SCHEME
 	LOG "-----------------------------------------------------"
 	LOG "Copying headers..."
 	LOG "-----------------------------------------------------"
-	pushd "${HEADERS_DIR}" > /dev/null
+	HDR_DIR_FULL="`( cd \"$HDR_DIR\" && pwd )`"
+	pushd "${SOURCES_DIR}" > /dev/null
 	headers=(`grep -R -null --include "*.h" --exclude "*Private*" "" .`)
 	for ix in ${!headers[*]}
 	do
 		SRC="${headers[$ix]}"
-		DST="${OUTPUT_DIR}/${CONF}/Headers/$SRC"
+		DST="${HDR_DIR_FULL}/$SRC"
 		$MD $(dirname $DST)
 		$CP "${SRC}" "${DST}"
 	done
@@ -200,8 +205,9 @@ function CLEAN_SCHEME
 VERBOSE=1
 FULL_REBUILD=1
 CLEANUP_AFTER=1
-for opt in "$@"
+while [[ $# -gt 0 ]]
 do
+	opt="$1"
 	case "$opt" in
 		debug)
 			BUILD_CONF='Debug'
@@ -215,21 +221,48 @@ do
 			FULL_REBUILD=0 
 			CLEANUP_AFTER=0
 			;;
+		--tmp-dir)
+			TMP_DIR="$2"
+			shift
+			;;
+		--lib-dir)
+			LIB_DIR="$2"
+			shift
+			;;
+		--hdr-dir)
+			HDR_DIR="$2"
+			shift
+			;;
 		-v0)
 			VERBOSE=0 ;;
 		-v1)
 			VERBOSE=1 ;;
 		-v2)
 			VERBOSE=2 ;;
+		-h | --help)
+			USAGE 0
+			;;
 		*)
-			USAGE
+			USAGE 1
 			;;
 	esac
+	shift
 done
 
 # Check required parameters
 if [ x$BUILD_CONF == x ]; then
 	FAILURE "You have to specify build configuration (debug or release)"
+fi
+
+# Defaulting target & temporary olders
+if [ -z "$LIB_DIR" ]; then
+	LIB_DIR="${TOP}/Lib/${BUILD_CONF}"
+fi
+if [ -z "$HDR_DIR" ]; then
+	HDR_DIR="${TOP}/Lib/${BUILD_CONF}/Headers"
+fi
+if [ -z "$TMP_DIR" ]; then
+	TMP_DIR="${TOP}/Tmp"
 fi
 
 # Find various build tools
@@ -241,6 +274,14 @@ fi
 if [ x$LIPO == x ]; then
 	FAILURE "lipo command not found."
 fi
+
+# Print current config
+DEBUG_LOG "Going to build ${BUILD_CONF} in scheme ${SCHEME_NAME}"
+DEBUG_LOG " >> LIB_DIR = ${LIB_DIR}"
+DEBUG_LOG " >> HDR_DIR = ${HDR_DIR}"
+DEBUG_LOG " >> TMP_DIR = ${TMP_DIR}"
+DEBUG_LOG "    XCBUILD = ${XCBUILD}"
+DEBUG_LOG "    LIPO    = ${LIPO}"
 
 # Setup verbose shell commands
 if [ $VERBOSE -lt 2 ]; then
@@ -259,10 +300,12 @@ fi
 # Real job starts here :) 
 # -----------------------------------------------------------------------------
 #
-# Prepare target directory
+# Prepare target directories
 #
-[[ x$FULL_REBUILD == x1 ]] && $RM -r "${OUTPUT_DIR}/${BUILD_CONF}"
-$MD "${OUTPUT_DIR}/${BUILD_CONF}"
+[[ x$FULL_REBUILD == x1 ]] && $RM -r "${LIB_DIR}"
+[[ x$FULL_REBUILD == x1 ]] && $RM -r "${HDR_DIR}"
+$MD "${LIB_DIR}"
+$MD "${HDR_DIR}"
 #
 # Perform clean if required
 #

@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 	# General information
-	s.name					= 'PowerAuth2'
-	s.version				= '0.12.0'
-	s.summary				= 'PowerAuth 2.0 Mobile SDK for iOS.'
-	s.homepage    			= 'https://powerauth.com'
-	s.social_media_url   	= 'https://twitter.com/lime_company'
-	s.author              	= { 'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu' }
-	s.license    			= { 
+	s.name				    	= 'PowerAuth2'
+	s.version				    = '0.12.0'
+	s.summary				    = 'PowerAuth 2.0 Mobile SDK for iOS.'
+	s.homepage    		  = 'https://powerauth.com'
+	s.social_media_url  = 'https://twitter.com/lime_company'
+	s.author          	= { 'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu' }
+	s.license    		  	= { 
 		:type => 'Apache License, Version 2.0', 
 		:file => 'LICENSE' 
 	}
@@ -20,16 +20,15 @@ Pod::Spec.new do |s|
 	
 	# FAT library build
 	s.platform    			= :ios, '8.0'
-	s.prepare_command 		= <<-CMD
-		./proj-xcode/build-libraries.sh release
+	s.prepare_command 	= <<-CMD
+		./proj-xcode/build-libraries.sh release --lib-dir Library --hdr-dir Library
 	CMD
 	
 	# Produced files
-	s.header_mappings_dir	= 'proj-xcode/Lib/Release/Headers'
-	s.source_files			= 'proj-xcode/Lib/Release/Headers/**/*.h'
-	s.public_header_files	= 'proj-xcode/Lib/Release/Headers/**/*.h'
-	s.vendored_libraries	= 'proj-xcode/Lib/Release/libPowerAuth2.a'
-	s.requires_arc			= true
-	s.libraries 			= 'c++'
+	s.source_files			    = 'Library/**/*.h'
+	s.public_header_files	  = 'Library/**/*.h'
+	s.vendored_libraries	  = 'Library/libPowerAuth2.a'
+	s.requires_arc			    = true
+	s.libraries 			      = 'c++'
 	
 end

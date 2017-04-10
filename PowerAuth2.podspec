@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
 	s.header_mappings_dir	= 'proj-xcode/Lib/Release/Headers'
 	s.source_files			= 'proj-xcode/Lib/Release/Headers/**/*.h'
 	s.public_header_files	= 'proj-xcode/Lib/Release/Headers/**/*.h'
-	s.vendor_libraries 		= 'proj-xcode/Lib/Release/libPowerAuth2.a'
+	s.vendored_libraries	= 'proj-xcode/Lib/Release/libPowerAuth2.a'
 	s.requires_arc			= true
 	s.libraries 			= 'c++'
 	

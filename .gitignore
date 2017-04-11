@@ -37,6 +37,8 @@ xcuserdata
 # https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
 #
 # Pods/
+# Temp. folder for our local CocoaPods build
+Library/
 
 # Carthage
 #

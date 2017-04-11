@@ -19,10 +19,29 @@
 
 #pragma mark - Custom logging
 
-#ifdef DEBUG
-#define PALog(...) NSLog(__VA_ARGS__)
-#else
-#define PALog(...)
+/**
+ PALog(...) macro prints debug information into the debug console and is used internally
+ in the PowerAuth SDK. By default, the macro is expanded to NSLog(...), but only for DEBUG 
+ build configuration. You can control this behavior by defining following macros:
+ 
+	ENABLE_PA2_LOG		- force enables debug logs
+	DISABLE_PA2_LOG		- force disables debug logs
+ 
+ If both, DISABLE_PA2_LOG and ENABLE_PA2_LOG are defined, then the compile error is produced.
+ */
+#if defined(DEBUG) && !defined(DISABLE_PA2_LOG) && !defined(ENABLE_PA2_LOG)
+#define ENABLE_PA2_LOG
 #endif
+
+#if defined(DISABLE_PA2_LOG) && defined(ENABLE_PA2_LOG)
+#error PowerAuth debug log is force disabled and enabled at the same time
+#endif
+
+#ifdef ENABLE_PA2_LOG
+	#define PALog(...) NSLog(__VA_ARGS__)
+#else
+	#define PALog(...)
+#endif
+
 
 #endif /* PA2Macros_h */

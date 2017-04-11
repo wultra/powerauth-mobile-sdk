@@ -2,7 +2,7 @@
 # ----------------------------------------------------------------------------
 set -e
 set +v
-# ----------------------------------------------------------------------------
+###############################################################################
 # PowerAuth2 build for Apple platforms
 #
 # The main purpose of this script is build and prepare PA2 "fat" libraries for
@@ -24,17 +24,19 @@ set +v
 #    ./lib*.a          - so, it contains libPowerAuth2.a file in the root
 #
 # ----------------------------------------------------------------------------
-CMD=$(basename $0)
+
+###############################################################################
+# Include common functions...
+# -----------------------------------------------------------------------------
 TOP=$(dirname $0)
-TOP="`( cd \"$TOP\" && pwd )`"
-if [ -z "$TOP" ]; then
-    echo "$CMD: Error: Current dir is not accessible."
-    exit 1
-fi
+source "${TOP}/common-functions.sh"
+
 #
-# Source headers
+# Source headers & Xcode project location
 #
-SOURCES_DIR="${TOP}/Classes"
+SOURCES_DIR="${SRC_ROOT}/proj-xcode/Classes"
+XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthLib.xcodeproj"
+
 #
 # Architectures & Target libraries
 #
@@ -66,35 +68,11 @@ function USAGE
 	echo "  --hdr-dir path    changes directory where public headers"
 	echo "                    will be copied"
 	echo "  --tmp-dir path    changes temporary directory to |path|"
+	echo "  -h | --help       prints this help information"
 	echo ""
 	exit $1
 }
-# -----------------------------------------------------------------------------
-# FAILURE prints error to stderr and exits the script with error code 1
-# -----------------------------------------------------------------------------
-function FAILURE
-{
-	echo "$CMD: Error: $@" 1>&2
-	exit 1
-}
-# -----------------------------------------------------------------------------
-# LOG prints all parameters to stdout if VERBOSE is greater than 0
-# -----------------------------------------------------------------------------
-function LOG
-{
-	if [ $VERBOSE -gt 0 ]; then
-		echo "$CMD: $@"
-	fi
-}
-# -----------------------------------------------------------------------------
-# DEBUG_LOG prints all parameters to stdout if VERBOSE is greater than 1
-# -----------------------------------------------------------------------------
-function DEBUG_LOG
-{
-	if [ $VERBOSE -gt 1 ]; then
-		echo "$CMD: $@"
-	fi	
-}
+
 # -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
@@ -117,7 +95,7 @@ function BUILD_COMMAND
 	
 	BUILD_DIR="${TMP_DIR}/${SCHEME}/${PLATFORM}-${ARCH}"
 	ARCH_SETUP="VALID_ARCHS=${ARCH} ARCHS=${ARCH} CURRENT_ARCH=${ARCH} ONLY_ACTIVE_ARCH=NO"
-	COMMAND_LINE="${XCBUILD} -project ${TOP}/PowerAuthLib.xcodeproj"
+	COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
 	if [ $VERBOSE -lt 2 ]; then
 		COMMAND_LINE="$COMMAND_LINE -quiet"
 	fi
@@ -199,7 +177,7 @@ function CLEAN_SCHEME
 	done
 }
 
-# -----------------------------------------------------------------------------
+###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
 VERBOSE=1
@@ -233,12 +211,9 @@ do
 			HDR_DIR="$2"
 			shift
 			;;
-		-v0)
-			VERBOSE=0 ;;
-		-v1)
-			VERBOSE=1 ;;
-		-v2)
-			VERBOSE=2 ;;
+		-v*)
+			SET_VERBOSE_LEVEL_FROM_SWITCH $opt
+			;;
 		-h | --help)
 			USAGE 0
 			;;

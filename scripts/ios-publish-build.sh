@@ -63,21 +63,29 @@ DEV_BRANCH="development"
 
 # Validate whether git branch is development
 LOG "----- Validating git status..."
-GIT_CURRENT_CHANGES=`git status -s`
-if [ ! -z "$GIT_CURRENT_CHANGES" ]; then
-	FAILURE "Git status must be clean."
-fi
-
-GIT_CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-if [ x$GIT_VALIDATE_DEVELOPMENT_BRANCH == x1 ]; then
-	if [ "$GIT_CURRENT_BRANCH" != ${DEV_BRANCH} ]; then
-		FAILURE "You have to be at '${DEV_BRANCH}' git branch."
+pushd "${SRC_ROOT}" > /dev/null
+	GIT_CURRENT_CHANGES=`git status -s`
+	if [ ! -z "$GIT_CURRENT_CHANGES" ]; then
+		FAILURE "Git status must be clean."
 	fi
-	STANDARD_BRANCH=1
-else
-	WARNING "Going to publish '${VERSION}' from non-standard branch '${GIT_CURRENT_BRANCH}'"
-	STANDARD_BRANCH=0
-fi
+
+	GIT_CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+	if [ x$GIT_VALIDATE_DEVELOPMENT_BRANCH == x1 ]; then
+		if [ "$GIT_CURRENT_BRANCH" != ${DEV_BRANCH} ]; then
+			FAILURE "You have to be at '${DEV_BRANCH}' git branch."
+		fi
+		STANDARD_BRANCH=1
+	else
+		WARNING "Going to publish '${VERSION}' from non-standard branch '${GIT_CURRENT_BRANCH}'"
+		STANDARD_BRANCH=0
+	fi
+
+	git fetch origin
+	HAS_TAGS=`git tag -l | grep ^${VERSION}`
+	if [ ! -e "$HAS_TAGS" ]; then
+		FAILURE "Version '${VERSION}' is already published."
+	fi
+popd                > /dev/null
 
 # Generate podspec
 LOG "----- Generating PowerAuth2.podspec..."
@@ -118,11 +126,12 @@ if [ x$STANDARD_BRANCH == x0 ]; then
 fi
 
 LOG "----- Merging to '${MASTER_BRANCH}..."
-
 pushd "${SRC_ROOT}" > /dev/null
 	git fetch origin
-	git rebase origin/${MASTER_BRANCH}
-	git push origin
+	git checkout ${MASTER_BRANCH}
+	git rebase origin/${DEV_BRANCH}
+	git push
+	git checkout ${DEV_BRANCH}
 popd                > /dev/null
 
 LOG "----- OK"

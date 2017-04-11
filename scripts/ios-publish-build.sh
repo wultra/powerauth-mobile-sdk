@@ -55,6 +55,12 @@ if [ -z "$VERSION" ]; then
 	FAILURE "You have to provide version string."
 fi
 
+# Config
+PODSPEC="PowerAuth2.podspec"
+MASTER_BRANCH="master"
+DEV_BRANCH="development"
+
+
 # Validate whether git branch is development
 LOG "----- Validating git status..."
 GIT_CURRENT_CHANGES=`git status -s`
@@ -64,17 +70,14 @@ fi
 
 GIT_CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 if [ x$GIT_VALIDATE_DEVELOPMENT_BRANCH == x1 ]; then
-	if [ "$GIT_CURRENT_BRANCH" != "development" ]; then
-		FAILURE "You have to be at 'development' git branch."
+	if [ "$GIT_CURRENT_BRANCH" != ${DEV_BRANCH} ]; then
+		FAILURE "You have to be at '${DEV_BRANCH}' git branch."
 	fi
 	STANDARD_BRANCH=1
 else
 	WARNING "Going to publish '${VERSION}' from non-standard branch '${GIT_CURRENT_BRANCH}'"
 	STANDARD_BRANCH=0
 fi
-
-# Podspec
-PODSPEC="PowerAuth2.podspec"
 
 # Generate podspec
 LOG "----- Generating PowerAuth2.podspec..."
@@ -94,7 +97,7 @@ popd                > /dev/null
 
 LOG "----- Pushing changes..."
 pushd "${SRC_ROOT}" > /dev/null
-	git push origin $VERSION 
+	git push --follow-tags 
 popd                > /dev/null
 
 
@@ -107,6 +110,19 @@ popd                > /dev/null
 LOG "----- Publishing to CocoaPods..."
 pushd "${SRC_ROOT}" > /dev/null
 	pod trunk push ${PODSPEC}
+popd                > /dev/null
+
+if [ x$STANDARD_BRANCH == x0 ]; then
+	LOG "----- OK, but not merged to 'master'"
+	exit 0
+fi
+
+LOG "----- Merging to '${MASTER_BRANCH}..."
+
+pushd "${SRC_ROOT}" > /dev/null
+	git fetch origin
+	git rebase origin/${MASTER_BRANCH}
+	git push origin
 popd                > /dev/null
 
 LOG "----- OK"

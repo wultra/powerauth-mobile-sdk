@@ -1,12 +1,14 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name				    	= 'PowerAuth2'
-	s.version				    = '0.12.0'
+	s.version				    = '0.13.0'
 	s.summary				    = 'PowerAuth 2.0 Mobile SDK for iOS.'
 	s.homepage    		  = 'https://powerauth.com'
 	s.social_media_url  = 'https://twitter.com/lime_company'
 	s.documentation_url = 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
-	s.author          	= { 'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu' }
+	s.author          	= { 
+	  'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu'
+	}
 	s.license    		  	= { 
 		:type => 'Apache License, Version 2.0', 
 		:file => 'LICENSE' 
@@ -22,7 +24,7 @@ Pod::Spec.new do |s|
 	# FAT library build
 	s.platform    			= :ios, '8.0'
 	s.prepare_command 	= <<-CMD
-		./proj-xcode/build-libraries.sh release --lib-dir Library --hdr-dir Library
+		./scripts/ios-build-libraries.sh release --lib-dir Library --hdr-dir Library
 	CMD
 	
 	# Produced files

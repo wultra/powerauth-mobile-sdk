@@ -56,7 +56,7 @@ if [ -z "$VERSION" ]; then
 fi
 
 # Validate whether git branch is development
-LOG "Validating git status..."
+LOG "----- Validating git status..."
 GIT_CURRENT_CHANGES=`git status -s`
 if [ ! -z "$GIT_CURRENT_CHANGES" ]; then
 	FAILURE "Git status must be clean."
@@ -73,25 +73,40 @@ else
 	STANDARD_BRANCH=0
 fi
 
+# Podspec
+PODSPEC="PowerAuth2.podspec"
+
 # Generate podspec
-LOG "Generating PowerAuth2.podspec..."
-sed -e "s/%PODSPEC_VERSION%/$VERSION/g" "${TOP}/data/PowerAuth2.podspec.template" > "$SRC_ROOT/PowerAuth2.podspec" 
+LOG "----- Generating PowerAuth2.podspec..."
+	sed -e "s/%PODSPEC_VERSION%/$VERSION/g" "${TOP}/data/${PODSPEC}.template" > "$SRC_ROOT/${PODSPEC}" 
 
 # Commit podspec & Add tag
-LOG "Commiting PowerAuth2.podspec..."
+LOG "----- Commiting PowerAuth2.podspec..."
 pushd "${SRC_ROOT}" > /dev/null
-git add PowerAuth2.podspec
-git commit -m "iOS: Updating PowerAuth2.podspec to version $VERSION"
+	git add ${PODSPEC}
+	git commit -m "iOS: Updating ${PODSPEC} to version $VERSION"
 popd                > /dev/null
 
-LOG "Tagging version $VERSION..."
+LOG "----- Tagging version $VERSION..."
 pushd "${SRC_ROOT}" > /dev/null
-git tag -a $VERSION -m "iOS: CocoaPods version $VERSION"
+	git tag -a $VERSION -m "CocoaPods version $VERSION"
 popd                > /dev/null
 
-LOG "Pushing changes..."
+LOG "----- Pushing changes..."
 pushd "${SRC_ROOT}" > /dev/null
-#git push origin $VERSION 
+	git push origin $VERSION 
 popd                > /dev/null
 
 
+LOG "----- Validating build..."
+pushd "${SRC_ROOT}" > /dev/null
+	pod lib lint ${PODSPEC}
+popd                > /dev/null
+
+
+LOG "----- Publishing to CocoaPods..."
+pushd "${SRC_ROOT}" > /dev/null
+	pod trunk push ${PODSPEC}
+popd                > /dev/null
+
+LOG "----- OK"

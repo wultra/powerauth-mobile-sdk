@@ -55,12 +55,12 @@ function VALIDATE_GIT_STATUS
 	LOG "----- Validating git status..."
 	pushd "${SRC_ROOT}" > /dev/null
 	####
-	GIT_CURRENT_CHANGES=`git status -s`
+	local GIT_CURRENT_CHANGES=`git status -s`
 	if [ ! -z "$GIT_CURRENT_CHANGES" ]; then
 		FAILURE "Git status must be clean."
 	fi
 
-	GIT_CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+	local GIT_CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 	if [ x$GIT_VALIDATE_DEVELOPMENT_BRANCH == x1 ]; then
 		if [ "$GIT_CURRENT_BRANCH" != ${DEV_BRANCH} ]; then
 			FAILURE "You have to be at '${DEV_BRANCH}' git branch."
@@ -72,10 +72,13 @@ function VALIDATE_GIT_STATUS
 	fi
 
 	git fetch origin
-	HAS_TAGS=`git tag -l | grep ^${VERSION}`
-	if [ ! -e "$HAS_TAGS" ]; then
-		FAILURE "Version '${VERSION}' is already published."
-	fi
+	local CURRENT_TAGS=(`git tag -l`)
+	local TAG	
+	for TAG in ${CURRENT_TAGS[@]}; do
+		if [ "$TAG" == ${VERSION} ]; then 
+			FAILURE "Version '${VERSION}' is already published."
+		fi 
+	done
 	####
 	popd                > /dev/null
 }
@@ -84,7 +87,7 @@ function VALIDATE_GIT_STATUS
 # Prepares local files which contains version string, then commits those
 # files with appropriate tag and pushes everything to the remote git repository
 # -----------------------------------------------------------------------------
-function PUSH_VERSIONED_FILES
+function PUSH_VERSIONING_FILES
 {
 	pushd "${SRC_ROOT}" > /dev/null
 	####
@@ -114,8 +117,8 @@ function PUSH_VERSIONED_FILES
 			;;
 	esac
 
-	LOG "----- Commiting versioned files..."
-	git commit -m "Deployment: Update versioned files to ${VERSION}"
+	LOG "----- Commiting versioning files..."
+	git commit -m "Deployment: Update versioning file[s] to ${VERSION}"
 	
 	LOG "----- Tagging version ${VERSION}..."
 	git tag -a ${VERSION} -m "${TAG_MESSAGE}"
@@ -235,7 +238,7 @@ fi
 # Main job starts here...
 #
 VALIDATE_GIT_STATUS
-PUSH_VERSIONED_FILES
+PUSH_VERSIONING_FILES
 DEPLOY_IOS
 DEPLOY_ANDROID
 MERGE_TO_MASTER

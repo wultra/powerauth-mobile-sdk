@@ -19,7 +19,7 @@ function USAGE
 	echo "                      Only X.Y.Z format is accepted"
 	echo ""
 	echo "platform            is at least one supported platform:"
-	echo "    android           for deployment to jCenter"
+	echo "    android           for deployment to jcenter"
 	echo "    ios               for deployment to CocoaPods"
 	echo ""
 	echo "options are:"
@@ -104,13 +104,13 @@ function PUSH_VERSIONING_FILES
 	local TAG_MESSAGE=""
 	case "$DO_IOS$DO_ANDROID" in
 		10)
-			TAG_MESSAGE="CocoaPods version $VERSION"
+			TAG_MESSAGE="ios version $VERSION"
 			;;
 		01)
-			TAG_MESSAGE="jCenter version $VERSION" 
+			TAG_MESSAGE="android version $VERSION" 
 			;;
 		11)
-			TAG_MESSAGE="CocoaPods + jCenter version $VERSION"
+			TAG_MESSAGE="ios+android version $VERSION"
 			;;
 		*)
 			FAILURE "Internal script error 1"
@@ -150,7 +150,7 @@ function DEPLOY_IOS
 }
 
 # -----------------------------------------------------------------------------
-# Deploys recently tagged version to jCenter
+# Deploys recently tagged version to jcenter
 # -----------------------------------------------------------------------------
 function DEPLOY_ANDROID
 {
@@ -165,7 +165,7 @@ function DEPLOY_ANDROID
 	
 	pushd "${SRC_ROOT}/proj-android" > /dev/null
 	####
-	LOG "----- Publishing to jCenter..."
+	LOG "----- Publishing to jcenter..."
 	export BINTRAY_USER
 	export BINTRAY_API_KEY
 	./gradlew clean build bintrayUpload

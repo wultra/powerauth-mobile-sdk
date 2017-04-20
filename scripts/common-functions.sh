@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ###############################################################################
 # Global scope:  
 #    Sets default script processing to very paranoid mode 
@@ -81,6 +81,31 @@ function VALIDATE_AND_SET_VERSION_STRING
 		DEBUG_LOG "Changing version to $VERSION"
 	else
 		FAILURE "Version string is already set to $VERSION"
+	fi
+}
+# -----------------------------------------------------------------------------
+# Loads shared credentials, like API keys & logins. The function performs
+# lookup in following order:
+#   if LIME_CREDENTIALS == 1 then does nothing, credentials are loaded
+#	if file exists at ${LIME_CREDENTIALS_FILE}, then loads the file
+#   if file exists at ~/.lime/credentials, then loads the file
+#   if file exists at .lime-credentials, then loads the file
+# -----------------------------------------------------------------------------
+function LOAD_API_CREDENTIALS
+{
+	if [ x${API_CREDENTIALS} == x1 ]; then
+		DEBUG_LOG "Credentials are already set."
+	elif [ ! -z "${API_CREDENTIALS_FILE}" ]; then
+		source "${API_CREDENTIALS_FILE}"
+	elif [ -f "${HOME}/.lime/credentials" ]; then
+		source "${HOME}/.lime/credentials"
+	elif [ -f ".lime-credentials" ]; then
+		source ".lime-credentials"
+	else
+		FAILURE "Unable to locate credentials file."
+	fi
+	if [ x${LIME_CREDENTIALS} != x1 ]; then
+		FAILURE "Credentials file must set LIME_CREDENTIALS variable to 1"
 	fi
 }
 

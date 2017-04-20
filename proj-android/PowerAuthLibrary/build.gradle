@@ -1,3 +1,7 @@
+plugins {
+  id "com.jfrog.bintray" version "1.7.3"
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
@@ -9,7 +13,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 25
         versionName VERSION_NAME
-        versionCode Integer.parseInt(VERSION_CODE)
+        versionCode 1
 
         externalNativeBuild {
             ndkBuild {
@@ -38,7 +42,7 @@ android {
     }
 
     dependencies {
-        compile group: 'io.getlime.security', name: 'powerauth-restful-model', version: VERSION_NAME
+        compile 'io.getlime.security:powerauth-restful-model:0.14.0'
         compile 'com.android.support:support-annotations:25.1.1'
         compile 'com.google.code.gson:gson:2.8.0'
     }
@@ -75,5 +79,21 @@ publishing {
     }
 }
 
-
-
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key  = System.getenv('BINTRAY_API_KEY')
+    publications = ['maven']
+	pkg {
+		repo = 'PowerAuth'
+		name = 'powerauth-android-sdk'
+		userOrg = 'lime-company'
+		version {
+			name = project.VERSION_NAME
+			vcsTag = project.VERSION_NAME
+			released  = new Date()
+		}	
+	}
+    dryRun = false    // Whether to run this as dry-run, without deploying
+    publish = true    // Whether version should be auto published after an upload    
+    override = false  // Whether to override version artifacts already published
+}

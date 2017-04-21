@@ -109,6 +109,27 @@ function LOAD_API_CREDENTIALS
 	fi
 }
 
+# -----------------------------------------------------------------------------
+# PUSH_DIR & POP_DIR functions works just like pushd & popd builtin commands,
+# but doesn't print a current directory, unless the VERBOSE level is 2.
+# -----------------------------------------------------------------------------
+function PUSH_DIR
+{
+	if [ $VERBOSE -gt 1 ]; then
+		pushd "$1"
+	else
+		pushd "$1" > /dev/null
+	fi
+}
+function POP_DIR
+{
+	if [ $VERBOSE -gt 1 ]; then
+		popd
+	else
+		popd > /dev/null
+	fi
+}
+
 ###############################################################################
 # Global scope
 #   Gets full path to current directory and exits with error when 

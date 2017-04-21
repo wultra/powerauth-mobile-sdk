@@ -53,7 +53,7 @@ DO_ANDROID=0
 function VALIDATE_GIT_STATUS
 {
 	LOG "----- Validating git status..."
-	pushd "${SRC_ROOT}" > /dev/null
+	PUSH_DIR "${SRC_ROOT}"
 	####
 	local GIT_CURRENT_CHANGES=`git status -s`
 	if [ ! -z "$GIT_CURRENT_CHANGES" ]; then
@@ -80,7 +80,7 @@ function VALIDATE_GIT_STATUS
 		fi 
 	done
 	####
-	popd                > /dev/null
+	POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -89,7 +89,7 @@ function VALIDATE_GIT_STATUS
 # -----------------------------------------------------------------------------
 function PUSH_VERSIONING_FILES
 {
-	pushd "${SRC_ROOT}" > /dev/null
+	PUSH_DIR "${SRC_ROOT}"
 	####
 	if [ x$DO_IOS == x1 ]; then
 		LOG "----- Generating ${PODSPEC}..."
@@ -127,7 +127,7 @@ function PUSH_VERSIONING_FILES
 	git push --follow-tags 
 	
 	####
-	popd                > /dev/null
+	POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -139,14 +139,14 @@ function DEPLOY_IOS
 		return
 	fi
 	
-	pushd "${SRC_ROOT}" > /dev/null
+	PUSH_DIR "${SRC_ROOT}"
 	####
 	LOG "----- Validating build..."
 	pod lib lint ${PODSPEC}
 	LOG "----- Publishing to CocoaPods..."
 	pod trunk push ${PODSPEC}
 	####
-	popd                > /dev/null
+	POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -163,14 +163,14 @@ function DEPLOY_ANDROID
 		FAILURE "Your credentials file doesn't contain information about bintray account."
 	fi
 	
-	pushd "${SRC_ROOT}/proj-android" > /dev/null
+	PUSH_DIR "${SRC_ROOT}/proj-android"
 	####
 	LOG "----- Publishing to jcenter..."
 	export BINTRAY_USER
 	export BINTRAY_API_KEY
 	./gradlew clean build bintrayUpload
 	####
-	popd                > /dev/null
+	POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ function MERGE_TO_MASTER
 	if [ x$STANDARD_BRANCH == x0 ]; then
 		LOG "----- OK, but not merged to '${MASTER_BRANCH}'"
 	else
-		pushd "${SRC_ROOT}" > /dev/null
+		PUSH_DIR "${SRC_ROOT}"
 		####
 		LOG "----- Merging to '${MASTER_BRANCH}'..."
 		git fetch origin
@@ -190,7 +190,7 @@ function MERGE_TO_MASTER
 		git push
 		git checkout ${DEV_BRANCH}
 		####
-		popd                > /dev/null
+		POP_DIR
 		LOG "----- OK"
 	fi
 	exit 0

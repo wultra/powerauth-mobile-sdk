@@ -148,7 +148,8 @@ function BUILD_SCHEME
 	LOG "Copying headers..."
 	LOG "-----------------------------------------------------"
 	HDR_DIR_FULL="`( cd \"$HDR_DIR\" && pwd )`"
-	pushd "${SOURCES_DIR}" > /dev/null
+	PUSH_DIR "${SOURCES_DIR}"
+	####
 	headers=(`grep -R -null --include "*.h" --exclude "*Private*" "" .`)
 	for ix in ${!headers[*]}
 	do
@@ -157,7 +158,8 @@ function BUILD_SCHEME
 		$MD $(dirname $DST)
 		$CP "${SRC}" "${DST}"
 	done
-	popd > /dev/null
+	####
+	POP_DIR
 }
 
 # -----------------------------------------------------------------------------

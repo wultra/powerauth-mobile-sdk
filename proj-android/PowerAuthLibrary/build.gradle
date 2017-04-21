@@ -83,16 +83,16 @@ bintray {
     user = System.getenv('BINTRAY_USER')
     key  = System.getenv('BINTRAY_API_KEY')
     publications = ['maven']
-	pkg {
-		repo = 'PowerAuth'
-		name = 'powerauth-android-sdk'
-		userOrg = 'lime-company'
-		version {
-			name = project.VERSION_NAME
-			vcsTag = project.VERSION_NAME
-			released  = new Date()
-		}	
-	}
+    pkg {
+        repo    = project.BINTRAY_PKG_REPO // 'PowerAuth'
+        name    = project.BINTRAY_PKG_NAME // 'powerauth-android-sdk'
+        userOrg = project.BINTRAY_ORG_NAME // 'lime-company'
+        version {
+            name     = project.VERSION_NAME
+            vcsTag   = project.VERSION_NAME
+            released = new Date()
+        }	
+    }
     dryRun = false    // Whether to run this as dry-run, without deploying
     publish = true    // Whether version should be auto published after an upload    
     override = false  // Whether to override version artifacts already published

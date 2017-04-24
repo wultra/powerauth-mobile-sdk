@@ -1,0 +1,8 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="http://getlime.io/security/powerauth">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<pow:CreateApplicationRequest>
+			<pow:applicationName>$1</pow:applicationName>
+		</pow:CreateApplicationRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

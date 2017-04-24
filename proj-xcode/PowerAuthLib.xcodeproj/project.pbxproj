@@ -43,6 +43,20 @@
 		BF14FE881CF8A4800032B30C /* URLEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF14FE841CF8A4800032B30C /* URLEncoding.cpp */; };
 		BF1FA8CF1D07216600392EC7 /* Password.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1FA8CE1D07216600392EC7 /* Password.cpp */; };
 		BF1FA8D11D074C9C00392EC7 /* pa2PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1FA8D01D074C9C00392EC7 /* pa2PasswordTests.cpp */; };
+		BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
+		BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
+		BF20EA881EACB17600733D91 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */; };
+		BF20EA891EACB17600733D91 /* CXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA751EACB17600733D91 /* CXMLElement.m */; };
+		BF20EA8A1EACB17600733D91 /* CXMLElement_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */; };
+		BF20EA8B1EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */; };
+		BF20EA8C1EACB17600733D91 /* CXMLNamespaceNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */; };
+		BF20EA8D1EACB17600733D91 /* CXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7D1EACB17600733D91 /* CXMLNode.m */; };
+		BF20EA8E1EACB17600733D91 /* CXMLNode_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */; };
+		BF20EA8F1EACB17600733D91 /* CXMLNode_XPathExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */; };
+		BF20EA901EACB17600733D91 /* CXMLUnsupportedNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */; };
+		BF20EA931EACB1A000733D91 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BF20EA921EACB1A000733D91 /* libxml2.tbd */; };
+		BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */; };
+		BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */; };
 		BF234C861CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C851CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp */; };
 		BF234C921CE5144500312A7F /* PKCS7Padding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C8D1CE5144500312A7F /* PKCS7Padding.cpp */; };
 		BF234C931CE5144500312A7F /* PRNG.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C8F1CE5144500312A7F /* PRNG.cpp */; };
@@ -68,6 +82,11 @@
 		BF4DBCDA1CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */; };
 		BF73E5951E1E80D400BE4139 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF73E5941E1E80D400BE4139 /* Encryptor.cpp */; };
 		BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */; };
+		BFAF73081EAA83AD005E7572 /* PA2IntegrationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */; };
+		BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
+		BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
+		BFAF73131EAA8986005E7572 /* SoapHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73121EAA8986005E7572 /* SoapHelper.m */; };
+		BFAF73151EAA8AB9005E7572 /* SoapRequests.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */; };
 		BFB4941A1CE9054C00F8D81B /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB494181CE9052B00F8D81B /* g_pa2Files.cpp */; };
 		BFB4941C1CE905EC00F8D81B /* pa2SignatureKeysDerivationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB4941B1CE905EC00F8D81B /* pa2SignatureKeysDerivationTest.cpp */; };
 		BFB4941E1CE90BC200F8D81B /* pa2ActivationSignatureValidationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB4941D1CE90BC200F8D81B /* pa2ActivationSignatureValidationTest.cpp */; };
@@ -230,6 +249,34 @@
 		BF1FA8CD1D0720AC00392EC7 /* Password.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Password.h; sourceTree = "<group>"; };
 		BF1FA8CE1D07216600392EC7 /* Password.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Password.cpp; sourceTree = "<group>"; };
 		BF1FA8D01D074C9C00392EC7 /* pa2PasswordTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PasswordTests.cpp; sourceTree = "<group>"; };
+		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
+		BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXHTMLDocument.m; sourceTree = "<group>"; };
+		BF20EA701EACB17600733D91 /* CXMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument.h; sourceTree = "<group>"; };
+		BF20EA711EACB17600733D91 /* CXMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument.m; sourceTree = "<group>"; };
+		BF20EA721EACB17600733D91 /* CXMLDocument_PrivateExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument_PrivateExtensions.h; sourceTree = "<group>"; };
+		BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_PrivateExtensions.m; sourceTree = "<group>"; };
+		BF20EA741EACB17600733D91 /* CXMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement.h; sourceTree = "<group>"; };
+		BF20EA751EACB17600733D91 /* CXMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement.m; sourceTree = "<group>"; };
+		BF20EA761EACB17600733D91 /* CXMLElement_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement_CreationExtensions.h; sourceTree = "<group>"; };
+		BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement_CreationExtensions.m; sourceTree = "<group>"; };
+		BF20EA781EACB17600733D91 /* CXMLElement_ElementTreeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement_ElementTreeExtensions.h; sourceTree = "<group>"; };
+		BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement_ElementTreeExtensions.m; sourceTree = "<group>"; };
+		BF20EA7A1EACB17600733D91 /* CXMLNamespaceNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNamespaceNode.h; sourceTree = "<group>"; };
+		BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNamespaceNode.m; sourceTree = "<group>"; };
+		BF20EA7C1EACB17600733D91 /* CXMLNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode.h; sourceTree = "<group>"; };
+		BF20EA7D1EACB17600733D91 /* CXMLNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode.m; sourceTree = "<group>"; };
+		BF20EA7E1EACB17600733D91 /* CXMLNode_PrivateExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_PrivateExtensions.h; sourceTree = "<group>"; };
+		BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_PrivateExtensions.m; sourceTree = "<group>"; };
+		BF20EA801EACB17600733D91 /* CXMLNode_XPathExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_XPathExtensions.h; sourceTree = "<group>"; };
+		BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_XPathExtensions.m; sourceTree = "<group>"; };
+		BF20EA821EACB17600733D91 /* CXMLUnsupportedNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLUnsupportedNode.h; sourceTree = "<group>"; };
+		BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLUnsupportedNode.m; sourceTree = "<group>"; };
+		BF20EA841EACB17600733D91 /* TouchXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchXML.h; sourceTree = "<group>"; };
+		BF20EA921EACB1A000733D91 /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		BF20EA951EACB21E00733D91 /* CXMLDocument_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument_CreationExtensions.h; sourceTree = "<group>"; };
+		BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_CreationExtensions.m; sourceTree = "<group>"; };
+		BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_CreationExtensions.h; sourceTree = "<group>"; };
+		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
 		BF234C851CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoPKCS7PaddingTests.cpp; sourceTree = "<group>"; };
 		BF234C8C1CE5144500312A7F /* CryptoUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoUtils.h; sourceTree = "<group>"; };
 		BF234C8D1CE5144500312A7F /* PKCS7Padding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PKCS7Padding.cpp; sourceTree = "<group>"; };
@@ -273,6 +320,14 @@
 		BF73E5921E1E802A00BE4139 /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
 		BF73E5941E1E80D400BE4139 /* Encryptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
 		BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
+		BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2IntegrationTests.m; sourceTree = "<group>"; };
+		BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerAPI.h; sourceTree = "<group>"; };
+		BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerAPI.m; sourceTree = "<group>"; };
+		BFAF730E1EAA84CA005E7572 /* PowerAuthTestServerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerModel.h; sourceTree = "<group>"; };
+		BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerModel.m; sourceTree = "<group>"; };
+		BFAF73111EAA8986005E7572 /* SoapHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoapHelper.h; sourceTree = "<group>"; };
+		BFAF73121EAA8986005E7572 /* SoapHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoapHelper.m; sourceTree = "<group>"; };
+		BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = SoapRequests.bundle; sourceTree = "<group>"; };
 		BFB4940E1CE9033A00F8D81B /* compute-derived-keys.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "compute-derived-keys.json"; sourceTree = "<group>"; };
 		BFB4940F1CE9033A00F8D81B /* compute-master-secret-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "compute-master-secret-key.json"; sourceTree = "<group>"; };
 		BFB494101CE9033A00F8D81B /* decrypt-server-public-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "decrypt-server-public-key.json"; sourceTree = "<group>"; };
@@ -314,6 +369,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF20EA931EACB1A000733D91 /* libxml2.tbd in Frameworks */,
 				BF4DBCD81CDF9DEC008F3A47 /* libPowerAuth2Tests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -531,6 +587,64 @@
 			path = utils;
 			sourceTree = "<group>";
 		};
+		BF20EA6B1EACB17600733D91 /* TouchXML */ = {
+			isa = PBXGroup;
+			children = (
+				BF20EA6D1EACB17600733D91 /* Source */,
+			);
+			path = TouchXML;
+			sourceTree = "<group>";
+		};
+		BF20EA6D1EACB17600733D91 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				BF20EA941EACB21E00733D91 /* Creation */,
+				BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */,
+				BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */,
+				BF20EA701EACB17600733D91 /* CXMLDocument.h */,
+				BF20EA711EACB17600733D91 /* CXMLDocument.m */,
+				BF20EA721EACB17600733D91 /* CXMLDocument_PrivateExtensions.h */,
+				BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */,
+				BF20EA741EACB17600733D91 /* CXMLElement.h */,
+				BF20EA751EACB17600733D91 /* CXMLElement.m */,
+				BF20EA761EACB17600733D91 /* CXMLElement_CreationExtensions.h */,
+				BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */,
+				BF20EA781EACB17600733D91 /* CXMLElement_ElementTreeExtensions.h */,
+				BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */,
+				BF20EA7A1EACB17600733D91 /* CXMLNamespaceNode.h */,
+				BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */,
+				BF20EA7C1EACB17600733D91 /* CXMLNode.h */,
+				BF20EA7D1EACB17600733D91 /* CXMLNode.m */,
+				BF20EA7E1EACB17600733D91 /* CXMLNode_PrivateExtensions.h */,
+				BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */,
+				BF20EA801EACB17600733D91 /* CXMLNode_XPathExtensions.h */,
+				BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */,
+				BF20EA821EACB17600733D91 /* CXMLUnsupportedNode.h */,
+				BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */,
+				BF20EA841EACB17600733D91 /* TouchXML.h */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
+		BF20EA911EACB1A000733D91 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		BF20EA941EACB21E00733D91 /* Creation */ = {
+			isa = PBXGroup;
+			children = (
+				BF20EA951EACB21E00733D91 /* CXMLDocument_CreationExtensions.h */,
+				BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */,
+				BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */,
+				BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */,
+			);
+			path = Creation;
+			sourceTree = "<group>";
+		};
 		BF234C8A1CE5144500312A7F /* crypto */ = {
 			isa = PBXGroup;
 			children = (
@@ -572,6 +686,7 @@
 				BF4DBBB71CDF33FD008F3A47 /* Libs */,
 				BF4DBCCE1CDF9CDE008F3A47 /* PA2TestWrapper */,
 				BF4DBB9C1CDF3130008F3A47 /* Products */,
+				BF20EA911EACB1A000733D91 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 			wrapsLines = 1;
@@ -674,10 +789,27 @@
 		BF4DBCCE1CDF9CDE008F3A47 /* PA2TestWrapper */ = {
 			isa = PBXGroup;
 			children = (
+				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
 				BF4DBCCF1CDF9CDE008F3A47 /* PA2TestWrapper.mm */,
+				BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
 			);
 			path = PA2TestWrapper;
+			sourceTree = "<group>";
+		};
+		BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */ = {
+			isa = PBXGroup;
+			children = (
+				BF20EA6B1EACB17600733D91 /* TouchXML */,
+				BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */,
+				BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */,
+				BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */,
+				BFAF730E1EAA84CA005E7572 /* PowerAuthTestServerModel.h */,
+				BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */,
+				BFAF73111EAA8986005E7572 /* SoapHelper.h */,
+				BFAF73121EAA8986005E7572 /* SoapHelper.m */,
+			);
+			path = PowerAuthServerSOAP;
 			sourceTree = "<group>";
 		};
 		BFB4940B1CE9026700F8D81B /* TestData */ = {
@@ -878,6 +1010,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFAF73151EAA8AB9005E7572 /* SoapRequests.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -966,7 +1099,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF20EA8E1EACB17600733D91 /* CXMLNode_PrivateExtensions.m in Sources */,
+				BFAF73131EAA8986005E7572 /* SoapHelper.m in Sources */,
+				BF20EA8F1EACB17600733D91 /* CXMLNode_XPathExtensions.m in Sources */,
+				BF20EA901EACB17600733D91 /* CXMLUnsupportedNode.m in Sources */,
+				BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */,
+				BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */,
+				BF20EA881EACB17600733D91 /* CXMLDocument_PrivateExtensions.m in Sources */,
+				BF20EA8B1EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m in Sources */,
+				BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */,
+				BF20EA891EACB17600733D91 /* CXMLElement.m in Sources */,
+				BFAF73081EAA83AD005E7572 /* PA2IntegrationTests.m in Sources */,
+				BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */,
+				BF20EA8C1EACB17600733D91 /* CXMLNamespaceNode.m in Sources */,
+				BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */,
+				BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */,
+				BF20EA8A1EACB17600733D91 /* CXMLElement_CreationExtensions.m in Sources */,
 				BF4DBCD01CDF9CDE008F3A47 /* PA2TestWrapper.mm in Sources */,
+				BF20EA8D1EACB17600733D91 /* CXMLNode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1143,6 +1293,12 @@
 		BF4DBCD61CDF9CDE008F3A47 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../include",
+					"$(PROJECT_DIR)/../cc7/include",
+					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = PA2TestWrapper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PA2TestWrapper;
@@ -1153,6 +1309,12 @@
 		BF4DBCD71CDF9CDE008F3A47 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../include",
+					"$(PROJECT_DIR)/../cc7/include",
+					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					/usr/include/libxml2,
+				);
 				INFOPLIST_FILE = PA2TestWrapper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PA2TestWrapper;

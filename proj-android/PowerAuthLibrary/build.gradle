@@ -54,13 +54,31 @@ android {
     }
 }
 
+task androidJavadocs(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "source"
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
             groupId project.GROUP_ID
             artifactId project.ARTIFACT_ID
             version project.VERSION_NAME
-            artifact "$buildDir/outputs/aar/${project.getName()}-release.aar"
+
+            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+            artifact(androidSourcesJar)
+            artifact(androidJavadocsJar)
 
             // http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
             pom.withXml {

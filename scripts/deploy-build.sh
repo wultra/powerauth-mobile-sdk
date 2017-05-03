@@ -162,13 +162,37 @@ function DEPLOY_ANDROID
 	if [ -z "${BINTRAY_USER}" ] || [ -z "${BINTRAY_API_KEY}" ]; then
 		FAILURE "Your credentials file doesn't contain information about bintray account."
 	fi
+	if [ -z "${SIGN_GPG_KEY_ID}" ] || [ -z "${SIGN_GPG_KEY_PASS}" ] || [ -z "${SIGN_GPG_KEYRING}" ]; then
+		FAILURE "Your credentials file doesn't contain information about GPG signing."
+	fi
 	
 	PUSH_DIR "${SRC_ROOT}/proj-android"
 	####
+	LOG "----- Building android library..."
+	local SIGN_CREDENTIALS="-Psigning.keyId=${SIGN_GPG_KEY_ID} -Psigning.password=${SIGN_GPG_KEY_PASS} -Psigning.secretKeyRingFile=${SIGN_GPG_KEYRING}"
+	./gradlew ${SIGN_CREDENTIALS} clean build generateRelease
+	####
+	POP_DIR
+	
+	PUSH_DIR "${SRC_ROOT}/proj-android/PowerAuthLibrary/build"
+	####
 	LOG "----- Publishing to jcenter..."
-	export BINTRAY_USER
-	export BINTRAY_API_KEY
-	./gradlew clean build bintrayUpload
+	local ARCHIVE="release-${VERSION}.zip"
+	if [ ! -f "${ARCHIVE}" ]; then
+		FAILURE "The 'generateRelease' gradle tasks did not produce ${ARCHIVE}"
+	fi
+	
+	local BT_API="https://api.bintray.com"
+	local F_PUBLISH=1
+	local F_OVERRIDE=0
+	
+	local P_VENDOR="lime-company"
+	local P_REPO="PowerAuth"
+	local P_NAME="powerauth-android-sdk"
+		
+	local URL="${BT_API}/content/${P_VENDOR}/${P_REPO}/${P_NAME}/${VERSION}/${ARCHIVE}?explode=1&publish=${F_PUBLISH}&override=${F_OVERRIDE}"
+	DEBUG_LOG "Uploading ${ARCHIVE} to URL: ${URL}"
+	curl -f -u${BINTRAY_USER}:${BINTRAY_API_KEY} -X PUT -T "${ARCHIVE}" "${URL}"
 	####
 	POP_DIR
 }

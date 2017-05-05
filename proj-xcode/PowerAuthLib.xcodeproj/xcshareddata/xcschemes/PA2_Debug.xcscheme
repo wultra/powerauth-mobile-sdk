@@ -65,6 +65,11 @@
                BlueprintName = "PA2TestWrapper"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthSDKTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>

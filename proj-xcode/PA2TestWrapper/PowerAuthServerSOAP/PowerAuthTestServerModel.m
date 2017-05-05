@@ -16,6 +16,9 @@
 
 #import "PowerAuthTestServerModel.h"
 
+@implementation PATSSystemStatus
+@end
+
 @implementation PATSApplication
 @end
 
@@ -23,4 +26,27 @@
 @end
 
 @implementation PATSApplicationDetail
+@end
+
+@implementation PATSInitActivationResponse
+
+- (NSString*) activationCodeWithSignature
+{
+	return [[[self activationCodeWithoutSignature] stringByAppendingString:@"#"] stringByAppendingString:_activationSignature];
+}
+
+- (NSString*) activationCodeWithoutSignature
+{
+	return [[_activationIdShort stringByAppendingString:@"-"] stringByAppendingString:_activationOTP];
+}
+
+@end
+
+@implementation PATSCommitActivationResponse
+@end
+
+@implementation PATSSimpleActivationStatus
+@end
+
+@implementation PATSActivationStatus
 @end

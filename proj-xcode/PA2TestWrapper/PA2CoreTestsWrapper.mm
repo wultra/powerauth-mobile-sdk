@@ -20,10 +20,15 @@
 
 using namespace cc7;
 
-@interface PA2TestWrapper : XCTestCase
+/**
+ The PA2CoreTestsWrapper is a XCTestCase class which wraps all unit tests, written in C++. 
+ The wrapper also covers all cc7's internal unit tests.
+ */
+
+@interface PA2CoreTestsWrapper : XCTestCase
 @end
 
-@implementation PA2TestWrapper
+@implementation PA2CoreTestsWrapper
 {
 	tests::TestManager * _manager;
 }
@@ -48,7 +53,13 @@ using namespace cc7;
 	_manager = nullptr;
 }
 
-- (BOOL)runTestWithFilter:(const char *)included excluded:(const char *)excluded testName:(const char*)name
+/**
+ Runs a battery of tests with required filter. You can specify which tests will be executed by specifying
+ list of "included" and "excluded" tags.
+ 
+ Returns YES only if all executed unit tests did met all expectations.
+ */
+- (BOOL) runTestWithFilter:(const char *)included excluded:(const char *)excluded testName:(const char*)name
 {
 	if (name) {
 		_manager->setTestManagerName(std::string(name));
@@ -63,13 +74,19 @@ using namespace cc7;
 	return result;
 }
 
-- (void)testRunCC7Tests
+/**
+ Executes CC7 internal unit tests only.
+ */
+- (void) testRunCC7Tests
 {
 	BOOL result = [self runTestWithFilter:"cc7" excluded:"" testName:nullptr];
 	XCTAssertTrue(result);
 }
 
-- (void)testRunPA2Tests
+/**
+ Executes PA2 unit tests only.
+ */
+- (void) testRunPA2Tests
 {
 	BOOL result = [self runTestWithFilter:"pa2" excluded:"" testName:"PowerAuth2.0"];
 	XCTAssertTrue(result);

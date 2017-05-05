@@ -16,25 +16,123 @@
 
 #import "PowerAuthTestServerModel.h"
 
+/**
+ The PowerAuthTestServerAPI class implements simple SOAP client for communication with
+ PowerAuth Java Server. This interface allows a direct manipulation with PowerAuth
+ Server entities, like registered applications or user's activations. We're using
+ this class only for integration testing purposes, where the PowerAuthSDK
+ 
+ The test server must be configured with disabled application security.
+ 
+ WARNING
+ 
+ This class is available and compiled only for testing purposes. The final, production
+ PowerAuth SDK doesn't contain this object.
+ */
 @interface PowerAuthTestServerAPI : NSObject
 
+/**
+ Initializes a test server API object for given |testServerUrl| with requested
+ |applicationName| and |applicationVersion|.
+ */
 - (id) initWithTestServerURL:(NSURL*)testServerUrl
 			 applicationName:(NSString*)applicationName
 		  applicationVersion:(NSString*)applicationVersion;
 
+/**
+ Validates connection to the server. The method simply checks whether the test
+ server contains required application and application version. If server doesn't
+ have these entities, then creates a new ones.
+ 
+ The method also updates a several read only objects, accessible from this class.
+ */
 - (BOOL) validateConnection;
 
-// Soap requests
+/**
+ Returns YES if object has valid connection.
+ */
+@property (nonatomic, assign, readonly) BOOL hasValidConnection;
 
+#pragma mark - System
+
+- (PATSSystemStatus*) getSystemStatus;
+
+
+#pragma mark - SOAP Applications
+
+/**
+ Returns list of applications
+ */
 - (NSArray<PATSApplication*>*) getApplicationList;
+/**
+ Returns detail of application with required |applicationId|
+ */
 - (PATSApplicationDetail*) getApplicationDetail:(NSString*)applicationId;
+/**
+ Creates a new application with required |applicationName| and returns application object.
+ */
+- (PATSApplication*) createApplication:(NSString*)applicationName;
+/**
+ Creates a new application version for application with |applicationId| with name |versionName|.
+ Returns application version object.
+ */
 - (PATSApplicationVersion*) createApplicationVersion:(NSString*)applicationId versionName:(NSString*)versionName;
 
-// Environment
-@property (nonatomic, readonly, strong) NSString * applicationNameString;
-@property (nonatomic, readonly, strong) NSString * applicationVersionString;
+#pragma mark - SOAP Activation
 
+/**
+ Initializes an activation for required user. The API object must contain a valid connection.
+ */
+- (PATSInitActivationResponse*) initializeActivation:(NSString*)userId;
+
+/**
+ Returns status of the activation.
+ */
+- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId;
+
+/**
+ Blocks activation and returns simple status after the operation. You can check whether
+ the activation was blocked from the returned object.
+ */
+- (PATSSimpleActivationStatus*) blockActivation:(NSString*)activationId;
+
+/**
+ Unblocks activation and returns simple status after the operation. You can check whether
+ the activation was unblocked from the returned object.
+ */
+- (PATSSimpleActivationStatus*) unblockActivation:(NSString*)activationId;
+
+/**
+ Commits initialized & prepared activation and returns simple status after the operation.
+ Returns YES if commit succeeded.
+ */
+- (BOOL) commitActivation:(NSString*)activationId;
+
+/**
+ Removes an existing activation. Returns YES if activation was successfully removed. 
+ Note that you can still check status of removed activation.
+ */
+- (BOOL) removeActivation:(NSString*)activationId;
+
+#pragma mark - Read-only getters
+
+/**
+ Contains name of application assigned during the object initialization.
+ */
+@property (nonatomic, readonly, strong) NSString * applicationNameString;
+/**
+ Contains name of version assigned during the object initialization.
+ */
+@property (nonatomic, readonly, strong) NSString * applicationVersionString;
+/**
+ Contains application detail object. You have to call `validateConnection` method
+ to update this property.
+ */
 @property (nonatomic, readonly, strong) PATSApplicationDetail  * appDetail;
+/**
+ Contains application version object, You have to call `validateConnection` method 
+ to update this property.
+ */
 @property (nonatomic, readonly, strong) PATSApplicationVersion * appVersion;
 
 @end

@@ -77,12 +77,13 @@
 		BF4DBCA71CDF46F2008F3A47 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCA61CDF46F2008F3A47 /* Debug.cpp */; };
 		BF4DBCC31CDF9979008F3A47 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCC21CDF9979008F3A47 /* PowerAuthTestsList.cpp */; };
 		BF4DBCC61CDF9B22008F3A47 /* libPowerAuth2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBB9B1CDF3130008F3A47 /* libPowerAuth2.a */; };
-		BF4DBCD01CDF9CDE008F3A47 /* PA2TestWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCCF1CDF9CDE008F3A47 /* PA2TestWrapper.mm */; };
+		BF4DBCD01CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */; };
 		BF4DBCD81CDF9DEC008F3A47 /* libPowerAuth2Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */; };
 		BF4DBCDA1CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */; };
+		BF5184B81EBCCA9B0073E018 /* AsyncHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */; };
 		BF73E5951E1E80D400BE4139 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF73E5941E1E80D400BE4139 /* Encryptor.cpp */; };
 		BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */; };
-		BFAF73081EAA83AD005E7572 /* PA2IntegrationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */; };
+		BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */; };
 		BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
 		BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
 		BFAF73131EAA8986005E7572 /* SoapHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73121EAA8986005E7572 /* SoapHelper.m */; };
@@ -314,13 +315,16 @@
 		BF4DBCC11CDF98B8008F3A47 /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
 		BF4DBCC21CDF9979008F3A47 /* PowerAuthTestsList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthTestsList.cpp; sourceTree = "<group>"; };
 		BF4DBCCD1CDF9CDE008F3A47 /* PA2TestWrapper.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PA2TestWrapper.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		BF4DBCCF1CDF9CDE008F3A47 /* PA2TestWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2TestWrapper.mm; sourceTree = "<group>"; };
+		BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2CoreTestsWrapper.mm; sourceTree = "<group>"; };
 		BF4DBCD11CDF9CDE008F3A47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
+		BF5184B41EBB710F0073E018 /* PowerAuthTestServerConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerConfig.h; sourceTree = "<group>"; };
+		BF5184B61EBCCA9B0073E018 /* AsyncHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AsyncHelper.h; sourceTree = "<group>"; };
+		BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AsyncHelper.m; sourceTree = "<group>"; };
 		BF73E5921E1E802A00BE4139 /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
 		BF73E5941E1E80D400BE4139 /* Encryptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
 		BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
-		BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2IntegrationTests.m; sourceTree = "<group>"; };
+		BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKTests.m; sourceTree = "<group>"; };
 		BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerAPI.h; sourceTree = "<group>"; };
 		BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerAPI.m; sourceTree = "<group>"; };
 		BFAF730E1EAA84CA005E7572 /* PowerAuthTestServerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerModel.h; sourceTree = "<group>"; };
@@ -626,14 +630,6 @@
 			path = Source;
 			sourceTree = "<group>";
 		};
-		BF20EA911EACB1A000733D91 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		BF20EA941EACB21E00733D91 /* Creation */ = {
 			isa = PBXGroup;
 			children = (
@@ -686,7 +682,6 @@
 				BF4DBBB71CDF33FD008F3A47 /* Libs */,
 				BF4DBCCE1CDF9CDE008F3A47 /* PA2TestWrapper */,
 				BF4DBB9C1CDF3130008F3A47 /* Products */,
-				BF20EA911EACB1A000733D91 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 			wrapsLines = 1;
@@ -764,6 +759,7 @@
 			isa = PBXGroup;
 			children = (
 				BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */,
+				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
 			);
 			name = Libs;
 			sourceTree = "<group>";
@@ -790,8 +786,9 @@
 			isa = PBXGroup;
 			children = (
 				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
-				BF4DBCCF1CDF9CDE008F3A47 /* PA2TestWrapper.mm */,
-				BFAF73071EAA83AD005E7572 /* PA2IntegrationTests.m */,
+				BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */,
+				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
+				BF5184B41EBB710F0073E018 /* PowerAuthTestServerConfig.h */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
 			);
 			path = PA2TestWrapper;
@@ -808,6 +805,8 @@
 				BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */,
 				BFAF73111EAA8986005E7572 /* SoapHelper.h */,
 				BFAF73121EAA8986005E7572 /* SoapHelper.m */,
+				BF5184B61EBCCA9B0073E018 /* AsyncHelper.h */,
+				BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */,
 			);
 			path = PowerAuthServerSOAP;
 			sourceTree = "<group>";
@@ -1109,13 +1108,14 @@
 				BF20EA8B1EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m in Sources */,
 				BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */,
 				BF20EA891EACB17600733D91 /* CXMLElement.m in Sources */,
-				BFAF73081EAA83AD005E7572 /* PA2IntegrationTests.m in Sources */,
+				BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */,
 				BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */,
 				BF20EA8C1EACB17600733D91 /* CXMLNamespaceNode.m in Sources */,
 				BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */,
 				BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */,
+				BF5184B81EBCCA9B0073E018 /* AsyncHelper.m in Sources */,
 				BF20EA8A1EACB17600733D91 /* CXMLElement_CreationExtensions.m in Sources */,
-				BF4DBCD01CDF9CDE008F3A47 /* PA2TestWrapper.mm in Sources */,
+				BF4DBCD01CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm in Sources */,
 				BF20EA8D1EACB17600733D91 /* CXMLNode.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

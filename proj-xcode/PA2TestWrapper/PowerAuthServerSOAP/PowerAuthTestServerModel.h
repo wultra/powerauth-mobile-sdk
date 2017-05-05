@@ -16,6 +16,19 @@
 
 #import <Foundation/Foundation.h>
 
+#pragma mark - System status
+
+@interface PATSSystemStatus : NSObject
+
+@property (nonatomic, strong) NSString * status;
+@property (nonatomic, strong) NSString * applicationName;
+@property (nonatomic, strong) NSString * applicationDisplayName;
+@property (nonatomic, strong) NSString * timestamp;
+
+@end
+
+#pragma mark - Application related
+
 @interface PATSApplication : NSObject
 
 @property (nonatomic, strong) NSString * applicationId;
@@ -41,3 +54,55 @@
 @end
 
 
+#pragma mark - Activation
+
+@interface PATSInitActivationResponse : NSObject
+
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, strong) NSString * activationIdShort;
+@property (nonatomic, strong) NSString * activationOTP;
+@property (nonatomic, strong) NSString * activationSignature;
+@property (nonatomic, strong) NSString * userId;
+@property (nonatomic, strong) NSString * applicationId;
+
+- (NSString*) activationCodeWithSignature;
+- (NSString*) activationCodeWithoutSignature;
+
+@end
+
+@interface PATSCommitActivationResponse : NSObject
+
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, assign) BOOL activated;
+
+@end
+
+
+typedef enum _PATSActivationStatusEnum {
+	PATSActivationStatus_Unknown,
+	PATSActivationStatus_CREATED,
+	PATSActivationStatus_OTP_USED,
+	PATSActivationStatus_ACTIVE,
+	PATSActivationStatus_BLOCKED,
+	PATSActivationStatus_REMOVED,
+} PATSActivationStatusEnum;
+
+@interface PATSSimpleActivationStatus : NSObject
+
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, strong) NSString * activationStatus;
+@property (nonatomic, assign) PATSActivationStatusEnum activationStatusEnum;
+
+@end
+
+@interface PATSActivationStatus : PATSSimpleActivationStatus
+
+@property (nonatomic, strong) NSString * activationName;
+@property (nonatomic, strong) NSString * userId;
+@property (nonatomic, strong) NSString * applicationId;
+@property (nonatomic, strong) NSString * timestampCreated;
+@property (nonatomic, strong) NSString * timestampLastUsed;
+@property (nonatomic, strong) NSString * encryptedStatusBlob;
+@property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
+
+@end

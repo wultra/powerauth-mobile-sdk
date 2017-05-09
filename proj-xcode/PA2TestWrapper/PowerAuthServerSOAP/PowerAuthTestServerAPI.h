@@ -72,11 +72,33 @@
  Creates a new application with required |applicationName| and returns application object.
  */
 - (PATSApplication*) createApplication:(NSString*)applicationName;
+
+
+#pragma mark - SOAP Application Versions
+
 /**
  Creates a new application version for application with |applicationId| with name |versionName|.
  Returns application version object.
  */
 - (PATSApplicationVersion*) createApplicationVersion:(NSString*)applicationId versionName:(NSString*)versionName;
+
+/**
+ Creates a new application version for application with |applicationId| with name |versionName| if exact the same
+ application doesn't exist. The existing version must be supported.
+ Returns application version object. The API object must contain a valid connection.
+ */
+- (PATSApplicationVersion*) createApplicationVersionIfDoesntExist:(NSString*)versionName;
+
+/**
+ Changes application version's status to "supported". Returns YES is request succeeded.
+ */
+- (BOOL) supportApplicationVersion:(NSString*)applicationVersionId;
+
+/**
+ Changes application version's status to "unsupported". Returns YES is request succeeded.
+ */
+- (BOOL) unsupportApplicationVersion:(NSString*)applicationVersionId;
+
 
 #pragma mark - SOAP Activation
 
@@ -113,6 +135,15 @@
  Note that you can still check status of removed activation.
  */
 - (BOOL) removeActivation:(NSString*)activationId;
+
+
+#pragma mark - SOAP Signatures
+
+/**
+ Request for the asymmetric signature (ECDSA) validation procedure.
+ */
+- (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature;
+
 
 #pragma mark - Read-only getters
 

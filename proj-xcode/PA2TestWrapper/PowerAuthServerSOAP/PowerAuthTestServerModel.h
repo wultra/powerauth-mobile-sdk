@@ -46,6 +46,13 @@
 
 @end
 
+@interface PATSApplicationVersionSupport : NSObject
+
+@property (nonatomic, strong) NSString * applicationVersionId;
+@property (nonatomic, assign) BOOL supported;
+
+@end
+
 @interface PATSApplicationDetail : PATSApplication
 
 @property (nonatomic, strong) NSString * masterPublicKey;

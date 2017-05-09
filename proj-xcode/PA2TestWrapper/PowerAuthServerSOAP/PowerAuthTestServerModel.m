@@ -25,6 +25,9 @@
 @implementation PATSApplicationVersion
 @end
 
+@implementation PATSApplicationVersionSupport
+@end
+
 @implementation PATSApplicationDetail
 @end
 

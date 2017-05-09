@@ -212,6 +212,8 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 	return response;
 }
 
+#pragma mark - SOAP Application Versions
+
 - (PATSApplicationVersion*) createApplicationVersion:(NSString*)applicationId versionName:(NSString*)versionName
 {
 	PATSApplicationVersion * response = [_helper soapRequest:@"CreateApplicationVersion" params:@[applicationId, versionName] response:@"CreateApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
@@ -220,6 +222,59 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 		return !localError ? appVer : nil;
 	}];
 	return response;
+}
+
+- (PATSApplicationVersion*) createApplicationVersionIfDoesntExist:(NSString*)versionName
+{
+	[self checkForValidConnection];
+	// Update app detail
+	_appDetail = [self getApplicationDetail:_appDetail.applicationId];
+	// Look for version
+	__block PATSApplicationVersion * response = nil;
+	[_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
+		if ([obj.applicationVersionId isEqualToString:versionName]) {
+			if (obj.supported) {
+				response = obj;
+				*stop = YES;
+			}
+		}
+	}];
+	if (!response) {
+		response = [self createApplicationVersion:_appDetail.applicationId versionName:versionName];
+	}
+	return response;
+}
+
+- (BOOL) supportApplicationVersion:(NSString*)applicationVersionId
+{
+	PATSApplicationVersionSupport * response = [_helper soapRequest:@"SupportApplicationVersion" params:@[applicationVersionId] response:@"SupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
+		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.supported				= _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
+		return !localError ? obj : nil;
+	}];
+	BOOL result = response.supported == YES;
+	if (!result) {
+		NSLog(@"Changing version '%@' status to 'supported' failed.", applicationVersionId);
+	}
+	return result;
+}
+
+- (BOOL) unsupportApplicationVersion:(NSString*)applicationVersionId
+{
+	PATSApplicationVersionSupport * response = [_helper soapRequest:@"UnsupportApplicationVersion" params:@[applicationVersionId] response:@"UnsupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
+		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.supported				= _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
+		return !localError ? obj : nil;
+	}];
+	BOOL result = response.supported == NO;
+	if (!result) {
+		NSLog(@"Changing version '%@' status to 'unsupported' failed.", applicationVersionId);
+	}
+	return result;
 }
 
 #pragma mark - SOAP Activation
@@ -339,5 +394,22 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	}
 	return YES;
 }
+
+#pragma mark - SOAP Signatures
+
+- (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
+{
+	NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+	NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+	
+	NSDictionary * response = [_helper soapRequest:@"VerifyECDSASignature" params:@[activationId, dataB64, signatureB64] response:@"VerifyECDSASignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+		if (!localError) obj[@"signatureValid"] = @(_BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]));
+		return !localError ? obj : nil;
+	}];
+	return [response[@"signatureValid"] boolValue];
+}
+
 
 @end

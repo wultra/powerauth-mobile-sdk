@@ -24,7 +24,7 @@
 /**
  The purpose of `PowerAuthSDKTests` is to run a series of integration tests where the
  high level `PowerAuthSDK` class is a primary test subject. All integration tests
- needs a running server counterparts and therefore are by-default disabled for all
+ needs a running server as a counterpart and therefore are by-default disabled for all
  main development schemas ("PA2_Release", "PA2_Debug"). To run this test, you
  need to switch to "PA2_IntegrationTests" and check the default servers configuration,
  available in the "PowerAuthTestConfig.h" header file.
@@ -144,7 +144,7 @@
  */
 - (void) runOnceForAllTests
 {
-	if (_hasConfig) {
+	if (_hasConfig || _invalidConfig) {
 		return;
 	}
 	
@@ -280,9 +280,9 @@
 #pragma mark - Activation
 
 /**
- Returns @[PATSInitActivationResponse, @(BOOL)] with activation data and result of activation.
- You can configure whether the activation can use optional signature during the activation and whether
- the activation should be removed automatically.
+ Returns @[PATSInitActivationResponse, PowerAuthAuthentication, @(BOOL)] with activation data, authentication object, 
+ and result of activation. You can configure whether the activation can use optional signature during the activation
+ and whether the activation should be removed automatically after the creation.
  */
 - (NSArray*) createActivation:(BOOL)useSignature removeAfter:(BOOL)removeAfter
 {
@@ -300,7 +300,7 @@
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
 	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
-	NSArray * preliminaryResult = @[activationData, @NO];
+	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
 	
 	__block NSString * activationFingerprint = nil;
 	
@@ -374,7 +374,7 @@
 		[self removeLastActivation:activationData];
 	}
 	
-	return @[activationData, @YES];
+	return @[activationData, auth, @YES ];
 }
 
 /**
@@ -397,6 +397,12 @@
 	[_testServerApi removeActivation:activationId];
 }
 
+
+/*
+ In positive scenarios we're testing situations, when everything looks fine.
+ */
+#pragma mark - Tests: Positive scenarios
+
 - (void) testCreateActivationWithSignature
 {
 	CHECK_TEST_CONFIG();
@@ -405,13 +411,185 @@
 	XCTAssertTrue([result.lastObject boolValue]);
 }
 
-
 - (void) testCreateActivationWithhoutSignature
 {
 	CHECK_TEST_CONFIG();
 	
 	NSArray * result = [self createActivation:NO removeAfter:YES];
 	XCTAssertTrue([result.lastObject boolValue]);
+}
+
+- (void) testPasswordCorrect
+{
+	CHECK_TEST_CONFIG();
+	
+	NSArray * result = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([result.lastObject boolValue]);
+	if (!result) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = result[0];
+	PowerAuthAuthentication * auth = result[1];
+	
+	BOOL bResult;
+	// 1) At first, use invalid password
+	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertFalse(bResult);	// if YES then something is VERY wrong. The wrong password passed the test.
+	
+	// 2) Now use a valid password
+	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertTrue(bResult);	// if NO then a valid password did not pass the test.
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testChangePassword
+{
+	CHECK_TEST_CONFIG();
+	
+	NSArray * result = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([result.lastObject boolValue]);
+	if (!result) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = result[0];
+	PowerAuthAuthentication * auth = result[1];
+	NSString * newPassword = @"nbusr321";
+	
+	BOOL bResult;
+	// 1) At first, change password
+	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk changePasswordFrom:auth.usePassword to:newPassword callback:^(NSError * _Nullable error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertTrue(bResult);
+	
+	// 2) Now validate that new password
+	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:newPassword callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertTrue(bResult);
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testSignDataWithDevicePrivateKey
+{
+	CHECK_TEST_CONFIG();
+	
+	NSArray * result = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([result.lastObject boolValue]);
+	if (!result) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = result[0];
+	PowerAuthAuthentication * auth = result[1];
+	NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+	
+	BOOL bResult;
+	// 1) At first, calculate signature
+	__block NSData * resultSignature = nil;
+	__block NSError * resultError = nil;
+	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk signDataWithDevicePrivateKey:auth data:dataForSigning callback:^(NSData * signature, NSError * error) {
+			resultSignature = signature;
+			resultError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertTrue(bResult);
+	
+	// 2) Verify signature on the server
+	if (bResult) {
+		bResult = [_testServerApi verifyECDSASignature:activationData.activationId data:dataForSigning signature:resultSignature];
+		XCTAssertTrue(bResult);
+	}
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+/*
+ In negative scenarios we're testing situations, when some configurations are invalid.
+ For example, if selected application version is no longer supported, then the PA2 SDK
+ should handle this situation properly.
+ */
+
+#pragma mark - Tests: Negative scenarios
+
+- (void) testCreateActivationWhenApplicationIsUnsupported
+{
+	CHECK_TEST_CONFIG();
+	
+	[_sdk reset];
+	
+	BOOL result;
+	__block NSError * reportedError;
+	
+	// 1) At first, we have to create an application version which is always supported.
+	[_testServerApi createApplicationVersionIfDoesntExist:@"test-supported"];
+	
+	// 2) Unsupport application which is default for test run
+	NSString * versionIdentifier = _testServerApi.appVersion.applicationVersionId;
+	BOOL statusResult = [_testServerApi unsupportApplicationVersion:versionIdentifier];
+	XCTAssertTrue(statusResult, @"Unable to change application status to 'unsupported'");
+	if (!statusResult) {
+		return;
+	}
+	
+	// OK, application is not supported, try to create an activation
+	
+	// 3) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
+	NSString * activationCode = [activationData activationCodeWithSignature];
+	
+	__block NSString * activationFingerprint = nil;
+	
+	// 4) CLIENT: Start activation on client's side
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		
+		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(NSString * fingerprint, NSError * error) {
+			activationFingerprint = fingerprint;
+			reportedError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should not be cancelled
+		XCTAssertFalse([task isCancelled]);
+		
+	}] boolValue];
+	XCTAssertFalse(result, @"Activation on client side did fail.");
+	
+	// 5) Set application back to supported
+	statusResult = [_testServerApi supportApplicationVersion:versionIdentifier];
+	// If this fails, but everything is OK, then we just did not set app's supported flag back to TRUE.
+	// This may indicate a change in SOAP API
+	XCTAssertTrue(statusResult, @"Unable to change application status to 'supported'.");
 }
 
 #pragma mark - Data signing

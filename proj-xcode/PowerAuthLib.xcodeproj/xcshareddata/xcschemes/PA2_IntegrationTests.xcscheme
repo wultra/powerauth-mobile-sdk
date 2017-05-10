@@ -43,8 +43,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "PA2TestWrapper.xctest"
-               BlueprintName = "PA2TestWrapper"
+               BuildableName = "XCTests.xctest"
+               BlueprintName = "XCTests"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -61,8 +61,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "PA2TestWrapper.xctest"
-               BlueprintName = "PA2TestWrapper"
+               BuildableName = "XCTests.xctest"
+               BlueprintName = "XCTests"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
             <SkippedTests>

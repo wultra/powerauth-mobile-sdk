@@ -53,3 +53,6 @@
 
 @implementation PATSActivationStatus
 @end
+
+@implementation PATSEncryptionKey
+@end

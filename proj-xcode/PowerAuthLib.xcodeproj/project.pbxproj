@@ -400,8 +400,7 @@
 				1B0A239E1D6C714100D24167 /* PowerAuthAuthentication.h */,
 				1B0A239F1D6C714100D24167 /* PowerAuthAuthentication.m */,
 			);
-			name = sdk;
-			path = Classes/sdk;
+			path = sdk;
 			sourceTree = "<group>";
 		};
 		1B0A23971D6C6F1900D24167 /* entity */ = {
@@ -429,7 +428,7 @@
 			path = ssl;
 			sourceTree = "<group>";
 		};
-		1B2EEF2A1D662A360039D92A /* objc */ = {
+		1B2EEF2A1D662A360039D92A /* Classes */ = {
 			isa = PBXGroup;
 			children = (
 				1B0A23961D6C6F0C00D24167 /* sdk */,
@@ -440,7 +439,7 @@
 				1BFD68781D742BED00B08338 /* system */,
 				1B6A65281E642A9400327545 /* util */,
 			);
-			name = objc;
+			path = Classes;
 			sourceTree = "<group>";
 		};
 		1B2EEF2C1D662AB10039D92A /* core */ = {
@@ -460,8 +459,7 @@
 				1B9AD2B61DA448D600CF52C9 /* PA2ErrorConstants.h */,
 				1B9AD2B71DA448D600CF52C9 /* PA2ErrorConstants.m */,
 			);
-			name = core;
-			path = Classes/core;
+			path = core;
 			sourceTree = "<group>";
 		};
 		1B2EEF361D662AB10039D92A /* networking */ = {
@@ -475,8 +473,7 @@
 				1B9AD2BD1DA5B2F200CF52C9 /* operation */,
 				1B0A23871D6C3BEC00D24167 /* client */,
 			);
-			name = networking;
-			path = Classes/networking;
+			path = networking;
 			sourceTree = "<group>";
 		};
 		1B2EEF551D662C960039D92A /* base */ = {
@@ -530,8 +527,7 @@
 				1B6A652E1E64515000327545 /* PA2OtpUtil.h */,
 				1B6A652F1E64515000327545 /* PA2OtpUtil.m */,
 			);
-			name = util;
-			path = Classes/util;
+			path = util;
 			sourceTree = "<group>";
 		};
 		1B6FFFDB1D6C781700EC1C5A /* keychain */ = {
@@ -540,8 +536,7 @@
 				1B6F00011D6DA99C00EC1C5A /* PA2Keychain.h */,
 				1B6F00021D6DA99C00EC1C5A /* PA2Keychain.m */,
 			);
-			name = keychain;
-			path = Classes/keychain;
+			path = keychain;
 			sourceTree = "<group>";
 		};
 		1B789F4B1E2642A10095519E /* e2ee */ = {
@@ -553,8 +548,7 @@
 				1B789F4D1E2642C00095519E /* PA2RequestResponseNonPersonalizedEncryptor.h */,
 				1B789F4E1E2642C00095519E /* PA2RequestResponseNonPersonalizedEncryptor.m */,
 			);
-			name = e2ee;
-			path = Classes/e2ee;
+			path = e2ee;
 			sourceTree = "<group>";
 		};
 		1B9AD2BD1DA5B2F200CF52C9 /* operation */ = {
@@ -574,9 +568,8 @@
 				1B00DF5B1DBEC8980027B092 /* PA2Bluetooth.h */,
 				1B00DF5C1DBEC8980027B092 /* PA2Bluetooth.m */,
 			);
-			name = system;
-			path = Classes/system;
-			sourceTree = SOURCE_ROOT;
+			path = system;
+			sourceTree = "<group>";
 		};
 		BF14FE7F1CF8A4800032B30C /* utils */ = {
 			isa = PBXGroup;
@@ -673,14 +666,30 @@
 			path = protocol;
 			sourceTree = "<group>";
 		};
+		BF4680FA1EC371DB00EEB175 /* objc */ = {
+			isa = PBXGroup;
+			children = (
+				1B2EEF2A1D662A360039D92A /* Classes */,
+				BF4DBCCE1CDF9CDE008F3A47 /* TestClasses */,
+			);
+			name = objc;
+			sourceTree = "<group>";
+		};
+		BF4680FB1EC3720500EEB175 /* c++ */ = {
+			isa = PBXGroup;
+			children = (
+				BF4DBBA71CDF333F008F3A47 /* include */,
+				BF4DBBAB1CDF336A008F3A47 /* src */,
+				BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */,
+			);
+			name = "c++";
+			sourceTree = "<group>";
+		};
 		BF4DBB921CDF3130008F3A47 = {
 			isa = PBXGroup;
 			children = (
-				1B2EEF2A1D662A360039D92A /* objc */,
-				BF4DBBA71CDF333F008F3A47 /* include */,
-				BF4DBBAB1CDF336A008F3A47 /* src */,
-				BF4DBBB71CDF33FD008F3A47 /* Libs */,
-				BF4DBCCE1CDF9CDE008F3A47 /* TestClasses */,
+				BF4680FA1EC371DB00EEB175 /* objc */,
+				BF4680FB1EC3720500EEB175 /* c++ */,
 				BF4DBB9C1CDF3130008F3A47 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -755,15 +764,6 @@
 			path = PowerAuthTests;
 			sourceTree = "<group>";
 		};
-		BF4DBBB71CDF33FD008F3A47 /* Libs */ = {
-			isa = PBXGroup;
-			children = (
-				BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */,
-				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
-			);
-			name = Libs;
-			sourceTree = "<group>";
-		};
 		BF4DBC871CDF3428008F3A47 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -790,6 +790,7 @@
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
 				BF5184B41EBB710F0073E018 /* PowerAuthTestServerConfig.h */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
+				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
 			);
 			path = TestClasses;
 			sourceTree = "<group>";

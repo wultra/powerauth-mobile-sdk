@@ -314,7 +314,7 @@
 		BF4DBCA61CDF46F2008F3A47 /* Debug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Debug.cpp; sourceTree = "<group>"; };
 		BF4DBCC11CDF98B8008F3A47 /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
 		BF4DBCC21CDF9979008F3A47 /* PowerAuthTestsList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthTestsList.cpp; sourceTree = "<group>"; };
-		BF4DBCCD1CDF9CDE008F3A47 /* PA2TestWrapper.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PA2TestWrapper.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF4DBCCD1CDF9CDE008F3A47 /* XCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2CoreTestsWrapper.mm; sourceTree = "<group>"; };
 		BF4DBCD11CDF9CDE008F3A47 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
@@ -680,7 +680,7 @@
 				BF4DBBA71CDF333F008F3A47 /* include */,
 				BF4DBBAB1CDF336A008F3A47 /* src */,
 				BF4DBBB71CDF33FD008F3A47 /* Libs */,
-				BF4DBCCE1CDF9CDE008F3A47 /* PA2TestWrapper */,
+				BF4DBCCE1CDF9CDE008F3A47 /* TestClasses */,
 				BF4DBB9C1CDF3130008F3A47 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -691,7 +691,7 @@
 			children = (
 				BF4DBB9B1CDF3130008F3A47 /* libPowerAuth2.a */,
 				BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */,
-				BF4DBCCD1CDF9CDE008F3A47 /* PA2TestWrapper.xctest */,
+				BF4DBCCD1CDF9CDE008F3A47 /* XCTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -782,7 +782,7 @@
 			path = PowerAuthTests;
 			sourceTree = "<group>";
 		};
-		BF4DBCCE1CDF9CDE008F3A47 /* PA2TestWrapper */ = {
+		BF4DBCCE1CDF9CDE008F3A47 /* TestClasses */ = {
 			isa = PBXGroup;
 			children = (
 				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
@@ -791,7 +791,7 @@
 				BF5184B41EBB710F0073E018 /* PowerAuthTestServerConfig.h */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
 			);
-			path = PA2TestWrapper;
+			path = TestClasses;
 			sourceTree = "<group>";
 		};
 		BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */ = {
@@ -920,9 +920,9 @@
 			productReference = BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		BF4DBCCC1CDF9CDE008F3A47 /* PA2TestWrapper */ = {
+		BF4DBCCC1CDF9CDE008F3A47 /* XCTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BF4DBCD51CDF9CDE008F3A47 /* Build configuration list for PBXNativeTarget "PA2TestWrapper" */;
+			buildConfigurationList = BF4DBCD51CDF9CDE008F3A47 /* Build configuration list for PBXNativeTarget "XCTests" */;
 			buildPhases = (
 				BF4DBCC91CDF9CDE008F3A47 /* Sources */,
 				BF4DBCCA1CDF9CDE008F3A47 /* Frameworks */,
@@ -933,9 +933,9 @@
 			dependencies = (
 				BF4DBCD41CDF9CDE008F3A47 /* PBXTargetDependency */,
 			);
-			name = PA2TestWrapper;
+			name = XCTests;
 			productName = PA2TestWrapper;
-			productReference = BF4DBCCD1CDF9CDE008F3A47 /* PA2TestWrapper.xctest */;
+			productReference = BF4DBCCD1CDF9CDE008F3A47 /* XCTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -975,7 +975,7 @@
 			targets = (
 				BF4DBB9A1CDF3130008F3A47 /* PowerAuth2 */,
 				BF4DBBAD1CDF3377008F3A47 /* PowerAuth2Tests */,
-				BF4DBCCC1CDF9CDE008F3A47 /* PA2TestWrapper */,
+				BF4DBCCC1CDF9CDE008F3A47 /* XCTests */,
 			);
 		};
 /* End PBXProject section */
@@ -1299,7 +1299,7 @@
 					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
 					/usr/include/libxml2,
 				);
-				INFOPLIST_FILE = PA2TestWrapper/Info.plist;
+				INFOPLIST_FILE = TestClasses/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PA2TestWrapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1315,7 +1315,7 @@
 					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
 					/usr/include/libxml2,
 				);
-				INFOPLIST_FILE = PA2TestWrapper/Info.plist;
+				INFOPLIST_FILE = TestClasses/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PA2TestWrapper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1352,7 +1352,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BF4DBCD51CDF9CDE008F3A47 /* Build configuration list for PBXNativeTarget "PA2TestWrapper" */ = {
+		BF4DBCD51CDF9CDE008F3A47 /* Build configuration list for PBXNativeTarget "XCTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BF4DBCD61CDF9CDE008F3A47 /* Debug */,

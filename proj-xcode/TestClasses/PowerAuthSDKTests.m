@@ -342,8 +342,9 @@
 	XCTAssertNotNil(activationStatus);
 	XCTAssertTrue(activationStatus.state == PA2ActivationState_OTP_Used);
 	
-	// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side. This is typically done internally
-	//            on the server side and depends on activation flow in concrete internet banking project.
+	// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
+	//            This is typically done internally on the server side and depends on activation flow
+	//            in concrete internet banking project.
 	result = [_testServerApi commitActivation:activationData.activationId];
 	XCTAssertTrue(result, @"Server's commit failed");
 	CHECK_RESULT_RET(preliminaryResult);
@@ -403,118 +404,129 @@
  */
 #pragma mark - Tests: Positive scenarios
 
+
 - (void) testCreateActivationWithSignature
 {
 	CHECK_TEST_CONFIG();
 	
-	NSArray * result = [self createActivation:YES removeAfter:YES];
-	XCTAssertTrue([result.lastObject boolValue]);
+	NSArray * activation = [self createActivation:YES removeAfter:YES];
+	XCTAssertTrue([activation.lastObject boolValue]);
 }
+
 
 - (void) testCreateActivationWithhoutSignature
 {
 	CHECK_TEST_CONFIG();
 	
-	NSArray * result = [self createActivation:NO removeAfter:YES];
-	XCTAssertTrue([result.lastObject boolValue]);
+	NSArray * activation = [self createActivation:NO removeAfter:YES];
+	XCTAssertTrue([activation.lastObject boolValue]);
 }
+
 
 - (void) testPasswordCorrect
 {
 	CHECK_TEST_CONFIG();
 	
-	NSArray * result = [self createActivation:YES removeAfter:NO];
-	XCTAssertTrue([result.lastObject boolValue]);
-	if (!result) {
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
 		return;
 	}
 	
-	PATSInitActivationResponse * activationData = result[0];
-	PowerAuthAuthentication * auth = result[1];
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
 	
-	BOOL bResult;
 	// 1) At first, use invalid password
-	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
-	XCTAssertFalse(bResult);	// if YES then something is VERY wrong. The wrong password passed the test.
+	XCTAssertFalse(result);	// if YES then something is VERY wrong. The wrong password passed the test.
 	
 	// 2) Now use a valid password
-	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
-	XCTAssertTrue(bResult);	// if NO then a valid password did not pass the test.
+	XCTAssertTrue(result);	// if NO then a valid password did not pass the test.
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
 }
 
+
 - (void) testChangePassword
 {
 	CHECK_TEST_CONFIG();
 	
-	NSArray * result = [self createActivation:YES removeAfter:NO];
-	XCTAssertTrue([result.lastObject boolValue]);
-	if (!result) {
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
 		return;
 	}
 	
-	PATSInitActivationResponse * activationData = result[0];
-	PowerAuthAuthentication * auth = result[1];
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
 	NSString * newPassword = @"nbusr321";
 	
-	BOOL bResult;
 	// 1) At first, change password
-	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2OperationTask * task = [_sdk changePasswordFrom:auth.usePassword to:newPassword callback:^(NSError * _Nullable error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
-	XCTAssertTrue(bResult);
+	XCTAssertTrue(result);
 	
 	// 2) Now validate that new password
-	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:newPassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
-	XCTAssertTrue(bResult);
+	XCTAssertTrue(result);
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
 }
 
+
 - (void) testSignDataWithDevicePrivateKey
 {
 	CHECK_TEST_CONFIG();
 	
-	NSArray * result = [self createActivation:YES removeAfter:NO];
-	XCTAssertTrue([result.lastObject boolValue]);
-	if (!result) {
+	//
+	// This test checks data signing with device's private key.
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
 		return;
 	}
 	
-	PATSInitActivationResponse * activationData = result[0];
-	PowerAuthAuthentication * auth = result[1];
-	NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
 	
-	BOOL bResult;
+	NSData * dataForSigning = [@"This is a very sensitive information and must be signed." dataUsingEncoding:NSUTF8StringEncoding];
+
 	// 1) At first, calculate signature
 	__block NSData * resultSignature = nil;
 	__block NSError * resultError = nil;
-	bResult = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2OperationTask * task = [_sdk signDataWithDevicePrivateKey:auth data:dataForSigning callback:^(NSData * signature, NSError * error) {
 			resultSignature = signature;
 			resultError = error;
@@ -523,16 +535,64 @@
 		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
-	XCTAssertTrue(bResult);
+	XCTAssertTrue(result);
 	
 	// 2) Verify signature on the server
-	if (bResult) {
-		bResult = [_testServerApi verifyECDSASignature:activationData.activationId data:dataForSigning signature:resultSignature];
-		XCTAssertTrue(bResult);
+	if (result) {
+		result = [_testServerApi verifyECDSASignature:activationData.activationId data:dataForSigning signature:resultSignature];
+		XCTAssertTrue(result);
 	}
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
+}
+
+
+- (void) testActivationStatus
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test checks whether SDK correctly maps server's activation status.
+	// We're testing "ACTIVE", "BLOCKED", "REMOVED" states only, because other
+	// states are automatically validated during the activation creation.
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	
+	PA2ActivationStatus * status;
+	PATSSimpleActivationStatus * serverStatus;
+	
+	// 1) Initial state is "active"
+	status = [self fetchActivationStatus];
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	
+	// 2) Block activation & fetch status
+	serverStatus = [_testServerApi blockActivation:activationData.activationId];
+	XCTAssertEqual(serverStatus.activationStatusEnum, PATSActivationStatus_BLOCKED);
+	
+	status = [self fetchActivationStatus];
+	XCTAssertEqual(status.state, PA2ActivationState_Blocked);
+
+	// 3) Unblock activation & fetch status
+	serverStatus = [_testServerApi unblockActivation:activationData.activationId];
+	XCTAssertEqual(serverStatus.activationStatusEnum, PATSActivationStatus_ACTIVE);
+	
+	status = [self fetchActivationStatus];
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	
+	// 4) Remove activation (which is also cleanup)
+	[self removeLastActivation:activationData];
+	
+	// 5) Fetch last status
+	status = [self fetchActivationStatus];
+	XCTAssertEqual(status.state, PA2ActivationState_Removed);
 }
 
 /*
@@ -547,6 +607,14 @@
 {
 	CHECK_TEST_CONFIG();
 	
+	//
+	// This test validates situation, when previously issued application version
+	// is no longer supported. The activation process must fail.
+	//
+	// Just for testing purposes, we need to create an another version, which is
+	// supported and will be used for initiating the activation on the server's side.
+	//
+	
 	[_sdk reset];
 	
 	BOOL result;
@@ -555,7 +623,7 @@
 	// 1) At first, we have to create an application version which is always supported.
 	[_testServerApi createApplicationVersionIfDoesntExist:@"test-supported"];
 	
-	// 2) Unsupport application which is default for test run
+	// 2) Unsupport application version, created in
 	NSString * versionIdentifier = _testServerApi.appVersion.applicationVersionId;
 	BOOL statusResult = [_testServerApi unsupportApplicationVersion:versionIdentifier];
 	XCTAssertTrue(statusResult, @"Unable to change application status to 'unsupported'");
@@ -579,7 +647,6 @@
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		// Returned task should not be cancelled
 		XCTAssertFalse([task isCancelled]);
 		
 	}] boolValue];
@@ -592,8 +659,64 @@
 	XCTAssertTrue(statusResult, @"Unable to change application status to 'supported'.");
 }
 
-#pragma mark - Data signing
+- (void) testPasswordCorrectWhenBlocked
+{
+	CHECK_TEST_CONFIG();
 
+	//
+	// This test also validates data signing & vault unlock, when  activation is blocked.
+	// This is due fact, that `validatePasswordCorrect` uses vault unlock internally
+	// and that's quite complex operation.
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	// 1) Let's block activation
+	PATSSimpleActivationStatus * serverStatus = [_testServerApi blockActivation:activationData.activationId];
+	XCTAssertEqual(serverStatus.activationStatusEnum, PATSActivationStatus_BLOCKED);
+	
+	// 2) At first, use invalid password
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertFalse(result); // Must not pass. Activation is blocked
+	
+	// 3) Now use a valid password
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertFalse(result);	// Must not pass. Activation is blocked
+	
+	// 4) Unblock
+	serverStatus = [_testServerApi unblockActivation:activationData.activationId];
+	XCTAssertEqual(serverStatus.activationStatusEnum, PATSActivationStatus_ACTIVE);
+	
+	// 5) Test password
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	XCTAssertTrue(result);	// Must pass, valid password, activation is active again
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
 
 
 @end

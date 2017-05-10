@@ -86,6 +86,7 @@
 
 
 typedef enum _PATSActivationStatusEnum {
+	// "unknown" must be defined, tests expects that 0 is not a valid state.
 	PATSActivationStatus_Unknown,
 	PATSActivationStatus_CREATED,
 	PATSActivationStatus_OTP_USED,
@@ -111,5 +112,15 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, strong) NSString * timestampLastUsed;
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
+
+@end
+
+@interface PATSEncryptionKey : NSObject
+
+@property (nonatomic, strong) NSString * applicationKey;
+@property (nonatomic, strong) NSString * applicationId;
+@property (nonatomic, strong) NSString * encryptionKey;
+@property (nonatomic, strong) NSString * encryptionKeyIndex;
+@property (nonatomic, strong) NSString * ephemeralPublicKey;
 
 @end

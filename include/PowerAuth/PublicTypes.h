@@ -24,6 +24,9 @@ namespace getlime
 {
 namespace powerAuth
 {
+	//
+	// MARK: - Setup & Error code -
+	//
 
 	/**
 	 The SessionSetup structure defines unique constants required during the lifetime
@@ -130,6 +133,10 @@ namespace powerAuth
 	};
 	
 	
+	//
+	// MARK: - Signatures -
+	//
+	
 	/**
      The SignatureFactor constants defines factors involved in the signature
      computation. The factor types are tightly coupled with SignatureUnlockKeys
@@ -229,11 +236,101 @@ namespace powerAuth
 	};
 	
 	
+	/**
+	 The HTTPRequestData structure contains all data required for signature calculation.
+	 You have to provide values at least non-empty strings to `method` and `uri` members,
+	 to pass a data validation.
+	 */
+	struct HTTPRequestData
+	{
+		/**
+		 A whole POST body or data blob prepared in 'Session::prepareKeyValueMapForDataSigning'
+		 method. You can also calculate signature for an empty request with no body or without 
+		 any GET parameters. In this case the member may be empty.
+		 */
+		cc7::ByteArray body;
+		/**
+		 HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
+		 */
+		std::string method;
+		/**
+		 Relative URI of the request.
+		 */
+		std::string uri;
+		/**
+		 Optional, contains NONCE generated externally, for offline data signing purposes.
+		 */
+		cc7::ByteArray offlineNonce;
+		
+		/**
+		 Constructs an empty HTTPRequestData structure.
+		 */
+		HTTPRequestData();
+		
+		/**
+		 Constructs a HTTPRequestData structure with provided |body|, |method| 
+		 and |uri| parameters. The optional `offlineNonce` member will be empty.
+		 */
+		HTTPRequestData(const cc7::ByteRange & body,
+						const std::string & method,
+						const std::string & uri);
+		
+		/**
+		 Constructs a HTTPRequestData structure with provided |body|, |method|, |uri| 
+		 and |nonce| parameters.
+		 */
+		HTTPRequestData(const cc7::ByteRange & body,
+						const std::string & method,
+						const std::string & uri,
+						const cc7::ByteRange & nonce);
+		
+		/**
+		 Returns true when structure contains valid data.
+		 */
+		bool hasValidData() const;
+	};
+	
+	/**
+	 The HTTPRequestDataSignature object contains result from HTTP request data signing 
+	 operation.
+	 */
+	struct HTTPRequestDataSignature
+	{
+		/**
+		 Version of PowerAuth protocol. Current value is "2.0"
+		 */
+		std::string version;
+		/**
+		 Activation identifier received during the actiation process.
+		 */
+		std::string activationId;
+		/**
+		 Application key copied from SessionSetup structure.
+		 */
+		std::string applicationKey;
+		/**
+		 NONCE used for the signature calculation.
+		 */
+		std::string nonce;
+		/**
+		 String representation of signature factor.
+		 */
+		std::string factor;
+		/**
+		 Calculated signature
+		 */
+		std::string signature;
+		
+		/**
+		 Builds a value for "X-PowerAuth-Authorization" HTTP header.
+		 */
+		std::string buildAuthHeaderValue() const;
+	};
+	
 	
 	//
-	// Session activation steps
+	// MARK: - Session activation steps -
 	//
-	
 	
 	/**
 	 Parameters for first step of device activation.
@@ -326,7 +423,7 @@ namespace powerAuth
 	
 	
 	//
-	// Activation status
+	// MARK: - Activation status -
 	//
 
 	
@@ -361,22 +458,33 @@ namespace powerAuth
 		/**
 		 Number of failed authentication attempts in a row.
 		 */
-		cc7::U32	failCount;
+		cc7::U32 failCount;
 		/**
 		 Maximum number of allowed failed authentication attempts in a row.
 		 */
-		cc7::U32	maxFailCount;
+		cc7::U32 maxFailCount;
 		/**
 		 Counter on the server's side. The session should not synchronize
 		 itself with this counter.
 		 */
-		cc7::U64	counter;
+		cc7::U64 counter;
+		
+		/**
+		 Constructs a new empty activation status structure.
+		 */
+		ActivationStatus() :
+			state(Created),
+			failCount(0),
+			maxFailCount(0),
+			counter(0)
+		{
+		}
 	};
 	
 	
 	
 	//
-	// End-To-End Encryption
+	// MARK: - End-To-End Encryption -
 	//
 	
 	

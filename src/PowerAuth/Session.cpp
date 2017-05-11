@@ -486,26 +486,22 @@ namespace powerAuth
 		}
 		return result;
 	}
-	
-	ErrorCode Session::signHTTPRequest(const cc7::ByteRange & request_body, const std::string & method, const std::string & uri,
-									   const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
-									   std::string & out_header_value)
+		
+	ErrorCode Session::signHTTPRequestData(const HTTPRequestData & request,
+										   const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
+										   HTTPRequestDataSignature & out)
 	{
 		// Validate session's state & parameters
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Sign: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (method.empty() || uri.empty() || signature_factor == 0) {
-			CC7_LOG("Session %p, %d: Sign: Method, URI or factor is empty.", this, sessionIdentifier());
+		if (!request.hasValidData()) {
+			CC7_LOG("Session %p, %d: Sign: Wrong request data.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
-		if (!(method == "GET" || method == "POST" || method == "HEAD" || method == "PUT" || method == "DELETE")) {
-			CC7_LOG("Session %p, %d: Sign: Wrong HTML method.", this, sessionIdentifier());
-			return EC_WrongParam;
-		}
-		std::string factor_string = protocol::ConvertSignatureFactorToString(signature_factor);
-		if (factor_string.empty()) {
+		out.factor = protocol::ConvertSignatureFactorToString(signature_factor);
+		if (out.factor.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Wrong signature factor 0x%04x.", this, sessionIdentifier(), signature_factor);
 			return EC_WrongParam;
 		}
@@ -520,15 +516,24 @@ namespace powerAuth
 		
 		// Re-seed OpenSSL's PRNG.
 		crypto::ReseedPRNG();
-
-		// Get NONCE, Normalize data and calculate signature
-		std::string nonce_b64			= crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true).base64String();
-		cc7::ByteArray data_for_signing = protocol::NormalizeDataForSignature(method, uri, nonce_b64, request_body, _setup.applicationSecret);
-		std::string signature			= protocol::CalculateSignature(plain_keys, signature_factor, _pd->signatureCounter, data_for_signing);
-		if (signature.empty()) {
+		
+		// Get NONCE from request structure, or generate a new one.
+		cc7::ByteArray nonce;
+		if (request.offlineNonce.empty()) {
+			nonce = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true);
+		} else {
+			nonce = request.offlineNonce;
+		}
+		out.nonce = nonce.base64String();
+		
+		// Normalize data and calculate signature
+		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, _setup.applicationSecret);
+		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, _pd->signatureCounter, data);
+		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
 			return EC_Encryption;
 		}
+		
 		// Increase signing counter
 		_pd->signatureCounter += 1;
 		// Handle "Prepare for vault unlock"
@@ -544,20 +549,12 @@ namespace powerAuth
 			// Clear waiting flag.
 			_pd->flags.waitingForVaultUnlock = 0;
 		}
-
-		// Construct final value for header
-		out_header_value.assign(protocol::PA_AUTH_FRAGMENT_ACTIVATION_ID);
-		out_header_value.append(_pd->activationId);
-		out_header_value.append(protocol::PA_AUTH_FRAGMENT_APPLICATION_KEY);
-		out_header_value.append(_setup.applicationKey);
-		out_header_value.append(protocol::PA_AUTH_FRAGMENT_NONCE);
-		out_header_value.append(nonce_b64);
-		out_header_value.append(protocol::PA_AUTH_FRAGMENT_SIGNATURE_TYPE);
-		out_header_value.append(factor_string);
-		out_header_value.append(protocol::PA_AUTH_FRAGMENT_SIGNATURE);
-		out_header_value.append(signature);
-		out_header_value.append(protocol::PA_AUTH_FRAGMENT_VERSION);
-
+		
+		// Fill the rest of values to out structure
+		out.version			= protocol::PA_VERSION;
+		out.activationId	= _pd->activationId;
+		out.applicationKey	= _setup.applicationKey;
+		
 		return EC_Ok;
 	}
 	

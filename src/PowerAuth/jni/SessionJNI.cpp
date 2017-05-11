@@ -390,23 +390,24 @@ CC7_JNI_METHOD_PARAMS(jobject, signHTTPRequest, jbyteArray httpBody, jstring htt
 		return NULL;
 	}	
 	// Load parameters into C++ objects 
-	cc7::ByteArray cppHttpBody	= cc7::jni::CopyFromJavaByteArray(env, httpBody);
-	std::string cppHttpMethod	= cc7::jni::CopyFromJavaString(env, httpMethod);
-	std::string cppUri			= cc7::jni::CopyFromJavaString(env, uri);
+	HTTPRequestData request;
+	request.body	= cc7::jni::CopyFromJavaByteArray(env, httpBody);
+	request.method	= cc7::jni::CopyFromJavaString(env, httpMethod);
+	request.uri		= cc7::jni::CopyFromJavaString(env, uri);
 	SignatureFactor cppSignatureFactor = (SignatureFactor)signatureFactor;
 	SignatureUnlockKeys cppUnlockKeys;
 	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
 		return NULL;
 	}
 	// Call C++ session
-	std::string signature;
-	ErrorCode code = session->signHTTPRequest(cppHttpBody, cppHttpMethod, cppUri, cppUnlockKeys, cppSignatureFactor, signature);
+	HTTPRequestDataSignature signature;
+	ErrorCode code = session->signHTTPRequestData(request, cppUnlockKeys, cppSignatureFactor, signature);
 	// Copy result to java object
 	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("SignatureResult");
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("SignatureResult"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "signature",  cc7::jni::CopyToJavaString(env, signature));
+		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "signature",  cc7::jni::CopyToJavaString(env, signature.buildAuthHeaderValue()));
 	}
 	return resultObject;
 }

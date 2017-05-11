@@ -71,6 +71,7 @@
 		BF234CAF1CE5E07500312A7F /* Digest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAD1CE5E07500312A7F /* Digest.cpp */; };
 		BF3606BE1E22E03600768FB2 /* PA2Encryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */; };
 		BF3C8ADB1CEA28EB0003341F /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */; };
+		BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */; };
 		BF4DBC971CDF3482008F3A47 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8F1CDF3428008F3A47 /* libcc7tests-ios.a */; };
 		BF4DBC9A1CDF34C6008F3A47 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8D1CDF3428008F3A47 /* libcc7-ios.a */; };
 		BF4DBCA31CDF3BC3008F3A47 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCA21CDF3BC3008F3A47 /* Session.cpp */; };
@@ -303,6 +304,7 @@
 		BF3606BC1E22E03600768FB2 /* PA2Encryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Encryptor.h; sourceTree = "<group>"; };
 		BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Encryptor.mm; sourceTree = "<group>"; };
 		BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2URLEncodingTests.cpp; sourceTree = "<group>"; };
+		BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PublicTypes.cpp; sourceTree = "<group>"; };
 		BF4DBB9B1CDF3130008F3A47 /* libPowerAuth2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuth2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuth2Tests.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
@@ -745,6 +747,7 @@
 				BF234C9D1CE5B14C00312A7F /* protocol */,
 				BF14FE7F1CF8A4800032B30C /* utils */,
 				BF4DBCA21CDF3BC3008F3A47 /* Session.cpp */,
+				BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */,
 				BF4DBCA61CDF46F2008F3A47 /* Debug.cpp */,
 				BF1FA8CE1D07216600392EC7 /* Password.cpp */,
 				BF73E5941E1E80D400BE4139 /* Encryptor.cpp */,
@@ -1041,6 +1044,7 @@
 				1B9AD2C01DA5B2F200CF52C9 /* PA2OperationTask.m in Sources */,
 				1B00DF5D1DBEC8980027B092 /* PA2Bluetooth.m in Sources */,
 				1B789F461E2640640095519E /* PA2NonPersonalizedEncryptedObject.m in Sources */,
+				BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */,
 				1B2EEF6F1D662CA00039D92A /* PA2Response.m in Sources */,
 				1B789F591E265E2F0095519E /* PA2EncryptorFactory.m in Sources */,
 				BF234C9A1CE5196700312A7F /* ECC.cpp in Sources */,

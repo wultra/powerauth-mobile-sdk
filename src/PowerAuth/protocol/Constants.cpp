@@ -33,13 +33,22 @@ namespace protocol
 	const std::string	PA_AUTH_HEADER_NAME					("X-PowerAuth-Authorization");
 	
 	// Other header fragments
-	const std::string	PA_AUTH_FRAGMENT_ACTIVATION_ID		("PowerAuth pa_activation_id=\"");
+	const std::string	PA_AUTH_FRAGMENT_BEGIN_VERSION		("PowerAuth pa_version=\"");
+	const std::string	PA_AUTH_FRAGMENT_ACTIVATION_ID		("\", pa_activation_id=\"");
 	const std::string	PA_AUTH_FRAGMENT_APPLICATION_KEY	("\", pa_application_key=\"");
 	const std::string	PA_AUTH_FRAGMENT_NONCE				("\", pa_nonce=\"");
 	const std::string	PA_AUTH_FRAGMENT_SIGNATURE_TYPE		("\", pa_signature_type=\"");
 	const std::string	PA_AUTH_FRAGMENT_SIGNATURE			("\", pa_signature=\"");
-	const std::string	PA_AUTH_FRAGMENT_VERSION			("\", pa_version=\"" PA_VERSION_STR "\"");
-		
+	const std::string	PA_AUTH_FRAGMENT_END				("\"");
+	const size_t		PA_AUTH_FRAGMENTS_LENGTH =
+							PA_AUTH_FRAGMENT_BEGIN_VERSION.length() +
+							PA_AUTH_FRAGMENT_ACTIVATION_ID.length() +
+							PA_AUTH_FRAGMENT_APPLICATION_KEY.length() +
+							PA_AUTH_FRAGMENT_NONCE.length() +
+							PA_AUTH_FRAGMENT_SIGNATURE_TYPE.length() +
+							PA_AUTH_FRAGMENT_SIGNATURE.length() +
+							PA_AUTH_FRAGMENT_END.length();
+	
 	// Ampersand
 	const std::string	AMP("&");
 	const std::string	DASH("-");

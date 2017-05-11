@@ -39,6 +39,7 @@ LOCAL_C_INCLUDES := \
 # Multiplatform sources
 LOCAL_SRC_FILES := \
 	PowerAuth/Session.cpp \
+	PowerAuth/PublicTypes.cpp \
 	PowerAuth/Password.cpp \
 	PowerAuth/Encryptor.cpp \
 	PowerAuth/Debug.cpp \

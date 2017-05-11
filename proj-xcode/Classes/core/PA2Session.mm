@@ -236,25 +236,21 @@ using namespace io::getlime::powerAuth;
 }
 
 
-- (nullable NSString*) httpAuthHeaderValueForBody:(nullable NSData*)body
-									   httpMethod:(nonnull NSString*)httpMethod
-											  uri:(nonnull NSString*)uri
-											 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
-										   factor:(PA2SignatureFactor)factor;
+- (nullable PA2HTTPRequestDataSignature*) signHttpRequestData:(nonnull PA2HTTPRequestData*)requestData
+														 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
+													   factor:(PA2SignatureFactor)factor
 {
 	if (_session) {
 		HTTPRequestData request;
-		request.body	= cc7::ByteRange(body.bytes, body.length);
-		request.method	= cc7::objc::CopyFromNSString(httpMethod);
-		request.uri		= cc7::objc::CopyFromNSString(uri);
+		PA2HTTPRequestDataToStruct(requestData, request);
 		SignatureFactor cpp_factor	= static_cast<SignatureFactor>(factor);
 		SignatureUnlockKeys cpp_keys;
 		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 		
-		HTTPRequestDataSignature signature;
-		_error = _session->signHTTPRequestData(request, cpp_keys, cpp_factor, signature);
+		PA2HTTPRequestDataSignature * signature = [[PA2HTTPRequestDataSignature alloc] init];
+		_error = _session->signHTTPRequestData(request, cpp_keys, cpp_factor, [signature signatureStructRef]);
 		if (_error == EC_Ok) {
-			return cc7::objc::CopyToNSString(signature.buildAuthHeaderValue());
+			return signature;
 		}
 	} else {
 		_error = EC_WrongParam;

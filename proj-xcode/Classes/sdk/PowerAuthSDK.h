@@ -250,6 +250,26 @@
 																	   body:(nullable NSData*)body
 																	  error:(NSError * _Nullable * _Nullable)error;
 
+/** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
+ 
+ This method may block a main thread - make sure to dispatch it asynchronously.
+ 
+ @param authentication An authentication instance specifying what factors should be used to sign the request.
+ @param method HTTP method used for the signature computation.
+ @param uriId URI identifier.
+ @param body HTTP request body.
+ @param nonce NONCE in Base64 format.
+ @param error Error reference in case some error occurs.
+ @return String representing a calculated signature for all involved factors. In case of error, this method return 'nil'.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+												   method:(nonnull NSString*)method
+													uriId:(nonnull NSString*)uriId
+													 body:(nullable NSData*)body
+													nonce:(nonnull NSString*)nonce
+													error:(NSError * _Nullable * _Nullable)error;
+
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
  You are responsible for validating the old password against some server endpoint yourself before using it in this method.

@@ -212,10 +212,10 @@
 - (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
 
 /**
- Calculates signature from given data. You have to provide all involved unlock keys in |keys| object,
- required for desired signature |factor|. For the request |body| you can provide whole POST body or
- you can prepare data with using 'prepareKeyValueDictionaryForDataSigning' method. The |httpMethod| parameter
- is the HTML method of signed request (e.g. GET, POST, etc...). The |uri| parameter should be relative URI.
+ Calculates signature from given data. You have to provide all involved unlock keys in |unlockKeys| object,
+ required for desired signature |factor|. For the request |requestData.body| you can provide whole POST body or
+ you can prepare data with using 'prepareKeyValueDictionaryForDataSigning' method. The |requestData.method| parameter
+ is the HTML method of signed request (e.g. GET, POST, etc...). The |requestData.uri| parameter should be relative URI.
  Check the original PA2 documentation for details about signing the HTTP requests.
  
  The result returned string contains a full value for X-PowerAuth-Authorization header.
@@ -245,11 +245,9 @@
 	EC_WrongState, if the session has no valid activation
 	EC_WrongParam, if some required parameter is missing
  */
-- (nullable NSString*) httpAuthHeaderValueForBody:(nullable NSData*)body
-									   httpMethod:(nonnull NSString*)httpMethod
-											  uri:(nonnull NSString*)uri
-											 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
-										   factor:(PA2SignatureFactor)factor;
+- (nullable PA2HTTPRequestDataSignature*) signHttpRequestData:(nonnull PA2HTTPRequestData*)requestData
+														 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
+													   factor:(PA2SignatureFactor)factor;
 /**
  Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
  You can calculate appropriate value with using 'httpAuthHeaderValueForBody:...' method.

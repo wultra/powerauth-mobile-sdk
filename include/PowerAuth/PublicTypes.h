@@ -237,9 +237,9 @@ namespace powerAuth
 	
 	
 	/**
-	 The HTTPRequestData structure contains all data required for signature calculation.
-	 You have to provide values at least non-empty strings to `method` and `uri` members,
-	 to pass a data validation.
+	 The HTTPRequestData structure contains all data required for calculating signature 
+	 from HTTP request. You have to provide values at least non-empty strings to `method` 
+	 and `uri` members, to pass a data validation.
 	 */
 	struct HTTPRequestData
 	{
@@ -258,7 +258,8 @@ namespace powerAuth
 		 */
 		std::string uri;
 		/**
-		 Optional, contains NONCE generated externally, for offline data signing purposes.
+		 Optional, contains NONCE generated externally. The value should be used for offline
+		 data signing purposes only.
 		 */
 		cc7::ByteArray offlineNonce;
 		
@@ -291,7 +292,7 @@ namespace powerAuth
 	};
 	
 	/**
-	 The HTTPRequestDataSignature object contains result from HTTP request data signing 
+	 The HTTPRequestDataSignature structure contains result from HTTP request data signing
 	 operation.
 	 */
 	struct HTTPRequestDataSignature
@@ -301,7 +302,7 @@ namespace powerAuth
 		 */
 		std::string version;
 		/**
-		 Activation identifier received during the actiation process.
+		 Activation identifier received during the activation process.
 		 */
 		std::string activationId;
 		/**
@@ -313,7 +314,7 @@ namespace powerAuth
 		 */
 		std::string nonce;
 		/**
-		 String representation of signature factor.
+		 String representation of signature factor or combination of factors.
 		 */
 		std::string factor;
 		/**

@@ -44,6 +44,14 @@
 
 @end
 
+
+@interface PA2HTTPRequestDataSignature (Private)
+
+- (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;
+
+@end
+
+
 /**
  Converts PA2SessionSetup object into SessionSetup C++ structure.
  */
@@ -61,6 +69,11 @@ CC7_EXTERN_C void PA2SignatureUnlockKeysToStruct(PA2SignatureUnlockKeys * keys, 
  Returns new instance of PA2ActivationStatus object, with content copied from ActivationStatus C++ structure.
  */
 CC7_EXTERN_C PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status);
+
+/**
+ Converts PA2HTTPRequestData object into HTTPRequestData C++ structure.
+ */
+CC7_EXTERN_C void PA2HTTPRequestDataToStruct(PA2HTTPRequestData * req, io::getlime::powerAuth::HTTPRequestData & cpp_req);
 
 /**
  Converts PA2ActivationStep1Param object into ActivationStep1Param C++ structure.

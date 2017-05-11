@@ -32,6 +32,56 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 @implementation PA2SessionSetup
 @end
 
+@implementation PA2HTTPRequestData
+@end
+
+@implementation PA2HTTPRequestDataSignature
+{
+	io::getlime::powerAuth::HTTPRequestDataSignature _signature;
+}
+
+- (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef
+{
+	return _signature;
+}
+
+- (NSString*) version
+{
+	return cc7::objc::CopyToNSString(_signature.version);
+}
+
+- (NSString*) activationId
+{
+	return cc7::objc::CopyToNSString(_signature.activationId);
+}
+
+- (NSString*) applicationKey
+{
+	return cc7::objc::CopyToNSString(_signature.applicationKey);
+}
+
+- (NSString*) nonce
+{
+	return cc7::objc::CopyToNSString(_signature.nonce);
+}
+
+- (NSString*) factor
+{
+	return cc7::objc::CopyToNSString(_signature.factor);
+}
+
+- (NSString*) signature
+{
+	return cc7::objc::CopyToNSString(_signature.signature);
+}
+
+- (NSString*) authHeaderValue
+{
+	return cc7::objc::CopyToNSString(_signature.buildAuthHeaderValue());
+}
+
+@end
+
 @implementation PA2SignatureUnlockKeys
 @end
 
@@ -119,6 +169,14 @@ void PA2SignatureUnlockKeysToStruct(PA2SignatureUnlockKeys * keys, io::getlime::
 	} else {
 		cpp_keys.userPassword.clear();
 	}
+}
+
+void PA2HTTPRequestDataToStruct(PA2HTTPRequestData * req, io::getlime::powerAuth::HTTPRequestData & cpp_req)
+{
+	cpp_req.body					= cc7::objc::CopyFromNSData(req.body);
+	cpp_req.method					= cc7::objc::CopyFromNSString(req.method);
+	cpp_req.uri						= cc7::objc::CopyFromNSString(req.uri);
+	cpp_req.offlineNonce			= cc7::objc::CopyFromNSData(req.offlineNonce);
 }
 
 PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status)

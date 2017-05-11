@@ -835,8 +835,61 @@ static PowerAuthSDK *inst;
 															method:(NSString*)method
 															 uriId:(NSString*)uriId
 															  body:(NSData*)body
-															 error:(NSError**)error {
-	
+															 error:(NSError**)error
+{
+	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
+	requestData.body = body;
+	requestData.method = method;
+	requestData.uri = uriId;
+	PA2HTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
+														 authentication:authentication
+															vaultUnlock:vaultUnlock
+																  error:error];
+	if (signature) {
+		return [[PA2AuthorizationHttpHeader alloc] initWithValue:signature.authHeaderValue];
+	}
+	return nil;
+}
+
+- (NSString*) offlineSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
+										  method:(NSString*)method
+										   uriId:(NSString*)uriId
+											body:(NSData*)body
+										   nonce:(NSString*)nonce
+										   error:(NSError**)error
+{
+	NSData * nonceData = [[NSData alloc] initWithBase64EncodedString:nonce options:0];
+	if (nonceData.length == 0) {
+		if (error) {
+			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
+		}
+		return nil;
+	}
+	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
+	requestData.body = body;
+	requestData.method = method;
+	requestData.uri = uriId;
+	requestData.offlineNonce = nonceData;
+	PA2HTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
+														 authentication:authentication
+															vaultUnlock:NO
+																  error:error];
+	if (signature) {
+		return signature.signature;
+	}
+	return nil;
+}
+
+
+/**
+ This private method implements both online & offline signature calculations. Unlike the public interfaces, method accepts
+ PA2HTTPRequestData object as a source for data for signing and returns structured PA2HTTPRequestDataSignature object.
+ */
+- (PA2HTTPRequestDataSignature*) signHttpRequestData:(PA2HTTPRequestData*)requestData
+									  authentication:(PowerAuthAuthentication*)authentication
+										 vaultUnlock:(BOOL)vaultUnlock
+											   error:(NSError**)error
+{
 	// Check for the session setup
 	if (!_session.hasValidSetup) {
 		[PowerAuthSDK throwInvalidConfigurationException];
@@ -846,6 +899,15 @@ static PowerAuthSDK *inst;
 	if (!_session.hasValidActivation && _session.hasPendingActivation) {
 		if (error) {
 			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil];
+		}
+		return nil;
+	}
+	
+	// Check combination of offlineNonce & vaultUnlock.
+	if (vaultUnlock && requestData.offlineNonce.length > 0) {
+		PALog(@"ERROR: vaultUnlock == YES should not be combined with requestData.offlineNonce.");
+		if (error) {
+			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
 		}
 		return nil;
 	}
@@ -863,18 +925,16 @@ static PowerAuthSDK *inst;
 	// Determine authentication factor type
 	PA2SignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication withVaultUnlock:vaultUnlock];
 	
-	// Compute authorization header for provided values and return result.
-	NSString *httpHeaderValue = [_session httpAuthHeaderValueForBody:body httpMethod:method uri:uriId keys:keys factor:factor];
+	// Compute signature for provided values and return result.
+	PA2HTTPRequestDataSignature * signature = [_session signHttpRequestData:requestData keys:keys factor:factor];
 	
 	// Update keychain values after each successful calculations
 	[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
 	
-	if (httpHeaderValue == nil && error) {
+	if (signature == nil && error) {
 		*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
 	}
-	
-	return [[PA2AuthorizationHttpHeader alloc] initWithValue:httpHeaderValue];
-	
+	return signature;
 }
 
 #pragma mark Activation sign in factor management

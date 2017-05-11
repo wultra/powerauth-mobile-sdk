@@ -16,7 +16,7 @@
 
 #import "PA2Password.h"
 
-#pragma mark Session setup -
+#pragma mark - Session setup & Error -
 
 /**
  The PA2SessionSetup object defines unique constants required during the lifetime
@@ -60,9 +60,6 @@
 
 @end
 
-
-
-#pragma mark Error code -
 
 /**
  The PA2CoreErrorCode enumeration defines all possible error codes
@@ -111,7 +108,7 @@ typedef NS_ENUM(int, PA2CoreErrorCode) {
 };
 
 
-#pragma mark Signature factor -
+#pragma mark - Signatures -
 
 /**
  The PA2SignatureFactor constants defines factors involved in the signature
@@ -147,7 +144,6 @@ extern const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry
  You can combine any signature factor with this flag and prepare for vault unlock.
  */
 extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
-
 
 
 /**
@@ -213,6 +209,75 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
 @end
 
 
+/**
+ The PA2HTTPRequestData object contains all data required for calculating signature from
+ HTTP request. You have to provide values at least non-empty strings to `method` and `uri` 
+ members, to pass a data validation.
+ */
+@interface PA2HTTPRequestData : NSObject
+
+/**
+ A whole POST body or data blob prepared in 'Session::prepareKeyValueMapForDataSigning'
+ method. You can also calculate signature for an empty request with no body or without
+ any GET parameters. In this case the member may be empty.
+ */
+@property (nonatomic, strong, nullable) NSData * body;
+/**
+ HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
+ */
+@property (nonatomic, strong, nonnull) NSString * method;
+/**
+ Relative URI of the request.
+ */
+@property (nonatomic, strong, nonnull) NSString * uri;
+/**
+ Optional, contains NONCE generated externally. The value should be used for offline data
+ signing purposes only.
+ */
+@property (nonatomic, strong, nullable) NSData * offlineNonce;
+
+@end
+
+
+/**
+ The PA2HTTPRequestDataSignature object contains result from HTTP request data signing
+ operation.
+ */
+@interface PA2HTTPRequestDataSignature : NSObject
+
+/**
+ Version of PowerAuth protocol. Current value is "2.0"
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * version;
+/**
+ Activation identifier received during the activation process.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * activationId;
+/**
+ Application key copied from Session.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * applicationKey;
+/**
+ NONCE used for the signature calculation.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * nonce;
+/**
+ String representation of signature factor or combination of factors.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * factor;
+/**
+ Calculated signature
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * signature;
+/**
+ Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * authHeaderValue;
+
+@end
+
+
+#pragma mark - Activation steps -
 
 /**
  The PA2ActivationStep1Param object contains parameters for first step of device activation.
@@ -314,6 +379,7 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
 
 @end
 
+#pragma mark - Activation status -
 
 /**
  The PA2ActivationState enum defines all possible states of activation.
@@ -375,6 +441,7 @@ typedef NS_ENUM(int, PA2ActivationState) {
 
 @end
 
+#pragma mark - End to End Encryption -
 
 /**
  The PA2EncryptedMessage object represents an encrypted data transmitted

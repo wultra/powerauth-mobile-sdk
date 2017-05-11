@@ -243,17 +243,18 @@ using namespace io::getlime::powerAuth;
 										   factor:(PA2SignatureFactor)factor;
 {
 	if (_session) {
-		cc7::ByteRange cpp_body		= cc7::ByteRange(body.bytes, body.length);
-		std::string cpp_method		= cc7::objc::CopyFromNSString(httpMethod);
-		std::string cpp_uri			= cc7::objc::CopyFromNSString(uri);
+		HTTPRequestData request;
+		request.body	= cc7::ByteRange(body.bytes, body.length);
+		request.method	= cc7::objc::CopyFromNSString(httpMethod);
+		request.uri		= cc7::objc::CopyFromNSString(uri);
 		SignatureFactor cpp_factor	= static_cast<SignatureFactor>(factor);
 		SignatureUnlockKeys cpp_keys;
 		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 		
-		std::string header_value;
-		_error = _session->signHTTPRequest(cpp_body, cpp_method, cpp_uri, cpp_keys, cpp_factor, header_value);
+		HTTPRequestDataSignature signature;
+		_error = _session->signHTTPRequestData(request, cpp_keys, cpp_factor, signature);
 		if (_error == EC_Ok) {
-			return cc7::objc::CopyToNSString(header_value);
+			return cc7::objc::CopyToNSString(signature.buildAuthHeaderValue());
 		}
 	} else {
 		_error = EC_WrongParam;

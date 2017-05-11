@@ -33,12 +33,14 @@ namespace protocol
 	extern const std::string PA_AUTH_HEADER_NAME;
 	
 	// Other header strings
+	extern const std::string PA_AUTH_FRAGMENT_BEGIN_VERSION;
 	extern const std::string PA_AUTH_FRAGMENT_ACTIVATION_ID;
 	extern const std::string PA_AUTH_FRAGMENT_APPLICATION_KEY;
 	extern const std::string PA_AUTH_FRAGMENT_NONCE;
 	extern const std::string PA_AUTH_FRAGMENT_SIGNATURE_TYPE;
 	extern const std::string PA_AUTH_FRAGMENT_SIGNATURE;
-	extern const std::string PA_AUTH_FRAGMENT_VERSION;
+	extern const std::string PA_AUTH_FRAGMENT_END;
+	extern const size_t      PA_AUTH_FRAGMENTS_LENGTH;
 	
 	// Empty IV (16 bytes filled with 0)
 	extern const cc7::ByteArray ZERO_IV;

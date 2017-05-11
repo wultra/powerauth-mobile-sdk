@@ -226,15 +226,15 @@ namespace powerAuth
 		 them. You can still implement your own data normalization, if this is your situation.
 		 */
 		static cc7::ByteArray prepareKeyValueMapForDataSigning(const std::map<std::string, std::string> & key_value_map);
-		
+
 		/**
-         Calculates signature from given data. You have to provide all involved unlock keys in |keys| structure,
-		 required for desired |signature_factor|. For the |request_body| you can provide whole POST body or 
-		 you can prepare data with  using 'prepareKeyValueMapForDataSigning' method. The |method| parameter is the HTML
-         method of signed request (e.g. GET, POST, etc...). The |uri| parameter should be relative URI. 
-		 Check the original PA2 documentation for details about signing the HTTP requests.
+         Calculates signature from given |request_data| structure. You have to provide all involved unlock keys 
+		 in |keys| structure, required for desired |signature_factor|. For the |request_data.body| you can provide whole POST
+		 body or you can prepare data with using 'prepareKeyValueMapForDataSigning' method. The |request_data.method|
+		 parameter is the HTML method of the request (e.g. GET, POST, etc...). The |request_data.uri| parameter should be 
+		 relative URI. Check the original PA2 documentation for details about signing the HTTP requests.
          
-		 The result is stored in the |out_header_value| referenced string and contains full value for
+		 The result is stored to the |out_signature| structure and can be converted to a full value for
 		 X-PowerAuth-Authorization header.
 		 
          If you're going to sign request for a vault key retrieving, then you have to specifiy signature
@@ -259,9 +259,9 @@ namespace powerAuth
                  EC_WrongState, if the session has no valid activation
                  EC_WrongParam, if some required parameter is missing
 		 */
-		ErrorCode signHTTPRequest(const cc7::ByteRange & request_body, const std::string & method, const std::string & uri,
-								  const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
-								  std::string & out_header_value);
+		ErrorCode signHTTPRequestData(const HTTPRequestData & request_data,
+									  const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
+									  HTTPRequestDataSignature & out_signature);
 		
 		/**
 		 Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".

@@ -311,8 +311,8 @@ namespace powerAuthTests
 					SignatureUnlockKeys fake_keys;
 					ec = s1.completeActivation(fake_keys);
 					ccstAssertEqual(ec, EC_WrongState);
-					std::string fake_header;
-					ec = s1.signHTTPRequest(cc7::ByteArray(), std::string(), std::string(), fake_keys, SF_Biometry, fake_header);
+					HTTPRequestDataSignature fake_signature;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::ByteArray(), std::string(), std::string()), fake_keys, SF_Biometry, fake_signature);
 					ccstAssertEqual(ec, EC_WrongState);
 				}
 				// SERVER STEP 2
@@ -425,8 +425,8 @@ namespace powerAuthTests
 					SignatureUnlockKeys fake_keys;
 					ec = s1.validateActivationResponse(fake_param, fake_result);
 					ccstAssertEqual(ec, EC_WrongState);
-					std::string foo_fighters;
-					ec = s1.signHTTPRequest(cc7::ByteArray(), std::string(), std::string(), fake_keys, SF_Biometry, foo_fighters);
+					HTTPRequestDataSignature foo_fighters;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::ByteArray(), std::string(), std::string()), fake_keys, SF_Biometry, foo_fighters);
 					ccstAssertEqual(ec, EC_WrongState);
 				}
 				// CLIENT STEP 3
@@ -516,8 +516,9 @@ namespace powerAuthTests
 					keys.userPassword        = cc7::MakeRange(password);
 					
 					std::string sigHeader = s1.httpAuthHeaderName();
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::ByteRange(), "POST", "/user/login", keys, SF_Possession_Knowledge_Biometry, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::ByteRange(), "POST", "/user/login"), keys, SF_Possession_Knowledge_Biometry, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertEqual(sigHeader, "X-PowerAuth-Authorization");
 					ccstAssertTrue(!sigValue.empty());
@@ -556,8 +557,9 @@ namespace powerAuthTests
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
 					
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", keys, SF_Possession_Knowledge, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me"), keys, SF_Possession_Knowledge, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					
@@ -610,8 +612,9 @@ namespace powerAuthTests
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(password);
 					
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can"), keys, SF_Possession_Knowledge, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					
@@ -625,16 +628,19 @@ namespace powerAuthTests
 					ccstAssertNotEqual(signature, our_signature);
 				}
 				
-				// Signature test #4 ... yet another valid test
+				// Signature test #4 ... yet another valid test, now use "offline" nonce.
 				{
 					SignatureUnlockKeys keys;
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
 					
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					HTTPRequestData requestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", cc7::MakeRange("CharmingNonce123"));
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(requestData, keys, SF_Possession_Knowledge, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
+					ccstAssertEqual(requestData.offlineNonce.base64String(), sigData.nonce);
 					
 					StringMap parsedSignature = T_parseSignature(sigValue);
 					std::string nonceB64 = parsedSignature["pa_nonce"];
@@ -683,8 +689,9 @@ namespace powerAuthTests
 						
 						SignatureUnlockKeys keys;
 						keys.possessionUnlockKey = possessionUnlock;
-						std::string sigValue;
-						ec = s2.signHTTPRequest(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", keys, SF_Possession, sigValue);
+						HTTPRequestDataSignature sigData;
+						ec = s2.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can"), keys, SF_Possession, sigData);
+						std::string sigValue = sigData.buildAuthHeaderValue();
 						ccstAssertEqual(ec, EC_Ok);
 						ccstAssertTrue(!sigValue.empty());
 						
@@ -710,15 +717,16 @@ namespace powerAuthTests
 					SignatureUnlockKeys keys;
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword = cc7::MakeRange(new_password);
-					std::string sigValue;
-					ec = s3.signHTTPRequest(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s3.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can"), keys, SF_Possession_Knowledge, sigData);
 					ccstAssertEqual(ec, EC_Encryption);
 
 					// Now set EEK and try again... Must pass!
 					ec = s3.setExternalEncryptionKey(*eek);
 					ccstAssertEqual(ec, EC_Ok);
 
-					ec = s3.signHTTPRequest(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Knowledge, sigValue);
+					ec = s3.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can"), keys, SF_Possession_Knowledge, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					
@@ -754,10 +762,9 @@ namespace powerAuthTests
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.biometryUnlockKey   = biometryUnlock;
 
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", keys, SF_Possession_Biometry, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can"), keys, SF_Possession_Biometry, sigData);
 					ccstAssertEqual(ec, EC_Encryption);
-					ccstAssertTrue(sigValue.empty());
 					
 					// Check serialization without biometry key
 					auto state_without_biometry = s1.saveSessionState();
@@ -772,8 +779,9 @@ namespace powerAuthTests
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
 					
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					
@@ -818,8 +826,9 @@ namespace powerAuthTests
 					SignatureUnlockKeys keys;
 					keys.biometryUnlockKey   = new_biometryUnlock;
 					
-					std::string sigValue;
-					ec = s1.signHTTPRequest(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", keys, SF_Biometry, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can"), keys, SF_Biometry, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					
@@ -842,9 +851,10 @@ namespace powerAuthTests
 					SignatureUnlockKeys keys;
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
-					std::string sigValue;
+					HTTPRequestDataSignature sig;
 					// counter value should be #7
-					ec = s1.signHTTPRequest(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigValue);
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sig);
+					std::string sigValue = sig.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					// Just to be sure, check that calculated signature
@@ -883,9 +893,11 @@ namespace powerAuthTests
 					SignatureUnlockKeys keys;
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
-					std::string sigValue;
+					
 					// counter value should be #9
-					ec = s1.signHTTPRequest(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigValue);
+					HTTPRequestDataSignature sigData;
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigData);
+					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					// encrypted vault key

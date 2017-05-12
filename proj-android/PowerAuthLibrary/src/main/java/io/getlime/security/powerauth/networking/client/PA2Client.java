@@ -35,6 +35,7 @@ import com.google.gson.stream.JsonReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -112,8 +113,9 @@ public class PA2Client {
                 final PowerAuthApiRequest<TRequest> requestObject = new PowerAuthApiRequest<>(params[0]);
                 final String jsonRequestObject = mGson.toJson(requestObject);
                 final byte[] postDataBytes = jsonRequestObject.getBytes("UTF-8");
+                final boolean unsecuredConnection = clientConfiguration.isUnsecuredConnectionAllowed() && url.getProtocol() == "http";
 
-                final HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+                final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(true);
@@ -130,14 +132,15 @@ public class PA2Client {
 
                 // ssl validation strategy
                 final PA2ClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
-                if (clientValidationStrategy != null) {
+                if (clientValidationStrategy != null && unsecuredConnection == false) {
+                    final HttpsURLConnection sslConnection = (HttpsURLConnection) urlConnection;
                     final SSLSocketFactory sslSocketFactory = clientValidationStrategy.getSSLSocketFactory();
                     if (sslSocketFactory != null) {
-                        urlConnection.setSSLSocketFactory(sslSocketFactory);
+                        sslConnection.setSSLSocketFactory(sslSocketFactory);
                     }
                     final HostnameVerifier hostnameVerifier = clientValidationStrategy.getHostnameVerifier();
                     if (hostnameVerifier != null) {
-                        urlConnection.setHostnameVerifier(hostnameVerifier);
+                        sslConnection.setHostnameVerifier(hostnameVerifier);
                     }
                 }
 

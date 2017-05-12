@@ -29,6 +29,7 @@ public class PowerAuthClientConfiguration {
 
     private static final int DEF_CONNECTION_TIMEOUT = 20 * 1000; //ms
     private static final int DEF_READ_TIMEOUT = 20 * 1000; //ms
+    private static final boolean DEF_ALLOW_UNSECURED_CONNECTION = false;
 
     /**
      * Property that specifies the default HTTP client connection timeout. The default value is 20.0 (seconds).
@@ -39,6 +40,15 @@ public class PowerAuthClientConfiguration {
      * Property that specifies the default HTTP client read timeout. The default value is 20.0 (seconds).
      */
     private int readTimeout = DEF_READ_TIMEOUT;
+
+    /**
+     * Property that specifies whether it's possible to connect to non-TLS endpoints.
+     *
+     * WARNING
+     *
+     * You should never allow unsecured connections to production-grade servers.
+     */
+    private boolean allowUnsecuredConnection = DEF_ALLOW_UNSECURED_CONNECTION;
 
     /**
      * Property that specifies the SSL validation strategy applied by the client.
@@ -53,6 +63,8 @@ public class PowerAuthClientConfiguration {
         return readTimeout;
     }
 
+    public boolean isUnsecuredConnectionAllowed() { return allowUnsecuredConnection; }
+
     public PA2ClientValidationStrategy getClientValidationStrategy() {
         return clientValidationStrategy;
     }
@@ -60,6 +72,7 @@ public class PowerAuthClientConfiguration {
     public static class Builder {
         private int connectionTimeout = DEF_CONNECTION_TIMEOUT;
         private int readTimeout = DEF_READ_TIMEOUT;
+        private boolean allowUnsecuredConnection = DEF_ALLOW_UNSECURED_CONNECTION;
         private PA2ClientValidationStrategy clientValidationStrategy;
 
         public Builder() {
@@ -68,6 +81,11 @@ public class PowerAuthClientConfiguration {
         public Builder timeouts(int connectionTimeout, int readTimeout) {
             this.connectionTimeout = connectionTimeout;
             this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public Builder allowUnsecuredConnection(boolean allow) {
+            this.allowUnsecuredConnection = allow;
             return this;
         }
 
@@ -80,6 +98,7 @@ public class PowerAuthClientConfiguration {
             final PowerAuthClientConfiguration powerAuthClientConfiguration = new PowerAuthClientConfiguration();
             powerAuthClientConfiguration.connectionTimeout = connectionTimeout;
             powerAuthClientConfiguration.readTimeout = readTimeout;
+            powerAuthClientConfiguration.allowUnsecuredConnection = allowUnsecuredConnection;
             powerAuthClientConfiguration.clientValidationStrategy = clientValidationStrategy;
             return powerAuthClientConfiguration;
         }

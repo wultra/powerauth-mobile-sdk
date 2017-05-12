@@ -505,13 +505,11 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Sign: Wrong signature factor 0x%04x.", this, sessionIdentifier(), signature_factor);
 			return EC_WrongParam;
 		}
-		
-		// Unlock keys. This also validates whether the provided unlock keys are present or not.
-		protocol::SignatureKeys plain_keys;
-		protocol::SignatureUnlockKeysReq unlock_request(signature_factor, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
-		if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
-			CC7_LOG("Session %p, %d: Sign: Unable to unlock signature keys.", this, sessionIdentifier());
-			return EC_Encryption;
+		// Check combination of offlineNonce & vaultUnlock.
+		bool vault_unlock = (signature_factor & SF_PrepareForVaultUnlock) != 0;
+		if (vault_unlock && !request.offlineNonce.empty()) {
+			CC7_LOG("Session %p, %d: Sign: Vault unlock should not be combined with offlineNonce.", this, sessionIdentifier());
+			return EC_WrongParam;
 		}
 		
 		// Re-seed OpenSSL's PRNG.
@@ -521,10 +519,22 @@ namespace powerAuth
 		cc7::ByteArray nonce;
 		if (request.offlineNonce.empty()) {
 			nonce = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true);
+			out.nonce = nonce.base64String();
 		} else {
-			nonce = request.offlineNonce;
+			if (!cc7::Base64_Decode(request.offlineNonce, 0, nonce)) {
+				CC7_LOG("Session %p, %d: Sign: request.offlineNonce is invalid.", this, sessionIdentifier());
+				return EC_Encryption;
+			}
+			out.nonce = request.offlineNonce;	// already in valid Base64 format
 		}
-		out.nonce = nonce.base64String();
+		
+		// Unlock keys. This also validates whether the provided unlock keys are present or not.
+		protocol::SignatureKeys plain_keys;
+		protocol::SignatureUnlockKeysReq unlock_request(signature_factor, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
+		if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
+			CC7_LOG("Session %p, %d: Sign: Unable to unlock signature keys.", this, sessionIdentifier());
+			return EC_Encryption;
+		}
 		
 		// Normalize data and calculate signature
 		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, _setup.applicationSecret);
@@ -541,7 +551,7 @@ namespace powerAuth
 			// This is just a warning. Your client probably did not receive response from a previous vault unlock HTTP request.
 			CC7_LOG("Session %p, %d: Sign: Session is already waiting for a vault unlocking.");
 		}
-		if (0 != (signature_factor & SF_PrepareForVaultUnlock)) {
+		if (vault_unlock) {
 			// If we're signing vault unlock request then the counter must be increased for one more time
 			_pd->signatureCounter += 1;
 			_pd->flags.waitingForVaultUnlock = 1;

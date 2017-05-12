@@ -44,7 +44,7 @@ namespace powerAuth
 	HTTPRequestData::HTTPRequestData(const cc7::ByteRange & body,
 									 const std::string & method,
 									 const std::string & uri,
-									 const cc7::ByteRange & nonce) :
+									 const std::string & nonce) :
 		body(body),
 		method(method),
 		uri(uri),
@@ -60,7 +60,8 @@ namespace powerAuth
 		if (!(method == "GET" || method == "POST" || method == "HEAD" || method == "PUT" || method == "DELETE")) {
 			return false;
 		}
-		if (!offlineNonce.empty() && offlineNonce.size() != protocol::SIGNATURE_KEY_SIZE) {
+		// 24 magic value is actually 16 bytes encoded in Base64.
+		if (!offlineNonce.empty() && offlineNonce.size() != 24) {
 			return false;
 		}
 		return true;

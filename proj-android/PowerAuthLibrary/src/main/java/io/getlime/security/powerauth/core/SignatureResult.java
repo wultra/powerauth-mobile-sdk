@@ -28,12 +28,19 @@ public class SignatureResult {
     public final int errorCode;
 
     /**
-     Calculated signature.
+     Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
      */
-    public final String signature;
+    public final String authHeaderValue;
+
+    /**
+     Calculated signature. Unlike `authHeaderValue`, this property contains just
+     a numeric authentication code.
+     */
+    public final String signatureCode;
 
     public SignatureResult() {
         this.errorCode = 0;
-        this.signature = null;
+        this.authHeaderValue = null;
+        this.signatureCode = null;
     }
 }

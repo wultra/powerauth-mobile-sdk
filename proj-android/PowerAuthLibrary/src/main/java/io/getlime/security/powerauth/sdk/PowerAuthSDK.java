@@ -42,6 +42,7 @@ import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.core.SessionSetup;
 import io.getlime.security.powerauth.core.SignatureFactor;
+import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
 import io.getlime.security.powerauth.e2ee.PA2EncryptionFailedException;
@@ -890,16 +891,69 @@ public class PowerAuthSDK {
         int signatureFactor = determineSignatureFactorForAuthentication(authentication, vaultUnlock);
 
         // Compute authorization header for provided values and return result.
-        SignatureResult signatureResult = mSession.signHTTPRequest(body, method, uriId, keys, signatureFactor);
+        SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null);
+        SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
 
         // Update state after each successful calculation
         saveSerializedState();
 
         if (signatureResult.errorCode == ErrorCode.OK) {
-            return new PowerAuthAuthorizationHttpHeader(signatureResult.signature, PowerAuthErrorCodes.PA2Succeed);
+            return new PowerAuthAuthorizationHttpHeader(signatureResult.authHeaderValue, PowerAuthErrorCodes.PA2Succeed);
         } else {
             return new PowerAuthAuthorizationHttpHeader(null, PowerAuthErrorCodes.PA2ErrorCodeSignatureError);
         }
+    }
+
+    /**
+     * Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
+     * <p>
+     * This method may block a main thread - make sure to dispatch it asynchronously.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying what factors should be used to sign the request.
+     * @param method         HTTP method used for the signature computation.
+     * @param uriId          URI identifier.
+     * @param body           HTTP request body.
+     * @param nonce          NONCE in Base64 format
+     * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body, String nonce) {
+        // Check for the session setup
+        if (mSession == null || !mSession.hasValidSetup()) {
+            throwInvalidConfigurationException();
+        }
+
+        // Check if there is an activation present
+        if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
+            return null;
+        }
+
+        // Generate signature key encryption keys
+        SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
+        if (keys == null) {
+            return null;
+        }
+
+        // nonce is mandatory for this operation
+        if (nonce == null) {
+            return null;
+        }
+
+        // Determine authentication factor type
+        int signatureFactor = determineSignatureFactorForAuthentication(authentication, false);
+
+        // Compute authorization header for provided values and return result.
+        SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, nonce);
+        SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
+
+        // Update state after each successful calculation
+        saveSerializedState();
+
+        if (signatureResult.errorCode == ErrorCode.OK) {
+            return signatureResult.signatureCode;
+        }
+        return null;
     }
 
     /**

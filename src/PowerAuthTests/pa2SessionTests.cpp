@@ -634,13 +634,13 @@ namespace powerAuthTests
 					keys.possessionUnlockKey = possessionUnlock;
 					keys.userPassword        = cc7::MakeRange(new_password);
 					
-					HTTPRequestData requestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", cc7::MakeRange("CharmingNonce123"));
+					HTTPRequestData requestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", "Q2hhcm1pbmdOb25jZTEyMw==");
 					HTTPRequestDataSignature sigData;
 					ec = s1.signHTTPRequestData(requestData, keys, SF_Possession_Knowledge, sigData);
 					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
-					ccstAssertEqual(requestData.offlineNonce.base64String(), sigData.nonce);
+					ccstAssertEqual(requestData.offlineNonce, sigData.nonce);
 					
 					StringMap parsedSignature = T_parseSignature(sigValue);
 					std::string nonceB64 = parsedSignature["pa_nonce"];

@@ -232,9 +232,9 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
 @property (nonatomic, strong, nonnull) NSString * uri;
 /**
  Optional, contains NONCE generated externally. The value should be used for offline data
- signing purposes only.
+ signing purposes only. The Base64 string is expected.
  */
-@property (nonatomic, strong, nullable) NSData * offlineNonce;
+@property (nonatomic, strong, nullable) NSString * offlineNonce;
 
 @end
 

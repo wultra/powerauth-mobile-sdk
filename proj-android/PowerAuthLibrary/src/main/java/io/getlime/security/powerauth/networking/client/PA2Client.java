@@ -113,7 +113,7 @@ public class PA2Client {
                 final PowerAuthApiRequest<TRequest> requestObject = new PowerAuthApiRequest<>(params[0]);
                 final String jsonRequestObject = mGson.toJson(requestObject);
                 final byte[] postDataBytes = jsonRequestObject.getBytes("UTF-8");
-                final boolean unsecuredConnection = clientConfiguration.isUnsecuredConnectionAllowed() && url.getProtocol() == "http";
+                final boolean unsecuredConnection = clientConfiguration.isUnsecuredConnectionAllowed() && url.getProtocol().equals("http");
 
                 final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 

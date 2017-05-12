@@ -176,7 +176,7 @@ void PA2HTTPRequestDataToStruct(PA2HTTPRequestData * req, io::getlime::powerAuth
 	cpp_req.body					= cc7::objc::CopyFromNSData(req.body);
 	cpp_req.method					= cc7::objc::CopyFromNSString(req.method);
 	cpp_req.uri						= cc7::objc::CopyFromNSString(req.uri);
-	cpp_req.offlineNonce			= cc7::objc::CopyFromNSData(req.offlineNonce);
+	cpp_req.offlineNonce			= cc7::objc::CopyFromNSString(req.offlineNonce);
 }
 
 PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status)

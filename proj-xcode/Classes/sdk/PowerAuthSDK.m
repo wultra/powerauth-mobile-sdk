@@ -858,18 +858,14 @@ static PowerAuthSDK *inst;
 										   nonce:(NSString*)nonce
 										   error:(NSError**)error
 {
-	NSData * nonceData = [[NSData alloc] initWithBase64EncodedString:nonce options:0];
-	if (nonceData.length == 0) {
-		if (error) {
-			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
-		}
+	if (!nonce) {
 		return nil;
 	}
 	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
 	requestData.body = body;
 	requestData.method = method;
 	requestData.uri = uriId;
-	requestData.offlineNonce = nonceData;
+	requestData.offlineNonce = nonce;
 	PA2HTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
 														 authentication:authentication
 															vaultUnlock:NO
@@ -899,15 +895,6 @@ static PowerAuthSDK *inst;
 	if (!_session.hasValidActivation && _session.hasPendingActivation) {
 		if (error) {
 			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil];
-		}
-		return nil;
-	}
-	
-	// Check combination of offlineNonce & vaultUnlock.
-	if (vaultUnlock && requestData.offlineNonce.length > 0) {
-		PALog(@"ERROR: vaultUnlock == YES should not be combined with requestData.offlineNonce.");
-		if (error) {
-			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
 		}
 		return nil;
 	}

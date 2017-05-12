@@ -240,9 +240,9 @@ public class Session {
 	
 	/**
      Calculates signature from given data. You have to provide all involved |unlockKeys| required for
-     the |signatureFactor|. For |httpBody| you can provide whole POST body or prepare data with
-     using 'prepareKeyValueDictionaryForDataSigning' method. The |httpMethod| parameter is the HTML
-     method of signed request. The |uri| parameter should be relative URI. Check the original PA2
+     the |signatureFactor|. For |request.body| you can provide whole POST body or prepare data with
+     using 'prepareKeyValueDictionaryForDataSigning' method. The |request.method| parameter is the HTML
+     method of signed request. The |request.uri| parameter should be relative URI. Check the original PA2
      documentation for details about signing the HTTP requests.
 
      If you're going to sign request for a vault key retrieving, then you have to specifiy signature
@@ -265,7 +265,7 @@ public class Session {
      guard this method with locking. There's possible race condition when the internal signing counter
      is raised in persistent data structure. The Session doesn't provide locking internally.
      */
-	public native SignatureResult signHTTPRequest(byte[] httpBody, String httpMethod, String uri, SignatureUnlockKeys unlockKeys, int signatureFactor);
+	public native SignatureResult signHTTPRequest(SignatureRequest request, SignatureUnlockKeys unlockKeys, int signatureFactor);
 	
 	/**
      Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".

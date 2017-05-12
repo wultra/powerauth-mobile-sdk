@@ -259,9 +259,9 @@ namespace powerAuth
 		std::string uri;
 		/**
 		 Optional, contains NONCE generated externally. The value should be used for offline
-		 data signing purposes only.
+		 data signing purposes only. The Base64 string is expected.
 		 */
-		cc7::ByteArray offlineNonce;
+		std::string offlineNonce;
 		
 		/**
 		 Constructs an empty HTTPRequestData structure.
@@ -283,7 +283,7 @@ namespace powerAuth
 		HTTPRequestData(const cc7::ByteRange & body,
 						const std::string & method,
 						const std::string & uri,
-						const cc7::ByteRange & nonce);
+						const std::string & nonce);
 		
 		/**
 		 Returns true when structure contains valid data.

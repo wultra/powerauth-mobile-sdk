@@ -19,17 +19,28 @@ package io.getlime.security.powerauth.networking.exceptions;
 import io.getlime.security.powerauth.rest.api.model.entity.ErrorModel;
 
 /**
- * Created by miroslavmichalec on 12/10/2016.
+ * Signals that a REST connection failed with a known error. You can check
+ * the reason of failure in the attached ErrorModel object.
  */
-
 public class ErrorResponseApiException extends Exception {
 
+    /**
+     * Error response received from the server
+     */
     private ErrorModel mErrorResponse;
 
+    /**
+     * Constructs a new exception with error received from server.
+     *
+     * @param errorResponse error received from server
+     */
     public ErrorResponseApiException(ErrorModel errorResponse) {
         this.mErrorResponse = errorResponse;
     }
 
+    /**
+     * @return ErrorModel with failure reason
+     */
     public ErrorModel getErrorResponse() {
         return mErrorResponse;
     }

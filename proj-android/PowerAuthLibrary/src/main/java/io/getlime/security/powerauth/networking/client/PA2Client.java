@@ -42,6 +42,7 @@ import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.getlime.security.powerauth.networking.endpoints.PA2ActivationStatusEndpoint;
@@ -113,9 +114,9 @@ public class PA2Client {
                 final PowerAuthApiRequest<TRequest> requestObject = new PowerAuthApiRequest<>(params[0]);
                 final String jsonRequestObject = mGson.toJson(requestObject);
                 final byte[] postDataBytes = jsonRequestObject.getBytes("UTF-8");
-                final boolean unsecuredConnection = clientConfiguration.isUnsecuredConnectionAllowed() && url.getProtocol().equals("http");
 
                 final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                final boolean securedUrlConnection = urlConnection instanceof HttpsURLConnection;
 
                 urlConnection.setRequestMethod("POST");
                 urlConnection.setDoOutput(true);
@@ -131,16 +132,22 @@ public class PA2Client {
                 urlConnection.setReadTimeout(clientConfiguration.getReadTimeout());
 
                 // ssl validation strategy
-                final PA2ClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
-                if (clientValidationStrategy != null && unsecuredConnection == false) {
-                    final HttpsURLConnection sslConnection = (HttpsURLConnection) urlConnection;
-                    final SSLSocketFactory sslSocketFactory = clientValidationStrategy.getSSLSocketFactory();
-                    if (sslSocketFactory != null) {
-                        sslConnection.setSSLSocketFactory(sslSocketFactory);
+                if (securedUrlConnection) {
+                    final PA2ClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
+                    if (clientValidationStrategy != null) {
+                        final HttpsURLConnection sslConnection = (HttpsURLConnection) urlConnection;
+                        final SSLSocketFactory sslSocketFactory = clientValidationStrategy.getSSLSocketFactory();
+                        if (sslSocketFactory != null) {
+                            sslConnection.setSSLSocketFactory(sslSocketFactory);
+                        }
+                        final HostnameVerifier hostnameVerifier = clientValidationStrategy.getHostnameVerifier();
+                        if (hostnameVerifier != null) {
+                            sslConnection.setHostnameVerifier(hostnameVerifier);
+                        }
                     }
-                    final HostnameVerifier hostnameVerifier = clientValidationStrategy.getHostnameVerifier();
-                    if (hostnameVerifier != null) {
-                        sslConnection.setHostnameVerifier(hostnameVerifier);
+                } else {
+                    if (clientConfiguration.isUnsecuredConnectionAllowed() == false) {
+                        throw new SSLException("Connection to non-TLS endpoint is not allowed.");
                     }
                 }
 

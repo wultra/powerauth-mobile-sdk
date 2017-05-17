@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.sdk;
 
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * Created by miroslavmichalec on 21/10/2016.
@@ -86,6 +87,9 @@ public class PowerAuthClientConfiguration {
 
         public Builder allowUnsecuredConnection(boolean allow) {
             this.allowUnsecuredConnection = allow;
+            if (allow) {
+                 PA2Log.e("Unsecured connection is dangerous for production application.");
+            }
             return this;
         }
 

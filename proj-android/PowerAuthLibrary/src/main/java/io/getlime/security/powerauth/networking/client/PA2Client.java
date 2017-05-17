@@ -32,12 +32,15 @@ import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -65,6 +68,7 @@ import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusRes
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * Class responsible for simple communication with server.
@@ -151,45 +155,107 @@ public class PA2Client {
                     }
                 }
 
+                if (PA2Log.isEnabled()) {
+                    final String bodyStr = jsonRequestObject == null ? "<empty>" : jsonRequestObject;
+                    final Map<String,List<String>> prop = urlConnection.getRequestProperties();
+                    final String propStr = prop == null ? "<empty>" : prop.toString();
+                    PA2Log.d("PA2Client %s request to URL: %s\n - Headers: %s\n - Body: %s",
+                            urlConnection.getRequestMethod(), url.toString(), propStr, bodyStr);
+                }
+
+                // Connect to endpoint
                 urlConnection.getOutputStream().write(postDataBytes);
                 urlConnection.connect();
 
+                // Get response code & try to get response body
                 final int responseCode = urlConnection.getResponseCode();
-                switch (responseCode) {
-                    case HttpsURLConnection.HTTP_OK:
-                    case HttpsURLConnection.HTTP_BAD_REQUEST:
-                    case HttpsURLConnection.HTTP_UNAUTHORIZED:
-                        final InputStream inputStream = urlConnection.getInputStream();
+                final boolean responseOk =  responseCode / 100 == 2;
+                final boolean tryParseJson = responseOk ||
+                        responseCode == HttpURLConnection.HTTP_BAD_REQUEST ||
+                        responseCode == HttpURLConnection.HTTP_UNAUTHORIZED;
 
-                        final JsonReader jsonReader = new JsonReader(new InputStreamReader(inputStream));
-                        final JsonObject jsonObject = new JsonParser().parse(jsonReader).getAsJsonObject();
+                // Get response body from InputStream
+                final InputStream inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
+                final String responseBody = loadStringFromInputStream(inputStream, urlConnection.getContentEncoding());
 
-                        final String status = jsonObject.get("status").getAsString();
-                        final JsonElement responseObjectElement = jsonObject.get("responseObject");
-
-                        if (status.equalsIgnoreCase("OK")) {
-                            if (requestDefinition.getResponseType() != null) {
-                                final TResponse response = mGson.fromJson(responseObjectElement, requestDefinition.getResponseType().getType());
-                                callOnResponseUi(response, responseListener);
-                            } else {
-                                callOnResponseUi(null, responseListener);
-                            }
-                        } else {
-                            final ErrorModel error = mGson.fromJson(responseObjectElement, TypeToken.get(ErrorModel.class).getType());
-                            callOnErrorUi(new ErrorResponseApiException(error), responseListener);
-                        }
-                        jsonReader.close();
-                        break;
-                    default:
-                        callOnErrorUi(new FailedApiException(responseCode), responseListener);
-                        break;
+                if (PA2Log.isEnabled()) {
+                    final String bodyStr = responseBody == null ? "<empty body>" : responseBody;
+                    final Map<String,List<String>> prop = urlConnection.getHeaderFields();
+                    final String propStr = prop == null ? "<empty>" : prop.toString();
+                    PA2Log.d("PA2Client response from URL: %s\n - Status code: %d\n - Headers: %s\n - Body: %s",
+                            url.toString(), responseCode, propStr, bodyStr);
                 }
+
+                // If response code has known status code, then try to parse responseBody as a JSON
+                String exceptionMessage = null;
+
+                if (tryParseJson) {
+                    try {
+                        final JsonElement jsonRoot = new JsonParser().parse(responseBody);
+                        final JsonObject jsonObject = jsonRoot.isJsonObject() ? jsonRoot.getAsJsonObject() : null;
+                        // Try to get "status" & "responseObject"
+                        if (jsonObject != null) {
+                            final JsonElement statusElement = jsonObject.get("status");
+                            final JsonElement responseElement = jsonObject.get("responseObject");
+                            if (statusElement != null && statusElement.isJsonPrimitive()) {
+                                // Check status & build corresponding response for UI
+                                if (statusElement.getAsString().equalsIgnoreCase("OK")) {
+                                    // Status is "OK", try to create response object from objectElement.
+                                    if (requestDefinition.getResponseType() != null) {
+                                        // Create a final response object
+                                        final TResponse response = mGson.fromJson(responseElement, requestDefinition.getResponseType().getType());
+                                        callOnResponseUi(response, responseListener);
+                                    } else {
+                                        // No response object, just report null
+                                        callOnResponseUi(null, responseListener);
+                                    }
+                                } else {
+                                    // Status is not "OK", try to create ErrorModel object
+                                    final ErrorModel error = mGson.fromJson(responseElement, TypeToken.get(ErrorModel.class).getType());
+                                    callOnErrorUi(new ErrorResponseApiException(error), responseListener);
+                                }
+                                // Return now, because for all other cases, we will report an error...
+                                return null;
+                            }
+                        }
+
+                    } catch (JsonParseException e) {
+                        // Failed on JSON parser, we should keep json exception message
+                        exceptionMessage = e.getMessage();
+                    }
+                }
+                // For all other cases report an error constructed with response code, body and optional exception message.
+                callOnErrorUi(new FailedApiException(exceptionMessage, responseCode, responseBody), responseListener);
+
             } catch (IOException | JsonParseException e) {
+                // All other cases report as produced exception.
                 callOnErrorUi(e, responseListener);
             }
-
             return null;
         }
+    }
+
+    /**
+     * Converts all bytes read an InputStream to string.
+     *
+     * @param is input stream whose content will be converted
+     * @param encoding requested encoding. If null is provided, then "UTF-8" is used.
+     * @return String received from input stream
+     */
+    private String loadStringFromInputStream(InputStream is, String encoding) throws IOException {
+        if (is == null) {
+            return null;
+        }
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = is.read(buffer)) != -1) {
+            result.write(buffer, 0, length);
+        }
+        if (encoding == null) {
+            encoding = "UTF-8";
+        }
+        return result.toString(encoding);
     }
 
     private <TResponse> void callOnResponseUi(final TResponse response, final INetworkResponseListener<TResponse> responseListener) {

@@ -17,23 +17,53 @@
 package io.getlime.security.powerauth.networking.exceptions;
 
 /**
- * Created by miroslavmichalec on 20/10/2016.
+ * Signals that a REST connection failed with an unknown response from the server.
+ * You can investigate a received HTTP response code and response body string
+ * for more details.
  */
-
 public class FailedApiException extends Exception {
 
+    /**
+     * HTTP response code
+     */
     private int responseCode;
+    /**
+     * HTTP response body. The value may be null.
+     */
+    private String responseBody;
 
-    public FailedApiException(int responseCode) {
+    /**
+     * Constructs an exception with response code and response body.
+     *
+     * @param responseCode HTTP response code
+     * @param responseBody HTTP response body
+     */
+    public FailedApiException(int responseCode, String responseBody) {
         this.responseCode = responseCode;
+        this.responseBody = responseBody;
     }
 
-    public FailedApiException(String message, int responseCode) {
+
+    /**
+     * Constructs an exception with message, response code and response body.
+     *
+     * @param message message from another exception
+     * @param responseCode HTTP response code
+     * @param responseBody HTTP response body
+     */
+    public FailedApiException(String message, int responseCode, String responseBody) {
         super(message);
         this.responseCode = responseCode;
+        this.responseBody = responseBody;
     }
 
-    public int getResponseCode() {
-        return responseCode;
-    }
+    /**
+     * @return HTTP response code
+     */
+    public int getResponseCode() { return responseCode; }
+
+    /**
+     * @return HTTP response body. The returned value may be null.
+     */
+    public String getResponseBody() { return responseBody; }
 }

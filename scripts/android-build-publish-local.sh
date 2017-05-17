@@ -16,6 +16,7 @@ function USAGE
 	echo "Usage:  $CMD  [options]"
 	echo ""
 	echo "options are:"
+	echo "    -nc               don't clean before build"
 	echo "    -v0               turn off all prints to stdout"
 	echo "    -v1               print only basic log about build progress"
 	echo "    -v2               print full build log with rich debug info"
@@ -27,10 +28,13 @@ function USAGE
 ###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
+DO_CLEAN="clean"
 while [[ $# -gt 0 ]]
 do
 	opt="$1"
 	case "$opt" in
+		-nc)
+			DO_CLEAN="" ;;
 		-v*)
 			SET_VERBOSE_LEVEL_FROM_SWITCH $opt ;;
 		-h | --help)
@@ -43,6 +47,6 @@ done
 
 PUSH_DIR "${SRC_ROOT}/proj-android"
 ####
-./gradlew clean build publishToMavenLocal
+./gradlew $DO_CLEAN build publishToMavenLocal
 ####
 POP_DIR

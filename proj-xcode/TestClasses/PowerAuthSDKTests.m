@@ -175,7 +175,7 @@
 	// Construct an PA-SDK object
 	if (result) {
 		_sdk = [[PowerAuthSDK alloc] initWithConfiguration:_config];
-		[_sdk reset];
+		[_sdk removeActivationLocal];
 		
 		result = _sdk != nil;
 		result = result && [_sdk hasPendingActivation] == NO;
@@ -293,9 +293,10 @@
 	NSError * error;
 	
 	// We can't guarantee a sequence of tests, so reset the activation now
-	[_sdk reset];
+	[_sdk removeActivationLocal];
 	XCTAssertFalse([_sdk hasPendingActivation]);
 	XCTAssertFalse([_sdk hasValidActivation]);
+	XCTAssertTrue([_sdk canStartActivation]);
 	
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
 	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
@@ -320,6 +321,7 @@
 	
 	XCTAssertTrue([_sdk hasPendingActivation]);
 	XCTAssertFalse([_sdk hasValidActivation]);
+	XCTAssertFalse([_sdk canStartActivation]);
 	
 	
 	// 2.1) CLIENT: Try to fetch status. At this point, it should not work! The activation is not completed yet.

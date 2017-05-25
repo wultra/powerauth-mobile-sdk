@@ -792,8 +792,9 @@ public class PowerAuthSDK {
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
      * @param listener       A callback with activation removal result - in case of an error, an error instance is not 'nil'.
      * @return AsyncTask associated with the running request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public @Nullable AsyncTask removeActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final IActivationRemoveListener listener) {
+    public @Nullable AsyncTask removeActivationWithAuthentication(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final IActivationRemoveListener listener) {
 
         checkForValidSetup();
 
@@ -817,15 +818,45 @@ public class PowerAuthSDK {
             @Override
             public void onNetworkResponse(Void aVoid) {
                 // Network communication completed correctly
+                removeActivationLocal(context);
                 listener.onActivationRemoveSucceed();
             }
 
             @Override
             public void onNetworkError(Throwable t) {
                 // Network error occurred
+                // TODO: fetch status & try to resolve the issue
                 listener.onActivationRemoveFailed(t);
             }
         });
+    }
+
+    /**
+     * Removes existing activation from the device.
+     *
+     * This method removes the activation session state and biometry factor key. Cached possession related key remains intact.
+     * Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal. In this case
+     * user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+     *
+     * @param context        Context.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public void removeActivationLocal(@NonNull Context context) {
+
+        checkForValidSetup();
+
+        if (mSession.hasBiometryFactor()) {
+            mBiometryKeychain.removeDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                FingerprintKeystore keyStore = new FingerprintKeystore();
+                if (keyStore.isKeystoreReady()) {
+                    keyStore.removeDefaultKey();
+                }
+            }
+        }
+        mSession.resetSession();
+        // Serialize will notify state listener
+        saveSerializedState();
     }
 
     /**

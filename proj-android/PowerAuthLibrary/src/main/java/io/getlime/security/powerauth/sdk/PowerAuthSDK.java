@@ -181,6 +181,17 @@ public class PowerAuthSDK {
         throw new PowerAuthMissingConfigException("Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
     }
 
+    /**
+     * Checks for valid SessionSetup and throws a PowerAuthMissingConfigException when the provided configuration
+     is not correct or is missing.
+     */
+    private void checkForValidSetup() {
+        // Check for the session setup
+        if (mSession == null || !mSession.hasValidSetup()) {
+            throwInvalidConfigurationException();
+        }
+    }
+
     @CheckResult
     private @Nullable ActivationStep1Param paramStep1WithActivationCode(@NonNull String activationCode) {
         Otp otp = OtpUtil.parseFromActivationCode(activationCode);
@@ -268,10 +279,8 @@ public class PowerAuthSDK {
 
     @CheckResult
     private @Nullable AsyncTask fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
-        // Check for the session setup
-        if (!mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
@@ -368,10 +377,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     public boolean hasPendingActivation() {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+        checkForValidSetup();
         return mSession.hasPendingActivation();
     }
 
@@ -383,10 +389,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     public boolean hasValidActivation() {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+        checkForValidSetup();
         return mSession.hasValidActivation();
     }
 
@@ -396,24 +399,17 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public void reset() {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+        checkForValidSetup();
         mSession.resetSession();
     }
 
     /**
-     * Destroy the PowerAuthSDK instance. Internal objects will be securely destroyed and PowerAuthSDK instance can't be more used after this call.
-     *
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * Destroy the PowerAuthSDK instance. Internal objects will be securely destroyed and PowerAuthSDK instance
+     * can't be more used after this call.
      */
     public void destroy() {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
         mSession.destroy();
+        mSession = null;
     }
 
     /**
@@ -440,10 +436,8 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if activation may be started
         if (mSession.hasPendingActivation()) {
@@ -508,10 +502,7 @@ public class PowerAuthSDK {
 
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
 
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+        checkForValidSetup();
 
         // Check if activation may be started
         if (mSession.hasPendingActivation()) {
@@ -687,10 +678,8 @@ public class PowerAuthSDK {
      */
     @CheckResult
     public int commitActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is a pending activation present and not an already existing valid activation
         if (!mSession.hasPendingActivation() || mSession.hasValidActivation()) {
@@ -729,10 +718,8 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable AsyncTask fetchActivationStatusWithCallback(@NonNull final Context context, @NonNull final IActivationStatusListener listener) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is an activation present, valid or pending
         if (!mSession.hasValidActivation() && !mSession.hasPendingActivation()) {
@@ -786,10 +773,8 @@ public class PowerAuthSDK {
      * @return AsyncTask associated with the running request.
      */
     public @Nullable AsyncTask removeActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final IActivationRemoveListener listener) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
@@ -871,10 +856,8 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, boolean vaultUnlock, String method, String uriId, byte[] body) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
@@ -919,10 +902,8 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body, String nonce) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
@@ -1059,10 +1040,8 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public boolean hasBiometryFactor(@NonNull Context context) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         // Initialize keystore
         FingerprintKeystore keyStore = new FingerprintKeystore();
@@ -1189,10 +1168,8 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public boolean removeBiometryFactor(@NonNull Context context) {
-        // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
-        }
+
+        checkForValidSetup();
 
         final int result = mSession.removeBiometryFactor();
         if (result == ErrorCode.OK) {

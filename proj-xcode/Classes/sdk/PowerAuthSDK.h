@@ -88,15 +88,6 @@
  */
 - (BOOL) hasValidActivation;
 
-/** Removes activation related data in the Keychain.
- 
- This method removes the activation session state and biometry factor key. Cached possession related key remains intact.
- 
- @return YES if there is a valid activation and was removed, NO otherwise.
- @exception NSException thrown in case configuration is not present.
- */
-- (BOOL) clearActivationDataKeychain;
-
 /** Reset the PowerAuthSDK instance - remove pending activations and stored error states.
  */
 - (void) reset;
@@ -202,6 +193,16 @@
  */
 - (nonnull PA2OperationTask*) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
 														callback:(nonnull void(^)(NSError * _Nullable error))callback;
+
+/** Removes existing activation from the device.
+ 
+ This method removes the activation session state and biometry factor key. Cached possession related key remains intact.
+ Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal. In this case
+ user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+
+ @exception NSException thrown in case configuration is not present.
+ */
+- (void) removeActivationLocal;
 
 /** Compute the HTTP signature header for GET HTTP method, URI identifier and HTTP query parameters using provided authentication information.
  

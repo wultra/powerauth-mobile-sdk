@@ -363,15 +363,6 @@ static PowerAuthSDK *inst;
 	return _session.hasValidActivation;
 }
 
-- (BOOL) clearActivationDataKeychain {
-	[self checkForValidSetup];
-	BOOL deleted = true;
-	deleted = deleted && [_statusKeychain deleteDataForKey:_configuration.instanceId];
-	deleted = deleted && [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-	[_session resetSession];
-	return deleted;
-}
-
 - (void) reset {
 	[self checkForValidSetup];
 	[_session resetSession];
@@ -403,7 +394,7 @@ static PowerAuthSDK *inst;
 	}
 	
 	// Reset session & possible activation data
-	[self clearActivationDataKeychain];
+	[self removeActivationLocal];
 		
 	// Prepare crypto module request
 	PA2ActivationStep1Param *paramStep1 = [self paramStep1WithActivationCode:activationCode];
@@ -496,7 +487,7 @@ static PowerAuthSDK *inst;
 	}
 	
 	// Reset session & possible activation data
-	[self clearActivationDataKeychain];
+	[self removeActivationLocal];
 
 	// Prepare identity attributes token
 	NSData *identityAttributesData = [_session prepareKeyValueDictionaryForDataSigning:identityAttributes];
@@ -772,9 +763,11 @@ static PowerAuthSDK *inst;
 		NSURLSessionDataTask *dataTask = [_client removeActivationSignatureHeader:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
+				[self removeActivationLocal];
 				callback(nil);
 			}
 			// Network error occurred
+			// TODO: Improvement: We can try to fetch status in case of error and handle possible network error silently.
 			else {
 				callback(clientError);
 			}
@@ -784,9 +777,24 @@ static PowerAuthSDK *inst;
 		
 	});
 	
-	
 	return task;
 }
+
+- (void) removeActivationLocal {
+	[self checkForValidSetup];
+	BOOL error = NO;
+	if ([_statusKeychain containsDataForKey:_configuration.instanceId]) {
+		error = error || ![_statusKeychain deleteDataForKey:_configuration.instanceId];
+	}
+	if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
+		error = error || ![_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+	}
+	if (error) {
+		PALog(@"Removing activaton data from keychain failed. We can't recover from this error.");
+	}
+	[_session resetSession];
+}
+
 
 #pragma mark Computing signatures
 

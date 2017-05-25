@@ -545,11 +545,30 @@ namespace powerAuth
 	public:
 		
 		/**
-		 The State enumeration is an internal state of the session.
+		 The State enumeration is an internal state of the Session.
 		 */
 		enum State
 		{
-			SS_Invalid, SS_Empty, SS_Activation1, SS_Activation2, SS_Activated
+			/**
+			 Provided SessionSetup structure is invalid
+			 */
+			SS_Invalid,
+			/**
+			 The Session is empty. The activation process can be started.
+			 */
+			SS_Empty,
+			/**
+			 The Session has pending activation and waiting for response from server.
+			 */
+			SS_Activation1,
+			/**
+			 The Session has pending activation and waiting for completion.
+			 */
+			SS_Activation2,
+			/**
+			 The Session contains valid activation data.
+			 */
+			SS_Activated
 		};
 		
 	private:

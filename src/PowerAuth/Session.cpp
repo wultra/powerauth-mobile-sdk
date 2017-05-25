@@ -85,8 +85,8 @@ namespace powerAuth
 	
 	bool Session::canStartActivation() const
 	{
-		if (hasValidSetup()) {
-			if (CC7_CHECK(_pd == nullptr && _ad == nullptr, "Internal error. PD should be null when state is SS_HasSetup")) {
+		if (_state == SS_Empty) {
+			if (CC7_CHECK(_pd == nullptr && _ad == nullptr, "Internal error. PD should be null when state is SS_Empty")) {
 				return true;
 			}
 		}

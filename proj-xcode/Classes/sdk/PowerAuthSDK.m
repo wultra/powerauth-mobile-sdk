@@ -111,6 +111,17 @@ static PowerAuthSDK *inst;
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
 }
 
+/**
+ This private method checks for valid PA2SessionSetup and throws a PA2ExceptionMissingConfig exception when the provided configuration
+ is not correct or is missing.
+ */
+- (void) checkForValidSetup {
+	// Check for the session setup
+	if (!_session.hasValidSetup) {
+		[PowerAuthSDK throwInvalidConfigurationException];
+	}
+}
+
 - (PA2ActivationStep1Param*) paramStep1WithActivationCode:(NSString*)activationCode {
 	
 	PA2Otp *otp = [PA2OtpUtil parseFromActivationCode:activationCode];
@@ -246,13 +257,10 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
-	if (!_session.hasValidActivation && _session.hasPendingActivation) {
+	if (!_session.hasValidActivation) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
 											 code:PA2ErrorCodeMissingActivation
 										 userInfo:nil];
@@ -338,25 +346,25 @@ static PowerAuthSDK *inst;
 	}
 }
 
+- (BOOL) canStartActivation {
+	[self checkForValidSetup];
+	return _session.canStartActivation;
+}
+
 - (BOOL) hasPendingActivation {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	return _session.hasPendingActivation;
 }
 
 - (BOOL) hasValidActivation {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	return _session.hasValidActivation;
 }
 
 - (BOOL) clearActivationDataKeychain {
+	[self checkForValidSetup];
 	BOOL deleted = true;
 	deleted = deleted && [_statusKeychain deleteDataForKey:_configuration.instanceId];
 	deleted = deleted && [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
@@ -365,10 +373,7 @@ static PowerAuthSDK *inst;
 }
 
 - (void) reset {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	[_session resetSession];
 }
 
@@ -387,21 +392,19 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if activation may be started
-	if (_session.hasPendingActivation) {
+	if (![self canStartActivation]) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
 		callback(nil, error);
 		[task cancel];
 		return task;
 	}
 	
-	[_session resetSession];
-	
+	// Reset session & possible activation data
+	[self clearActivationDataKeychain];
+		
 	// Prepare crypto module request
 	PA2ActivationStep1Param *paramStep1 = [self paramStep1WithActivationCode:activationCode];
 	
@@ -479,21 +482,19 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if activation may be started
-	if (_session.hasPendingActivation) {
+	if (![self canStartActivation]) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
 		callback(nil, error);
 		[task cancel];
 		return task;
 	}
 	
-	[_session resetSession];
-	
+	// Reset session & possible activation data
+	[self clearActivationDataKeychain];
+
 	// Prepare identity attributes token
 	NSData *identityAttributesData = [_session prepareKeyValueDictionaryForDataSigning:identityAttributes];
 	NSString *identityAttributesString = [identityAttributesData base64EncodedStringWithOptions:kNilOptions];
@@ -621,13 +622,10 @@ static PowerAuthSDK *inst;
 - (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
 									  error:(NSError**)error {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is a pending activation present and not an already existing valid activation
-	if (!_session.hasPendingActivation || _session.hasValidActivation) {
+	if (!_session.hasPendingActivation) {
 		if (error) {
 			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
 		}
@@ -683,30 +681,14 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present, valid or pending
-	if (!_session.hasValidActivation && !_session.hasPendingActivation) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil];
+	if (!_session.hasValidActivation) {
+		NSInteger errorCode = _session.hasPendingActivation ? PA2ErrorCodeActivationPending : PA2ErrorCodeMissingActivation;
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
 		callback(nil, nil, error);
 		[task cancel];
-		return task;
-	}
-	// Handle the case of a pending activation locally.
-	// Note that we cannot use the  generic logics here since the transport key is not established yet.
-	else if (_session.hasPendingActivation) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeActivationPending userInfo:nil];
-		callback(nil, nil, error);
-		[task cancel];
-		return task;
-	}
-	
-	if (task.isCancelled) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
-		callback(nil, nil, error);
 		return task;
 	}
 	
@@ -752,13 +734,10 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
-	if (!_session.hasValidActivation && _session.hasPendingActivation) {
+	if (!_session.hasValidActivation) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
 											 code:PA2ErrorCodeMissingActivation
 										 userInfo:nil];
@@ -886,13 +865,10 @@ static PowerAuthSDK *inst;
 										 vaultUnlock:(BOOL)vaultUnlock
 											   error:(NSError**)error
 {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
-	if (!_session.hasValidActivation && _session.hasPendingActivation) {
+	if (!_session.hasValidActivation) {
 		if (error) {
 			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil];
 		}
@@ -1021,20 +997,14 @@ static PowerAuthSDK *inst;
 }
 
 - (BOOL) hasBiometryFactor {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	BOOL hasValue = [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier];
 	hasValue = hasValue && [_session hasBiometryFactor];
 	return hasValue;
 }
 
 - (BOOL) removeBiometryFactor {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	BOOL result = [_session removeBiometryFactor];
 	if (result) {
 		// Update keychain values after each successful calculations

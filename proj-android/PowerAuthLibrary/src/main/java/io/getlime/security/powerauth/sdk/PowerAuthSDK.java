@@ -467,6 +467,13 @@ public class PowerAuthSDK {
 
         // Obtain crypto module response
         final ActivationStep1Result step1Result = mSession.startActivation(paramStep1);
+        if (step1Result.errorCode != ErrorCode.OK) {
+            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
+                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
+                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+            return null;
+        }
 
         // Perform exchange over PowerAuth 2.0 Standard RESTful API
         final ActivationCreateRequest request = new ActivationCreateRequest();
@@ -531,6 +538,13 @@ public class PowerAuthSDK {
 
         // Obtain crypto module response
         final ActivationStep1Result resultStep1 = mSession.startActivation(paramStep1);
+        if (resultStep1.errorCode != ErrorCode.OK) {
+            final int errorCode = resultStep1.errorCode == ErrorCode.Encryption
+                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
+                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+            return null;
+        }
 
         // Perform exchange over PowerAuth 2.0 Standard RESTful API
         ActivationCreateRequest powerauth = new ActivationCreateRequest();

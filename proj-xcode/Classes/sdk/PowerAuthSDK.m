@@ -410,6 +410,15 @@ static PowerAuthSDK *inst;
 	
 	// Obtain crypto module response
 	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
+	if (nil == resultStep1) {
+		NSInteger errorCode = _session.lastErrorCode == PA2CoreErrorCode_Encryption
+								? PA2ErrorCodeSignatureError
+								: PA2ErrorCodeInvalidActivationData;
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
+		callback(nil, error);
+		[task cancel];
+		return task;
+	}
 	
 	// Perform exchange over PowerAuth 2.0 Standard RESTful API
 	PA2CreateActivationRequest *request = [[PA2CreateActivationRequest alloc] init];
@@ -421,12 +430,6 @@ static PowerAuthSDK *inst;
 	request.encryptedDevicePublicKey = resultStep1.cDevicePublicKey;
 	request.ephemeralPublicKey = resultStep1.ephemeralPublicKey;
 	request.extras = extras;
-	
-	if (task.isCancelled) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
-		callback(nil, error);
-		return task;
-	}
 	
 	NSURLSessionDataTask *dataTask = [_client createActivation:request callback:^(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *clientError) {
 		
@@ -507,6 +510,15 @@ static PowerAuthSDK *inst;
 	
 	// Obtain crypto module response
 	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
+	if (nil == resultStep1) {
+		NSInteger errorCode = _session.lastErrorCode == PA2CoreErrorCode_Encryption
+								? PA2ErrorCodeSignatureError
+								: PA2ErrorCodeInvalidActivationData;
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
+		callback(nil, error);
+		[task cancel];
+		return task;
+	}
 	
 	// Perform exchange over PowerAuth 2.0 Standard RESTful API
 	PA2CreateActivationRequest *powerauth = [[PA2CreateActivationRequest alloc] init];
@@ -534,12 +546,6 @@ static PowerAuthSDK *inst;
 	NSData *encryptedRequestData = [NSJSONSerialization dataWithJSONObject:[encryptedRequest toDictionary]
 																   options:kNilOptions
 																	 error:nil];
-	
-	if (task.isCancelled) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
-		callback(nil, error);
-		return task;
-	}
 	
 	NSURLSessionDataTask *dataTask = [_client postToUrl:url data:encryptedRequestData headers:httpHeaders completion:^(NSData * httpData, NSURLResponse * response, NSError * clientError) {
 		

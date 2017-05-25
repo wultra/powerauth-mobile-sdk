@@ -111,6 +111,17 @@ static PowerAuthSDK *inst;
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
 }
 
+/**
+ This private method checks for valid PA2SessionSetup and throws a PA2ExceptionMissingConfig exception when the provided configuration
+ is not correct or is missing.
+ */
+- (void) checkForValidSetup {
+	// Check for the session setup
+	if (!_session.hasValidSetup) {
+		[PowerAuthSDK throwInvalidConfigurationException];
+	}
+}
+
 - (PA2ActivationStep1Param*) paramStep1WithActivationCode:(NSString*)activationCode {
 	
 	PA2Otp *otp = [PA2OtpUtil parseFromActivationCode:activationCode];
@@ -246,10 +257,7 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
 	if (!_session.hasValidActivation && _session.hasPendingActivation) {
@@ -340,19 +348,13 @@ static PowerAuthSDK *inst;
 
 - (BOOL) hasPendingActivation {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	return _session.hasPendingActivation;
 }
 
 - (BOOL) hasValidActivation {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	return _session.hasValidActivation;
 }
 
@@ -365,10 +367,7 @@ static PowerAuthSDK *inst;
 }
 
 - (void) reset {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	[_session resetSession];
 }
 
@@ -387,10 +386,7 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if activation may be started
 	if (_session.hasPendingActivation) {
@@ -479,10 +475,7 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if activation may be started
 	if (_session.hasPendingActivation) {
@@ -621,10 +614,7 @@ static PowerAuthSDK *inst;
 - (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
 									  error:(NSError**)error {
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is a pending activation present and not an already existing valid activation
 	if (!_session.hasPendingActivation || _session.hasValidActivation) {
@@ -683,10 +673,7 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present, valid or pending
 	if (!_session.hasValidActivation && !_session.hasPendingActivation) {
@@ -752,10 +739,7 @@ static PowerAuthSDK *inst;
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
 	if (!_session.hasValidActivation && _session.hasPendingActivation) {
@@ -886,10 +870,7 @@ static PowerAuthSDK *inst;
 										 vaultUnlock:(BOOL)vaultUnlock
 											   error:(NSError**)error
 {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	
 	// Check if there is an activation present
 	if (!_session.hasValidActivation && _session.hasPendingActivation) {
@@ -1021,20 +1002,14 @@ static PowerAuthSDK *inst;
 }
 
 - (BOOL) hasBiometryFactor {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	BOOL hasValue = [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier];
 	hasValue = hasValue && [_session hasBiometryFactor];
 	return hasValue;
 }
 
 - (BOOL) removeBiometryFactor {
-	// Check for the session setup
-	if (!_session.hasValidSetup) {
-		[PowerAuthSDK throwInvalidConfigurationException];
-	}
+	[self checkForValidSetup];
 	BOOL result = [_session removeBiometryFactor];
 	if (result) {
 		// Update keychain values after each successful calculations

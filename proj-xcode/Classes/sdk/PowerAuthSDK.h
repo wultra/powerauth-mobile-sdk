@@ -67,6 +67,13 @@
  */
 - (BOOL) restoreState;
 
+/** Check if it is possible to start an activation process
+ 
+ @return YES if activation process can be started, NO otherwise.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) canStartActivation;
+
 /** Checks if there is a pending activation (activation in progress).
  
  @return YES if there is a pending activation, NO otherwise.

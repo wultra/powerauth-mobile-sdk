@@ -283,7 +283,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is an activation present
-        if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
+        if (!mSession.hasValidActivation()) {
             listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
             return null;
         }
@@ -370,6 +370,18 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Check if it is possible to start an activation process.
+     *
+     * @return TRUE if activation process can be started, FALSE otherwise.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @CheckResult
+    public boolean canStartActivation() {
+        checkForValidSetup();
+        return mSession.canStartActivation();
+    }
+
+    /**
      * Checks if there is a pending activation (activation in progress).
      *
      * @return TRUE if there is a pending activation, FALSE otherwise.
@@ -437,14 +449,13 @@ public class PowerAuthSDK {
      */
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
 
-        checkForValidSetup();
-
         // Check if activation may be started
-        if (mSession.hasPendingActivation()) {
+        if (!canStartActivation()) {
             listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
             return null;
         }
 
+        // TODO: wipe out data (will be fixed in #37)
         mSession.resetSession();
 
         // Prepare crypto module request
@@ -502,14 +513,13 @@ public class PowerAuthSDK {
 
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
 
-        checkForValidSetup();
-
         // Check if activation may be started
-        if (mSession.hasPendingActivation()) {
+        if (!canStartActivation()) {
             listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
             return null;
         }
 
+        // TODO: wipeout data (will be fixed in #37)
         mSession.resetSession();
 
         // Prepare identity attributes token
@@ -682,7 +692,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is a pending activation present and not an already existing valid activation
-        if (!mSession.hasPendingActivation() || mSession.hasValidActivation()) {
+        if (!mSession.hasPendingActivation()) {
             return PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState;
         }
 
@@ -722,14 +732,11 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is an activation present, valid or pending
-        if (!mSession.hasValidActivation() && !mSession.hasPendingActivation()) {
-            listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
-            return null;
-        }
-        // Handle the case of a pending activation locally.
-        // Note that we cannot use the  generic logic here since the transport key is not established yet.
-        else if (mSession.hasPendingActivation()) {
-            listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeActivationPending));
+        if (!mSession.hasValidActivation()) {
+            final int errorCode = mSession.hasPendingActivation()
+                                    ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
+                                    : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
+            listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
             return null;
         }
 
@@ -777,7 +784,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is an activation present
-        if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
+        if (!mSession.hasValidActivation()) {
             listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
             return null;
         }
@@ -860,7 +867,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is an activation present
-        if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
+        if (!mSession.hasValidActivation()) {
             return new PowerAuthAuthorizationHttpHeader(null, PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
         }
 
@@ -906,7 +913,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Check if there is an activation present
-        if (!mSession.hasValidActivation() && mSession.hasPendingActivation()) {
+        if (!mSession.hasValidActivation()) {
             return null;
         }
 
@@ -1050,7 +1057,9 @@ public class PowerAuthSDK {
         }
 
         // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
-        return mSession.hasBiometryFactor() && mBiometryKeychain.containsDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey()) && keyStore.containsDefaultKey();
+        return mSession.hasBiometryFactor() &&
+                mBiometryKeychain.containsDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey()) &&
+                keyStore.containsDefaultKey();
     }
 
     /**

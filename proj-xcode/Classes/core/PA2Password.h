@@ -76,13 +76,13 @@
  the full password already prepared and you want to pass it to the Session
  as a parameter.
  */
-+ (instancetype) passwordWithString:(NSString*)string;
++ (nullable instancetype) passwordWithString:(nonnull NSString*)string;
 /**
  Creates a new instance of PA2Password object, initialized with the content
  copied from given data object. The password object will contain an immutable 
  passphrase, created exactly from the bytes, provided by the data object.
  */
-+ (instancetype) passwordWithData:(NSData*)data;
++ (nullable instancetype) passwordWithData:(nonnull NSData*)data;
 
 /**
  Returns length of the password (in bytes).
@@ -93,7 +93,7 @@
 /**
  Returns YES if both receiver is equal to password object.
  */
-- (BOOL) isEqualToPassword:(PA2Password*)password;
+- (BOOL) isEqualToPassword:(nullable PA2Password*)password;
 
 /**
  The method validates stored passphrase with using provided validation block. The raw bytes of 
@@ -102,7 +102,7 @@
  
  Returns NO if passphrase is empty, or result returned from the block.
  */
-- (BOOL) validatePasswordComplexity:(BOOL (^)(const UInt8* passphrase, NSUInteger length))validationBlock;
+- (BOOL) validatePasswordComplexity:(BOOL (^_Nullable)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
 
 @end
 
@@ -118,7 +118,7 @@
 /**
  Returns a new insntace of PA2MutablePassword object.
  */
-+ (instancetype) mutablePassword;
++ (nullable instancetype) mutablePassword;
 
 /**
  Clears current content of the password

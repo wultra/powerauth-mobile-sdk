@@ -246,6 +246,11 @@ namespace protocol
 	bool ValidatePersistentData(const PersistentData & pd);
 	
 	/**
+	 Validates whether |factor| contains valid combination of factors.
+	 */
+	bool ValidateSignatureFactor(SignatureFactor factor);
+	
+	/**
 	 Validates |unlock| keys and the external key, if the key is present. The function simply checks whether
 	 the provided keys in the structure have correct lengths and there's an appropriate key for each required 
 	 signature factor. The |ext_key| parameter is optional and may be NULL.

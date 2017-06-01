@@ -194,6 +194,11 @@ namespace powerAuthTests
 				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest6));
 				protocol::SignatureUnlockKeysReq lockRequest7(SF_Knowledge|SF_Biometry, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
 				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest7));
+				
+				// Knowledge + Biometry - is not allowed
+				protocol::SignatureUnlockKeysReq lockRequest8(SF_Knowledge|SF_Biometry, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
+				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest8));
+				
 			}
 			// Lock with EEK
 			{
@@ -249,6 +254,9 @@ namespace powerAuthTests
 				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest6));
 				protocol::SignatureUnlockKeysReq lockRequest7(SF_Biometry|SF_Knowledge, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
 				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest7));
+				
+				protocol::SignatureUnlockKeysReq lockRequest8(SF_Biometry|SF_Knowledge, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
+				ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest8));
 			}
 			// Unlock without EEK
 			{
@@ -295,6 +303,10 @@ namespace powerAuthTests
 				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest6));
 				protocol::SignatureUnlockKeysReq unlockRequest7(SF_Knowledge|SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
 				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest7));
+				
+				// Knowledge + Biometry is not allowed
+				protocol::SignatureUnlockKeysReq unlockRequest8(SF_Knowledge|SF_Biometry, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
+				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest8));
 			}
 			// Unlock with EEK
 			{
@@ -337,6 +349,10 @@ namespace powerAuthTests
 				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest6));
 				protocol::SignatureUnlockKeysReq unlockRequest7(SF_Knowledge|SF_Biometry, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
 				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest7));
+				
+				// Knowledge + Biometry is not allowed
+				protocol::SignatureUnlockKeysReq unlockRequest8(SF_Knowledge|SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
+				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest8));
 			}
 		}
 		

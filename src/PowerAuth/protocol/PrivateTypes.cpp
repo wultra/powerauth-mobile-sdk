@@ -82,12 +82,30 @@ namespace protocol
 		return result;
 	}
 	
+	bool ValidateSignatureFactor(SignatureFactor factor)
+	{
+		if ((factor & (SF_Possession_Knowledge_Biometry | SF_Transport)) == 0) {
+			CC7_ASSERT(false, "SignatureFactor leads to empty mask");
+			return false;
+		}
+		if ((factor & (SF_Possession_Knowledge_Biometry)) == (SF_Knowledge|SF_Biometry)) {
+			CC7_ASSERT(false, "SF_Knowledge + SF_Biometry is not allowed");
+			return false;
+		}
+		return true;
+	}
+	
 	bool ValidateUnlockKeys(const SignatureUnlockKeys & unlock, const cc7::ByteArray * ext_key, SignatureFactor factor)
 	{
 		if (factor == SF_FirstLock) {
 			factor = FullFactorMask(!unlock.biometryUnlockKey.empty());
 		}
 		
+		// Check combination of factors
+		if (!ValidateSignatureFactor(factor)) {
+			return false;
+		}
+
 		// We don't accept zeroed possession or biometry key.
 		// Better reject zeroes now than cry later :) This is a prevention against
 		// lazy developers who wants to trick the module.
@@ -114,8 +132,7 @@ namespace protocol
 	bool ValidateSignatureKeys(const SignatureKeys & keys, SignatureFactor factor)
 	{
 		// This is a self check. Provided SF must contain some bitmask for a validation.
-		if ((factor & (SF_Possession_Knowledge_Biometry | SF_Transport)) == 0) {
-			CC7_ASSERT(false, "SignatureFactor leads to empty mask");
+		if (!ValidateSignatureFactor(factor)) {
 			return false;
 		}
 		
@@ -139,13 +156,14 @@ namespace protocol
 	// MARK: - Data serialization -
 	//
 	
+	const cc7::byte PD_TAG     = 'P';
 	const cc7::byte PD_VERSION = '3';
 	
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer)
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		writer.openVersion('P', PD_VERSION);
+		writer.openVersion(PD_TAG, PD_VERSION);
 		
 		writer.writeU64		(pd.signatureCounter);
 		writer.writeString	(pd.activationId);
@@ -170,7 +188,7 @@ namespace protocol
 	
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
 	{
-		bool result = reader.openVersion('P', PD_VERSION);
+		bool result = reader.openVersion(PD_TAG, PD_VERSION);
 		
 		result = result && reader.readU64		(pd.signatureCounter);
 		result = result && reader.readString	(pd.activationId);

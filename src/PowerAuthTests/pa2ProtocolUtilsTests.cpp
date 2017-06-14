@@ -38,6 +38,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testValidateUnlockKeys)
 			CC7_REGISTER_TEST_METHOD(testValidateUnlockKeysNegative)
 			CC7_REGISTER_TEST_METHOD(testLockUnlockSignatureKeys)
+			CC7_REGISTER_TEST_METHOD(testValidatePersistentData)
 		}
 		
 		// unit tests
@@ -353,6 +354,90 @@ namespace powerAuthTests
 				// Knowledge + Biometry is not allowed
 				protocol::SignatureUnlockKeysReq unlockRequest8(SF_Knowledge|SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
 				ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest8));
+			}
+		}
+		
+		void testValidatePersistentData()
+		{
+			// Make some valid data
+			protocol::PersistentData pd;
+			pd.signatureCounter = 1;
+			pd.activationId = "some-activation-id";
+			pd.passwordSalt = crypto::GetRandomData(protocol::PBKDF2_SALT_SIZE);
+			pd.passwordIterations = protocol::PBKDF2_PASS_ITERATIONS;
+			pd.sk.biometryKey = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE);
+			pd.sk.knowledgeKey = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE);
+			pd.sk.possessionKey = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE);
+			pd.sk.transportKey  = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE);
+			pd.serverPublicKey = crypto::GetRandomData(33);
+			pd.devicePublicKey = crypto::GetRandomData(33);
+			pd.cDevicePrivateKey = crypto::GetRandomData(33);
+			
+			ccstAssertTrue(protocol::ValidatePersistentData(pd));
+			
+			{
+				// remove biometry
+				protocol::PersistentData pd2 = pd;
+				pd2.sk.biometryKey.clear();
+				ccstAssertTrue(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// remove device public key (compat. with PA1.5)
+				protocol::PersistentData pd2 = pd;
+				pd2.devicePublicKey.clear();
+				ccstAssertTrue(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: small PBKDF iterations
+				protocol::PersistentData pd2 = pd;
+				pd2.passwordIterations = protocol::PBKDF2_PASS_ITERATIONS - 1;
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: short salt
+				protocol::PersistentData pd2 = pd;
+				pd2.passwordSalt.pop_back();
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: long salt
+				protocol::PersistentData pd2 = pd;
+				pd2.passwordSalt.push_back(0x11);
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: missing activation id
+				protocol::PersistentData pd2 = pd;
+				pd2.activationId.clear();
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: missing activation id
+				protocol::PersistentData pd2 = pd;
+				pd2.activationId.clear();
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: missing server pubk
+				protocol::PersistentData pd2 = pd;
+				pd2.serverPublicKey.clear();
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: missing device privk
+				protocol::PersistentData pd2 = pd;
+				pd2.cDevicePrivateKey.clear();
+				ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+			}
+			{
+				// wrong: missing some signature key
+				for (int i = 1; i <= 3; i++) {
+					protocol::PersistentData pd2 = pd;
+					if (i == 1) pd2.sk.knowledgeKey.clear();
+					if (i == 2) pd2.sk.possessionKey.clear();
+					if (i == 3) pd2.sk.transportKey.clear();
+					ccstAssertFalse(protocol::ValidatePersistentData(pd2));
+				}
 			}
 		}
 		

@@ -31,6 +31,9 @@ function USAGE
 	echo "dangerous options:"
 	echo "    --any-branch      allow deployment from any git branch"
 	echo "                      This version will not be merged to master"
+	echo "    --skip-tags       skip version creation and tagging"
+	echo "                      This is useful when publishing fails and"
+	echo "                      version files are already pushed in repo."
 	echo ""
 	exit $1
 }
@@ -43,6 +46,7 @@ MASTER_BRANCH="master"
 DEV_BRANCH="development"
 # Runtime global vars
 GIT_VALIDATE_DEVELOPMENT_BRANCH=1
+GIT_SKIP_TAGS=0
 STANDARD_BRANCH=0
 DO_IOS=0
 DO_ANDROID=0
@@ -76,7 +80,11 @@ function VALIDATE_GIT_STATUS
 	local TAG	
 	for TAG in ${CURRENT_TAGS[@]}; do
 		if [ "$TAG" == ${VERSION} ]; then 
-			FAILURE "Version '${VERSION}' is already published."
+			if [ x$GIT_SKIP_TAGS == x0 ]; then
+				FAILURE "Version '${VERSION}' is already published."
+			else
+				WARNING "Version '${VERSION}' is already published."
+			fi
 		fi 
 	done
 	####
@@ -89,6 +97,11 @@ function VALIDATE_GIT_STATUS
 # -----------------------------------------------------------------------------
 function PUSH_VERSIONING_FILES
 {
+	if [ x$GIT_SKIP_TAGS == x1 ]; then
+		WARNING "Skipping versioning files creation."
+		return
+	fi
+	
 	PUSH_DIR "${SRC_ROOT}"
 	####
 	if [ x$DO_IOS == x1 ]; then
@@ -236,6 +249,9 @@ do
 			;;
 		--any-branch)
 			GIT_VALIDATE_DEVELOPMENT_BRANCH=0
+			;;
+		--skip-tags)
+			GIT_SKIP_TAGS=1
 			;;
 		android)
 			DO_ANDROID=1

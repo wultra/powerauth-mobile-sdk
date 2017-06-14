@@ -182,7 +182,7 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull PA2OperationTask*) fetchActivationStatusWithCallback:(nonnull void(^)(PA2ActivationStatus * _Nonnull status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
+- (nonnull PA2OperationTask*) fetchActivationStatusWithCallback:(nonnull void(^)(PA2ActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
 
 /** Remove current activation by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/remove'.
  

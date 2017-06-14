@@ -120,7 +120,6 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
             bundle.putByteArray(ARG_BIOMETRIC_KEY, biometricKey);
             bundle.putBoolean(ARG_FORCE_GENERATE_NEW_KEY, forceGenerateNewKey);
             dialogFragment.setArguments(bundle);
-            dialogFragment.setCancelable(false);
             return dialogFragment;
         }
     }

@@ -363,11 +363,6 @@ static PowerAuthSDK *inst;
 	return _session.hasValidActivation;
 }
 
-- (void) reset {
-	[self checkForValidSetup];
-	[_session resetSession];
-}
-
 #pragma mark Creating a new activation
 
 - (PA2OperationTask*) createActivationWithName:(NSString*)name

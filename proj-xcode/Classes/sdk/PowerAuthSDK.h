@@ -88,10 +88,6 @@
  */
 - (BOOL) hasValidActivation;
 
-/** Reset the PowerAuthSDK instance - remove pending activations and stored error states.
- */
-- (void) reset;
-
 /** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
  
  @param name Activation name, for example "John's iPhone".

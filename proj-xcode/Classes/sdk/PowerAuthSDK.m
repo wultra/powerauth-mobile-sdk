@@ -405,6 +405,7 @@ static PowerAuthSDK *inst;
 		[task cancel];
 		return task;
 	}
+	// After this point, each error must lead to [_session resetSession];
 	
 	// Perform exchange over PowerAuth 2.0 Standard RESTful API
 	PA2CreateActivationRequest *request = [[PA2CreateActivationRequest alloc] init];
@@ -503,6 +504,7 @@ static PowerAuthSDK *inst;
 		[task cancel];
 		return task;
 	}
+	// After this point, each error must lead to [_session resetSession];
 	
 	// Perform exchange over PowerAuth 2.0 Standard RESTful API
 	PA2CreateActivationRequest *powerauth = [[PA2CreateActivationRequest alloc] init];

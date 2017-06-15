@@ -445,8 +445,13 @@ public class PowerAuthSDK {
             return null;
         }
 
-        // TODO: wipe out data (will be fixed in #37)
-        mSession.resetSession();
+        // Wipe out possible activation data.
+        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
+        //       exists when old session data is still persisted. This is unfortunately a more complex
+        //       task and therefore here's just workaround which may keep a shared biometry key present
+        //       on the device. That's no big deal, because an actual key used for biometry factor
+        //       is already removed in this state.
+        removeActivationLocal(null, false);
 
         // Prepare crypto module request
         final ActivationStep1Param paramStep1 = paramStep1WithActivationCode(activationCode);
@@ -464,6 +469,7 @@ public class PowerAuthSDK {
             listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
             return null;
         }
+        // After this point, each error must lead to mSession.resetSession()
 
         // Perform exchange over PowerAuth 2.0 Standard RESTful API
         final ActivationCreateRequest request = new ActivationCreateRequest();
@@ -496,6 +502,7 @@ public class PowerAuthSDK {
                     listener.onActivationCreateSucceed(resultStep2.hkDevicePublicKey);
                 } else {
                     // Error occurred
+                    mSession.resetSession();
                     listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
                 }
             }
@@ -503,6 +510,7 @@ public class PowerAuthSDK {
             @Override
             public void onNetworkError(Throwable t) {
                 // Network error occurred
+                mSession.resetSession();
                 listener.onActivationCreateFailed(t);
             }
         });
@@ -516,8 +524,13 @@ public class PowerAuthSDK {
             return null;
         }
 
-        // TODO: wipeout data (will be fixed in #37)
-        mSession.resetSession();
+        // Wipe out possible activation data.
+        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
+        //       exists when old session data is still persisted. This is unfortunately a more complex
+        //       task and therefore here's just workaround which may keep a shared biometry key present
+        //       on the device. That's no big deal, because an actual key used for biometry factor
+        //       is already removed in this state.
+        removeActivationLocal(null, false);
 
         // Prepare identity attributes token
         byte[] identityAttributesBytes = mSession.prepareKeyValueDictionaryForDataSigning(identityAttributes);
@@ -535,6 +548,7 @@ public class PowerAuthSDK {
             listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
             return null;
         }
+        // After this point, each error must lead to mSession.resetSession()
 
         // Perform exchange over PowerAuth 2.0 Standard RESTful API
         ActivationCreateRequest powerauth = new ActivationCreateRequest();
@@ -555,6 +569,7 @@ public class PowerAuthSDK {
         final Gson gson = new GsonBuilder().create();
         String requestDataString = gson.toJson(request);
         if (requestDataString == null) {
+            mSession.resetSession();
             listener.onActivationCreateFailed(new PA2EncryptionFailedException());
             return null;
         }
@@ -566,6 +581,7 @@ public class PowerAuthSDK {
         try {
             encryptedRequest = encryptor.encryptRequestData(requestData);
         } catch (PA2EncryptionFailedException e) {
+            mSession.resetSession();
             listener.onActivationCreateFailed(e);
             return null;
         }
@@ -595,16 +611,19 @@ public class PowerAuthSDK {
                     if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
                         listener.onActivationCreateSucceed(step2Result.hkDevicePublicKey);
                     } else {
+                        mSession.resetSession();
                         listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
                     }
 
                 } catch (PA2EncryptionFailedException e) {
+                    mSession.resetSession();
                     listener.onActivationCreateFailed(e);
                 }
             }
 
             @Override
             public void onNetworkError(Throwable t) {
+                mSession.resetSession();
                 listener.onActivationCreateFailed(t);
             }
         });
@@ -823,27 +842,50 @@ public class PowerAuthSDK {
 
     /**
      * Removes existing activation from the device.
-     *
-     * This method removes the activation session state and biometry factor key. Cached possession related key remains intact.
+     * <p>
+     * This method removes the activation session state and shared biometry factor key. Cached possession related key remains intact.
      * Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal. In this case
      * user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+     * <p>
+     * <b>WARNING:</b> Note that if you have multiple activated SDK instances used in your application at the same time, then you should keep
+     * shared biometry key intact if it's still used in another SDK instance. For this kind of situations, it's recommended to use
+     * another form of this method, where you can decide whether the key should be removed.
      *
-     * @param context        Context.
+     * @param context  Context
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public void removeActivationLocal(@NonNull Context context) {
+        removeActivationLocal(context, true);
+    }
+
+    /**
+     * Removes existing activation from the device.
+     * <p>
+     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
+     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
+     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+     * <p>
+     * <b>NOTE:</b> This method is useful for situations, where the application has multiple SDK instances activated at the same time and
+     * you need to manage a lifetime of shared biometry key.
+     *
+     * @param context                   Context, may be null if removeSharedBiometryKey is false.
+     * @param removeSharedBiometryKey   If set to true, then also shared biometry key will be removed.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public void removeActivationLocal(@Nullable Context context, boolean removeSharedBiometryKey) {
 
         checkForValidSetup();
 
-        if (mSession.hasBiometryFactor()) {
-            mBiometryKeychain.removeDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (removeSharedBiometryKey && mSession.hasBiometryFactor() && context != null) {
+                mBiometryKeychain.removeDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
                 FingerprintKeystore keyStore = new FingerprintKeystore();
                 if (keyStore.isKeystoreReady()) {
                     keyStore.removeDefaultKey();
                 }
             }
         }
+
         mSession.resetSession();
         // Serialize will notify state listener
         saveSerializedState();

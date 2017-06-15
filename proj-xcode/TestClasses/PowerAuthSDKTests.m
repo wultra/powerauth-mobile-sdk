@@ -617,7 +617,7 @@
 	// supported and will be used for initiating the activation on the server's side.
 	//
 	
-	[_sdk reset];
+	[_sdk removeActivationLocal];
 	
 	BOOL result;
 	__block NSError * reportedError;

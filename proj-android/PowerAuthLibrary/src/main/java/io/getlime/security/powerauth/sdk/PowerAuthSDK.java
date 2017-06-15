@@ -406,16 +406,6 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Reset the PowerAuthSDK instance - remove pending activations and stored error states.
-     *
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
-     */
-    public void reset() {
-        checkForValidSetup();
-        mSession.resetSession();
-    }
-
-    /**
      * Destroy the PowerAuthSDK instance. Internal objects will be securely destroyed and PowerAuthSDK instance
      * can't be more used after this call.
      */

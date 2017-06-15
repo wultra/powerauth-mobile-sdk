@@ -29,6 +29,7 @@ import android.util.Base64;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import io.getlime.security.powerauth.networking.response.ICreateCustomActivationListener;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -518,7 +519,7 @@ public class PowerAuthSDK {
         });
     }
 
-    public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
+    public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateCustomActivationListener listener) {
 
         // Check if activation may be started
         if (!canStartActivation()) {
@@ -603,7 +604,7 @@ public class PowerAuthSDK {
                     ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
 
                     if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
-                        listener.onActivationCreateSucceed(step2Result.hkDevicePublicKey);
+                        listener.onActivationCreateSucceed(activationCreateResponse);
                     } else {
                         listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
                     }
@@ -620,7 +621,7 @@ public class PowerAuthSDK {
         });
     }
 
-    public AsyncTask createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {
+    public AsyncTask createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateCustomActivationListener listener) {
         return this.createActivation(name, identityAttributes, "00000-00000", null, null, url, null, listener);
     }
 

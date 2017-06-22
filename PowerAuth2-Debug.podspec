@@ -1,8 +1,8 @@
 Pod::Spec.new do |s|
 	# General information
-	s.name				    	= 'PowerAuth2'
+	s.name				    	= 'PowerAuth2-Debug'
 	s.version				    = '0.16.3'
-	s.summary				    = 'PowerAuth 2.0 Mobile SDK for iOS.'
+	s.summary				    = 'PowerAuth 2.0 Debug Mobile SDK for iOS'
 	s.homepage    		  = 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
 	s.documentation_url = 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
 	# FAT library build
 	s.platform    			= :ios, '8.0'
 	s.prepare_command 	= <<-CMD
-		./scripts/ios-build-libraries.sh release --lib-dir Library --hdr-dir Library
+		./scripts/ios-build-libraries.sh debug --lib-dir Library --hdr-dir Library
 	CMD
 	
 	# Produced files

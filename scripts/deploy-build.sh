@@ -41,6 +41,7 @@ function USAGE
 ###############################################################################
 # Config
 PODSPEC="PowerAuth2.podspec"
+PODSPEC_DBG="PowerAuth2-Debug.podspec"
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
 DEV_BRANCH="development"
@@ -107,7 +108,9 @@ function PUSH_VERSIONING_FILES
 	if [ x$DO_IOS == x1 ]; then
 		LOG "----- Generating ${PODSPEC}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
-		git add ${PODSPEC}
+		LOG "----- Generating ${PODSPEC_DBG}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_DBG}" > "$SRC_ROOT/${PODSPEC_DBG}"
+		git add ${PODSPEC} ${PODSPEC_DBG}
 	fi
 	if [ x$DO_ANDROID == x1 ]; then
 		LOG "----- Generating gradle.properties..."
@@ -154,10 +157,12 @@ function DEPLOY_IOS
 	
 	PUSH_DIR "${SRC_ROOT}"
 	####
-	LOG "----- Validating build..."
-	pod lib lint ${PODSPEC}
-	LOG "----- Publishing to CocoaPods..."
+	LOG "----- Validating IOS build..."
+	pod lib lint ${PODSPEC} ${PODSPEC_DBG}
+	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
+	LOG "----- Publishing ${PODSPEC_DBG} to CocoaPods..."
+	pod trunk push ${PODSPEC_DBG}
 	####
 	POP_DIR
 }

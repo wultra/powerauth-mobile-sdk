@@ -149,7 +149,11 @@
 					NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
 					if (err == nil) { // success
 						PA2Response *httpResponseObject = [[PA2Response alloc] initWithDictionary:responseDictionary responseObjectType:responseObjectClass];
-						callback(PA2RestResponseStatus_OK, httpResponseObject.responseObject, nil);
+						if (httpResponseObject.status == PA2RestResponseStatus_OK) {
+							callback(PA2RestResponseStatus_OK, httpResponseObject.responseObject, nil);
+						} else {
+							callback(PA2RestResponseStatus_ERROR, nil, [self processHttpClientErrorForData:data response:response]);
+						}
 						return;
 					} else { // Unable to parse JSON
 						callback(PA2RestResponseStatus_ERROR, nil, err);

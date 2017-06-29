@@ -56,7 +56,7 @@
  For the testing environment, the domain is usually the same as for SOAP server.
  */
 #ifndef POWERAUTH_REST_API_URL
-#define POWERAUTH_REST_API_URL POWERAUTH_BASE_URL @":18080/powerauth-rest-api"
+#define POWERAUTH_REST_API_URL POWERAUTH_BASE_URL @":13030/powerauth-webauth"
 #endif
 
 

@@ -26,6 +26,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -62,6 +63,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     private FragmentManager fragmentManager;
 
     private boolean mSelfCancelled;
+    private boolean mCancelReportsClose;
 
     /**
      * Builder class used to construct the 'FingerprintAuthenticationDialogFragment' instance.
@@ -120,6 +122,11 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
             bundle.putByteArray(ARG_BIOMETRIC_KEY, biometricKey);
             bundle.putBoolean(ARG_FORCE_GENERATE_NEW_KEY, forceGenerateNewKey);
             dialogFragment.setArguments(bundle);
+            // Disable automatic cancel handling on the fragment. Unfortunately, if the default
+            // cancellation is enabled, then sometimes the FingerprintCallback for "success"
+            // result is called after the dialog is dismissed. This stochastic behavior then leads
+            // to failure authentication reported to the application.
+            dialogFragment.setCancelable(false);
             return dialogFragment;
         }
     }
@@ -147,12 +154,11 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    if (mAuthenticationCallback != null) {
-                        mAuthenticationCallback.onFingerprintDialogCancelled();
-                    }
+                    reportCloseOrCancel();
                     dismiss();
                 }
             });
+            mCancelReportsClose = false;
 
             LayoutInflater layoutInflater = getActivity().getLayoutInflater();
             @SuppressLint("InflateParams") // AlertDialog => null is OK in this case
@@ -166,63 +172,32 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
             mTxtDescription.setText(getArguments().getString(ARG_DESCRIPTION));
 
-        } else if (mStage.equals(FingerprintStage.INFO_ENROLL_NEW_FINGERPRINT)) {
+        } else {
 
             mFingerprintAuthenticationHandler.stopListening();
             mFingerprintAuthenticationHandler.removeKey();
 
-            alertBuilder.setTitle(R.string.fingerprint_dialog_title_new_fingerprint);
-            alertBuilder.setMessage(R.string.fingerprint_dialog_description_new_fingerprint);
+            if (mStage.equals(FingerprintStage.INFO_ENROLL_NEW_FINGERPRINT)) {
+                alertBuilder.setTitle(R.string.fingerprint_dialog_title_new_fingerprint);
+                alertBuilder.setMessage(R.string.fingerprint_dialog_description_new_fingerprint);
+            } else if (mStage.equals(FingerprintStage.INFO_FINGERPRINT_NOT_AVAILABLE)) {
+                alertBuilder.setTitle(R.string.fingerprint_dialog_title_no_scanner);
+                alertBuilder.setMessage(R.string.fingerprint_dialog_description_no_scanner);
+            } else if (mStage.equals(FingerprintStage.INFO_FINGERPRINT_INVALIDATED)) {
+                alertBuilder.setTitle(R.string.fingerprint_dialog_title_invalidated);
+                alertBuilder.setMessage(R.string.fingerprint_dialog_description_invalidated);
+            }
+
             alertBuilder.setIcon(R.drawable.ic_fingerprint_error);
             alertBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    if (mAuthenticationCallback != null) {
-                        mAuthenticationCallback.onFingerprintInfoDialogClosed();
-                    }
+                    reportCloseOrCancel();
                     dismiss();
                 }
             });
-
-        } else if (mStage.equals(FingerprintStage.INFO_FINGERPRINT_NOT_AVAILABLE)) {
-
-            mFingerprintAuthenticationHandler.stopListening();
-            mFingerprintAuthenticationHandler.removeKey();
-
-            alertBuilder.setTitle(R.string.fingerprint_dialog_title_no_scanner);
-            alertBuilder.setMessage(R.string.fingerprint_dialog_description_no_scanner);
-            alertBuilder.setIcon(R.drawable.ic_fingerprint_error);
-            alertBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int i) {
-                    if (mAuthenticationCallback != null) {
-                        mAuthenticationCallback.onFingerprintInfoDialogClosed();
-                    }
-                    dismiss();
-                }
-            });
-
-        } else if (mStage.equals(FingerprintStage.INFO_FINGERPRINT_INVALIDATED)) {
-
-            mFingerprintAuthenticationHandler.stopListening();
-            mFingerprintAuthenticationHandler.removeKey();
-
-            alertBuilder.setTitle(R.string.fingerprint_dialog_title_invalidated);
-            alertBuilder.setMessage(R.string.fingerprint_dialog_description_invalidated);
-            alertBuilder.setIcon(R.drawable.ic_fingerprint_error);
-            alertBuilder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int i) {
-                    if (mAuthenticationCallback != null) {
-                        mAuthenticationCallback.onFingerprintInfoDialogClosed();
-                    }
-                    dismiss();
-                }
-            });
-
+            mCancelReportsClose = true;
         }
 
         final AlertDialog alertDialog = alertBuilder.create();
@@ -235,8 +210,33 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
                 alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(COLOR_BUTTON_POSITIVE);
             }
         });
+        // Handle back button in dialog
+        alertDialog.setOnKeyListener(new Dialog.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    reportCloseOrCancel();
+                    dismiss();
+                }
+                return true;
+            }
+        });
 
         return alertDialog;
+    }
+
+    /**
+     * A private method reports cancel or close result to IFingerprintActionHandler
+     * depending on how dialog was constructed.
+     */
+    private void reportCloseOrCancel() {
+        if (mAuthenticationCallback != null) {
+            if (mCancelReportsClose) {
+                mAuthenticationCallback.onFingerprintInfoDialogClosed();
+            } else {
+                mAuthenticationCallback.onFingerprintDialogCancelled();
+            }
+        }
     }
 
     @Override

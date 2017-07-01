@@ -27,4 +27,9 @@
 @property (nonatomic, strong) NSString *encryptedServerPublicKey;
 @property (nonatomic, strong) NSString *encryptedServerPublicKeySignature;
 
+/**
+ Custom attributes received from the server. The value may be nil.
+ */
+@property (nonatomic, strong) NSDictionary<NSString*, NSObject*>* customAttributes;
+
 @end

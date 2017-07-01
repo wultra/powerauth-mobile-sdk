@@ -64,6 +64,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
     private boolean mSelfCancelled;
     private boolean mCancelReportsClose;
+    private boolean mIgnoreCancel;
 
     /**
      * Builder class used to construct the 'FingerprintAuthenticationDialogFragment' instance.
@@ -154,8 +155,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    reportCloseOrCancel();
-                    dismiss();
+                    closeOrCancel();
                 }
             });
             mCancelReportsClose = false;
@@ -193,8 +193,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
                 @Override
                 public void onClick(DialogInterface dialog, int i) {
-                    reportCloseOrCancel();
-                    dismiss();
+                    closeOrCancel();
                 }
             });
             mCancelReportsClose = true;
@@ -217,8 +216,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
             @Override
             public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    reportCloseOrCancel();
-                    dismiss();
+                    closeOrCancel();
                 }
                 return true;
             }
@@ -228,16 +226,19 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     }
 
     /**
-     * A private method reports cancel or close result to IFingerprintActionHandler
-     * depending on how dialog was constructed.
+     * A private method performs dismiss on dialog and reports cancel or close result to
+     * IFingerprintActionHandler depending on how dialog was constructed.
      */
-    private void reportCloseOrCancel() {
-        if (mAuthenticationCallback != null) {
-            if (mCancelReportsClose) {
-                mAuthenticationCallback.onFingerprintInfoDialogClosed();
-            } else {
-                mAuthenticationCallback.onFingerprintDialogCancelled();
+    private void closeOrCancel() {
+        if (mIgnoreCancel != true) {
+            if (mAuthenticationCallback != null) {
+                if (mCancelReportsClose) {
+                    mAuthenticationCallback.onFingerprintInfoDialogClosed();
+                } else {
+                    mAuthenticationCallback.onFingerprintDialogCancelled();
+                }
             }
+            dismiss();
         }
     }
 
@@ -319,6 +320,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         mImgIcon.setImageResource(R.drawable.ic_fingerprint_success);
         mTxtStatus.setText(getString(R.string.fingerprint_dialog_success));
         mTxtStatus.setTextColor(getContext().getColor(R.color.color_fingerprint_success_text));
+        mIgnoreCancel = true;
         mImgIcon.postDelayed(new Runnable() {
 
             @Override

@@ -63,6 +63,7 @@ import io.getlime.security.powerauth.rest.api.model.entity.ErrorModel;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateCustomResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
@@ -305,7 +306,7 @@ public class PA2Client {
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull ActivationCreateRequest request,
-            @NonNull INetworkResponseListener<ActivationCreateResponse> listener) {
+            @NonNull INetworkResponseListener<ActivationCreateCustomResponse> listener) {
         return execute(configuration, clientConfiguration, new PA2CreateActivationEndpoint(configuration.getBaseEndpointUrl()), request, null, listener);
     }
 

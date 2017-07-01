@@ -483,10 +483,10 @@ public class PowerAuthSDK {
         request.setExtras(extras);
 
         // Perform the server request
-        return mClient.createActivation(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationCreateResponse>() {
+        return mClient.createActivation(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationCreateCustomResponse>() {
 
             @Override
-            public void onNetworkResponse(ActivationCreateResponse response) {
+            public void onNetworkResponse(ActivationCreateCustomResponse response) {
                 // Network communication completed correctly
                 final ActivationStep2Param paramStep2 = new ActivationStep2Param(
                         response.getActivationId(),
@@ -499,7 +499,7 @@ public class PowerAuthSDK {
                 final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
                 if (resultStep2.errorCode == ErrorCode.OK) {
                     // Everything was OK
-                    listener.onActivationCreateSucceed(resultStep2.hkDevicePublicKey);
+                    listener.onActivationCreateSucceed(resultStep2.hkDevicePublicKey, response.getCustomAttributes());
                 } else {
                     // Error occurred
                     mSession.resetSession();
@@ -609,7 +609,7 @@ public class PowerAuthSDK {
                     ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
 
                     if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
-                        listener.onActivationCreateSucceed(step2Result.hkDevicePublicKey);
+                        listener.onActivationCreateSucceed(step2Result.hkDevicePublicKey, activationCreateResponse.getCustomAttributes());
                     } else {
                         mSession.resetSession();
                         listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));

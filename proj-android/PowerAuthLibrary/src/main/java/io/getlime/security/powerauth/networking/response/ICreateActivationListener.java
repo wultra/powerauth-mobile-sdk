@@ -16,11 +16,29 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-/**
- * Created by miroslavmichalec on 03/11/2016.
- */
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import java.util.Map;
+
+/**
+ * Interface used to allow the initiator of power auth activation to get the result from
+ * the operation.
+ */
 public interface ICreateActivationListener {
-    void onActivationCreateSucceed(String activationFingerprint);
-    void onActivationCreateFailed(Throwable t);
+    /**
+     * Called when activation succeeds.
+     * @param activationFingerprint      decimalized fingerprint calculated from device's public key
+     * @param customActivationAttributes custom attributes received from the server. The value
+     *                                   may be null in case that there are no custom attributes
+     *                                   available.
+     */
+    void onActivationCreateSucceed(@NonNull String activationFingerprint,
+                                   @Nullable Map<String, Object> customActivationAttributes);
+
+    /**
+     * Called when activation fails with an error.
+     * @param t error occurred during the activation
+     */
+    void onActivationCreateFailed(@NonNull Throwable t);
 }

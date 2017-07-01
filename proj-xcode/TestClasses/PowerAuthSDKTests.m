@@ -308,8 +308,8 @@
 	// 2) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(NSString * fingerprint, NSError * error) {
-			activationFingerprint = fingerprint;
+		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+			activationFingerprint = result.activationFingerprint;
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
@@ -644,8 +644,8 @@
 	// 4) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(NSString * fingerprint, NSError * error) {
-			activationFingerprint = fingerprint;
+		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+			activationFingerprint = result.activationFingerprint;
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];

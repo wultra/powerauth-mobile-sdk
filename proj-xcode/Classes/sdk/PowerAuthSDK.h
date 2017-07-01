@@ -28,6 +28,7 @@
 #import "PA2EncryptorFactory.h"
 #import "PA2PasswordUtil.h"
 #import "PA2OtpUtil.h"
+#import "PA2ActivationResult.h"
 
 @interface PowerAuthSDK : NSObject
 
@@ -98,7 +99,7 @@
  */
 - (nonnull PA2OperationTask*) createActivationWithName:(nullable NSString*)name
 										activationCode:(nonnull NSString*)activationCode
-											  callback:(nonnull void(^)(NSString * _Nullable activationFingerprint, NSError * _Nullable error))callback;
+											  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
  
@@ -112,7 +113,7 @@
 - (nonnull PA2OperationTask*) createActivationWithName:(nullable NSString*)name
 										activationCode:(nonnull NSString*)activationCode
 												extras:(nullable NSString*)extras
-											  callback:(nonnull void(^)(NSString * _Nullable activationFingerprint, NSError * _Nullable error))callback;
+											  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
  
@@ -134,7 +135,7 @@
 									  customAttributes:(nullable NSDictionary<NSString*,NSString*>*)customAttributes
 												   url:(nonnull NSURL*)url
 										   httpHeaders:(nullable NSDictionary*)httpHeaders
-											  callback:(nonnull void(^)(NSString * _Nullable activationFingerprint, NSError * _Nullable error))callback;
+											  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
  
@@ -148,7 +149,7 @@
 - (nonnull PA2OperationTask*) createActivationWithName:(nullable NSString*)name
 									identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
 												   url:(nonnull NSURL*)url
-											  callback:(nonnull void(^)(NSString * _Nullable activationFingerprint, NSError * _Nullable error))callback;
+											  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Commit activation that was created and store related data using provided authentication instance.
  

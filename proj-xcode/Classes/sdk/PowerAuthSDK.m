@@ -367,14 +367,14 @@ static PowerAuthSDK *inst;
 
 - (PA2OperationTask*) createActivationWithName:(NSString*)name
 								activationCode:(NSString*)activationCode
-									  callback:(void(^)(NSString *activationFingerprint, NSError *error))callback {
+									  callback:(void(^)(PA2ActivationResult *result, NSError *error))callback {
 	return [self createActivationWithName:name activationCode:activationCode extras:nil callback:callback];
 }
 
 - (PA2OperationTask*) createActivationWithName:(NSString*)name
 								activationCode:(NSString*)activationCode
 										extras:(NSString*)extras
-									  callback:(void(^)(NSString *activationFingerprint, NSError *error))callback {
+									  callback:(void(^)(PA2ActivationResult *result, NSError *error))callback {
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
@@ -421,7 +421,7 @@ static PowerAuthSDK *inst;
 	NSURLSessionDataTask *dataTask = [_client createActivation:request callback:^(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *clientError) {
 		
 		NSError * errorToReport = clientError;
-		NSString * activationFingerprint = nil;
+		PA2ActivationResult * activationResult = nil;
 		if (!errorToReport) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
@@ -438,7 +438,9 @@ static PowerAuthSDK *inst;
 				PA2ActivationStep2Result *resultStep2 = [_session validateActivationResponse:paramStep2];
 				if (resultStep2) {
 					// Everything is OK
-					activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult = [[PA2ActivationResult alloc] init];
+					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.customAttributes = response.customAttributes;
 				} else {
 					// Encryption error
 					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
@@ -452,7 +454,7 @@ static PowerAuthSDK *inst;
 		if (errorToReport) {
 			[_session resetSession];
 		}
-		callback(activationFingerprint, errorToReport);
+		callback(activationResult, errorToReport);
 		
 	}];
 	task.dataTask = dataTask;
@@ -466,7 +468,7 @@ static PowerAuthSDK *inst;
 							  customAttributes:(NSDictionary<NSString*,NSString*>*)customAttributes
 										   url:(NSURL*)url
 								   httpHeaders:(NSDictionary*)httpHeaders
-									  callback:(void(^)(NSString * activationFingerprint, NSError * error))callback {
+									  callback:(void(^)(PA2ActivationResult *result, NSError * error))callback {
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	
@@ -536,7 +538,7 @@ static PowerAuthSDK *inst;
 	NSURLSessionDataTask *dataTask = [_client postToUrl:url data:encryptedRequestData headers:httpHeaders completion:^(NSData * httpData, NSURLResponse * response, NSError * clientError) {
 		
 		NSError * errorToReport = clientError;
-		NSString * activationFingerprint = nil;
+		PA2ActivationResult * activationResult = nil;
 		if (!errorToReport) {
 			NSDictionary *encryptedResponseDictionary = [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil];
 			PA2Response *encryptedResponse = [[PA2Response alloc] initWithDictionary:encryptedResponseDictionary
@@ -564,7 +566,9 @@ static PowerAuthSDK *inst;
 				PA2ActivationStep2Result *resultStep2 = [_session validateActivationResponse:paramStep2];
 				if (resultStep2) {
 					// Everything is OK
-					activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult = [[PA2ActivationResult alloc] init];
+					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.customAttributes = responseObject.customAttributes;
 				} else {
 					// Error occurred
 					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
@@ -577,7 +581,7 @@ static PowerAuthSDK *inst;
 		if (errorToReport) {
 			[_session resetSession];
 		}
-		callback(activationFingerprint, errorToReport);
+		callback(activationResult, errorToReport);
 		
 	}];
 	task.dataTask = dataTask;
@@ -588,7 +592,7 @@ static PowerAuthSDK *inst;
 - (PA2OperationTask*) createActivationWithName:(NSString*)name
 							identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
 										   url:(NSURL*)url
-									  callback:(void(^)(NSString * activationFingerprint, NSError * error))callback {
+									  callback:(void(^)(PA2ActivationResult *result, NSError * error))callback {
 	return [self createActivationWithName:name
 					   identityAttributes:identityAttributes
 							 customSecret:@"00000-00000" // aka "zero code"

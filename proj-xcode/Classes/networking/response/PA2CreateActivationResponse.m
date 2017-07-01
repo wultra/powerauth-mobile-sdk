@@ -26,6 +26,7 @@
         _ephemeralPublicKey					= [dictionary objectForKey:@"ephemeralPublicKey"];
         _encryptedServerPublicKey			= [dictionary objectForKey:@"encryptedServerPublicKey"];
         _encryptedServerPublicKeySignature	= [dictionary objectForKey:@"encryptedServerPublicKeySignature"];
+		_customAttributes					= [dictionary objectForKey:@"customAttributes"];
     }
     return self;
 }
@@ -47,6 +48,9 @@
     if (_encryptedServerPublicKeySignature) {
         [dictionary setObject:_encryptedServerPublicKeySignature forKey:@"encryptedServerPublicKeySignature"];
     }
+	if (_customAttributes) {
+		[dictionary setObject:_customAttributes forKey:@"customAttributes"];
+	}
     return dictionary;
 }
 

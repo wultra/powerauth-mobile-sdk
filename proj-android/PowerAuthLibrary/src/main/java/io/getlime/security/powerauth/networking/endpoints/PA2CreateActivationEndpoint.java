@@ -19,13 +19,13 @@ package io.getlime.security.powerauth.networking.endpoints;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateCustomResponse;
 
 /**
  * Created by miroslavmichalec on 12/10/2016.
  */
 
-public class PA2CreateActivationEndpoint implements IEndpointDefinition<ActivationCreateResponse> {
+public class PA2CreateActivationEndpoint implements IEndpointDefinition<ActivationCreateCustomResponse> {
 
     private String baseUrl;
 
@@ -45,7 +45,7 @@ public class PA2CreateActivationEndpoint implements IEndpointDefinition<Activati
     }
 
     @Override
-    public TypeToken<ActivationCreateResponse> getResponseType() {
-        return TypeToken.get(ActivationCreateResponse.class);
+    public TypeToken<ActivationCreateCustomResponse> getResponseType() {
+        return TypeToken.get(ActivationCreateCustomResponse.class);
     }
 }

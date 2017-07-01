@@ -206,8 +206,10 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialogInterface) {
-                int COLOR_BUTTON_POSITIVE = alertDialog.getContext().getColor(R.color.color_fingerprint_close_button);
-                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(COLOR_BUTTON_POSITIVE);
+                if (FingerprintAuthenticationDialogFragment.this.isAdded()) {
+                    int COLOR_BUTTON_POSITIVE = alertDialog.getContext().getColor(R.color.color_fingerprint_close_button);
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(COLOR_BUTTON_POSITIVE);
+                }
             }
         });
         // Handle back button in dialog

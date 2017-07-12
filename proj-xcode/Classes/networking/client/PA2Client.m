@@ -106,6 +106,7 @@
 	PALog(@"- Body: %@", data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"empty body");
 	NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 		PALog(@"PA2Client Response");
+		PALog(@"- URL: %@", url.absoluteString);
 		PALog(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
 		PALog(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
 		PALog(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);

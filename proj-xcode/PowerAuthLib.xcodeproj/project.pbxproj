@@ -97,6 +97,8 @@
 		BFB494241CE9120600F8D81B /* pa2ServerPublicKeyDecryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB494231CE9120600F8D81B /* pa2ServerPublicKeyDecryption.cpp */; };
 		BFB494261CE9138D00F8D81B /* pa2MasterSecretKeyComputation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB494251CE9138D00F8D81B /* pa2MasterSecretKeyComputation.cpp */; };
 		BFB494281CE914D800F8D81B /* pa2SignatureCalculationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB494271CE914D800F8D81B /* pa2SignatureCalculationTests.cpp */; };
+		BFD3865E1F2A0A2300F74FF9 /* OtpUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFD3865D1F2A0A2300F74FF9 /* OtpUtil.cpp */; };
+		BFD386601F2A476400F74FF9 /* pa2OtpUtilTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFD3865F1F2A476400F74FF9 /* pa2OtpUtilTests.cpp */; };
 		BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */; };
 /* End PBXBuildFile section */
 
@@ -352,6 +354,9 @@
 		BFB494231CE9120600F8D81B /* pa2ServerPublicKeyDecryption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ServerPublicKeyDecryption.cpp; sourceTree = "<group>"; };
 		BFB494251CE9138D00F8D81B /* pa2MasterSecretKeyComputation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2MasterSecretKeyComputation.cpp; sourceTree = "<group>"; };
 		BFB494271CE914D800F8D81B /* pa2SignatureCalculationTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureCalculationTests.cpp; sourceTree = "<group>"; };
+		BFD3865B1F2A08F000F74FF9 /* OtpUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OtpUtil.h; sourceTree = "<group>"; };
+		BFD3865D1F2A0A2300F74FF9 /* OtpUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OtpUtil.cpp; sourceTree = "<group>"; };
+		BFD3865F1F2A476400F74FF9 /* pa2OtpUtilTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2OtpUtilTests.cpp; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -731,6 +736,7 @@
 				BF73E5921E1E802A00BE4139 /* Encryptor.h */,
 				BF1FA8CD1D0720AC00392EC7 /* Password.h */,
 				BF4DBCA51CDF4693008F3A47 /* Debug.h */,
+				BFD3865B1F2A08F000F74FF9 /* OtpUtil.h */,
 			);
 			path = PowerAuth;
 			sourceTree = "<group>";
@@ -756,6 +762,7 @@
 				BF4DBCA61CDF46F2008F3A47 /* Debug.cpp */,
 				BF1FA8CE1D07216600392EC7 /* Password.cpp */,
 				BF73E5941E1E80D400BE4139 /* Encryptor.cpp */,
+				BFD3865D1F2A0A2300F74FF9 /* OtpUtil.cpp */,
 			);
 			path = PowerAuth;
 			sourceTree = "<group>";
@@ -885,6 +892,7 @@
 				BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */,
 				BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */,
 				BF1FA8D01D074C9C00392EC7 /* pa2PasswordTests.cpp */,
+				BFD3865F1F2A476400F74FF9 /* pa2OtpUtilTests.cpp */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -1048,6 +1056,7 @@
 				1B968C5A1E2CED4500F429E0 /* PA2EncryptedObject.m in Sources */,
 				1B6A65301E64515000327545 /* PA2OtpUtil.m in Sources */,
 				1B9AD2C01DA5B2F200CF52C9 /* PA2OperationTask.m in Sources */,
+				BFD3865E1F2A0A2300F74FF9 /* OtpUtil.cpp in Sources */,
 				1B00DF5D1DBEC8980027B092 /* PA2Bluetooth.m in Sources */,
 				1B789F461E2640640095519E /* PA2NonPersonalizedEncryptedObject.m in Sources */,
 				BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */,
@@ -1096,6 +1105,7 @@
 				BFB494201CE90DA800F8D81B /* pa2ActivationOTPExpandingTests.cpp in Sources */,
 				BF3C8ADB1CEA28EB0003341F /* pa2URLEncodingTests.cpp in Sources */,
 				BF234C971CE5180200312A7F /* pa2CryptoHMACTests.cpp in Sources */,
+				BFD386601F2A476400F74FF9 /* pa2OtpUtilTests.cpp in Sources */,
 				BFB494281CE914D800F8D81B /* pa2SignatureCalculationTests.cpp in Sources */,
 				BF4DBCC31CDF9979008F3A47 /* PowerAuthTestsList.cpp in Sources */,
 				BF1FA8D11D074C9C00392EC7 /* pa2PasswordTests.cpp in Sources */,

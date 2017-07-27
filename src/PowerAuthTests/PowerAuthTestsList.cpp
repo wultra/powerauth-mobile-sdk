@@ -32,6 +32,7 @@ namespace powerAuthTests
 		CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
 		CC7_ADD_UNIT_TEST(pa2SessionTests, list);
 		CC7_ADD_UNIT_TEST(pa2PasswordTests, list);
+		CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
 		
 		// Crypto tests
 		CC7_ADD_UNIT_TEST(pa2CryptoPKCS7PaddingTests, list);

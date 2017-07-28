@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthTestServerModel.h"
+#import "PowerAuthTestServerConfig.h"
 
 /**
  The PowerAuthTestServerAPI class implements simple SOAP client for communication with
@@ -32,12 +33,9 @@
 @interface PowerAuthTestServerAPI : NSObject
 
 /**
- Initializes a test server API object for given |testServerUrl| with requested
- |applicationName| and |applicationVersion|.
+ Initializes a test server API object for given |testServerConfig|.
  */
-- (id) initWithTestServerURL:(NSURL*)testServerUrl
-			 applicationName:(NSString*)applicationName
-		  applicationVersion:(NSString*)applicationVersion;
+- (id) initWithConfiguration:(PowerAuthTestServerConfig*)testServerConfig;
 
 /**
  Validates connection to the server. The method simply checks whether the test

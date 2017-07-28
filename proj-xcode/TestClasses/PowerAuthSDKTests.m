@@ -30,23 +30,20 @@
  available in the "PowerAuthTestConfig.h" header file.
  
  If you don't want to modify the header file with configurations, then you can use
- a command line arguments passed to the unit testing process. Check `-(void)processCommandLineArguments`
- method for details. We recommend you to create a local copy of "PA2_IntegrationTests" scheme 
- and change the test arguments, or use an appropriate `xcodebuild` command with parameters.
+ a configuration file. Check 'TestConfig/Readme.md' for details.
  */
 @interface PowerAuthSDKTests : XCTestCase
 @end
 
 @implementation PowerAuthSDKTests
 {
-	NSString * _soapApiURL;
-	NSString * _restApiURL;
 	NSString * _userId;
 	NSString * _activationName;
-	
-	PowerAuthTestServerAPI * _testServerApi;	// SOAP connection
-	PowerAuthConfiguration * _config;			// Default SDK config
-	PowerAuthSDK * _sdk;						// Default SDK instance
+
+	PowerAuthTestServerConfig * _testServerConfig;	// Loaded config
+	PowerAuthTestServerAPI * _testServerApi;		// SOAP connection
+	PowerAuthConfiguration * _config;				// Default SDK config
+	PowerAuthSDK * _sdk;							// Default SDK instance
 	
 	BOOL _hasConfig;
 	BOOL _invalidConfig;
@@ -61,64 +58,19 @@
 }
 
 /**
- Supported command line arguments for tests:
- 
-	--baseUrl=url	
-		- To change a base URL (typically, where the docker with all containers is running)
-		  This parameter affects both, REST & SOAP API URLs and expects, that the default
-		  docker containers are running at the provided domain.
-
-	--soapUrl=url
-		- To change just a location of private SOAP API server
-	
-	--restUrl=url
-		- To change just a location of public REST API server.
- 
- If soapUrl or restUrl is not defined, then the POWERAUTH_TEST_SERVER_URL and POWERAUTH_REST_API_URL
- mcros will be used.
+ Loads a configuration from expected file, or creates a default one.
  */
-- (BOOL) processCommandLineArguments
+- (BOOL) loadConfiguration
 {
-	// Skip first argument, which is a path to process
-	NSArray * arguments = [[NSProcessInfo processInfo] arguments];
-	arguments = [arguments subarrayWithRange:NSMakeRange(1, arguments.count - 1)];
-	// Process all arguments
-	__block BOOL wrongParam = NO;
-	[arguments enumerateObjectsUsingBlock:^(NSString * arg, NSUInteger idx, BOOL * stop) {
-		if ([arg hasPrefix:@"--baseUrl"]) {
-			NSString * url = [self stripUrlFromArgument:arg];
-			if (url) {
-				_soapApiURL = [url stringByAppendingString:@":20010/powerauth-java-server/soap"];
-				_restApiURL = [url stringByAppendingString:@":18080/powerauth-rest-api"];
-			} else {
-				*stop = wrongParam = YES;
-			}
-		} else if ([arg hasPrefix:@"--soapUrl"]) {
-			NSString * url = [self stripUrlFromArgument:arg];
-			if (url) {
-				_soapApiURL = url;
-			} else {
-				*stop = wrongParam = YES;
-			}
-		} else if ([arg hasPrefix:@"--restUrl"]) {
-			NSString * url = [self stripUrlFromArgument:arg];
-			if (url) {
-				_restApiURL = url;
-			} else {
-				*stop = wrongParam = YES;
-			}
+	NSBundle * bundle = [NSBundle bundleForClass:[self class]];
+	NSString * path = [bundle pathForResource:@"TestConfig/Configuration" ofType:@"json"];
+	if (path) {
+		_testServerConfig = [PowerAuthTestServerConfig loadFromJsonFile:path];
+		if (_testServerConfig == nil) {
+			return NO;
 		}
-	}];
-	if (wrongParam) {
-		return NO;
-	}
-	
-	// Default values
-	if (!_soapApiURL) {
-		_soapApiURL = POWERAUTH_TEST_SERVER_URL;
-	}
-	if (!_restApiURL) {
-		_restApiURL = POWERAUTH_REST_API_URL;
+	} else {
+		_testServerConfig = [PowerAuthTestServerConfig defaultConfig];
 	}
 	if (!_userId) {
 		_userId = @"TestUserIOS";
@@ -130,8 +82,8 @@
 	// Print report
 	NSLog(@"=======================================================================");
 	NSLog(@"The integration tests will run against following servers:");
-	NSLog(@"    REST API Server: %@", _restApiURL);
-	NSLog(@"    SOAP API Server: %@", _soapApiURL);
+	NSLog(@"    REST API Server: %@", _testServerConfig.restApiUrl);
+	NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
 	NSLog(@"               User: %@", _userId);
 	NSLog(@"=======================================================================");
 	
@@ -150,14 +102,12 @@
 	
 	// Prepare command
 	BOOL result;
-	result = [self processCommandLineArguments];
-	XCTAssertTrue(result, @"The provided test argument is wrong.");
+	result = [self loadConfiguration];
+	XCTAssertTrue(result, @"The provided test configuration is wrong.");
 	
 	// Test connection to SOAP server
 	if (result) {
-		_testServerApi = [[PowerAuthTestServerAPI alloc] initWithTestServerURL:[NSURL URLWithString:_soapApiURL]
-															   applicationName:POWERAUTH_TEST_SERVER_APP
-															applicationVersion:POWERAUTH_TEST_SERVER_APP_VERSION];
+		_testServerApi = [[PowerAuthTestServerAPI alloc] initWithConfiguration:_testServerConfig];
 		result = [_testServerApi validateConnection];
 		XCTAssertTrue(result, @"Connection to test server failed. Check debug log for details.");
 	}
@@ -165,7 +115,7 @@
 	if (result) {
 		_config = [[PowerAuthConfiguration alloc] init];
 		_config.instanceId = @"IntegrationTests";
-		_config.baseEndpointUrl = _restApiURL;
+		_config.baseEndpointUrl = _testServerConfig.restApiUrl;
 		_config.appKey = _testServerApi.appVersion.applicationKey;
 		_config.appSecret = _testServerApi.appVersion.applicationSecret;
 		_config.masterServerPublicKey = _testServerApi.appDetail.masterPublicKey;

@@ -25,21 +25,19 @@
 
 #pragma mark - Object initilization
 
-- (id) initWithTestServerURL:(NSURL*)testServerUrl
-			 applicationName:(NSString*)applicationName
-		  applicationVersion:(NSString*)applicationVersion
+- (id) initWithConfiguration:(PowerAuthTestServerConfig*)testServerConfig
 {
 	self = [super init];
 	if (self) {
-		_testServerUrl = testServerUrl;
-		_applicationNameString = applicationName;
-		_applicationVersionString = applicationVersion;
+		_testServerUrl = [NSURL URLWithString:testServerConfig.soapApiUrl];
+		_applicationNameString = testServerConfig.powerAuthAppName;
+		_applicationVersionString = testServerConfig.powerAuthAppVersion;
 		
 		NSBundle * mainBundle = [NSBundle bundleForClass:[self class]];
 		NSURL * soapBundleUrl = [mainBundle URLForResource:@"SoapRequests" withExtension:@"bundle"];
 		NSBundle * soapBundle = [NSBundle bundleWithURL:soapBundleUrl];
 		
-		_helper = [[SoapHelper alloc] initWithBundle:soapBundle url:testServerUrl];
+		_helper = [[SoapHelper alloc] initWithBundle:soapBundle url:_testServerUrl];
 	}
 	return self;
 }

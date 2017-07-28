@@ -16,37 +16,49 @@
 
 package io.getlime.security.powerauth.util.otp;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import io.getlime.security.powerauth.core.ActivationStep1Param;
-
 /**
- * Class for parsing the OTP code.
- *
- * @author Petr Dvorak, petr@lime-company.eu
+ * Class for parsing and validation the OTP code.
  */
 public class OtpUtil {
 
-    private static final String ACT_CODE_PATTERN = "^([A-Z2-7]{5}-[A-Z2-7]{5})-([A-Z2-7]{5}-[A-Z2-7]{5})(#([A-Za-z0-9+=]*))?$";
-
-    public static Otp parseFromActivationCode(String activationCode) {
-        final Pattern pattern = Pattern.compile(ACT_CODE_PATTERN);
-        final Matcher matcher = pattern.matcher(activationCode.trim());
-
-        if (matcher.find()) {
-            try {
-                String activationIdShort = matcher.group(1);
-                String activationOtp = matcher.group(2);
-                String activationSignature = matcher.group(3);
-
-                return new Otp(activationIdShort, activationOtp, activationSignature);
-            } catch (IllegalStateException | IndexOutOfBoundsException e) { // invalid pattern match
-                return null;
-            }
-        } else {
-            return null;
-        }
+    static {
+        System.loadLibrary("PowerAuth2Module");
     }
+
+    /**
+     * Parses an input |activationCode| (which may or may not contain an optional signature) and
+     * returns Otp object filled with valid data. The method doesn't perform an autocorrection,
+     * so the provided code must be valid.
+     *
+     * @return Otp object if code is valid, or null
+     * */
+    public native static Otp parseFromActivationCode(String activationCode);
+
+    /**
+     *  Returns true if |character| is a valid character allowed in the activation code.
+     *  The method strictly checks whether the character is from [A-Z2-7] characters range.
+     */
+    public native static boolean validateTypedCharacter(int utfCodepoint);
+
+    /**
+     * Validates an input |character| and returns 0 if it's not valid or cannot be corrected.
+     * The non-zero returned value contains the same input character, or the corrected
+     * one. You can use this method for validation &amp; autocorrection of just typed characters.
+     * <p>
+     * The function performs following autocorections:
+     * <ul>
+     * <li>lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')</li>
+     * <li>'0' is corrected to 'O' (zero to capital O)</li>
+     * <li>'1' is corrected to 'I' (one to capital I)</li>
+     * </ul>
+     */
+    public native static int validateAndCorrectTypedCharacter(int utfCodepoint);
+
+    /**
+     *  Returns true if |activationCode| is a valid activation code. The input code must not contain
+     *  a signature part. You can use this method to validate a whole user-typed activation code
+     *  at once.
+     */
+    public native static boolean validateActivationCode(String activationCode);
 
 }

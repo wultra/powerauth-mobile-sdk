@@ -18,43 +18,30 @@ package io.getlime.security.powerauth.util.otp;
 
 /**
  * Class representing the activation code.
- *
- * @author Petr Dvorak, petr@lime-company.eu
  */
 public class Otp {
 
-    private String activationIdShort;
-    private String activationOtp;
-    private String activationSignature;
+    /**
+     * Short activation ID
+     */
+    public final String activationIdShort;
+    /**
+     * Activation OTP (one time password)
+     */
+    public final String activationOtp;
+    /**
+     * Signature calculated from activationIdShort and activationOtp.
+     * The value is typically optional for cases, when the user re-typed activation code
+     * manually.
+     */
+    public final String activationSignature;
 
-    public Otp(String activationIdShort, String activationOtp, String activationSignature) {
-        this.activationIdShort = activationIdShort;
-        this.activationOtp = activationOtp;
-        this.activationSignature = activationSignature;
+    /**
+     * Dummy constructor. The object is initialized in the JNI code.
+     */
+    public Otp() {
+        this.activationIdShort = null;
+        this.activationOtp = null;
+        this.activationSignature = null;
     }
-
-    public String getActivationIdShort() {
-        return activationIdShort;
-    }
-
-    public void setActivationIdShort(String activationIdShort) {
-        this.activationIdShort = activationIdShort;
-    }
-
-    public String getActivationOtp() {
-        return activationOtp;
-    }
-
-    public void setActivationOtp(String activationOtp) {
-        this.activationOtp = activationOtp;
-    }
-
-    public String getActivationSignature() {
-        return activationSignature;
-    }
-
-    public void setActivationSignature(String activationSignature) {
-        this.activationSignature = activationSignature;
-    }
-
 }

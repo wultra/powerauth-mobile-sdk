@@ -199,9 +199,9 @@ public class PowerAuthSDK {
             return null;
         } else {
             return new ActivationStep1Param(
-                    otp.getActivationIdShort(),
-                    otp.getActivationOtp(),
-                    otp.getActivationSignature()
+                    otp.activationIdShort,
+                    otp.activationOtp,
+                    otp.activationSignature
             );
         }
     }

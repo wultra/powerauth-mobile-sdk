@@ -130,7 +130,8 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
 	PowerAuth/jni/SessionJNI.cpp \
 	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/EncryptorJNI.cpp
+	PowerAuth/jni/EncryptorJNI.cpp \
+	PowerAuth/jni/OtpUtilJNI.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

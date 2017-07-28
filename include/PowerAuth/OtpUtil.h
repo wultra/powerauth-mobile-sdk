@@ -40,7 +40,7 @@ namespace powerAuth
 		std::string activationOtp;
 		/**
 		 Signature calculated from activationIdShort and activationOtp.
-		 The value is optional for cases, when the user re-typed activation ode
+		 The value is typically optional for cases, when the user re-typed activation ode
 		 manually.
 		 */
 		std::string activationSignature;
@@ -89,8 +89,8 @@ namespace powerAuth
 		
 		/**
 		 Validates an input |utf_codepoint| as an unicode character and returns '\0' (NUL) if it's not valid or
-		 cannot be corrected. The non-NON returned value contains the same input codepoint, or the corrected one.
-		 You can
+		 cannot be corrected. The non-NUL returned value contains the same input codepoint, or the corrected one.
+		 You can use this method for validation & autocorrection of just typed characters.
 		 
 		 The function performs following autocorections:
 		 - lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')

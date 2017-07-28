@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2016-2017 Lime - HighTech Solutions s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,74 @@
 
 #import <Foundation/Foundation.h>
 
+/**
+ The `PA2Otp` object contains parsed components from user-provided activation
+ code. You can use methods from `PA2OtpUtil` class to fill this object with valid data.
+ */
 @interface PA2Otp : NSObject
-@property (nonatomic, strong) NSString* activationIdShort;
-@property (nonatomic, strong) NSString* activationOtp;
-@property (nonatomic, strong) NSString* activationSignature;
+/**
+ Short activation ID
+ */
+@property (nonatomic, strong, readonly) NSString* activationIdShort;
+/**
+ Activation OTP (one time password)
+ */
+@property (nonatomic, strong, readonly) NSString* activationOtp;
+/**
+ Signature calculated from activationIdShort and activationOtp.
+ The value is typically optional for cases, when the user re-typed activation ode
+ manually.
+ */
+@property (nonatomic, strong, readonly) NSString* activationSignature;
+
 @end
 
-/** Class used for validating OTP activation code.
+
+/** 
+ The `PA2OtpUtil` class provides various set of methods for parsing and validating activation codes.
+ 
+ Current format:
+ ------------------
+ code without signature:	CCCCC-CCCCC-CCCCC-CCCCC
+ code with signature:		CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
+ 
+ Where the 'C' is a character from range [A-Z2-7]
  */
 @interface PA2OtpUtil : NSObject
 
-/** Parse activation code to the structured OTP information.
+#pragma mark - Validations
+
+/**
+ Returns YES if |character| is a valid character allowed in the activation code.
+ The method strictly checks whether the character is from [A-Z2-7] characters range.
+ */
++ (BOOL) validateTypedCharacter:(unichar)character;
+
+/**
+ Validates an input |character| and returns '\0' (NUL) if it's not valid or cannot be corrected. 
+ The non-NUL returned value contains the same input character, or the corrected one.
+ You can use this method for validation & autocorrection of just typed characters.
  
- @param activationCode Activation code, 4x5 Base32 characters ("XXXXX-XXXXX-XXXXX-XXXXX").
- @return Structured OTP information.
+ The function performs following autocorections:
+ - lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')
+ - '0' is corrected to 'O'
+ - '1' is corrected to 'I'
+ */
++ (unichar) validateAndCorrectTypedCharacter:(unichar)character;
+
+/**
+ Returns YES if |activationCode| is a valid activation code. The input code must not contain a signature part.
+ You can use this method to validate a whole user-typed activation code at once.
+ */
++ (BOOL) validateActivationCode:(NSString*)activationCode;
+
+#pragma mark - Parser
+
+/**
+ Parses an input |activationCode| (which may or may not contain an optional signature) and returns PA2Otp 
+ object filled with valid data. The method doesn't perform an autocorrection, so the provided code must be valid.
+ 
+ Returns PA2Otp object if code is valid, or nil.
  */
 + (PA2Otp*) parseFromActivationCode:(NSString*)activationCode;
 

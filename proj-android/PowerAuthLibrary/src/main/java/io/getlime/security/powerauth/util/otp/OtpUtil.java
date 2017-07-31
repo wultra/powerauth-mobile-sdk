@@ -35,17 +35,17 @@ public class OtpUtil {
     public native static Otp parseFromActivationCode(String activationCode);
 
     /**
-     *  Returns true if |character| is a valid character allowed in the activation code.
+     *  Returns true if |utfCodepoint| is a valid character allowed in the activation code.
      *  The method strictly checks whether the character is from [A-Z2-7] characters range.
      */
     public native static boolean validateTypedCharacter(int utfCodepoint);
 
     /**
-     * Validates an input |character| and returns 0 if it's not valid or cannot be corrected.
+     * Validates an input |utfCodepoint| and returns 0 if it's not valid or cannot be corrected.
      * The non-zero returned value contains the same input character, or the corrected
      * one. You can use this method for validation &amp; autocorrection of just typed characters.
      * <p>
-     * The function performs following autocorections:
+     * The function performs following autocorrections:
      * <ul>
      * <li>lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')</li>
      * <li>'0' is corrected to 'O' (zero to capital O)</li>

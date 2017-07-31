@@ -29,21 +29,38 @@
 		[op start];
 	 }];
 	 NSLog(@"Operation ended with %@", result);		// Will print: "Operation ended with: SUCCESS"
-	 
+
+ WARNING: Do not use this class in the production application. The internal implementation is
+          sufficient for the testing purposes, but it's still kind of multithread anti-pattern.
  */
 @interface AsyncHelper : NSObject
 
 /**
  Creates a new instance of AsyncHelper and immediately executes the provided block.
- In the block, you can start any asynchronous operation with completion block, but then,
- you need to 
+ In the block, you can start any asynchronous operation with any completion, but once
+ you exit the |block|, the execution ends in a waiting loop. You have to call 
+ [waiting reportCompletion:object] to break the waiting loop. If you don't report 
+ the completion in predefined time (10 seconds), then the exception is thrown.
  
- Returns object reported in `-reportCompletion:` method
+ The method returns the same |resultObject| as you previously passed to `-reportCompletion:`.
  */
 + (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block;
 
 /**
- Reports completion to a waiting object.
+ Creates a new instance of AsyncHelper and immediately executes the provided |block|.
+ In the block, you can start any asynchronous operation with any completion, but once
+ you exit the |block|, the execution ends in a waiting loop. Then, you have to call
+ `[waiting reportCompletion:object]` to break the waiting loop. If you don't report
+ the completion in reqested |interval| time, then the exception is thrown.
+ 
+ The method returns the same |resultObject| as you previously passed to `-reportCompletion:`.
+ */
++ (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
+							   wait:(NSTimeInterval)interval;
+
+/**
+ Reports completion to a waiting object and breaks the waiting loop. The result can be reported
+ from an arbitrary thread.
  */
 - (void) reportCompletion:(id)resultObject;
 

@@ -35,16 +35,23 @@
 }
 
 + (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
+							   wait:(NSTimeInterval)interval
 {
 	if (!block) {
 		return nil;
 	}
 	AsyncHelper * waiting = [[AsyncHelper alloc] init];
 	if (!waiting) {
+		@throw [NSException exceptionWithName:@"SoapApi" reason:@"Can't create synchronization semaphore" userInfo:nil];
 		return nil;
 	}
 	block(waiting);
-	return [waiting waitForCompletion];
+	return [waiting waitForCompletion:interval];
+}
+
++ (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
+{
+	return [self synchronizeAsynchronousBlock:block wait:10.0];
 }
 
 - (void) reportCompletion:(id)resultObject
@@ -53,9 +60,9 @@
 	dispatch_semaphore_signal(_semaphore);
 }
 
-- (id) waitForCompletion
+- (id) waitForCompletion:(NSTimeInterval)waitingTime
 {
-	NSUInteger attempts = 20;		// (0.25 + 0.25) * 20 => 10 seconds for attempts
+	NSUInteger attempts = (NSUInteger)(waitingTime * 2);		// wt / (0.25 + 0.25) => wt * 2 => attempts
 	long triggered = 0;
 	while (attempts > 0) {
 		// We need to prevent possible deadlocks, between our semaphore and the mesagess, processed in the runloop.

@@ -55,14 +55,14 @@ using namespace io::getlime::powerAuth;
 
 @implementation PA2OtpUtil
 
-+ (BOOL) validateTypedCharacter:(unichar)character
++ (BOOL) validateTypedCharacter:(UInt32)character
 {
 	return OtpUtil::validateTypedCharacter(character);
 }
 
-+ (unichar) validateAndCorrectTypedCharacter:(unichar)character
++ (UInt32) validateAndCorrectTypedCharacter:(UInt32)character
 {
-	return (unichar) OtpUtil::validateAndCorrectTypedCharacter(character);
+	return OtpUtil::validateAndCorrectTypedCharacter(character);
 }
 
 + (BOOL) validateActivationCode:(NSString*)activationCode

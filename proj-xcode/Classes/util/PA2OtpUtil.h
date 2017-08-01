@@ -24,17 +24,17 @@
 /**
  Short activation ID
  */
-@property (nonatomic, strong, readonly) NSString* activationIdShort;
+@property (nonnull, nonatomic, strong, readonly) NSString* activationIdShort;
 /**
  Activation OTP (one time password)
  */
-@property (nonatomic, strong, readonly) NSString* activationOtp;
+@property (nonnull, nonatomic, strong, readonly) NSString* activationOtp;
 /**
  Signature calculated from activationIdShort and activationOtp.
  The value is typically optional for cases, when the user re-typed activation ode
  manually.
  */
-@property (nonatomic, strong, readonly) NSString* activationSignature;
+@property (nullable, nonatomic, strong, readonly) NSString* activationSignature;
 
 @end
 
@@ -54,13 +54,13 @@
 #pragma mark - Validations
 
 /**
- Returns YES if |character| is a valid character allowed in the activation code.
+ Returns YES if |utfCodepoint| is a valid character allowed in the activation code.
  The method strictly checks whether the character is from [A-Z2-7] characters range.
  */
-+ (BOOL) validateTypedCharacter:(unichar)character;
++ (BOOL) validateTypedCharacter:(UInt32)utfCodepoint;
 
 /**
- Validates an input |character| and returns '\0' (NUL) if it's not valid or cannot be corrected. 
+ Validates an input |utfCodepoint| and returns '\0' (NUL) if it's not valid or cannot be corrected.
  The non-NUL returned value contains the same input character, or the corrected one.
  You can use this method for validation & autocorrection of just typed characters.
  
@@ -69,13 +69,13 @@
  - '0' is corrected to 'O'
  - '1' is corrected to 'I'
  */
-+ (unichar) validateAndCorrectTypedCharacter:(unichar)character;
++ (UInt32) validateAndCorrectTypedCharacter:(UInt32)utfCodepoint;
 
 /**
  Returns YES if |activationCode| is a valid activation code. The input code must not contain a signature part.
  You can use this method to validate a whole user-typed activation code at once.
  */
-+ (BOOL) validateActivationCode:(NSString*)activationCode;
++ (BOOL) validateActivationCode:(nonnull NSString*)activationCode;
 
 #pragma mark - Parser
 
@@ -85,6 +85,6 @@
  
  Returns PA2Otp object if code is valid, or nil.
  */
-+ (PA2Otp*) parseFromActivationCode:(NSString*)activationCode;
++ (nullable PA2Otp*) parseFromActivationCode:(nonnull NSString*)activationCode;
 
 @end

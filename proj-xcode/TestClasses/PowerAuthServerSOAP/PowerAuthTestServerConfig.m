@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthTestServerConfig.h"
+#import <UIKit/UIDevice.h>
 
 /**
  The `POWERAUTH_BASE_URL` macro defines a base URL where are the running server instances
@@ -26,7 +27,7 @@
         Check TestConfig/Readme.md for details.
  */
 #ifndef POWERAUTH_BASE_URL
-#define POWERAUTH_BASE_URL @"http://paserver"
+#define POWERAUTH_BASE_URL @"http://localhost"
 #endif
 
 
@@ -73,6 +74,8 @@
 		instance->_soapApiUrl = dict[@"soapApiUrl"];
 		instance->_powerAuthAppName = dict[@"powerAuthAppName"];
 		instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];
+		instance->_userIdentifier = dict[@"userIdentifier"];
+		instance->_userActivationName = dict[@"userActivationName"];
 		if (![instance validateAndFillOptionals]) {
 			return nil;
 		}
@@ -100,7 +103,19 @@
 	if (nil == _powerAuthAppVersion) {
 		_powerAuthAppVersion = @"default";
 	}
+	if (nil == _userIdentifier) {
+		_userIdentifier = @"TestUserIOS";
+	}
+	if (nil == _userActivationName) {
+		_userActivationName = [self.class buildDefaultActivationName];
+	}
 	return YES;
+}
+
++ (NSString*) buildDefaultActivationName
+{
+	UIDevice * dev = [UIDevice currentDevice];
+	return [NSString stringWithFormat:@"Testing on '%@', %@, %@ %@", dev.name, dev.model, dev.systemName, dev.systemVersion];
 }
 
 @end

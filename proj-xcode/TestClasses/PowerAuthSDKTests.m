@@ -26,20 +26,14 @@
  high level `PowerAuthSDK` class is a primary test subject. All integration tests
  needs a running server as a counterpart and therefore are by-default disabled for all
  main development schemas ("PA2_Release", "PA2_Debug"). To run this test, you
- need to switch to "PA2_IntegrationTests" and check the default servers configuration,
- available in the "PowerAuthTestConfig.h" header file.
- 
- If you don't want to modify the header file with configurations, then you can use
- a configuration file. Check 'TestConfig/Readme.md' for details.
+ need to switch to "PA2_IntegrationTests" scheme and create a configuration.
+ Check 'TestConfig/Readme.md' for details.
  */
 @interface PowerAuthSDKTests : XCTestCase
 @end
 
 @implementation PowerAuthSDKTests
 {
-	NSString * _userId;
-	NSString * _activationName;
-
 	PowerAuthTestServerConfig * _testServerConfig;	// Loaded config
 	PowerAuthTestServerAPI * _testServerApi;		// SOAP connection
 	PowerAuthConfiguration * _config;				// Default SDK config
@@ -72,19 +66,13 @@
 	} else {
 		_testServerConfig = [PowerAuthTestServerConfig defaultConfig];
 	}
-	if (!_userId) {
-		_userId = @"TestUserIOS";
-	}
-	if (!_activationName) {
-		_activationName = @"Trogdor the Burninator";
-	}
 	
 	// Print report
 	NSLog(@"=======================================================================");
 	NSLog(@"The integration tests will run against following servers:");
 	NSLog(@"    REST API Server: %@", _testServerConfig.restApiUrl);
 	NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
-	NSLog(@"               User: %@", _userId);
+	NSLog(@"               User: %@", _testServerConfig.userIdentifier);
 	NSLog(@"=======================================================================");
 	
 	return YES;
@@ -342,7 +330,7 @@
 	XCTAssertTrue([_sdk canStartActivation]);
 	
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
 	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
 	
@@ -351,7 +339,8 @@
 	// 2) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		NSString * activationName = _testServerConfig.userActivationName;
+		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			[waiting reportCompletion:@(error == nil)];
 		}];
@@ -408,7 +397,7 @@
 	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
 	result = serverActivationStatus != nil;
 	CHECK_RESULT_RET(preliminaryResult);
-	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_activationName]);
+	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
 	// This test fails but I don't know why :(
 	//XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
 	
@@ -766,7 +755,7 @@
 	// OK, application is not supported, try to create an activation
 	
 	// 3) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = [activationData activationCodeWithSignature];
 	
 	__block NSString * activationFingerprint = nil;
@@ -774,7 +763,8 @@
 	// 4) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		NSString * activationName = _testServerConfig.userActivationName;
+		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];

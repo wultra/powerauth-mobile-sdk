@@ -245,6 +245,7 @@
 	return nil;
 }
 
+
 /**
  Returns @[ signature, nonceB64 ] if succeeded or nil in case of error.
  Throws test exception only when header contains invalid data (e.g. parser fail process the header)
@@ -267,6 +268,7 @@
 	return nil;
 }
 
+
 /*
  Returns dictionary created from "X-PowerAuth-Authorization" header's value.
  */
@@ -282,13 +284,13 @@
 				error = *stop = YES; return;
 			}
 		}
-		NSArray * kvArray = [keyValue componentsSeparatedByString:@"="];
-		if (kvArray.count != 2) {
+		NSRange equalRange = [keyValue rangeOfString:@"="];
+		if (equalRange.location == NSNotFound) {
 			XCTFail(@"Unknown component: %@", keyValue);
 			error = *stop = YES; return;
 		}
-		NSString * key = kvArray[0];
-		NSString * value = kvArray[1];
+		NSString * key = [keyValue substringToIndex:equalRange.location];
+		NSString * value = [keyValue substringFromIndex:equalRange.location + 1];
 		if (![value hasPrefix:@"\""] || ![value hasSuffix:@"\""]) {
 			XCTFail(@"Value is not closed in parenthesis: %@", key);
 			error = *stop = YES; return;
@@ -304,6 +306,103 @@
 		XCTAssertFalse(error, @"Unknown PA version");
 	}
 	return error ? nil : result;
+}
+
+
+/**
+ Converts factors from auth object to string.
+ */
+- (NSString*) authToString:(PowerAuthAuthentication*)auth
+{
+	NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
+	if (auth.usePossession) {
+		[components addObject:@"possession"];
+	}
+	if (auth.usePassword) {
+		[components addObject:@"knowledge"];
+	}
+	if (auth.useBiometry) {
+		[components addObject:@"biometry"];
+	}
+	return [components componentsJoinedByString:@"_"];
+}
+
+
+/**
+ Makes full test against server with signature verification. You can set cripple parameter to following bitmask:
+	0x0001 - will cripple auth object (e.g. change factor)
+	0x0010 - will cripple data
+	0x0100 - will cripple method string
+	0x1000 - will cripple uriId string
+ */
+- (BOOL) validateSignature:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
+					online:(BOOL)online
+				   cripple:(NSInteger)cripple
+{
+	// data for local calculation
+	PowerAuthAuthentication * local_auth = [auth copy];
+	NSMutableData * local_data = [data mutableCopy];
+	NSString * local_method = method;
+	NSString * local_uriId = uriId;
+	
+	if (cripple & 0x0001) {
+		// cripple auth object
+		if (local_auth.usePassword) {
+			local_auth.usePassword = nil;
+		} else {
+			local_auth.usePassword = @"TotallyWrongPassword";
+		}
+		if (local_auth.usePassword == nil && !local_auth.usePossession) {
+			local_auth.usePossession = YES;
+		}
+	}
+	if (cripple & 0x0010) {
+		// cripple data
+		[local_data appendData:[@"- is crippled" dataUsingEncoding:NSUTF8StringEncoding]];
+	}
+	if (cripple & 0x0100) {
+		// cripple method
+		if ([local_method isEqualToString:@"POST"]) {
+			local_method = @"GET";
+		} else {
+			local_method = @"POST";
+		}
+	}
+	if (cripple & 0x1000) {
+		// cripple uri identifier
+		local_uriId = [local_uriId stringByAppendingString:@"/is/crippled"];
+	}
+	
+	// Now locally calculate signature & nonce
+	NSArray * local_sig_nonce;
+	if (online) {
+		local_sig_nonce = [self calculateOnlineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
+	} else {
+		local_sig_nonce = [self calculateOfflineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
+	}
+	if (!local_sig_nonce) {
+		XCTAssertNotNil(local_sig_nonce, @"Wrong test code. The signature must be calculated here.");
+		return NO;
+	}
+	NSString * local_signature = local_sig_nonce[0];
+	NSString * local_nonce = local_sig_nonce[1];
+	
+	// Verify result on the server
+	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:method uriId:uriId nonce:local_nonce data:data];
+	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
+																		data:normalized_data
+																   signature:local_signature
+															   signatureType:[self authToString:auth]];
+	XCTAssertNotNil(response, @"Response must be received");
+	BOOL result = (response != nil) && (response.signatureValid == (cripple == 0));
+	if (!result) {
+		if (cripple == 0) {
+			XCTAssertTrue(response.signatureValid, @"Signature should be valid");
+		} else {
+			XCTAssertFalse(response.signatureValid, @"Signature should not be valid");
+		}
+	}
+	return result;
 }
 
 #pragma mark - Integration tests
@@ -519,6 +618,62 @@
 }
 
 
+
+- (void) testValidateSignature
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates functions for PA signature calculations.
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	PowerAuthAuthentication * auth_possession = [[PowerAuthAuthentication alloc] init];
+	auth_possession.usePossession = YES;
+	
+	PowerAuthAuthentication * auth_possession_knowledge = [[PowerAuthAuthentication alloc] init];
+	auth_possession_knowledge.usePossession = YES;
+	auth_possession_knowledge.usePassword = auth.usePassword;
+	
+	//
+	// Online signatures (calculated as http auth header)
+	//
+	for (int i = 1; i <= 2; i++)
+	{
+		BOOL online_mode = i == 1;
+		NSString * data_str = online_mode ? @"hello online world" : @"hello offline world";
+		NSData * data = [data_str dataUsingEncoding:NSUTF8StringEncoding];
+		// Positive
+		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0];
+		XCTAssertTrue(result);
+		// Negative
+		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession data:data method:@"GET" uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
+		XCTAssertTrue(result);
+	}
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+
+
 - (void) testSignDataWithDevicePrivateKey
 {
 	CHECK_TEST_CONFIG();
@@ -669,7 +824,7 @@
 	[self removeLastActivation:activationData];
 }
 
-- (void) testMaxFailAttempts
+- (void) testActivationStatusMaxFailAttempts
 {
 	CHECK_TEST_CONFIG();
 	
@@ -708,7 +863,7 @@
 			XCTAssertTrue(after.state == PA2ActivationState_Active, @"Activation should be active");
 		} else {
 			// blocked
-			XCTAssertTrue(after.state == PA2ActivationState_Blocked, @"Activation is not blocked");
+			XCTAssertTrue(after.state == PA2ActivationState_Blocked, @"Activation should be blocked");
 		}
 	}
 	

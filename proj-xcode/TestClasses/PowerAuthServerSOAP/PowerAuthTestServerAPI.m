@@ -130,7 +130,19 @@ static BOOL _BoolValue(CXMLNode * node)
 	}
 	NSLog(@"Unable to convert XML boolean to BOOL");
 	return NO;
-	
+}
+
+static NSInteger _IntegerValue(CXMLNode * node)
+{
+	if (node) {
+		NSString * strValue = [node stringValue];
+		NSInteger i = [strValue integerValue];
+		if ([[@(i) stringValue] isEqualToString:strValue]) {
+			return i;
+		}
+	}
+	NSLog(@"Unable to convert XML node to NSInteger");
+	return NSIntegerMax;
 }
 
 ////////////////////////////
@@ -394,6 +406,39 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 }
 
 #pragma mark - SOAP Signatures
+
+- (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
+											data:(NSString*)normalizedData
+									   signature:(NSString*)signature
+								   signatureType:(NSString*)signatureType
+{
+	[self checkForValidConnection];
+	//NSString * normalizedDataB64 = [[normalizedData dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
+	NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType];
+	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifySignature" params:params response:@"VerifySignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
+		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
+		if (!localError) obj.remainingAttempts		= _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
+		if (!localError) obj.signatureValid			= _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
+		return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
+	}];
+	return response;
+}
+
+- (NSString*) normalizeDataForSignatureWithMethod:(NSString*)httpMethod
+											uriId:(NSString*)uriId
+											nonce:(NSString*)nonceB64
+											 data:(NSData*)data
+{
+	NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+	NSString * uriIdB64 = [[uriId dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
+	NSArray * components = @[httpMethod, uriIdB64, nonceB64, dataB64 ];
+	return [components componentsJoinedByString:@"&"];
+}
 
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
 {

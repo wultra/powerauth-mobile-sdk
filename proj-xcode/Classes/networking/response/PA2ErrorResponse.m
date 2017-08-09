@@ -39,4 +39,14 @@
 	return self;
 }
 
+#ifdef DEBUG
+- (NSString*) description
+{
+	NSString * status_str = _status == PA2RestResponseStatus_OK ? @"OK" : @"ERROR";
+	NSString * code_str = [@(_httpStatusCode) stringValue];
+	NSString * ro = _responseObject ? [_responseObject description] : @"<null>";
+	return [NSString stringWithFormat:@"<PA2ErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
+}
+#endif
+
 @end

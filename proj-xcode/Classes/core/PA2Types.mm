@@ -17,6 +17,8 @@
 #import "PA2Types.h"
 #import "PA2PrivateImpl.h"
 
+using namespace io::getlime::powerAuth;
+
 #pragma mark - Constants
 
 const PA2SignatureFactor PA2SignatureFactor_Possession						= 0x0001;
@@ -131,6 +133,24 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 {
 	return _status.maxFailCount;
 }
+
+#ifdef DEBUG
+- (NSString*) description
+{
+	NSString * status_str;
+	switch (_status.state) {
+		case ActivationStatus::Created:		status_str = @"CREATED"; break;
+		case ActivationStatus::OTP_Used:	status_str = @"OTP_USED"; break;
+		case ActivationStatus::Active:		status_str = @"ACTIVE"; break;
+		case ActivationStatus::Blocked:		status_str = @"BLOCKED"; break;
+		case ActivationStatus::Removed:		status_str = @"REMOVED"; break;
+		default:
+			status_str = @"<<unknown>>"; break;
+			
+	}
+	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@, ctr %@>", status_str, @(_status.failCount), @(_status.maxFailCount), @(_status.counter)];
+}
+#endif
 
 @end
 

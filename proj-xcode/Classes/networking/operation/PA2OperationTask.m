@@ -34,4 +34,11 @@
 	}
 }
 
+#ifdef DEBUG
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<PA2OperationTask cancel=%@, task:%@>", _isCancelled ? @"YES" : @"NO", [_dataTask description]];
+}
+#endif
+
 @end

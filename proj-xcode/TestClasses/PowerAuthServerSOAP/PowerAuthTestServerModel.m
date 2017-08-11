@@ -56,3 +56,6 @@
 
 @implementation PATSEncryptionKey
 @end
+
+@implementation PATSVerifySignatureResponse
+@end

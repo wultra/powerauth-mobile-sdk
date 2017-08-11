@@ -18,4 +18,47 @@
 
 @implementation PowerAuthAuthentication
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	PowerAuthAuthentication * copy = [[[self class] allocWithZone:zone] init];
+	if (copy) {
+		copy->_usePossession = _usePossession;
+		copy->_useBiometry = _useBiometry;
+		copy->_usePassword = _usePassword;
+		copy->_touchIdPrompt = _touchIdPrompt;
+		copy->_overridenPossessionKey = _overridenPossessionKey;
+		copy->_overridenBiometryKey = _overridenBiometryKey;
+	}
+	return copy;
+}
+
+#if DEBUG
+- (NSString*) description
+{
+	NSMutableArray * factors = [NSMutableArray arrayWithCapacity:3];
+	if (_usePossession) {
+		[factors addObject:@"possession"];
+	}
+	if (_usePassword) {
+		[factors addObject:@"knowledge"];
+	}
+	if (_useBiometry) {
+		[factors addObject:@"biometry"];
+	}
+	NSString * factors_str = [factors componentsJoinedByString:@"_"];
+	NSMutableArray * info = [NSMutableArray array];
+	if (_touchIdPrompt) {
+		[info addObject:@"+prompt"];
+	}
+	if (_overridenBiometryKey) {
+		[info addObject:@"+extBK"];
+	}
+	if (_overridenPossessionKey) {
+		[info addObject:@"+extPK"];
+	}
+	NSString * info_str = info.count == 0 ? @"" : [@", " stringByAppendingString:[info componentsJoinedByString:@" "]];
+	return [NSString stringWithFormat:@"<PowerAuthAuthentication factors: %@%@>", factors_str, info_str];
+}
+#endif
+
 @end

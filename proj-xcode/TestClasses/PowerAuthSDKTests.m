@@ -26,20 +26,14 @@
  high level `PowerAuthSDK` class is a primary test subject. All integration tests
  needs a running server as a counterpart and therefore are by-default disabled for all
  main development schemas ("PA2_Release", "PA2_Debug"). To run this test, you
- need to switch to "PA2_IntegrationTests" and check the default servers configuration,
- available in the "PowerAuthTestConfig.h" header file.
- 
- If you don't want to modify the header file with configurations, then you can use
- a configuration file. Check 'TestConfig/Readme.md' for details.
+ need to switch to "PA2_IntegrationTests" scheme and create a configuration.
+ Check 'TestConfig/Readme.md' for details.
  */
 @interface PowerAuthSDKTests : XCTestCase
 @end
 
 @implementation PowerAuthSDKTests
 {
-	NSString * _userId;
-	NSString * _activationName;
-
 	PowerAuthTestServerConfig * _testServerConfig;	// Loaded config
 	PowerAuthTestServerAPI * _testServerApi;		// SOAP connection
 	PowerAuthConfiguration * _config;				// Default SDK config
@@ -72,19 +66,13 @@
 	} else {
 		_testServerConfig = [PowerAuthTestServerConfig defaultConfig];
 	}
-	if (!_userId) {
-		_userId = @"TestUserIOS";
-	}
-	if (!_activationName) {
-		_activationName = @"Trogdor the Burninator";
-	}
 	
 	// Print report
 	NSLog(@"=======================================================================");
 	NSLog(@"The integration tests will run against following servers:");
 	NSLog(@"    REST API Server: %@", _testServerConfig.restApiUrl);
 	NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
-	NSLog(@"               User: %@", _userId);
+	NSLog(@"               User: %@", _testServerConfig.userIdentifier);
 	NSLog(@"=======================================================================");
 	
 	return YES;
@@ -223,7 +211,199 @@
 	return nil;
 }
 
+/**
+ Validates password on server. Returns YES if password is valid.
+ */
+- (BOOL) checkForPassword:(NSString*)password
+{
+	BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertFalse([task isCancelled]);
+	}] boolValue];
+	return result;
+}
 
+
+/**
+ Returns @[ signature, nonceB64 ] if succeeded or nil in case of error.
+ Doesn't throw test exception on errors.
+ */
+- (NSArray*) calculateOfflineSignature:(NSData*)data
+								method:(NSString*)method
+								 uriId:(NSString*)uriId
+								  auth:(PowerAuthAuthentication*)auth
+{
+	NSError * error = nil;
+	NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
+	NSString * signature = [_sdk offlineSignatureWithAuthentication:auth method:method uriId:uriId body:data nonce:nonce error:&error];
+	if (signature && !error) {
+		
+		return @[ signature, nonce ];
+	}
+	return nil;
+}
+
+
+/**
+ Returns @[ signature, nonceB64 ] if succeeded or nil in case of error.
+ Throws test exception only when header contains invalid data (e.g. parser fail process the header)
+ */
+- (NSArray*) calculateOnlineSignature:(NSData*)data
+							   method:(NSString*)method
+								uriId:(NSString*)uriId
+								 auth:(PowerAuthAuthentication*)auth
+{
+	NSError * error = nil;
+	PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:method uriId:uriId body:data error:&error];
+	if (header && header.value && !error) {
+		NSDictionary * parsedHeader = [self parseSignatureHeaderValue:header.value];
+		NSString * nonce     = parsedHeader[@"pa_nonce"];
+		NSString * signature = parsedHeader[@"pa_signature"];
+		if (nonce && signature) {
+			return @[ signature, nonce];
+		}
+	}
+	return nil;
+}
+
+
+/*
+ Returns dictionary created from "X-PowerAuth-Authorization" header's value.
+ */
+- (NSDictionary*) parseSignatureHeaderValue:(NSString*)headerValue
+{
+	__block BOOL error = NO;
+	NSString * magic = @"PowerAuth ";
+	NSMutableDictionary * result = [NSMutableDictionary dictionary];
+	[[headerValue componentsSeparatedByString:@", "] enumerateObjectsUsingBlock:^(NSString * keyValue, NSUInteger idx, BOOL * stop) {
+		if ([keyValue hasPrefix:magic]) {
+			keyValue = [keyValue substringFromIndex:magic.length];
+			if (idx != 0) {
+				error = *stop = YES; return;
+			}
+		}
+		NSRange equalRange = [keyValue rangeOfString:@"="];
+		if (equalRange.location == NSNotFound) {
+			XCTFail(@"Unknown component: %@", keyValue);
+			error = *stop = YES; return;
+		}
+		NSString * key = [keyValue substringToIndex:equalRange.location];
+		NSString * value = [keyValue substringFromIndex:equalRange.location + 1];
+		if (![value hasPrefix:@"\""] || ![value hasSuffix:@"\""]) {
+			XCTFail(@"Value is not closed in parenthesis: %@", key);
+			error = *stop = YES; return;
+		}
+		if (![key hasPrefix:@"pa_"]) {
+			XCTFail(@"Unknown key: %@", key);
+			error = *stop = YES; return;
+		}
+		result[key] = [value substringWithRange:NSMakeRange(1, value.length-2)];
+	}];
+	if (!error) {
+		error = ![result[@"pa_version"] isEqualToString:@"2.0"];
+		XCTAssertFalse(error, @"Unknown PA version");
+	}
+	return error ? nil : result;
+}
+
+
+/**
+ Converts factors from auth object to string.
+ */
+- (NSString*) authToString:(PowerAuthAuthentication*)auth
+{
+	NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
+	if (auth.usePossession) {
+		[components addObject:@"possession"];
+	}
+	if (auth.usePassword) {
+		[components addObject:@"knowledge"];
+	}
+	if (auth.useBiometry) {
+		[components addObject:@"biometry"];
+	}
+	return [components componentsJoinedByString:@"_"];
+}
+
+
+/**
+ Makes full test against server with signature verification. You can set cripple parameter to following bitmask:
+	0x0001 - will cripple auth object (e.g. change factor)
+	0x0010 - will cripple data
+	0x0100 - will cripple method string
+	0x1000 - will cripple uriId string
+ */
+- (BOOL) validateSignature:(PowerAuthAuthentication*)auth data:(NSData*)data method:(NSString*)method uriId:(NSString*)uriId
+					online:(BOOL)online
+				   cripple:(NSInteger)cripple
+{
+	// data for local calculation
+	PowerAuthAuthentication * local_auth = [auth copy];
+	NSMutableData * local_data = [data mutableCopy];
+	NSString * local_method = method;
+	NSString * local_uriId = uriId;
+	
+	if (cripple & 0x0001) {
+		// cripple auth object
+		if (local_auth.usePassword) {
+			local_auth.usePassword = nil;
+		} else {
+			local_auth.usePassword = @"TotallyWrongPassword";
+		}
+		if (local_auth.usePassword == nil && !local_auth.usePossession) {
+			local_auth.usePossession = YES;
+		}
+	}
+	if (cripple & 0x0010) {
+		// cripple data
+		[local_data appendData:[@"- is crippled" dataUsingEncoding:NSUTF8StringEncoding]];
+	}
+	if (cripple & 0x0100) {
+		// cripple method
+		if ([local_method isEqualToString:@"POST"]) {
+			local_method = @"GET";
+		} else {
+			local_method = @"POST";
+		}
+	}
+	if (cripple & 0x1000) {
+		// cripple uri identifier
+		local_uriId = [local_uriId stringByAppendingString:@"/is/crippled"];
+	}
+	
+	// Now locally calculate signature & nonce
+	NSArray * local_sig_nonce;
+	if (online) {
+		local_sig_nonce = [self calculateOnlineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
+	} else {
+		local_sig_nonce = [self calculateOfflineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
+	}
+	if (!local_sig_nonce) {
+		XCTAssertNotNil(local_sig_nonce, @"Wrong test code. The signature must be calculated here.");
+		return NO;
+	}
+	NSString * local_signature = local_sig_nonce[0];
+	NSString * local_nonce = local_sig_nonce[1];
+	
+	// Verify result on the server
+	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:method uriId:uriId nonce:local_nonce data:data];
+	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
+																		data:normalized_data
+																   signature:local_signature
+															   signatureType:[self authToString:auth]];
+	XCTAssertNotNil(response, @"Response must be received");
+	BOOL result = (response != nil) && (response.signatureValid == (cripple == 0));
+	if (!result) {
+		if (cripple == 0) {
+			XCTAssertTrue(response.signatureValid, @"Signature should be valid");
+		} else {
+			XCTAssertFalse(response.signatureValid, @"Signature should not be valid");
+		}
+	}
+	return result;
+}
 
 #pragma mark - Integration tests
 
@@ -249,7 +429,7 @@
 	XCTAssertTrue([_sdk canStartActivation]);
 	
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
 	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
 	
@@ -258,7 +438,8 @@
 	// 2) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		NSString * activationName = _testServerConfig.userActivationName;
+		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			[waiting reportCompletion:@(error == nil)];
 		}];
@@ -315,7 +496,7 @@
 	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
 	result = serverActivationStatus != nil;
 	CHECK_RESULT_RET(preliminaryResult);
-	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_activationName]);
+	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
 	// This test fails but I don't know why :(
 	//XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
 	
@@ -390,23 +571,11 @@
 	PowerAuthAuthentication * auth = activation[1];
 	
 	// 1) At first, use invalid password
-	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
-			[waiting reportCompletion:@(error == nil)];
-		}];
-		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
-	}] boolValue];
+	result = [self checkForPassword:@"MustBeWring"];
 	XCTAssertFalse(result);	// if YES then something is VERY wrong. The wrong password passed the test.
 	
 	// 2) Now use a valid password
-	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
-			[waiting reportCompletion:@(error == nil)];
-		}];
-		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
-	}] boolValue];
+	result = [self checkForPassword:auth.usePassword];
 	XCTAssertTrue(result);	// if NO then a valid password did not pass the test.
 	
 	// Cleanup
@@ -441,18 +610,68 @@
 	XCTAssertTrue(result);
 	
 	// 2) Now validate that new password
-	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:newPassword callback:^(NSError * error) {
-			[waiting reportCompletion:@(error == nil)];
-		}];
-		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
-	}] boolValue];
+	result = [self checkForPassword:newPassword];
 	XCTAssertTrue(result);
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
 }
+
+
+
+- (void) testValidateSignature
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates functions for PA signature calculations.
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	PowerAuthAuthentication * auth_possession = [[PowerAuthAuthentication alloc] init];
+	auth_possession.usePossession = YES;
+	
+	PowerAuthAuthentication * auth_possession_knowledge = [[PowerAuthAuthentication alloc] init];
+	auth_possession_knowledge.usePossession = YES;
+	auth_possession_knowledge.usePassword = auth.usePassword;
+	
+	//
+	// Online signatures (calculated as http auth header)
+	//
+	for (int i = 1; i <= 2; i++)
+	{
+		BOOL online_mode = i == 1;
+		NSString * data_str = online_mode ? @"hello online world" : @"hello offline world";
+		NSData * data = [data_str dataUsingEncoding:NSUTF8StringEncoding];
+		// Positive
+		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0];
+		XCTAssertTrue(result);
+		// Negative
+		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession data:data method:@"GET" uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
+		XCTAssertTrue(result);
+		result = [self validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
+		XCTAssertTrue(result);
+	}
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
 
 
 - (void) testSignDataWithDevicePrivateKey
@@ -547,6 +766,111 @@
 	XCTAssertEqual(status.state, PA2ActivationState_Removed);
 }
 
+- (void) testActivationStatusFailCounters
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test checks whether SDK & Server correctly works
+	// with fail / max fail counters after data signing.
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	// Correct AUTH with knowledge
+	result = [self checkForPassword:auth.usePassword];
+	XCTAssertTrue(result);
+	PA2ActivationStatus * status_after_correct = [self fetchActivationStatus];
+	
+	// Wrong AUTH with knowledge
+	result = [self checkForPassword:@"MustBeWrong"];
+	XCTAssertFalse(result);	// result is invalid password
+	PA2ActivationStatus * status_after_failure = [self fetchActivationStatus];
+	XCTAssertTrue(status_after_correct.failCount + 1 == status_after_failure.failCount, @"failCount was not incremented or has wrong value");
+	
+	// Sign with possession factor
+	NSData * data = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
+	PowerAuthAuthentication * just_possession = [[PowerAuthAuthentication alloc] init];
+	just_possession.usePossession = YES;
+	NSArray * sig_nonce = [self calculateOfflineSignature:data method:@"POST" uriId:@"/hello/world" auth:just_possession];
+	XCTAssertNotNil(sig_nonce);
+	// Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
+	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];
+	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:activationData.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"possession"];
+	XCTAssertNotNil(response);
+	XCTAssertTrue(response.signatureValid, @"Calculated signature is not valid");
+
+	// Now check status after valid possession signature
+	PA2ActivationStatus * status_after_possession = [self fetchActivationStatus];
+	XCTAssertTrue(status_after_possession.failCount == status_after_failure.failCount, @"failCount should not change after valid possession factor");
+	
+	// Now try valid password
+	// Fail attempt
+	result = [self checkForPassword:auth.usePassword];
+	XCTAssertTrue(result);
+	status_after_correct = [self fetchActivationStatus];
+	XCTAssertNotNil(status_after_correct);
+	XCTAssertTrue(status_after_correct.failCount == 0, "Fail counter was not reset to zero");
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testActivationStatusMaxFailAttempts
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates maximum number failed of auth. attempts
+	//
+	
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	// Correct AUTH with knowledge
+	result = [self checkForPassword:auth.usePassword];
+	XCTAssertTrue(result);
+	PA2ActivationStatus * status_after_correct = [self fetchActivationStatus];
+	PA2ActivationStatus * after = status_after_correct;
+	
+	XCTAssertTrue(status_after_correct.failCount == 0);
+	UInt32 count = status_after_correct.maxFailCount;
+	for (UInt32 i = 1; i <= count; i++) {
+		PA2ActivationStatus * before = after;
+		XCTAssertNotNil(before);
+		result = [self checkForPassword:@"MustBeWrong"];
+		XCTAssertFalse(result);	// result is invalid password
+		after = [self fetchActivationStatus];
+		XCTAssertNotNil(after);
+		XCTAssertTrue(before.failCount + 1 == after.failCount, @"failCount was not incremented");
+		if (i < count) {
+			// still active
+			XCTAssertTrue(after.state == PA2ActivationState_Active, @"Activation should be active");
+		} else {
+			// blocked
+			XCTAssertTrue(after.state == PA2ActivationState_Blocked, @"Activation should be blocked");
+		}
+	}
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
 /*
  In negative scenarios we're testing situations, when some configurations are invalid.
  For example, if selected application version is no longer supported, then the PA2 SDK
@@ -586,7 +910,7 @@
 	// OK, application is not supported, try to create an activation
 	
 	// 3) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_userId];
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = [activationData activationCodeWithSignature];
 	
 	__block NSString * activationFingerprint = nil;
@@ -594,7 +918,8 @@
 	// 4) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
-		PA2OperationTask * task = [_sdk createActivationWithName:_activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		NSString * activationName = _testServerConfig.userActivationName;
+		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];

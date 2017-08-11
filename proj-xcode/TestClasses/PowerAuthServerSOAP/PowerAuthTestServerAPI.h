@@ -138,6 +138,22 @@
 #pragma mark - SOAP Signatures
 
 /**
+ Request for PA2 signature calculation.
+ Returns result object created from SOAP response or nil in case of failure.
+ */
+- (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
+											data:(NSString*)normalizedData
+									   signature:(NSString*)signature
+								   signatureType:(NSString*)signatureType;
+
+/**
+ Returns normalized data from given parameters.
+ */
+- (NSString*) normalizeDataForSignatureWithMethod:(NSString*)httpMethod
+											uriId:(NSString*)uriId
+											nonce:(NSString*)nonceB64
+											 data:(NSData*)data;
+/**
  Request for the asymmetric signature (ECDSA) validation procedure.
  */
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature;

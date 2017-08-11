@@ -32,17 +32,27 @@
 @property (nonatomic, strong, readonly) NSString * soapApiUrl;
 /**
  A name for application, which will be used on the PA2 server.
- If nil, then @"AutomaticTest-IOS" is used.
+ Default value is @"AutomaticTest-IOS"
  */
 @property (nonatomic, strong, readonly) NSString * powerAuthAppName;
 /**
  An application's version name used on the PA2 server. 
- If nil, then @"default" is used.
+ Default value is @"default"
  */
 @property (nonatomic, strong, readonly) NSString * powerAuthAppVersion;
+/**
+ An user for whom the activations will be created.
+ Default value is @"TestUserIOS"
+ */
+@property (nonatomic, strong, readonly) NSString * userIdentifier;
+/**
+ A name for newly created activations.
+ Default value is @"Testing on " + short device description
+ */
+@property (nonatomic, strong, readonly) NSString * userActivationName;
 
 /**
- Creates a default configuration for a server, placed at "http://paserver" base domain.
+ Creates a default configuration for a server, placed at "http://localhost" base domain.
  */
 + (instancetype) defaultConfig;
 

@@ -39,4 +39,11 @@
 	return dictionary;
 }
 
+#ifdef DEBUG
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@>", _code ? _code : @"<null>", _message ? _message : @"<null>"];
+}
+#endif
+
 @end

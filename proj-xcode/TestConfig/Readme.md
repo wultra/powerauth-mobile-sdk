@@ -18,3 +18,6 @@ To do this, please follow these simple steps:
 
 4. Optional: Change `powerAuthAppName` or `powerAuthAppVersion` to desired values
 
+5. Optional: You can devifine following additional keys in the dictionary:
+	- `userIdentifier` - an user's identifier. It's recommended to set your own value when another developer is running tests against the same server.
+	- `userActivationName` - a name will be used for newly created activations

@@ -124,3 +124,16 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, strong) NSString * ephemeralPublicKey;
 
 @end
+
+#pragma mark - Signatures
+
+@interface PATSVerifySignatureResponse : NSObject
+
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, strong) NSString * userId;
+@property (nonatomic, strong) NSString * activationStatus;
+@property (nonatomic, assign) PATSActivationStatusEnum activationStatusEnum;
+@property (nonatomic, assign) NSInteger remainingAttempts;
+@property (nonatomic, assign) BOOL signatureValid;
+
+@end

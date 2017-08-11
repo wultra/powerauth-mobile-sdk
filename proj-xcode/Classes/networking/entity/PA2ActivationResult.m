@@ -18,4 +18,17 @@
 
 @implementation PA2ActivationResult
 
+#ifdef DEBUG
+- (NSString*) description
+{
+	NSString * fingerprint = _activationFingerprint ? _activationFingerprint : @"<null>";
+	if (_customAttributes) {
+		return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@, attributes=%@>", fingerprint, [_customAttributes description]];
+	} else {
+		return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@>", fingerprint];
+	}
+}
+#endif
+
+
 @end

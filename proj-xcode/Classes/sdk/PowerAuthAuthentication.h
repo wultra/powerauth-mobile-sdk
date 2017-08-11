@@ -18,7 +18,7 @@
 
 /** Class representing a multi-factor authentication object.
  */
-@interface PowerAuthAuthentication : NSObject
+@interface PowerAuthAuthentication : NSObject<NSCopying>
 
 /** Indicates if a possession factor should be used.
  */

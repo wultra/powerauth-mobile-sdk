@@ -20,17 +20,6 @@
 
 - (NSDictionary *)toDictionary {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-	
-	// serialize encryption type
-	if (_encryption == PA2RestRequestEncryption_Personalized) {
-		[dictionary setObject:@"personalized" forKey:@"encryption"];
-	} else if (_encryption == PA2RestRequestEncryption_NonPersonalized) {
-		[dictionary setObject:@"nonpersonalized" forKey:@"encryption"];
-	} else {
-		[dictionary setObject:@"none" forKey:@"encryption"];
-	}
-	
-	// serialize request object
     [dictionary setObject:[_requestObject toDictionary] forKey:@"requestObject"];
     return dictionary;
 }

@@ -50,40 +50,35 @@
 	requestObject.encryptedData = message.encryptedData;
 	
 	PA2Request<PA2NonPersonalizedEncryptedObject*>* request = [[PA2Request alloc] init];
-	request.encryption = PA2RestRequestEncryption_NonPersonalized;
 	request.requestObject = requestObject;
 	return request;
 }
 
 - (NSData*) decryptResponse:(PA2Response<PA2NonPersonalizedEncryptedObject*>*)response error:(NSError **)error {
-	if (response.encryption == PA2RestRequestEncryption_NonPersonalized) {
-		
-		PA2NonPersonalizedEncryptedObject *responseObject = response.responseObject;
-		
-		// Prepare the decrypted message payload
-		PA2EncryptedMessage *message = [[PA2EncryptedMessage alloc] init];
-		message.applicationKey = responseObject.applicationKey;
-		message.sessionIndex = responseObject.sessionIndex;
-		message.adHocIndex = responseObject.adHocIndex;
-		message.macIndex = responseObject.macIndex;
-		message.nonce = responseObject.nonce;
-		message.ephemeralPublicKey = responseObject.ephemeralPublicKey;
-		message.mac = responseObject.mac;
-		message.encryptedData = responseObject.encryptedData;
-		
-		// Return decrypted data
-		NSData *originalData = [_encryptor decrypt:message];
-		
-		if (_encryptor.lastErrorCode != PA2CoreErrorCode_Ok) {
-			if (error) {
-				*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeEncryption userInfo:nil];
-			}
-			return nil;
+	PA2NonPersonalizedEncryptedObject *responseObject = response.responseObject;
+	
+	// Prepare the decrypted message payload
+	PA2EncryptedMessage *message = [[PA2EncryptedMessage alloc] init];
+	message.applicationKey = responseObject.applicationKey;
+	message.sessionIndex = responseObject.sessionIndex;
+	message.adHocIndex = responseObject.adHocIndex;
+	message.macIndex = responseObject.macIndex;
+	message.nonce = responseObject.nonce;
+	message.ephemeralPublicKey = responseObject.ephemeralPublicKey;
+	message.mac = responseObject.mac;
+	message.encryptedData = responseObject.encryptedData;
+	
+	// Return decrypted data
+	NSData *originalData = [_encryptor decrypt:message];
+	
+	if (_encryptor.lastErrorCode != PA2CoreErrorCode_Ok) {
+		if (error) {
+			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeEncryption userInfo:nil];
 		}
-		
-		return originalData;
+		return nil;
 	}
-	return nil;
+	
+	return originalData;
 }
 
 @end

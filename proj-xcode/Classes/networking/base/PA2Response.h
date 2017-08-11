@@ -24,14 +24,6 @@ typedef NS_ENUM(int, PA2RestResponseStatus) {
 	PA2RestResponseStatus_ERROR = 1
 };
 
-/** Enum representing a used encryption type: non, personalized, or non-personalized.
- */
-typedef NS_ENUM(int, PA2RestResponseEncryption) {
-	PA2RestResponseEncryption_None = 0,
-	PA2RestResponseEncryption_NonPersonalized = 1,
-	PA2RestResponseEncryption_Personalized = 2
-};
-
 /** Class representing a generic PowerAuth 2.0 Standard API response.
  
  Client classes are supposed to create a new object using 'initWithDictionary:responseObjectType:' method and serialize response objects using 'toDictionary' method.
@@ -39,7 +31,6 @@ typedef NS_ENUM(int, PA2RestResponseEncryption) {
 @interface PA2Response<T> : NSObject
 
 @property (nonatomic, assign) PA2RestResponseStatus status;
-@property (nonatomic, assign) PA2RestResponseEncryption encryption;
 
 @property (nonatomic, strong) T<PA2NetworkObject> responseObject;
 

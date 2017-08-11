@@ -38,16 +38,6 @@
 			_responseObject = [[PA2Error alloc] initWithDictionary:[dictionary objectForKey:@"responseObject"]];
 		}
 		
-		// Handle encryption type
-		NSString *encryptionString = [[dictionary objectForKey:@"encryption"] lowercaseString];
-		if ([encryptionString isEqualToString:@"personalized"]) {
-			_encryption = PA2RestResponseEncryption_Personalized;
-		} else if ([encryptionString isEqualToString:@"nonpersonalized"]) {
-			_encryption = PA2RestResponseEncryption_NonPersonalized;
-		} else {
-			_encryption = PA2RestResponseEncryption_None;
-		}
-		
     }
     return self;
 }

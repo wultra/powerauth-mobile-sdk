@@ -208,7 +208,7 @@ namespace powerAuth
 		 activation and obtain information about pairing between the client and server. You have to provide valid
 		 possessionUnlockKey in the |keys| structure.
 		 */
-		ErrorCode decodeActivationStatus(const std::string & statusBlob, const SignatureUnlockKeys & keys, ActivationStatus & status);
+		ErrorCode decodeActivationStatus(const std::string & statusBlob, const SignatureUnlockKeys & keys, ActivationStatus & status) const;
 		
 		
 		// MARK: - Data signing -
@@ -269,6 +269,16 @@ namespace powerAuth
 		 */
 		const std::string & httpAuthHeaderName() const;
 		
+		/**
+		 Validates whether the data has been signed with master server private key.
+		 
+		 Returns EC_Ok,			if operation succeeded and signature is valid
+				 EC_Encryption	if signature is not valid or some cryptographic operation failed
+				 EC_WrongState	if session contains invalid setup
+				 EC_WrongParam	if data structure doesn't contain signature
+		 */
+		ErrorCode verifyServerSignedData(const SignedData & data) const;
+
 		
 		// MARK: - Signature keys management -
 		
@@ -335,7 +345,7 @@ namespace powerAuth
 		 Returns EC_Ok,         if operation succeeded
 				 EC_WrongState,	if the session has no valid activation
 		 */
-		ErrorCode hasBiometryFactor(bool & hasBiometryFactor);
+		ErrorCode hasBiometryFactor(bool & hasBiometryFactor) const;
 		
 		/**
 		 Removes existing key for biometric signatures from the session. You have to save state of the session 

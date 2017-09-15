@@ -328,6 +328,21 @@ namespace powerAuth
 		std::string buildAuthHeaderValue() const;
 	};
 	
+	/**
+	 The SignedData structure contains data and signature calculated from data.
+	 */
+	struct SignedData
+	{
+		/**
+		 An arbitrary data
+		 */
+		cc7::ByteArray data;
+		/**
+		 A signagure calculated for data
+		 */
+		cc7::ByteArray signature;
+	};
+	
 	
 	//
 	// MARK: - Session activation steps -

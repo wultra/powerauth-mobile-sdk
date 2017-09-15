@@ -49,6 +49,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testActivationWithoutEEK);
 			CC7_REGISTER_TEST_METHOD(testActivationWithEEKUsingSetup);
 			CC7_REGISTER_TEST_METHOD(testActivationWithEEKUsingSetter);
+			CC7_REGISTER_TEST_METHOD(testServerSignedData);
 		}
 		
 		EC_KEY *	_masterServerPrivateKey;
@@ -76,7 +77,6 @@ namespace powerAuthTests
 			_activation_otp		 = "12456-ABCDE";
 			_activation_short_id = "FGHIJ-KLMNO";
 			_activation_id		 = "OUR-SUPER-ACTIVATION-ID";
-
 		}
 		
 		void tearDown() override
@@ -989,6 +989,29 @@ namespace powerAuthTests
 			} // for (int break_in_step...
 		}
 		
+		void testServerSignedData()
+		{
+			Session s1(_setup);
+			ErrorCode ec;
+			
+			SignedData signedData;
+			signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
+			signedData.signature = T_calculateServerSignature(signedData.data);
+			ec = s1.verifyServerSignedData(signedData);
+			ccstAssertTrue(ec == EC_Ok);
+
+			// modify data
+			signedData.data.pop_back();
+			ec = s1.verifyServerSignedData(signedData);
+			ccstAssertTrue(ec == EC_Encryption);
+			
+			// use clear signature
+			signedData.signature.clear();
+			ec = s1.verifyServerSignedData(signedData);
+			ccstAssertTrue(ec == EC_WrongParam);
+		}
+		
+		
 		// Helper methods
 		
 		std::string T_calculateActivationSignature(const std::string & aid, std::string & otp)
@@ -1003,6 +1026,17 @@ namespace powerAuthTests
 				return std::string();
 			}
 			return signature.base64String();
+		}
+		
+		cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data)
+		{
+			cc7::ByteArray signature;
+			bool result = crypto::ECDSA_ComputeSignature(data, _masterServerPrivateKey, signature);
+			if (!result) {
+				ccstFailure("Server signature calculation failed");
+				return cc7::ByteArray();
+			}
+			return signature;
 		}
 		
 		/*

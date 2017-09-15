@@ -404,7 +404,7 @@ namespace powerAuth
 	
 	// MARK: - Status -
 	
-	ErrorCode Session::decodeActivationStatus(const std::string & status_blob, const SignatureUnlockKeys & keys, ActivationStatus & status)
+	ErrorCode Session::decodeActivationStatus(const std::string & status_blob, const SignatureUnlockKeys & keys, ActivationStatus & status) const
 	{
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Status: Called in wrong state.", this, sessionIdentifier());
@@ -573,7 +573,32 @@ namespace powerAuth
 		return protocol::PA_AUTH_HEADER_NAME;
 	}
 	
-	
+	ErrorCode Session::verifyServerSignedData(const SignedData & data) const
+	{
+		if (!hasValidSetup()) {
+			CC7_LOG("Session %p, %d: ServerSig: Session has no valid setup.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		if (data.signature.empty()) {
+			CC7_LOG("Session %p, %d: ServerSig: The signature is empty.", this, sessionIdentifier());
+			return EC_WrongParam;
+		}
+		// Import master server public key
+		bool success = false;
+		crypto::BNContext ctx;
+		EC_KEY * master_public_key = master_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
+		if (nullptr != master_public_key) {
+			// calculate signature
+			success = crypto::ECDSA_ValidateSignature(data.data, data.signature, master_public_key);
+			//
+		} else {
+			CC7_LOG("Session %p, %d: ServerSig: Master server public key is invalid.", this, sessionIdentifier());
+		}
+		// Free allocated OpenSSL resources
+		EC_KEY_free(master_public_key);
+		
+		return success ? EC_Ok : EC_Encryption;
+	}
 	
 	// MARK: - Signature keys management -
 	
@@ -679,7 +704,8 @@ namespace powerAuth
 		return code;
 	}
 	
-	ErrorCode Session::hasBiometryFactor(bool &hasBiometryFactor) {
+	ErrorCode Session::hasBiometryFactor(bool &hasBiometryFactor) const
+	{
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: hasBiometryFactor: There's no valid activation.", this, sessionIdentifier());
 			hasBiometryFactor = false;

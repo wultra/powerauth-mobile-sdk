@@ -19,7 +19,7 @@
 
 @interface PA2Session : NSObject
 
-// Initialization / Reset
+#pragma mark -  Initialization / Reset
 
 /**
  The designated initializer. You have to provide a valid PA2SessionSetup object.
@@ -62,7 +62,7 @@
 @property (nonatomic, assign, readonly) PA2CoreErrorCode lastErrorCode;
 
 
-// Session state
+#pragma mark - Session state
 
 /**
  Contains YES if the internal SessionSetup object is valid.
@@ -85,7 +85,7 @@
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
 
 
-// Serialization
+#pragma mark - Serialization
 
 /**
  Saves state of session into the sequence of bytes. The saved sequence contains content of
@@ -106,7 +106,7 @@
 - (BOOL) deserializeState:(nonnull NSData *)state;
 
 
-// Activation
+#pragma mark - Activation
 
 /**
  If the session has valid activation, then returns the activation identifier.
@@ -180,7 +180,7 @@
 - (BOOL) completeActivation:(nonnull PA2SignatureUnlockKeys*)keys;
 
 
-// Activation Status
+#pragma mark - Activation Status
 
 /**
  The method decodes received status blob into PA2ActivationStatus object. You can call this method after successful
@@ -193,7 +193,7 @@
 - (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull NSString *)statusBlob
 													keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
 
-// Data signing
+#pragma mark - Data signing
 
 /**
  Converts NSDictionary into normalized data, suitable for data signing. The method is useful in cases where
@@ -254,8 +254,18 @@
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * httpAuthHeaderName;
 
+/**
+ Validates whether the data has been signed with master server private key.
+ Returns YES if signature is valid. The lastErrorCode is updated
+ to following values:
+	 EC_Ok,			if operation succeeded and signature is valid
+	 EC_Encryption	if signature is not valid or some cryptographic operation failed
+	 EC_WrongState	if session contains invalid setup
+	 EC_WrongParam	if signedData object doesn't contain signature
+ */
+- (BOOL) verifyServerSignedData:(nonnull PA2SignedData*)signedData;
 
-// Signature keys management
+#pragma mark - Signature keys management
 
 /**
  Changes user's password. You have to save session's state to keep this change for later.
@@ -332,7 +342,7 @@
  */
 - (BOOL) removeBiometryFactor;
 
-// Vault operations
+#pragma mark - Vault operations
 
 /**
  Calculates a cryptographic key, derived from encrypted vault key, received from the server. The method
@@ -385,7 +395,7 @@
 											 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 											 data:(nonnull NSData*)data;
 
-// EEK
+#pragma mark - External Encryption Key
 
 /**
  Returns YES if EEK (external encryption key) is set.
@@ -441,7 +451,7 @@
  */
 - (BOOL) removeExternalEncryptionKey;
 
-// E2EE
+#pragma mark - E2EE
 
 /**
  Creates a new instace of PA2Encryptor class initialized for nonpersonalized End-To-End Encryption.
@@ -486,8 +496,7 @@
 - (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
 														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
 
-
-// Utilities for generic keys
+#pragma mark - Utilities for generic keys
 
 /**
  Returns normalized key suitable for a signagure keys protection. The key is computed from

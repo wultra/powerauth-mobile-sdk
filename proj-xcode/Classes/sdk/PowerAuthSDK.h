@@ -259,8 +259,7 @@
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
- @param authentication An authentication instance specifying what factors should be used to sign the request.
- @param method HTTP method used for the signature computation.
+ @param authentication An authentication instance specifying what factors should be used to sign the request. The possession and knowledge is recommended.
  @param uriId URI identifier.
  @param body HTTP request body.
  @param nonce NONCE in Base64 format.
@@ -269,11 +268,17 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-												   method:(nonnull NSString*)method
 													uriId:(nonnull NSString*)uriId
 													 body:(nullable NSData*)body
 													nonce:(nonnull NSString*)nonce
 													error:(NSError * _Nullable * _Nullable)error;
+/**
+ Validates whether the data has been signed with master server private key.
+ @param data An arbitrary data
+ @param signature A signature calculated for data, in Base64 format
+ */
+- (BOOL) verifyServerSignedData:(nonnull NSData*)data
+					  signature:(nonnull NSString*)signature;
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  

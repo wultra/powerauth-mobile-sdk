@@ -231,13 +231,12 @@
  Doesn't throw test exception on errors.
  */
 - (NSArray*) calculateOfflineSignature:(NSData*)data
-								method:(NSString*)method
 								 uriId:(NSString*)uriId
 								  auth:(PowerAuthAuthentication*)auth
 {
 	NSError * error = nil;
 	NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
-	NSString * signature = [_sdk offlineSignatureWithAuthentication:auth method:method uriId:uriId body:data nonce:nonce error:&error];
+	NSString * signature = [_sdk offlineSignatureWithAuthentication:auth uriId:uriId body:data nonce:nonce error:&error];
 	if (signature && !error) {
 		
 		return @[ signature, nonce ];
@@ -378,7 +377,7 @@
 	if (online) {
 		local_sig_nonce = [self calculateOnlineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
 	} else {
-		local_sig_nonce = [self calculateOfflineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
+		local_sig_nonce = [self calculateOfflineSignature:local_data uriId:local_uriId auth:local_auth];
 	}
 	if (!local_sig_nonce) {
 		XCTAssertNotNil(local_sig_nonce, @"Wrong test code. The signature must be calculated here.");
@@ -800,7 +799,7 @@
 	NSData * data = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
 	PowerAuthAuthentication * just_possession = [[PowerAuthAuthentication alloc] init];
 	just_possession.usePossession = YES;
-	NSArray * sig_nonce = [self calculateOfflineSignature:data method:@"POST" uriId:@"/hello/world" auth:just_possession];
+	NSArray * sig_nonce = [self calculateOfflineSignature:data uriId:@"/hello/world" auth:just_possession];
 	XCTAssertNotNil(sig_nonce);
 	// Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];

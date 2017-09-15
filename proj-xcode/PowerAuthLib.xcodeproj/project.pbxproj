@@ -57,6 +57,7 @@
 		BF20EA931EACB1A000733D91 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BF20EA921EACB1A000733D91 /* libxml2.tbd */; };
 		BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */; };
 		BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */; };
+		BF2347281F6C13CC0040FD0F /* PA2PublicObjectsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */; };
 		BF234C861CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C851CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp */; };
 		BF234C921CE5144500312A7F /* PKCS7Padding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C8D1CE5144500312A7F /* PKCS7Padding.cpp */; };
 		BF234C931CE5144500312A7F /* PRNG.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C8F1CE5144500312A7F /* PRNG.cpp */; };
@@ -284,6 +285,7 @@
 		BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_CreationExtensions.m; sourceTree = "<group>"; };
 		BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_CreationExtensions.h; sourceTree = "<group>"; };
 		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
+		BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PublicObjectsTests.mm; sourceTree = "<group>"; };
 		BF234C851CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoPKCS7PaddingTests.cpp; sourceTree = "<group>"; };
 		BF234C8C1CE5144500312A7F /* CryptoUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CryptoUtils.h; sourceTree = "<group>"; };
 		BF234C8D1CE5144500312A7F /* PKCS7Padding.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PKCS7Padding.cpp; sourceTree = "<group>"; };
@@ -807,6 +809,7 @@
 				BFD386611F2B528600F74FF9 /* TestConfig */,
 				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
 				BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */,
+				BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */,
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
 				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
@@ -1127,6 +1130,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF20EA8E1EACB17600733D91 /* CXMLNode_PrivateExtensions.m in Sources */,
+				BF2347281F6C13CC0040FD0F /* PA2PublicObjectsTests.mm in Sources */,
 				BFAF73131EAA8986005E7572 /* SoapHelper.m in Sources */,
 				BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */,
 				BF20EA8F1EACB17600733D91 /* CXMLNode_XPathExtensions.m in Sources */,

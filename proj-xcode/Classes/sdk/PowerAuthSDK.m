@@ -840,8 +840,8 @@ static PowerAuthSDK *inst;
 	return nil;
 }
 
+
 - (NSString*) offlineSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-										  method:(NSString*)method
 										   uriId:(NSString*)uriId
 											body:(NSData*)body
 										   nonce:(NSString*)nonce
@@ -850,9 +850,10 @@ static PowerAuthSDK *inst;
 	if (!nonce) {
 		return nil;
 	}
+	
 	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
 	requestData.body = body;
-	requestData.method = method;
+	requestData.method = @"POST";
 	requestData.uri = uriId;
 	requestData.offlineNonce = nonce;
 	PA2HTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
@@ -909,6 +910,20 @@ static PowerAuthSDK *inst;
 	}
 	return signature;
 }
+
+
+- (BOOL) verifyServerSignedData:(nonnull NSData*)data
+					  signature:(nonnull NSString*)signature
+{
+	[self checkForValidSetup];
+	
+	PA2SignedData * signedData = [[PA2SignedData alloc] init];
+	signedData.data = data;
+	signedData.signatureBase64 = signature;
+
+	return [_session verifyServerSignedData: signedData];
+}
+
 
 #pragma mark Activation sign in factor management
 

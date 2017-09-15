@@ -265,6 +265,16 @@ using namespace io::getlime::powerAuth;
 }
 
 
+- (BOOL) verifyServerSignedData:(nonnull PA2SignedData*)signedData
+{
+	if (_session && signedData) {
+		_error = _session->verifyServerSignedData(signedData.signedDataRef);
+		return _error == EC_Ok;
+	}
+	_error = EC_WrongParam;
+	return NO;
+}
+
 
 #pragma mark - Signature keys management
 

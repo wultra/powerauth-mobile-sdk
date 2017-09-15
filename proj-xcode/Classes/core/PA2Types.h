@@ -276,6 +276,32 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
 
 @end
 
+/**
+ The PA2SignedData object contains data and signature calculated from data.
+ */
+@interface PA2SignedData : NSObject
+
+/**
+ A data protected with signature
+ */
+@property (nonatomic, strong, nonnull) NSData * data;
+/**
+ A signagure calculated for data
+ */
+@property (nonatomic, strong, nonnull) NSData * signature;
+/**
+ A data protected with signature in Base64 format. The value is
+ mapped to the `data` property.
+ */
+@property (nonatomic, strong, nonnull) NSString * dataBase64;
+/**
+ A signagure calculated for data in Base64 format. The value is
+ mapped to the `signature` property.
+ */
+@property (nonatomic, strong, nonnull) NSString * signatureBase64;
+
+@end
+
 
 #pragma mark - Activation steps -
 

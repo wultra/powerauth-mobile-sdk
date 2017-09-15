@@ -51,6 +51,12 @@
 
 @end
 
+@interface PA2SignedData (Private)
+
+- (io::getlime::powerAuth::SignedData&) signedDataRef;
+
+@end
+
 
 /**
  Converts PA2SessionSetup object into SessionSetup C++ structure.

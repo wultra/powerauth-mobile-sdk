@@ -84,6 +84,69 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 
 @end
 
+@implementation PA2SignedData
+{
+	io::getlime::powerAuth::SignedData _signedData;
+}
+
+- (io::getlime::powerAuth::SignedData&) signedDataRef
+{
+	return _signedData;
+}
+
+// Bytes setters and getters
+
+- (NSData*) data
+{
+	return cc7::objc::CopyToNSData(_signedData.data);
+}
+
+- (void) setData:(NSData *)data
+{
+	_signedData.data = cc7::objc::CopyFromNSData(data);
+}
+
+- (NSData*) signature
+{
+	return cc7::objc::CopyToNSData(_signedData.signature);
+}
+
+- (void) setSignature:(NSData *)signature
+{
+	_signedData.signature = cc7::objc::CopyFromNSData(signature);
+}
+
+// Base64 setters and getters
+
+- (NSString*) dataBase64
+{
+	return cc7::objc::CopyToNSString(_signedData.data.base64String());
+}
+
+- (void) setDataBase64:(NSString *)dataBase64
+{
+	_signedData.data.readFromBase64String(cc7::objc::CopyFromNSString(dataBase64));
+}
+
+- (NSString*) signatureBase64
+{
+	return cc7::objc::CopyToNSString(_signedData.signature.base64String());
+}
+
+- (void) setSignatureBase64:(NSString *)signatureBase64
+{
+	_signedData.signature.readFromBase64String(cc7::objc::CopyFromNSString(signatureBase64));
+}
+
+#ifdef DEBUG
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<PA2SignedData data=%@, signature=%@>", self.dataBase64, self.signatureBase64];
+}
+#endif
+
+@end
+
 @implementation PA2SignatureUnlockKeys
 @end
 

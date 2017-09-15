@@ -49,6 +49,9 @@ namespace protocol
 							PA_AUTH_FRAGMENT_SIGNATURE.length() +
 							PA_AUTH_FRAGMENT_END.length();
 	
+	// App secret & key for offline signatures
+	const std::string	PA_OFFLINE_APP_SECRET("offline");
+
 	// Ampersand
 	const std::string	AMP("&");
 	const std::string	DASH("-");

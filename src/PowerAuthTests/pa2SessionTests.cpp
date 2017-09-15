@@ -641,13 +641,14 @@ namespace powerAuthTests
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					ccstAssertEqual(requestData.offlineNonce, sigData.nonce);
+					ccstAssertEqual(sigData.applicationKey, "offline");
 					
 					StringMap parsedSignature = T_parseSignature(sigValue);
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, "offline", SF_Possession_Knowledge, 3);
 					// Signatures must match.
 					ccstAssertEqual(signature, our_signature);
 				}

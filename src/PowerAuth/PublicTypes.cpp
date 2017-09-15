@@ -67,6 +67,12 @@ namespace powerAuth
 		return true;
 	}
 	
+	bool HTTPRequestData::isOfflineRequest() const
+	{
+		return !offlineNonce.empty();
+	}
+	
+	
 	//
 	// MARK: - HTTPRequestDataSignature -
 	//

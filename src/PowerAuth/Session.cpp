@@ -517,7 +517,7 @@ namespace powerAuth
 		
 		// Get NONCE from request structure, or generate a new one.
 		cc7::ByteArray nonce;
-		if (request.offlineNonce.empty()) {
+		if (!request.isOfflineRequest()) {
 			nonce = crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true);
 			out.nonce = nonce.base64String();
 		} else {
@@ -537,7 +537,8 @@ namespace powerAuth
 		}
 		
 		// Normalize data and calculate signature
-		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, _setup.applicationSecret);
+		const std::string & app_secret = request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationSecret;
+		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
 		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, _pd->signatureCounter, data);
 		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
@@ -563,7 +564,7 @@ namespace powerAuth
 		// Fill the rest of values to out structure
 		out.version			= protocol::PA_VERSION;
 		out.activationId	= _pd->activationId;
-		out.applicationKey	= _setup.applicationKey;
+		out.applicationKey	= request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationKey;
 		
 		return EC_Ok;
 	}

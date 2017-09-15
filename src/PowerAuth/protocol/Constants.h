@@ -42,6 +42,9 @@ namespace protocol
 	extern const std::string PA_AUTH_FRAGMENT_END;
 	extern const size_t      PA_AUTH_FRAGMENTS_LENGTH;
 	
+	// App secret & key for offline signatures
+	extern const std::string PA_OFFLINE_APP_SECRET;
+	
 	// Empty IV (16 bytes filled with 0)
 	extern const cc7::ByteArray ZERO_IV;
 	

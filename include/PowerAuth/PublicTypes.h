@@ -289,6 +289,12 @@ namespace powerAuth
 		 Returns true when structure contains valid data.
 		 */
 		bool hasValidData() const;
+		
+		/**
+		 Returns true when this signature calculation request is for offline
+		 signatuere. This is exclusively affected by the offlineNonce property.
+		 */
+		bool isOfflineRequest() const;
 	};
 	
 	/**

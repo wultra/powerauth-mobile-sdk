@@ -388,6 +388,7 @@
 	
 	// Verify result on the server
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:method uriId:uriId nonce:local_nonce data:data];
+#warning TODO: This test fails for offline signatures, because we don't have an appropriate server method yet.
 	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
 																		data:normalized_data
 																   signature:local_signature
@@ -653,18 +654,18 @@
 		NSData * data = [data_str dataUsingEncoding:NSUTF8StringEncoding];
 		// Positive
 		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		// Negative
 		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0x0010];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		result = [self validateSignature:auth_possession data:data method:@"GET" uriId:@"/hello/from/test" online:online_mode cripple:0x0100];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		result = [self validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
-		XCTAssertTrue(result);
+		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 	}
 	
 	// Cleanup
@@ -799,7 +800,7 @@
 	NSData * data = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
 	PowerAuthAuthentication * just_possession = [[PowerAuthAuthentication alloc] init];
 	just_possession.usePossession = YES;
-	NSArray * sig_nonce = [self calculateOfflineSignature:data uriId:@"/hello/world" auth:just_possession];
+	NSArray * sig_nonce = [self calculateOnlineSignature:data method:@"POST" uriId:@"/hello/world" auth:just_possession];
 	XCTAssertNotNil(sig_nonce);
 	// Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];

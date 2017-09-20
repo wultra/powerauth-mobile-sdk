@@ -20,7 +20,7 @@
  
  @return YES if the device is jailbroken, NO otherwise.
  */
-BOOL pa_isJailbroken();
+extern BOOL pa_isJailbroken(void);
 
 @interface PA2System : NSObject
 

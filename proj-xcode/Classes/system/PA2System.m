@@ -65,6 +65,17 @@ BOOL pa_isJailbroken() {
 	return result;
 }
 
+// TODO: We should remove this objc method. The public documentation says that if you want to slow down the attacker, then
+//       you should use the C function. But the fun fact is, that we're actually helping find that function. Look at
+//       the assembly code, produced for the release build:
+//
+//		 +[PA2System isJailbroken]:
+//    	     0x126222f8d <+0>: pushq  %rbp
+//    	     0x126222f8e <+1>: movq   %rsp, %rbp
+//		 ->  0x126222f91 <+4>: popq   %rbp
+//           0x126222f92 <+5>: jmp    0x126222bd4               ; pa_isJailbroken at PA2System.m:21
+//
+//       So, the long term plan is to remove this feature from the SDK and have a separate library for jailbreak detection.
 + (BOOL) isJailbroken {
 	return pa_isJailbroken();
 }

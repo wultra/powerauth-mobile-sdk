@@ -96,7 +96,7 @@ NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryK
 		if (containsValue) {
 			completion([self implUpdateValue:data forKey:key]);
 		} else {
-			completion(errSecItemNotFound);
+			completion(PA2KeychainStoreItemResult_NotFound);
 		}
 	}];
 }

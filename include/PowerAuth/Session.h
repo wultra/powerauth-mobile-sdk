@@ -249,12 +249,6 @@ namespace powerAuth
 		 If you don't save the state then you'll sooner or later loose synchronization with the server
 		 and your client will not be able to sign data anymore.
 		 
-		 Discussion about thread safety
-		 
-		 If your networking infrastructure allows simultaneous HTTP requests then it's recommended to
-		 guard this method with external locking. There's possible race condition when the internal signing counter
-		 is raised in persistent data structure. The Session doesn't provide locking internally.
-		 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if some cryptographic operation failed
 				 EC_WrongState, if the session has no valid activation

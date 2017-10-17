@@ -1,0 +1,11 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="http://getlime.io/security/powerauth">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<pow:VerifyOfflineSignatureRequest>
+			<pow:activationId>$1</pow:activationId>
+			<pow:data>$2</pow:data>
+			<pow:signature>$3</pow:signature>
+			<pow:signatureType>$4</pow:signatureType>
+		</pow:VerifyOfflineSignatureRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

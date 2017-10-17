@@ -60,6 +60,7 @@
 	
 	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
+		//NSLog(@"Envelope data %@", envelopeData);
 		// Prepare request
 		NSMutableURLRequest * request = [NSMutableURLRequest requestWithURL:_url];
 		request.HTTPMethod = @"POST";

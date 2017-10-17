@@ -413,8 +413,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 								   signatureType:(NSString*)signatureType
 {
 	[self checkForValidConnection];
-	//NSString * normalizedDataB64 = [[normalizedData dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
-	NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType];
+	NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString];
 	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifySignature" params:params response:@"VerifySignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
@@ -438,6 +437,46 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	NSString * uriIdB64 = [[uriId dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
 	NSArray * components = @[httpMethod, uriIdB64, nonceB64, dataB64 ];
 	return [components componentsJoinedByString:@"&"];
+}
+
+- (PATSOfflineSignaturePayload*) createOfflineSignaturePayload:(NSString*)activationId
+														  data:(NSString*)data
+													   message:(NSString*)message
+{
+	[self checkForValidConnection];
+	NSArray * params = @[activationId, data, message];
+	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreateOfflineSignaturePayload" params:params response:@"CreateOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
+		if (!localError) obj.data			= [[resp nodeForXPath:@"pa:data" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.dataHash		= [[resp nodeForXPath:@"pa:dataHash" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.message		= [[resp nodeForXPath:@"pa:message" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.nonce			= [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.signature		= [[resp nodeForXPath:@"pa:signature" namespaceMappings:ns error:&localError] stringValue];
+		return !localError ? obj : nil;
+	}];
+	return response;
+}
+
+- (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
+												   data:(NSString*)dataHash
+											  signature:(NSString*)signature
+										  signatureType:(NSString*)signatureType
+{
+	[self checkForValidConnection];
+	NSArray * params = @[activationId, dataHash, signature, signatureType.uppercaseString];
+	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifyOfflineSignature" params:params response:@"VerifyOfflineSignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
+		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
+		if (!localError) obj.remainingAttempts		= _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
+		if (!localError) obj.signatureValid			= _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
+		return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
+	}];
+	return response;
 }
 
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature

@@ -137,3 +137,13 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, assign) BOOL signatureValid;
 
 @end
+
+@interface PATSOfflineSignaturePayload : NSObject
+
+@property (nonatomic, strong) NSString * data;
+@property (nonatomic, strong) NSString * dataHash;
+@property (nonatomic, strong) NSString * message;
+@property (nonatomic, strong) NSString * nonce;
+@property (nonatomic, strong) NSString * signature;
+
+@end

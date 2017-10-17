@@ -59,3 +59,6 @@
 
 @implementation PATSVerifySignatureResponse
 @end
+
+@implementation PATSOfflineSignaturePayload
+@end

@@ -153,6 +153,25 @@
 											uriId:(NSString*)uriId
 											nonce:(NSString*)nonceB64
 											 data:(NSData*)data;
+// Offline signatures
+
+/**
+ Request creates a data for offline signature QR code.
+ Returns result object created from SOAP response or nil in case of failure.
+ */
+- (PATSOfflineSignaturePayload*) createOfflineSignaturePayload:(NSString*)activationId
+														  data:(NSString*)data
+													   message:(NSString*)message;
+
+/**
+ Request for PA2 signature calculation.
+ Returns result object created from SOAP response or nil in case of failure.
+ */
+- (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
+												   data:(NSString*)normalizedData
+											  signature:(NSString*)signature
+										  signatureType:(NSString*)signatureType;
+
 /**
  Request for the asymmetric signature (ECDSA) validation procedure.
  */

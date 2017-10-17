@@ -238,7 +238,6 @@
 	NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
 	NSString * signature = [_sdk offlineSignatureWithAuthentication:auth uriId:uriId body:data nonce:nonce error:&error];
 	if (signature && !error) {
-		
 		return @[ signature, nonce ];
 	}
 	return nil;
@@ -315,13 +314,13 @@
 {
 	NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
 	if (auth.usePossession) {
-		[components addObject:@"possession"];
+		[components addObject:@"POSSESSION"];
 	}
 	if (auth.usePassword) {
-		[components addObject:@"knowledge"];
+		[components addObject:@"KNOWLEDGE"];
 	}
 	if (auth.useBiometry) {
-		[components addObject:@"biometry"];
+		[components addObject:@"BIOMETRY"];
 	}
 	return [components componentsJoinedByString:@"_"];
 }
@@ -388,12 +387,20 @@
 	
 	// Verify result on the server
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:method uriId:uriId nonce:local_nonce data:data];
-#warning TODO: This test fails for offline signatures, because we don't have an appropriate server method yet.
-	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
-																		data:normalized_data
-																   signature:local_signature
-															   signatureType:[self authToString:auth]];
-	XCTAssertNotNil(response, @"Response must be received");
+	PATSVerifySignatureResponse * response;
+	if (online) {
+		response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
+											   data:normalized_data
+										  signature:local_signature
+									  signatureType:[self authToString:auth]];
+		XCTAssertNotNil(response, @"Online response must be received");
+	} else {
+		response = [_testServerApi verifyOfflineSignature:_sdk.session.activationIdentifier
+													 data:normalized_data
+												signature:local_signature
+											signatureType:[self authToString:auth]];
+		XCTAssertNotNil(response, @"Offline response must be received");
+	}
 	BOOL result = (response != nil) && (response.signatureValid == (cripple == 0));
 	if (!result) {
 		if (cripple == 0) {
@@ -650,12 +657,14 @@
 	for (int i = 1; i <= 2; i++)
 	{
 		BOOL online_mode = i == 1;
-		NSString * data_str = online_mode ? @"hello online world" : @"hello offline world";
-		NSData * data = [data_str dataUsingEncoding:NSUTF8StringEncoding];
+		// Offline signature contains a
+		NSData * data = online_mode
+							? [@"hello online world" dataUsingEncoding:NSUTF8StringEncoding]
+							: [[NSData alloc] initWithBase64EncodedString:@"zYnF8edfgfgT2TcZjupjppBHoUJGjONkk6H+eThIsi0=" options:0] ;
 		// Positive
 		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
 		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-		result = [self validateSignature:auth_possession_knowledge data:data method:@"GET" uriId:@"/hello/hacker" online:online_mode cripple:0];
+		result = [self validateSignature:auth_possession_knowledge data:data method:online_mode ? @"GET" : @"POST" uriId:@"/hello/hacker" online:online_mode cripple:0];
 		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		// Negative
 		result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0x0001];
@@ -672,7 +681,55 @@
 	[self removeLastActivation:activationData];
 }
 
+- (void) testVerifyServerSignedData
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test checks whether SDK can verify data signed by server's master key
+	//
+	BOOL result;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	NSString * dataForSigning = @"All your money are belong to us!";
+	NSString * messageToUser = @"Please sign this important bank transfer.";
+	PATSOfflineSignaturePayload * payload = [_testServerApi createOfflineSignaturePayload:activationData.activationId data:dataForSigning message:messageToUser];
+	XCTAssertNotNil(payload);
+	XCTAssertTrue([payload.message isEqualToString:messageToUser]);
+	XCTAssertTrue([payload.data isEqualToString:dataForSigning]);
+	XCTAssertNotNil(payload.signature);
+	
+	// Normalization is: data&nonce&message
+	NSData * qr_code_data = [[@[payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
+	result = [_sdk verifyServerSignedData:qr_code_data signature:payload.signature];
+	XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+	
+	// Well, we have a data for offline signature, so let's try to verify it.
+	NSString * uriId = @"/operation/authorize/offline";
+	NSData * body = [[NSData alloc] initWithBase64EncodedString:payload.dataHash options:0];
+	NSString * nonce = payload.nonce;
 
+	PowerAuthAuthentication * sign_auth = [[PowerAuthAuthentication alloc] init];
+	sign_auth.usePassword = auth.usePassword;
+	sign_auth.usePossession = YES;
+	NSString * local_signature = [_sdk offlineSignatureWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce error:NULL];
+	XCTAssertNotNil(local_signature);
+
+	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
+	XCTAssertNotNil(normalized_data);
+	PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:activationData.activationId data:normalized_data signature:local_signature signatureType:[self authToString:sign_auth]];
+	XCTAssertTrue(response.signatureValid);
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
 
 - (void) testSignDataWithDevicePrivateKey
 {
@@ -804,7 +861,7 @@
 	XCTAssertNotNil(sig_nonce);
 	// Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];
-	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:activationData.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"possession"];
+	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:activationData.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"POSSESSION"];
 	XCTAssertNotNil(response);
 	XCTAssertTrue(response.signatureValid, @"Calculated signature is not valid");
 

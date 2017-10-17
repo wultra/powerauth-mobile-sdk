@@ -55,12 +55,6 @@
  */
 @property (nonatomic, assign, readonly) UInt32 sessionIdentifier;
 
-/**
- Contains error code from last executed operation. You can use
- this value for debug purposes.
- */
-@property (nonatomic, assign, readonly) PA2CoreErrorCode lastErrorCode;
-
 
 #pragma mark - Session state
 
@@ -230,13 +224,6 @@
  You have to save session's state after the successful operation, due to internal counter change.
  If you don't save the state then you'll sooner or later loose synchronization with the server
  and your client will not be able to sign data anymore.
- 
- 
- Discussion about thread safety
- 
- If your networking infrastructure allows simultaneous HTTP requests then it's recommended to
- guard this method with external locking. There's possible race condition when the internal signing counter
- is raised in persistent data structure. The Session doesn't provide locking internally.
  
  Returns string with autorization header or nil if opeartion failed. The lastErrorCode is updated
  to following values:

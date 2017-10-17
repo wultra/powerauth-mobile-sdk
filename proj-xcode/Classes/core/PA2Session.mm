@@ -18,17 +18,37 @@
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #import "PA2PrivateImpl.h"
+#import "PA2Macros.h"
 
 using namespace io::getlime::powerAuth;
 
 @implementation PA2Session
 {
 	Session *	_session;
-	ErrorCode	_error;
+}
+
+/**
+ Dumps C++ error code to the debug log.
+ */
+void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
+{
+#ifdef DEBUG
+	if (code != EC_Ok) {
+		NSString * codeStr;
+		switch (code) {
+			case EC_Encryption: codeStr = @"EC_Encryption"; break;
+			case EC_WrongParam: codeStr = @"EC_WrongParam"; break;
+			case EC_WrongState: codeStr = @"EC_WrongState"; break;
+			default:
+				codeStr = [@(code) stringValue];
+				break;
+		}
+		PALog(@"PA2Session(ID:%d): %@: Low level operation failed with error %@.", inst.sessionIdentifier, message, codeStr);
+	}
+#endif
 }
 
 #pragma mark - Initialization / Reset
-
 
 - (nullable instancetype) initWithSessionSetup:(nonnull PA2SessionSetup *)setup
 {
@@ -37,8 +57,19 @@ using namespace io::getlime::powerAuth;
 		SessionSetup cpp_setup;
 		PA2SessionSetupToStruct(setup, cpp_setup);
 		_session = new Session(cpp_setup);
+		if (!_session) {
+			// This is a low memory issue. Returning nil we guarantee that swift/objc
+			// will not use this unitialized instance at all.
+			return nil;
+		}
 	}
 	return self;
+}
+
+- (nullable instancetype) init
+{
+	// Simple object init should always return nil
+	return nil;
 }
 
 - (void) dealloc
@@ -48,12 +79,7 @@ using namespace io::getlime::powerAuth;
 
 - (void) resetSession
 {
-	if (_session) {
-		_session->resetSession();
-		_error = EC_Ok;
-	} else {
-		_error = EC_WrongParam;
-	}
+	_session->resetSession();
 }
 
 
@@ -67,44 +93,36 @@ using namespace io::getlime::powerAuth;
 
 - (PA2SessionSetup*) sessionSetup
 {
-	if (_session) {
-		const SessionSetup * cpp_setup = _session->sessionSetup();
-		if (cpp_setup) {
-			return PA2SessionSetupToObject(*cpp_setup);
-		}
+	const SessionSetup * cpp_setup = _session->sessionSetup();
+	if (cpp_setup) {
+		return PA2SessionSetupToObject(*cpp_setup);
 	}
 	return nil;
 }
 
 - (UInt32) sessionIdentifier
 {
-	return _session ? _session->sessionIdentifier() : 0;
+	return _session->sessionIdentifier();
 }
-
-- (PA2CoreErrorCode) lastErrorCode
-{
-	return static_cast<PA2CoreErrorCode>(_error);
-}
-
 
 - (BOOL) hasValidSetup
 {
-	return  _session ? _session->hasValidSetup() : NO;
+	return  _session->hasValidSetup();
 }
 
 - (BOOL) canStartActivation
 {
-	return _session ? _session->canStartActivation() : NO;
+	return _session->canStartActivation();
 }
 
 - (BOOL) hasPendingActivation
 {
-	return _session ? _session->hasPendingActivation() : NO;
+	return _session->hasPendingActivation();
 }
 
 - (BOOL) hasValidActivation
 {
-	return _session ? _session->hasValidActivation() : NO;
+	return _session->hasValidActivation();
 }
 
 
@@ -113,21 +131,15 @@ using namespace io::getlime::powerAuth;
 
 - (nonnull NSData*) serializedState
 {
-	if (_session) {
-		return cc7::objc::CopyToNSData(_session->saveSessionState());
-	}
-	return [NSData data];
+	return cc7::objc::CopyToNSData(_session->saveSessionState());
 }
 
 
 - (BOOL) deserializeState:(nonnull NSData *)state
 {
-	if (_session) {
-		_error = _session->loadSessionState(cc7::ByteRange(state.bytes, state.length));
-		return _error == EC_Ok;
-	}
-	_error = EC_WrongParam;
-	return NO;
+	auto error = _session->loadSessionState(cc7::ByteRange(state.bytes, state.length));
+	_DumpErrorCode(self, @"DeserializeState", error);
+	return error == EC_Ok;
 }
 
 
@@ -136,10 +148,8 @@ using namespace io::getlime::powerAuth;
 
 - (nullable NSString*) activationIdentifier
 {
-	if (_session) {
-		if (_session->hasValidActivation()) {
-			return cc7::objc::CopyToNSString(_session->activationIdentifier());
-		}
+	if (_session->hasValidActivation()) {
+		return cc7::objc::CopyToNSString(_session->activationIdentifier());
 	}
 	return nil;
 }
@@ -147,48 +157,39 @@ using namespace io::getlime::powerAuth;
 
 - (nullable PA2ActivationStep1Result*) startActivation:(nonnull PA2ActivationStep1Param*)param
 {
-	if (_session) {
-		ActivationStep1Param cpp_p1;
-		ActivationStep1Result cpp_r1;
-		PA2ActivationStep1ParamToStruct(param, cpp_p1);
-		_error = _session->startActivation(cpp_p1, cpp_r1);
-		if (_error == EC_Ok) {
-			return PA2ActivationStep1ResultToObject(cpp_r1);
-		}
-	} else {
-		_error = EC_WrongParam;
+	ActivationStep1Param cpp_p1;
+	ActivationStep1Result cpp_r1;
+	PA2ActivationStep1ParamToStruct(param, cpp_p1);
+	auto error = _session->startActivation(cpp_p1, cpp_r1);
+	if (error == EC_Ok) {
+		return PA2ActivationStep1ResultToObject(cpp_r1);
 	}
+	_DumpErrorCode(self, @"StartActivation", error);
 	return nil;
 }
 
 
 - (nullable PA2ActivationStep2Result*) validateActivationResponse:(nonnull PA2ActivationStep2Param*)param
 {
-	if (_session) {
-		ActivationStep2Param cpp_p2;
-		ActivationStep2Result cpp_r2;
-		PA2ActivationStep2ParamToStruct(param, cpp_p2);
-		_error = _session->validateActivationResponse(cpp_p2, cpp_r2);
-		if (_error == EC_Ok) {
-			return PA2ActivationStep2ResultToObject(cpp_r2);
-		}
-	} else {
-		_error = EC_WrongParam;
+	ActivationStep2Param cpp_p2;
+	ActivationStep2Result cpp_r2;
+	PA2ActivationStep2ParamToStruct(param, cpp_p2);
+	auto error = _session->validateActivationResponse(cpp_p2, cpp_r2);
+	if (error == EC_Ok) {
+		return PA2ActivationStep2ResultToObject(cpp_r2);
 	}
+	_DumpErrorCode(self, @"ValidateActivation", error);
 	return nil;
 }
 
 
 - (BOOL) completeActivation:(nonnull PA2SignatureUnlockKeys*)keys
 {
-	if (_session) {
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(keys, cpp_keys);
-		_error = _session->completeActivation(cpp_keys);
-		return _error == EC_Ok;
-	}
-	_error = EC_WrongParam;
-	return NO;
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(keys, cpp_keys);
+	auto error = _session->completeActivation(cpp_keys);
+	_DumpErrorCode(self, @"CompleteActivation", error);
+	return error == EC_Ok;
 }
 
 
@@ -198,17 +199,14 @@ using namespace io::getlime::powerAuth;
 - (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull NSString *)statusBlob
 													keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 {
-	if (_session) {
-		SignatureUnlockKeys cpp_keys;
-		ActivationStatus cpp_status;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-		_error = _session->decodeActivationStatus(cc7::objc::CopyFromNSString(statusBlob), cpp_keys, cpp_status);
-		if (_error == EC_Ok) {
-			return PA2ActivationStatusToObject(cpp_status);
-		}
-	} else {
-		_error = EC_WrongParam;
+	SignatureUnlockKeys cpp_keys;
+	ActivationStatus cpp_status;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	auto error = _session->decodeActivationStatus(cc7::objc::CopyFromNSString(statusBlob), cpp_keys, cpp_status);
+	if (error == EC_Ok) {
+		return PA2ActivationStatusToObject(cpp_status);
 	}
+	_DumpErrorCode(self, @"DecodeActivationStatus", error);
 	return nil;
 }
 
@@ -240,39 +238,38 @@ using namespace io::getlime::powerAuth;
 														 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 													   factor:(PA2SignatureFactor)factor
 {
-	if (_session) {
-		HTTPRequestData request;
-		PA2HTTPRequestDataToStruct(requestData, request);
-		SignatureFactor cpp_factor	= static_cast<SignatureFactor>(factor);
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-		
-		PA2HTTPRequestDataSignature * signature = [[PA2HTTPRequestDataSignature alloc] init];
-		_error = _session->signHTTPRequestData(request, cpp_keys, cpp_factor, [signature signatureStructRef]);
-		if (_error == EC_Ok) {
-			return signature;
-		}
-	} else {
-		_error = EC_WrongParam;
+	HTTPRequestData request;
+	PA2HTTPRequestDataToStruct(requestData, request);
+	SignatureFactor cpp_factor	= static_cast<SignatureFactor>(factor);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	
+	PA2HTTPRequestDataSignature * signature = [[PA2HTTPRequestDataSignature alloc] init];
+	auto error = _session->signHTTPRequestData(request, cpp_keys, cpp_factor, [signature signatureStructRef]);
+	if (error == EC_Ok) {
+		return signature;
 	}
+	_DumpErrorCode(self, @"SignHttpRequestData", error);
 	return nil;
 }
 
 
 - (NSString*) httpAuthHeaderName
 {
-	return _session ? cc7::objc::CopyToNSString(_session->httpAuthHeaderName()) : nil;
+	return cc7::objc::CopyToNSString(_session->httpAuthHeaderName());
 }
 
 
 - (BOOL) verifyServerSignedData:(nonnull PA2SignedData*)signedData
 {
-	if (_session && signedData) {
-		_error = _session->verifyServerSignedData(signedData.signedDataRef);
-		return _error == EC_Ok;
+	ErrorCode error;
+	if (signedData != nil) {
+		error = _session->verifyServerSignedData(signedData.signedDataRef);
+	} else {
+		error = EC_WrongParam;
 	}
-	_error = EC_WrongParam;
-	return NO;
+	_DumpErrorCode(self, @"VerifyServerSignedData", error);
+	return error == EC_Ok;
 }
 
 
@@ -280,52 +277,41 @@ using namespace io::getlime::powerAuth;
 
 - (BOOL) changeUserPassword:(nonnull PA2Password *)old_password newPassword:(nonnull PA2Password*)new_password
 {
-	if (_session) {
-		if (old_password == nil || new_password == nil) {
-			CC7_ASSERT(false, "Password object is nil");
-			_error = EC_WrongParam;
-			return NO;
-		}
-		_error = _session->changeUserPassword([old_password passObjRef].passwordData(), [new_password passObjRef].passwordData());
-		return _error == EC_Ok;
+	ErrorCode error;
+	if (old_password != nil && new_password != nil) {
+		error = _session->changeUserPassword([old_password passObjRef].passwordData(), [new_password passObjRef].passwordData());
+	} else {
+		error = EC_WrongParam;
+		return NO;
 	}
-	_error = EC_WrongParam;
-	return NO;
+	_DumpErrorCode(self, @"ChangeUserPassword", error);
+	return error == EC_Ok;
 }
 
 - (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
 					  keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 {
-	if (_session) {
-		std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-		_error = _session->addBiometryFactor(cpp_c_vault_key, cpp_keys);
-		return _error == EC_Ok;
-	}
-	_error = EC_WrongParam;
-	return NO;
+	std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	auto error = _session->addBiometryFactor(cpp_c_vault_key, cpp_keys);
+	_DumpErrorCode(self, @"AddBiometryFactor", error);
+	return error == EC_Ok;
 }
 
 - (BOOL) hasBiometryFactor
 {
-	if (!_session) {
-		_error = EC_WrongParam;
-		return NO;
-	}
 	bool result;
-	_error = _session->hasBiometryFactor(result);
+	auto error = _session->hasBiometryFactor(result);
+	_DumpErrorCode(self, @"HasBiometryFactor", error);
 	return result;
 }
 
 - (BOOL) removeBiometryFactor
 {
-	if (_session) {
-		_error = _session->removeBiometryFactor();
-		return _error == EC_Ok;
-	}
-	_error = EC_WrongParam;
-	return NO;
+	auto error = _session->removeBiometryFactor();
+	_DumpErrorCode(self, @"RemoveBiometryFactor", error);
+	return error == EC_Ok;
 }
 
 
@@ -335,19 +321,16 @@ using namespace io::getlime::powerAuth;
 												   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 											   keyIndex:(UInt64)keyIndex
 {
-	if (_session) {
-		std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 		
-		cc7::ByteArray cpp_derived_key;
-		_error = _session->deriveCryptographicKeyFromVaultKey(cpp_c_vault_key, cpp_keys, keyIndex, cpp_derived_key);
-		if (_error == EC_Ok) {
-			return cc7::objc::CopyToNSData(cpp_derived_key);
-		}
-	} else {
-		_error = EC_WrongParam;
+	cc7::ByteArray cpp_derived_key;
+	auto error = _session->deriveCryptographicKeyFromVaultKey(cpp_c_vault_key, cpp_keys, keyIndex, cpp_derived_key);
+	if (error == EC_Ok) {
+		return cc7::objc::CopyToNSData(cpp_derived_key);
 	}
+	_DumpErrorCode(self, @"DeriveCryptographicKeyFromVaultKey", error);
 	return nil;
 }
 
@@ -355,20 +338,17 @@ using namespace io::getlime::powerAuth;
 											 keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 											 data:(nonnull NSData*)data
 {
-	if (_session) {
-		std::string cpp_c_vault_key	= cc7::objc::CopyFromNSString(cVaultKey);
-		cc7::ByteArray cpp_data		= cc7::objc::CopyFromNSData(data);
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	std::string cpp_c_vault_key	= cc7::objc::CopyFromNSString(cVaultKey);
+	cc7::ByteArray cpp_data		= cc7::objc::CopyFromNSData(data);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 		
-		cc7::ByteArray cpp_signature;
-		_error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_signature);
-		if (_error == EC_Ok) {
-			return cc7::objc::CopyToNSData(cpp_signature);
-		}
-	} else {
-		_error = EC_WrongParam;
+	cc7::ByteArray cpp_signature;
+	auto error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_signature);
+	if (error == EC_Ok) {
+		return cc7::objc::CopyToNSData(cpp_signature);
 	}
+	_DumpErrorCode(self, @"SignDataWithDevicePrivateKey", error);
 	return nil;
 }
 
@@ -377,34 +357,30 @@ using namespace io::getlime::powerAuth;
 
 - (nullable PA2Encryptor*) nonpersonalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
 {
-	if (_session) {
-		cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-		Encryptor * cpp_encryptor = nullptr;
-		std::tie(_error, cpp_encryptor) = _session->createNonpersonalizedEncryptor(cpp_session_index);
-		if (_error == EC_Ok) {
-			return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-		}
-	} else {
-		_error = EC_WrongParam;
+	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
+	Encryptor * cpp_encryptor = nullptr;
+	ErrorCode error = EC_Ok;
+	std::tie(error, cpp_encryptor) = _session->createNonpersonalizedEncryptor(cpp_session_index);
+	if (error == EC_Ok) {
+		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
 	}
+	_DumpErrorCode(self, @"NonpersonalizedEncryptorForSessionIndex", error);
 	return nil;
 }
 
 - (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
 														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 {
-	if (_session) {
-		cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-		SignatureUnlockKeys cpp_keys;
-		PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-		Encryptor * cpp_encryptor = nullptr;
-		std::tie(_error, cpp_encryptor) = _session->createPersonalizedEncryptor(cpp_session_index, cpp_keys);
-		if (_error == EC_Ok) {
-			return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-		}
-	} else {
-		_error = EC_WrongParam;
+	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	Encryptor * cpp_encryptor = nullptr;
+	ErrorCode error = EC_Ok;
+	std::tie(error, cpp_encryptor) = _session->createPersonalizedEncryptor(cpp_session_index, cpp_keys);
+	if (error == EC_Ok) {
+		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
 	}
+	_DumpErrorCode(self, @"PersonalizedEncryptorForSessionIndex", error);
 	return nil;
 }
 
@@ -413,44 +389,28 @@ using namespace io::getlime::powerAuth;
 
 - (BOOL) hasExternalEncryptionKey
 {
-	if (_session) {
-		return _session->hasExternalEncryptionKey();
-	}
-	return NO;
+	return _session->hasExternalEncryptionKey();
 }
 
 - (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
-	if (_session) {
-		_error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-		if (_error == EC_Ok) {
-			return YES;
-		}
-	} else {
-		_error = EC_WrongParam;
-	}
-	return NO;
+	auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+	_DumpErrorCode(self, @"SetExternalEncryptionKey", error);
+	return error == EC_Ok;
 }
 
 - (BOOL) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
-	if (_session) {
-		_error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-		if (_error == EC_Ok) {
-			return YES;
-		}
-	} else {
-		_error = EC_WrongParam;
-	}
-	return NO;
+	auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+	_DumpErrorCode(self, @"AddExternalEncryptionKey", error);
+	return error == EC_Ok;
 }
 
 - (BOOL) removeExternalEncryptionKey
 {
-	if (_session) {
-		return _session->removeExternalEncryptionKey();
-	}
-	return NO;
+	auto error = _session->removeExternalEncryptionKey();
+	_DumpErrorCode(self, @"RemoveExternalEncryptionKey", error);
+	return error == EC_Ok;
 }
 
 

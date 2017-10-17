@@ -336,11 +336,7 @@ static PowerAuthSDK *inst;
 	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];
 	if (sessionData) {
 		[_session resetSession];
-		BOOL result = [_session deserializeState:sessionData];
-		if (!result) {
-			PALog(@"Unable to deserialize session state due to an unknown error.");
-		}
-		return result;
+		return [_session deserializeState:sessionData];
 	} else {
 		return NO;
 	}
@@ -397,10 +393,7 @@ static PowerAuthSDK *inst;
 	// Obtain crypto module response
 	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
 	if (nil == resultStep1) {
-		NSInteger errorCode = _session.lastErrorCode == PA2CoreErrorCode_Encryption
-								? PA2ErrorCodeSignatureError
-								: PA2ErrorCodeInvalidActivationData;
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 		callback(nil, error);
 		[task cancel];
 		return task;
@@ -498,10 +491,7 @@ static PowerAuthSDK *inst;
 	// Obtain crypto module response
 	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
 	if (nil == resultStep1) {
-		NSInteger errorCode = _session.lastErrorCode == PA2CoreErrorCode_Encryption
-								? PA2ErrorCodeSignatureError
-								: PA2ErrorCodeInvalidActivationData;
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 		callback(nil, error);
 		[task cancel];
 		return task;

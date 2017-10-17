@@ -19,6 +19,7 @@
 #include <PowerAuth/PublicTypes.h>
 #include <map>
 #include <tuple>
+#include <mutex>
 
 namespace io
 {
@@ -43,7 +44,7 @@ namespace powerAuth
 	/**
 	 The Session class provides all cryptographic operations defined in PowerAuth2
 	 protocol. The object also represents a long term session estabilished
-	 between the client and the server. 
+	 between the client and the server.
 	 
 	 This is a low level C++ implementation, which should be wrapped and exported
 	 in appropriate way to the programming environments, typically used on the mobile
@@ -83,7 +84,7 @@ namespace powerAuth
 		 Returns value of sessionSetup()->sessionIdentifier if the setup structure is present or 0 if not.
 		 */
 		cc7::U32 sessionIdentifier() const;
-				
+		
 		/**
 		 Resets session into its initial state. The existing session's setup and the external encryption
 		 key is preserved by this call.
@@ -94,7 +95,7 @@ namespace powerAuth
 		// MARK: - State probing -
 		
 		/**
-		 Returns true if the internal SessionSetup structure is valid. 
+		 Returns true if the internal SessionSetup structure is valid.
 		 Note that the method doesn't validate whether the provided master key is valid
 		 or not. The key validation is time consuming operation and therefore is
 		 performend only during the activation process.
@@ -118,10 +119,10 @@ namespace powerAuth
 		// MARK: - Serialization -
 		
 		/**
-		 Saves state of session into the sequence of bytes. The saved sequence contains content of 
+		 Saves state of session into the sequence of bytes. The saved sequence contains content of
 		 internal PersistentData structure, if is present.
 		 
-		 Note that saving a state during the pending activation has no effect. In this case, 
+		 Note that saving a state during the pending activation has no effect. In this case,
 		 the returned byte sequence represents the state of the session before the activation started.
 		 */
 		cc7::ByteArray saveSessionState() const;
@@ -141,25 +142,25 @@ namespace powerAuth
 		 */
 		std::string activationIdentifier() const;
 		
-        /**
-         Starts a new activation process. The session must have valid setup. Once the activation 
+		/**
+		 Starts a new activation process. The session must have valid setup. Once the activation
 		 is started you have to complete whole activation sequence or reset a whole session.
-         
-         You have to provide ActivationStep1Param structure with all required properties available.
-         The result of the operation is stored into the ActivationStep1Result structure.
-         
-         Returns EC_Ok,         if operation succeeded
-                 EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
-                 EC_WrongState, if called in wrong session's state
-                 EC_WrongParam, if some required parameter is missing
-         */
+		 
+		 You have to provide ActivationStep1Param structure with all required properties available.
+		 The result of the operation is stored into the ActivationStep1Result structure.
+		 
+		 Returns EC_Ok,         if operation succeeded
+				 EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
+				 EC_WrongState, if called in wrong session's state
+				 EC_WrongParam, if some required parameter is missing
+		 */
 		ErrorCode startActivation(const ActivationStep1Param & param, ActivationStep1Result & result);
 		
 		/**
 		 Validates activation respose received from the server. The session expects that the activation
-		 process was previously started with using 'startActivation' method. You have to provide 
+		 process was previously started with using 'startActivation' method. You have to provide
 		 ActivationStep2Param structure with all members filled with the response. The result of the
-		 operation is stored in the ActivationStep2Result structure. If the response is correct then 
+		 operation is stored in the ActivationStep2Result structure. If the response is correct then
 		 you can call 'completeActivation' and finish the activation process.
 		 
 		 Discussion
@@ -174,16 +175,16 @@ namespace powerAuth
 		 estabilished context.
 		 
 		 Returns EC_Ok,         if operation succeeded
-                 EC_Encryption, if provided data, signature or keys are invalid. 
-                                If this error occurs then the session resets its state.
-                 EC_WrongState, if called in wrong session's state
-                 EC_WrongParam, if required parameter is missing
+				 EC_Encryption, if provided data, signature or keys are invalid.
+								If this error occurs then the session resets its state.
+				 EC_WrongState, if called in wrong session's state
+				 EC_WrongParam, if required parameter is missing
 		 */
 		ErrorCode validateActivationResponse(const ActivationStep2Param & param, ActivationStep2Result & result);
 		
 		/**
 		 Completes previously started activation process and protects sensitive local information with
-		 provided protection keys. Please check the documentation for SignatureUnlockKeys structure 
+		 provided protection keys. Please check the documentation for SignatureUnlockKeys structure
 		 for details about constructing protection keys and for other related information.
 		 
 		 You have to provide at least keys.userPassword and keys.possessionUnlockKey to pass the method's
@@ -193,10 +194,10 @@ namespace powerAuth
 		 WARNING: You have to save session's staate when the activation is completed!
 		 
 		 Returns EC_Ok,         if operation succeeded
-                 EC_Encryption, if some internal encryption failed
-                                if this error occurs, then the session resets its state
-                 EC_WrongState, if called in wrong session's state
-                 EC_WrongParam, if required parameter is missing
+				 EC_Encryption, if some internal encryption failed
+								if this error occurs, then the session resets its state
+				 EC_WrongState, if called in wrong session's state
+				 EC_WrongParam, if required parameter is missing
 		 */
 		ErrorCode completeActivation(const SignatureUnlockKeys & keys);
 		
@@ -214,7 +215,7 @@ namespace powerAuth
 		// MARK: - Data signing -
 		
 		/**
-		 Converts key:value map into normalized data, suitable for data signing. The method is useful in cases where 
+		 Converts key:value map into normalized data, suitable for data signing. The method is useful in cases where
 		 you want to sign parameters of GET request. You have to provide key-value map constructed from your GET parameters.
 		 The result is normalized byte sequence, prepared for data signing. For POST requests it's recommended to sign
 		 a whole POST body.
@@ -228,36 +229,36 @@ namespace powerAuth
 		static cc7::ByteArray prepareKeyValueMapForDataSigning(const std::map<std::string, std::string> & key_value_map);
 
 		/**
-         Calculates signature from given |request_data| structure. You have to provide all involved unlock keys 
+		 Calculates signature from given |request_data| structure. You have to provide all involved unlock keys
 		 in |keys| structure, required for desired |signature_factor|. For the |request_data.body| you can provide whole POST
 		 body or you can prepare data with using 'prepareKeyValueMapForDataSigning' method. The |request_data.method|
-		 parameter is the HTML method of the request (e.g. GET, POST, etc...). The |request_data.uri| parameter should be 
+		 parameter is the HTML method of the request (e.g. GET, POST, etc...). The |request_data.uri| parameter should be
 		 relative URI. Check the original PA2 documentation for details about signing the HTTP requests.
-         
+		 
 		 The result is stored to the |out_signature| structure and can be converted to a full value for
 		 X-PowerAuth-Authorization header.
 		 
-         If you're going to sign request for a vault key retrieving, then you have to specifiy signature
-         factor combined with SF_PrepareForVaultUnlock flag. Otherwise the subsequent vault unlock
-         operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
-         not be able to complete the operation.
+		 If you're going to sign request for a vault key retrieving, then you have to specifiy signature
+		 factor combined with SF_PrepareForVaultUnlock flag. Otherwise the subsequent vault unlock
+		 operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
+		 not be able to complete the operation.
 		 
-         WARNING
-         
-         You have to save session's state after the successful operation, due to internal counter change.
-         If you don't save the state then you'll sooner or later loose synchronization with the server 
+		 WARNING
+		 
+		 You have to save session's state after the successful operation, due to internal counter change.
+		 If you don't save the state then you'll sooner or later loose synchronization with the server
 		 and your client will not be able to sign data anymore.
-         
-         Discussion about thread safety
-         
-         If your networking infrastructure allows simultaneous HTTP requests then it's recommended to
-         guard this method with external locking. There's possible race condition when the internal signing counter
-         is raised in persistent data structure. The Session doesn't provide locking internally.
-         
-         Returns EC_Ok,         if operation succeeded
-                 EC_Encryption, if some cryptographic operation failed
-                 EC_WrongState, if the session has no valid activation
-                 EC_WrongParam, if some required parameter is missing
+		 
+		 Discussion about thread safety
+		 
+		 If your networking infrastructure allows simultaneous HTTP requests then it's recommended to
+		 guard this method with external locking. There's possible race condition when the internal signing counter
+		 is raised in persistent data structure. The Session doesn't provide locking internally.
+		 
+		 Returns EC_Ok,         if operation succeeded
+				 EC_Encryption, if some cryptographic operation failed
+				 EC_WrongState, if the session has no valid activation
+				 EC_WrongParam, if some required parameter is missing
 		 */
 		ErrorCode signHTTPRequestData(const HTTPRequestData & request_data,
 									  const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
@@ -283,31 +284,31 @@ namespace powerAuth
 		// MARK: - Signature keys management -
 		
 		/**
-         Changes user's password. You have to save session's state to keep this change for later.
-         
-         The method doesn't perform old password validation and therefore, if the wrong password is provided,
-         then the knowledge key will be permanently lost. Before calling this method, you have to validate 
-		 old password by calling some server's endpoint, which requires at least knowledge factor for completion.
-         
-         So, the typical flow for password change has a following steps:
-         
-             1. ask user for an old password
-             2. send HTTP request, signed with knowledge factor, use an old password for key unlock
-                  - if operation fails, then you can repeat step 1 or exit the flow
-             3. ask user for a new password as usual (e.g. ask for passwd for twice, compare both,
-                check minimum length, entropy, etc...)
-             4. call `changeUserPassword` with old and new password
-             5. save session's state
-         
-         WARNING
-         
-         All this, is just a preliminary proposal functionality and is not covered by PA2 specification.
-         The behavior or a whole flow of password changing may be a subject of change in the future.
+		 Changes user's password. You have to save session's state to keep this change for later.
 		 
-         Returns EC_Ok,         if operation succeeded
-                 EC_Encryption, if underlying cryptographic operation did fail or
-                                if you provided too short passwords.
-                 EC_WrongState, if the session has no valid activation
+		 The method doesn't perform old password validation and therefore, if the wrong password is provided,
+		 then the knowledge key will be permanently lost. Before calling this method, you have to validate
+		 old password by calling some server's endpoint, which requires at least knowledge factor for completion.
+		 
+		 So, the typical flow for password change has a following steps:
+		 
+			 1. ask user for an old password
+			 2. send HTTP request, signed with knowledge factor, use an old password for key unlock
+				  - if operation fails, then you can repeat step 1 or exit the flow
+			 3. ask user for a new password as usual (e.g. ask for passwd for twice, compare both,
+				check minimum length, entropy, etc...)
+			 4. call `changeUserPassword` with old and new password
+			 5. save session's state
+		 
+		 WARNING
+		 
+		 All this, is just a preliminary proposal functionality and is not covered by PA2 specification.
+		 The behavior or a whole flow of password changing may be a subject of change in the future.
+		 
+		 Returns EC_Ok,         if operation succeeded
+				 EC_Encryption, if underlying cryptographic operation did fail or
+								if you provided too short passwords.
+				 EC_WrongState, if the session has no valid activation
 		 */
 		ErrorCode changeUserPassword(const cc7::ByteRange & old_password, const cc7::ByteRange & new_password);
 		
@@ -315,7 +316,7 @@ namespace powerAuth
 		 Adds a key for biometry factor. You have to provide encrypted vault key |c_vault_key| and
 		 |keys| structure where the valid possessionUnlockKey is set. The |keys| structure also must
 		 contain a new biometryUnlockKey, which will be used for a protection of the newly created
-		 biometry signature key. You should always save session's state after this operation, whether 
+		 biometry signature key. You should always save session's state after this operation, whether
 		 it ends with error or not.
 		 
 		 Discussion
@@ -326,7 +327,7 @@ namespace powerAuth
 		 and next subsequent operation for vault key decryption will finish correctly.
 		 
 		 If you don't receive response from the server then it's OK to leave the session as is. The session's
-		 counter is probably at the same value as server's or slightly ahead and therefore everything should 
+		 counter is probably at the same value as server's or slightly ahead and therefore everything should
 		 later work correctly. The session then only display a warning to the debug console about the previous
 		 pending vault unlock operation.
 		 
@@ -348,7 +349,7 @@ namespace powerAuth
 		ErrorCode hasBiometryFactor(bool & hasBiometryFactor) const;
 		
 		/**
-		 Removes existing key for biometric signatures from the session. You have to save state of the session 
+		 Removes existing key for biometric signatures from the session. You have to save state of the session
 		 after the operation.
 		 
 		 Returns EC_Ok,         if operation succeeded
@@ -360,13 +361,13 @@ namespace powerAuth
 		// MARK: - Vault operations -
 		
 		/**
-		 Calculates a cryptographic key, derived from encrypted vault key, received from the server. The method 
+		 Calculates a cryptographic key, derived from encrypted vault key, received from the server. The method
 		 is useful for situations, where the application needs to protect locally stored data with a cryptographic
 		 key, which is normally not present on the device and must be acquired from the server at first.
 		 
 		 You have to provide encrypted |c_vault_key| and |keys| structure with a valid possessionUnlockKey.
 		 The |key_index| is a parameter to the key derivation function and if the operation succeeds then the
-		 derived key is stored to the |out_key| byte array. You should always save session's state after this 
+		 derived key is stored to the |out_key| byte array. You should always save session's state after this
 		 operation, whether it ends with error or not.
 		 
 		 Discussion
@@ -379,7 +380,7 @@ namespace powerAuth
 		 SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
 
 
- 		 Returns EC_Ok,         if operation succeeded
+		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
 				 EC_WrongState, if the session has no valid activation or
 								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
@@ -396,10 +397,10 @@ namespace powerAuth
 		 Discussion
 		 
 		 The session's state contains device private key but is encrypted with vault key, which is normally not
-		 available on the device. Just like other vault related operations, you have to properly sign HTTP request 
+		 available on the device. Just like other vault related operations, you have to properly sign HTTP request
 		 with using SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
 
- 		 Returns EC_Ok,         if operation succeeded
+		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
 				 EC_WrongState, if the session has no valid activation or
 								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
@@ -411,7 +412,7 @@ namespace powerAuth
 	private:
 
 		/**
-		 Decrypts vault key received from the server. The method is private and is used internally for vault 
+		 Decrypts vault key received from the server. The method is private and is used internally for vault
 		 unlocking. The keys.possessionUnlockKey is required.
 		 */
 		ErrorCode decryptVaultKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
@@ -427,10 +428,10 @@ namespace powerAuth
 		bool hasExternalEncryptionKey() const;
 		
 		/**
-		 Sets a known external encryption key to the internal SessionSetup structure. This method 
-		 is useful, when the Session is using EEK, but the key is not known yet. You can restore 
-		 the session without the EEK and use it for a very limited set of operations, like the status 
-		 decode. The data signing will also work correctly, but only for a knowledge factor, which 
+		 Sets a known external encryption key to the internal SessionSetup structure. This method
+		 is useful, when the Session is using EEK, but the key is not known yet. You can restore
+		 the session without the EEK and use it for a very limited set of operations, like the status
+		 decode. The data signing will also work correctly, but only for a knowledge factor, which
 		 is by design not protected with EEK.
 		 
 		 Returns EC_Ok			if operation succeeded
@@ -441,8 +442,8 @@ namespace powerAuth
 		ErrorCode setExternalEncryptionKey(const cc7::ByteRange & eek);
 		
 		/**
-		 Adds a new external encryption key permanently to the activated Session and to the internal 
-		 SessionSetup structure. The method is different than 'setExternalEncryptionKey' and is useful 
+		 Adds a new external encryption key permanently to the activated Session and to the internal
+		 SessionSetup structure. The method is different than 'setExternalEncryptionKey' and is useful
 		 for scenarios, when you need to add the EEK additionally, after the activation.
 		 
 		 You have to save state of the session after the operation.
@@ -475,7 +476,7 @@ namespace powerAuth
 		/**
 		 Creates a new instace of Encryptor class initialized for nonpersonalized End-To-End Encryption.
 		 The nonpersonalized mode of E2EE is available after the correct Session object initialization,
-		 so you can basically use the method anytime during the object's lifetime. The |session_index| 
+		 so you can basically use the method anytime during the object's lifetime. The |session_index|
 		 range must point to 16 bytes long sequence of bytes. If your application doesn't have mechanism
 		 for session index creation, then you can use generateSignatureUnlockKey() for this purpose.
 		 
@@ -586,10 +587,15 @@ namespace powerAuth
 		// MARK: - Private section -
 		
 		/**
+		 Thread synchronization primitive
+		 */
+		mutable std::recursive_mutex _lock;
+		
+		/**
 		 Current session's state.
 		 */
 		State _state;
-				
+		
 		/**
 		 Private copy of SessionSetup structure.
 		 */

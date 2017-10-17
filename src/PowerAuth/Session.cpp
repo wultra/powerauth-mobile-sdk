@@ -35,6 +35,8 @@ namespace getlime
 namespace powerAuth
 {
 	
+#define LOCK_GUARD() std::lock_guard<std::recursive_mutex> _lock_guard(_lock)
+	
 	// MARK: Construction / Destruction -
 	
 	Session::Session(const SessionSetup & setup) :
@@ -61,16 +63,19 @@ namespace powerAuth
 	
 	void Session::resetSession()
 	{
+		LOCK_GUARD();
 		commitNewPersistentState(nullptr, SS_Empty);
 	}
 	
 	const SessionSetup * Session::sessionSetup() const
 	{
+		LOCK_GUARD();
 		return hasValidSetup() ? &_setup : nullptr;
 	}
 	
 	cc7::U32 Session::sessionIdentifier() const
 	{
+		LOCK_GUARD();
 		return hasValidSetup() ? _setup.sessionIdentifier : 0;
 	}
 	
@@ -80,11 +85,13 @@ namespace powerAuth
 	
 	bool Session::hasValidSetup() const
 	{
+		LOCK_GUARD();
 		return _state >= SS_Empty;
 	}
 	
 	bool Session::canStartActivation() const
 	{
+		LOCK_GUARD();
 		if (_state == SS_Empty) {
 			if (CC7_CHECK(_pd == nullptr && _ad == nullptr, "Internal error. PD should be null when state is SS_Empty")) {
 				return true;
@@ -95,6 +102,7 @@ namespace powerAuth
 	
 	bool Session::hasPendingActivation() const
 	{
+		LOCK_GUARD();
 		if (_state == SS_Activation1 || _state == SS_Activation2) {
 			if (CC7_CHECK(_pd == nullptr && _ad != nullptr, "Internal error. Only AD should be valid during the pending activation.")) {
 				return true;
@@ -105,6 +113,7 @@ namespace powerAuth
 	
 	bool Session::hasValidActivation() const
 	{
+		LOCK_GUARD();
 		if (_state == SS_Activated && hasValidSetup()) {
 			if (CC7_CHECK(_pd != nullptr && _ad == nullptr, "Internal error. Only PD & setup should be valid when activated.")) {
 				return true;
@@ -124,6 +133,7 @@ namespace powerAuth
 	
 	cc7::ByteArray Session::saveSessionState() const
 	{
+		LOCK_GUARD();
 		cc7:byte flags = 0;
 		if (hasValidActivation()) {
 			flags |= HAS_PERSISTENT_DATA;
@@ -143,6 +153,7 @@ namespace powerAuth
 	
 	ErrorCode Session::loadSessionState(const cc7::ByteRange & serialized_state)
 	{
+		LOCK_GUARD();
 		utils::DataReader reader(serialized_state);
 		cc7::byte flags = 0;
 		
@@ -168,6 +179,7 @@ namespace powerAuth
 	
 	std::string Session::activationIdentifier() const
 	{
+		LOCK_GUARD();
 		if (hasValidActivation()) {
 			return _pd->activationId;
 		}
@@ -176,6 +188,7 @@ namespace powerAuth
 	
 	ErrorCode Session::startActivation(const ActivationStep1Param & param, ActivationStep1Result & result)
 	{
+		LOCK_GUARD();
 		// Validate state & parameters
 		if (!hasValidSetup()) {
 			CC7_LOG("Session %p, %d: Step 1: Session has no valid setup.", this, sessionIdentifier());
@@ -261,6 +274,7 @@ namespace powerAuth
 	
 	ErrorCode Session::validateActivationResponse(const ActivationStep2Param & param, ActivationStep2Result & result)
 	{
+		LOCK_GUARD();
 		// Validate state & parameters
 		if (!hasPendingActivation() || _state != SS_Activation1) {
 			CC7_LOG("Session %p, %d: Step 2: Called in wrong state.", this, sessionIdentifier());
@@ -336,6 +350,7 @@ namespace powerAuth
 	
 	ErrorCode Session::completeActivation(const SignatureUnlockKeys & keys)
 	{
+		LOCK_GUARD();
 		// Validate state & parameters
 		if (!hasPendingActivation() || _state != SS_Activation2) {
 			CC7_LOG("Session %p, %d: Step 3: Called in wrong state.", this, sessionIdentifier());
@@ -406,6 +421,7 @@ namespace powerAuth
 	
 	ErrorCode Session::decodeActivationStatus(const std::string & status_blob, const SignatureUnlockKeys & keys, ActivationStatus & status) const
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Status: Called in wrong state.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -491,6 +507,7 @@ namespace powerAuth
 										   const SignatureUnlockKeys & keys, SignatureFactor signature_factor,
 										   HTTPRequestDataSignature & out)
 	{
+		LOCK_GUARD();
 		// Validate session's state & parameters
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Sign: There's no valid activation.", this, sessionIdentifier());
@@ -576,6 +593,7 @@ namespace powerAuth
 	
 	ErrorCode Session::verifyServerSignedData(const SignedData & data) const
 	{
+		LOCK_GUARD();
 		if (!hasValidSetup()) {
 			CC7_LOG("Session %p, %d: ServerSig: Session has no valid setup.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -605,6 +623,7 @@ namespace powerAuth
 	
 	ErrorCode Session::changeUserPassword(const cc7::ByteRange & old_password, const cc7::ByteRange & new_password)
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: PasswordChange: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -644,6 +663,7 @@ namespace powerAuth
 
 	ErrorCode Session::addBiometryFactor(const std::string & c_vault_key, const SignatureUnlockKeys & keys)
 	{
+		LOCK_GUARD();
 		if (keys.biometryUnlockKey.empty()) {
 			CC7_LOG("Session %p, %d: addBiometryKey: The required biometryUnlockKey is missing.", this, sessionIdentifier());
 			return EC_WrongParam;
@@ -707,6 +727,7 @@ namespace powerAuth
 	
 	ErrorCode Session::hasBiometryFactor(bool &hasBiometryFactor) const
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: hasBiometryFactor: There's no valid activation.", this, sessionIdentifier());
 			hasBiometryFactor = false;
@@ -718,6 +739,7 @@ namespace powerAuth
 	
 	ErrorCode Session::removeBiometryFactor()
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: removeBiometryKey: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -738,6 +760,7 @@ namespace powerAuth
 	ErrorCode Session::deriveCryptographicKeyFromVaultKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
 														  cc7::U64 key_index, cc7::ByteArray & out_key)
 	{
+		LOCK_GUARD();
 		cc7::ByteArray vault_key;
 		ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
 		if (code != EC_Ok) {
@@ -753,6 +776,7 @@ namespace powerAuth
 	ErrorCode Session::signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
 													const cc7::ByteRange & in_data, cc7::ByteArray & out_signature)
 	{
+		LOCK_GUARD();
 		cc7::ByteArray vault_key;
 		ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
 		if (code != EC_Ok) {
@@ -788,6 +812,7 @@ namespace powerAuth
 	
 	ErrorCode Session::decryptVaultKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys, cc7::ByteArray & out_key)
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Vault: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -862,11 +887,13 @@ namespace powerAuth
 	
 	bool Session::hasExternalEncryptionKey() const
 	{
+		LOCK_GUARD();
 		return eek() != nullptr;
 	}
 	
 	ErrorCode Session::setExternalEncryptionKey(const cc7::ByteRange & eek)
 	{
+		LOCK_GUARD();
 		if (hasExternalEncryptionKey()) {
 			if (_setup.externalEncryptionKey == eek) {
 				return EC_Ok;
@@ -897,6 +924,7 @@ namespace powerAuth
 	
 	ErrorCode Session::addExternalEncryptionKey(const cc7::ByteArray &eek)
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: EEK: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -920,6 +948,7 @@ namespace powerAuth
 	
 	ErrorCode Session::removeExternalEncryptionKey()
 	{
+		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: EEK: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
@@ -957,6 +986,7 @@ namespace powerAuth
 	
 	std::tuple<ErrorCode, Encryptor*> Session::createNonpersonalizedEncryptor(const cc7::ByteRange & session_index)
 	{
+		LOCK_GUARD();
 		// Validate state & parameters
 		if (!hasValidSetup()) {
 			CC7_LOG("Session %p, %d: E2EE-NP: There's no valid setup.", this, sessionIdentifier());
@@ -1022,6 +1052,7 @@ namespace powerAuth
 	
 	std::tuple<ErrorCode, Encryptor*> Session::createPersonalizedEncryptor(const cc7::ByteRange & session_index, const SignatureUnlockKeys & keys)
 	{
+		LOCK_GUARD();
 		// Validate state & parameters
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: E2EE-P: There's no valid activation.", this, sessionIdentifier());

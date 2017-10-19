@@ -3,9 +3,9 @@ Pod::Spec.new do |s|
 	s.name              = 'PowerAuth2-Debug'
 	s.version           = '%DEPLOY_VERSION%'
 	s.summary           = 'PowerAuth 2.0 Debug Mobile SDK for iOS'
-	s.homepage          = 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk'
+	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
-	s.documentation_url = 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
+	s.documentation_url = 'https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
 	s.author            = { 
 	  'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu'
 	}
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 		
 	# Source files
 	s.source = { 
-		:git => 'https://github.com/lime-company/lime-security-powerauth-mobile-sdk.git',
+		:git => 'https://github.com/lime-company/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
 		:submodules => true
 	}

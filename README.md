@@ -4,8 +4,8 @@ In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile
 
 ## Integration Tutorials
 
-- [PowerAuth SDK for iOS Apps](https://github.com/lime-company/lime-security-powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
-- [PowerAuth SDK for Android Apps](https://github.com/lime-company/lime-security-powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
+- [PowerAuth SDK for iOS Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
+- [PowerAuth SDK for Android Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
 
 ## License
 

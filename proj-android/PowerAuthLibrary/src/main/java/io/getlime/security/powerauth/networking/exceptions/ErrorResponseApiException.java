@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.exceptions;
 
-import io.getlime.security.powerauth.rest.api.model.entity.ErrorModel;
+import io.getlime.core.rest.model.base.entity.Error;
 
 /**
  * Signals that a REST connection failed with a known error. You can check
@@ -27,21 +27,21 @@ public class ErrorResponseApiException extends Exception {
     /**
      * Error response received from the server
      */
-    private ErrorModel mErrorResponse;
+    private Error mErrorResponse;
 
     /**
      * Constructs a new exception with error received from server.
      *
      * @param errorResponse error received from server
      */
-    public ErrorResponseApiException(ErrorModel errorResponse) {
+    public ErrorResponseApiException(Error errorResponse) {
         this.mErrorResponse = errorResponse;
     }
 
     /**
      * @return ErrorModel with failure reason
      */
-    public ErrorModel getErrorResponse() {
+    public Error getErrorResponse() {
         return mErrorResponse;
     }
 }

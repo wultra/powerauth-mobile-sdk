@@ -32,6 +32,8 @@ import com.google.gson.GsonBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
 import io.getlime.security.powerauth.core.ActivationStep1Result;
@@ -45,6 +47,7 @@ import io.getlime.security.powerauth.core.SignatureFactor;
 import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
+import io.getlime.security.powerauth.core.SignedData;
 import io.getlime.security.powerauth.e2ee.PA2EncryptionFailedException;
 import io.getlime.security.powerauth.e2ee.PA2EncryptorFactory;
 import io.getlime.security.powerauth.e2ee.PA2RequestResponseNonPersonalizedEncryptor;
@@ -61,13 +64,10 @@ import io.getlime.security.powerauth.networking.endpoints.PA2RemoveActivationEnd
 import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiRequest;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiResponse;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateCustomRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
-import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateCustomResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
@@ -483,10 +483,10 @@ public class PowerAuthSDK {
         request.setExtras(extras);
 
         // Perform the server request
-        return mClient.createActivation(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationCreateCustomResponse>() {
+        return mClient.createActivation(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationCreateResponse>() {
 
             @Override
-            public void onNetworkResponse(ActivationCreateCustomResponse response) {
+            public void onNetworkResponse(ActivationCreateResponse response) {
                 // Network communication completed correctly
                 final ActivationStep2Param paramStep2 = new ActivationStep2Param(
                         response.getActivationId(),
@@ -577,7 +577,7 @@ public class PowerAuthSDK {
 
         final PA2RequestResponseNonPersonalizedEncryptor encryptor = mEncryptorFactory.buildRequestResponseNonPersonalizedEncryptor();
 
-        PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> encryptedRequest = null;
+        ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptedRequest = null;
         try {
             encryptedRequest = encryptor.encryptRequestData(requestData);
         } catch (PA2EncryptionFailedException e) {
@@ -591,12 +591,11 @@ public class PowerAuthSDK {
             @Override
             public void onNetworkResponse(NonPersonalizedEncryptedPayloadModel nonPersonalizedEncryptedPayloadModel) {
                 try {
-                    byte[] originalBytes = encryptor.decryptResponse(new PowerAuthApiResponse<>(
-                            PowerAuthApiResponse.Status.OK,
-                            PowerAuthApiResponse.Encryption.NON_PERSONALIZED,
+                    byte[] originalBytes = encryptor.decryptResponse(new ObjectResponse<NonPersonalizedEncryptedPayloadModel>(
+                            ObjectResponse.Status.OK,
                             nonPersonalizedEncryptedPayloadModel
                     ));
-                    ActivationCreateCustomResponse activationCreateResponse = gson.fromJson(new String(originalBytes), ActivationCreateCustomResponse.class);
+                    ActivationCreateResponse activationCreateResponse = gson.fromJson(new String(originalBytes), ActivationCreateResponse.class);
 
                     ActivationStep2Param step2Param = new ActivationStep2Param(
                             activationCreateResponse.getActivationId(),
@@ -978,14 +977,13 @@ public class PowerAuthSDK {
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
-     * @param method         HTTP method used for the signature computation.
      * @param uriId          URI identifier.
      * @param body           HTTP request body.
      * @param nonce          NONCE in Base64 format
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body, String nonce) {
+    public String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
 
         checkForValidSetup();
 
@@ -1009,7 +1007,7 @@ public class PowerAuthSDK {
         int signatureFactor = determineSignatureFactorForAuthentication(authentication, false);
 
         // Compute authorization header for provided values and return result.
-        SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, nonce);
+        SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce);
         SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
 
         // Update state after each successful calculation
@@ -1019,6 +1017,27 @@ public class PowerAuthSDK {
             return signatureResult.signatureCode;
         }
         return null;
+    }
+
+    /***
+     * Validates whether the data has been signed with master server private key.
+     *
+     * @param data An arbitrary data
+     * @param signature A signature calculated for data
+     * @return true if signature is valid
+     */
+    public boolean verifyServerSignedData(byte[] data, byte[] signature) {
+
+        checkForValidSetup();
+
+        // Check if there is an activation present
+        if (!mSession.hasValidActivation()) {
+            return false;
+        }
+
+        // Verify signature
+        SignedData signedData = new SignedData(data, signature);
+        return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
     }
 
     /**

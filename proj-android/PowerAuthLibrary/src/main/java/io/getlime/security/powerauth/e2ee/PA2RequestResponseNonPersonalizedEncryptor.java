@@ -21,11 +21,11 @@ import com.google.gson.GsonBuilder;
 
 import java.io.UnsupportedEncodingException;
 
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.core.EncryptedMessage;
 import io.getlime.security.powerauth.core.Encryptor;
 import io.getlime.security.powerauth.core.ErrorCode;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiRequest;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiResponse;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 
 /**
@@ -63,7 +63,7 @@ public class PA2RequestResponseNonPersonalizedEncryptor implements PA2Encryptor 
      * @throws PA2EncryptionFailedException In case encryption fails.
      */
     @Override
-    public PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(byte[] originalData) throws PA2EncryptionFailedException {
+    public ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(byte[] originalData) throws PA2EncryptionFailedException {
         EncryptedMessage encryptedMessage = encryptor.encrypt(originalData);
         if (encryptedMessage == null) {
             throw new PA2EncryptionFailedException();
@@ -78,8 +78,7 @@ public class PA2RequestResponseNonPersonalizedEncryptor implements PA2Encryptor 
         requestObject.setMac(encryptedMessage.mac);
         requestObject.setEncryptedData(encryptedMessage.encryptedData);
 
-        PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> request = new PowerAuthApiRequest<>(
-                PowerAuthApiRequest.Encryption.NON_PERSONALIZED,
+        ObjectRequest<NonPersonalizedEncryptedPayloadModel> request = new ObjectRequest<>(
                 requestObject
         );
         return request;
@@ -96,7 +95,7 @@ public class PA2RequestResponseNonPersonalizedEncryptor implements PA2Encryptor 
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
     @Override
-    public PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(Object requestObject) throws PA2EncryptionFailedException {
+    public ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(Object requestObject) throws PA2EncryptionFailedException {
         try {
             byte[] bytes = objectMapper.toJson(requestObject).getBytes("UTF-8");
             return this.encryptRequestData(bytes);
@@ -114,34 +113,31 @@ public class PA2RequestResponseNonPersonalizedEncryptor implements PA2Encryptor 
      * @throws PA2EncryptionFailedException In case invalid type of decryption mode is present in response, or in case decryption fails with error.
      */
     @Override
-    public byte[] decryptResponse(PowerAuthApiResponse<NonPersonalizedEncryptedPayloadModel> response) throws PA2EncryptionFailedException {
-        if (response.getEncryption().equals(PowerAuthApiResponse.Encryption.NON_PERSONALIZED)) {
+    public byte[] decryptResponse(ObjectResponse<NonPersonalizedEncryptedPayloadModel> response) throws PA2EncryptionFailedException {
 
-            NonPersonalizedEncryptedPayloadModel responseObject = response.getResponseObject();
+        NonPersonalizedEncryptedPayloadModel responseObject = response.getResponseObject();
 
-            // Prepare the decrypted message payload
-            EncryptedMessage encryptedMessage = new EncryptedMessage(
-                    responseObject.getApplicationKey(),
-                    null,
-                    responseObject.getEncryptedData(),
-                    responseObject.getMac(),
-                    responseObject.getSessionIndex(),
-                    responseObject.getAdHocIndex(),
-                    responseObject.getMacIndex(),
-                    responseObject.getNonce(),
-                    responseObject.getEphemeralPublicKey()
-            );
+        // Prepare the decrypted message payload
+        EncryptedMessage encryptedMessage = new EncryptedMessage(
+                responseObject.getApplicationKey(),
+                null,
+                responseObject.getEncryptedData(),
+                responseObject.getMac(),
+                responseObject.getSessionIndex(),
+                responseObject.getAdHocIndex(),
+                responseObject.getMacIndex(),
+                responseObject.getNonce(),
+                responseObject.getEphemeralPublicKey()
+        );
 
-            // Return decrypted data
-            byte[] originalData = encryptor.decrypt(encryptedMessage);
+        // Return decrypted data
+        byte[] originalData = encryptor.decrypt(encryptedMessage);
 
-            if (encryptor.lastErrorCode != ErrorCode.OK) {
-                throw new PA2EncryptionFailedException();
-            }
-
-            return originalData;
+        if (encryptor.lastErrorCode != ErrorCode.OK) {
+            throw new PA2EncryptionFailedException();
         }
-        throw new PA2EncryptionFailedException();
+
+        return originalData;
     }
 
     /**
@@ -156,7 +152,7 @@ public class PA2RequestResponseNonPersonalizedEncryptor implements PA2Encryptor 
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
     @Override
-    public <T> T decryptResponse(PowerAuthApiResponse<NonPersonalizedEncryptedPayloadModel> response, Class<T> responseType) throws PA2EncryptionFailedException {
+    public <T> T decryptResponse(ObjectResponse<NonPersonalizedEncryptedPayloadModel> response, Class<T> responseType) throws PA2EncryptionFailedException {
         try {
             byte[] originalData = this.decryptResponse(response);
             return objectMapper.fromJson(new String(originalData, "UTF-8"), responseType);

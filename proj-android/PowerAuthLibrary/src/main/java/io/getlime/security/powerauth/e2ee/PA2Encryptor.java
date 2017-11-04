@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.e2ee;
 
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiRequest;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiResponse;
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 
 /**
@@ -33,7 +33,7 @@ public interface PA2Encryptor {
      * @return New instance of a ready to use encrypted request, or nil if error occurs.
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
-    PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(byte[] originalData) throws PA2EncryptionFailedException;
+    ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(byte[] originalData) throws PA2EncryptionFailedException;
 
     /**
      * Encrypt given object data using non-personalized (application key specific) or personalized (activation
@@ -45,7 +45,7 @@ public interface PA2Encryptor {
      * @return Encrypted response.
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
-    PowerAuthApiRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(Object requestObject) throws PA2EncryptionFailedException;
+    ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptRequestData(Object requestObject) throws PA2EncryptionFailedException;
 
     /**
      * Decrypt encrypted response and return plain decrypted response data.
@@ -54,7 +54,7 @@ public interface PA2Encryptor {
      * @return Decrypted response bytes, or nil if error occurs.
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
-    byte[] decryptResponse(PowerAuthApiResponse<NonPersonalizedEncryptedPayloadModel> response) throws PA2EncryptionFailedException;
+    byte[] decryptResponse(ObjectResponse<NonPersonalizedEncryptedPayloadModel> response) throws PA2EncryptionFailedException;
 
     /**
      * Decrypt encrypted response and return an instance of a provided class.
@@ -67,6 +67,6 @@ public interface PA2Encryptor {
      * @return Decrypted response in case decryption and mapping is successful, null otherwise.
      * @throws PA2EncryptionFailedException In case that encryption fails.
      */
-    <T> T decryptResponse(PowerAuthApiResponse<NonPersonalizedEncryptedPayloadModel> response, Class<T> responseType) throws PA2EncryptionFailedException;
+    <T> T decryptResponse(ObjectResponse<NonPersonalizedEncryptedPayloadModel> response, Class<T> responseType) throws PA2EncryptionFailedException;
 
 }

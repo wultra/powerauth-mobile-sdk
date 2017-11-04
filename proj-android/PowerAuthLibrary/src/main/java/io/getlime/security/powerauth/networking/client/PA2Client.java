@@ -30,16 +30,13 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +45,8 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
+import io.getlime.core.rest.model.base.entity.Error;
+import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.security.powerauth.networking.endpoints.PA2ActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2CreateActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2NonPersonalizedEncryptedEndpoint;
@@ -58,12 +57,9 @@ import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
-import io.getlime.security.powerauth.rest.api.model.base.PowerAuthApiRequest;
-import io.getlime.security.powerauth.rest.api.model.entity.ErrorModel;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
-import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateCustomResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
@@ -116,7 +112,7 @@ public class PA2Client {
                 return null;
             }
             try {
-                final PowerAuthApiRequest<TRequest> requestObject = new PowerAuthApiRequest<>(params[0]);
+                final ObjectRequest<TRequest> requestObject = new ObjectRequest<>(params[0]);
                 final String jsonRequestObject = mGson.toJson(requestObject);
                 final byte[] postDataBytes = jsonRequestObject.getBytes("UTF-8");
 
@@ -212,7 +208,7 @@ public class PA2Client {
                                     }
                                 } else {
                                     // Status is not "OK", try to create ErrorModel object
-                                    final ErrorModel error = mGson.fromJson(responseElement, TypeToken.get(ErrorModel.class).getType());
+                                    final Error error = mGson.fromJson(responseElement, TypeToken.get(Error.class).getType());
                                     callOnErrorUi(new ErrorResponseApiException(error), responseListener);
                                 }
                                 // Return now, because for all other cases, we will report an error...
@@ -306,7 +302,7 @@ public class PA2Client {
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull ActivationCreateRequest request,
-            @NonNull INetworkResponseListener<ActivationCreateCustomResponse> listener) {
+            @NonNull INetworkResponseListener<ActivationCreateResponse> listener) {
         return execute(configuration, clientConfiguration, new PA2CreateActivationEndpoint(configuration.getBaseEndpointUrl()), request, null, listener);
     }
 

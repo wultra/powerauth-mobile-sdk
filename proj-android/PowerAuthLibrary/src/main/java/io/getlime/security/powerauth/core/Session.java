@@ -272,6 +272,12 @@ public class Session {
      You can calculate appropriate value with using 'signHTTPRequest' method.
      */
 	public native String getHttpAuthHeaderName();
+
+	/**
+	 Validates whether the data has been signed with master server private key.
+	 Returns integer comparable to constants available at ErrorCode class.
+	 */
+	public native int verifyServerSignedData(SignedData signedData);
 	
 	//
 	// Signature keys management

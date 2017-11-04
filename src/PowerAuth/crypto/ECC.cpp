@@ -117,6 +117,36 @@ namespace crypto
 	}
 	
 	
+	cc7::ByteArray ECC_ExportPublicKeyToNormalizedForm(EC_KEY * key, BN_CTX * c)
+	{
+		cc7::ByteArray out;
+		do {
+			if (!key) {
+				break;
+			}
+			BNContext ctx(c);
+			const EC_POINT * point = EC_KEY_get0_public_key(key);
+			BIGNUM * x = BN_CTX_get(ctx);
+			BIGNUM * y = BN_CTX_get(ctx);
+			if (!x || !y || !point) {
+				break;
+			}
+			const EC_GROUP * group = EC_KEY_get0_group(key);
+			if (EC_POINT_is_at_infinity(group, point)) {
+				break;
+			}
+			if (!EC_POINT_get_affine_coordinates_GFp(group, point, x, y, ctx)) {
+				break;
+			}
+			// Export X to bytes...
+			out.resize(BN_num_bytes(x));
+			BN_bn2bin(x, out.data());
+			
+		} while (false);
+		return out;
+	}
+	
+	
 	EC_KEY * ECC_ImportPrivateKey(EC_KEY * key, const cc7::ByteRange & privateKeyData, BN_CTX * c)
 	{
 		bool result = false;

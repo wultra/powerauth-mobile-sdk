@@ -385,7 +385,7 @@ namespace powerAuthTests
 					param2.serverDataSignature      = SERVER_DATA_SIGNATURE.base64String();
 					
 					// calculate hkKEY_DEVICE_PUBLIC on dummy server's side
-					cc7::ByteArray hash = crypto::SHA256(KEY_DEVICE_PUBLIC);
+					cc7::ByteArray hash = crypto::SHA256(crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey));
 					size_t off    = hash.size() - 4;
 					uint32_t v = ((hash[off] & 0x7f) << 24) | (hash[off+1] << 16) | (hash[off+2] << 8) | hash[off+3];
 					v = v % 100000000;
@@ -962,7 +962,7 @@ namespace powerAuthTests
 					// Encrypt some message
 					EncryptedMessage msg;
 					auto plaintext = crypto::GetRandomData(334);
-					ec = enc1->encrypt(plaintext, msg);
+					ec = enc1 ? enc1->encrypt(plaintext, msg) : EC_WrongState;
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertEqual(msg.sessionIndex, sessionIndex.base64String());
 					ccstAssertEqual(msg.activationId, s1.activationIdentifier());
@@ -975,7 +975,7 @@ namespace powerAuthTests
 					ccstAssertTrue(msg.ephemeralPublicKey.empty());
 					
 					cc7::ByteArray decrypted;
-					ec = enc1->decrypt(msg, decrypted);
+					ec = enc1 ? enc1->decrypt(msg, decrypted) : EC_WrongState;
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertEqual(plaintext, decrypted);
 					

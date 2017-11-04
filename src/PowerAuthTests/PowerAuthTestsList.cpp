@@ -49,6 +49,7 @@ namespace powerAuthTests
 		CC7_ADD_UNIT_TEST(pa2ServerPublicKeyDecryption, list);
 		CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);
 		CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
+		CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
 		
 		return list;
 	}

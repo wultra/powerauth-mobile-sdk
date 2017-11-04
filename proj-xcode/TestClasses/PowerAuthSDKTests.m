@@ -504,8 +504,8 @@
 	result = serverActivationStatus != nil;
 	CHECK_RESULT_RET(preliminaryResult);
 	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
-	// This test fails but I don't know why :(
-	//XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
+	// Test whether the device's public key fingerprint is equal on server and client.
+	XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
 	
 	// This is just a cleanup. If remove will fail, then we don't report an error
 	if (removeAfter || !result) {

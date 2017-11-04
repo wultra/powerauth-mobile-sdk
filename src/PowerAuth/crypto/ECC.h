@@ -58,6 +58,11 @@ namespace crypto
 	 */
 	std::string		ECC_ExportPublicKeyToB64(EC_KEY * key, BN_CTX * c = nullptr);
 	/**
+	 Exports public key into normalized form, suitable for decimalization.
+	 This is equivalent operation to Java's: eccPublicKey.getW().getAffineX().toByteArray();
+	 */
+	cc7::ByteArray	ECC_ExportPublicKeyToNormalizedForm(EC_KEY * key, BN_CTX * c = nullptr);
+	/**
 	 Imports private key from given data.
 	 If key parameter is null then creates a new key.
 	 If key parameter is not null and import fails, then deletes provided key automatically.

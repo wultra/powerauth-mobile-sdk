@@ -85,6 +85,7 @@ namespace protocol
 		
 		cc7::ByteArray	serverPublicKeyData;	// Server's public key
 		cc7::ByteArray	devicePublicKeyData;	// Our public key
+		cc7::ByteArray	devicePublicKeyCoordX;	// Public key in form of affine CoordX
 		
 		cc7::ByteArray	activationNonce;		// Activation nonce, generated in 1st step of activation
 												// Nonce is also used for data injection, during the tests

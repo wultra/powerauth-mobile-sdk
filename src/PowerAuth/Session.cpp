@@ -227,7 +227,8 @@ namespace powerAuth
 				break;
 			}
 			ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey, ctx);
-			if (ad->devicePublicKeyData.empty()) {
+			ad->devicePublicKeyCoordX = crypto::ECC_ExportPublicKeyToNormalizedForm(ad->devicePrivateKey, ctx);
+			if (ad->devicePublicKeyData.empty() || ad->devicePublicKeyCoordX.empty()) {
 				CC7_LOG("Session %p, %d: Step 1: Unable to export public key.", this, sessionIdentifier());
 				break;
 			}
@@ -326,7 +327,7 @@ namespace powerAuth
 				break;
 			}
 			// So far so good, the last step is decimalization of device's public key
-			result.hkDevicePublicKey = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyData));
+			result.hkDevicePublicKey = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyCoordX));
 			if (result.hkDevicePublicKey.length() != protocol::HK_DEVICE_PUBLIC_KEY_SIZE) {
 				CC7_LOG("Session %p, %d: Step 2: Unable to calculate decimalized signature.", this, sessionIdentifier());
 				break;

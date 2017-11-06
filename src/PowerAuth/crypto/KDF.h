@@ -37,6 +37,9 @@ namespace crypto
 	// PBKDF with HMAC & SHA256
 	cc7::ByteArray PBKDF2_HMAC_SHA256(const cc7::ByteRange & pass, const cc7::ByteRange & salt, cc7::U32 iterations, size_t outputBytes);
 	
+	// ANSI X9.63 KDF function for ECDH
+	cc7::ByteArray ECDH_KDF_X9_63_SHA256(const cc7::ByteRange & secret, const cc7::ByteRange & info, size_t outputBytes);
+
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

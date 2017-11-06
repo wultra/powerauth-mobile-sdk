@@ -15,9 +15,10 @@
  */
 
 #include "KDF.h"
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
-
+#include "Hash.h"
+#include <openssl/evp.h>
+#include <openssl/ecdh.h>
+#include <cc7/Endian.h>
 
 namespace io
 {
@@ -51,7 +52,53 @@ namespace crypto
 		}
 		return result;
 	}
+	
+	
+	// -------------------------------------------------------------------------------------------
+	// MARK: - ECDH ANSI X9.63 -
+	//
+	
+	cc7::ByteArray ECDH_KDF_X9_63_SHA256(const cc7::ByteRange & secret, const cc7::ByteRange & info, size_t outputBytes)
+	{
+		cc7::ByteArray result(outputBytes, 0);
+		if (1 != ECDH_KDF_X9_62(result.data(), (int)outputBytes, secret.data(), (int)secret.size(), info.data(), (int)info.size(), EVP_sha256())) {
+			CC7_LOG("ECDH_KDF_X9_62 has failed!");
+			result.clear();
+		}
+		return result;
+	}
+	
+/*
+ 	// Reference implementation with using just SHA256 block
+	cc7::ByteArray ECDH_KDF_X9_63_SHA256(const cc7::ByteRange & secret, const cc7::ByteRange & info, size_t outputBytes)
+	{
+		cc7::ByteArray result;
+		cc7::ByteArray round, temp;
+		round.reserve(secret.size() + info.size() + 4);
 
+		cc7::byte counter[4];
+		cc7::U32 i = 1;
+		while (result.size() < outputBytes) {
+			// Counter must be in Big Endian format
+			cc7::U32 be_i = cc7::ToBigEndian(i);
+			// Data for sha256: secret || i || info
+			round.assign(secret);
+			round.append(cc7::MakeRange(be_i));
+			round.append(info);
+			temp = SHA256(round);
+			if (temp.size() == 0) {
+				result.clear();
+				break;
+			}
+			result.append(temp);
+			++i;
+		}
+		if (result.size() > outputBytes) {
+			result.resize(outputBytes);
+		}
+		return result;
+	}
+*/
 	
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth

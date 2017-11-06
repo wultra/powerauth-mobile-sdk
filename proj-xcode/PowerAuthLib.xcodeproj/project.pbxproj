@@ -105,6 +105,7 @@
 		BFD7BCF81FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFD7BCF71FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp */; };
 		BFE5DBB31FB0B89C00A4FBAB /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */; };
 		BFE5DBB61FB0B8C400A4FBAB /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
+		BFE5DBBE1FB0CB7600A4FBAB /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */; };
 		BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */; };
 /* End PBXBuildFile section */
 
@@ -372,6 +373,7 @@
 		BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KDF.cpp; sourceTree = "<group>"; };
 		BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MAC.cpp; sourceTree = "<group>"; };
 		BFE5DBB51FB0B8C400A4FBAB /* MAC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAC.h; sourceTree = "<group>"; };
+		BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDHKDFTests.cpp; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -889,6 +891,7 @@
 				BF234C851CE5114700312A7F /* pa2CryptoPKCS7PaddingTests.cpp */,
 				BF234C941CE5166700312A7F /* pa2CryptoAESTests.cpp */,
 				BF234C961CE5180200312A7F /* pa2CryptoHMACTests.cpp */,
+				BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */,
 			);
 			name = Crypto;
 			sourceTree = "<group>";
@@ -1123,6 +1126,7 @@
 			files = (
 				BF234C951CE5166700312A7F /* pa2CryptoAESTests.cpp in Sources */,
 				BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */,
+				BFE5DBBE1FB0CB7600A4FBAB /* pa2CryptoECDHKDFTests.cpp in Sources */,
 				BFD7BCF81FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp in Sources */,
 				BFB494261CE9138D00F8D81B /* pa2MasterSecretKeyComputation.cpp in Sources */,
 				BFB4941E1CE90BC200F8D81B /* pa2ActivationSignatureValidationTest.cpp in Sources */,

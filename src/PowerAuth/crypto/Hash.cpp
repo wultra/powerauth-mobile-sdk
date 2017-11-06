@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "Digest.h"
+#include "Hash.h"
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 
@@ -29,7 +29,7 @@ namespace crypto
 {
 
 	// -------------------------------------------------------------------------------------------
-	// MARK: - HMAC & SHA & PBKDF2 -
+	// MARK: - SHA256 -
 	//
 	
 	cc7::ByteArray SHA256(const cc7::ByteRange & data)
@@ -44,32 +44,6 @@ namespace crypto
 		
 		return hash;
 	}
-	
-	cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes)
-	{
-		const unsigned char * key_ptr = key.empty() ? NULL : key.data();
-		
-		cc7::ByteArray digest(SHA256_DIGEST_LENGTH, 0);
-		unsigned int digest_length = SHA256_DIGEST_LENGTH;
-		const unsigned char * result = HMAC(EVP_sha256(), key_ptr, (int)key.size(), data.data(), (int)data.size(), digest.data(), &digest_length);
-		
-		if ((result != NULL) && (digest_length == digest.size())) {
-			if (outputBytes > 0 && outputBytes < SHA256_DIGEST_LENGTH) {
-				digest.resize(outputBytes);
-			}
-			return digest;
-		}
-		CC7_LOG("HMAC_SHA256 has failed!");
-		return cc7::ByteArray();
-	}
-	
-	cc7::ByteArray PBKDF2_HMAC_SHA_1(const cc7::ByteRange & pass, const cc7::ByteRange & salt, cc7::U32 iterations, size_t outputBytes)
-	{
-		cc7::ByteArray result(outputBytes, 0);
-		PKCS5_PBKDF2_HMAC_SHA1((const char*)pass.data(), (int)pass.size(), salt.data(), (int)salt.size(), (int)iterations, (int)outputBytes, result.data());
-		return result;
-	}
-	
 	
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth

@@ -16,18 +16,28 @@
 
 #pragma once
 
+#include <cc7/ByteArray.h>
+
 /*
- The CryptoUtils.h private header contains all cryptographic related
- operations, required in the PA2 implementation.
- 
  Note that all functionality provided by this header will
  be replaced with a similar cc7 implementation.
  */
 
-#include "BNContext.h"
-#include "AES.h"
-#include "PRNG.h"
-#include "ECC.h"
-#include "Hash.h"
-#include "KDF.h"
-#include "MAC.h"
+namespace io
+{
+namespace getlime
+{
+namespace powerAuth
+{
+namespace crypto
+{
+	// PBKDF with HMAC & SHA1
+	cc7::ByteArray PBKDF2_HMAC_SHA1(const cc7::ByteRange & pass, const cc7::ByteRange & salt, cc7::U32 iterations, size_t outputBytes);
+	
+	// PBKDF with HMAC & SHA256
+	cc7::ByteArray PBKDF2_HMAC_SHA256(const cc7::ByteRange & pass, const cc7::ByteRange & salt, cc7::U32 iterations, size_t outputBytes);
+	
+} // io::getlime::powerAuth::crypto
+} // io::getlime::powerAuth
+} // io::getlime
+} // io

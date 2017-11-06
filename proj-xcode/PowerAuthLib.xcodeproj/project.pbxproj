@@ -69,7 +69,7 @@
 		BF234CA61CE5BBF700312A7F /* ProtocolUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CA41CE5BBF700312A7F /* ProtocolUtils.cpp */; };
 		BF234CA81CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CA71CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp */; };
 		BF234CAC1CE5DFFC00312A7F /* AES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAA1CE5DFFC00312A7F /* AES.cpp */; };
-		BF234CAF1CE5E07500312A7F /* Digest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAD1CE5E07500312A7F /* Digest.cpp */; };
+		BF234CAF1CE5E07500312A7F /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAD1CE5E07500312A7F /* Hash.cpp */; };
 		BF3606BE1E22E03600768FB2 /* PA2Encryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */; };
 		BF3C8ADB1CEA28EB0003341F /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */; };
 		BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */; };
@@ -103,6 +103,8 @@
 		BFD386621F2B528600F74FF9 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
 		BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
 		BFD7BCF81FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFD7BCF71FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp */; };
+		BFE5DBB31FB0B89C00A4FBAB /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */; };
+		BFE5DBB61FB0B8C400A4FBAB /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
 		BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */; };
 /* End PBXBuildFile section */
 
@@ -307,8 +309,8 @@
 		BF234CA91CE5DF5200312A7F /* BNContext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BNContext.h; sourceTree = "<group>"; };
 		BF234CAA1CE5DFFC00312A7F /* AES.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AES.cpp; sourceTree = "<group>"; };
 		BF234CAB1CE5DFFC00312A7F /* AES.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AES.h; sourceTree = "<group>"; };
-		BF234CAD1CE5E07500312A7F /* Digest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Digest.cpp; sourceTree = "<group>"; };
-		BF234CAE1CE5E07500312A7F /* Digest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Digest.h; sourceTree = "<group>"; };
+		BF234CAD1CE5E07500312A7F /* Hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Hash.cpp; sourceTree = "<group>"; };
+		BF234CAE1CE5E07500312A7F /* Hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hash.h; sourceTree = "<group>"; };
 		BF3606BC1E22E03600768FB2 /* PA2Encryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Encryptor.h; sourceTree = "<group>"; };
 		BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Encryptor.mm; sourceTree = "<group>"; };
 		BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2URLEncodingTests.cpp; sourceTree = "<group>"; };
@@ -366,6 +368,10 @@
 		BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerConfig.m; sourceTree = "<group>"; };
 		BFD7BCF51FAE0432001183D5 /* public-key-fingerprint.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "public-key-fingerprint.json"; sourceTree = "<group>"; };
 		BFD7BCF71FAE0AEA001183D5 /* pa2PublicKeyFingerprintTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PublicKeyFingerprintTests.cpp; sourceTree = "<group>"; };
+		BFE5DBB11FB0B87F00A4FBAB /* KDF.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KDF.h; sourceTree = "<group>"; };
+		BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KDF.cpp; sourceTree = "<group>"; };
+		BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MAC.cpp; sourceTree = "<group>"; };
+		BFE5DBB51FB0B8C400A4FBAB /* MAC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAC.h; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -668,8 +674,12 @@
 				BF234C981CE5196700312A7F /* ECC.cpp */,
 				BF234CAB1CE5DFFC00312A7F /* AES.h */,
 				BF234CAA1CE5DFFC00312A7F /* AES.cpp */,
-				BF234CAE1CE5E07500312A7F /* Digest.h */,
-				BF234CAD1CE5E07500312A7F /* Digest.cpp */,
+				BF234CAE1CE5E07500312A7F /* Hash.h */,
+				BF234CAD1CE5E07500312A7F /* Hash.cpp */,
+				BFE5DBB11FB0B87F00A4FBAB /* KDF.h */,
+				BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */,
+				BFE5DBB51FB0B8C400A4FBAB /* MAC.h */,
+				BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */,
 			);
 			path = crypto;
 			sourceTree = "<group>";
@@ -1055,6 +1065,7 @@
 				1B6A652D1E642AB600327545 /* PA2PasswordUtil.m in Sources */,
 				BF1FA8CF1D07216600392EC7 /* Password.cpp in Sources */,
 				1B0A239D1D6C6F9E00D24167 /* PowerAuthConfiguration.m in Sources */,
+				BFE5DBB61FB0B8C400A4FBAB /* MAC.cpp in Sources */,
 				BF73E5951E1E80D400BE4139 /* Encryptor.cpp in Sources */,
 				BF234CA61CE5BBF700312A7F /* ProtocolUtils.cpp in Sources */,
 				BF4DBCA31CDF3BC3008F3A47 /* Session.cpp in Sources */,
@@ -1086,12 +1097,13 @@
 				1B1FA3401D99897600287F5E /* PA2ClientSslNoValidationStrategy.m in Sources */,
 				1B2EEF741D662CAA0039D92A /* PA2VaultUnlockResponse.m in Sources */,
 				BF234CAC1CE5DFFC00312A7F /* AES.cpp in Sources */,
-				BF234CAF1CE5E07500312A7F /* Digest.cpp in Sources */,
+				BF234CAF1CE5E07500312A7F /* Hash.cpp in Sources */,
 				1B2EEF491D662AB10039D92A /* PA2Password.mm in Sources */,
 				1B6F00071D6DD9B500EC1C5A /* PA2Client.m in Sources */,
 				1B789F4F1E2642C00095519E /* PA2RequestResponseNonPersonalizedEncryptor.m in Sources */,
 				BF234CA31CE5B7A200312A7F /* Constants.cpp in Sources */,
 				1B6F00031D6DA99C00EC1C5A /* PA2Keychain.m in Sources */,
+				BFE5DBB31FB0B89C00A4FBAB /* KDF.cpp in Sources */,
 				1B2EEF731D662CAA0039D92A /* PA2CreateActivationResponse.m in Sources */,
 				BF3606BE1E22E03600768FB2 /* PA2Encryptor.mm in Sources */,
 				1B0A23A01D6C714100D24167 /* PowerAuthAuthentication.m in Sources */,

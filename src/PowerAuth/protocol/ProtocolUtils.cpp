@@ -67,7 +67,7 @@ namespace protocol
 	
 	cc7::ByteArray ExpandOTPKey(const std::string & activationIdShort, const std::string & otp)
 	{
-		return crypto::PBKDF2_HMAC_SHA_1(cc7::MakeRange(otp), cc7::MakeRange(activationIdShort), PBKDF2_OTP_EXPAND_ITERATIONS, SIGNATURE_KEY_SIZE);
+		return crypto::PBKDF2_HMAC_SHA1(cc7::MakeRange(otp), cc7::MakeRange(activationIdShort), PBKDF2_OTP_EXPAND_ITERATIONS, SIGNATURE_KEY_SIZE);
 	}
 
 	
@@ -163,7 +163,7 @@ namespace protocol
 	
 	cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, const cc7::ByteRange & salt, cc7::U32 iterations)
 	{
-		return crypto::PBKDF2_HMAC_SHA_1(password, salt, iterations, SIGNATURE_KEY_SIZE);
+		return crypto::PBKDF2_HMAC_SHA1(password, salt, iterations, SIGNATURE_KEY_SIZE);
 	}
 	
 	

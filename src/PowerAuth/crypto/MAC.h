@@ -31,15 +31,11 @@ namespace powerAuth
 {
 namespace crypto
 {
-	// SHA, HMAC
-	cc7::ByteArray SHA256(const cc7::ByteRange & data);
+	// HMAC with SHA256
 	cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes);
-	
-	// KDF
-	cc7::ByteArray PBKDF2_HMAC_SHA_1(const cc7::ByteRange & pass, const cc7::ByteRange & salt, cc7::U32 iterations, size_t outputBytes);
-
 	
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime
 } // io
+

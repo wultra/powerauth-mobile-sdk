@@ -109,7 +109,7 @@ namespace powerAuthTests
 				cc7::ByteArray salt		(td->salt,     td->salt     + salt_len);
 				cc7::ByteArray expected	(exp_ptr,	   exp_ptr      + td->dklen);
 				
-				cc7::ByteArray calculated = crypto::PBKDF2_HMAC_SHA_1(pass, salt, td->iterations, td->dklen);
+				cc7::ByteArray calculated = crypto::PBKDF2_HMAC_SHA1(pass, salt, td->iterations, td->dklen);
 				ccstAssertTrue(calculated.size() == td->dklen);
 				ccstAssertTrue(expected == calculated, "Failed at iteration %d", iteration);
 				

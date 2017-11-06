@@ -45,7 +45,9 @@ LOCAL_SRC_FILES := \
 	PowerAuth/Debug.cpp \
 	PowerAuth/OtpUtil.cpp \
 	PowerAuth/crypto/AES.cpp \
-	PowerAuth/crypto/Digest.cpp \
+	PowerAuth/crypto/Hash.cpp \
+	PowerAuth/crypto/KDF.cpp \
+	PowerAuth/crypto/MAC.cpp \
 	PowerAuth/crypto/ECC.cpp \
 	PowerAuth/crypto/PKCS7Padding.cpp \
 	PowerAuth/crypto/PRNG.cpp \

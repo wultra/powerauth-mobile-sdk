@@ -106,6 +106,8 @@
 		BFE5DBB31FB0B89C00A4FBAB /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */; };
 		BFE5DBB61FB0B8C400A4FBAB /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
 		BFE5DBBE1FB0CB7600A4FBAB /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */; };
+		BFE5DBC31FB1DACC00A4FBAB /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBC21FB1DACC00A4FBAB /* ECIES.cpp */; };
+		BFE5DBC61FB226F300A4FBAB /* pa2ECIESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBC51FB226F300A4FBAB /* pa2ECIESTests.cpp */; };
 		BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */; };
 /* End PBXBuildFile section */
 
@@ -374,6 +376,9 @@
 		BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MAC.cpp; sourceTree = "<group>"; };
 		BFE5DBB51FB0B8C400A4FBAB /* MAC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAC.h; sourceTree = "<group>"; };
 		BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDHKDFTests.cpp; sourceTree = "<group>"; };
+		BFE5DBC21FB1DACC00A4FBAB /* ECIES.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
+		BFE5DBC41FB1DAD700A4FBAB /* ECIES.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
+		BFE5DBC51FB226F300A4FBAB /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -758,6 +763,7 @@
 				BF1FA8CD1D0720AC00392EC7 /* Password.h */,
 				BF4DBCA51CDF4693008F3A47 /* Debug.h */,
 				BFD3865B1F2A08F000F74FF9 /* OtpUtil.h */,
+				BFE5DBC41FB1DAD700A4FBAB /* ECIES.h */,
 			);
 			path = PowerAuth;
 			sourceTree = "<group>";
@@ -784,6 +790,7 @@
 				BF1FA8CE1D07216600392EC7 /* Password.cpp */,
 				BF73E5941E1E80D400BE4139 /* Encryptor.cpp */,
 				BFD3865D1F2A0A2300F74FF9 /* OtpUtil.cpp */,
+				BFE5DBC21FB1DACC00A4FBAB /* ECIES.cpp */,
 			);
 			path = PowerAuth;
 			sourceTree = "<group>";
@@ -920,6 +927,7 @@
 				BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */,
 				BF1FA8D01D074C9C00392EC7 /* pa2PasswordTests.cpp */,
 				BFD3865F1F2A476400F74FF9 /* pa2OtpUtilTests.cpp */,
+				BFE5DBC51FB226F300A4FBAB /* pa2ECIESTests.cpp */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -1080,6 +1088,7 @@
 				BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */,
 				1B968C571E2CDEF800F429E0 /* PA2DirectCreateActivationRequest.m in Sources */,
 				BF234CA01CE5B14C00312A7F /* PrivateTypes.cpp in Sources */,
+				BFE5DBC31FB1DACC00A4FBAB /* ECIES.cpp in Sources */,
 				1BCC37011D91380100709311 /* PowerAuthSDK.m in Sources */,
 				1B2EEF721D662CAA0039D92A /* PA2ActivationStatusResponse.m in Sources */,
 				1B968C5A1E2CED4500F429E0 /* PA2EncryptedObject.m in Sources */,
@@ -1144,6 +1153,7 @@
 				BFB494241CE9120600F8D81B /* pa2ServerPublicKeyDecryption.cpp in Sources */,
 				BF234CA81CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp in Sources */,
 				BFB4941C1CE905EC00F8D81B /* pa2SignatureKeysDerivationTest.cpp in Sources */,
+				BFE5DBC61FB226F300A4FBAB /* pa2ECIESTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

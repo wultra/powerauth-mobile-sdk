@@ -43,7 +43,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 				codeStr = [@(code) stringValue];
 				break;
 		}
-		PALog(@"PA2Session(ID:%d): %@: Low level operation failed with error %@.", inst.sessionIdentifier, message, codeStr);
+		PALog(@"PA2Session(ID:%d): %@: Low level operation failed with error %@.", (unsigned int)inst.sessionIdentifier, message, codeStr);
 	}
 #endif
 }

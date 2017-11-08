@@ -33,6 +33,12 @@ namespace powerAuth
 	 Session class for this purpose. You can use Session.createNonpersonalizedEncryptor()
 	 or Session.createPersonalizedEncryptor() methods depending on what kind of 
 	 encryptor you need.
+	 
+	 ## Deprecated
+	 
+	 Note that the Encryptor class is now deprecated and will be removed in
+	 future SDK releases. For new code, you should use new ECIESEncryptor & ECIESDecryptor
+	 interfaces.
 	 */
 	class Encryptor
 	{

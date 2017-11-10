@@ -27,22 +27,32 @@ namespace powerAuth
 	// ----------------------------------------------------------------------------------------------
 	// MARK: - Envelope key -
 	//
-		
+	ECIESEnvelopeKey::ECIESEnvelopeKey(const cc7::ByteRange & range) :
+		_key(range)
+	{
+	}
+	
+	ECIESEnvelopeKey& ECIESEnvelopeKey::operator=(const cc7::ByteRange & range)
+	{
+		_key.assign(range);
+		return *this;
+	}
+	
 	bool ECIESEnvelopeKey::isValid() const
 	{
-		return key.size() == EnvelopeKeySize;
+		return _key.size() == EnvelopeKeySize;
 	}
 	
 	const cc7::ByteRange ECIESEnvelopeKey::encKey() const {
 		if (isValid()) {
-			return key.byteRange().subRange(0, EnvelopeKeySize/2);
+			return _key.byteRange().subRange(0, EnvelopeKeySize/2);
 		}
 		return cc7::ByteRange();
 	}
 	
 	const cc7::ByteRange ECIESEnvelopeKey::macKey() const {
 		if (isValid()) {
-			return key.byteRange().subRange(EnvelopeKeySize/2, EnvelopeKeySize/2);
+			return _key.byteRange().subRange(EnvelopeKeySize/2, EnvelopeKeySize/2);
 		}
 		return cc7::ByteRange();
 	}
@@ -69,7 +79,7 @@ namespace powerAuth
 			if (out_ephemeral_key.empty()) {
 				break;
 			}
-			ek.key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, out_ephemeral_key, EnvelopeKeySize);
+			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, out_ephemeral_key, EnvelopeKeySize);
 			
 		} while (false);
 		
@@ -99,7 +109,7 @@ namespace powerAuth
 			if (sharedSecret.empty()) {
 				break;
 			}
-			ek.key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, ephemeral_key, EnvelopeKeySize);
+			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, ephemeral_key, EnvelopeKeySize);
 			
 		} while (false);
 		
@@ -144,27 +154,47 @@ namespace powerAuth
 			return EC_Encryption;
 		}
 		// Decrypt data
-		out_data = crypto::AES_CBC_Decrypt_Padding(ek.encKey(), protocol::ZERO_IV, cryptogram.body);
-		return out_data.empty() ? EC_Encryption : EC_Ok;
+		bool error = true;
+		out_data = crypto::AES_CBC_Decrypt_Padding(ek.encKey(), protocol::ZERO_IV, cryptogram.body, &error);
+		return error ? EC_Encryption : EC_Ok;
 	}
 	
 	// ----------------------------------------------------------------------------------------------
 	// MARK: - Encryptor class -
 	//
 	
-	ECIESEncryptor::ECIESEncryptor(const cc7::ByteRange & public_key) :
-		_public_key(public_key)
+	ECIESEncryptor::ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info2) :
+		_public_key(public_key),
+		_shared_info2(shared_info2)
 	{
 	}
 	
-	ECIESEncryptor::ECIESEncryptor(const ECIESEnvelopeKey & envelope_key) :
-		_envelope_key(envelope_key)
+	ECIESEncryptor::ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2) :
+		_envelope_key(envelope_key),
+		_shared_info2(shared_info2)
 	{
+	}
+	
+	// Getters & Setters
+	
+	const cc7::ByteArray & ECIESEncryptor::publicKey() const
+	{
+		return _public_key;
 	}
 	
 	const ECIESEnvelopeKey & ECIESEncryptor::envelopeKey() const
 	{
 		return _envelope_key;
+	}
+	
+	const cc7::ByteArray & ECIESEncryptor::sharedInfo2() const
+	{
+		return _shared_info2;
+	}
+	
+	void ECIESEncryptor::setSharedInfo2(const cc7::ByteRange & shared_info2)
+	{
+		_shared_info2 = shared_info2;
 	}
 	
 	bool ECIESEncryptor::canEncryptRequest() const
@@ -180,22 +210,22 @@ namespace powerAuth
 	
 	// MARK: - Encryption & Decryption
 	
-	ErrorCode ECIESEncryptor::encryptRequest(const cc7::ByteRange & data, const cc7::ByteRange & shared_info2, ECIESCryptogram & out_cryptogram)
+	ErrorCode ECIESEncryptor::encryptRequest(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram)
 	{
 		if (canEncryptRequest()) {
 			_envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, out_cryptogram.key);
 			if (_envelope_key.isValid()) {
-				return _Encrypt(_envelope_key, shared_info2, data, out_cryptogram);
+				return _Encrypt(_envelope_key, _shared_info2, data, out_cryptogram);
 			}
 			return EC_Encryption;
 		}
 		return EC_WrongState;
 	}
 	
-	ErrorCode ECIESEncryptor::decryptResponse(const ECIESCryptogram & cryptogram, const cc7::ByteRange & shared_info2, cc7::ByteArray & out_data)
+	ErrorCode ECIESEncryptor::decryptResponse(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data)
 	{
 		if (canDecryptResponse()) {
-			return _Decrypt(_envelope_key, shared_info2, cryptogram, out_data);
+			return _Decrypt(_envelope_key, _shared_info2, cryptogram, out_data);
 		}
 		return EC_WrongState;
 	}
@@ -205,19 +235,38 @@ namespace powerAuth
 	// MARK: - Decryptor class -
 	//
 	
-	ECIESDecryptor::ECIESDecryptor(const cc7::ByteArray & private_key) :
-		_private_key(private_key)
+	ECIESDecryptor::ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info2) :
+		_private_key(private_key),
+		_shared_info2(shared_info2)
 	{
 	}
 	
-	ECIESDecryptor::ECIESDecryptor(const ECIESEnvelopeKey & envelope_key) :
-		_envelope_key(envelope_key)
+	ECIESDecryptor::ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2) :
+		_envelope_key(envelope_key),
+		_shared_info2(shared_info2)
 	{
+	}
+	
+	// Setters & Getters
+	
+	const cc7::ByteArray & ECIESDecryptor::privateKey() const
+	{
+		return _private_key;
 	}
 	
 	const ECIESEnvelopeKey & ECIESDecryptor::envelopeKey() const
 	{
 		return _envelope_key;
+	}
+	
+	const cc7::ByteArray & ECIESDecryptor::sharedInfo2() const
+	{
+		return _shared_info2;
+	}
+	
+	void ECIESDecryptor::setSharedInfo2(const cc7::ByteRange & shared_info2)
+	{
+		_shared_info2 = shared_info2;
 	}
 	
 	bool ECIESDecryptor::canEncryptResponse() const
@@ -233,22 +282,22 @@ namespace powerAuth
 	
 	// MARK: - Encryption & Decryption
 	
-	ErrorCode ECIESDecryptor::decryptRequest(const ECIESCryptogram & cryptogram, const cc7::ByteRange & shared_info2, cc7::ByteArray & out_data)
+	ErrorCode ECIESDecryptor::decryptRequest(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data)
 	{
 		if (canDecryptRequest()) {
 			_envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key);
 			if (_envelope_key.isValid()) {
-				return _Decrypt(_envelope_key, shared_info2, cryptogram, out_data);
+				return _Decrypt(_envelope_key, _shared_info2, cryptogram, out_data);
 			}
 			return EC_Encryption;
 		}
 		return EC_WrongState;
 	}
 	
-	ErrorCode ECIESDecryptor::encryptResponse(const cc7::ByteRange & data, const cc7::ByteRange & shared_info2, ECIESCryptogram & out_cryptogram)
+	ErrorCode ECIESDecryptor::encryptResponse(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram)
 	{
 		if (canEncryptResponse()) {
-			return _Encrypt(_envelope_key, shared_info2, data, out_cryptogram);
+			return _Encrypt(_envelope_key, _shared_info2, data, out_cryptogram);
 		}
 		return EC_WrongState;
 	}

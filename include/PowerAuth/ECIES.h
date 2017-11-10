@@ -23,8 +23,11 @@
  encryption & decryption. The PowerAuth implementation is using following
  configuration:
  
- Curve:	NID_X9_62_prime256v1 (just like rest of PA)
+ Curve:	NID_X9_62_prime256v1
+		 * just like the rest of PA
  KDF:	ANSI X9.63:2001 with SHA256
+		 * with ephemeral public key bytes as optional info parameter
+		 * derived key is then split into K_ENC || K_MAC
  MAC:   HMAC_SHA256
  ENC:	AES_CBC with PKCS7 padding, 128 bit key
  
@@ -144,14 +147,20 @@ namespace powerAuth
 	/// process. The key is derived from shared secret, produced in ECDH key agreement.
 	class ECIESEnvelopeKey {
 	public:
-		
-		// Default constructors & copy-move operators
+	
+		// Default constructors & copy / move operators
 		
 		ECIESEnvelopeKey() = default;
 		ECIESEnvelopeKey(const ECIESEnvelopeKey &)  = default;
 		ECIESEnvelopeKey(ECIESEnvelopeKey &&)  = default;
 		ECIESEnvelopeKey & operator=(const ECIESEnvelopeKey & t) = default;
 		ECIESEnvelopeKey & operator=(ECIESEnvelopeKey && t) = default;
+		
+		/// Constructs a key with given bytes from |range|.
+		ECIESEnvelopeKey(const cc7::ByteRange & range);
+		
+		/// Assign a |range| of bytes to the key.
+		ECIESEnvelopeKey& operator=(const cc7::ByteRange & range);
 		
 		/// Returns true if key stored in this object can be used for encryption & decryption.
 		bool isValid() const;
@@ -175,7 +184,7 @@ namespace powerAuth
 		static const size_t EnvelopeKeySize = 32;
 		
 		/// Envelope key's data
-		cc7::ByteArray key;
+		cc7::ByteArray _key;
 	};
 
 	
@@ -183,48 +192,64 @@ namespace powerAuth
 	class ECIESEncryptor
 	{
 	public:
-		/// Constructs an ecnryptor with public key. This instance can be used for both encryption and decryption
-		/// operations.
-		ECIESEncryptor(const cc7::ByteRange & public_key);
 		
-		/// Constructs an encryptor with envelope key. This instance can be used only for decryption process.
-		ECIESEncryptor(const ECIESEnvelopeKey & envelope_key);
+		/// Constructs an empty encryptor object.
+		ECIESEncryptor() = default;
 		
-		/// Returns a reference to internal envelope key.
+		/// Constructs an ecnryptor with server's |public_key| and optional |shared_info2|. For optional |shared_info2|
+		/// you can provide an empty range, if you have no such information available for the purpose.
+		/// The constructed instance can be used for both encryption and decryption tasks.
+		ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info2);
+		
+		/// Constructs an encryptor with previously calculated |envelope_key| and optional |shared_info|.
+		/// For optional |shared_info2| you can provide an empty range, if you have no such information available.
+		/// The constructed instance can be used only for decryption process.
+		ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
+
+		
+		/// Returns a reference to public key.
+		const cc7::ByteArray & publicKey() const;
+
+		/// Returns a reference to envelope key.
 		const ECIESEnvelopeKey & envelopeKey() const;
+		
+		/// Returns a reference to shared info 2.
+		const cc7::ByteArray & sharedInfo2() const;
+		
+		/// Sets a new value to internal |shared_info2| property.
+		void setSharedInfo2(const cc7::ByteRange & shared_info2);
 
 		/// Returns true if this instance can encrypt request data.
 		/// This is met only when the encryptor is constructed with public key.
 		bool canEncryptRequest() const;
+		
 		/// Returns true if this instance can decrypt response data.
 		/// This is met only when the envelope key is valid.
 		bool canDecryptResponse() const;
 		
-		/// Encrypts an input |data| into |out_cryptogram|. The |shared_info2| parameter is an optional parameter which affects
-		/// how |out_cryptogram.mac| is calculated. You can provide an empty ByteRange, when you have no such information available.
-		/// Note that each call for this method will regenerate an internal envelope key, so you should use the method only in pair
-		/// with following call to decryptResponse()
+		/// Encrypts an input |data| into |out_cryptogram|. Note that each call for this method will regenerate an internal
+		/// envelope key, so you should use the method only in pair with subsequent call to decryptResponse().
 		///
 		/// Returns
 		///		EC_Ok 			- when everything's OK and cryptogram's is valid
 		///		EC_WrongState	- if instance can't encrypt data (e.g. public key is not present)
 		///		EC_Encryption	- if some cryptographic operation did fail
-		ErrorCode encryptRequest(const cc7::ByteRange & data, const cc7::ByteRange & shared_info2, ECIESCryptogram & out_cryptogram);
+		ErrorCode encryptRequest(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram);
 		
-		/// Decrypts a |cryptogram| received from the server and stores the result into |out_data| reference. The |shared_info2| parameter
-		/// is an optional parameter which affects how |cryptogram.mac| is validated. You can provide an empty ByteRange, when you have
-		/// no such information available.
+		/// Decrypts a |cryptogram| received from the server and stores the result into |out_data| reference.
 		///
 		/// Returns
 		///		EC_Ok 			- when everything's OK and |out_data| contains a valid data.
 		///		EC_WrongState	- if instance can't decrypt data (e.g. envelope key is not valid)
 		///		EC_Encryption	- if some cryptographic operation did fail
-		ErrorCode decryptResponse(const ECIESCryptogram & cryptogram, const cc7::ByteRange & shared_info2, cc7::ByteArray & out_data);
+		ErrorCode decryptResponse(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data);
 		
 	private:
 		
 		/// A data for public key.
 		cc7::ByteArray	 _public_key;
+		/// Content of shared info2 optional parameter.
+		cc7::ByteArray   _shared_info2;
 		/// Last calculated envelope key.
 		ECIESEnvelopeKey _envelope_key;
 	};
@@ -236,32 +261,44 @@ namespace powerAuth
 	class ECIESDecryptor
 	{
 	public:
-		/// Constructs a decryptor with private key. This instance can be used for both decryption & encryption
-		/// operations.
-		ECIESDecryptor(const cc7::ByteArray & private_key);
+		/// Constructs an empty decryptor object.
+		ECIESDecryptor() = default;
+		
+		/// Constructs a decryptor with a server's |private_key| and optional |shared_info2|.
+		/// The constructed instance can be used for both decryption & encryption tasks.
+		ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info2);
 	
-		/// Constructs a decryptor with envelope key. This instance can be used only for encryption process.
-		ECIESDecryptor(const ECIESEnvelopeKey & envelope_key);
+		/// Constructs a decryptor with previously calculated |envelope_key| and optional |shared_info2|.
+		/// The constructed instance can be used only for encryption taks.
+		ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
+		
+		/// Returns a reference to internal public key.
+		const cc7::ByteArray & privateKey() const;
 		
 		/// Returns a reference to internal envelope key.
 		const ECIESEnvelopeKey & envelopeKey() const;
 		
+		/// Returns a reference to internal |shared_info2| property.
+		const cc7::ByteArray & sharedInfo2() const;
+		
+		/// Sets a new value to internal |shared_info2| property.
+		void setSharedInfo2(const cc7::ByteRange & shared_info2);
+		
 		/// Returns true if this instance can decrypt request data.
 		bool canDecryptRequest() const;
+		
 		/// Returns true if this instance can encrypt response data.
 		bool canEncryptResponse() const;
 		
-		/// Decrypts a |cryptogram| received from the client and stores the result into |out_data| reference. The |shared_info2| parameter
-		/// is an optional parameter which affects how |cryptogram.mac| is validated. You can provide an empty ByteRange, when you have
-		/// no such information available.
-		/// Note that each call for this method will regenerate an internal envelope key, so you should use the method only in pair
-		/// with following call to encryptResponse().
+		/// Decrypts a |cryptogram| received from the client and stores the result into |out_data| reference.
+		/// Note that each call for this method will regenerate an internal envelope key, so you should use the
+		/// method only in pair with subsequent call to encryptResponse().
 		///
 		/// Returns
 		///		EC_Ok 			- when everything's OK and |out_data| contains a valid data.
 		///		EC_WrongState	- if instance can't decrypt data (e.g. private key is not valid)
 		///		EC_Encryption	- if some cryptographic operation did fail
-		ErrorCode decryptRequest(const ECIESCryptogram & cryptogram, const cc7::ByteRange & shared_info2, cc7::ByteArray & out_data);
+		ErrorCode decryptRequest(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data);
 		
 		/// Encrypts an input |data| into |out_cryptogram|. The |shared_info2| parameter is an optional parameter which affects
 		/// how |out_cryptogram.mac| is calculated. You can provide an empty ByteRange, when you have no such information available.
@@ -270,11 +307,13 @@ namespace powerAuth
 		///		EC_Ok 			- when everything's OK and cryptogram's is valid
 		///		EC_WrongState	- if instance can't encrypt data (e.g. public key is not present)
 		///		EC_Encryption	- if some cryptographic operation did fail
-		ErrorCode encryptResponse(const cc7::ByteRange & data, const cc7::ByteRange & shared_info2, ECIESCryptogram & out_cryptogram);
+		ErrorCode encryptResponse(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram);
 		
 	private:
 		/// A data for private key.
-		cc7::ByteArray _private_key;
+		cc7::ByteArray   _private_key;
+		/// Content of shared info2 optional parameter.
+		cc7::ByteArray   _shared_info2;
 		/// Last calculated envelope key.
 		ECIESEnvelopeKey _envelope_key;
 	};

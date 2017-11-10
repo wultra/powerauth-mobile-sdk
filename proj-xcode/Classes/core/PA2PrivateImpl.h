@@ -17,10 +17,12 @@
 #import "PA2Types.h"
 #import "PA2Password.h"
 #import "PA2Encryptor.h"
+#import "PA2ECIESEncryptor.h"
 
 #include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
 #include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ECIES.h>
 
 #include <cc7/ByteArray.h>
 #include <cc7/objc/ObjcHelper.h>
@@ -32,31 +34,32 @@
  */
 
 @interface PA2Password (Private)
-
 - (io::getlime::powerAuth::Password &) passObjRef;
-
 @end
 
 
 @interface PA2Encryptor (Private)
-
 - (id) initWithEncryptorPtr:(io::getlime::powerAuth::Encryptor*)encryptor;
-
 @end
 
 
 @interface PA2HTTPRequestDataSignature (Private)
-
 - (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;
-
 @end
 
 @interface PA2SignedData (Private)
-
 - (io::getlime::powerAuth::SignedData&) signedDataRef;
-
 @end
 
+@interface PA2ECIESCryptogram (Private)
+- (io::getlime::powerAuth::ECIESCryptogram &) cryptogramRef;
+@end
+
+
+@interface PA2ECIESEncryptor (Private)
+- (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef;
+- (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
+@end
 
 /**
  Converts PA2SessionSetup object into SessionSetup C++ structure.
@@ -107,3 +110,16 @@ CC7_EXTERN_C void PA2EncryptedMessageToStruct(PA2EncryptedMessage * msg, io::get
  Returns new instance of PA2EncryptedMessage object, with content copied from EncryptedMessage C++ structure.
  */
 CC7_EXTERN_C PA2EncryptedMessage * PA2EncryptedMessageToObject(const io::getlime::powerAuth::EncryptedMessage& cpp_msg);
+
+
+#pragma mark - Debug functions
+
+#if defined(DEBUG)
+	CC7_EXTERN_C void PA2Objc_DebugDumpErrorImpl(id instance, NSString * message, io::getlime::powerAuth::ErrorCode code);
+	#define PA2Objc_DebugDumpError(instance, message, error_code)	PA2Objc_DebugDumpErrorImpl(instance, message, error_code)
+#else
+	#define PA2Objc_DebugDumpError(instance, message, error_code)
+#endif
+
+
+

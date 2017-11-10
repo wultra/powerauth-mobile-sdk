@@ -39,9 +39,41 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testEncryptorDecryptor)
 		}
 		
+//#define TLOG	CC7_LOG
+#define TLOG(fmt, ...)
+
 		void testEncryptorDecryptor()
 		{
 			ErrorCode ec;
+			
+			static const struct Data {
+				const char * requestData;
+				const char * responseData;
+				const char * sharedInfo2;
+			} s_test_data[] = {
+				{
+					"hello world!", "hey there!", ""
+				},
+				{
+					"All your base are belong to us!", "NOPE!", "very secret information"
+				},
+				{
+					"It's over Johny! It's over.",
+					"Nothing is over! Nothing! You just don't turn it off! It wasn't my war!"
+					" You asked me, I didn't ask you! And I did what I had to do to win!",
+					"0123456789abcdef"
+				},
+				{
+					"", "", "12345-56789"
+				},
+				{
+					"", "", ""
+				},
+				{
+					"", "", ""
+				},
+				{ nullptr, nullptr }
+			};
 			
 			EC_KEY * master_keypair = crypto::ECC_GenerateKeyPair();
 			cc7::ByteArray master_public_key = crypto::ECC_ExportPublicKey(master_keypair);
@@ -49,56 +81,77 @@ namespace powerAuthTests
 			EC_KEY_free(master_keypair);
 			master_keypair = nullptr;
 
-			// With SharedInfo2
-			{
-				auto test_data = cc7::MakeRange("All your base are belong to us!");
+			TLOG("{");
+			TLOG("   \"keys\": {");
+			TLOG("       \"serverPrivateKey\": \"%s\",", master_private_key.base64String().c_str());
+			TLOG("       \"serverPublicKey\": \"%s\"", master_public_key.base64String().c_str());
+			TLOG("   },");
+			TLOG("   \"data\": [");
+			
+			auto client_encryptor = ECIESEncryptor(master_public_key, cc7::ByteRange());
+			auto server_decryptor = ECIESDecryptor(master_private_key, cc7::ByteRange());
+			
+			const Data * p_data = s_test_data;
+			while (p_data->requestData != nullptr) {
+				//
+				auto shared_info2 = cc7::MakeRange(p_data->sharedInfo2);
+				auto request_data = cc7::MakeRange(p_data->requestData);
+				auto response_data = cc7::MakeRange(p_data->responseData);
+				p_data++;
+				//
+				ECIESCryptogram request;
+				client_encryptor.setSharedInfo2(shared_info2);
+				ec = client_encryptor.encryptRequest(request_data, request);
+				ccstAssertEqual(ec, EC_Ok);
+				ccstAssertFalse(request.body.empty());
+				ccstAssertFalse(request.mac.empty());
+				ccstAssertFalse(request.key.empty());
+				//
+				cc7::ByteArray server_received_data;
+				server_decryptor.setSharedInfo2(shared_info2);
+				ec = server_decryptor.decryptRequest(request, server_received_data);
+				ccstAssertEqual(ec, EC_Ok);
+				ccstAssertEqual(cc7::CopyToString(request_data), cc7::CopyToString(server_received_data));
 				
-				auto client_encryptor = ECIESEncryptor(master_public_key);
-				auto server_decryptor = ECIESDecryptor(master_private_key);
 				
-				const char * sharedInfos[] = {
-					"hello world",
-					"short",
-					"0123456789abcdef",
-					"very long shared info",
-					"",		// empty
-					NULL	// end of table
-				};
-				const char ** p_info = sharedInfos;
-				while (const char * sinfo2 = *p_info++) {
-					//
-					ECIESCryptogram request;
-					auto shared_info2 = cc7::MakeRange(sinfo2);
-					ec = client_encryptor.encryptRequest(test_data, shared_info2, request);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertFalse(request.body.empty());
-					ccstAssertFalse(request.mac.empty());
-					ccstAssertFalse(request.key.empty());
-					//
-					
-					cc7::ByteArray server_received_data;
-					ec = server_decryptor.decryptRequest(request, shared_info2, server_received_data);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual("All your base are belong to us!",       cc7::CopyToString(server_received_data));
-					
-					// Prepare response data & Encrypt them with decryptor
-					auto server_response_data = server_received_data;
-					server_response_data.append(cc7::MakeRange(" NOPE!"));
-					
-					ECIESCryptogram response;
-					ec = server_decryptor.encryptResponse(server_response_data, shared_info2, response);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertFalse(response.body.empty());
-					ccstAssertFalse(response.mac.empty());
-					ccstAssertTrue(response.key.empty());
-					
-					cc7::ByteArray client_received_data;
-					ec = client_encryptor.decryptResponse(response, shared_info2, client_received_data);
-					ccstAssertEqual(ec, EC_Ok);
-					
-					ccstAssertEqual("All your base are belong to us! NOPE!", cc7::CopyToString(client_received_data));
-				}
+				ECIESCryptogram response;
+				ec = server_decryptor.encryptResponse(response_data, response);
+				ccstAssertEqual(ec, EC_Ok);
+				ccstAssertFalse(response.body.empty());
+				ccstAssertFalse(response.mac.empty());
+				ccstAssertTrue(response.key.empty());
+				
+				cc7::ByteArray client_received_data;
+				ec = client_encryptor.decryptResponse(response, client_received_data);
+				ccstAssertEqual(ec, EC_Ok);
+				
+				ccstAssertEqual(cc7::CopyToString(response_data), cc7::CopyToString(client_received_data));
+				
+				TLOG("      {");
+				TLOG("         \"input\": {");
+				TLOG("            \"request.plainText\" : \"%s\",", request_data.base64String().c_str());
+				TLOG("            \"response.plainText\" : \"%s\",", response_data.base64String().c_str());
+				TLOG("            \"sharedInfo2\" : \"%s\"", shared_info2.base64String().c_str());
+				TLOG("         },");
+				TLOG("         \"output\": {");
+				TLOG("            \"request\" : {");
+				TLOG("                 \"data\": \"%s\",", request.body.base64String().c_str());
+				TLOG("                 \"mac\" : \"%s\",", request.mac.base64String().c_str());
+				TLOG("                 \"key\" : \"%s\"", request.key.base64String().c_str());
+				TLOG("            },");
+				TLOG("            \"response\" : {");
+				TLOG("                 \"data\": \"%s\",", request.body.base64String().c_str());
+				TLOG("                 \"mac\" : \"%s\"", request.mac.base64String().c_str());
+				TLOG("            },");
+				TLOG("            \"internals\" : {");
+				TLOG("                 \"k_mac\" : \"%s\",", client_encryptor.envelopeKey().macKey().base64String().c_str());
+				TLOG("                 \"k_enc\" : \"%s\"", client_encryptor.envelopeKey().encKey().base64String().c_str());
+				TLOG("            }");
+				TLOG("         }");
+				TLOG("      },");
 			}
+			TLOG("   ]");
+			TLOG("}");
 		}
 	};
 	

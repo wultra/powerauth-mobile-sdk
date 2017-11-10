@@ -27,27 +27,6 @@ using namespace io::getlime::powerAuth;
 	Session *	_session;
 }
 
-/**
- Dumps C++ error code to the debug log.
- */
-void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
-{
-#ifdef DEBUG
-	if (code != EC_Ok) {
-		NSString * codeStr;
-		switch (code) {
-			case EC_Encryption: codeStr = @"EC_Encryption"; break;
-			case EC_WrongParam: codeStr = @"EC_WrongParam"; break;
-			case EC_WrongState: codeStr = @"EC_WrongState"; break;
-			default:
-				codeStr = [@(code) stringValue];
-				break;
-		}
-		PALog(@"PA2Session(ID:%d): %@: Low level operation failed with error %@.", (unsigned int)inst.sessionIdentifier, message, codeStr);
-	}
-#endif
-}
-
 #pragma mark - Initialization / Reset
 
 - (nullable instancetype) initWithSessionSetup:(nonnull PA2SessionSetup *)setup
@@ -138,7 +117,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 - (BOOL) deserializeState:(nonnull NSData *)state
 {
 	auto error = _session->loadSessionState(cc7::ByteRange(state.bytes, state.length));
-	_DumpErrorCode(self, @"DeserializeState", error);
+	PA2Objc_DebugDumpError(self, @"DeserializeState", error);
 	return error == EC_Ok;
 }
 
@@ -164,7 +143,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return PA2ActivationStep1ResultToObject(cpp_r1);
 	}
-	_DumpErrorCode(self, @"StartActivation", error);
+	PA2Objc_DebugDumpError(self, @"StartActivation", error);
 	return nil;
 }
 
@@ -178,7 +157,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return PA2ActivationStep2ResultToObject(cpp_r2);
 	}
-	_DumpErrorCode(self, @"ValidateActivation", error);
+	PA2Objc_DebugDumpError(self, @"ValidateActivation", error);
 	return nil;
 }
 
@@ -188,7 +167,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	SignatureUnlockKeys cpp_keys;
 	PA2SignatureUnlockKeysToStruct(keys, cpp_keys);
 	auto error = _session->completeActivation(cpp_keys);
-	_DumpErrorCode(self, @"CompleteActivation", error);
+	PA2Objc_DebugDumpError(self, @"CompleteActivation", error);
 	return error == EC_Ok;
 }
 
@@ -206,7 +185,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return PA2ActivationStatusToObject(cpp_status);
 	}
-	_DumpErrorCode(self, @"DecodeActivationStatus", error);
+	PA2Objc_DebugDumpError(self, @"DecodeActivationStatus", error);
 	return nil;
 }
 
@@ -249,7 +228,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return signature;
 	}
-	_DumpErrorCode(self, @"SignHttpRequestData", error);
+	PA2Objc_DebugDumpError(self, @"SignHttpRequestData", error);
 	return nil;
 }
 
@@ -268,7 +247,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	} else {
 		error = EC_WrongParam;
 	}
-	_DumpErrorCode(self, @"VerifyServerSignedData", error);
+	PA2Objc_DebugDumpError(self, @"VerifyServerSignedData", error);
 	return error == EC_Ok;
 }
 
@@ -284,7 +263,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 		error = EC_WrongParam;
 		return NO;
 	}
-	_DumpErrorCode(self, @"ChangeUserPassword", error);
+	PA2Objc_DebugDumpError(self, @"ChangeUserPassword", error);
 	return error == EC_Ok;
 }
 
@@ -295,7 +274,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	SignatureUnlockKeys cpp_keys;
 	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 	auto error = _session->addBiometryFactor(cpp_c_vault_key, cpp_keys);
-	_DumpErrorCode(self, @"AddBiometryFactor", error);
+	PA2Objc_DebugDumpError(self, @"AddBiometryFactor", error);
 	return error == EC_Ok;
 }
 
@@ -303,14 +282,14 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 {
 	bool result;
 	auto error = _session->hasBiometryFactor(result);
-	_DumpErrorCode(self, @"HasBiometryFactor", error);
+	PA2Objc_DebugDumpError(self, @"HasBiometryFactor", error);
 	return result;
 }
 
 - (BOOL) removeBiometryFactor
 {
 	auto error = _session->removeBiometryFactor();
-	_DumpErrorCode(self, @"RemoveBiometryFactor", error);
+	PA2Objc_DebugDumpError(self, @"RemoveBiometryFactor", error);
 	return error == EC_Ok;
 }
 
@@ -330,7 +309,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return cc7::objc::CopyToNSData(cpp_derived_key);
 	}
-	_DumpErrorCode(self, @"DeriveCryptographicKeyFromVaultKey", error);
+	PA2Objc_DebugDumpError(self, @"DeriveCryptographicKeyFromVaultKey", error);
 	return nil;
 }
 
@@ -348,7 +327,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return cc7::objc::CopyToNSData(cpp_signature);
 	}
-	_DumpErrorCode(self, @"SignDataWithDevicePrivateKey", error);
+	PA2Objc_DebugDumpError(self, @"SignDataWithDevicePrivateKey", error);
 	return nil;
 }
 
@@ -364,7 +343,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
 	}
-	_DumpErrorCode(self, @"NonpersonalizedEncryptorForSessionIndex", error);
+	PA2Objc_DebugDumpError(self, @"NonpersonalizedEncryptorForSessionIndex", error);
 	return nil;
 }
 
@@ -380,7 +359,7 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 	if (error == EC_Ok) {
 		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
 	}
-	_DumpErrorCode(self, @"PersonalizedEncryptorForSessionIndex", error);
+	PA2Objc_DebugDumpError(self, @"PersonalizedEncryptorForSessionIndex", error);
 	return nil;
 }
 
@@ -395,21 +374,21 @@ void _DumpErrorCode(PA2Session * inst, NSString * message, ErrorCode code)
 - (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
 	auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-	_DumpErrorCode(self, @"SetExternalEncryptionKey", error);
+	PA2Objc_DebugDumpError(self, @"SetExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 
 - (BOOL) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
 	auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-	_DumpErrorCode(self, @"AddExternalEncryptionKey", error);
+	PA2Objc_DebugDumpError(self, @"AddExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 
 - (BOOL) removeExternalEncryptionKey
 {
 	auto error = _session->removeExternalEncryptionKey();
-	_DumpErrorCode(self, @"RemoveExternalEncryptionKey", error);
+	PA2Objc_DebugDumpError(self, @"RemoveExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 

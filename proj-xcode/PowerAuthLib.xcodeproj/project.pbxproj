@@ -84,6 +84,7 @@
 		BF4DBCDA1CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */; };
 		BF5184B81EBCCA9B0073E018 /* AsyncHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */; };
 		BF73E5951E1E80D400BE4139 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF73E5941E1E80D400BE4139 /* Encryptor.cpp */; };
+		BF79E3C01FB60933003DF179 /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */; };
 		BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */; };
 		BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */; };
 		BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
@@ -108,6 +109,7 @@
 		BFE5DBBE1FB0CB7600A4FBAB /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBBB1FB0CB0900A4FBAB /* pa2CryptoECDHKDFTests.cpp */; };
 		BFE5DBC31FB1DACC00A4FBAB /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBC21FB1DACC00A4FBAB /* ECIES.cpp */; };
 		BFE5DBC61FB226F300A4FBAB /* pa2ECIESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBC51FB226F300A4FBAB /* pa2ECIESTests.cpp */; };
+		BFE5DBCC1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBCB1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm */; };
 		BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */; };
 /* End PBXBuildFile section */
 
@@ -337,6 +339,7 @@
 		BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AsyncHelper.m; sourceTree = "<group>"; };
 		BF73E5921E1E802A00BE4139 /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
 		BF73E5941E1E80D400BE4139 /* Encryptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
+		BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateImpl.mm; sourceTree = "<group>"; };
 		BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
 		BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKTests.m; sourceTree = "<group>"; };
 		BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerAPI.h; sourceTree = "<group>"; };
@@ -379,6 +382,8 @@
 		BFE5DBC21FB1DACC00A4FBAB /* ECIES.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BFE5DBC41FB1DAD700A4FBAB /* ECIES.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
 		BFE5DBC51FB226F300A4FBAB /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
+		BFE5DBCA1FB3908E00A4FBAB /* PA2ECIESEncryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ECIESEncryptor.h; sourceTree = "<group>"; };
+		BFE5DBCB1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2ECIESEncryptor.mm; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -484,6 +489,7 @@
 				1B2EEF2D1D662AB10039D92A /* PA2Password.h */,
 				1B2EEF2E1D662AB10039D92A /* PA2Password.mm */,
 				1B2EEF2F1D662AB10039D92A /* PA2PrivateImpl.h */,
+				BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */,
 				1B2EEF301D662AB10039D92A /* PA2Session.h */,
 				1B2EEF311D662AB10039D92A /* PA2Session.mm */,
 				1B2EEF321D662AB10039D92A /* PA2Types.h */,
@@ -492,6 +498,8 @@
 				1B7A3A531D8FCC0D002D1043 /* PA2PrivateMacros.h */,
 				1B9AD2B61DA448D600CF52C9 /* PA2ErrorConstants.h */,
 				1B9AD2B71DA448D600CF52C9 /* PA2ErrorConstants.m */,
+				BFE5DBCA1FB3908E00A4FBAB /* PA2ECIESEncryptor.h */,
+				BFE5DBCB1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -1087,6 +1095,7 @@
 				BF14FE871CF8A4800032B30C /* DataWriter.cpp in Sources */,
 				BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */,
 				1B968C571E2CDEF800F429E0 /* PA2DirectCreateActivationRequest.m in Sources */,
+				BF79E3C01FB60933003DF179 /* PA2PrivateImpl.mm in Sources */,
 				BF234CA01CE5B14C00312A7F /* PrivateTypes.cpp in Sources */,
 				BFE5DBC31FB1DACC00A4FBAB /* ECIES.cpp in Sources */,
 				1BCC37011D91380100709311 /* PowerAuthSDK.m in Sources */,
@@ -1107,6 +1116,7 @@
 				BF234C931CE5144500312A7F /* PRNG.cpp in Sources */,
 				1B789F521E2654170095519E /* PA2PersonalizedEncryptedObject.m in Sources */,
 				1B1FA3401D99897600287F5E /* PA2ClientSslNoValidationStrategy.m in Sources */,
+				BFE5DBCC1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm in Sources */,
 				1B2EEF741D662CAA0039D92A /* PA2VaultUnlockResponse.m in Sources */,
 				BF234CAC1CE5DFFC00312A7F /* AES.cpp in Sources */,
 				BF234CAF1CE5E07500312A7F /* Hash.cpp in Sources */,

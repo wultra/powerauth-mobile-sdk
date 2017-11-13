@@ -140,8 +140,8 @@ namespace powerAuthTests
 				TLOG("                 \"key\" : \"%s\"", request.key.base64String().c_str());
 				TLOG("            },");
 				TLOG("            \"response\" : {");
-				TLOG("                 \"data\": \"%s\",", request.body.base64String().c_str());
-				TLOG("                 \"mac\" : \"%s\"", request.mac.base64String().c_str());
+				TLOG("                 \"data\": \"%s\",", response.body.base64String().c_str());
+				TLOG("                 \"mac\" : \"%s\"", response.mac.base64String().c_str());
 				TLOG("            },");
 				TLOG("            \"internals\" : {");
 				TLOG("                 \"k_mac\" : \"%s\",", client_encryptor.envelopeKey().macKey().base64String().c_str());

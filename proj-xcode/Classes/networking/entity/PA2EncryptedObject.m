@@ -15,41 +15,42 @@
  */
 
 #import "PA2EncryptedObject.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2EncryptedObject
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
 	self = [super init];
 	if (self) {
-		_sessionIndex		= [dictionary objectForKey:@"sessionIndex"];
-		_adHocIndex			= [dictionary objectForKey:@"adHocIndex"];
-		_macIndex			= [dictionary objectForKey:@"macIndex"];
-		_nonce				= [dictionary objectForKey:@"nonce"];
-		_mac				= [dictionary objectForKey:@"mac"];
-		_encryptedData		= [dictionary objectForKey:@"encryptedData"];
+		_sessionIndex		= PA2ObjectAs(dictionary[@"sessionIndex"], NSString);
+		_adHocIndex			= PA2ObjectAs(dictionary[@"adHocIndex"], NSString);
+		_macIndex			= PA2ObjectAs(dictionary[@"macIndex"], NSString);
+		_nonce				= PA2ObjectAs(dictionary[@"nonce"], NSString);
+		_mac				= PA2ObjectAs(dictionary[@"mac"], NSString);
+		_encryptedData		= PA2ObjectAs(dictionary[@"encryptedData"], NSString);
 	}
 	return self;
 }
 
 - (NSDictionary *)toDictionary {
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:6];
 	if (_sessionIndex) {
-		[dictionary setObject:_sessionIndex forKey:@"sessionIndex"];
+		dictionary[@"sessionIndex"] = _sessionIndex;
 	}
 	if (_adHocIndex) {
-		[dictionary setObject:_adHocIndex forKey:@"adHocIndex"];
+		dictionary[@"adHocIndex"] = _adHocIndex;
 	}
 	if (_macIndex) {
-		[dictionary setObject:_macIndex forKey:@"macIndex"];
+		dictionary[@"macIndex"] = _macIndex;
 	}
 	if (_nonce) {
-		[dictionary setObject:_nonce forKey:@"nonce"];
+		dictionary[@"nonce"] = _nonce;
 	}
 	if (_mac) {
-		[dictionary setObject:_mac forKey:@"mac"];
+		dictionary[@"mac"] = _mac;
 	}
 	if (_encryptedData) {
-		[dictionary setObject:_encryptedData forKey:@"encryptedData"];
+		dictionary[@"encryptedData"] = _encryptedData;
 	}
 	return dictionary;
 }

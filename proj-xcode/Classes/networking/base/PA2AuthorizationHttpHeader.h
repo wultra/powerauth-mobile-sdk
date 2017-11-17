@@ -17,7 +17,7 @@
 #import <Foundation/Foundation.h>
 
 /**
- Class that represents the Authorization HTTP header with the PowerAuth-Authorization
+ Class representing authorization HTTP header with the PowerAuth-Authorization
  or PowerAuth-Token signature.
  */
 @interface PA2AuthorizationHttpHeader : NSObject

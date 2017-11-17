@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2NetworkObject.h"
 
 /** Request for '/pa/activation/create' endpoint.

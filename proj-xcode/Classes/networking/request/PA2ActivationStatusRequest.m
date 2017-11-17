@@ -15,13 +15,14 @@
  */
 
 #import "PA2ActivationStatusRequest.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2ActivationStatusRequest
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     self = [super init];
     if (self) {
-        _activationId = [dictionary objectForKey:@"activationId"];
+        _activationId = PA2ObjectAs(dictionary[@"activationId"], NSString);
     }
     return self;
 }

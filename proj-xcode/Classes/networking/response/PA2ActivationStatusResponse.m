@@ -15,34 +15,32 @@
  */
 
 #import "PA2ActivationStatusResponse.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2ActivationStatusResponse
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super init];
-    if (self) {
-        _activationId			= [dictionary objectForKey:@"activationId"];
-        _encryptedStatusBlob	= [dictionary objectForKey:@"encryptedStatusBlob"];
-        id customObject			= [dictionary objectForKey:@"customObject"];
-        if ([customObject isKindOfClass:[NSDictionary class]]) {
-            _customObject = customObject;
-        }
-    }
-    return self;
+	self = [super init];
+	if (self) {
+		_activationId			= PA2ObjectAs(dictionary[@"activationId"], NSString);
+		_encryptedStatusBlob	= PA2ObjectAs(dictionary[@"encryptedStatusBlob"], NSString);
+		_customObject			= PA2ObjectAs(dictionary[@"customObject"], NSDictionary);
+	}
+	return self;
 }
 
 - (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if (_activationId) {
-        [dictionary setObject:_activationId forKey:@"activationId"];
-    }
-    if (_encryptedStatusBlob) {
-        [dictionary setObject:_encryptedStatusBlob forKey:@"encryptedStatusBlob"];
-    }
-    if (_customObject && [_customObject isKindOfClass:[NSDictionary class]]) {
-        [dictionary setObject:_customObject forKey:@"customObject"];
-    }
-    return dictionary;
+	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+	if (_activationId) {
+		[dictionary setObject:_activationId forKey:@"activationId"];
+	}
+	if (_encryptedStatusBlob) {
+		[dictionary setObject:_encryptedStatusBlob forKey:@"encryptedStatusBlob"];
+	}
+	if (_customObject) {
+		[dictionary setObject:_customObject forKey:@"customObject"];
+	}
+	return dictionary;
 }
 
 @end

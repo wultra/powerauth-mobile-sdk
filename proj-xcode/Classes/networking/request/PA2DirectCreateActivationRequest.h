@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2CreateActivationRequest.h"
 
 @interface PA2DirectCreateActivationRequest : NSObject <PA2NetworkObject>

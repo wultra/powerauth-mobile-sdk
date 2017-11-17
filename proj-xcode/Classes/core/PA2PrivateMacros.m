@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
-#import "PA2AuthorizationHttpHeader.h"
+#import "PA2PrivateMacros.h"
 
-@implementation PA2AuthorizationHttpHeader
-
-- (instancetype)initWithKey:(NSString*)key value:(NSString*)value
+id PA2CastToImpl(id instance, Class desiredClass)
 {
-	self = [super init];
-	if (self) {
-		_key = key;
-		_value = value;
+	if ([instance isKindOfClass:desiredClass]) {
+		return instance;
 	}
-	return self;
+	return nil;
 }
-
-+ (PA2AuthorizationHttpHeader*) authorizationHeaderWithValue:(NSString *)value
-{
-	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Authorization" value:value];
-}
-
-+ (PA2AuthorizationHttpHeader*) tokenHeaderWithValue:(NSString *)value
-{
-	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Token" value:value];
-}
-
-@end

@@ -22,16 +22,17 @@
 	self = [super init];
 	if (self) {
 		// Initialize default value for keychain service keys
-		self.keychainInstanceName_Status		= PA2Keychain_Status;
-		self.keychainInstanceName_Possession	= PA2Keychain_Possession;
-		self.keychainInstanceName_Biometry		= PA2Keychain_Biometry;
+		_keychainInstanceName_Status		= PA2Keychain_Status;
+		_keychainInstanceName_Possession	= PA2Keychain_Possession;
+		_keychainInstanceName_Biometry		= PA2Keychain_Biometry;
+		_keychainInstanceName_TokenStore	= PA2Keychain_TokenStore;
 		
 		// Initialize default values for keychain service record item keys
-		self.keychainKey_Possession	= PA2KeychainKey_Possession;
+		_keychainKey_Possession	= PA2KeychainKey_Possession;
 	}
 	return self;
 }
-
+ 
 + (PA2KeychainConfiguration *)sharedInstance {
 	static dispatch_once_t onceToken;
 	static PA2KeychainConfiguration *inst;
@@ -76,6 +77,21 @@
 	result = result && (self.masterServerPublicKey != nil);
 	result = result && (self.baseEndpointUrl != nil);
 	return result;
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+	PowerAuthConfiguration * c = [[self.class allocWithZone:zone] init];
+	if (c) {
+		c->_instanceId = _instanceId;
+		c->_baseEndpointUrl = _baseEndpointUrl;
+		c->_appKey = _appKey;
+		c->_appSecret = _appSecret;
+		c->_masterServerPublicKey = _masterServerPublicKey;
+		c->_keychainKey_Biometry = _keychainKey_Biometry;
+		c->_externalEncryptionKey = _externalEncryptionKey;
+	}
+	return c;
 }
 
 @end

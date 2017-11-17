@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#import "PA2PrivateMacros.h"
 #import "PA2Types.h"
 #import "PA2Password.h"
 #import "PA2Encryptor.h"

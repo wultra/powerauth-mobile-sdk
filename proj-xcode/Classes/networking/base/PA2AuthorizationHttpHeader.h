@@ -16,23 +16,34 @@
 
 #import <Foundation/Foundation.h>
 
-/** Class that represents the Authorization HTTP header with the PowerAuth 2.0 signature
+/**
+ Class that represents the Authorization HTTP header with the PowerAuth-Authorization
+ or PowerAuth-Token signature.
  */
 @interface PA2AuthorizationHttpHeader : NSObject
 
-/** Property representing PowerAuth 2.0 HTTP Authorization Header, value "X-PowerAuth-Authorization".
+/**
+ Property representing PowerAuth 2.0 HTTP Authorization Header. The current implementation
+ contains value "X-PowerAuth-Authorization" for standard authorization and "X-PowerAuth-Token" for
+ token-based authorization.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString *key;
 
-/** Computed value of the PowerAuth 2.0 HTTP Authorization Header, to be used in HTTP requests "as is".
+/**
+ Computed value of the PowerAuth 2.0 HTTP Authorization Header, to be used in HTTP requests "as is".
  */
-@property (nonatomic, strong, readonly, nullable) NSString *value;
+@property (nonatomic, strong, readonly, nonnull) NSString *value;
 
-/** Initialize a new instance with given header value.
- 
- @param value Value of the PowerAuth 2.0 HTTP Authorization Header.
- @return Instance of the PowerAuth 2.0 HTTP Authorization Header object.
+/**
+ Returns a new header object created for standard authorization header.
+ If the value parameter contains nil, then returns nil object.
  */
-- (nullable instancetype)initWithValue:(nullable NSString*)value;
++ (nullable PA2AuthorizationHttpHeader*) authorizationHeaderWithValue:(nullable NSString*)value;
+
+/**
+ Returns a new header object created for token based authorization header.
+ If the value parameter contains nil, then returns nil object.
+ */
++ (nullable PA2AuthorizationHttpHeader*) tokenHeaderWithValue:(nullable NSString*)value;
 
 @end

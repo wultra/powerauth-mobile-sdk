@@ -24,25 +24,29 @@
 
 /** Access group name used by the PowerAuthSDK keychain instances.
  */
-@property (nonatomic, strong, nullable) NSString	*keychainAttribute_AccessGroup;
+@property (nonatomic, strong, nullable) NSString *keychainAttribute_AccessGroup;
 
 /** Suite name used by the NSUserDefaults that check for Keychain data presence.
  
  If the value is not set, `standardUserDefaults` are used. Otherwise, user defaults with given suite name are created. In case a developer started using SDK with no suite name specified, the developer is responsible for migrating data to the new `NSUserDefaults` before using the SDK with the new suite name.
  */
-@property (nonatomic, strong, nullable) NSString	*keychainAttribute_UserDefaultsSuiteName;
+@property (nonatomic, strong, nullable) NSString *keychainAttribute_UserDefaultsSuiteName;
 
 /** Name of the Keychain service used to store statuses for different PowerAuth instances.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Status;
 
-/** Name of the Keychain service used to store possession fator related key (one value for all PowerAuth instances).
+/** Name of the Keychain service used to store possession factor related key (one value for all PowerAuthSDK instances).
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Possession;
 
 /** Name of the Keychain service used to store biometry related keys for different PowerAuth instances.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Biometry;
+
+/** Name of the Keychain service used to store tokens created in PowerAuthSDK.tokenStore interface.
+ */
+@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_TokenStore;
 
 /** Name of the Keychain key used to store possession fator related key in an associated service.
  */
@@ -78,7 +82,7 @@
 
 /** Class that represents a PowerAuthSDK instance configuration.
  */
-@interface PowerAuthConfiguration : NSObject
+@interface PowerAuthConfiguration : NSObject<NSCopying>
 
 /** Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
  */

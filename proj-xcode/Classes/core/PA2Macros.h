@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef PA2Macros_h
-#define PA2Macros_h
+#import <Foundation/Foundation.h>
 
 #pragma mark - Custom logging
 
@@ -44,4 +43,18 @@
 #endif
 
 
-#endif /* PA2Macros_h */
+
+#pragma mark - Extern declaration
+
+#ifdef __cplusplus
+	// C++
+	#define PA2_EXTERN_C				extern "C"
+	#define PA2_EXTERN_C_BEGIN          extern "C" {
+	#define PA2_EXTERN_C_END			}
+#else
+	// C
+	#define PA2_EXTERN_C				extern
+	#define PA2_EXTERN_C_BEGIN
+	#define PA2_EXTERN_C_END
+#endif
+

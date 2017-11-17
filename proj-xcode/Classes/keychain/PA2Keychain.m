@@ -16,6 +16,7 @@
 
 #import "PA2Keychain.h"
 #import "PA2PrivateMacros.h"
+#import <UIKit/UIKit.h>
 #import <LocalAuthentication/LocalAuthentication.h>
 
 NSString *const PA2KeychainKey_SessionState	= @"PA2KeychainKey_SessionState";
@@ -24,10 +25,9 @@ NSString *const PA2Keychain_Initialized		= @"io.getlime.PowerAuthKeychain.Initia
 NSString *const PA2Keychain_Status			= @"io.getlime.PowerAuthKeychain.StatusKeychain";
 NSString *const PA2Keychain_Possession		= @"io.getlime.PowerAuthKeychain.PossessionKeychain";
 NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryKeychain";
+NSString *const PA2Keychain_TokenStore		= @"io.getlime.PowerAuthKeychain.TokenStore";
 
 @implementation PA2Keychain {
-	NSString *_identifier;
-	NSString *_accessGroup;
 	NSDictionary *_baseQuery;
 }
 

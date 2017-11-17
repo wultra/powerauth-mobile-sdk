@@ -33,13 +33,31 @@
  Initializes an ecnryptor with server's |publicKey| and optional |sharedInfo2|.
  The initialized instance can be used for both encryption and decryption tasks.
  */
-- (nullable id) initWithPublicKey:(nonnull NSData*)publicKey sharedInfo2:(nullable NSData*)sharedInfo;
+- (nullable instancetype) initWithPublicKey:(nonnull NSData*)publicKey sharedInfo2:(nullable NSData*)sharedInfo;
 
 /**
  Initializes an encryptor with previously calculated |envelopeKey| and optional |sharedInfo|.
  The initialized instance can be used only for decryption task.
  */
-- (nullable id) initWithEnvelopeKey:(nonnull NSData*)envelopeKey sharedInfo2:(nullable NSData*)sharedInfo;
+- (nullable instancetype) initWithEnvelopeKey:(nonnull NSData*)envelopeKey sharedInfo2:(nullable NSData*)sharedInfo;
+
+/**
+ Returns a new instance of PA2ECIESEncryptor, suitable only for data decryption or nil if current encryptor is not
+ able to decrypt response (this happens typically if you did not call `encryptRequest` or instnace contains invalid keys).
+ 
+ Discussion
+ 
+ The returned copy will not be able to encrypt a new requests, but will be able to decrypt a received response.
+ This behavior is helpful when processing of simultaneous encrypted requests and resonses is required.
+ Due to fact, that our ECIES scheme is generating an unique key for each request-response roundtrip, you need to
+ capture that key for later safe decryption. As you can see, that might be problematic, because you don't know when
+ exactly the response will be received. To help with this, you can make a copy of the object and use that copy
+ only for response decryption.
+ 
+ The `-encryptRequest:completion:` method is an one example of safe approach, but you can implement your own
+ processing, if the thread safety is not a problem.
+ */
+- (nullable PA2ECIESEncryptor*) copyForDecryption;
 
 #pragma mark Properties
 
@@ -58,6 +76,8 @@
 @property (nonatomic, readonly) BOOL canEncryptRequest;
 /**
  Contains YES if this instnace of encryptor can decrypt a cryptogram with response data.
+ The property typically contains NO only when the instance is not properly initialized, or
+ you did not call `encryptRequest` at least once.
  */
 @property (nonatomic, readonly) BOOL canDecryptResponse;
 
@@ -66,7 +86,10 @@
 /**
  Encrypts an input |data| into PA2ECIESCryptogram object or nil in case of failure.
  Note that each call for this method will regenerate an internal envelope key, so you should use
- the method only in pair with subsequent call to `decryptResponse:`.
+ the method only in pair with subsequent call to `decryptResponse:`. If you plan to reuse one
+ encryptor for multiple simultaneous requests, then you should make a copy of the object after
+ every successful encryption. Check `-copyForDecryption` or  `-encryptRequest:completion:` methods
+ for details.
  
  The DEBUG version of the SDK prints detailed error about the failure reason into the log.
  */
@@ -78,6 +101,20 @@
  The DEBUG version of the SDK prints detailed error about the failure reason into the log.
  */
 - (nullable NSData *) decryptResponse:(nonnull PA2ECIESCryptogram *)cryptogram;
+
+/**
+ This is a special, thread-safe version of request encryption. The method encrypts provided data
+ and makes a copy of itself in thread synchronized block. Then the completion block is called with
+ generated cryptogram and copied instance, which is suitable only for response decryption.
+ The completion is called from outside of the synchronization block.
+ 
+ Note that the rest of the encryptor's interface is not thread safe. So, once the shared instance
+ for encryption is created, then you should not change its parameters or call other methods.
+ 
+ Returns YES if encryption succeeded or NO in case of error.
+ */
+- (BOOL) encryptRequest:(nullable NSData *)data
+			 completion:(void (^_Nonnull)(PA2ECIESCryptogram * _Nullable cryptogram, PA2ECIESEncryptor * _Nullable decryptor))completion;
 
 @end
 

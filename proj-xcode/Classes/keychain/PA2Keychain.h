@@ -32,6 +32,10 @@ extern NSString * __nonnull const PA2Keychain_Possession;
  */
 extern NSString * __nonnull const PA2Keychain_Biometry;
 
+/** Default name of the keychain service used to store tokens created by the PowerAuthSDK.tokenStore class.
+ */
+extern NSString * __nonnull const PA2Keychain_TokenStore;
+
 /** Constant specifying the default name of the 'key' used to store the PowerAuthSDK instance session state in the session state keychain.
  */
 extern NSString * __nonnull const PA2KeychainKey_SessionState;
@@ -53,6 +57,15 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 /** Simple wrapper on top of an iOS Keychain.
  */
 @interface PA2Keychain : NSObject
+
+/**
+ Identifier of the service.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * identifier;
+/**
+ Optional access group for the Keychain Sharing.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString * accessGroup;
 
 /** Init a new keychain instance for a service with given identifier.
 

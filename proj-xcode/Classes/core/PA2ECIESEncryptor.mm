@@ -52,6 +52,13 @@ using namespace io::getlime::powerAuth;
 	return [self initWithObject: ECIESEncryptor(key, cc7::objc::CopyFromNSData(sharedInfo))];
 }
 
+- (nullable PA2ECIESEncryptor*) copyForDecryption
+{
+	if (_encryptor.canDecryptResponse()) {
+		return [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+	}
+	return nil;
+}
 
 #pragma mark Setters & Getters
 
@@ -75,6 +82,15 @@ using namespace io::getlime::powerAuth;
 	return cc7::objc::CopyToNullableNSData(_encryptor.sharedInfo2());
 }
 
+- (BOOL) canEncryptRequest
+{
+	return _encryptor.canEncryptRequest();
+}
+
+- (BOOL) canDecryptResponse
+{
+	return _encryptor.canDecryptResponse();
+}
 
 #pragma mark - Encrypt & Decrypt
 
@@ -92,6 +108,21 @@ using namespace io::getlime::powerAuth;
 	auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, data);
 	PA2Objc_DebugDumpError(self, @"DecryptResponse", ec);
 	return ec == EC_Ok ? cc7::objc::CopyToNSData(data) : nil;
+}
+
+- (BOOL) encryptRequest:(NSData *)data
+			 completion:(void (^)(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor))completion
+{
+	PA2ECIESEncryptor * decryptor;
+	PA2ECIESCryptogram * cryptogram;
+	@synchronized (self) {
+		cryptogram = [self encryptRequest:data];
+		decryptor = cryptogram ? [self copyForDecryption] : nil;
+	}
+	if (completion) {
+		completion(cryptogram, decryptor);
+	}
+	return cryptogram != nil;
 }
 
 @end

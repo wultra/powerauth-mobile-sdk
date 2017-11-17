@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthSDK.h"
+#import "PA2PrivateTokenKeychainStore.h"
 
 #pragma mark - Constants
 
@@ -101,6 +102,11 @@ static PowerAuthSDK *inst;
 	// Initialize encryptor factory
 	_encryptorFactory = [[PA2EncryptorFactory alloc] initWithSession:_session];
 	
+	// Initialize token store
+	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
+																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:tokenStoreKeychain];
+	
 	// Attempt to restore session state
 	[self restoreState];
 	
@@ -109,6 +115,11 @@ static PowerAuthSDK *inst;
 + (void) throwInvalidConfigurationException {
 	[NSException raise:PA2ExceptionMissingConfig
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
+}
+
+- (PowerAuthConfiguration*) configuration
+{
+	return [_configuration copy];
 }
 
 /**
@@ -824,10 +835,7 @@ static PowerAuthSDK *inst;
 														 authentication:authentication
 															vaultUnlock:vaultUnlock
 																  error:error];
-	if (signature) {
-		return [[PA2AuthorizationHttpHeader alloc] initWithValue:signature.authHeaderValue];
-	}
-	return nil;
+	return [PA2AuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue];
 }
 
 

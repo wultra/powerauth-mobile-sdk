@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2EncryptedObject.h"
 
 @interface PA2PersonalizedEncryptedObject : PA2EncryptedObject <PA2NetworkObject>

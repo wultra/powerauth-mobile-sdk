@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2NetworkObject.h"
 
 /** Class representing an error in the RESTful API.

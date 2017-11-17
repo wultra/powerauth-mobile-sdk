@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "PA2Error.h"
 #import "PA2Response.h"
 
 /** Class representing an error PowerAuth 2.0 Standard API response.

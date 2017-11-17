@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#ifndef PA2Networking_h
-#define PA2Networking_h
-
 #import "PA2Request.h"
 #import "PA2Response.h"
 #import "PA2ActivationStatusRequest.h"
@@ -34,4 +31,3 @@
 
 #import "PA2Client.h"
 
-#endif /* PA2Networking_h */

@@ -15,26 +15,28 @@
  */
 
 #import "PA2Error.h"
-#import "PA2Macros.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2Error
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary
+{
 	self = [super init];
 	if (self) {
-		_code		= [dictionary objectForKey:@"code"];
-		_message    = [dictionary objectForKey:@"message"];
+		_code		= PA2ObjectAs(dictionary[@"code"], NSString);
+		_message    = PA2ObjectAs(dictionary[@"message"], NSString);
 	}
 	return self;
 }
 
-- (NSDictionary *)toDictionary {
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+- (NSDictionary*) toDictionary
+{
+	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:2];
 	if (_code) {
-		[dictionary setObject:_code forKey:@"code"];
+		dictionary[@"code"] = _code;
 	}
 	if (_message) {
-		[dictionary setObject:_message forKey:@"message"];
+		dictionary[@"message"] = _message;
 	}
 	return dictionary;
 }

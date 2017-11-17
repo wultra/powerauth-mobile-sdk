@@ -15,18 +15,19 @@
  */
 
 #import "PA2CreateActivationResponse.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2CreateActivationResponse
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     self = [super init];
     if (self) {
-        _activationId						= [dictionary objectForKey:@"activationId"];
-        _activationNonce					= [dictionary objectForKey:@"activationNonce"];
-        _ephemeralPublicKey					= [dictionary objectForKey:@"ephemeralPublicKey"];
-        _encryptedServerPublicKey			= [dictionary objectForKey:@"encryptedServerPublicKey"];
-        _encryptedServerPublicKeySignature	= [dictionary objectForKey:@"encryptedServerPublicKeySignature"];
-		_customAttributes					= [dictionary objectForKey:@"customAttributes"];
+        _activationId						= PA2ObjectAs(dictionary[@"activationId"], NSString);
+        _activationNonce					= PA2ObjectAs(dictionary[@"activationNonce"], NSString);
+        _ephemeralPublicKey					= PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
+        _encryptedServerPublicKey			= PA2ObjectAs(dictionary[@"encryptedServerPublicKey"], NSString);
+        _encryptedServerPublicKeySignature	= PA2ObjectAs(dictionary[@"encryptedServerPublicKeySignature"], NSString);
+		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
     }
     return self;
 }

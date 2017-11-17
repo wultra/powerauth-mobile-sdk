@@ -15,20 +15,21 @@
  */
 
 #import "PA2NonPersonalizedEncryptedObject.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2NonPersonalizedEncryptedObject
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
 	self = [super initWithDictionary:dictionary];
 	if (self) {
-		_applicationKey		= [dictionary objectForKey:@"applicationKey"];
-		_ephemeralPublicKey = [dictionary objectForKey:@"ephemeralPublicKey"];
+		_applicationKey		= PA2ObjectAs(dictionary[@"applicationKey"], NSString);
+		_ephemeralPublicKey = PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
 	}
 	return self;
 }
 
 - (NSDictionary *)toDictionary {
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:[super toDictionary]];
+	NSMutableDictionary *dictionary = [[super toDictionary] mutableCopy];
 	if (_applicationKey) {
 		[dictionary setObject:_applicationKey forKey:@"applicationKey"];
 	}

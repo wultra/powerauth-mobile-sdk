@@ -15,14 +15,15 @@
  */
 
 #import "PA2VaultUnlockResponse.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2VaultUnlockResponse
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     self = [super init];
     if (self) {
-        _activationId					= [dictionary objectForKey:@"activationId"];
-        _encryptedVaultEncryptionKey	= [dictionary objectForKey:@"encryptedVaultEncryptionKey"];
+        _activationId					= PA2ObjectAs(dictionary[@"activationId"], NSString);
+        _encryptedVaultEncryptionKey	= PA2ObjectAs(dictionary[@"encryptedVaultEncryptionKey"], NSString);
     }
     return self;
 }

@@ -28,6 +28,9 @@
 #import "PA2OperationTask.h"
 #import "PA2NonPersonalizedEncryptedObject.h"
 #import "PA2PersonalizedEncryptedObject.h"
+#import "PA2EncryptedRequest.h"
+#import "PA2EncryptedResponse.h"
+#import "PA2RemoveTokenRequest.h"
 
 #import "PA2Client.h"
 

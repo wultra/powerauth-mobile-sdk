@@ -1,0 +1,9 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="http://getlime.io/security/powerauth">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<pow:RemoveTokenRequest>
+			<pow:tokenId>$1</pow:tokenId>
+			<pow:activationId>$2</pow:activationId>
+		</pow:RemoveTokenRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

@@ -28,6 +28,11 @@
 @interface PA2PrivateTokenKeychainStore : NSObject<PowerAuthTokenStore>
 
 /**
+ A keychain for storing tokens.
+ */
+@property (nonatomic, strong, readonly) PA2Keychain * keychain;
+
+/**
  Initializes keychain token store with parent SDK object and keychain.
  Internally, weak reference is used for SDK and strong for the keychain.
  */

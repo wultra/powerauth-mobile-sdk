@@ -62,3 +62,15 @@
 
 @implementation PATSOfflineSignaturePayload
 @end
+
+@implementation PATSToken
+@end
+
+@implementation PATSTokenValidationRequest
+@end
+
+@implementation PATSTokenValidationResponse
+@end
+
+@implementation PATSECIESCryptogram
+@end

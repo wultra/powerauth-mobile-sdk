@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-#import "PowerAuthToken.h"
-#import "PA2PrivateTokenData.h"
+#import "PA2RemoveTokenRequest.h"
+#import "PA2PrivateMacros.h"
 
-/**
- The category provides a private interface for PowerAuthToken object.
- The header is not available in public library builds (e.g. for CocoaPods)
- */
-@interface PowerAuthToken (Private)
+@implementation PA2RemoveTokenRequest
 
-/**
- Reference to private data object
- */
-@property (nonatomic, readonly, strong, nonnull) PA2PrivateTokenData * privateTokenData;
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_tokenId = PA2ObjectAs([dictionary objectForKey:@"tokenId"], NSString);
+	}
+	return self;
+}
 
-/**
- Initializes token with parent store and with its private data. The internal
- reference to store object is weak.
- */
-- (nonnull id) initWithStore:(nonnull id<PowerAuthTokenStore>)store
-						data:(nonnull PA2PrivateTokenData*)data;
+- (NSDictionary*) toDictionary
+{
+	return _tokenId ? @{ @"tokenId" : _tokenId } : @{};
+}
 
 @end
-

@@ -56,3 +56,9 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeOperationCancelled;
 
 /** Error code for errors related to end-to-end encryption */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeEncryption;
+
+/** Error code for a general API misuse */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeWrongParameter;
+
+/** Error code for accessing an unknown token */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidToken;

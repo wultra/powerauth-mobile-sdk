@@ -20,7 +20,7 @@
  The PA2PrivateTokenData is a model object keeping all information about
  the token.
  */
-@interface PA2PrivateTokenData : NSObject
+@interface PA2PrivateTokenData : NSObject<NSCopying>
 
 #pragma mark - Properties
 
@@ -36,12 +36,13 @@
  Token's secret, received from the server.
  */
 @property (nonatomic, strong, nonnull) NSData * secret;
-/**
- Token's date of expiration, received from the server.
- Note that this date is only informational.
- */
-@property (nonatomic, strong, nonnull) NSDate * dateOfExpiration;
 
+#pragma mark - Compare
+
+/**
+ Returns YES if both tokens contains equal information.
+ */
+- (BOOL) isEqualToTokenData:(nullable PA2PrivateTokenData*)tokenData;
 
 #pragma mark - Serialization
 

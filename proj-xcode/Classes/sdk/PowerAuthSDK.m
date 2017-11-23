@@ -81,7 +81,11 @@ static PowerAuthSDK *inst;
 	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Possession
 													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Biometry];
-	
+	// Initialize token store
+	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
+																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:_statusKeychain];
+
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
 	// By default, the code uses standard user defaults, use `PA2KeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -95,6 +99,7 @@ static PowerAuthSDK *inst;
 		[_statusKeychain deleteAllData];
 		[_sharedKeychain deleteAllData];
 		[_biometryOnlyKeychain deleteAllData];
+		[tokenStoreKeychain deleteAllData];
 		[userDefaults setBool:YES forKey:PA2Keychain_Initialized];
 		[userDefaults synchronize];
 	}
@@ -102,10 +107,6 @@ static PowerAuthSDK *inst;
 	// Initialize encryptor factory
 	_encryptorFactory = [[PA2EncryptorFactory alloc] initWithSession:_session];
 	
-	// Initialize token store
-	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
-																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:tokenStoreKeychain];
 	
 	// Attempt to restore session state
 	[self restoreState];
@@ -301,7 +302,7 @@ static PowerAuthSDK *inst;
 		}
 		
 		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client vaultUnlockSignatureHeader:httpHeader callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
+		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
 				callback(response.encryptedVaultEncryptionKey, nil);
@@ -757,7 +758,7 @@ static PowerAuthSDK *inst;
 		}
 		
 		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client removeActivationSignatureHeader:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
+		NSURLSessionDataTask *dataTask = [_client removeActivation:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
 				[self removeActivationLocal];

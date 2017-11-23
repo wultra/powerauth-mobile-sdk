@@ -23,7 +23,7 @@
 
 - (BOOL) hasValidData
 {
-	return !(!_name || !_identifier || _secret.length == TOKEN_SECRET_LENGTH || !_dateOfExpiration);
+	return !(!_name || !_identifier || _secret.length != TOKEN_SECRET_LENGTH);
 }
 
 - (nonnull NSData*)serializedData
@@ -46,9 +46,7 @@
 	result.name		 			= PA2ObjectAs(dict[@"name"], NSString);
 	result.identifier			= PA2ObjectAs(dict[@"id"], NSString);
 	NSString * loadedB64Secret 	= PA2ObjectAs(dict[@"sec"], NSString);
-	NSNumber * loadedTimestamp	= PA2ObjectAs(dict[@"exp"], NSNumber);
 	result.secret			 	= loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
-	result.dateOfExpiration		= loadedTimestamp ? [NSDate dateWithTimeIntervalSince1970:loadedTimestamp.doubleValue] : nil;
 	return result.hasValidData ? result : nil;
 }
 
@@ -60,8 +58,7 @@
 		return nil;
 	}
 	NSString * b64secret = [_secret base64EncodedStringWithOptions:0];
-	NSNumber * unixTimestamp = @([_dateOfExpiration timeIntervalSince1970]);
-	return @{ @"name" : _name, @"id" : _identifier, @"sec": b64secret, @"exp" : unixTimestamp };
+	return @{ @"name" : _name, @"id" : _identifier, @"sec": b64secret };
 }
 
 #if defined(DEBUG)
@@ -72,5 +69,31 @@
 	return [NSString stringWithFormat:@"<%@ 0x%p: %@>", NSStringFromClass(self.class), (__bridge void*)self, info];
 }
 #endif
+
+#pragma mark - Compare
+
+- (BOOL) isEqualToTokenData:(nullable PA2PrivateTokenData*)otherData
+{
+	if (self == otherData) {
+		return YES;
+	}
+	BOOL equal = [otherData.name isEqualToString:_name];
+	equal = equal && [otherData.identifier isEqualToString:_identifier];
+	equal = equal && [otherData.secret isEqualToData:_secret];
+	return equal;
+}
+
+#pragma mark - Copying
+
+- (id) copyWithZone:(NSZone *)zone
+{
+	PA2PrivateTokenData * c = [[self.class allocWithZone:zone] init];
+	if (c) {
+		c->_name = _name;
+		c->_identifier = _identifier;
+		c->_secret = _secret;
+	}
+	return c;
+}
 
 @end

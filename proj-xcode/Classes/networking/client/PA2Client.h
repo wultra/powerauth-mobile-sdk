@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2Networking.h"
 
 @interface PA2Client : NSObject <NSURLSessionDelegate>
@@ -22,6 +21,19 @@
 @property (nonatomic, assign) NSTimeInterval defaultRequestTimeout;
 @property (nonatomic, strong, nonnull) NSString *baseEndpointUrl;
 @property (nonatomic, strong, nullable) id<PA2ClientSslValidationStrategy> sslValidationStrategy;
+
+/** Build absolute URL for given resource using given base URL.
+ 
+ @param path Path to the resource, relative to given base URL.
+ @return Absolute URL for given resource.
+ */
+- (nonnull NSURL*) urlForRelativePath:(nonnull NSString*)urlPath;
+
+/**
+ Embeds PA2NetworkObject into PA2Request object and returns serialized NSData object with
+ serialized JSON.
+ */
+- (nonnull NSData*) embedNetworkObjectIntoRequest:(nullable id<PA2NetworkObject>)object;
 
 - (nonnull NSURLSessionDataTask*) postToUrl:(nonnull NSURL*)url
 									   data:(nonnull NSData*)data
@@ -40,10 +52,17 @@
 - (nonnull NSURLSessionDataTask*) getActivationStatus:(nonnull PA2ActivationStatusRequest*)request
 											 callback:(nonnull void(^)(PA2RestResponseStatus status, PA2ActivationStatusResponse * _Nullable response, NSError * _Nullable error))callback;
 
-- (nonnull NSURLSessionDataTask*) removeActivationSignatureHeader:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
-														 callback:(nonnull void(^)(PA2RestResponseStatus status, NSError * _Nullable error))callback;
+- (nonnull NSURLSessionDataTask*) removeActivation:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
+										  callback:(nonnull void(^)(PA2RestResponseStatus status, NSError * _Nullable error))callback;
 
-- (nonnull NSURLSessionDataTask*) vaultUnlockSignatureHeader:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
-													callback:(nonnull void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse * _Nullable response, NSError * _Nullable error))callback;
+- (nonnull NSURLSessionDataTask*) vaultUnlock:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
+									 callback:(nonnull void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse * _Nullable response, NSError * _Nullable error))callback;
+
+- (nonnull NSURLSessionDataTask*) createToken:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
+								encryptedData:(nonnull PA2EncryptedRequest *)encryptedData
+									 callback:(nonnull void(^)(PA2RestResponseStatus status, PA2EncryptedResponse * _Nullable response, NSError * _Nullable error))callback;
+
+- (nonnull NSURLSessionDataTask*) removeToken:(nonnull PA2RemoveTokenRequest*)request
+									 callback:(nonnull void(^)(PA2RestResponseStatus status, NSError * _Nullable error))callback;
 
 @end

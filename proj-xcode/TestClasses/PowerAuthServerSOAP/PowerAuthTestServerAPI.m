@@ -16,6 +16,7 @@
 
 #import "PowerAuthTestServerAPI.h"
 #import "SoapHelper.h"
+#import "PA2ECIESEncryptor.h"
 
 @implementation PowerAuthTestServerAPI
 {
@@ -493,5 +494,92 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	return [response[@"signatureValid"] boolValue];
 }
 
+
+#pragma mark - Tokens
+
+- (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application activationId:(NSString*)activationId signatureType:(NSString*)signatureType
+{
+	[self checkForValidConnection];
+	
+	NSData * publicKey = [[NSData alloc] initWithBase64EncodedString:application.masterPublicKey options:0];
+	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo2:nil];
+	PA2ECIESCryptogram * cryptogram = [encryptor encryptRequest:nil];
+	if (!cryptogram) {
+		return nil;
+	}
+	PA2ECIESEncryptor * decryptor = [encryptor copyForDecryption];
+	NSArray * params = @[ activationId, signatureType.uppercaseString, cryptogram.keyBase64 ];
+	PATSToken * response = [_helper soapRequest:@"CreateToken" params:params response:@"CreateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSDictionary * jsonObject = [self decryptECIESResponseWithDecryptor:decryptor resp:resp ns:ns as:[NSDictionary class]];
+		BOOL success = NO;
+		PATSToken * token = [[PATSToken alloc] init];
+		if (jsonObject) {
+			token.tokenIdentifier = jsonObject[@"tokenId"];
+			token.tokenSecret = jsonObject[@"tokenSecret"];
+			token.activationId = activationId;
+			success = (token.tokenIdentifier != nil && token.tokenSecret != nil);
+		}
+		return success ? token : nil;
+	}];
+	return response;
+}
+
+- (BOOL) removeToken:(PATSToken*)token
+{
+	[self checkForValidConnection];
+	
+	NSDictionary * response = [_helper soapRequest:@"RemoveToken" params:@[token.tokenIdentifier, token.activationId] response:@"RemoveTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+		if (!localError) obj[@"removed"] = @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
+		return !localError ? obj : nil;
+	}];
+	return [response[@"removed"] boolValue];
+}
+
+- (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
+{
+	[self checkForValidConnection];
+	NSArray * params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp ];
+	PATSTokenValidationResponse * response = [_helper soapRequest:@"ValidateToken" params:params response:@"ValidateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSTokenValidationResponse * obj = [[PATSTokenValidationResponse alloc] init];
+		if (!localError) obj.tokenValid				= _BoolValue([resp nodeForXPath:@"pa:tokenValid" namespaceMappings:ns error:&localError]);
+		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.applicationId			= [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.signatureType			= [[resp nodeForXPath:@"pa:signatureType" namespaceMappings:ns error:&localError] stringValue];
+		return (!localError && obj.tokenValid) ? obj : nil;
+	}];
+	return response;
+}
+
+
+#pragma mark - ECIES helper
+
+- (id) decryptECIESResponseWithDecryptor:(PA2ECIESEncryptor*)decryptor resp:(CXMLNode *)resp ns:(NSDictionary *)ns
+									  as:(Class)requiredClass
+{
+	if (!decryptor.canDecryptResponse) {
+		return nil;
+	}
+	PA2ECIESCryptogram * cryptogram = [[PA2ECIESCryptogram alloc] init];
+	NSError * localError = nil;
+	if (!localError) cryptogram.macBase64	= [[resp nodeForXPath:@"pa:mac" namespaceMappings:ns error:&localError] stringValue];
+	if (!localError) cryptogram.bodyBase64	= [[resp nodeForXPath:@"pa:encryptedData" namespaceMappings:ns error:&localError] stringValue];
+	if (localError) {
+		return nil;
+	}
+	NSData * responseData = [decryptor decryptResponse:cryptogram];
+	if (!responseData) {
+		return nil;
+	}
+	// OK, we have a response data, which is normally a JSON, so try to parse it.
+	id jsonObject = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&localError];
+	if (!jsonObject || localError) {
+		return nil;
+	}
+	return [jsonObject isKindOfClass:requiredClass] ? jsonObject : nil;
+}
 
 @end

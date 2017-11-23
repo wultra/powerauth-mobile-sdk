@@ -22,15 +22,17 @@
 NSString *const PA2ErrorDomain					= @"PA2ErrorDomain";
 
 /** Error code for error with network connectivity or download */
-NSInteger const PA2ErrorCodeNetworkError				= (1);
-NSInteger const PA2ErrorCodeSignatureError				= (2);
-NSInteger const PA2ErrorCodeInvalidActivationState		= (3);
-NSInteger const PA2ErrorCodeInvalidActivationData		= (4);
-NSInteger const PA2ErrorCodeMissingActivation			= (5);
-NSInteger const PA2ErrorCodeAuthenticationFailed		= (6);
-NSInteger const PA2ErrorCodeActivationPending			= (7);
-NSInteger const PA2ErrorCodeKeychain					= (8);
-NSInteger const PA2ErrorCodeTouchIDNotAvailable			= (9);
-NSInteger const PA2ErrorCodeTouchIDCancel				= (10);
-NSInteger const PA2ErrorCodeOperationCancelled			= (11);
-NSInteger const PA2ErrorCodeEncryption					= (12);
+NSInteger const PA2ErrorCodeNetworkError				= 1;
+NSInteger const PA2ErrorCodeSignatureError				= 2;
+NSInteger const PA2ErrorCodeInvalidActivationState		= 3;
+NSInteger const PA2ErrorCodeInvalidActivationData		= 4;
+NSInteger const PA2ErrorCodeMissingActivation			= 5;
+NSInteger const PA2ErrorCodeAuthenticationFailed		= 6;
+NSInteger const PA2ErrorCodeActivationPending			= 7;
+NSInteger const PA2ErrorCodeKeychain					= 8;
+NSInteger const PA2ErrorCodeTouchIDNotAvailable			= 9;
+NSInteger const PA2ErrorCodeTouchIDCancel				= 10;
+NSInteger const PA2ErrorCodeOperationCancelled			= 11;
+NSInteger const PA2ErrorCodeEncryption					= 12;
+NSInteger const PA2ErrorCodeWrongParameter				= 13;
+NSInteger const PA2ErrorCodeInvalidToken				= 14;

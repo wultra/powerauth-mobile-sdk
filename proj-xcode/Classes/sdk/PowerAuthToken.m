@@ -28,31 +28,33 @@
 
 #pragma mark - Public methods
 
+- (PA2PrivateTokenData*) privateTokenData
+{
+	return _tokenData;
+}
+
 - (NSString*) tokenName
 {
-	@synchronized (self) {
-		return _tokenData.name;
-	}
+	return _tokenData.name;
 }
 
 - (PA2AuthorizationHttpHeader*) generateHeader
 {
 	NSData * tokenSecret = nil;
 	NSString * tokenIdentifier = nil;
-	// Capture constants in thread-safe block
-	@synchronized (self) {
-		if (!_tokenData.hasValidData) {
-			// Data object is not valid.
-			PALog(@"PowerAuthToken: Token contains invalid data, or has been already removed.");
-			return nil;
-		}
-		if (![_tokenStore canRequestForAccessToken]) {
-			PALog(@"PowerAuthToken: The associated token store has no longer valid activation.");
-			return nil;
-		}
-		tokenSecret = _tokenData.secret;
-		tokenIdentifier = _tokenData.identifier;
+	
+	if (!_tokenData.hasValidData) {
+		// Data object is not valid.
+		PALog(@"PowerAuthToken: Token contains invalid data, or has been already removed.");
+		return nil;
 	}
+	if (![_tokenStore canRequestForAccessToken]) {
+		PALog(@"PowerAuthToken: The associated token store has no longer valid activation.");
+		return nil;
+	}
+	tokenSecret = _tokenData.secret;
+	tokenIdentifier = _tokenData.identifier;
+
 	// Prepare data for HMAC
 	NSNumber * currentTimeMs = @((int64_t)([[NSDate date] timeIntervalSince1970] * 1000));
 	NSString * currentTimeString = [currentTimeMs stringValue];
@@ -72,36 +74,36 @@
 	}
 	NSString * value = [NSString stringWithFormat:
 						@"PowerAuth version=\"2.1\""
-						@" token_id=\"%@\""
-						@" token_digest=\"%@\""
-						@" nonce=\"%@\""
-						@" timestamp=\"%@\"",
+						@", token_id=\"%@\""
+						@", token_digest=\"%@\""
+						@", nonce=\"%@\""
+						@", timestamp=\"%@\"",
 						tokenIdentifier, digestBase64, nonceBase64, currentTimeString];
 	return [PA2AuthorizationHttpHeader tokenHeaderWithValue:value];
 }
 
-- (void) remove
-{
-	NSString * nameToRemove;
-	id<PowerAuthTokenStore> store;
-	@synchronized (self) {
-		nameToRemove = _tokenData.name;
-		store = _tokenStore;
-		_tokenStore = nil;
-		_tokenData = nil;
-	}
-	if (nameToRemove) {
-		[store removeTokenWithName:nameToRemove];
-	}
-}
-
 - (BOOL) isValid
 {
-	@synchronized (self) {
-		return _tokenData != nil;
-	}
+	return _tokenData != nil;
 }
 
+- (BOOL) isEqualToToken:(nonnull PowerAuthToken*)token
+{
+	if (token == self) {
+		return YES;
+	}
+	if (_tokenStore != token.tokenStore || !_tokenData) {
+		return NO;
+	}
+	return [_tokenData isEqualToTokenData:token.privateTokenData];
+}
+
+#pragma mark - Copying
+
+- (id) copyWithZone:(NSZone *)zone
+{
+	return [[PowerAuthToken alloc] initWithStore:_tokenStore data:[_tokenData copy]];
+}
 
 #pragma mark - Private methods
 
@@ -119,15 +121,6 @@
 		_tokenData = data;
 	}
 	return self;
-}
-
-- (void) accessPrivateData:(void (^_Nonnull)(PA2PrivateTokenData * _Nullable tokenData))block
-{
-	@synchronized (self) {
-		if (block) {
-			block(_tokenData);
-		}
-	}
 }
 
 @end

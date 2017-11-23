@@ -281,7 +281,7 @@ using namespace io::getlime::powerAuth;
 - (BOOL) hasBiometryFactor
 {
 	bool result;
-	auto error = _session->hasBiometryFactor(result);
+	CC7_UNUSED_VAR auto error = _session->hasBiometryFactor(result);
 	PA2Objc_DebugDumpError(self, @"HasBiometryFactor", error);
 	return result;
 }

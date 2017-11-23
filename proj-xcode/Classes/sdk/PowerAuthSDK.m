@@ -571,18 +571,15 @@ static PowerAuthSDK *inst;
 					activationResult.customAttributes = responseObject.customAttributes;
 				} else {
 					// Error occurred
-                    PALog(@"error 1");
 					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 				}
 			} else {
 				// Activation error occurred
                 PALog(@"error 2");
-				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+                NSDictionary *encryptedResponseDictionary = [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil];
+				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:encryptedResponseDictionary];
 			}
-        } else {
-            PALog(@"error 3");
         }
-        
 		if (errorToReport) {
 			[_session resetSession];
 		}

@@ -194,17 +194,17 @@
 
 	if (!name || !completion) {
 		if (completion) {
-			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
+			completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
 		}
 		return nil;
 	}
 	if (!_sdk.hasValidActivation) {
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
+		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
 		return nil;
 	}
 	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
 	if (!tokenData) {
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
+		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
 	

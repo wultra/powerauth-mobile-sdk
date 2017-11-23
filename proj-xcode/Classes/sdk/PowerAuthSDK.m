@@ -16,6 +16,7 @@
 
 #import "PowerAuthSDK.h"
 #import "PA2PrivateTokenKeychainStore.h"
+#import <UIKit/UIKit.h>
 
 #pragma mark - Constants
 

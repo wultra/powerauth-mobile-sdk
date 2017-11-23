@@ -571,12 +571,12 @@ static PowerAuthSDK *inst;
 					activationResult.customAttributes = responseObject.customAttributes;
 				} else {
 					// Error occurred
-                    printf("error 1")
+                    printf("error 1");
 					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 				}
 			} else {
 				// Activation error occurred
-                printf("error 2")
+                printf("error 2");
 				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 			}
 		}

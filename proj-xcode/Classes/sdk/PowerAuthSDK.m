@@ -788,6 +788,7 @@ static PowerAuthSDK *inst;
 	if (error) {
 		PALog(@"Removing activaton data from keychain failed. We can't recover from this error.");
 	}
+	[_tokenStore removeAllLocalTokens];
 	[_session resetSession];
 }
 

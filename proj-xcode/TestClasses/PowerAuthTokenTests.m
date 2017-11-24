@@ -492,6 +492,10 @@
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
+	
+	// After cleanup, we can check whether the store can still sign headers
+	[_sdk removeActivationLocal];
+	XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
 }
 
 @end

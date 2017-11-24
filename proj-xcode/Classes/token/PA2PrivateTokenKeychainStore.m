@@ -36,12 +36,17 @@
 	
 	/// Token for dispatch_once() used for lazy initialization
 	dispatch_once_t 			_dispatchOnceToken;
+	/// Semaphore for locking
+	dispatch_semaphore_t		_lock;
+	
 	/// An ECIES encryptor, created from master server public key.
 	PA2ECIESEncryptor * 		_encryptor;
 	/// A HTTP client for communication with the server
 	PA2Client * 				_client;
 	/// A debug set with pending operations (valid only for DEBUG build of library)
 	NSMutableSet<NSString*> * 	_pendingNamedOperations;
+	/// A local database for tokens.
+	NSMutableDictionary<NSString*, PA2PrivateTokenData*> * _database;
 }
 
 
@@ -78,6 +83,8 @@
 - (void) preparePrivateData
 {
 	dispatch_once(&_dispatchOnceToken, ^{
+		// Create lock
+		_lock = dispatch_semaphore_create(1);
 		// Prepare encryptor
 		NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:_sdkConfiguration.masterServerPublicKey options:0];
 		_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
@@ -86,10 +93,34 @@
 		_client.baseEndpointUrl = _sdkConfiguration.baseEndpointUrl;
 		_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
 		_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
+		_database = [NSMutableDictionary dictionaryWithCapacity:2];
 		// ...and debug set for overlapping operations
 		_pendingNamedOperations = _OPERATIONS_SET();
 	});
 }
+
+/**
+ A simple replacement for @synchronized() construct.
+ This version of function returns object returned from the block.
+ */
+static id _synchronized(dispatch_semaphore_t sema, id(^block)(void))
+{
+	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+	id result = block();
+	dispatch_semaphore_signal(sema);
+	return result;
+}
+/**
+ A simple replacement for @synchronized() construct.
+ This version of function has no return value.
+ */
+static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
+{
+	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+	block();
+	dispatch_semaphore_signal(sema);
+}
+
 
 #pragma mark - PowerAuthTokenStore protocol
 
@@ -185,11 +216,11 @@
 							token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
 						}
 					}
-				} else {
 				}
 			}
-			// call back to application...
+			// call back to the application...
 			if (!token && !error) {
+				// Create fallback error in case that token has not been created.
 				error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeEncryption userInfo:nil];
 			}
 			safeCompletion(token, error);
@@ -219,15 +250,27 @@
 		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
-	
+
+	// Prepare data for HTTP request
 	PA2RemoveTokenRequest * removeRequest = [[PA2RemoveTokenRequest alloc] init];
 	removeRequest.tokenId = tokenData.identifier;
+	NSData * jsonData = [_client embedNetworkObjectIntoRequest:removeRequest];
+	// Sign http request
+	NSError * error = nil;
+	PowerAuthAuthentication * authentication = [[PowerAuthAuthentication alloc] init];
+	authentication.usePossession = YES;
+	PA2AuthorizationHttpHeader * signatureHeader = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/token/remove" body:jsonData error:&error];
+	if (!signatureHeader || error) {
+		completion(NO, error);
+		return nil;
+	}
 	
 	// Start http request...
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	_START_OPERATION(name);
-
-	task.dataTask = [_client removeToken:removeRequest callback:^(PA2RestResponseStatus status, NSError * _Nullable error) {
+	task.dataTask = [_client removeToken:removeRequest
+						 signatureHeader:signatureHeader
+								callback:^(PA2RestResponseStatus status, NSError * _Nullable error) {
 		if (status == PA2RestResponseStatus_OK) {
 			[self removeLocalTokenWithName:name];
 		}
@@ -250,17 +293,25 @@
 
 - (void) removeLocalTokenWithName:(NSString *)name
 {
-	if (name) {
-		[self removeTokenWithIdentifier:[self identifierForTokenName:name]];
-	}
+	[self preparePrivateData];
+	
+	_synchronizedVoid(_lock, ^{
+		if (name) {
+			[self removeTokenWithIdentifier:[self identifierForTokenName:name]];
+		}
+	});
 }
 
 
 - (void) removeAllLocalTokens
 {
-	[[self allTokenIdentifiers] enumerateObjectsUsingBlock:^(NSString * identifier, NSUInteger idx, BOOL * stop) {
-		[_keychain deleteDataForKey:identifier];
-	}];
+	[self preparePrivateData];
+	
+	_synchronizedVoid(_lock, ^{
+		[[self allTokenIdentifiers] enumerateObjectsUsingBlock:^(NSString * identifier, NSUInteger idx, BOOL * stop) {
+			[self removeTokenWithIdentifier:identifier];
+		}];
+	});
 }
 
 
@@ -305,8 +356,14 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
  */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
 {
-	NSString * identifier = [self identifierForTokenName:name];
-	return [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
+	return _synchronized(_lock, ^id{
+		NSString * identifier = [self identifierForTokenName:name];
+		PA2PrivateTokenData * tokenData = _database[identifier];
+		if (!tokenData) {
+			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
+		}
+		return tokenData;
+	});
 }
 
 /**
@@ -314,15 +371,18 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
  */
 - (void) storeTokenData:(PA2PrivateTokenData*)tokenData
 {
-	NSString * identifier = [self identifierForTokenName:tokenData.name];
-	NSData * data = [tokenData serializedData];
-	if ([_keychain containsDataForKey:identifier]) {
-		// This is just warning, but creating two tokens with the same name at the same time, is not recommended.
-		PALog(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
-		[_keychain updateValue:data forKey:identifier];
-	} else {
-		[_keychain addValue:data forKey:identifier];
-	}
+	_synchronizedVoid(_lock, ^{
+		NSString * identifier = [self identifierForTokenName:tokenData.name];
+		NSData * data = [tokenData serializedData];
+		if ([_keychain containsDataForKey:identifier]) {
+			// This is just warning, but creating two tokens with the same name at the same time, is not recommended.
+			PALog(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
+			[_keychain updateValue:data forKey:identifier];
+		} else {
+			[_keychain addValue:data forKey:identifier];
+		}
+		_database[identifier] = tokenData;
+	});
 }
 
 /**
@@ -331,6 +391,7 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
 - (void) removeTokenWithIdentifier:(NSString*)identifier
 {
 	[_keychain deleteDataForKey:identifier];
+	[_database removeObjectForKey:identifier];
 }
 
 
@@ -339,7 +400,7 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
 #if defined(DEBUG)
 - (void) startOperationForName:(NSString*)name
 {
-	@synchronized (self) {
+	_synchronizedVoid(_lock, ^{
 		if ([_pendingNamedOperations containsObject:name]) {
 			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
@@ -349,14 +410,14 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
 		} else {
 			[_pendingNamedOperations addObject:name];
 		}
-	}
+	});
 }
 
 - (void) stopOperationForName:(NSString*)name
 {
-	@synchronized (self) {
+	_synchronizedVoid(_lock, ^{
 		[_pendingNamedOperations removeObject:name];
-	}
+	});
 }
 #endif
 

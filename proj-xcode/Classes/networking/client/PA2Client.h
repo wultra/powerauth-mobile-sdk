@@ -63,6 +63,7 @@
 									 callback:(nonnull void(^)(PA2RestResponseStatus status, PA2EncryptedResponse * _Nullable response, NSError * _Nullable error))callback;
 
 - (nonnull NSURLSessionDataTask*) removeToken:(nonnull PA2RemoveTokenRequest*)request
+							  signatureHeader:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
 									 callback:(nonnull void(^)(PA2RestResponseStatus status, NSError * _Nullable error))callback;
 
 @end

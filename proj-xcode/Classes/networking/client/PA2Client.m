@@ -219,10 +219,12 @@
 }
 
 - (NSURLSessionDataTask*) removeToken:(PA2RemoveTokenRequest*)request
+					  signatureHeader:(PA2AuthorizationHttpHeader*)signatureHeader
 							 callback:(void(^)(PA2RestResponseStatus status, NSError * error))callback
 {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/token/remove"];
-	return [self postToUrl:fullUrl requestObject:request headers:nil responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
+	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
 		callback(status, error);
 	}];
 }

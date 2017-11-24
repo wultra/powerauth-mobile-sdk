@@ -115,7 +115,7 @@ public class Password {
     
     /**
      Destroys underlying native C++ object. You can call this method
-     if you want to be sure that internal module is properly destroyed.
+     if you want to be sure that internal object is properly destroyed.
      You can't use instance of this java object anymore after this call.
      */
     public synchronized void destroy() {

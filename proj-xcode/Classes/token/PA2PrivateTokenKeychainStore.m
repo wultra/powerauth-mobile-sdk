@@ -27,16 +27,28 @@
 
 @implementation PA2PrivateTokenKeychainStore
 {
+	/// Weak reference to PowerAuthSDK
 	__weak PowerAuthSDK *		 _sdk;
+	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
 	
 	// Lazy initialized data
+	
+	/// Token for dispatch_once() used for lazy initialization
 	dispatch_once_t 			_dispatchOnceToken;
+	/// An ECIES encryptor, created from master server public key.
 	PA2ECIESEncryptor * 		_encryptor;
+	/// A HTTP client for communication with the server
 	PA2Client * 				_client;
+	/// A debug set with pending operations (valid only for DEBUG build of library)
 	NSMutableSet<NSString*> * 	_pendingNamedOperations;
 }
 
+
+/**
+ Following debug macros allows tracking of dangerous simultaneous requests for the same tokens.
+ The feature is turned off in release build of the library.
+ */
 #if defined(DEBUG)
 	#define _START_OPERATION(name)	[self startOperationForName:name]
 	#define _STOP_OPERATION(name)	[self stopOperationForName:name]
@@ -63,7 +75,7 @@
  Prepares runtime data required by this class. We're initializing that objects only
  on demand, when the first token is being accessed.
  */
-- (void) prepareRuntimeData
+- (void) preparePrivateData
 {
 	dispatch_once(&_dispatchOnceToken, ^{
 		// Prepare encryptor
@@ -91,7 +103,7 @@
 										authentication:(PowerAuthAuthentication*)authentication
 											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
-	[self prepareRuntimeData];
+	[self preparePrivateData];
 
 	if (!name || !authentication || !completion) {
 		if (completion) {
@@ -190,7 +202,7 @@
 - (PowerAuthTokenStoreTask) removeAccessTokenWithName:(NSString *)name
 										   completion:(void (^)(BOOL, NSError * ))completion
 {
-	[self prepareRuntimeData];
+	[self preparePrivateData];
 
 	if (!name || !completion) {
 		if (completion) {
@@ -255,18 +267,27 @@
 
 #pragma mark - Keychain
 
+static NSString * const s_TokenPrefix = @"powerAuthToken__";
+
+/**
+ Returns identifier for keychain created from token's name
+ */
 - (NSString*) identifierForTokenName:(NSString*)name
 {
-	return[@"token__" stringByAppendingString:name];
+	return[s_TokenPrefix stringByAppendingString:name];
 }
 
-
+/**
+ Returns YES if given identifier is a valid token's identifier
+ */
 - (BOOL) isValidIdentifierForToken:(NSString*)identifier
 {
-	return [identifier hasPrefix:@"token__"];
+	return [identifier hasPrefix:s_TokenPrefix];
 }
 
-
+/**
+ Returns token identifiers for all items stored in the keychain.
+ */
 - (NSArray*) allTokenIdentifiers
 {
 	NSDictionary * items = [_keychain allItems];
@@ -279,20 +300,18 @@
 	return result;
 }
 
-
-- (void) removeTokenWithIdentifier:(NSString*)identifier
-{
-	[_keychain deleteDataForKey:identifier];
-}
-
-
+/**
+ Returns PA2PrivateTokenData object created for token with name or nil if no such data is stored.
+ */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
 {
 	NSString * identifier = [self identifierForTokenName:name];
 	return [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
 }
 
-
+/**
+ Stores a private data object to keychain.
+ */
 - (void) storeTokenData:(PA2PrivateTokenData*)tokenData
 {
 	NSString * identifier = [self identifierForTokenName:tokenData.name];
@@ -306,6 +325,14 @@
 	}
 }
 
+/**
+ Removes token with identifier from keychain.
+ */
+- (void) removeTokenWithIdentifier:(NSString*)identifier
+{
+	[_keychain deleteDataForKey:identifier];
+}
+
 
 #pragma mark - Debug methods
 
@@ -317,8 +344,8 @@
 			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
 			// on the server.
-			// This warning is also displayed for removal and creation operations created simultaneously.
-			PALog(@"WARNING: TokenKeychainStore: Looks like you're running simultaneous operations for the same token name. This is not recommended.");
+			// This warning is also displayed for removal and creation operations created at the same time.
+			PALog(@"WARNING: TokenKeychainStore: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
 		} else {
 			[_pendingNamedOperations addObject:name];
 		}

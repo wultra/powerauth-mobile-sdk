@@ -408,7 +408,7 @@
 	XCTAssertTrue(activation.count >= 2);
 	
 	PATSInitActivationResponse * activationData = activation[0];
-	PowerAuthAuthentication * auth = activation[1];
+	//PowerAuthAuthentication * auth = activation[1];
 	
 	XCTAssertTrue(tokenStore.canRequestForAccessToken);
 	

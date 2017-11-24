@@ -32,10 +32,6 @@ extern NSString * __nonnull const PA2Keychain_Possession;
  */
 extern NSString * __nonnull const PA2Keychain_Biometry;
 
-/** Default name of the keychain service used to store tokens created by the PowerAuthSDK.tokenStore class.
- */
-extern NSString * __nonnull const PA2Keychain_TokenStore;
-
 /** Constant specifying the default name of the 'key' used to store the PowerAuthSDK instance session state in the session state keychain.
  */
 extern NSString * __nonnull const PA2KeychainKey_SessionState;

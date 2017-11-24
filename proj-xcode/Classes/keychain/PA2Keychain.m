@@ -25,7 +25,6 @@ NSString *const PA2Keychain_Initialized		= @"io.getlime.PowerAuthKeychain.Initia
 NSString *const PA2Keychain_Status			= @"io.getlime.PowerAuthKeychain.StatusKeychain";
 NSString *const PA2Keychain_Possession		= @"io.getlime.PowerAuthKeychain.PossessionKeychain";
 NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryKeychain";
-NSString *const PA2Keychain_TokenStore		= @"io.getlime.PowerAuthKeychain.TokenStore";
 
 @implementation PA2Keychain {
 	NSDictionary *_baseQuery;

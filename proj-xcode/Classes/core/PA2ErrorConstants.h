@@ -56,3 +56,14 @@ extern NSInteger const PA2ErrorCodeOperationCancelled;
 
 /** Error code for errors related to end-to-end encryption */
 extern NSInteger const PA2ErrorCodeEncryption;
+
+/**
+ A key to NSError.userInfo dicionary where the optional NSDictionary with additional
+ information about error is stored.
+ */
+extern NSString * __nonnull const PA2ErrorInfoKey_AdditionalInfo;
+/**
+ A key to NSError.userInfo dicionary where the optional NSData with error response
+ is stored.
+ */
+extern NSString * __nonnull const PA2ErrorInfoKey_ResponseData;

@@ -32,7 +32,7 @@
 	
 	NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
 	NSError *err = nil;
-	NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+	NSDictionary *responseDictionary = !data ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&err];
 	
 	PA2ErrorResponse *httpResponseObject;
 	httpResponseObject.httpStatusCode = httpResponse.statusCode;
@@ -41,10 +41,13 @@
 	} else {
 		httpResponseObject = [[PA2ErrorResponse alloc] initWithDictionary:responseDictionary];
 	}
-	
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-	[dictionary setObject:httpResponseObject forKey:PA2ErrorDomain];
-	return [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeNetworkError userInfo:dictionary];
+	NSDictionary * additionalInfo =
+  	@{
+		PA2ErrorDomain: 				httpResponseObject,
+		PA2ErrorInfoKey_AdditionalInfo: responseDictionary ? responseDictionary : @{},
+		PA2ErrorInfoKey_ResponseData: 	data ? data : [NSData data]
+	 };
+	return [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeNetworkError userInfo:additionalInfo];
 }
 
 /** Build absolute URL for given resource using given base URL.

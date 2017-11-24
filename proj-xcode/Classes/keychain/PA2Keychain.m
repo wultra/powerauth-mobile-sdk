@@ -290,12 +290,7 @@ NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryK
 	[query setValue:@YES	forKey:(__bridge id)kSecUseNoAuthenticationUI];
 	
 	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
-	SecAccessControlCreateFlags flags = kNilOptions;
-	if ([PA2Keychain canUseTouchId]) {
-		if (useTouchId) {
-			flags = kSecAccessControlTouchIDAny;
-		}
-	}
+	SecAccessControlCreateFlags flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
 
 	// Create access control object
 	CFErrorRef error = NULL;

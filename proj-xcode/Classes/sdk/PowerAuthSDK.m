@@ -575,7 +575,6 @@ static PowerAuthSDK *inst;
 				}
 			} else {
 				// Activation error occurred
-                PALog(@"error 2");
                 NSDictionary *encryptedResponseDictionary = [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil];
 				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:encryptedResponseDictionary];
 			}

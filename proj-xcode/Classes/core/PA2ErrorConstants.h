@@ -21,6 +21,17 @@
 /** PowerAuth SDK error domain */
 PA2_EXTERN_C NSString * __nonnull const PA2ErrorDomain;
 
+/**
+ A key to NSError.userInfo dicionary where the optional NSDictionary with additional
+ information about error is stored.
+ */
+PA2_EXTERN_C NSString * __nonnull const PA2ErrorInfoKey_AdditionalInfo;
+/**
+ A key to NSError.userInfo dicionary where the optional NSData with error response
+ is stored.
+ */
+PA2_EXTERN_C NSString * __nonnull const PA2ErrorInfoKey_ResponseData;
+
 /** Error code for error with network connectivity or download */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeNetworkError;
 

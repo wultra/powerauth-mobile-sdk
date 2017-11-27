@@ -548,9 +548,12 @@ static PowerAuthSDK *inst;
 			if (encryptedResponse.status == PA2RestResponseStatus_OK) {
 				
 				NSData *decryptedResponseData = [encryptor decryptResponse:encryptedResponse error:nil];
-				NSDictionary *createActivationResponseDictionary = [NSJSONSerialization JSONObjectWithData:decryptedResponseData
-																								   options:kNilOptions
-																									 error:nil];
+				NSDictionary *createActivationResponseDictionary;
+				if (decryptedResponseData) {
+					createActivationResponseDictionary = [NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil];
+				} else {
+					createActivationResponseDictionary = nil;
+				}
 				
 				PA2CreateActivationResponse *responseObject = [[PA2CreateActivationResponse alloc] initWithDictionary:createActivationResponseDictionary];
 				
@@ -574,8 +577,18 @@ static PowerAuthSDK *inst;
 					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 				}
 			} else {
-				// Activation error occurred
-				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+				// Activation error occurred, propagate response data to the error object
+				// Try to parse response data as JSON
+				// TODO: needs to be hardened with PA2ObjectAs() once we merge token-branch...
+				NSDictionary * responseJson = httpData ? [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil] : nil;
+				NSMutableDictionary * additionalInfo = [NSMutableDictionary dictionaryWithCapacity:2];
+				if (httpData) {
+					additionalInfo[PA2ErrorInfoKey_ResponseData] = httpData;
+				}
+				if (responseJson) {
+					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJson;
+				}
+				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:additionalInfo];
 			}
 		}
 		if (errorToReport) {

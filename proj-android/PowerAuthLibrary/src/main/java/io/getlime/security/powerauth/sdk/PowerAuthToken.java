@@ -26,7 +26,7 @@ import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**
  * The <code>PowerAuthToken</code> class generates a token based authorization headers.
- * You have to use {@codePowerAuthTokenStore} to get an instance of this class.
+ * You have to use {@code PowerAuthTokenStore} to get an instance of this class.
  * <p>
  * The whole interface is thread safe.
  */

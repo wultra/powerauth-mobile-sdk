@@ -220,7 +220,7 @@ public class PowerAuthTokenStore {
      * <p>
      * Note that if the removal request doesn't succeed, then the local token's data is not removed.
      * The method is thread safe, but it's not recommended to issue conflicting request for the same
-     * token's name in parallel (e.g. create & remove token at the same time).
+     * token's name in parallel (e.g. create &amp; remove token at the same time).
      *
      * @param context Context
      * @param tokenName Name of token to be removed

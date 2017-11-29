@@ -100,6 +100,7 @@ public class PowerAuthSDK {
     private PA2EncryptorFactory mEncryptorFactory;
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
+    private PowerAuthTokenStore mTokenStore;
 
     /**
      * Helper class for building new instances.
@@ -145,7 +146,7 @@ public class PowerAuthSDK {
             } else {
                 instance.mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
-            instance.mClient = new PA2Client();
+            instance.mClient = new PA2Client(mConfiguration, mClientConfiguration);
 
             instance.mStatusKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainStatusId());
             instance.mBiometryKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainBiometryId());
@@ -295,7 +296,7 @@ public class PowerAuthSDK {
             headers.put(httpHeader.getKey(), httpHeader.getValue());
 
             // Perform the server request
-            return mClient.vaultUnlockSignatureHeader(mConfiguration, mClientConfiguration, headers, new INetworkResponseListener<VaultUnlockResponse>() {
+            return mClient.vaultUnlock(headers, new INetworkResponseListener<VaultUnlockResponse>() {
 
                 @Override
                 public void onNetworkResponse(VaultUnlockResponse vaultUnlockResponse) {
@@ -313,6 +314,23 @@ public class PowerAuthSDK {
             listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(httpHeader.getPowerAuthErrorCode()));
             return null;
         }
+    }
+
+    /**
+     * Returns reference to {@code PowerAuthTokenStore} instance. The internal instance is created on demand, when
+     * the getter is called for first time.
+     *
+     * @return Reference to {@code PowerAuthTokenStore} instance.
+     */
+    public PowerAuthTokenStore getTokenStore() {
+        if (mTokenStore == null) {
+            synchronized (this) {
+                if (mTokenStore == null) {
+                    mTokenStore = new PowerAuthTokenStore(this, mStatusKeychain, mClient);
+                }
+            }
+        }
+        return mTokenStore;
     }
 
     /**
@@ -483,7 +501,7 @@ public class PowerAuthSDK {
         request.setExtras(extras);
 
         // Perform the server request
-        return mClient.createActivation(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationCreateResponse>() {
+        return mClient.createActivation(request, new INetworkResponseListener<ActivationCreateResponse>() {
 
             @Override
             public void onNetworkResponse(ActivationCreateResponse response) {
@@ -586,7 +604,7 @@ public class PowerAuthSDK {
             return null;
         }
 
-        return mClient.sendNonPersonalizedEncryptedObjectToUrl(mConfiguration, mClientConfiguration, encryptedRequest.getRequestObject(), url, httpHeaders, new INetworkResponseListener<NonPersonalizedEncryptedPayloadModel>() {
+        return mClient.sendNonPersonalizedEncryptedObjectToUrl(encryptedRequest.getRequestObject(), url, httpHeaders, new INetworkResponseListener<NonPersonalizedEncryptedPayloadModel>() {
 
             @Override
             public void onNetworkResponse(NonPersonalizedEncryptedPayloadModel nonPersonalizedEncryptedPayloadModel) {
@@ -766,7 +784,7 @@ public class PowerAuthSDK {
         request.setActivationId(mSession.getActivationIdentifier());
 
         // Perform the server request
-        return mClient.getActivationStatus(mConfiguration, mClientConfiguration, request, new INetworkResponseListener<ActivationStatusResponse>() {
+        return mClient.getActivationStatus(request, new INetworkResponseListener<ActivationStatusResponse>() {
 
             @Override
             public void onNetworkResponse(ActivationStatusResponse activationStatusResponse) {
@@ -821,7 +839,7 @@ public class PowerAuthSDK {
         final Map<String, String> headers = new HashMap<>();
         headers.put(httpHeader.getKey(), httpHeader.getValue());
 
-        return mClient.removeActivationSignatureHeader(mConfiguration, mClientConfiguration, headers, new INetworkResponseListener<Void>() {
+        return mClient.removeActivation(headers, new INetworkResponseListener<Void>() {
 
             @Override
             public void onNetworkResponse(Void aVoid) {
@@ -884,7 +902,9 @@ public class PowerAuthSDK {
                 }
             }
         }
-
+        // Remove all tokens from token store
+        this.getTokenStore().removeAllLocalTokens(context);
+        // Reset C++ session
         mSession.resetSession();
         // Serialize will notify state listener
         saveSerializedState();
@@ -944,13 +964,13 @@ public class PowerAuthSDK {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
-            return new PowerAuthAuthorizationHttpHeader(null, PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
+            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
         }
 
         // Generate signature key encryption keys
         SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
         if (keys == null) {
-            return new PowerAuthAuthorizationHttpHeader(null, PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData);
+            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData);
         }
 
         // Determine authentication factor type
@@ -964,9 +984,9 @@ public class PowerAuthSDK {
         saveSerializedState();
 
         if (signatureResult.errorCode == ErrorCode.OK) {
-            return new PowerAuthAuthorizationHttpHeader(signatureResult.authHeaderValue, PowerAuthErrorCodes.PA2Succeed);
+            return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.authHeaderValue);
         } else {
-            return new PowerAuthAuthorizationHttpHeader(null, PowerAuthErrorCodes.PA2ErrorCodeSignatureError);
+            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeSignatureError);
         }
     }
 

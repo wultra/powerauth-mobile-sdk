@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.base;
+package io.getlime.security.powerauth.networking.response;
 
-/**
- * Created by miroslavmichalec on 25/10/2016.
- */
+import android.support.annotation.NonNull;
 
-public class PA2AuthorizationHttpHeader {
+public interface IRemoveTokenListener {
+    /**
+     * Called when removing token succeeded and token is no longer valid on the server.
+     */
+    void onRemoveTokenSucceeded();
 
-    private static final String HTTP_HEADER_PA_AUTHORIZATION = "X-PowerAuth-Authorization";
-
-    private String key;
-    private String value;
-
-    public PA2AuthorizationHttpHeader(String value) {
-        this.key = HTTP_HEADER_PA_AUTHORIZATION;
-        this.value = value;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public String getValue() {
-        return value;
-    }
+    /**
+     * Called when removing token fails with an error.
+     * @param t error occurred during the operation
+     */
+    void onRemoveTokenFailed(@NonNull Throwable t);
 }

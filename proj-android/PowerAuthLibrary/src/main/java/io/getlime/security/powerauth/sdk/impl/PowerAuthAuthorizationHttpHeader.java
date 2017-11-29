@@ -16,22 +16,93 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
-import io.getlime.security.powerauth.networking.base.PA2AuthorizationHttpHeader;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-/**
- * Created by miroslavmichalec on 25/10/2016.
- */
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 
-public class PowerAuthAuthorizationHttpHeader extends PA2AuthorizationHttpHeader {
+public class PowerAuthAuthorizationHttpHeader {
 
-    private int powerAuthErrorCode;
+    /**
+     * Contains key for HTTP header or null in case of error.
+     */
+    public final String key;
+    /**
+     * Contains value for HTTP header or null in case of error.
+     */
+    public final String value;
+    /**
+     * Contains an error code from <code>PowerAuthErrorCodes</code> set of codes.
+     */
+    public final int powerAuthErrorCode;
 
-    public PowerAuthAuthorizationHttpHeader(String value, int powerAuthErrorCode) {
-        super(value);
+    /**
+     * Constructs a new header object created for token based authorization header.
+     *
+     * @param value calculated value for token authentication
+     * @return a new instance of header object created for token based authorization
+     */
+    public static @NonNull PowerAuthAuthorizationHttpHeader createAuthorizationHeader(@NonNull String value) {
+        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Authorization", value, PowerAuthErrorCodes.PA2Succeed);
+    }
+
+    /**
+     * Constructs a new header object created for token based authorization header.
+     *
+     * @param value calculated value for token authentication
+     * @return a new instance of header object created for token based authorization
+     */
+    public static @NonNull PowerAuthAuthorizationHttpHeader createTokenHeader(@NonNull String value) {
+        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Token", value, PowerAuthErrorCodes.PA2Succeed);
+    }
+
+    /**
+     * Constructs an object with error response.
+     *
+     * @param powerAuthErrorCode error to report
+     * @return a new instance of header object created with error
+     */
+    public static @NonNull PowerAuthAuthorizationHttpHeader createError(int powerAuthErrorCode) {
+        return new PowerAuthAuthorizationHttpHeader(null, null, powerAuthErrorCode);
+    }
+
+    /**
+     * @return true if object contains a valid HTTP header.
+     */
+    public boolean isValid() {
+        return powerAuthErrorCode == PowerAuthErrorCodes.PA2Succeed &&
+                key != null &&
+                value != null;
+    }
+
+
+    /**
+     * A private constructor with all object properties.
+     *
+     * @param key key for HTTP header. May be null for error headers.
+     * @param value value for HTTP header. May be null for error headers.
+     * @param powerAuthErrorCode an error code from <code>PowerAuthErrorCodes</code> set of codes.
+     */
+    private PowerAuthAuthorizationHttpHeader(@Nullable String key, @Nullable String value, int powerAuthErrorCode) {
+        this.key = key;
+        this.value = value;
         this.powerAuthErrorCode = powerAuthErrorCode;
     }
 
+    //
+    // Getters for code compatibility compatibility. In newer versions of library, you can use
+    // final public properties to access the elements.
+    //
+
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
+    }
+
+    public @Nullable String getKey() {
+        return key;
+    }
+
+    public @Nullable String getValue() {
+        return value;
     }
 }

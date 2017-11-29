@@ -93,7 +93,7 @@ public class ECIESCryptogram {
     }
 
     /**
-     * Constructs a cryptogram with body, mac and key in Base64 formats. The key can be nil
+     * Constructs a cryptogram with body, mac and key in Base64 format. The key can be nil
      * for responses received from the server.
      * @param bodyBase64 encrypted data in Base64 format
      * @param macBase64 MAC computed for encrypted data in Base64 format
@@ -105,4 +105,14 @@ public class ECIESCryptogram {
         this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.DEFAULT) : null;
     }
 
+    /**
+     * Constructs a cryptogram with body and mac in Base64 format.
+     * @param bodyBase64 encrypted data in Base64 format
+     * @param macBase64 MAC computed for encrypted data in Base64 format
+     */
+    public ECIESCryptogram(String bodyBase64, String macBase64) {
+        this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.DEFAULT) : null;
+        this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.DEFAULT) : null;
+        this.key  = null;
+    }
 }

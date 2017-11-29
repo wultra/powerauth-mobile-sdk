@@ -315,6 +315,16 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 }
 
 
+- (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
+{
+	[self preparePrivateData];
+	
+	id result = _synchronized(_lock, ^id{
+		return @(nil != [self tokenDataForTokenName:name]);
+	});
+	return [result boolValue];
+}
+
 
 #pragma mark - Keychain
 

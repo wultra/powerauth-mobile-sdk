@@ -111,4 +111,9 @@
 	[_tokens removeAllObjects];
 }
 
+- (BOOL) hasLocalTokenWithName:(NSString *)name
+{
+	return [_tokens objectForKey:name] != nil;
+}
+
 @end

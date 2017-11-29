@@ -124,4 +124,9 @@ typedef id PowerAuthTokenStoreTask;
  */
 - (void) removeAllLocalTokens;
 
+/**
+ Returns YES if store has token with given name in its local database.
+ */
+- (BOOL) hasLocalTokenWithName:(nonnull NSString*)name;
+
 @end

@@ -38,4 +38,6 @@ public class PowerAuthErrorCodes {
     public static final int PA2ErrorCodeTouchIDCancel = 10;
     public static final int PA2ErrorCodeOperationCancelled = 11;
     public static final int PA2ErrorCodeInvalidActivationCode = 12;
+    public static final int PA2ErrorCodeInvalidToken = 13;
+    public static final int PA2ErrorCodeEncryptionError = 14;
 }

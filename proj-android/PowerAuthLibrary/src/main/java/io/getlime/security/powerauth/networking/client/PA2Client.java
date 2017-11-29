@@ -22,6 +22,7 @@ import android.os.Looper;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,6 +30,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +39,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +52,10 @@ import io.getlime.core.rest.model.base.entity.Error;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.security.powerauth.networking.endpoints.PA2ActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2CreateActivationEndpoint;
+import io.getlime.security.powerauth.networking.endpoints.PA2CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2NonPersonalizedEncryptedEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2RemoveActivationEndpoint;
+import io.getlime.security.powerauth.networking.endpoints.PA2RemoveTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
@@ -60,8 +65,12 @@ import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.rest.api.model.request.TokenCreateRequest;
+import io.getlime.security.powerauth.rest.api.model.request.TokenRemoveRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.TokenCreateResponse;
+import io.getlime.security.powerauth.rest.api.model.response.TokenRemoveResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
@@ -76,27 +85,36 @@ public class PA2Client {
 
     private final Gson mGson;
     private final Handler mHandler;
+    private final PowerAuthConfiguration mConfiguration;
+    private final PowerAuthClientConfiguration mClientConfiguration;
 
-    public PA2Client() {
+    public PA2Client(@NonNull PowerAuthConfiguration configuration, @NonNull PowerAuthClientConfiguration clientConfiguration) {
+        mConfiguration = configuration;
+        mClientConfiguration = clientConfiguration;
         mGson = new GsonBuilder().create();
         mHandler = new Handler(Looper.getMainLooper());
+    }
+
+    public @NonNull PowerAuthClientConfiguration getClientConfiguration() {
+        return mClientConfiguration;
+    }
+
+    public @NonNull PowerAuthConfiguration getConfiguration() {
+        return mConfiguration;
     }
 
     private class RestExecutor<TRequest, TResponse> extends AsyncTask<TRequest, Void, Void> {
 
         private static final String CONTENT_TYPE_JSON = "application/json";
 
-        private PowerAuthClientConfiguration clientConfiguration;
         private IEndpointDefinition<TRequest> requestDefinition;
         private INetworkResponseListener<TResponse> responseListener;
         private @Nullable Map<String, String> headers;
 
         private RestExecutor(
-                @NonNull PowerAuthClientConfiguration clientConfiguration,
                 @Nullable Map<String, String> headers,
                 @NonNull IEndpointDefinition<TRequest> requestDefinition,
                 @NonNull INetworkResponseListener<TResponse> responseListener) {
-            this.clientConfiguration = clientConfiguration;
             this.headers = headers;
             this.requestDefinition = requestDefinition;
             this.responseListener = responseListener;
@@ -112,10 +130,7 @@ public class PA2Client {
                 return null;
             }
             try {
-                final ObjectRequest<TRequest> requestObject = new ObjectRequest<>(params[0]);
-                final String jsonRequestObject = mGson.toJson(requestObject);
-                final byte[] postDataBytes = jsonRequestObject.getBytes("UTF-8");
-
+                final Pair<byte[], String> postData = serializeRequestObject(params[0]);
                 final HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 final boolean securedUrlConnection = urlConnection instanceof HttpsURLConnection;
 
@@ -129,12 +144,12 @@ public class PA2Client {
                         urlConnection.setRequestProperty(header.getKey(), header.getValue());
                     }
                 }
-                urlConnection.setConnectTimeout(clientConfiguration.getConnectionTimeout());
-                urlConnection.setReadTimeout(clientConfiguration.getReadTimeout());
+                urlConnection.setConnectTimeout(mClientConfiguration.getConnectionTimeout());
+                urlConnection.setReadTimeout(mClientConfiguration.getReadTimeout());
 
                 // ssl validation strategy
                 if (securedUrlConnection) {
-                    final PA2ClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
+                    final PA2ClientValidationStrategy clientValidationStrategy = mClientConfiguration.getClientValidationStrategy();
                     if (clientValidationStrategy != null) {
                         final HttpsURLConnection sslConnection = (HttpsURLConnection) urlConnection;
                         final SSLSocketFactory sslSocketFactory = clientValidationStrategy.getSSLSocketFactory();
@@ -147,13 +162,13 @@ public class PA2Client {
                         }
                     }
                 } else {
-                    if (clientConfiguration.isUnsecuredConnectionAllowed() == false) {
+                    if (mClientConfiguration.isUnsecuredConnectionAllowed() == false) {
                         throw new SSLException("Connection to non-TLS endpoint is not allowed.");
                     }
                 }
 
                 if (PA2Log.isEnabled()) {
-                    final String bodyStr = jsonRequestObject == null ? "<empty>" : jsonRequestObject;
+                    final String bodyStr = postData.second == null ? "<empty>" : postData.second;
                     final Map<String,List<String>> prop = urlConnection.getRequestProperties();
                     final String propStr = prop == null ? "<empty>" : prop.toString();
                     PA2Log.d("PA2Client %s request to URL: %s\n - Headers: %s\n - Body: %s",
@@ -161,7 +176,7 @@ public class PA2Client {
                 }
 
                 // Connect to endpoint
-                urlConnection.getOutputStream().write(postDataBytes);
+                urlConnection.getOutputStream().write(postData.first);
                 urlConnection.connect();
 
                 // Get response code & try to get response body
@@ -275,62 +290,88 @@ public class PA2Client {
 
     @SuppressWarnings("unchecked")
     private <TRequest, TResponse> AsyncTask execute(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull IEndpointDefinition<TResponse> requestDefinition,
             @Nullable TRequest requestBody,
             @Nullable Map<String, String> headers,
             @NonNull INetworkResponseListener<TResponse> responseListener) {
-        final RestExecutor restExecutor = new RestExecutor(clientConfiguration, headers, requestDefinition, responseListener);
+        final RestExecutor restExecutor = new RestExecutor(headers, requestDefinition, responseListener);
         return restExecutor.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, requestBody, null, null);
+    }
+
+    private static final String EMPTY_OBJECT_STRING = "{}";
+    private static final byte[] EMPTY_OBJECT_BYTES = { 0x7B, 0x7D };
+
+    public <TRequest> Pair<byte[], String> serializeRequestObject(TRequest request) {
+        if (request != null) {
+            final ObjectRequest<TRequest> requestObject = new ObjectRequest<>(request);
+            final String jsonString = mGson.toJson(requestObject);
+            final byte[] jsonBytes = jsonString.getBytes(Charset.defaultCharset());
+            return new Pair<>(jsonBytes, jsonString);
+        } else {
+            return new Pair<>(EMPTY_OBJECT_BYTES, EMPTY_OBJECT_STRING);
+        }
+    }
+
+    public <TResponse> TResponse deserializePlainResponse(byte[] data, Class<TResponse> type) {
+        try {
+            final String jsonString = new String(data, Charset.defaultCharset());
+            return mGson.fromJson(jsonString, type);
+        } catch (JsonSyntaxException e) {
+            return null;
+        }
     }
 
     @CheckResult
     public AsyncTask sendNonPersonalizedEncryptedObjectToUrl(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull NonPersonalizedEncryptedPayloadModel request,
             @NonNull String url,
             @NonNull Map<String, String> headers,
             @NonNull INetworkResponseListener<NonPersonalizedEncryptedPayloadModel> listener
             ) {
-        return execute(configuration, clientConfiguration, new PA2NonPersonalizedEncryptedEndpoint(url), request, headers, listener);
+        return execute(new PA2NonPersonalizedEncryptedEndpoint(url), request, headers, listener);
     }
 
     @CheckResult
     public AsyncTask createActivation(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull ActivationCreateRequest request,
             @NonNull INetworkResponseListener<ActivationCreateResponse> listener) {
-        return execute(configuration, clientConfiguration, new PA2CreateActivationEndpoint(configuration.getBaseEndpointUrl()), request, null, listener);
+        return execute(new PA2CreateActivationEndpoint(mConfiguration.getBaseEndpointUrl()), request, null, listener);
     }
 
     @CheckResult
     public AsyncTask getActivationStatus(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
             @NonNull ActivationStatusRequest request,
             @NonNull INetworkResponseListener<ActivationStatusResponse> listener) {
-        return execute(configuration, clientConfiguration, new PA2ActivationStatusEndpoint(configuration.getBaseEndpointUrl()), request, null, listener);
+        return execute(new PA2ActivationStatusEndpoint(mConfiguration.getBaseEndpointUrl()), request, null, listener);
     }
 
     @CheckResult
-    public AsyncTask removeActivationSignatureHeader(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
+    public AsyncTask removeActivation(
             @NonNull Map<String, String> headers,
             @NonNull INetworkResponseListener<Void> listener) {
-        return execute(configuration, clientConfiguration, new PA2RemoveActivationEndpoint(configuration.getBaseEndpointUrl()), null, headers, listener);
+        return execute(new PA2RemoveActivationEndpoint(mConfiguration.getBaseEndpointUrl()), null, headers, listener);
     }
 
     @CheckResult
-    public AsyncTask vaultUnlockSignatureHeader(
-            @NonNull PowerAuthConfiguration configuration,
-            @NonNull PowerAuthClientConfiguration clientConfiguration,
+    public AsyncTask vaultUnlock(
             @NonNull Map<String, String> headers,
             @NonNull INetworkResponseListener<VaultUnlockResponse> listener) {
-        return execute(configuration, clientConfiguration, new PA2VaultUnlockEndpoint(configuration.getBaseEndpointUrl()), null, headers, listener);
+        return execute(new PA2VaultUnlockEndpoint(mConfiguration.getBaseEndpointUrl()), null, headers, listener);
     }
 
+    @CheckResult
+    public AsyncTask createToken(
+            @NonNull Map<String, String> headers,
+            @NonNull TokenCreateRequest request,
+            @NonNull INetworkResponseListener<TokenCreateResponse> listener) {
+        return execute(new PA2CreateTokenEndpoint(mConfiguration.getBaseEndpointUrl()), request, headers, listener);
+    }
+
+    @CheckResult
+    public AsyncTask removeToken(
+            @NonNull Map<String, String> headers,
+            @NonNull TokenRemoveRequest request,
+            @NonNull INetworkResponseListener<TokenRemoveResponse> listener) {
+        return execute(new PA2RemoveTokenEndpoint(mConfiguration.getBaseEndpointUrl()), request, headers, listener);
+    }
 }

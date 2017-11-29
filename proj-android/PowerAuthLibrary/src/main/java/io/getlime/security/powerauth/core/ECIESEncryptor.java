@@ -202,7 +202,7 @@ public class ECIESEncryptor {
         if (cryptogram != null) {
             ECIESEncryptor decryptor = this.copyForDecryption();
             if (decryptor != null) {
-                new Pair<ECIESEncryptor, ECIESCryptogram>(decryptor, cryptogram);
+                return new Pair<>(decryptor, cryptogram);
             }
         }
         return null;

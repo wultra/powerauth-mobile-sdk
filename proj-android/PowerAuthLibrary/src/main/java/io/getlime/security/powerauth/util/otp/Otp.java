@@ -44,4 +44,21 @@ public class Otp {
         this.activationOtp = null;
         this.activationSignature = null;
     }
+
+    //
+    // Getters for compatibility with older codes
+    //
+
+    public String getActivationIdShort() {
+        return activationIdShort;
+    }
+
+    public String getActivationOtp() {
+        return activationOtp;
+    }
+
+    public String getActivationSignature() {
+        return activationSignature;
+    }
+
 }

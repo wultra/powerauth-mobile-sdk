@@ -903,7 +903,9 @@ public class PowerAuthSDK {
             }
         }
         // Remove all tokens from token store
-        this.getTokenStore().removeAllLocalTokens(context);
+        if (context != null) {
+            this.getTokenStore().removeAllLocalTokens(context);
+        }
         // Reset C++ session
         mSession.resetSession();
         // Serialize will notify state listener

@@ -47,7 +47,8 @@ public class PowerAuthToken {
     }
 
     /**
-     * Contains true if token has valid data and can be used for generating headers.
+     * Return true if this token object contains a valid token data.
+     * @return true if token has valid data.
      */
     public boolean isValid() {
         return tokenData != null && tokenStore != null && tokenData.hasValidData();
@@ -76,10 +77,27 @@ public class PowerAuthToken {
     /**
      * @return symbolic name of token or null if token contains an invalid data.
      */
-    protected @Nullable String getTokenName() {
+    public @Nullable String getTokenName() {
         return tokenData != null ? tokenData.name : null;
     }
 
+    /**
+     * Return token's unique identifier. You normally don't need this value, but it may help
+     * with application's debugging. The value identifies this token on PowerAuth server.
+     *
+     * @return token's unique identifier or null if token conains an invalid data.
+     */
+    public @Nullable String getTokenIdentifier() {
+        return tokenData != null ? tokenData.identifier : null;
+    }
+
+
+    /**
+     * @return true if token can generate a new header
+     */
+    public boolean canGenerateHeader() {
+        return tokenStore != null && tokenStore.canRequestForAccessToken();
+    }
 
     /**
      * Generates a new HTTP header for token based authorization.

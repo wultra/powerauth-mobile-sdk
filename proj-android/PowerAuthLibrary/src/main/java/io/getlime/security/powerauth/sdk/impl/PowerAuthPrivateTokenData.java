@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 
@@ -78,22 +79,32 @@ public class PowerAuthPrivateTokenData {
         if (!this.hasValidData()) {
             return null;
         }
-        final String nameB64 = Base64.encodeToString(name.getBytes(), Base64.DEFAULT);
-        final String secretB64 = Base64.encodeToString(secret, Base64.DEFAULT);
+        final String nameB64 = Base64.encodeToString(name.getBytes(), Base64.NO_WRAP);
+        final String secretB64 = Base64.encodeToString(secret, Base64.NO_WRAP);
         final String dataString = identifier + "," + secretB64 + "," + nameB64;
-        return dataString.getBytes();
+        try {
+            return dataString.getBytes("US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            return null; // US-ASCII is guaranteed to be available.
+        }
     }
 
     public static @Nullable PowerAuthPrivateTokenData deserializeWithData(@NonNull byte[] data) {
 
-        final String str = new String(data);
+        String str;
+        try {
+             str = new String(data, "US-ASCII");
+        } catch (UnsupportedEncodingException e) {
+            return null; // US-ASCII is guaranteed to be available.
+        }
+        // Split into components
         final String[] components = str.split("\\,");
         if (components.length != 3) {
             return null;
         }
         final String identifier = components[0];
-        final byte[] secret = Base64.decode(components[1], Base64.DEFAULT);
-        final String name = new String(Base64.decode(components[2], Base64.DEFAULT));
+        final byte[] secret = Base64.decode(components[1], Base64.NO_WRAP);
+        final String name = new String(Base64.decode(components[2], Base64.NO_WRAP));
 
         final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(name, identifier, secret);
         return tokenData.hasValidData() ? tokenData : null;

@@ -44,7 +44,7 @@ public class ECIESCryptogram {
      */
     public String getBodyBase64() {
         if (this.body != null) {
-            return Base64.encodeToString(this.body, Base64.DEFAULT);
+            return Base64.encodeToString(this.body, Base64.NO_WRAP);
         }
         return null;
     }
@@ -54,7 +54,7 @@ public class ECIESCryptogram {
      */
     public String getMacBase64() {
         if (this.mac != null) {
-            return Base64.encodeToString(this.mac, Base64.DEFAULT);
+            return Base64.encodeToString(this.mac, Base64.NO_WRAP);
         }
         return null;
     }
@@ -64,7 +64,7 @@ public class ECIESCryptogram {
      */
     public String getKeyBase64() {
         if (this.key != null) {
-            return Base64.encodeToString(this.key, Base64.DEFAULT);
+            return Base64.encodeToString(this.key, Base64.NO_WRAP);
         }
         return null;
     }
@@ -100,9 +100,9 @@ public class ECIESCryptogram {
      * @param keyBase64 An optional ephemeral key in Base64 format
      */
     public ECIESCryptogram(String bodyBase64, String macBase64, String keyBase64) {
-        this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.DEFAULT) : null;
-        this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.DEFAULT) : null;
-        this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.DEFAULT) : null;
+        this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
+        this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
+        this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.NO_WRAP) : null;
     }
 
     /**
@@ -111,8 +111,8 @@ public class ECIESCryptogram {
      * @param macBase64 MAC computed for encrypted data in Base64 format
      */
     public ECIESCryptogram(String bodyBase64, String macBase64) {
-        this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.DEFAULT) : null;
-        this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.DEFAULT) : null;
+        this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
+        this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = null;
     }
 }

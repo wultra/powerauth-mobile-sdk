@@ -28,35 +28,41 @@
 
 using namespace io::getlime::powerAuth;
 
+extern "C" {
 
 /**
  This helper function returns milliseconds timestamps sice 1970 in string format.
  */
-static std::string _GetTimestamp()
-{
+static std::string _GetTimestamp() {
 	// Get timestamp...
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 
 	// Calculate milliseconds since 1970
-	double msSinceEpoch = (double)(tv.tv_sec) * 1000.0 + (double)(tv.tv_usec) * 0.001;
+	double msSinceEpoch = (double) (tv.tv_sec) * 1000.0 + (double) (tv.tv_usec) * 0.001;
 
 	// ...and convert that value to string (without decimal part)
-	return std::to_string((uint64_t )msSinceEpoch);
+	return std::to_string((uint64_t) msSinceEpoch);
 }
 
-CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
-{
+CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData) {
 	if (privateData == NULL || env == NULL) {
 		CC7_ASSERT(false, "Missing parameter privateData.");
 		return NULL;
 	}
 	// Look for io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData
-	jclass privateDataClazz = env->FindClass("io/getlime/security/powerauth/sdk/impl/PowerAuthPrivateTokenData");
+	jclass privateDataClazz = env->FindClass(
+			"io/getlime/security/powerauth/sdk/impl/PowerAuthPrivateTokenData");
 
 	// Load parameters into C++ objects
-	auto cppTokenSecret  = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(privateData, privateDataClazz, "secret"));
-	auto cppTokenIdentifier = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(privateData, privateDataClazz, "identifier"));
+	auto cppTokenSecret = cc7::jni::CopyFromJavaByteArray(env,
+	                                                      CC7_JNI_GET_FIELD_BYTEARRAY(privateData,
+	                                                                                  privateDataClazz,
+	                                                                                  "secret"));
+	auto cppTokenIdentifier = cc7::jni::CopyFromJavaString(env,
+	                                                       CC7_JNI_GET_FIELD_STRING(privateData,
+	                                                                                privateDataClazz,
+	                                                                                "identifier"));
 
 	if (cppTokenSecret.size() != 16 || cppTokenIdentifier.empty()) {
 		CC7_ASSERT(false, "PowerAuthPrivateTokenData is not valid.");
@@ -85,7 +91,8 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
 	auto nonceBase64 = nonce.base64String();
 
 	std::string result;
-	result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp.length() + 80);
+	result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() +
+	               timestamp.length() + 80);
 
 	result.assign("PowerAuth version=\"2.1\", token_id=\"");
 	result.append(cppTokenIdentifier);
@@ -100,3 +107,4 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
 	return cc7::jni::CopyToJavaString(env, result);
 }
 
+} // extern "C"

@@ -209,7 +209,7 @@ public class PowerAuthTokenStore {
         if (payload.getTokenId() == null || payload.getTokenSecret() == null) {
             return null;
         }
-        final byte[] tokenSecretBytes = Base64.decode(payload.getTokenSecret(), Base64.DEFAULT);
+        final byte[] tokenSecretBytes = Base64.decode(payload.getTokenSecret(), Base64.NO_WRAP);
         final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(tokenName, payload.getTokenId(), tokenSecretBytes);
         return tokenData.hasValidData() ? tokenData : null;
     }
@@ -361,7 +361,7 @@ public class PowerAuthTokenStore {
      * Converts token name into token's local identifier.
      */
     private @NonNull String getLocalIdentifier(@NonNull String tokenName) {
-        return TOKEN_KEY_PREFIX + Base64.encodeToString(tokenName.getBytes(), Base64.DEFAULT);
+        return TOKEN_KEY_PREFIX + Base64.encodeToString(tokenName.getBytes(), Base64.NO_WRAP);
     }
 
 
@@ -386,8 +386,8 @@ public class PowerAuthTokenStore {
      */
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
-        byte[] indexData = TextUtils.join(",", index.toArray()).getBytes();
-        this.keychain.putDataForKey(context, indexData, TOKENS_INDEX_KEY);
+        final String joinedIdentifiers = TextUtils.join(",", index.toArray());
+        this.keychain.putStringForKey(context, joinedIdentifiers, TOKENS_INDEX_KEY);
     }
 
     /**
@@ -395,11 +395,10 @@ public class PowerAuthTokenStore {
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
-        byte[] indexData = this.keychain.dataForKey(context, TOKENS_INDEX_KEY);
-        if (indexData != null) {
-            // Convert index data into one string and split it by commas.
-            String indexStrings = new String(indexData);
-            String[] tokenIdentifiers = indexStrings.split("\\,");
+        final String joinedIdentifiers = this.keychain.stringForKey(context, TOKENS_INDEX_KEY);
+        if (joinedIdentifiers != null) {
+            // Split previously joinded indentifiers
+            String[] tokenIdentifiers = joinedIdentifiers.split("\\,");
             for (String identifier: tokenIdentifiers) {
                 if (identifier.startsWith(TOKEN_KEY_PREFIX)) {
                     index.add(identifier);

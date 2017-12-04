@@ -16,8 +16,6 @@
 
 #import "PA2NetworkObject.h"
 
-@class PA2ECIESEncryptor;
-
 @interface PA2EncryptedRequest: NSObject<PA2NetworkObject>
 
 @property (nonatomic, strong) NSString * ephemeralPublicKey;

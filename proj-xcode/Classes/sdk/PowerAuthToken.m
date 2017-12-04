@@ -43,15 +43,17 @@
 	NSData * tokenSecret = nil;
 	NSString * tokenIdentifier = nil;
 	
-	if (!_tokenData.hasValidData) {
-		// Data object is not valid.
-		PALog(@"PowerAuthToken: Token contains invalid data, or has been already removed.");
+	if (!self.canGenerateHeader) {
+#if defined(DEBUG)
+		if (!self.isValid) {
+			PALog(@"PowerAuthToken: Token contains invalid data.");
+		} else {
+			PALog(@"PowerAuthToken: The associated token store has no longer valid activation.");
+		}
+#endif
 		return nil;
 	}
-	if (![_tokenStore canRequestForAccessToken]) {
-		PALog(@"PowerAuthToken: The associated token store has no longer valid activation.");
-		return nil;
-	}
+	
 	tokenSecret = _tokenData.secret;
 	tokenIdentifier = _tokenData.identifier;
 
@@ -85,6 +87,11 @@
 - (BOOL) isValid
 {
 	return _tokenData != nil;
+}
+
+ - (BOOL) canGenerateHeader
+{
+	return _tokenData != nil && _tokenStore.canRequestForAccessToken;
 }
 
 - (BOOL) isEqualToToken:(nonnull PowerAuthToken*)token
@@ -122,5 +129,17 @@
 	}
 	return self;
 }
+
+#pragma mark - Debug
+
+#if defined(DEBUG)
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<PowerAuthToken name='%@' identifier='%@' canGenerateHeader=%@>",
+			self.tokenName,
+			self.tokenIdentifier,
+			@(self.canGenerateHeader)];
+}
+#endif // DEBUG
 
 @end

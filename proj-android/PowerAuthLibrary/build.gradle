@@ -38,7 +38,7 @@ android {
     }
 
     dependencies {
-        compile 'io.getlime.security:powerauth-restful-model:0.17.0'
+        compile 'io.getlime.security:powerauth-restful-model:0.17.1'
         compile 'com.android.support:support-annotations:25.1.1'
         compile 'com.google.code.gson:gson:2.8.0'
     }

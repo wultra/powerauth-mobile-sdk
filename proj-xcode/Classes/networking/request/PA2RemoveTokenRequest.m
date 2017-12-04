@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "PA2CreateActivationRequest.h"
+#import "PA2RemoveTokenRequest.h"
+#import "PA2PrivateMacros.h"
 
-@interface PA2DirectCreateActivationRequest : NSObject <PA2NetworkObject>
+@implementation PA2RemoveTokenRequest
 
-@property (nonnull, nonatomic, strong) NSDictionary<NSString*, NSString*>* identity;
-@property (nonnull, nonatomic, strong) NSDictionary<NSString*, NSObject*>* customAttributes;
-@property (nonnull, nonatomic, strong) PA2CreateActivationRequest* powerauth;
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_tokenId = PA2ObjectAs([dictionary objectForKey:@"tokenId"], NSString);
+	}
+	return self;
+}
+
+- (NSDictionary*) toDictionary
+{
+	return _tokenId ? @{ @"tokenId" : _tokenId } : @{};
+}
 
 @end

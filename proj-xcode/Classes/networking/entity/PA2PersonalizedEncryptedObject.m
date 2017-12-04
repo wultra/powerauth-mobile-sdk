@@ -15,19 +15,20 @@
  */
 
 #import "PA2PersonalizedEncryptedObject.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2PersonalizedEncryptedObject
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
 	self = [super initWithDictionary:dictionary];
 	if (self) {
-		_activationId = [dictionary objectForKey:@"activationId"];
+		_activationId = PA2ObjectAs(dictionary[@"activationId"], NSString);
 	}
 	return self;
 }
 
 - (NSDictionary *)toDictionary {
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithDictionary:[super toDictionary]];
+	NSMutableDictionary *dictionary = [[super toDictionary] mutableCopy];
 	if (_activationId) {
 		[dictionary setObject:_activationId forKey:@"activationId"];
 	}

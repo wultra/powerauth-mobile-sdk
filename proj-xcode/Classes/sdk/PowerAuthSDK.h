@@ -15,9 +15,9 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 #import "PowerAuthAuthentication.h"
 #import "PowerAuthConfiguration.h"
+#import "PowerAuthToken.h"
 #import "PA2Session.h"
 #import "PA2Networking.h"
 #import "PA2Keychain.h"
@@ -34,13 +34,32 @@
 
 /** Reference to the low-level PA2Session class.
  
- WARNING: This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and managed activation state. For example, you can call a direct password change method without prior check of the password correctness in cooperation with the server API. Be extremely careful when calling any methods of this instance directly. There are very few protective mechanisms for keeping the session state actually consistent in the functional (not low level) sense. As a result, you may break your activation state (for example, by changing password from incorrect value to some other value).
+ WARNING
+ 
+ This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and
+ managed activation state. For example, you can call a direct password change method without prior check of the password correctness
+ in cooperation with the server API. Be extremely careful when calling any methods of this instance directly. There are very few
+ protective mechanisms for keeping the session state actually consistent in the functional (not low level) sense. As a result, you
+ may break your activation state (for example, by changing password from incorrect value to some other value).
  */
 @property (nonatomic, strong, nonnull, readonly) PA2Session *session;
 
 /** Instance of the encryptor factory, useful for implementing use-cases that leverage end-to-end encryption.
  */
 @property (nonatomic, strong, nonnull, readonly) PA2EncryptorFactory *encryptorFactory;
+/**
+ Instance of configuration, provided during the object initialization.
+ 
+ Note that the copy of internal object is always returned and thus making changes to the returned object
+ doesn't affect this SDK instance.
+ */
+@property (nonatomic, strong, nonnull, readonly) PowerAuthConfiguration *configuration;
+
+/**
+ Instance of the token store object, which provides interface for generating token based authentication headers.
+ The current implementation is keeping acquired tokens in the PA2Keychain under the `PA2KeychainConfiguration.keychainInstanceName_TokenStore` service name.
+ */
+@property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
 
 /** Creates an instance of SDK and initializes it with given configuration.
  

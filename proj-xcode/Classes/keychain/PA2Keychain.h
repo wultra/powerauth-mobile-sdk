@@ -54,6 +54,15 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
  */
 @interface PA2Keychain : NSObject
 
+/**
+ Identifier of the service.
+ */
+@property (nonatomic, strong, nonnull, readonly) NSString * identifier;
+/**
+ Optional access group for the Keychain Sharing.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString * accessGroup;
+
 /** Init a new keychain instance for a service with given identifier.
 
  @param identifier Identifier of the service.

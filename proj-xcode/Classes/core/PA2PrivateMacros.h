@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-#ifndef PA2PrivateMacros_h
-#define PA2PrivateMacros_h
+#import "PA2Macros.h"
 
-#import <UIKit/UIKit.h> // required for UIDevice Class
+/// Returns provided object instance if it's kind of desiredClass, otherwise nil.
+/// Please use PA2ObjectAs macro instead of this function.
+PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);
 
-#endif /* PA2PrivateMacros_h */
+/**
+ This macro returns the provided instance if it's kind of desiredClass, otherwise nil.
+ Typical usage:
+	NSDictionary * goodDictionary = @{ @"stringKey" : @"hello world" }
+  	NSDictionary * baadDictionary = @{ @"stringKey" : @(42) }
+ 	NSString * correct = PA2ObjectAs(goodDictionary[@"stringKey", NSString);
+ 	NSString * wrong   = PA2ObjectAs(baadDictionary[@"stringKey", NSString);
+ 	// ..at the end of the day,
+ 	//    "correct" is "hello world"
+ 	// 	  and "wrong" is nil
+ */
+#define PA2ObjectAs(object, requiredClass) (requiredClass*)(PA2CastToImpl(object, [requiredClass class]))

@@ -28,4 +28,6 @@
 #include "AES.h"
 #include "PRNG.h"
 #include "ECC.h"
-#include "Digest.h"
+#include "Hash.h"
+#include "KDF.h"
+#include "MAC.h"

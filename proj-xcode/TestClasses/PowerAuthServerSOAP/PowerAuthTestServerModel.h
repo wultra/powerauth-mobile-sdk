@@ -147,3 +147,44 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, strong) NSString * signature;
 
 @end
+
+#pragma mark - Token
+
+@interface PATSToken : NSObject
+
+@property (nonatomic, strong) NSString * tokenIdentifier;
+@property (nonatomic, strong) NSString * tokenSecret;
+@property (nonatomic, strong) NSString * activationId;
+
+@end
+
+@interface PATSTokenValidationRequest : NSObject
+
+@property (nonatomic, strong) NSString * tokenIdentifier;
+@property (nonatomic, strong) NSString * tokenDigest;
+@property (nonatomic, strong) NSString * nonce;
+@property (nonatomic, strong) NSString * timestamp;	// must be correctly converted
+
+@end
+
+@interface PATSTokenValidationResponse : NSObject
+
+@property (nonatomic, assign) BOOL tokenValid;
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, strong) NSString * userId;
+@property (nonatomic, strong) NSString * applicationId;
+@property (nonatomic, strong) NSString * signatureType;
+
+@end
+
+
+#pragma mark - ECIES helper object
+
+@interface PATSECIESCryptogram: NSObject
+
+@property (nonatomic, strong) NSString * encryptedData;
+@property (nonatomic, strong) NSString * mac;
+@property (nonatomic, strong) NSString * ephemeralPublicKey;
+
+@end
+

@@ -1,2 +1,2 @@
 # Ignore developer's actual server configuration for integration tests
-TestConfig/Configuration.json
+TestConfig/Configuration*

@@ -16,18 +16,26 @@
 
 #import "PA2AuthorizationHttpHeader.h"
 
-/** PowerAuth 2.0 Authorization HTTP Header name */
-NSString *const HTTP_HEADER_PA_AUTHORIZATION	= @"X-PowerAuth-Authorization";
-
 @implementation PA2AuthorizationHttpHeader
 
-- (instancetype)initWithValue:(NSString*)value {
+- (instancetype)initWithKey:(NSString*)key value:(NSString*)value
+{
 	self = [super init];
 	if (self) {
-		_key = HTTP_HEADER_PA_AUTHORIZATION;
+		_key = key;
 		_value = value;
 	}
 	return self;
+}
+
++ (PA2AuthorizationHttpHeader*) authorizationHeaderWithValue:(NSString *)value
+{
+	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Authorization" value:value];
+}
+
++ (PA2AuthorizationHttpHeader*) tokenHeaderWithValue:(NSString *)value
+{
+	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Token" value:value];
 }
 
 @end

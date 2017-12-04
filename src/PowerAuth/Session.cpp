@@ -857,9 +857,6 @@ namespace powerAuth
 		}
 		// Finally, decrypt received vault key
 		out_key = crypto::AES_CBC_Decrypt_Padding(vault_transport_key, protocol::ZERO_IV, encrypted_vault_key);
-		if (out_key.empty()) {
-			return EC_Encryption;
-		}
 		if (out_key.size() != protocol::VAULT_KEY_SIZE) {
 			return EC_Encryption;
 		}

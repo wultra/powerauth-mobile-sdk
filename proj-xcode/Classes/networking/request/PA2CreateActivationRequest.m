@@ -15,20 +15,21 @@
  */
 
 #import "PA2CreateActivationRequest.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2CreateActivationRequest
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     self = [super init];
     if (self) {
-        _activationIdShort          = [dictionary objectForKey:@"activationIdShort"];
-        _activationName             = [dictionary objectForKey:@"activationName"];
-        _applicationKey             = [dictionary objectForKey:@"applicationKey"];
-        _activationNonce            = [dictionary objectForKey:@"activationNonce"];
-        _applicationSignature       = [dictionary objectForKey:@"applicationSignature"];
-        _encryptedDevicePublicKey   = [dictionary objectForKey:@"encryptedDevicePublicKey"];
-        _ephemeralPublicKey         = [dictionary objectForKey:@"ephemeralPublicKey"];
-        _extras                     = [dictionary objectForKey:@"extras"];
+        _activationIdShort          = PA2ObjectAs(dictionary[@"activationIdShort"], NSString);
+        _activationName             = PA2ObjectAs(dictionary[@"activationName"], NSString);
+        _applicationKey             = PA2ObjectAs(dictionary[@"applicationKey"], NSString);
+        _activationNonce            = PA2ObjectAs(dictionary[@"activationNonce"], NSString);
+        _applicationSignature       = PA2ObjectAs(dictionary[@"applicationSignature"], NSString);
+        _encryptedDevicePublicKey   = PA2ObjectAs(dictionary[@"encryptedDevicePublicKey"], NSString);
+        _ephemeralPublicKey         = PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
+        _extras                     = PA2ObjectAs(dictionary[@"extras"], NSString);
     }
     return self;
 }

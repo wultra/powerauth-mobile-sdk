@@ -44,8 +44,11 @@ LOCAL_SRC_FILES := \
 	PowerAuth/Encryptor.cpp \
 	PowerAuth/Debug.cpp \
 	PowerAuth/OtpUtil.cpp \
+	PowerAuth/ECIES.cpp \
 	PowerAuth/crypto/AES.cpp \
-	PowerAuth/crypto/Digest.cpp \
+	PowerAuth/crypto/Hash.cpp \
+	PowerAuth/crypto/KDF.cpp \
+	PowerAuth/crypto/MAC.cpp \
 	PowerAuth/crypto/ECC.cpp \
 	PowerAuth/crypto/PKCS7Padding.cpp \
 	PowerAuth/crypto/PRNG.cpp \
@@ -88,6 +91,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2CryptoAESTests.cpp \
 	PowerAuthTests/pa2CryptoHMACTests.cpp \
 	PowerAuthTests/pa2CryptoPKCS7PaddingTests.cpp \
+	PowerAuthTests/pa2CryptoECDHKDFTests.cpp \
 	PowerAuthTests/pa2DataWriterReaderTests.cpp \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \
 	PowerAuthTests/pa2PasswordTests.cpp \
@@ -100,6 +104,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2PublicKeyFingerprintTests.cpp \
 	PowerAuthTests/pa2URLEncodingTests.cpp \
 	PowerAuthTests/pa2OtpUtilTests.cpp \
+	PowerAuthTests/pa2ECIESTests.cpp \
 	PowerAuthTests/TestData/pa2.generated/g_pa2Files.cpp
 
 include $(BUILD_STATIC_LIBRARY)

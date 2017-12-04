@@ -15,29 +15,27 @@
  */
 
 #import "PA2Response.h"
-#import "PA2Error.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2Response
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary responseObjectType:(Class)responseObjectType {
+- (instancetype)initWithDictionary:(NSDictionary *)dictionary responseObjectType:(Class)responseObjectType
+{
     self = [super init];
     if (self) {
-		
 		// Handle response status
-		NSString *statusString = [[dictionary objectForKey:@"status"] lowercaseString];
-		if ([statusString isEqualToString:@"ok"]) {
+		NSString * statusString 		= PA2ObjectAs(dictionary[@"status"], NSString);
+		NSDictionary * objectDictionary = PA2ObjectAs(dictionary[@"responseObject"], NSDictionary);
+		// Check status
+		if ([[statusString lowercaseString] isEqualToString:@"ok"]) {
+			// Deserialize expected response object type
 			_status = PA2RestResponseStatus_OK;
-			
-			// Serialize OK response object
-			_responseObject = [[responseObjectType alloc] initWithDictionary:[dictionary objectForKey:@"responseObject"]];
-			
+			_responseObject = [[responseObjectType alloc] initWithDictionary:objectDictionary];
 		} else {
+			// Deserialize error object
 			_status = PA2RestResponseStatus_ERROR;
-			
-			// Serialize error response object
-			_responseObject = [[PA2Error alloc] initWithDictionary:[dictionary objectForKey:@"responseObject"]];
+			_responseObject = [[PA2Error alloc] initWithDictionary:objectDictionary];
 		}
-		
     }
     return self;
 }

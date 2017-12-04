@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2NetworkObject.h"
 
 /** Response for '/pa/vault/unlock' endpoint.

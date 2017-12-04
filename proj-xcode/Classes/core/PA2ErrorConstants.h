@@ -14,56 +14,62 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Macros.h"
 
 #pragma mark - Error codes
 
 /** PowerAuth SDK error domain */
-extern NSString * __nonnull const PA2ErrorDomain;
-
-/** Error code for error with network connectivity or download */
-extern NSInteger const PA2ErrorCodeNetworkError;
-
-/** Error code for error in signature calculation */
-extern NSInteger const PA2ErrorCodeSignatureError;
-
-/** Error code for error that occurs when activation state is ivalid */
-extern NSInteger const PA2ErrorCodeInvalidActivationState;
-
-/** Error code for error that occurs when activation data is ivalid */
-extern NSInteger const PA2ErrorCodeInvalidActivationData;
-
-/** Error code for error that occurs when activation is required but missing */
-extern NSInteger const PA2ErrorCodeMissingActivation;
-
-/** Error code for error that occurs when authentication using PowerAuth signature fails */
-extern NSInteger const PA2ErrorCodeAuthenticationFailed;
-
-/** Error code for error that occurs when pending activation is present and work with completed activation is required */
-extern NSInteger const PA2ErrorCodeActivationPending;
-
-/** Error code for keychanin related errors */
-extern NSInteger const PA2ErrorCodeKeychain;
-
-/** Error code for TouchID not available error */
-extern NSInteger const PA2ErrorCodeTouchIDNotAvailable;
-
-/** Error code for TouchID action cancel error */
-extern NSInteger const PA2ErrorCodeTouchIDCancel;
-
-/** Error code for cancelled operations */
-extern NSInteger const PA2ErrorCodeOperationCancelled;
-
-/** Error code for errors related to end-to-end encryption */
-extern NSInteger const PA2ErrorCodeEncryption;
+PA2_EXTERN_C NSString * __nonnull const PA2ErrorDomain;
 
 /**
  A key to NSError.userInfo dicionary where the optional NSDictionary with additional
  information about error is stored.
  */
-extern NSString * __nonnull const PA2ErrorInfoKey_AdditionalInfo;
+PA2_EXTERN_C NSString * __nonnull const PA2ErrorInfoKey_AdditionalInfo;
 /**
  A key to NSError.userInfo dicionary where the optional NSData with error response
  is stored.
  */
-extern NSString * __nonnull const PA2ErrorInfoKey_ResponseData;
+PA2_EXTERN_C NSString * __nonnull const PA2ErrorInfoKey_ResponseData;
+
+/** Error code for error with network connectivity or download */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeNetworkError;
+
+/** Error code for error in signature calculation */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeSignatureError;
+
+/** Error code for error that occurs when activation state is ivalid */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidActivationState;
+
+/** Error code for error that occurs when activation data is ivalid */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidActivationData;
+
+/** Error code for error that occurs when activation is required but missing */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeMissingActivation;
+
+/** Error code for error that occurs when authentication using PowerAuth signature fails */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeAuthenticationFailed;
+
+/** Error code for error that occurs when pending activation is present and work with completed activation is required */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeActivationPending;
+
+/** Error code for keychanin related errors */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeKeychain;
+
+/** Error code for TouchID not available error */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeTouchIDNotAvailable;
+
+/** Error code for TouchID action cancel error */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeTouchIDCancel;
+
+/** Error code for cancelled operations */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeOperationCancelled;
+
+/** Error code for errors related to end-to-end encryption */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeEncryption;
+
+/** Error code for a general API misuse */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeWrongParameter;
+
+/** Error code for accessing an unknown token */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidToken;

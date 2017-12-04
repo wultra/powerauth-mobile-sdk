@@ -18,10 +18,10 @@
 
 @implementation PA2Request
 
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    [dictionary setObject:[_requestObject toDictionary] forKey:@"requestObject"];
-    return dictionary;
+- (NSDictionary*) toDictionary
+{
+	NSDictionary * dict = [_requestObject toDictionary];
+	return dict ? @{ @"requestObject" : dict } : @{};
 }
 
 @end

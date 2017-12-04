@@ -16,6 +16,7 @@
 
 #import "PA2Keychain.h"
 #import "PA2PrivateMacros.h"
+#import <UIKit/UIKit.h>
 #import <LocalAuthentication/LocalAuthentication.h>
 
 NSString *const PA2KeychainKey_SessionState	= @"PA2KeychainKey_SessionState";
@@ -26,8 +27,6 @@ NSString *const PA2Keychain_Possession		= @"io.getlime.PowerAuthKeychain.Possess
 NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryKeychain";
 
 @implementation PA2Keychain {
-	NSString *_identifier;
-	NSString *_accessGroup;
 	NSDictionary *_baseQuery;
 }
 
@@ -291,12 +290,7 @@ NSString *const PA2Keychain_Biometry		= @"io.getlime.PowerAuthKeychain.BiometryK
 	[query setValue:@YES	forKey:(__bridge id)kSecUseNoAuthenticationUI];
 	
 	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
-	SecAccessControlCreateFlags flags = kNilOptions;
-	if ([PA2Keychain canUseTouchId]) {
-		if (useTouchId) {
-			flags = kSecAccessControlTouchIDAny;
-		}
-	}
+	SecAccessControlCreateFlags flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
 
 	// Create access control object
 	CFErrorRef error = NULL;

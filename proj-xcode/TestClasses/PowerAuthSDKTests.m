@@ -128,27 +128,6 @@
 #pragma mark - Helper utilities
 
 /**
- Returns URL part from "{option}={url}" string.
- */
-- (NSString *) stripUrlFromArgument:(NSString *)argument
-{
-	NSRange equal = [argument rangeOfString:@"="];
-	if (equal.location == NSNotFound || equal.location == argument.length - 1) {
-		NSLog(@"Parameter '%@' has no valid URL defined.", argument);
-		return nil;
-	}
-	NSString * url = [argument substringFromIndex:equal.location + 1];
-	if ([url hasPrefix:@"http://"] || [url hasPrefix:@"https://"]) {
-		if ([url hasSuffix:@"/"]) {
-			return [url substringToIndex:url.length - 1];
-		}
-		return url;
-	}
-	NSLog(@"Parameter '%@' has no valid URL defined.", argument);
-	return nil;
-}
-
-/**
  Checks whether the test config is valid. You should use this macro in all unit tests
  defined in this class.
  */
@@ -1051,6 +1030,5 @@
 	// Cleanup
 	[self removeLastActivation:activationData];
 }
-
 
 @end

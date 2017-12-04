@@ -15,6 +15,9 @@
  */
 
 #import "PowerAuthSDK.h"
+#import "PA2PrivateTokenKeychainStore.h"
+#import "PA2PrivateMacros.h"
+#import <UIKit/UIKit.h>
 
 #pragma mark - Constants
 
@@ -80,7 +83,9 @@ static PowerAuthSDK *inst;
 	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Possession
 													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Biometry];
-	
+	// Initialize token store with statusKeychain as backing storage
+	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:_statusKeychain];
+
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
 	// By default, the code uses standard user defaults, use `PA2KeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -101,6 +106,7 @@ static PowerAuthSDK *inst;
 	// Initialize encryptor factory
 	_encryptorFactory = [[PA2EncryptorFactory alloc] initWithSession:_session];
 	
+	
 	// Attempt to restore session state
 	[self restoreState];
 	
@@ -109,6 +115,11 @@ static PowerAuthSDK *inst;
 + (void) throwInvalidConfigurationException {
 	[NSException raise:PA2ExceptionMissingConfig
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
+}
+
+- (PowerAuthConfiguration*) configuration
+{
+	return [_configuration copy];
 }
 
 /**
@@ -290,7 +301,7 @@ static PowerAuthSDK *inst;
 		}
 		
 		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client vaultUnlockSignatureHeader:httpHeader callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
+		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
 				callback(response.encryptedVaultEncryptionKey, nil);
@@ -530,7 +541,12 @@ static PowerAuthSDK *inst;
 		NSError * errorToReport = clientError;
 		PA2ActivationResult * activationResult = nil;
 		if (!errorToReport) {
-			NSDictionary *encryptedResponseDictionary = [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil];
+			NSDictionary *encryptedResponseDictionary;
+			if (httpData) {
+				encryptedResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
+			} else {
+				encryptedResponseDictionary = nil;
+			}
 			PA2Response *encryptedResponse = [[PA2Response alloc] initWithDictionary:encryptedResponseDictionary
 																  responseObjectType:[PA2NonPersonalizedEncryptedObject class]];
 			
@@ -540,7 +556,7 @@ static PowerAuthSDK *inst;
 				NSData *decryptedResponseData = [encryptor decryptResponse:encryptedResponse error:nil];
 				NSDictionary *createActivationResponseDictionary;
 				if (decryptedResponseData) {
-					createActivationResponseDictionary = [NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil];
+					createActivationResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil], NSDictionary);
 				} else {
 					createActivationResponseDictionary = nil;
 				}
@@ -569,14 +585,18 @@ static PowerAuthSDK *inst;
 			} else {
 				// Activation error occurred, propagate response data to the error object
 				// Try to parse response data as JSON
-				// TODO: needs to be hardened with PA2ObjectAs() once we merge token-branch...
-				NSDictionary * responseJson = httpData ? [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil] : nil;
+				NSDictionary * responseJsonObject;
+				if (httpData){
+					responseJsonObject = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
+				} else {
+					responseJsonObject = nil;
+				}
 				NSMutableDictionary * additionalInfo = [NSMutableDictionary dictionaryWithCapacity:2];
 				if (httpData) {
 					additionalInfo[PA2ErrorInfoKey_ResponseData] = httpData;
 				}
-				if (responseJson) {
-					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJson;
+				if (responseJsonObject) {
+					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJsonObject;
 				}
 				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:additionalInfo];
 			}
@@ -759,7 +779,7 @@ static PowerAuthSDK *inst;
 		}
 		
 		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client removeActivationSignatureHeader:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
+		NSURLSessionDataTask *dataTask = [_client removeActivation:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
 				[self removeActivationLocal];
@@ -791,6 +811,7 @@ static PowerAuthSDK *inst;
 	if (error) {
 		PALog(@"Removing activaton data from keychain failed. We can't recover from this error.");
 	}
+	[_tokenStore removeAllLocalTokens];
 	[_session resetSession];
 }
 
@@ -837,10 +858,7 @@ static PowerAuthSDK *inst;
 														 authentication:authentication
 															vaultUnlock:vaultUnlock
 																  error:error];
-	if (signature) {
-		return [[PA2AuthorizationHttpHeader alloc] initWithValue:signature.authHeaderValue];
-	}
-	return nil;
+	return [PA2AuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue];
 }
 
 

@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#ifndef PA2Networking_h
-#define PA2Networking_h
-
 #import "PA2Request.h"
 #import "PA2Response.h"
 #import "PA2ActivationStatusRequest.h"
@@ -31,7 +28,9 @@
 #import "PA2OperationTask.h"
 #import "PA2NonPersonalizedEncryptedObject.h"
 #import "PA2PersonalizedEncryptedObject.h"
+#import "PA2EncryptedRequest.h"
+#import "PA2EncryptedResponse.h"
+#import "PA2RemoveTokenRequest.h"
 
 #import "PA2Client.h"
 
-#endif /* PA2Networking_h */

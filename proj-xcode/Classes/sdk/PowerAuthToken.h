@@ -33,14 +33,12 @@
 @interface PowerAuthToken : NSObject<NSCopying>
 
 /**
- Contains symbolic name of the token or nil in case that token has no valid data.
+ Contains symbolic name of the token.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * tokenName;
 /**
  Contains token's unique identifier. You normally don't need this value, but it may help
  with application's debugging. The value identifies this token on PowerAuth server.
- 
- The value may be nil in case that token has no valid data.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * tokenIdentifier;
 
@@ -92,7 +90,8 @@ typedef id PowerAuthTokenStoreTask;
 - (BOOL) canRequestForAccessToken;
 
 /**
- Create a new access token with given name for requested signature factors.
+ Create a new access token with given name for requested signature factors. The created token objects
+ always contains valid token data.
  
  Discussion
  

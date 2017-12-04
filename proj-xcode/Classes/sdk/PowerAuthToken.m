@@ -25,8 +25,7 @@
 	PA2PrivateTokenData * _tokenData;
 }
 
-
-#pragma mark - Public methods
+#pragma mark - Public getters
 
 - (PA2PrivateTokenData*) privateTokenData
 {
@@ -37,6 +36,23 @@
 {
 	return _tokenData.name;
 }
+
+- (NSString*) tokenIdentifier
+{
+	return _tokenData.identifier;
+}
+
+- (BOOL) isValid
+{
+	return _tokenData != nil;
+}
+
+- (BOOL) canGenerateHeader
+{
+	return _tokenData != nil && _tokenStore.canRequestForAccessToken;
+}
+
+#pragma mark - Public methods
 
 - (PA2AuthorizationHttpHeader*) generateHeader
 {
@@ -82,16 +98,6 @@
 						@", timestamp=\"%@\"",
 						tokenIdentifier, digestBase64, nonceBase64, currentTimeString];
 	return [PA2AuthorizationHttpHeader tokenHeaderWithValue:value];
-}
-
-- (BOOL) isValid
-{
-	return _tokenData != nil;
-}
-
- - (BOOL) canGenerateHeader
-{
-	return _tokenData != nil && _tokenStore.canRequestForAccessToken;
 }
 
 - (BOOL) isEqualToToken:(nonnull PowerAuthToken*)token

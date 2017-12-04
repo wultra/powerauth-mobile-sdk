@@ -37,11 +37,10 @@
 	if (!data) {
 		return nil;
 	}
-	id anyObject = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
-	if (![anyObject isKindOfClass:[NSDictionary class]]) {
+	NSDictionary * dict = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:data options:0 error:NULL], NSDictionary);
+	if (!dict) {
 		return nil;
 	}
-	NSDictionary * dict = (NSDictionary*)anyObject;
 	PA2PrivateTokenData * result = [[PA2PrivateTokenData alloc] init];
 	result.name		 			= PA2ObjectAs(dict[@"name"], NSString);
 	result.identifier			= PA2ObjectAs(dict[@"id"], NSString);

@@ -16,7 +16,7 @@
 
 #import "PA2Client.h"
 #import "PA2ErrorConstants.h"
-#import "PA2Macros.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PA2Client
 
@@ -32,15 +32,17 @@
 	
 	NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
 	NSError *err = nil;
-	NSDictionary *responseDictionary = !data ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:&err];
-	
+	NSDictionary *responseDictionary = !data ? nil : PA2ObjectAs([NSJSONSerialization JSONObjectWithData:data options:0 error:&err], NSDictionary);
+	// Create PA2ErrorResponse object
 	PA2ErrorResponse *httpResponseObject;
-	httpResponseObject.httpStatusCode = httpResponse.statusCode;
 	if (data == nil || err) { // there was no data or data could not be parsed as JSON
 		httpResponseObject = [[PA2ErrorResponse alloc] initWithError:nil];
 	} else {
 		httpResponseObject = [[PA2ErrorResponse alloc] initWithDictionary:responseDictionary];
 	}
+	// Keep status code in response object
+	httpResponseObject.httpStatusCode = httpResponse.statusCode;
+	
 	NSDictionary * additionalInfo =
   	@{
 		PA2ErrorDomain: 				httpResponseObject,
@@ -146,7 +148,7 @@
 			if (((NSHTTPURLResponse*)response).statusCode == 200) { // Handle success state
 				if (data != nil && data.length > 0 && responseObjectClass != nil) { // Response object is expected, data is available
 					NSError *err = nil;
-					NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err];
+					NSDictionary *responseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&err], NSDictionary);
 					if (err == nil) { // success
 						PA2Response *httpResponseObject = [[PA2Response alloc] initWithDictionary:responseDictionary responseObjectType:responseObjectClass];
 						if (httpResponseObject.status == PA2RestResponseStatus_OK) {

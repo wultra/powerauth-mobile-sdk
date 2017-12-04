@@ -16,6 +16,7 @@
 
 #import "PowerAuthSDK.h"
 #import "PA2PrivateTokenKeychainStore.h"
+#import "PA2PrivateMacros.h"
 #import <UIKit/UIKit.h>
 
 #pragma mark - Constants
@@ -540,7 +541,12 @@ static PowerAuthSDK *inst;
 		NSError * errorToReport = clientError;
 		PA2ActivationResult * activationResult = nil;
 		if (!errorToReport) {
-			NSDictionary *encryptedResponseDictionary = [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil];
+			NSDictionary *encryptedResponseDictionary;
+			if (httpData) {
+				encryptedResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
+			} else {
+				encryptedResponseDictionary = nil;
+			}
 			PA2Response *encryptedResponse = [[PA2Response alloc] initWithDictionary:encryptedResponseDictionary
 																  responseObjectType:[PA2NonPersonalizedEncryptedObject class]];
 			
@@ -550,7 +556,7 @@ static PowerAuthSDK *inst;
 				NSData *decryptedResponseData = [encryptor decryptResponse:encryptedResponse error:nil];
 				NSDictionary *createActivationResponseDictionary;
 				if (decryptedResponseData) {
-					createActivationResponseDictionary = [NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil];
+					createActivationResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil], NSDictionary);
 				} else {
 					createActivationResponseDictionary = nil;
 				}
@@ -579,14 +585,18 @@ static PowerAuthSDK *inst;
 			} else {
 				// Activation error occurred, propagate response data to the error object
 				// Try to parse response data as JSON
-				// TODO: needs to be hardened with PA2ObjectAs() once we merge token-branch...
-				NSDictionary * responseJson = httpData ? [NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil] : nil;
+				NSDictionary * responseJsonObject;
+				if (httpData){
+					responseJsonObject = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
+				} else {
+					responseJsonObject = nil;
+				}
 				NSMutableDictionary * additionalInfo = [NSMutableDictionary dictionaryWithCapacity:2];
 				if (httpData) {
 					additionalInfo[PA2ErrorInfoKey_ResponseData] = httpData;
 				}
-				if (responseJson) {
-					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJson;
+				if (responseJsonObject) {
+					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJsonObject;
 				}
 				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:additionalInfo];
 			}

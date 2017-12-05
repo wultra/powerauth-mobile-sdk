@@ -38,7 +38,9 @@
 	dispatch_once_t 			_dispatchOnceToken;
 	/// Semaphore for locking
 	dispatch_semaphore_t		_lock;
-	
+
+	/// A prefix for all tokens stored in the keychain
+	NSString * _keychainKeyPrefix;
 	/// An ECIES encryptor, created from master server public key.
 	PA2ECIESEncryptor * 		_encryptor;
 	/// A HTTP client for communication with the server
@@ -96,6 +98,8 @@
 		_database = [NSMutableDictionary dictionaryWithCapacity:2];
 		// ...and debug set for overlapping operations
 		_pendingNamedOperations = _OPERATIONS_SET();
+		// Build base key for all stored tokens
+		_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
 	});
 }
 
@@ -328,14 +332,12 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 
 #pragma mark - Keychain
 
-static NSString * const s_TokenPrefix = @"powerAuthToken__";
-
 /**
  Returns identifier for keychain created from token's name
  */
 - (NSString*) identifierForTokenName:(NSString*)name
 {
-	return[s_TokenPrefix stringByAppendingString:name];
+	return[_keychainKeyPrefix stringByAppendingString:name];
 }
 
 /**
@@ -343,7 +345,7 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
  */
 - (BOOL) isValidIdentifierForToken:(NSString*)identifier
 {
-	return [identifier hasPrefix:s_TokenPrefix];
+	return [identifier hasPrefix:_keychainKeyPrefix];
 }
 
 /**
@@ -382,6 +384,9 @@ static NSString * const s_TokenPrefix = @"powerAuthToken__";
 - (void) storeTokenData:(PA2PrivateTokenData*)tokenData
 {
 	_synchronizedVoid(_lock, ^{
+		if (!self.canRequestForAccessToken) {
+			return;
+		}
 		NSString * identifier = [self identifierForTokenName:tokenData.name];
 		NSData * data = [tokenData serializedData];
 		if ([_keychain containsDataForKey:identifier]) {

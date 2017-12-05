@@ -43,6 +43,10 @@
 /** Name of the Keychain service used to store biometry related keys for different PowerAuth instances.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Biometry;
+/**
+ Name of the Keychain service used to store content of PowerAuthToken objects.
+ */
+@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_TokenStore;
 
 /** Name of the Keychain key used to store possession fator related key in an associated service.
  */

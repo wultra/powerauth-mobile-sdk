@@ -25,6 +25,7 @@
 		_keychainInstanceName_Status		= PA2Keychain_Status;
 		_keychainInstanceName_Possession	= PA2Keychain_Possession;
 		_keychainInstanceName_Biometry		= PA2Keychain_Biometry;
+		_keychainInstanceName_TokenStore	= PA2Keychain_TokenStore;
 		
 		// Initialize default values for keychain service record item keys
 		_keychainKey_Possession	= PA2KeychainKey_Possession;

@@ -83,8 +83,10 @@ static PowerAuthSDK *inst;
 	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Possession
 													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Biometry];
-	// Initialize token store with statusKeychain as backing storage
-	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:_statusKeychain];
+	// Initialize token store with its own keychain as a backing storage
+	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
+																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:tokenStoreKeychain];
 
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
@@ -99,6 +101,7 @@ static PowerAuthSDK *inst;
 		[_statusKeychain deleteAllData];
 		[_sharedKeychain deleteAllData];
 		[_biometryOnlyKeychain deleteAllData];
+		[tokenStoreKeychain deleteAllData];
 		[userDefaults setBool:YES forKey:PA2Keychain_Initialized];
 		[userDefaults synchronize];
 	}

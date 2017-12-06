@@ -31,13 +31,10 @@
 	__weak PowerAuthSDK *		 _sdk;
 	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
-	
-	// Lazy initialized data
-	
-	/// Token for dispatch_once() used for lazy initialization
-	dispatch_once_t 			_dispatchOnceToken;
 	/// Semaphore for locking
 	dispatch_semaphore_t		_lock;
+	
+	// Lazy initialized data
 
 	/// A prefix for all tokens stored in the keychain
 	NSString * _keychainKeyPrefix;
@@ -73,7 +70,7 @@
 		_sdk = sdk;
 		_keychain = keychain;
 		_sdkConfiguration = sdk.configuration;		// keep copy of config object
-		_dispatchOnceToken = 0;
+		_lock = dispatch_semaphore_create(1);
 	}
 	return self;
 }
@@ -82,49 +79,52 @@
  Prepares runtime data required by this class. We're initializing that objects only
  on demand, when the first token is being accessed.
  */
-- (void) preparePrivateData
+static void _prepareInstance(PA2PrivateTokenKeychainStore * obj)
 {
-	dispatch_once(&_dispatchOnceToken, ^{
-		// Create lock
-		_lock = dispatch_semaphore_create(1);
-		// Prepare encryptor
-		NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:_sdkConfiguration.masterServerPublicKey options:0];
-		_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
-		// Prepare client
-		_client = [[PA2Client alloc] init];
-		_client.baseEndpointUrl = _sdkConfiguration.baseEndpointUrl;
-		_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
-		_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
-		_database = [NSMutableDictionary dictionaryWithCapacity:2];
-		// ...and debug set for overlapping operations
-		_pendingNamedOperations = _OPERATIONS_SET();
-		// Build base key for all stored tokens
-		_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
-	});
+	// Prepare encryptor
+	NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:obj->_sdkConfiguration.masterServerPublicKey options:0];
+	obj->_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
+	// Prepare client
+	obj->_client = [[PA2Client alloc] init];
+	obj->_client.baseEndpointUrl = obj->_sdkConfiguration.baseEndpointUrl;
+	obj->_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
+	obj->_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
+	obj->_database = [NSMutableDictionary dictionaryWithCapacity:2];
+	// ...and debug set for overlapping operations
+	obj->_pendingNamedOperations = _OPERATIONS_SET();
+	// Build base key for all stored tokens
+	obj->_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:obj->_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
 }
+
 
 /**
  A simple replacement for @synchronized() construct.
  This version of function returns object returned from the block.
  */
-static id _synchronized(dispatch_semaphore_t sema, id(^block)(void))
+static id _synchronized(PA2PrivateTokenKeychainStore * obj, id(^block)(void))
 {
-	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
+	if (nil == obj->_encryptor) {
+		_prepareInstance(obj);
+	}
 	id result = block();
-	dispatch_semaphore_signal(sema);
+	dispatch_semaphore_signal(obj->_lock);
 	return result;
 }
+
 /**
  A simple replacement for @synchronized() construct.
  This version of function has no return value.
  */
-static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
+static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(void))
 {
-	dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
+	if (nil == obj->_encryptor) {
+		_prepareInstance(obj);
+	}
 	block();
-	dispatch_semaphore_signal(sema);
+	dispatch_semaphore_signal(obj->_lock);
 }
-
 
 #pragma mark - PowerAuthTokenStore protocol
 
@@ -138,8 +138,6 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 										authentication:(PowerAuthAuthentication*)authentication
 											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
-	[self preparePrivateData];
-
 	if (!name || !authentication || !completion) {
 		if (completion) {
 			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
@@ -237,8 +235,6 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 - (PowerAuthTokenStoreTask) removeAccessTokenWithName:(NSString *)name
 										   completion:(void (^)(BOOL, NSError * ))completion
 {
-	[self preparePrivateData];
-
 	if (!name || !completion) {
 		if (completion) {
 			completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
@@ -297,9 +293,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 
 - (void) removeLocalTokenWithName:(NSString *)name
 {
-	[self preparePrivateData];
-	
-	_synchronizedVoid(_lock, ^{
+	_synchronizedVoid(self, ^{
 		if (name) {
 			[self removeTokenWithIdentifier:[self identifierForTokenName:name]];
 		}
@@ -309,9 +303,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 
 - (void) removeAllLocalTokens
 {
-	[self preparePrivateData];
-	
-	_synchronizedVoid(_lock, ^{
+	_synchronizedVoid(self, ^{
 		[[self allTokenIdentifiers] enumerateObjectsUsingBlock:^(NSString * identifier, NSUInteger idx, BOOL * stop) {
 			[self removeTokenWithIdentifier:identifier];
 		}];
@@ -321,12 +313,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
 {
-	[self preparePrivateData];
-	
-	id result = _synchronized(_lock, ^id{
-		return @(nil != [self tokenDataForTokenName:name]);
-	});
-	return [result boolValue];
+	return nil != [self tokenDataForTokenName:name];
 }
 
 
@@ -368,7 +355,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
  */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
 {
-	return _synchronized(_lock, ^id{
+	return _synchronized(self, ^id{
 		NSString * identifier = [self identifierForTokenName:name];
 		PA2PrivateTokenData * tokenData = _database[identifier];
 		if (!tokenData) {
@@ -383,10 +370,10 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
  */
 - (void) storeTokenData:(PA2PrivateTokenData*)tokenData
 {
-	_synchronizedVoid(_lock, ^{
-		if (!self.canRequestForAccessToken) {
-			return;
-		}
+	if (!self.canRequestForAccessToken) {
+		return;
+	}
+	_synchronizedVoid(self, ^{
 		NSString * identifier = [self identifierForTokenName:tokenData.name];
 		NSData * data = [tokenData serializedData];
 		if ([_keychain containsDataForKey:identifier]) {
@@ -415,7 +402,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 #if defined(DEBUG)
 - (void) startOperationForName:(NSString*)name
 {
-	_synchronizedVoid(_lock, ^{
+	_synchronizedVoid(self, ^{
 		if ([_pendingNamedOperations containsObject:name]) {
 			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
@@ -430,7 +417,7 @@ static void _synchronizedVoid(dispatch_semaphore_t sema, void(^block)(void))
 
 - (void) stopOperationForName:(NSString*)name
 {
-	_synchronizedVoid(_lock, ^{
+	_synchronizedVoid(self, ^{
 		[_pendingNamedOperations removeObject:name];
 	});
 }

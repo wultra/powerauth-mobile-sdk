@@ -261,7 +261,6 @@ using namespace io::getlime::powerAuth;
 		error = _session->changeUserPassword([old_password passObjRef].passwordData(), [new_password passObjRef].passwordData());
 	} else {
 		error = EC_WrongParam;
-		return NO;
 	}
 	PA2Objc_DebugDumpError(self, @"ChangeUserPassword", error);
 	return error == EC_Ok;

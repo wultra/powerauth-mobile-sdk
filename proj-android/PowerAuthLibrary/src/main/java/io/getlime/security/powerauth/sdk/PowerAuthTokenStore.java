@@ -77,6 +77,10 @@ public class PowerAuthTokenStore {
      * A encryptor created from server's master public key.
      */
     private final ECIESEncryptor encryptor;
+    /**
+     * A prefix for all data stored to the keychain.
+     */
+    private final String keychainKeyPrefix;
 
 
     /**
@@ -96,8 +100,8 @@ public class PowerAuthTokenStore {
         this.httpClient = httpClient;
         this.localTokens = new HashMap<>();
         this.encryptor = new ECIESEncryptor(httpClient.getConfiguration().getMasterServerPublicKey(), null);
+        this.keychainKeyPrefix = TOKENS_KEY_PREFIX + "__" + sdk.getConfiguration().getInstanceId() + "__";
     }
-
 
     /**
      * @return true if this instance can provide {@link PowerAuthToken} objects.
@@ -344,6 +348,11 @@ public class PowerAuthTokenStore {
      * @param tokenData Private data to be stored
      */
     private synchronized void storeTokenData(@NonNull final Context context, @NonNull PowerAuthPrivateTokenData tokenData) {
+        // If parent SDK object has no longer a valid activation, then we should not store this token.
+        // Looks like that the activation has been removed during the token acquiring from the server.
+        if (!this.canRequestForAccessToken()) {
+            return;
+        }
         String identifier = this.getLocalIdentifier(tokenData.name);
         // Store data into local dictionary
         this.localTokens.put(identifier, tokenData);
@@ -356,14 +365,29 @@ public class PowerAuthTokenStore {
         this.saveTokensIndex(context, index);
     }
 
+    /**
+     * A prefix for all keys stored in the keychain.
+     * The final key for data is constructed as {@code TOKENS_KEY_PREFIX + "__" + instanceId + "__" + Base64(tokenName.getBytes())}
+     */
+    private final static String TOKENS_KEY_PREFIX = "powerAuthToken";
+    /**
+     * A constant for index entry stored in the keychain. The final key is constructed as {@code TOKENS_KEY_PREFIX + "__" + instanceId + "__" + TOKENS_INDEX_ENTRY}
+     */
+    private final static String TOKENS_INDEX_ENTRY = "$$index$$";
 
     /**
      * Converts token name into token's local identifier.
      */
     private @NonNull String getLocalIdentifier(@NonNull String tokenName) {
-        return TOKEN_KEY_PREFIX + Base64.encodeToString(tokenName.getBytes(), Base64.NO_WRAP);
+        return keychainKeyPrefix + Base64.encodeToString(tokenName.getBytes(), Base64.NO_WRAP);
     }
 
+    /**
+     * Returns true if provided identifier is a valid key for this instance of store.
+     */
+    private boolean isValidLocalIdentifier(@NonNull String identifier) {
+        return identifier.startsWith(keychainKeyPrefix);
+    }
 
     //
     // Tokens index
@@ -373,13 +397,11 @@ public class PowerAuthTokenStore {
     //
 
     /**
-     * Key to keychain, to store tokens index
+     * Returns key to keychain for store tokens index.
      */
-    private static final String TOKENS_INDEX_KEY = "token__$$index$$";
-    /**
-     * A key prefix for all tokens stored in keychain.
-     */
-    private static final String TOKEN_KEY_PREFIX = "token__";
+    private final String getIndexKey() {
+        return keychainKeyPrefix + TOKENS_INDEX_ENTRY;
+    }
 
     /**
      * Saves index into keychain.
@@ -387,7 +409,7 @@ public class PowerAuthTokenStore {
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
         final String joinedIdentifiers = TextUtils.join(",", index.toArray());
-        this.keychain.putStringForKey(context, joinedIdentifiers, TOKENS_INDEX_KEY);
+         this.keychain.putStringForKey(context, joinedIdentifiers, this.getIndexKey());
     }
 
     /**
@@ -395,12 +417,12 @@ public class PowerAuthTokenStore {
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
-        final String joinedIdentifiers = this.keychain.stringForKey(context, TOKENS_INDEX_KEY);
+        final String joinedIdentifiers = this.keychain.stringForKey(context, this.getIndexKey());
         if (joinedIdentifiers != null) {
             // Split previously joinded indentifiers
             String[] tokenIdentifiers = joinedIdentifiers.split("\\,");
             for (String identifier: tokenIdentifiers) {
-                if (identifier.startsWith(TOKEN_KEY_PREFIX)) {
+                if (this.isValidLocalIdentifier(identifier)) {
                     index.add(identifier);
                 }
             }
@@ -416,6 +438,6 @@ public class PowerAuthTokenStore {
         for (String id: identifiers) {
             this.keychain.removeDataForKey(context, id);
         }
-        this.keychain.removeDataForKey(context, TOKENS_INDEX_KEY);
+        this.keychain.removeDataForKey(context, this.getIndexKey());
     }
 }

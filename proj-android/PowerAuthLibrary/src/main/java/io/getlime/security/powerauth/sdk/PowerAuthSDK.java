@@ -322,13 +322,10 @@ public class PowerAuthSDK {
      *
      * @return Reference to {@code PowerAuthTokenStore} instance.
      */
-    public PowerAuthTokenStore getTokenStore() {
+    public synchronized PowerAuthTokenStore getTokenStore() {
         if (mTokenStore == null) {
-            synchronized (this) {
-                if (mTokenStore == null) {
-                    mTokenStore = new PowerAuthTokenStore(this, mStatusKeychain, mClient);
-                }
-            }
+            PA2Keychain tokenStoreKeychain = new PA2Keychain(mKeychainConfiguration.getKeychainTokenStoreId());
+            mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, mClient);
         }
         return mTokenStore;
     }
@@ -352,6 +349,13 @@ public class PowerAuthSDK {
      */
     public PA2EncryptorFactory getEncryptorFactory() {
         return mEncryptorFactory;
+    }
+
+    /**
+     * @return Configuration provided during the SDK object construction.
+     */
+    public @NonNull PowerAuthConfiguration getConfiguration() {
+        return mConfiguration;
     }
 
     /**

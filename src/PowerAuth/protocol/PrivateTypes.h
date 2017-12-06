@@ -287,10 +287,16 @@ namespace protocol
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer);
 	
 	/**
-	 Deserializes apersistent data from the |reader| into the |pd| reference.
+	 Deserializes a persistent data from the |reader| into the |pd| reference.
 	 Returns false if the byte stream contains invalid data.
 	 */
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
+	
+	/**
+	 Deserializes a persistent data in old format from the |reader| into the |pd| reference.
+	 Returns false if the byte stream contains invalid old data format.
+	 */
+	bool TryDeserializeOldPersistentData(PersistentData & pd, utils::DataReader & reader); // DATA_MIGRATION_TAG
 		
 } // io::getlime::powerAuth::detail
 } // io::getlime::powerAuth

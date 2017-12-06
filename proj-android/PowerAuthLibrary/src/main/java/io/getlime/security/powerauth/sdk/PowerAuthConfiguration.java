@@ -65,8 +65,16 @@ public class PowerAuthConfiguration {
      */
     private IFetchKeysStrategy fetchKeysStrategy;
 
+    /**
+     * Constant for default PowerAuthSDK instance identifier.
+     */
+    public static final String DEFAULT_INSTANCE_ID = "defaultPowerAuthInstance";
+
     public String getInstanceId() {
-        return instanceId;
+        if (instanceId != null) {
+            return instanceId;
+        }
+        return DEFAULT_INSTANCE_ID;
     }
 
     public String getBaseEndpointUrl() {

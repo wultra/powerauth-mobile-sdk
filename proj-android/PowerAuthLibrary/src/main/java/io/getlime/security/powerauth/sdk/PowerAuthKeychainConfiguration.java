@@ -25,11 +25,13 @@ public class PowerAuthKeychainConfiguration {
 
     private static final String KEYCHAIN_ID_STATUS = "io.getlime.PowerAuthKeychain.StatusKeychain";
     private static final String KEYCHAIN_ID_BIOMETRY = "io.getlime.PowerAuthKeychain.BiometryKeychain";
+    private static final String KEYCHAIN_ID_TOKEN_STORE = "io.getlime.PowerAuthKeychain.TokenStoreKeychain";
     private static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
 
     private final String customKeychainIdStatus;
     private final String customKeychainIdBiometry;
     private final String customKeychainKeyBiometryDefault;
+    private final String customKeychainIdTokenStore;
 
     /**
      * Default public constructor.
@@ -38,6 +40,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdStatus = null;
         this.customKeychainIdBiometry = null;
         this.customKeychainKeyBiometryDefault = null;
+        this.customKeychainIdTokenStore = null;
     }
 
     /**
@@ -47,10 +50,33 @@ public class PowerAuthKeychainConfiguration {
      * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
      * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
      */
-    public PowerAuthKeychainConfiguration(String customKeychainIdStatus, String customKeychainIdBiometry, String customKeychainKeyBiometryDefault) {
+    public PowerAuthKeychainConfiguration(
+            String customKeychainIdStatus,
+            String customKeychainIdBiometry,
+            String customKeychainKeyBiometryDefault) {
         this.customKeychainIdStatus = customKeychainIdStatus;
         this.customKeychainIdBiometry = customKeychainIdBiometry;
         this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
+        this.customKeychainIdTokenStore = null;
+    }
+
+    /**
+     * Constructor that allows token store keychain file customization, in case it is required.
+     *
+     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
+     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
+     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
+     * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
+     */
+    public PowerAuthKeychainConfiguration(
+            String customKeychainIdStatus,
+            String customKeychainIdBiometry,
+            String customKeychainKeyBiometryDefault,
+            String customKeychainIdTokenStore) {
+        this.customKeychainIdStatus = customKeychainIdStatus;
+        this.customKeychainIdBiometry = customKeychainIdBiometry;
+        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
+        this.customKeychainIdTokenStore = customKeychainIdTokenStore;
     }
 
     /**
@@ -86,5 +112,14 @@ public class PowerAuthKeychainConfiguration {
         return KEYCHAIN_KEY_BIOMETRY_DEFAULT;
     }
 
-
+    /**
+     * Get name of the Keychain file used for storing access tokens.
+     * @return Name of the Keychain file.
+     */
+    public String getKeychainTokenStoreId() {
+        if (customKeychainIdTokenStore != null) {
+            return customKeychainIdTokenStore;
+        }
+        return KEYCHAIN_ID_TOKEN_STORE;
+    }
 }

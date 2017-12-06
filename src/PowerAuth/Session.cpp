@@ -163,9 +163,15 @@ namespace powerAuth
 		bool result = reader.openVersion(DATA_TAG, DATA_VER) &&
 					  reader.readByte(flags);
 		
-		if (flags & HAS_PERSISTENT_DATA) {
-			result = result && protocol::DeserializePersistentData(*new_data, reader);
-			has_data = result;
+		if (result && (flags != 'M')) {
+			if (flags & HAS_PERSISTENT_DATA) {
+				result = result && protocol::DeserializePersistentData(*new_data, reader);
+				has_data = result;
+			}
+		} else {
+			// DATA_MIGRATION_TAG
+			result = protocol::TryDeserializeOldPersistentData(*new_data, reader);
+			has_data = result && !new_data->activationId.empty();
 		}
 		
 		State new_state = has_data ? SS_Activated : SS_Empty;

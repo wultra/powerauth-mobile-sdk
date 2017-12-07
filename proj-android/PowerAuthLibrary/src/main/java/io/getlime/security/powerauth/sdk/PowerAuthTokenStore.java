@@ -307,6 +307,10 @@ public class PowerAuthTokenStore {
         String identifier = this.getLocalIdentifier(tokenName);
         this.localTokens.remove(identifier);
         this.keychain.removeDataForKey(context, identifier);
+        // Update index
+        HashSet<String> allIdentifiers = this.loadTokensIndex(context);
+        allIdentifiers.remove(identifier);
+        this.saveTokensIndex(context, allIdentifiers);
     }
 
 
@@ -336,6 +340,9 @@ public class PowerAuthTokenStore {
             byte[] tokenBytes = this.keychain.dataForKey(context, identifier);
             if (tokenBytes != null) {
                 tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
+                if (tokenData != null) {
+                    this.localTokens.put(identifier, tokenData);
+                }
             }
         }
         return tokenData;
@@ -408,7 +415,7 @@ public class PowerAuthTokenStore {
      */
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
-        final String joinedIdentifiers = TextUtils.join(",", index.toArray());
+        final String joinedIdentifiers = TextUtils.join("\n", index.toArray());
          this.keychain.putStringForKey(context, joinedIdentifiers, this.getIndexKey());
     }
 
@@ -420,7 +427,7 @@ public class PowerAuthTokenStore {
         final String joinedIdentifiers = this.keychain.stringForKey(context, this.getIndexKey());
         if (joinedIdentifiers != null) {
             // Split previously joinded indentifiers
-            String[] tokenIdentifiers = joinedIdentifiers.split("\\,");
+            String[] tokenIdentifiers = joinedIdentifiers.split("\\n");
             for (String identifier: tokenIdentifiers) {
                 if (this.isValidLocalIdentifier(identifier)) {
                     index.add(identifier);

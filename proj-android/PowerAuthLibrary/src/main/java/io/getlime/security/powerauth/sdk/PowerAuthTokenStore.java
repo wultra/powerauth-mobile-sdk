@@ -298,6 +298,21 @@ public class PowerAuthTokenStore {
 
 
     /**
+     * Returns token if the token is already in local database
+     * @param context Context
+     * @param tokenName Name of access token to be returned
+     * @return token object or null if token's not in the local database
+     */
+    public synchronized @Nullable PowerAuthToken getLocalToken(@NonNull final Context context, @NonNull String tokenName) {
+        PowerAuthPrivateTokenData tokenData = this.getTokenData(context, tokenName);
+        if (tokenData != null) {
+            return new PowerAuthToken(this, tokenData);
+        }
+        return null;
+    }
+
+
+    /**
      * Remove token from local database. This method doesn't issue a HTTP request to the server.
      *
      * @param context Context

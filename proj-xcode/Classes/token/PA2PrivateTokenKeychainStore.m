@@ -316,6 +316,14 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	return nil != [self tokenDataForTokenName:name];
 }
 
+- (PowerAuthToken*) localTokenWithName:(NSString*)name
+{
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
+	if (tokenData) {
+		return [[PowerAuthToken alloc] initWithStore:self data:tokenData];
+	}
+	return nil;
+}
 
 #pragma mark - Keychain
 
@@ -360,6 +368,9 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		PA2PrivateTokenData * tokenData = _database[identifier];
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
+			if (tokenData) {
+				_database[identifier] = tokenData;
+			}
 		}
 		return tokenData;
 	});

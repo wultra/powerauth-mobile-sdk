@@ -116,4 +116,13 @@
 	return [_tokens objectForKey:name] != nil;
 }
 
+- (PowerAuthToken*) localTokenWithName:(NSString*)name
+{
+	PA2PrivateTokenData * tokenData = _tokens[name];
+	if (tokenData) {
+		return [[PowerAuthToken alloc] initWithStore:self data:tokenData];
+	}
+	return nil;
+}
+
 @end

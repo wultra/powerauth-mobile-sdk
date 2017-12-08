@@ -151,4 +151,9 @@ typedef id PowerAuthTokenStoreTask;
  */
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name;
 
+/**
+ Returns token object with given name if it's alreadu in local database or nil.
+ */
+- (nullable PowerAuthToken*) localTokenWithName:(nonnull NSString*)name;
+
 @end

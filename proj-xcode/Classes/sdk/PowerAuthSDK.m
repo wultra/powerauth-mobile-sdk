@@ -16,6 +16,7 @@
 
 #import "PowerAuthSDK.h"
 #import "PA2PrivateTokenKeychainStore.h"
+#import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
 #import <UIKit/UIKit.h>
 
@@ -37,6 +38,7 @@ static PowerAuthSDK *inst;
 	PA2Keychain *_statusKeychain;
 	PA2Keychain *_sharedKeychain;
 	PA2Keychain *_biometryOnlyKeychain;
+	PA2PrivateHttpTokenProvider * _remoteHttpTokenProvider;
 }
 
 #pragma mark - Private methods
@@ -83,10 +85,14 @@ static PowerAuthSDK *inst;
 	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Possession
 													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Biometry];
-	// Initialize token store with its own keychain as a backing storage
+	// Initialize token store with its own keychain as a backing storage and remote token provider.
 	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
 																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithSdk:self keychain:tokenStoreKeychain];
+	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithSdk:self];
+	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
+																	 keychain:tokenStoreKeychain
+															   statusProvider:self
+															   remoteProvider:_remoteHttpTokenProvider];
 
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!

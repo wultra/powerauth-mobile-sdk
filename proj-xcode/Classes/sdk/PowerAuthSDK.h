@@ -30,8 +30,9 @@
 #import "PA2PasswordUtil.h"
 #import "PA2OtpUtil.h"
 #import "PA2ActivationResult.h"
+#import "PA2SessionStatusProvider.h"
 
-@interface PowerAuthSDK : NSObject
+@interface PowerAuthSDK : NSObject<PA2SessionStatusProvider>
 
 /** Reference to the low-level PA2Session class.
  
@@ -87,27 +88,6 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) restoreState;
-
-/** Check if it is possible to start an activation process
- 
- @return YES if activation process can be started, NO otherwise.
- @exception NSException thrown in case configuration is not present.
- */
-- (BOOL) canStartActivation;
-
-/** Checks if there is a pending activation (activation in progress).
- 
- @return YES if there is a pending activation, NO otherwise.
- @exception NSException thrown in case configuration is not present.
- */
-- (BOOL) hasPendingActivation;
-
-/** Checks if there is a valid activation.
- 
- @return YES if there is a valid activation, NO otherwise.
- @exception NSException thrown in case configuration is not present.
- */
-- (BOOL) hasValidActivation;
 
 /** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
  

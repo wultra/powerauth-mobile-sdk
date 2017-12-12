@@ -16,8 +16,11 @@
 
 #import "PA2Keychain.h"
 #import "PA2PrivateMacros.h"
-#import <UIKit/UIKit.h>
+
+#if !defined(PA2_WATCH_SDK)
+// LA is not available for watchOS
 #import <LocalAuthentication/LocalAuthentication.h>
+#endif
 
 @implementation PA2Keychain {
 	NSDictionary *_baseQuery;
@@ -173,15 +176,30 @@
 	});
 }
 
+static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
+{
+	if (@available(iOS 9, *)) {
+		// IOS 9+
+		query[(__bridge id)kSecUseAuthenticationUI] = @NO;
+	} else {
+		// IOS 8, unfortunately, we have to force warning off for the next line
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+		query[(__bridge id)kSecUseNoAuthenticationUI] = @YES;
+#pragma clang diagnostic pop
+	}
+}
+
 - (BOOL) containsDataForKey:(NSString *)key {
 	NSMutableDictionary *query = [NSMutableDictionary dictionary];
 	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
-	[query setValue:@YES									forKey:(__bridge id)kSecUseNoAuthenticationUI];
 	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
+	_AddUseNoAuthenticationUI(query);
 	if (_accessGroup != nil) {
 		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
 	}
+	
 	CFTypeRef dataTypeRef = NULL;
 	OSStatus const status = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
 	if (status == errSecItemNotFound
@@ -246,22 +264,25 @@
 
 #pragma mark - Touch ID support
 
-+ (BOOL) canUseTouchId {
++ (BOOL) canUseTouchId
+{
+#if !defined(PA2_WATCH_SDK)
 	// Don't allow Touch ID before iOS 9.0
-	NSString *version = [UIDevice currentDevice].systemVersion;
-	if (version.doubleValue < 9.0) {
-		return NO;
+	if (@available(iOS 9, *)) {
+		// Check if Touch ID can be used on current system
+		NSError *error = nil;
+		LAContext *context = [[LAContext alloc] init];
+		BOOL hasTouchId = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
+		if (error.code == kLAErrorTouchIDNotAvailable) {
+			hasTouchId = NO;
+		}
+		return hasTouchId;
 	}
-	
-	// Check if Touch ID can be used on current system
-	NSError *error = nil;
-	LAContext *context = [[LAContext alloc] init];
-	BOOL hasTouchId = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
-	if (error.code == kLAErrorTouchIDNotAvailable) {
-		hasTouchId = NO;
-	}
-	
-	return hasTouchId;
+	return NO;
+#else
+	// On watchOS, always return NO
+	return NO;
+#endif
 }
 
 #pragma mark - Private methods
@@ -280,7 +301,7 @@
 	NSMutableDictionary *query = [_baseQuery mutableCopy];
 	[query setValue:key		forKey:(__bridge id)kSecAttrAccount];
 	[query setValue:data	forKey:(__bridge id)kSecValueData];
-	[query setValue:@YES	forKey:(__bridge id)kSecUseNoAuthenticationUI];
+	_AddUseNoAuthenticationUI(query);
 	
 	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
 	SecAccessControlCreateFlags flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
@@ -325,7 +346,7 @@
 	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
 	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
 	if (_accessGroup != nil) {
-		[query setValue:_accessGroup							forKey:(__bridge id)kSecAttrAccessGroup];
+		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
 	}
 	
 	// Data to be updated.

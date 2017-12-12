@@ -14,31 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
-
-/** Constant specifying the default name of the 'key' used to store flag in NSUserDefaults about initialized PowerAuthSDK instances. Used to cleanup the keychain data after the app re-install.
- */
-extern NSString * __nonnull const PA2Keychain_Initialized;
-
-/** Default name of the keychain service used to store values of the PowerAuthSDK instance session states.
- */
-extern NSString * __nonnull const PA2Keychain_Status;
-
-/** Default name of the keychain service used to cache possession factor unlock key. This keychain is required because enterprise distribution (for example Testflight) changes 'identifierForVendor' used for the key ad-hoc calculation on each install - hence the value is cached.
- */
-extern NSString * __nonnull const PA2Keychain_Possession;
-
-/** Default name of the keychain service used to store values of the PowerAuthSDK instance related biometry keys.
- */
-extern NSString * __nonnull const PA2Keychain_Biometry;
-
-/** Default name of the keychain service used to store PowerAuthTokens.
- */
-extern NSString * __nonnull const PA2Keychain_TokenStore;
-
-/** Constant specifying the default name of the 'key' used to store the possession key in the possession key keychain.
- */
-extern NSString * __nonnull const PA2KeychainKey_Possession;
+#import "PA2KeychainConfiguration.h"
 
 /** Enum encapsulating possible Keychain query result.
  */

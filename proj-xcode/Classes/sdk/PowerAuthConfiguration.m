@@ -16,60 +16,10 @@
 
 #import "PowerAuthConfiguration.h"
 
-@implementation PA2KeychainConfiguration
-
-- (instancetype)init {
-	self = [super init];
-	if (self) {
-		// Initialize default value for keychain service keys
-		_keychainInstanceName_Status		= PA2Keychain_Status;
-		_keychainInstanceName_Possession	= PA2Keychain_Possession;
-		_keychainInstanceName_Biometry		= PA2Keychain_Biometry;
-		_keychainInstanceName_TokenStore	= PA2Keychain_TokenStore;
-		
-		// Initialize default values for keychain service record item keys
-		_keychainKey_Possession	= PA2KeychainKey_Possession;
-	}
-	return self;
-}
- 
-+ (PA2KeychainConfiguration *)sharedInstance {
-	static dispatch_once_t onceToken;
-	static PA2KeychainConfiguration *inst;
-	dispatch_once(&onceToken, ^{
-		inst = [[PA2KeychainConfiguration alloc] init];
-	});
-	return inst;
-}
-
-@end
-
-@implementation PA2ClientConfiguration
-
-- (instancetype)init {
-	self = [super init];
-	if (self) {
-		self.defaultRequestTimeout = 20.0;
-	}
-	return self;
-}
-
-+ (PA2ClientConfiguration *)sharedInstance {
-	static dispatch_once_t onceToken;
-	static PA2ClientConfiguration *inst;
-	dispatch_once(&onceToken, ^{
-		inst = [[PA2ClientConfiguration alloc] init];
-	});
-	return inst;
-}
-
-@end
-
-#pragma mark - Main PowerAuthConfiguration class
-
 @implementation PowerAuthConfiguration
 
-- (BOOL) validateConfiguration {
+- (BOOL) validateConfiguration
+{
 	BOOL result = YES;
 	result = result && (self.instanceId != nil);
 	result = result && (self.appKey != nil);

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PowerAuthAuthentication.h"
 #import "PowerAuthConfiguration.h"
 #import "PowerAuthToken.h"
+
+#import "PA2Client.h"
 #import "PA2Session.h"
 #import "PA2Networking.h"
 #import "PA2Keychain.h"

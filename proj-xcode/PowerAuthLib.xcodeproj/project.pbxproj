@@ -93,7 +93,7 @@
 		BF7751111FC487BC008455A6 /* PA2GetTokenResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = BF77510F1FC487BC008455A6 /* PA2GetTokenResponse.m */; };
 		BF7751131FC48A1A008455A6 /* PowerAuthTokenTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */; };
 		BF79E3C01FB60933003DF179 /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */; };
-		BF79E3C41FBD8AEE003DF179 /* PA2PrivateCrypto.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto.mm */; };
+		BF79E3C41FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm */; };
 		BF79E3CA1FBDA33F003DF179 /* PowerAuthToken.m in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3C91FBDA33F003DF179 /* PowerAuthToken.m */; };
 		BF79E3D21FBDCA81003DF179 /* PA2PrivateTokenKeychainStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3D11FBDCA81003DF179 /* PA2PrivateTokenKeychainStore.m */; };
 		BF79E3D41FBDCDB5003DF179 /* PA2PrivateTokenInterfaces.m in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3D31FBDCDB5003DF179 /* PA2PrivateTokenInterfaces.m */; };
@@ -358,6 +358,7 @@
 		BF5A23691FE001F400B78DE2 /* PA2ClientConfiguration.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ClientConfiguration.m; sourceTree = "<group>"; };
 		BF5A236C1FE0030A00B78DE2 /* PA2KeychainConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2KeychainConfiguration.h; sourceTree = "<group>"; };
 		BF5A236D1FE0030A00B78DE2 /* PA2KeychainConfiguration.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2KeychainConfiguration.m; sourceTree = "<group>"; };
+		BF5A23731FE005A600B78DE2 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
 		BF73E5921E1E802A00BE4139 /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
 		BF73E5941E1E80D400BE4139 /* Encryptor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
 		BF7751081FC4876B008455A6 /* PA2EncryptedRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2EncryptedRequest.m; sourceTree = "<group>"; };
@@ -369,7 +370,7 @@
 		BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTokenTests.m; sourceTree = "<group>"; };
 		BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateImpl.mm; sourceTree = "<group>"; };
 		BF79E3C21FBD8AEE003DF179 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateCrypto.h; sourceTree = "<group>"; };
-		BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateCrypto.mm; sourceTree = "<group>"; };
+		BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateCrypto_IOS.mm; sourceTree = "<group>"; };
 		BF79E3C81FBDA33F003DF179 /* PowerAuthToken.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthToken.h; sourceTree = "<group>"; };
 		BF79E3C91FBDA33F003DF179 /* PowerAuthToken.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthToken.m; sourceTree = "<group>"; };
 		BF79E3CF1FBDCA3C003DF179 /* PA2PrivateTokenInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateTokenInterfaces.h; sourceTree = "<group>"; };
@@ -551,7 +552,8 @@
 				1B2EEF2F1D662AB10039D92A /* PA2PrivateImpl.h */,
 				BF79E3BF1FB60933003DF179 /* PA2PrivateImpl.mm */,
 				BF79E3C21FBD8AEE003DF179 /* PA2PrivateCrypto.h */,
-				BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto.mm */,
+				BF5A23731FE005A600B78DE2 /* PA2PrivateCrypto_Ext.m */,
+				BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -1181,7 +1183,7 @@
 				1B968C5A1E2CED4500F429E0 /* PA2EncryptedObject.m in Sources */,
 				1B6A65301E64515000327545 /* PA2OtpUtil.mm in Sources */,
 				1B9AD2C01DA5B2F200CF52C9 /* PA2OperationTask.m in Sources */,
-				BF79E3C41FBD8AEE003DF179 /* PA2PrivateCrypto.mm in Sources */,
+				BF79E3C41FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm in Sources */,
 				BF37D7641FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m in Sources */,
 				BFD3865E1F2A0A2300F74FF9 /* OtpUtil.cpp in Sources */,
 				BF79E3D71FBDCE05003DF179 /* PA2PrivateTokenData.m in Sources */,

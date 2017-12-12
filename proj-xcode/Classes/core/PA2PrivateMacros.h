@@ -16,6 +16,12 @@
 
 #import "PA2Macros.h"
 
+// Check whether we're using C++ in Extensions SDK. If yes, then treat this as an error.
+#if defined(__cplusplus) && defined(PA2_EXTENSION_SDK)
+#error "Extensions SDK should not depend on C++"
+#endif
+
+
 /// Returns provided object instance if it's kind of desiredClass, otherwise nil.
 /// Please use PA2ObjectAs macro instead of this function.
 PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);

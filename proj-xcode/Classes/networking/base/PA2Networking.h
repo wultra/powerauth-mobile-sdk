@@ -25,6 +25,7 @@
 #import "PA2VaultUnlockResponse.h"
 #import "PA2ErrorResponse.h"
 #import "PA2AuthorizationHttpHeader.h"
+#import "PA2ClientSslNoValidationStrategy.h"
 #import "PA2OperationTask.h"
 #import "PA2NonPersonalizedEncryptedObject.h"
 #import "PA2PersonalizedEncryptedObject.h"

@@ -91,7 +91,7 @@ static PowerAuthSDK *inst;
 	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithSdk:self];
 	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
 																	 keychain:tokenStoreKeychain
-															   statusProvider:self
+															   statusProvider:_session
 															   remoteProvider:_remoteHttpTokenProvider];
 
 	// Make sure to reset keychain data after app re-install.

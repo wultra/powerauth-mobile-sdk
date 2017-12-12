@@ -148,7 +148,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PALog(@"PA2PrivateTokenKeychainStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		PALog(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
 		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
@@ -189,7 +189,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PALog(@"PA2PrivateTokenKeychainStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		PALog(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
 		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
@@ -236,6 +236,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	return nil != [self tokenDataForTokenName:name];
 }
 
+
 - (PowerAuthToken*) localTokenWithName:(NSString*)name
 {
 	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
@@ -244,6 +245,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	}
 	return nil;
 }
+
 
 #pragma mark - Keychain
 
@@ -338,7 +340,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
 			// on the server.
 			// This warning is also displayed for removal and creation operations created at the same time.
-			PALog(@"WARNING: TokenKeychainStore: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
+			PALog(@"TokenKeychainStore: WARNING: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
 		} else {
 			[_pendingNamedOperations addObject:name];
 		}

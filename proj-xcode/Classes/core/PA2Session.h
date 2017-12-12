@@ -16,8 +16,9 @@
 
 #import "PA2Types.h"
 #import "PA2Encryptor.h"
+#import "PA2SessionStatusProvider.h"
 
-@interface PA2Session : NSObject
+@interface PA2Session : NSObject<PA2SessionStatusProvider>
 
 #pragma mark -  Initialization / Reset
 

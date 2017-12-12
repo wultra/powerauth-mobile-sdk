@@ -93,7 +93,7 @@
 		BF7D50361FDF03EB00200119 /* libPowerAuthExtensionSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthExtensionSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF7D50531FDFFAA900200119 /* libPowerAuthWatchSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthWatchSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_IOS.csv; path = Extensions/SharedFiles_IOS.csv; sourceTree = "<group>"; };
-		BF7D50621FDFFBC700200119 /* SharedFiles.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = SharedFiles.md; path = Extensions/SharedFiles.md; sourceTree = "<group>"; };
+		BF7D50621FDFFBC700200119 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = Extensions/README.md; sourceTree = "<group>"; };
 		BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_WatchOS.csv; path = Extensions/SharedFiles_WatchOS.csv; sourceTree = "<group>"; };
 		BF7D50661FE0002600200119 /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2Keychain.m; path = Classes/keychain/PA2Keychain.m; sourceTree = "<group>"; };
 		BF7D50671FE0002600200119 /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2Keychain.h; path = Classes/keychain/PA2Keychain.h; sourceTree = "<group>"; };
@@ -240,7 +240,7 @@
 		BF7D50601FDFFB5A00200119 /* PowerAuthShared */ = {
 			isa = PBXGroup;
 			children = (
-				BF7D50621FDFFBC700200119 /* SharedFiles.md */,
+				BF7D50621FDFFBC700200119 /* README.md */,
 				BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */,
 				BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */,
 				BF5A23711FE0055800B78DE2 /* core */,

@@ -1,0 +1,518 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF5A23791FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */; };
+		BF5A237A1FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */; };
+		BF5A237E1FE0099100B78DE2 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */; };
+		BF5A237F1FE0099100B78DE2 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */; };
+		BF5A23821FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23801FE009BC00B78DE2 /* PA2KeychainConfiguration.m */; };
+		BF5A23831FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23801FE009BC00B78DE2 /* PA2KeychainConfiguration.m */; };
+		BF5A238B1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23881FE00A4A00B78DE2 /* PowerAuthConfiguration.m */; };
+		BF5A238C1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23881FE00A4A00B78DE2 /* PowerAuthConfiguration.m */; };
+		BF5A238D1FE00A4A00B78DE2 /* PowerAuthAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23891FE00A4A00B78DE2 /* PowerAuthAuthentication.m */; };
+		BF5A238E1FE00A4A00B78DE2 /* PowerAuthAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23891FE00A4A00B78DE2 /* PowerAuthAuthentication.m */; };
+		BF5A238F1FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A238A1FE00A4A00B78DE2 /* PowerAuthToken.m */; };
+		BF5A23901FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A238A1FE00A4A00B78DE2 /* PowerAuthToken.m */; };
+		BF5A23971FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23941FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m */; };
+		BF5A23981FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23941FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m */; };
+		BF5A23991FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */; };
+		BF5A239A1FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */; };
+		BF5A239F1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */; };
+		BF5A23A01FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */; };
+		BF7D50681FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
+		BF7D50691FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BF7D50341FDF03EB00200119 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7D50511FDFFAA900200119 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateCrypto.h; path = Classes/core/PA2PrivateCrypto.h; sourceTree = "<group>"; };
+		BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateCrypto_Ext.m; path = Classes/core/PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
+		BF5A237B1FE0098700B78DE2 /* PA2Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PA2Macros.h; path = Classes/core/PA2Macros.h; sourceTree = "<group>"; };
+		BF5A237C1FE0099100B78DE2 /* PA2PrivateMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateMacros.h; path = Classes/core/PA2PrivateMacros.h; sourceTree = "<group>"; };
+		BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateMacros.m; path = Classes/core/PA2PrivateMacros.m; sourceTree = "<group>"; };
+		BF5A23801FE009BC00B78DE2 /* PA2KeychainConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2KeychainConfiguration.m; path = Classes/keychain/PA2KeychainConfiguration.m; sourceTree = "<group>"; };
+		BF5A23811FE009BC00B78DE2 /* PA2KeychainConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2KeychainConfiguration.h; path = Classes/keychain/PA2KeychainConfiguration.h; sourceTree = "<group>"; };
+		BF5A23851FE00A4A00B78DE2 /* PowerAuthAuthentication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PowerAuthAuthentication.h; path = Classes/sdk/PowerAuthAuthentication.h; sourceTree = "<group>"; };
+		BF5A23861FE00A4A00B78DE2 /* PowerAuthConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PowerAuthConfiguration.h; path = Classes/sdk/PowerAuthConfiguration.h; sourceTree = "<group>"; };
+		BF5A23871FE00A4A00B78DE2 /* PowerAuthToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PowerAuthToken.h; path = Classes/sdk/PowerAuthToken.h; sourceTree = "<group>"; };
+		BF5A23881FE00A4A00B78DE2 /* PowerAuthConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PowerAuthConfiguration.m; path = Classes/sdk/PowerAuthConfiguration.m; sourceTree = "<group>"; };
+		BF5A23891FE00A4A00B78DE2 /* PowerAuthAuthentication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PowerAuthAuthentication.m; path = Classes/sdk/PowerAuthAuthentication.m; sourceTree = "<group>"; };
+		BF5A238A1FE00A4A00B78DE2 /* PowerAuthToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PowerAuthToken.m; path = Classes/sdk/PowerAuthToken.m; sourceTree = "<group>"; };
+		BF5A23931FE00A8800B78DE2 /* PA2PrivateTokenData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenData.h; path = Classes/token/PA2PrivateTokenData.h; sourceTree = "<group>"; };
+		BF5A23941FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateTokenInterfaces.m; path = Classes/token/PA2PrivateTokenInterfaces.m; sourceTree = "<group>"; };
+		BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateTokenData.m; path = Classes/token/PA2PrivateTokenData.m; sourceTree = "<group>"; };
+		BF5A23961FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenInterfaces.h; path = Classes/token/PA2PrivateTokenInterfaces.h; sourceTree = "<group>"; };
+		BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2AuthorizationHttpHeader.m; path = Classes/networking/base/PA2AuthorizationHttpHeader.m; sourceTree = "<group>"; };
+		BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2AuthorizationHttpHeader.h; path = Classes/networking/base/PA2AuthorizationHttpHeader.h; sourceTree = "<group>"; };
+		BF7D50361FDF03EB00200119 /* libPowerAuthExtensionSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthExtensionSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF7D50531FDFFAA900200119 /* libPowerAuthWatchSdk.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthWatchSdk.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_IOS.csv; path = Extensions/SharedFiles_IOS.csv; sourceTree = "<group>"; };
+		BF7D50621FDFFBC700200119 /* SharedFiles.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = SharedFiles.md; path = Extensions/SharedFiles.md; sourceTree = "<group>"; };
+		BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_WatchOS.csv; path = Extensions/SharedFiles_WatchOS.csv; sourceTree = "<group>"; };
+		BF7D50661FE0002600200119 /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2Keychain.m; path = Classes/keychain/PA2Keychain.m; sourceTree = "<group>"; };
+		BF7D50671FE0002600200119 /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2Keychain.h; path = Classes/keychain/PA2Keychain.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BF7D50331FDF03EB00200119 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7D50501FDFFAA900200119 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BF5A23711FE0055800B78DE2 /* core */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A237B1FE0098700B78DE2 /* PA2Macros.h */,
+				BF5A237C1FE0099100B78DE2 /* PA2PrivateMacros.h */,
+				BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */,
+				BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */,
+				BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */,
+			);
+			name = core;
+			sourceTree = "<group>";
+		};
+		BF5A23841FE00A0400B78DE2 /* keychain */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A23811FE009BC00B78DE2 /* PA2KeychainConfiguration.h */,
+				BF5A23801FE009BC00B78DE2 /* PA2KeychainConfiguration.m */,
+				BF7D50671FE0002600200119 /* PA2Keychain.h */,
+				BF7D50661FE0002600200119 /* PA2Keychain.m */,
+			);
+			name = keychain;
+			sourceTree = "<group>";
+		};
+		BF5A23921FE00A5B00B78DE2 /* sdk */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A23851FE00A4A00B78DE2 /* PowerAuthAuthentication.h */,
+				BF5A23891FE00A4A00B78DE2 /* PowerAuthAuthentication.m */,
+				BF5A23861FE00A4A00B78DE2 /* PowerAuthConfiguration.h */,
+				BF5A23881FE00A4A00B78DE2 /* PowerAuthConfiguration.m */,
+				BF5A23871FE00A4A00B78DE2 /* PowerAuthToken.h */,
+				BF5A238A1FE00A4A00B78DE2 /* PowerAuthToken.m */,
+			);
+			name = sdk;
+			sourceTree = "<group>";
+		};
+		BF5A239B1FE00A8D00B78DE2 /* token */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A23931FE00A8800B78DE2 /* PA2PrivateTokenData.h */,
+				BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */,
+				BF5A23961FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.h */,
+				BF5A23941FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m */,
+			);
+			name = token;
+			sourceTree = "<group>";
+		};
+		BF5A239C1FE00ADD00B78DE2 /* networking */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */,
+				BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */,
+			);
+			name = networking;
+			sourceTree = "<group>";
+		};
+		BF7D502D1FDF03EB00200119 = {
+			isa = PBXGroup;
+			children = (
+				BF7D50601FDFFB5A00200119 /* PowerAuthShared */,
+				BF7D505C1FDFFB2700200119 /* ExtensionShared */,
+				BF7D505D1FDFFB3000200119 /* IOS */,
+				BF7D505E1FDFFB3000200119 /* WatchOS */,
+				BF7D50371FDF03EB00200119 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BF7D50371FDF03EB00200119 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BF7D50361FDF03EB00200119 /* libPowerAuthExtensionSdk.a */,
+				BF7D50531FDFFAA900200119 /* libPowerAuthWatchSdk.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BF7D505C1FDFFB2700200119 /* ExtensionShared */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = ExtensionShared;
+			path = Extensions/ExtensionShared;
+			sourceTree = "<group>";
+		};
+		BF7D505D1FDFFB3000200119 /* IOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = IOS;
+			path = Extensions/IOS;
+			sourceTree = "<group>";
+		};
+		BF7D505E1FDFFB3000200119 /* WatchOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = WatchOS;
+			path = Extensions/WatchOS;
+			sourceTree = "<group>";
+		};
+		BF7D50601FDFFB5A00200119 /* PowerAuthShared */ = {
+			isa = PBXGroup;
+			children = (
+				BF7D50621FDFFBC700200119 /* SharedFiles.md */,
+				BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */,
+				BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */,
+				BF5A23711FE0055800B78DE2 /* core */,
+				BF5A23841FE00A0400B78DE2 /* keychain */,
+				BF5A23921FE00A5B00B78DE2 /* sdk */,
+				BF5A239B1FE00A8D00B78DE2 /* token */,
+				BF5A239C1FE00ADD00B78DE2 /* networking */,
+			);
+			name = PowerAuthShared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BF7D50351FDF03EB00200119 /* PowerAuthExtensionSdk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF7D503F1FDF03EB00200119 /* Build configuration list for PBXNativeTarget "PowerAuthExtensionSdk" */;
+			buildPhases = (
+				BF7D50321FDF03EB00200119 /* Sources */,
+				BF7D50331FDF03EB00200119 /* Frameworks */,
+				BF7D50341FDF03EB00200119 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PowerAuthExtensionSdk;
+			productName = PowerAuthExtensionSdk;
+			productReference = BF7D50361FDF03EB00200119 /* libPowerAuthExtensionSdk.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		BF7D50521FDFFAA900200119 /* PowerAuthWatchSdk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF7D50591FDFFAA900200119 /* Build configuration list for PBXNativeTarget "PowerAuthWatchSdk" */;
+			buildPhases = (
+				BF7D504F1FDFFAA900200119 /* Sources */,
+				BF7D50501FDFFAA900200119 /* Frameworks */,
+				BF7D50511FDFFAA900200119 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PowerAuthWatchSdk;
+			productName = PowerAuthWatchSdk;
+			productReference = BF7D50531FDFFAA900200119 /* libPowerAuthWatchSdk.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BF7D502E1FDF03EB00200119 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0920;
+				ORGANIZATIONNAME = "Juraj Durech";
+				TargetAttributes = {
+					BF7D50351FDF03EB00200119 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+					BF7D50521FDFFAA900200119 = {
+						CreatedOnToolsVersion = 9.2;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = BF7D50311FDF03EB00200119 /* Build configuration list for PBXProject "PowerAuthExtensionSdk" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = BF7D502D1FDF03EB00200119;
+			productRefGroup = BF7D50371FDF03EB00200119 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BF7D50351FDF03EB00200119 /* PowerAuthExtensionSdk */,
+				BF7D50521FDFFAA900200119 /* PowerAuthWatchSdk */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BF7D50321FDF03EB00200119 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF5A23991FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */,
+				BF5A238F1FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */,
+				BF5A23971FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */,
+				BF5A23821FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
+				BF5A23791FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
+				BF5A238B1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,
+				BF7D50681FE0002600200119 /* PA2Keychain.m in Sources */,
+				BF5A237E1FE0099100B78DE2 /* PA2PrivateMacros.m in Sources */,
+				BF5A239F1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */,
+				BF5A238D1FE00A4A00B78DE2 /* PowerAuthAuthentication.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7D504F1FDFFAA900200119 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF5A239A1FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */,
+				BF5A23901FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */,
+				BF5A23981FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */,
+				BF5A23831FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
+				BF5A237A1FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
+				BF5A238C1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,
+				BF7D50691FE0002600200119 /* PA2Keychain.m in Sources */,
+				BF5A237F1FE0099100B78DE2 /* PA2PrivateMacros.m in Sources */,
+				BF5A23A01FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */,
+				BF5A238E1FE00A4A00B78DE2 /* PowerAuthAuthentication.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BF7D503D1FDF03EB00200119 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"PA2_EXTENSION_SDK=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		BF7D503E1FDF03EB00200119 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "PA2_EXTENSION_SDK=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BF7D50401FDF03EB00200119 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BF7D50411FDF03EB00200119 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BF7D505A1FDFFAA900200119 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 4.2;
+			};
+			name = Debug;
+		};
+		BF7D505B1FDFFAA900200119 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 4.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BF7D50311FDF03EB00200119 /* Build configuration list for PBXProject "PowerAuthExtensionSdk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF7D503D1FDF03EB00200119 /* Debug */,
+				BF7D503E1FDF03EB00200119 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF7D503F1FDF03EB00200119 /* Build configuration list for PBXNativeTarget "PowerAuthExtensionSdk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF7D50401FDF03EB00200119 /* Debug */,
+				BF7D50411FDF03EB00200119 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF7D50591FDFFAA900200119 /* Build configuration list for PBXNativeTarget "PowerAuthWatchSdk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF7D505A1FDFFAA900200119 /* Debug */,
+				BF7D505B1FDFFAA900200119 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BF7D502E1FDF03EB00200119 /* Project object */;
+}

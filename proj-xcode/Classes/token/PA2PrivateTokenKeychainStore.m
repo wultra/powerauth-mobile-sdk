@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-#import "PowerAuthSDK.h"	// THIS... is really, really heavy inlcude :(
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateTokenInterfaces.h"
-#import "PA2ECIESEncryptor.h"
-#import "PA2Client.h"
-#import "PA2EncryptedRequest.h"
-#import "PA2EncryptedResponse.h"
-#import "PA2GetTokenResponse.h"
 #import "PA2PrivateMacros.h"
+#import "PA2ErrorConstants.h"
+#import "PA2Keychain.h"
+#import "PowerAuthConfiguration.h"
 
 @implementation PA2PrivateTokenKeychainStore
 {
-	/// Weak reference to PowerAuthSDK
-	__weak PowerAuthSDK *		 _sdk;
 	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
 	/// Semaphore for locking
@@ -38,16 +33,11 @@
 
 	/// A prefix for all tokens stored in the keychain
 	NSString * _keychainKeyPrefix;
-	/// An ECIES encryptor, created from master server public key.
-	PA2ECIESEncryptor * 		_encryptor;
-	/// A HTTP client for communication with the server
-	PA2Client * 				_client;
-	/// A debug set with pending operations (valid only for DEBUG build of library)
-	NSMutableSet<NSString*> * 	_pendingNamedOperations;
 	/// A local database for tokens.
 	NSMutableDictionary<NSString*, PA2PrivateTokenData*> * _database;
+	/// A debug set with pending operations (valid only for DEBUG build of library)
+	NSMutableSet<NSString*> * 	_pendingNamedOperations;
 }
-
 
 /**
  Following debug macros allows tracking of dangerous simultaneous requests for the same tokens.
@@ -63,13 +53,18 @@
 	#define _OPERATIONS_SET() 		nil
 #endif
 
-- (id) initWithSdk:(PowerAuthSDK*)sdk keychain:(PA2Keychain*)keychain
+
+- (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
+					keychain:(PA2Keychain*)keychain
+			  statusProvider:(id<PA2SessionStatusProvider>)statusProvider
+			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
 {
 	self = [super init];
 	if (self) {
-		_sdk = sdk;
+		_sdkConfiguration = configuration;
+		_statusProvider = statusProvider;
+		_remoteTokenProvider = remoteProvider;
 		_keychain = keychain;
-		_sdkConfiguration = sdk.configuration;		// keep copy of config object
 		_lock = dispatch_semaphore_create(1);
 	}
 	return self;
@@ -81,19 +76,14 @@
  */
 static void _prepareInstance(PA2PrivateTokenKeychainStore * obj)
 {
-	// Prepare encryptor
-	NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:obj->_sdkConfiguration.masterServerPublicKey options:0];
-	obj->_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
-	// Prepare client
-	obj->_client = [[PA2Client alloc] init];
-	obj->_client.baseEndpointUrl = obj->_sdkConfiguration.baseEndpointUrl;
-	obj->_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
-	obj->_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
+	// Initialize remote provider (instance may be nil)
+	[obj->_remoteTokenProvider prepareInstanceForConfiguration:obj->_sdkConfiguration];
+
+	// Build base key for all stored tokens
+	obj->_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:obj->_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
 	obj->_database = [NSMutableDictionary dictionaryWithCapacity:2];
 	// ...and debug set for overlapping operations
 	obj->_pendingNamedOperations = _OPERATIONS_SET();
-	// Build base key for all stored tokens
-	obj->_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:obj->_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
 }
 
 
@@ -104,7 +94,7 @@ static void _prepareInstance(PA2PrivateTokenKeychainStore * obj)
 static id _synchronized(PA2PrivateTokenKeychainStore * obj, id(^block)(void))
 {
 	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
-	if (nil == obj->_encryptor) {
+	if (nil == obj->_keychainKeyPrefix) {
 		_prepareInstance(obj);
 	}
 	id result = block();
@@ -119,7 +109,7 @@ static id _synchronized(PA2PrivateTokenKeychainStore * obj, id(^block)(void))
 static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(void))
 {
 	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
-	if (nil == obj->_encryptor) {
+	if (nil == obj->_keychainKeyPrefix) {
 		_prepareInstance(obj);
 	}
 	block();
@@ -130,7 +120,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 
 - (BOOL) canRequestForAccessToken
 {
-	return [_sdk hasValidActivation];
+	return [_statusProvider hasValidActivation];
 }
 
 
@@ -144,7 +134,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		}
 		return nil;
 	}
-	if (!_sdk.hasValidActivation) {
+	if (!_statusProvider.hasValidActivation) {
 		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
 		return nil;
 	}
@@ -155,80 +145,26 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		completion(token, nil);
 		return nil;
 	}
-
-	// Prepare request. We're encrypting empty data, so the ephemeral key is only payload in the JSON.
-	PA2EncryptedRequest * requestObject = [[PA2EncryptedRequest alloc] init];
-	__block PA2ECIESEncryptor * responseDecryptor = nil;
-	BOOL success = [_encryptor encryptRequest:nil completion:^(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor) {
-		requestObject.ephemeralPublicKey = cryptogram.keyBase64;
-		responseDecryptor = decryptor;
-	}];
-	if (!success) {
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeEncryption userInfo:nil]);
+	
+	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
+	if (!strongTokenProvider) {
+		PALog(@"PA2PrivateTokenKeychainStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
-	// Prepare operation task...
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	_START_OPERATION(name);
 	
-	// Prepare callback to main thread
-	void (^safeCompletion)(PowerAuthToken*, NSError*) = ^(PowerAuthToken * token, NSError * error) {
-		dispatch_async(dispatch_get_main_queue(), ^{
-			_STOP_OPERATION(name);
-			completion(token, error);
-		});
-	};
-
-	// ...and do the rest on background thread, due to expected biometric signature.
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-
-		NSError * error = nil;
-		// This is tricky. We need to embed that request object before the signature is calculated.
-		// We need to use the same function as is used in the PA2Client for data preparation. 
-		NSData * jsonData = [_client embedNetworkObjectIntoRequest:requestObject];
-		if (!jsonData || error) {
-			safeCompletion(nil, error);
+	_START_OPERATION(name);
+	return [strongTokenProvider requestTokenWithName:name authentication:authentication completion:^(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error) {
+		PowerAuthToken * token;
+		if (tokenData && !error) {
+			[self storeTokenData:tokenData];
+			token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
+		} else {
+			token = nil;
 		}
-		// Now sign encrypted data
-		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/token/create" body:jsonData error:&error];
-		if (!header || error) {
-			safeCompletion(nil, error);
-		}
-		task.dataTask = [_client createToken:header encryptedData:requestObject callback:^(PA2RestResponseStatus status, PA2EncryptedResponse * encryptedResponse, NSError * error) {
-			PowerAuthToken * token = nil;
-			if (status == PA2RestResponseStatus_OK) {
-				// Decrypt response
-				PA2ECIESCryptogram * responseCryptogram = [[PA2ECIESCryptogram alloc] init];
-				responseCryptogram.bodyBase64 = encryptedResponse.encryptedData;
-				responseCryptogram.macBase64 = encryptedResponse.mac;
-				NSData * responseData = [responseDecryptor decryptResponse:responseCryptogram];
-				if (responseData) {
-					// Parse JSON
-					NSDictionary * responseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:responseData options:0 error:&error], NSDictionary);
-					if (responseDictionary && !error) {
-						// ...and finally, create a private token data object
-						PA2GetTokenResponse * responseObject = [[PA2GetTokenResponse alloc] initWithDictionary:responseDictionary];
-						PA2PrivateTokenData * tokenData = [[PA2PrivateTokenData alloc] init];
-						tokenData.identifier = responseObject.tokenId;
-						tokenData.name = name;
-						tokenData.secret = responseObject.tokenSecret ? [[NSData alloc] initWithBase64EncodedString:responseObject.tokenSecret options:0] : nil;
-						if (tokenData.hasValidData) {
-							// Everything looks good, store token to keychain and create and finally create a new PowerAuthToken object
-							[self storeTokenData:tokenData];
-							token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
-						}
-					}
-				}
-			}
-			// call back to the application...
-			if (!token && !error) {
-				// Create fallback error in case that token has not been created.
-				error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeEncryption userInfo:nil];
-			}
-			safeCompletion(token, error);
-		}];
-	});
-	return task;
+		_STOP_OPERATION(name);
+		completion(token, error);
+	}];
 }
 
 
@@ -241,7 +177,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		}
 		return nil;
 	}
-	if (!_sdk.hasValidActivation) {
+	if (!_statusProvider.hasValidActivation) {
 		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
 		return nil;
 	}
@@ -250,44 +186,28 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
-
-	// Prepare data for HTTP request
-	PA2RemoveTokenRequest * removeRequest = [[PA2RemoveTokenRequest alloc] init];
-	removeRequest.tokenId = tokenData.identifier;
-	NSData * jsonData = [_client embedNetworkObjectIntoRequest:removeRequest];
-	// Sign http request
-	NSError * error = nil;
-	PowerAuthAuthentication * authentication = [[PowerAuthAuthentication alloc] init];
-	authentication.usePossession = YES;
-	PA2AuthorizationHttpHeader * signatureHeader = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/token/remove" body:jsonData error:&error];
-	if (!signatureHeader || error) {
-		completion(NO, error);
+	
+	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
+	if (!strongTokenProvider) {
+		PALog(@"PA2PrivateTokenKeychainStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
 	
-	// Start http request...
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
 	_START_OPERATION(name);
-	task.dataTask = [_client removeToken:removeRequest
-						 signatureHeader:signatureHeader
-								callback:^(PA2RestResponseStatus status, NSError * _Nullable error) {
-		if (status == PA2RestResponseStatus_OK) {
+	return [strongTokenProvider removeTokenData:tokenData completion:^(BOOL removed, NSError * _Nullable error) {
+		_STOP_OPERATION(name);
+		if (removed) {
 			[self removeLocalTokenWithName:name];
 		}
-		dispatch_async(dispatch_get_main_queue(), ^{
-			_STOP_OPERATION(name);
-			completion(error == nil, error);
-		});
+		completion(removed, error);
 	}];
-	return task;
 }
 
 
 - (void) cancelTask:(PowerAuthTokenStoreTask)task
 {
-	if ([task isKindOfClass:[PA2OperationTask class]]) {
-		[(PA2OperationTask*)task cancel];
-	}
+	[_remoteTokenProvider cancelTask:task];
 }
 
 
@@ -332,7 +252,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
  */
 - (NSString*) identifierForTokenName:(NSString*)name
 {
-	return[_keychainKeyPrefix stringByAppendingString:name];
+	return [_keychainKeyPrefix stringByAppendingString:name];
 }
 
 /**
@@ -407,7 +327,6 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	[_database removeObjectForKey:identifier];
 }
 
-
 #pragma mark - Debug methods
 
 #if defined(DEBUG)
@@ -432,6 +351,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		[_pendingNamedOperations removeObject:name];
 	});
 }
-#endif
+#endif // defined(DEBUG)
+
 
 @end

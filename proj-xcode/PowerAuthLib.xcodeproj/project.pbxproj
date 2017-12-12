@@ -70,6 +70,7 @@
 		BF234CA81CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CA71CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp */; };
 		BF234CAC1CE5DFFC00312A7F /* AES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAA1CE5DFFC00312A7F /* AES.cpp */; };
 		BF234CAF1CE5E07500312A7F /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAD1CE5E07500312A7F /* Hash.cpp */; };
+		BF30176C1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */; };
 		BF3606BE1E22E03600768FB2 /* PA2Encryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */; };
 		BF37D7551FBE14A800C73855 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF37D7541FBE14A800C73855 /* PA2PrivateMacros.m */; };
 		BF37D7641FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF37D7621FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m */; };
@@ -330,6 +331,10 @@
 		BF234CAB1CE5DFFC00312A7F /* AES.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AES.h; sourceTree = "<group>"; };
 		BF234CAD1CE5E07500312A7F /* Hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Hash.cpp; sourceTree = "<group>"; };
 		BF234CAE1CE5E07500312A7F /* Hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hash.h; sourceTree = "<group>"; };
+		BF3017681FE0252E0099B253 /* PA2PrivateRemoteTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateRemoteTokenProvider.h; sourceTree = "<group>"; };
+		BF30176A1FE026F80099B253 /* PA2PrivateHttpTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateHttpTokenProvider.h; sourceTree = "<group>"; };
+		BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateHttpTokenProvider.m; sourceTree = "<group>"; };
+		BF30176D1FE027A20099B253 /* PA2SessionStatusProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SessionStatusProvider.h; sourceTree = "<group>"; };
 		BF3606BC1E22E03600768FB2 /* PA2Encryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Encryptor.h; sourceTree = "<group>"; };
 		BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Encryptor.mm; sourceTree = "<group>"; };
 		BF37D7541FBE14A800C73855 /* PA2PrivateMacros.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateMacros.m; sourceTree = "<group>"; };
@@ -540,6 +545,7 @@
 				1B2EEF2E1D662AB10039D92A /* PA2Password.mm */,
 				1B2EEF301D662AB10039D92A /* PA2Session.h */,
 				1B2EEF311D662AB10039D92A /* PA2Session.mm */,
+				BF30176D1FE027A20099B253 /* PA2SessionStatusProvider.h */,
 				1B2EEF321D662AB10039D92A /* PA2Types.h */,
 				1B2EEF331D662AB10039D92A /* PA2Types.mm */,
 				1B6F00051D6DCDA700EC1C5A /* PA2Macros.h */,
@@ -919,6 +925,9 @@
 				BF79E3D61FBDCE05003DF179 /* PA2PrivateTokenData.m */,
 				BF79E3D01FBDCA81003DF179 /* PA2PrivateTokenKeychainStore.h */,
 				BF79E3D11FBDCA81003DF179 /* PA2PrivateTokenKeychainStore.m */,
+				BF3017681FE0252E0099B253 /* PA2PrivateRemoteTokenProvider.h */,
+				BF30176A1FE026F80099B253 /* PA2PrivateHttpTokenProvider.h */,
+				BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */,
 			);
 			path = token;
 			sourceTree = "<group>";
@@ -1172,6 +1181,7 @@
 				BF14FE881CF8A4800032B30C /* URLEncoding.cpp in Sources */,
 				1B2EEF711D662CAA0039D92A /* PA2CreateActivationRequest.m in Sources */,
 				BF14FE871CF8A4800032B30C /* DataWriter.cpp in Sources */,
+				BF30176C1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m in Sources */,
 				BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */,
 				BF79E3CA1FBDA33F003DF179 /* PowerAuthToken.m in Sources */,
 				BF79E3C01FB60933003DF179 /* PA2PrivateImpl.mm in Sources */,

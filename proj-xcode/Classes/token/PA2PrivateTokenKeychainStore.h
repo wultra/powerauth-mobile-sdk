@@ -15,8 +15,10 @@
  */
 
 #import "PowerAuthToken.h"
+#import "PA2SessionStatusProvider.h"
+#import "PA2PrivateRemoteTokenProvider.h"
 
-@class PowerAuthSDK, PA2Keychain;
+@class PA2Keychain;
 
 /**
  The PA2PrivateTokenKeychainStore object implements token store which
@@ -31,11 +33,27 @@
  A keychain for storing tokens.
  */
 @property (nonatomic, strong, readonly) PA2Keychain * keychain;
+/**
+ An associated status provider.
+ */
+@property (nonatomic, weak, readonly) id<PA2SessionStatusProvider> statusProvider;
+/**
+ An associated remote token provider.
+ */
+@property (nonatomic, weak, readonly) id<PA2PrivateRemoteTokenProvider> remoteTokenProvider;
 
 /**
- Initializes keychain token store with parent SDK object and keychain.
- Internally, weak reference is used for SDK and strong for the keychain.
+ Initializes keychain token store with configuration, status provider, remote provider
+ and keychain as persisting storage.
+ 
+ @param configuration PowerAuth configuration object. The store is keeping a strong reference to this object.
+ @param keychain PA2Keychain for storage. The store is keeping a strong reference to this object.
+ @param statusProvider An object providing session's status. The store keeps a weak reference.
+ @param remoteProvider An object for accessing remote token, when token is not cached locally. The store keeps a weak reference.
  */
-- (id) initWithSdk:(PowerAuthSDK*)sdk keychain:(PA2Keychain*)keychain;
+- (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
+					keychain:(PA2Keychain*)keychain
+			  statusProvider:(id<PA2SessionStatusProvider>)statusProvider
+			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider;
 
 @end

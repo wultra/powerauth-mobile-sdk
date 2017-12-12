@@ -7,6 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF0EBEB41FE03F8D00E97918 /* PA2SessionStatusDataReader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF0EBEB31FE03F8D00E97918 /* PA2SessionStatusDataReader.m */; };
+		BF0EBEB51FE03F8D00E97918 /* PA2SessionStatusDataReader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF0EBEB31FE03F8D00E97918 /* PA2SessionStatusDataReader.m */; };
+		BF3017601FE020F00099B253 /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30175E1FE020F00099B253 /* PA2ErrorConstants.m */; };
+		BF3017611FE020F00099B253 /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30175E1FE020F00099B253 /* PA2ErrorConstants.m */; };
+		BF3017641FE024560099B253 /* PowerAuthExtensionSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = BF3017631FE024560099B253 /* PowerAuthExtensionSDK.m */; };
+		BF3017671FE0247A0099B253 /* PowerAuthWatchSDK.m in Sources */ = {isa = PBXBuildFile; fileRef = BF3017661FE0247A0099B253 /* PowerAuthWatchSDK.m */; };
+		BF3017721FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30176F1FE037B60099B253 /* PA2PrivateTokenKeychainStore.m */; };
+		BF3017731FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30176F1FE037B60099B253 /* PA2PrivateTokenKeychainStore.m */; };
 		BF5A23791FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */; };
 		BF5A237A1FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */; };
 		BF5A237E1FE0099100B78DE2 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */; };
@@ -51,6 +59,18 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF0EBEB21FE03F8D00E97918 /* PA2SessionStatusDataReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SessionStatusDataReader.h; sourceTree = "<group>"; };
+		BF0EBEB31FE03F8D00E97918 /* PA2SessionStatusDataReader.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SessionStatusDataReader.m; sourceTree = "<group>"; };
+		BF30175E1FE020F00099B253 /* PA2ErrorConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2ErrorConstants.m; path = Classes/core/PA2ErrorConstants.m; sourceTree = "<group>"; };
+		BF30175F1FE020F00099B253 /* PA2ErrorConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2ErrorConstants.h; path = Classes/core/PA2ErrorConstants.h; sourceTree = "<group>"; };
+		BF3017621FE024560099B253 /* PowerAuthExtensionSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthExtensionSDK.h; sourceTree = "<group>"; };
+		BF3017631FE024560099B253 /* PowerAuthExtensionSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthExtensionSDK.m; sourceTree = "<group>"; };
+		BF3017651FE0247A0099B253 /* PowerAuthWatchSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthWatchSDK.h; sourceTree = "<group>"; };
+		BF3017661FE0247A0099B253 /* PowerAuthWatchSDK.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthWatchSDK.m; sourceTree = "<group>"; };
+		BF30176E1FE028660099B253 /* PA2SessionStatusProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PA2SessionStatusProvider.h; path = Classes/core/PA2SessionStatusProvider.h; sourceTree = "<group>"; };
+		BF30176F1FE037B60099B253 /* PA2PrivateTokenKeychainStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateTokenKeychainStore.m; path = Classes/token/PA2PrivateTokenKeychainStore.m; sourceTree = "<group>"; };
+		BF3017701FE037B60099B253 /* PA2PrivateRemoteTokenProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateRemoteTokenProvider.h; path = Classes/token/PA2PrivateRemoteTokenProvider.h; sourceTree = "<group>"; };
+		BF3017711FE037B60099B253 /* PA2PrivateTokenKeychainStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenKeychainStore.h; path = Classes/token/PA2PrivateTokenKeychainStore.h; sourceTree = "<group>"; };
 		BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateCrypto.h; path = Classes/core/PA2PrivateCrypto.h; sourceTree = "<group>"; };
 		BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateCrypto_Ext.m; path = Classes/core/PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
 		BF5A237B1FE0098700B78DE2 /* PA2Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PA2Macros.h; path = Classes/core/PA2Macros.h; sourceTree = "<group>"; };
@@ -97,10 +117,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BF0EBEB61FE040B200E97918 /* Private */ = {
+			isa = PBXGroup;
+			children = (
+				BF0EBEB21FE03F8D00E97918 /* PA2SessionStatusDataReader.h */,
+				BF0EBEB31FE03F8D00E97918 /* PA2SessionStatusDataReader.m */,
+			);
+			path = Private;
+			sourceTree = "<group>";
+		};
 		BF5A23711FE0055800B78DE2 /* core */ = {
 			isa = PBXGroup;
 			children = (
 				BF5A237B1FE0098700B78DE2 /* PA2Macros.h */,
+				BF30175F1FE020F00099B253 /* PA2ErrorConstants.h */,
+				BF30175E1FE020F00099B253 /* PA2ErrorConstants.m */,
+				BF30176E1FE028660099B253 /* PA2SessionStatusProvider.h */,
 				BF5A237C1FE0099100B78DE2 /* PA2PrivateMacros.h */,
 				BF5A237D1FE0099100B78DE2 /* PA2PrivateMacros.m */,
 				BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */,
@@ -140,6 +172,9 @@
 				BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */,
 				BF5A23961FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.h */,
 				BF5A23941FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m */,
+				BF3017701FE037B60099B253 /* PA2PrivateRemoteTokenProvider.h */,
+				BF3017711FE037B60099B253 /* PA2PrivateTokenKeychainStore.h */,
+				BF30176F1FE037B60099B253 /* PA2PrivateTokenKeychainStore.m */,
 			);
 			name = token;
 			sourceTree = "<group>";
@@ -176,6 +211,7 @@
 		BF7D505C1FDFFB2700200119 /* ExtensionShared */ = {
 			isa = PBXGroup;
 			children = (
+				BF0EBEB61FE040B200E97918 /* Private */,
 			);
 			name = ExtensionShared;
 			path = Extensions/ExtensionShared;
@@ -184,6 +220,8 @@
 		BF7D505D1FDFFB3000200119 /* IOS */ = {
 			isa = PBXGroup;
 			children = (
+				BF3017621FE024560099B253 /* PowerAuthExtensionSDK.h */,
+				BF3017631FE024560099B253 /* PowerAuthExtensionSDK.m */,
 			);
 			name = IOS;
 			path = Extensions/IOS;
@@ -192,6 +230,8 @@
 		BF7D505E1FDFFB3000200119 /* WatchOS */ = {
 			isa = PBXGroup;
 			children = (
+				BF3017651FE0247A0099B253 /* PowerAuthWatchSDK.h */,
+				BF3017661FE0247A0099B253 /* PowerAuthWatchSDK.m */,
 			);
 			name = WatchOS;
 			path = Extensions/WatchOS;
@@ -291,10 +331,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF3017641FE024560099B253 /* PowerAuthExtensionSDK.m in Sources */,
 				BF5A23991FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */,
 				BF5A238F1FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */,
+				BF3017721FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */,
+				BF3017601FE020F00099B253 /* PA2ErrorConstants.m in Sources */,
 				BF5A23971FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */,
 				BF5A23821FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
+				BF0EBEB41FE03F8D00E97918 /* PA2SessionStatusDataReader.m in Sources */,
 				BF5A23791FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
 				BF5A238B1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,
 				BF7D50681FE0002600200119 /* PA2Keychain.m in Sources */,
@@ -310,8 +354,12 @@
 			files = (
 				BF5A239A1FE00A8800B78DE2 /* PA2PrivateTokenData.m in Sources */,
 				BF5A23901FE00A4A00B78DE2 /* PowerAuthToken.m in Sources */,
+				BF3017671FE0247A0099B253 /* PowerAuthWatchSDK.m in Sources */,
+				BF3017731FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */,
+				BF3017611FE020F00099B253 /* PA2ErrorConstants.m in Sources */,
 				BF5A23981FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.m in Sources */,
 				BF5A23831FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
+				BF0EBEB51FE03F8D00E97918 /* PA2SessionStatusDataReader.m in Sources */,
 				BF5A237A1FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
 				BF5A238C1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,
 				BF7D50691FE0002600200119 /* PA2Keychain.m in Sources */,

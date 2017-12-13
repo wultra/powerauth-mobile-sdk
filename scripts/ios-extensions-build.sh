@@ -53,7 +53,7 @@ PLATFORM_SHARED_FILE=""
 PLATFORM_SOURCES=""
 PLATFORM_SCHEME_PREFIX=""
 VERBOSE=1
-SRC_DIR=""
+OUT_DIR=""
 TMP_DIR=""
 
 # -----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ function USAGE
 	echo "  -v0               turn off all prints to stdout"
 	echo "  -v1               print only basic log about build progress"
 	echo "  -v2               print full build log with rich debug info"
-	echo "  --src-dir path    changes directory where library source"
+	echo "  --out-dir path    changes directory where library source"
 	echo "                    codes will be copied"
 	echo "  --tmp-dir path    changes temporary directory to |path|"
 	echo "  -h | --help       prints this help information"
@@ -154,8 +154,8 @@ function BUILD_SCHEME
 	LOG "-----------------------------------------------------"
 	LOG "Copying source files..."
 	LOG "-----------------------------------------------------"
-	local SRC_DIR_FULL="`( cd \"$SRC_DIR\" && pwd )`"
-	$MD "${SRC_DIR_FULL}/Private"
+	local OUT_DIR_FULL="`( cd \"$OUT_DIR\" && pwd )`"
+	$MD "${OUT_DIR_FULL}/Private"
 	
 	PUSH_DIR "${XCODE_DIR}"
 	####
@@ -164,7 +164,7 @@ function BUILD_SCHEME
 	sources+=(`cat ${PLATFORM_SHARED_FILE}`)
 	for ix in ${!sources[*]}
 	do
-		COPY_SRC_FILE "${sources[$ix]}" "${SRC_DIR_FULL}"
+		COPY_SRC_FILE "${sources[$ix]}" "${OUT_DIR_FULL}"
 	done
 	####
 	POP_DIR
@@ -210,8 +210,8 @@ do
 			TMP_DIR="$2"
 			shift
 			;;
-		--lib-dir)
-			SRC_DIR="$2"
+		--out-dir)
+			OUT_DIR="$2"
 			shift
 			;;
 		-v*)
@@ -233,8 +233,8 @@ if [ x$PLATFORM_SDK == x ]; then
 fi
 
 # Defaulting target & temporary olders
-if [ -z "$SRC_DIR" ]; then
-	SRC_DIR="${TOP}/Lib/${PLATFORM_SDK}/Sources"
+if [ -z "$OUT_DIR" ]; then
+	OUT_DIR="${TOP}/Lib/${PLATFORM_SDK}/Sources"
 fi
 if [ -z "$TMP_DIR" ]; then
 	TMP_DIR="${TOP}/Tmp"
@@ -248,7 +248,7 @@ fi
 
 # Print current config
 DEBUG_LOG "Going to build ${PLATFORM_SDK} in scheme ${PLATFORM_SCHEME_PREFIX}.."
-DEBUG_LOG " >> SRC_DIR = ${SRC_DIR}"
+DEBUG_LOG " >> OUT_DIR = ${OUT_DIR}"
 DEBUG_LOG " >> TMP_DIR = ${TMP_DIR}"
 DEBUG_LOG "    XCBUILD = ${XCBUILD}"
 
@@ -271,8 +271,8 @@ fi
 #
 # Prepare target directories
 #
-$RM -r "${SRC_DIR}"
-$MD "${SRC_DIR}"
+$RM -r "${OUT_DIR}"
+$MD "${OUT_DIR}"
 
 #
 # Clean & Build

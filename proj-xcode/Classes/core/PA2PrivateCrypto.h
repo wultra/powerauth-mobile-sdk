@@ -31,6 +31,8 @@
 PA2_EXTERN_C NSData * PA2PrivateCrypto_HMAC_SHA256(NSData * data, NSData * key);
 
 /**
- Returns data object initialized with required number of random bytes.
+ Returns data object initialized with a required number of random bytes.
+ Returns nil if underlying cryptographic pseudo-random number generator is not able
+ to generate a required number of bytes.
  */
 PA2_EXTERN_C NSData * PA2PrivateCrypto_GetRandomBytes(size_t count);

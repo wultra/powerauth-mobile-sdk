@@ -78,6 +78,10 @@
 	NSString * currentTimeString = [currentTimeMs stringValue];
 	NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];
 	NSData * nonce = PA2PrivateCrypto_GetRandomBytes(16);
+	if (nonce.length != 16) {
+		PALog(@"PowerAuthToken: Random generator did not generate enough bytes.");
+		return nil;
+	}
 	NSMutableData * data = [nonce mutableCopy];
 	[data appendBytes:"&" length:1];
 	[data appendData: currentTimeData];

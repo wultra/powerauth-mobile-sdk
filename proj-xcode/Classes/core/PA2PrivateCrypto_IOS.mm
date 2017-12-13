@@ -33,5 +33,5 @@ NSData * PA2PrivateCrypto_HMAC_SHA256(NSData * data, NSData * key)
 
 NSData * PA2PrivateCrypto_GetRandomBytes(size_t count)
 {
-	return cc7::objc::CopyToNSData(crypto::GetRandomData(count));
+	return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));
 }

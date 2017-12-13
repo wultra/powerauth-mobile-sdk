@@ -2,6 +2,10 @@ Classes/core/PA2Macros.h
 Classes/core/PA2ErrorConstants.h
 Classes/core/PA2ErrorConstants.m
 Classes/core/PA2SessionStatusProvider.h
+Classes/core/PA2PrivateMacros.h
+Classes/core/PA2PrivateMacros.m
+Classes/core/PA2PrivateCrypto.h
+Classes/core/PA2PrivateCrypto_Ext.m
 
 Classes/keychain/PA2Keychain.h
 Classes/keychain/PA2Keychain.m
@@ -14,6 +18,13 @@ Classes/sdk/PowerAuthConfiguration.h
 Classes/sdk/PowerAuthConfiguration.m
 Classes/sdk/PowerAuthToken.h
 Classes/sdk/PowerAuthToken.m
+
+Classes/token/PA2PrivateTokenData.h
+Classes/token/PA2PrivateTokenData.m
+Classes/token/PA2PrivateTokenInterfaces.h
+Classes/token/PA2PrivateRemoteTokenProvider.h
+Classes/token/PA2PrivateTokenKeychainStore.h
+Classes/token/PA2PrivateTokenKeychainStore.m
 
 Classes/networking/base/PA2AuthorizationHttpHeader.h
 Classes/networking/base/PA2AuthorizationHttpHeader.m

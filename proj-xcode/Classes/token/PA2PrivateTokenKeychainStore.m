@@ -190,7 +190,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
 		PALog(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
+		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
 	

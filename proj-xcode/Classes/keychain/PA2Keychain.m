@@ -180,7 +180,7 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 {
 	if (@available(iOS 9, *)) {
 		// IOS 9+
-		query[(__bridge id)kSecUseAuthenticationUI] = @NO;
+		query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
 	} else {
 		// IOS 8, unfortunately, we have to force warning off for the next line
 #pragma clang diagnostic push

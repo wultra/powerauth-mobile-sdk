@@ -17,8 +17,8 @@
 #import "PA2Keychain.h"
 #import "PA2PrivateMacros.h"
 
-#if !defined(PA2_WATCH_SDK)
-// LA is not available for watchOS
+#if !defined(PA2_EXTENSION_SDK)
+// LA is not available for watchOS or Extensions
 #import <LocalAuthentication/LocalAuthentication.h>
 #endif
 
@@ -178,7 +178,7 @@
 
 static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 {
-	if (@available(iOS 9, *)) {
+	if (@available(iOS 9, watchOS 2, *)) {
 		// IOS 9+
 		query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
 	} else {
@@ -266,7 +266,11 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 + (BOOL) canUseTouchId
 {
-#if !defined(PA2_WATCH_SDK)
+#if defined(PA2_EXTENSION_SDK)
+	// On watchOS or extensions, always return NO
+	return NO;
+#else
+	// Regular IOS
 	// Don't allow Touch ID before iOS 9.0
 	if (@available(iOS 9, *)) {
 		// Check if Touch ID can be used on current system
@@ -278,9 +282,6 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 		}
 		return hasTouchId;
 	}
-	return NO;
-#else
-	// On watchOS, always return NO
 	return NO;
 #endif
 }

@@ -7,4 +7,4 @@ So, if you're going to reference a new file from PowerAuth SDK, please update th
 -  `PA2SharedFiles_IOS.csv` contains a list of shared files for IOS extension target
 -  `PA2SharedFiles_WatchOS.csv` contans a list of shared files for WatchOS extension target
 
-This is requirement for **ALL** public interfaces.
+This is requirement for **ALL** public and private interfaces.

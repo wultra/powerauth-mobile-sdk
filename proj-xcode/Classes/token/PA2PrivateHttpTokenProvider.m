@@ -144,7 +144,7 @@
 {
 	PowerAuthSDK * strongSdk = _sdk;
 	if (!strongSdk) {
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
+		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
 		return nil;
 	}
 	

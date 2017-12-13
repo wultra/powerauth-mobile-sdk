@@ -15,12 +15,6 @@
  */
 
 #import "PA2Macros.h"
-#import "TargetConditionals.h"
-
-// Check target OS & define additional macros
-#if TARGET_OS_WATCH == 1
-	#define PA2_WATCH_SDK
-#endif
 
 // Check whether we're using C++ in Extensions SDK. If yes, then treat this as an error.
 #if defined(__cplusplus) && defined(PA2_EXTENSION_SDK)

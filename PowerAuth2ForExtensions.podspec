@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2ForExtensions'
-	s.version           = '0.1.0'
+	s.version           = '0.1.1'
 	s.summary           = 'PowerAuth 2.0 Mobile SDK for iOS Extensions'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
@@ -29,6 +29,7 @@ Pod::Spec.new do |s|
 	
 	# Produced files
 	s.source_files          = 'Library/**/*.{h,m}'
+	s.private_header_files  = 'Library/Private/*.h'
 	s.requires_arc          = true
 	s.compiler_flags        = '-DPA2_EXTENSION_SDK=1'
 	s.framework             = 'Security'

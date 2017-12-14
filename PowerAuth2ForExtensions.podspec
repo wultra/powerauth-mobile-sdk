@@ -28,7 +28,8 @@ Pod::Spec.new do |s|
 	CMD
 	
 	# Produced files
-	s.source_files          = 'Library/**/*.{h,m}'
+	s.source_files          = 'Library/**/*.m'
+	s.public_header_files   = 'Library/*.h'
 	s.private_header_files  = 'Library/Private/*.h'
 	s.requires_arc          = true
 	s.compiler_flags        = '-DPA2_EXTENSION_SDK=1'

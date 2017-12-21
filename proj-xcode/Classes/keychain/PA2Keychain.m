@@ -305,7 +305,12 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	_AddUseNoAuthenticationUI(query);
 	
 	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
-	SecAccessControlCreateFlags flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
+	SecAccessControlCreateFlags flags;
+	if (@available(iOS 9, *)) {
+		flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
+	} else {
+		flags = kNilOptions;
+	}
 
 	// Create access control object
 	CFErrorRef error = NULL;

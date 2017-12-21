@@ -23,6 +23,7 @@
 {
 	PowerAuthConfiguration * _configuration;
 	PA2Keychain * _statusKeychain;
+	NSUserDefaults * _userDefaults;
 }
 
 #pragma mark - Initialization
@@ -44,6 +45,11 @@
 																		 keychain:tokenStoreKeychain
 																   statusProvider:self
 																   remoteProvider:nil];
+		if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName) {
+			_userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+		} else {
+			_userDefaults = nil;
+		}
 	}
 	return self;
 }
@@ -69,9 +75,19 @@
 
 - (BOOL) hasValidActivation
 {
-	if (NO == [[NSUserDefaults standardUserDefaults] boolForKey:PA2Keychain_Initialized]) {
-		// Missing keychain initialization flag, stored in user defaults
-		return NO;
+	if (_userDefaults) {
+		if (NO == [_userDefaults boolForKey:PA2Keychain_Initialized]) {
+			return NO;	// Missing keychain initialization flag, stored in user defaults
+		}
+	} else {
+		// The extension can work with this configuration, but it may lead to possible false positive
+		// validation detections. The problematic scenario is:
+		//	1. application has a valid activation
+		//	2. user uninstall application (the session status is still in keychain)
+		//	3. user install application again
+		//	4. user enables extension without running application for first time
+		// The result is that this function may return YES but the stored activation is not valid.
+		PALog(@"WARNING: Missing setup for PA2Keychain.keychainAttribute_UserDefaultsSuiteName.");
 	}
 	// Retrieve & investigate data stored in keychain
 	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];

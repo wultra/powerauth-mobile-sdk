@@ -25,15 +25,15 @@ import java.util.Arrays;
  */
 public class PasswordUtil {
 
-    private static final int PASSW_LENGTH_WEAK = 4;
-    private static final int PASSW_LENGTH_STRONG = 6;
+    private static final int PIN_LENGTH_WEAK = 4;
+    private static final int PIN_LENGTH_STRONG = 6;
 
     private static boolean isValid(String password, PasswordType type) {
         return password.matches("^[0-9]{4,}$");
     }
 
     private static boolean isWeak(String password, PasswordType type) {
-        if (password.length() < PASSW_LENGTH_WEAK) {
+        if (password.length() < PIN_LENGTH_WEAK) {
             return true;
         }
 
@@ -50,14 +50,6 @@ public class PasswordUtil {
         return false;
     }
 
-    private static boolean isNormal(String password, PasswordType type) {
-        return !PasswordUtil.isWeak(password, type) && !PasswordUtil.isStrong(password,type);
-    }
-
-    private static boolean isStrong(String password, PasswordType type) {
-        return password.length() >= PASSW_LENGTH_STRONG && !PasswordUtil.isWeak(password, type);
-    }
-
     /**
      * Evaluate provided password strength using logic that depends on a password type.
      * @param password Password to be evaluated.
@@ -71,13 +63,7 @@ public class PasswordUtil {
         if (PasswordUtil.isWeak(password, type)) {
             return PasswordStrength.WEAK;
         }
-        if (PasswordUtil.isNormal(password, type)) {
-            return PasswordStrength.NORMAL;
-        }
-        if (PasswordUtil.isStrong(password, type)) {
-            return PasswordStrength.STRONG;
-        }
-        return PasswordStrength.INVALID;
+        boolean strongPin = password.length() >= PIN_LENGTH_STRONG;
+        return strongPin ? PasswordStrength.STRONG : PasswordStrength.NORMAL;
     }
-
 }

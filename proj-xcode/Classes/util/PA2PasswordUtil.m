@@ -18,6 +18,9 @@
 
 @implementation PA2PasswordUtil
 
+static const size_t WEAK_PIN_LENGTH = 4;
+static const size_t STRONG_PIN_LENGTH = 6;
+
 + (BOOL) isValid:(NSString*)password passwordType:(PasswordType)type {
 	NSCharacterSet* notDigits = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
 	if ([password rangeOfCharacterFromSet:notDigits].location == NSNotFound) {
@@ -28,7 +31,7 @@
 }
 
 + (BOOL) isWeak:(NSString*)password passwordType:(PasswordType)type {
-	if (password.length < 4) {
+	if (password.length < WEAK_PIN_LENGTH) {
 		return true;
 	}
 	
@@ -43,14 +46,6 @@
 	return false;
 }
 
-+ (BOOL) isNormal:(NSString*)password passwordType:(PasswordType)type {
-	return ![self isWeak:password passwordType:type] && ![self isStrong:password passwordType:type];
-}
-
-+ (BOOL) isStrong:(NSString*)password passwordType:(PasswordType)type {
-	return password.length >= 6 && ![self isWeak:password passwordType:type];
-}
-
 + (PasswordStrength) evaluateStrength:(NSString*)password passwordType:(PasswordType)type {
 	if (![self isValid:password passwordType:type]) {
 		return PasswordStrength_INVALID;
@@ -58,13 +53,8 @@
 	if ([self isWeak:password passwordType:type]) {
 		return PasswordStrength_WEAK;
 	}
-	if ([self isNormal:password passwordType:type]) {
-		return PasswordStrength_NORMAL;
-	}
-	if ([self isStrong:password passwordType:type]) {
-		return PasswordStrength_STRONG;
-	}
-	return PasswordStrength_INVALID;
+	BOOL strongPIN = password.length >= STRONG_PIN_LENGTH;
+	return strongPIN ? PasswordStrength_STRONG : PasswordStrength_NORMAL;
 }
 
 @end

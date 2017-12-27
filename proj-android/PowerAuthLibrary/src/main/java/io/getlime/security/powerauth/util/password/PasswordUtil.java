@@ -74,7 +74,7 @@ public class PasswordUtil {
         if (PasswordUtil.isNormal(password, type)) {
             return PasswordStrength.NORMAL;
         }
-        if (!PasswordUtil.isStrong(password, type)) {
+        if (PasswordUtil.isStrong(password, type)) {
             return PasswordStrength.STRONG;
         }
         return PasswordStrength.INVALID;

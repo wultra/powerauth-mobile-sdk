@@ -61,7 +61,7 @@
 	if ([self isNormal:password passwordType:type]) {
 		return PasswordStrength_NORMAL;
 	}
-	if (![self isStrong:password passwordType:type]) {
+	if ([self isStrong:password passwordType:type]) {
 		return PasswordStrength_STRONG;
 	}
 	return PasswordStrength_INVALID;

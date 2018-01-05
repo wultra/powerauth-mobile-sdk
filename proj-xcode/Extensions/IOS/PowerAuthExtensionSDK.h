@@ -18,6 +18,7 @@
 #import "PowerAuthToken.h"
 #import "PA2SessionStatusProvider.h"
 #import "PA2KeychainConfiguration.h"
+#import "PA2AuthorizationHttpHeader.h"
 
 @interface PowerAuthExtensionSDK : NSObject<PA2SessionStatusProvider>
 

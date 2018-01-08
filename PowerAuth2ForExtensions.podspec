@@ -1,7 +1,6 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2ForExtensions'
-	s.module_name       = 'PowerAuth2ForExtensions'
 	s.version           = '0.1.3'
 	s.summary           = 'PowerAuth 2.0 Mobile SDK for iOS App Extensions'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
@@ -25,15 +24,10 @@ Pod::Spec.new do |s|
 	# Library validation & build
 	s.platform        = :ios, '8.0'
 	s.prepare_command = <<-CMD
-		./scripts/ios-extensions-build.sh --out-dir Library ios
+		./scripts/ios-extensions-build.sh --out-dir Build release ios
 	CMD
 	
 	# Produced files
-	s.source_files          = 'Library/**/*.{h,m}'
-	s.public_header_files   = 'Library/*.h'
-	s.private_header_files  = 'Library/Private/*.h'
-	s.requires_arc          = true
-	s.compiler_flags        = '-DPA2_EXTENSION_SDK=1'
-	s.framework             = 'Security'
+	s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.framework'
 	
 end

@@ -65,7 +65,7 @@
 		BF5A23A01FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */; };
 		BF7D50681FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
 		BF7D50691FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
-		BF8C30382004E20000EAF830 /* PA2ExtensionLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */; };
+		BF8C30382004E20000EAF830 /* PA2ExtensionLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF8C30392004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };
 		BF8C303A2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };
 		BF8C303B2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };

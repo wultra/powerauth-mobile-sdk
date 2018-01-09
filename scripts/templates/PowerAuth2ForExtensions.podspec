@@ -18,19 +18,18 @@ Pod::Spec.new do |s|
 	s.source = { 
 		:git => 'https://github.com/lime-company/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
-		:submodules => false
+		# submodules => false is enough, but we're using the same git repo as PA2 and cocoapods 
+		# doesn't like when the same repo is cloned without and then with sumbodules...
+		:submodules => true
 	}
 	
 	# Library validation & build
 	s.platform        = :ios, '8.0'
 	s.prepare_command = <<-CMD
-		./scripts/ios-extensions-build.sh --out-dir Library ios
+		./scripts/ios-extensions-build.sh --out-dir Build release ios
 	CMD
 	
 	# Produced files
-	s.source_files          = 'Library/**/*.{h,m}'
-	s.requires_arc          = true
-	s.compiler_flags        = '-DPA2_EXTENSION_SDK=1'
-	s.framework             = 'Security'
+	s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.framework'
 	
 end

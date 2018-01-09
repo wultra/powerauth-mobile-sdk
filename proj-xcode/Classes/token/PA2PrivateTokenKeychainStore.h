@@ -41,6 +41,11 @@
  An associated remote token provider.
  */
 @property (nonatomic, weak, readonly) id<PA2PrivateRemoteTokenProvider> remoteTokenProvider;
+/**
+ If YES then in-memory cache will be used for access speedup.
+ By default is YES for IOS and watchOS and NO for IOS extensions.
+ */
+@property (nonatomic, assign) BOOL allowInMemoryCache;
 
 /**
  Initializes keychain token store with configuration, status provider, remote provider

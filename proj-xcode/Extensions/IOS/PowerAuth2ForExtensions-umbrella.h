@@ -42,4 +42,5 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2ForExtensionsVersionString[];
 #import "PowerAuthConfiguration.h"
 #import "PowerAuthToken.h"
 #import "PA2AuthorizationHttpHeader.h"
+#import "PA2ExtensionLibrary.h"
 #import "PowerAuthExtensionSDK.h"

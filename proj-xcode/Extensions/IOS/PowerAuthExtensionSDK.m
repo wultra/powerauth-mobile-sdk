@@ -41,10 +41,13 @@
 		PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
 																	   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 		// ...and finally, create a token store
-		_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:configuration
-																		 keychain:tokenStoreKeychain
-																   statusProvider:self
-																   remoteProvider:nil];
+		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:configuration
+																									   keychain:tokenStoreKeychain
+																								 statusProvider:self
+																								 remoteProvider:nil];
+		// For extensions, it's better to always access token data directly from keychain
+		tokenStore.allowInMemoryCache = NO;
+		_tokenStore = tokenStore;
 		if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName) {
 			_userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
 		} else {

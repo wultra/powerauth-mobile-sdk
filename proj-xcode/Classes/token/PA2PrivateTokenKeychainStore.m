@@ -66,6 +66,7 @@
 		_remoteTokenProvider = remoteProvider;
 		_keychain = keychain;
 		_lock = dispatch_semaphore_create(1);
+		_allowInMemoryCache = YES;
 	}
 	return self;
 }
@@ -290,7 +291,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		PA2PrivateTokenData * tokenData = _database[identifier];
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
-			if (tokenData) {
+			if (tokenData && _allowInMemoryCache) {
 				_database[identifier] = tokenData;
 			}
 		}

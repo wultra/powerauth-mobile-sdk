@@ -65,6 +65,10 @@
 		BF5A23A01FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */; };
 		BF7D50681FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
 		BF7D50691FE0002600200119 /* PA2Keychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7D50661FE0002600200119 /* PA2Keychain.m */; };
+		BF8C30382004E20000EAF830 /* PA2ExtensionLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */; };
+		BF8C30392004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };
+		BF8C303A2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };
+		BF8C303B2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */ = {isa = PBXBuildFile; fileRef = BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -106,7 +110,6 @@
 		BF5491FA1FFFBBF70036DB9E /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		BF5491FC1FFFBFA90036DB9E /* PowerAuth2ForExtensions-umbrella.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PowerAuth2ForExtensions-umbrella.h"; sourceTree = "<group>"; };
 		BF54921A1FFFE15C0036DB9E /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		BF54924A1FFFEB380036DB9E /* PowerAuth2ForExtensions copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "PowerAuth2ForExtensions copy-Info.plist"; path = "/Users/hvge/Dev/lime/sdk/powerauth-mobile-sdk/proj-xcode/PowerAuth2ForExtensions copy-Info.plist"; sourceTree = "<absolute>"; };
 		BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateCrypto.h; path = Classes/core/PA2PrivateCrypto.h; sourceTree = "<group>"; };
 		BF5A23781FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateCrypto_Ext.m; path = Classes/core/PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
 		BF5A237B1FE0098700B78DE2 /* PA2Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PA2Macros.h; path = Classes/core/PA2Macros.h; sourceTree = "<group>"; };
@@ -132,6 +135,8 @@
 		BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_WatchOS.csv; path = Extensions/SharedFiles_WatchOS.csv; sourceTree = "<group>"; };
 		BF7D50661FE0002600200119 /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2Keychain.m; path = Classes/keychain/PA2Keychain.m; sourceTree = "<group>"; };
 		BF7D50671FE0002600200119 /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2Keychain.h; path = Classes/keychain/PA2Keychain.h; sourceTree = "<group>"; };
+		BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ExtensionLibrary.h; sourceTree = "<group>"; };
+		BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ExtensionLibrary.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +169,8 @@
 			isa = PBXGroup;
 			children = (
 				BF0EBED91FE166B700E97918 /* Private */,
+				BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */,
+				BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */,
 			);
 			name = Common;
 			path = Extensions/Common;
@@ -265,7 +272,6 @@
 				BF7D505E1FDFFB3000200119 /* WatchOS */,
 				BF7D50371FDF03EB00200119 /* Products */,
 				BF5492191FFFE15C0036DB9E /* Frameworks */,
-				BF54924A1FFFEB380036DB9E /* PowerAuth2ForExtensions copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -339,6 +345,7 @@
 				BF5492081FFFC6DF0036DB9E /* PA2PrivateCrypto.h in Headers */,
 				BF54920E1FFFC7030036DB9E /* PA2PrivateTokenData.h in Headers */,
 				BF54920F1FFFC7070036DB9E /* PA2PrivateTokenInterfaces.h in Headers */,
+				BF8C30382004E20000EAF830 /* PA2ExtensionLibrary.h in Headers */,
 				BF5492101FFFC70D0036DB9E /* PA2PrivateRemoteTokenProvider.h in Headers */,
 				BF5492111FFFC7130036DB9E /* PA2PrivateTokenKeychainStore.h in Headers */,
 			);
@@ -462,6 +469,7 @@
 				BF5491E21FFFBAAF0036DB9E /* PA2PrivateMacros.m in Sources */,
 				BF5491E11FFFBAAC0036DB9E /* PA2ErrorConstants.m in Sources */,
 				BF5491E81FFFBAC20036DB9E /* PowerAuthToken.m in Sources */,
+				BF8C303B2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */,
 				BF5491EB1FFFBACE0036DB9E /* PA2AuthorizationHttpHeader.m in Sources */,
 				BF5491EA1FFFBACB0036DB9E /* PA2PrivateTokenKeychainStore.m in Sources */,
 				BF5491FE1FFFC1730036DB9E /* PA2SessionStatusDataReader.m in Sources */,
@@ -482,6 +490,7 @@
 				BF0EBEDC1FE166B700E97918 /* PA2SessionStatusDataReader.m in Sources */,
 				BF3017721FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */,
 				BF3017601FE020F00099B253 /* PA2ErrorConstants.m in Sources */,
+				BF8C30392004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */,
 				BF5A23821FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
 				BF5A23791FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
 				BF5A238B1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,
@@ -502,6 +511,7 @@
 				BF0EBEDD1FE166B700E97918 /* PA2SessionStatusDataReader.m in Sources */,
 				BF3017731FE037B60099B253 /* PA2PrivateTokenKeychainStore.m in Sources */,
 				BF3017611FE020F00099B253 /* PA2ErrorConstants.m in Sources */,
+				BF8C303A2004E20000EAF830 /* PA2ExtensionLibrary.m in Sources */,
 				BF5A23831FE009BC00B78DE2 /* PA2KeychainConfiguration.m in Sources */,
 				BF5A237A1FE0096B00B78DE2 /* PA2PrivateCrypto_Ext.m in Sources */,
 				BF5A238C1FE00A4A00B78DE2 /* PowerAuthConfiguration.m in Sources */,

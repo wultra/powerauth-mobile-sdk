@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 	s.source = { 
 		:git => 'https://github.com/lime-company/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
-		:submodules => false
+		:submodules => true   # false is enough, but we're using the same git repo and cocoapods doesn't like that
 	}
 	
 	# Library validation & build

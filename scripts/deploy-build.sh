@@ -169,7 +169,9 @@ function DEPLOY_IOS
 	PUSH_DIR "${SRC_ROOT}"
 	####
 	LOG "----- Validating IOS build..."
-	pod lib lint ${PODSPEC} ${PODSPEC_DBG} ${PODSPEC_EXT}
+	pod lib lint ${PODSPEC}
+	pod lib lint ${PODSPEC_DBG}
+	pod lib lint ${PODSPEC_EXT}
 	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
 	LOG "----- Publishing ${PODSPEC_DBG} to CocoaPods..."

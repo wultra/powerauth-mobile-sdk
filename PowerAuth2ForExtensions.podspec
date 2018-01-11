@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2ForExtensions'
-	s.version           = '0.1.3'
+	s.version           = '0.17.1'
 	s.summary           = 'PowerAuth 2.0 Mobile SDK for iOS App Extensions'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
@@ -18,7 +18,9 @@ Pod::Spec.new do |s|
 	s.source = { 
 		:git => 'https://github.com/lime-company/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
-		:submodules => true   # false is enough, but we're using the same git repo and cocoapods doesn't like that
+		# submodules => false is enough, but we're using the same git repo as PA2 and cocoapods 
+		# doesn't like when the same repo is cloned without and then with sumbodules...
+		:submodules => true
 	}
 	
 	# Library validation & build

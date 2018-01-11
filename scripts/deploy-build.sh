@@ -116,11 +116,12 @@ function PUSH_VERSIONING_FILES
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_DBG}" > "$SRC_ROOT/${PODSPEC_DBG}"
 		git add ${PODSPEC} ${PODSPEC_DBG}
 		# watchos, extensions
-		LOG "----- Generating ${PODSPEC_WOS}..."
-		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
+		#LOG "----- Generating ${PODSPEC_WOS}..."
+		#sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
 		LOG "----- Generating ${PODSPEC_EXT}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
-		git add ${PODSPEC_WOS} ${PODSPEC_EXT}
+		#git add ${PODSPEC_WOS} 
+		git add ${PODSPEC_EXT}
 	fi
 	if [ x$DO_ANDROID == x1 ]; then
 		LOG "----- Generating gradle.properties..."
@@ -168,13 +169,13 @@ function DEPLOY_IOS
 	PUSH_DIR "${SRC_ROOT}"
 	####
 	LOG "----- Validating IOS build..."
-	pod lib lint ${PODSPEC} ${PODSPEC_DBG} ${PODSPEC_WOS} ${PODSPEC_EXT}
+	pod lib lint ${PODSPEC} ${PODSPEC_DBG} ${PODSPEC_EXT}
 	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
 	LOG "----- Publishing ${PODSPEC_DBG} to CocoaPods..."
 	pod trunk push ${PODSPEC_DBG}
-	LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-	pod trunk push ${PODSPEC_WOS}
+	#LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
+	#pod trunk push ${PODSPEC_WOS}
 	LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
 	pod trunk push ${PODSPEC_EXT}
 	####

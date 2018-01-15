@@ -28,9 +28,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF7D50351FDF03EB00200119"
-               BuildableName = "libPowerAuthExtensionSdk.a"
-               BlueprintName = "PowerAuthExtensionSdk"
+               BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
+               BuildableName = "PowerAuth2ForExtensions.framework"
+               BlueprintName = "PowerAuth2ForExtensions"
                ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -42,9 +42,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF7D50521FDFFAA900200119"
-               BuildableName = "libPowerAuthWatchSdk.a"
-               BlueprintName = "PowerAuthWatchSdk"
+               BlueprintIdentifier = "BFA0E268200CF28A0011F0A6"
+               BuildableName = "PowerAuth2ForWatch.framework"
+               BlueprintName = "PowerAuth2ForWatch"
                ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

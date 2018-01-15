@@ -14,8 +14,29 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PowerAuthConfiguration.h"
+#import "PowerAuthToken.h"
+#import "PA2SessionStatusProvider.h"
+#import "PA2KeychainConfiguration.h"
+#import "PA2AuthorizationHttpHeader.h"
 
-@interface PowerAuthWatchSDK : NSObject
+@interface PowerAuthWatchSDK : NSObject<PA2SessionStatusProvider>
+
+#pragma mark - PA2SessionStatusProvider implementation
+
+- (BOOL) canStartActivation;
+{
+	return NO;
+}
+
+- (BOOL) hasPendingActivation
+{
+	return NO;
+}
+
+- (BOOL) hasValidActivation
+{
+	return NO;
+}
 
 @end

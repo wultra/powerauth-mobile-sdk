@@ -45,7 +45,10 @@
 	result.name		 			= PA2ObjectAs(dict[@"name"], NSString);
 	result.identifier			= PA2ObjectAs(dict[@"id"], NSString);
 	NSString * loadedB64Secret 	= PA2ObjectAs(dict[@"sec"], NSString);
-	result.secret			 	= loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
+	NSData * loadedSecret 		= loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
+	if (loadedSecret) {
+		result.secret = loadedSecret;
+	}
 	return result.hasValidData ? result : nil;
 }
 

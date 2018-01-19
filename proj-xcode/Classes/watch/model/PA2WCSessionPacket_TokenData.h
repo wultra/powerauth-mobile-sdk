@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2018 Lime - HighTech Solutions s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-#import "PA2PrivateMacros.h"
-#import "PA2ErrorConstants.h"
+#import "PA2WCSessionPacket.h"
 
-id PA2CastToImpl(id instance, Class desiredClass)
-{
-	if ([instance isKindOfClass:desiredClass]) {
-		return instance;
-	}
-	return nil;
-}
+@interface PA2WCSessionPacket_TokenData : NSObject<PA2WCSessionPacketData>
 
-NSError * PA2MakeError(NSInteger errorCode, NSString * message)
-{
-	NSDictionary * info = message ? @{ NSLocalizedDescriptionKey: message} : nil;
-	return [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:info];
-}
+@property (nonatomic, strong) NSString * command;
+@property (nonatomic, strong) NSString * tokenName;
+@property (nonatomic, strong) NSData * tokenData;
+@property (nonatomic, assign) BOOL tokenNotFound;
+
+@end

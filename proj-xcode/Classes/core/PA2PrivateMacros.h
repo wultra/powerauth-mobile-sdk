@@ -15,6 +15,7 @@
  */
 
 #import "PA2Macros.h"
+#import "PA2ErrorConstants.h"
 
 // Check whether we're using C++ in Extensions SDK. If yes, then treat this as an error.
 #if defined(__cplusplus) && defined(PA2_EXTENSION_SDK)
@@ -37,4 +38,8 @@ PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);
  	//    "correct" is "hello world"
  	// 	  and "wrong" is nil
  */
-#define PA2ObjectAs(object, requiredClass) (requiredClass*)(PA2CastToImpl(object, [requiredClass class]))
+#define PA2ObjectAs(object, requiredClass) ((requiredClass*)(PA2CastToImpl(object, [requiredClass class])))
+
+
+/// Returns NSError with PA2ErrorDomain with given errorCode & message.
+PA2_EXTERN_C NSError * PA2MakeError(NSInteger errorCode, NSString * message);

@@ -30,6 +30,10 @@
 @interface PA2PrivateTokenKeychainStore : NSObject<PowerAuthTokenStore>
 
 /**
+ A PowerAuth onfiguration object provided during the object initialization.
+ */
+@property (nonatomic, strong, readonly) PowerAuthConfiguration * configuration;
+/**
  A keychain for storing tokens.
  */
 @property (nonatomic, strong, readonly) PA2Keychain * keychain;
@@ -60,5 +64,18 @@
 					keychain:(PA2Keychain*)keychain
 			  statusProvider:(id<PA2SessionStatusProvider>)statusProvider
 			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider;
+
+
+// Token data identifiers
+
+/**
+ Returns string representing a prefix to all keys stored in keychain and valid for given instanceId.
+ */
++ (NSString*) keychainPrefixForInstanceId:(NSString*)instanceId;
+
+/**
+ Returns fully qualified identifier for token stored in the keychain for given token name and for session with instanceId.
+ */
++ (NSString*) identifierForTokenName:(NSString*)name forInstanceId:(NSString*)instanceId;
 
 @end

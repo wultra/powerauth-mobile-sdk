@@ -16,7 +16,7 @@
 
 #import "PowerAuthAuthentication.h"
 #import "PowerAuthConfiguration.h"
-#import "PowerAuthToken.h"
+#import "PowerAuthToken+WatchSupport.h"
 
 #import "PA2Client.h"
 #import "PA2Session.h"
@@ -375,3 +375,34 @@
 											 callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 @end
+
+
+
+#pragma mark - Apple Watch support
+
+/**
+ The WatchSupport category provides simple interface for sending activation status to paired Apple Watch.
+ Please read our integration guide (https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
+ before you start using this interface in your application.
+ */
+@interface PowerAuthSDK (WatchSupport)
+
+/**
+ Sends activation status of this PowerAuthSDK instance to the paired Apple Watch. The watch application must
+ be installed on the device. The status transmission is performed with using `WCSession.transferUserInfo()` method,
+ so it will be available when IOS decide to transfer that data to the Apple Watch.
+ 
+ Returns YES if transfer has been properly sheduled, or NO if WCSession is not ready for
+ such transmission. Check `PA2WCSessionManager.validSession` documentation for details.
+ */
+- (BOOL) sendActivationStatusToWatch;
+
+/**
+ Sends activation status of this PowerAuthSDK instance to the paired Apple Watch. The watch application must
+ be installed on the device. The status transmission is performed immediately with using `WCSession.sendMessageData(..)` method,
+ so the Apple Watch has to be reachable in the time of the call.
+ */
+- (void) sendActivationStatusToWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion;
+
+@end
+

@@ -33,7 +33,7 @@
 {
 	self = [super init];
 	if (self) {
-		_configuration = configuration;
+		_configuration = [configuration copy];
 		// Create status keychain
 		_statusKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
 													  accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
@@ -41,7 +41,7 @@
 		PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
 																	   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
 		// ...and finally, create a token store
-		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:configuration
+		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:_configuration
 																									   keychain:tokenStoreKeychain
 																								 statusProvider:self
 																								 remoteProvider:nil];

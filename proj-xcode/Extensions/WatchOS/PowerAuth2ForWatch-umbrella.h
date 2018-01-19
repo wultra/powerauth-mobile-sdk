@@ -43,4 +43,5 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2ForWatchVersionString[];
 #import "PowerAuthToken.h"
 #import "PA2AuthorizationHttpHeader.h"
 #import "PA2ExtensionLibrary.h"
+#import "PA2WCSessionManager.h"
 #import "PowerAuthWatchSDK.h"

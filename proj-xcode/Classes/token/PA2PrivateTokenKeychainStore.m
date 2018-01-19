@@ -71,6 +71,11 @@
 	return self;
 }
 
+- (PowerAuthConfiguration*) configuration
+{
+	return _sdkConfiguration;
+}
+
 /**
  Prepares runtime data required by this class. We're initializing that objects only
  on demand, when the first token is being accessed.
@@ -81,7 +86,7 @@ static void _prepareInstance(PA2PrivateTokenKeychainStore * obj)
 	[obj->_remoteTokenProvider prepareInstanceForConfiguration:obj->_sdkConfiguration];
 
 	// Build base key for all stored tokens
-	obj->_keychainKeyPrefix = [[@"powerAuthToken__" stringByAppendingString:obj->_sdkConfiguration.instanceId] stringByAppendingString:@"__"];
+	obj->_keychainKeyPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:obj->_sdkConfiguration.instanceId];
 	obj->_database = [NSMutableDictionary dictionaryWithCapacity:2];
 	// ...and debug set for overlapping operations
 	obj->_pendingNamedOperations = _OPERATIONS_SET();
@@ -249,6 +254,22 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 
 
 #pragma mark - Keychain
+
++ (NSString*) keychainPrefixForInstanceId:(NSString*)instanceId
+{
+	if (instanceId.length > 0) {
+		return [[@"powerAuthToken__" stringByAppendingString:instanceId] stringByAppendingString:@"__"];
+	}
+	return nil;
+}
+
++ (NSString*) identifierForTokenName:(NSString*)name forInstanceId:(NSString*)instanceId
+{
+	if (name.length > 0 && instanceId.length > 0) {
+		return [[self keychainPrefixForInstanceId:instanceId] stringByAppendingString:name];
+	}
+	return nil;
+}
 
 /**
  Returns identifier for keychain created from token's name

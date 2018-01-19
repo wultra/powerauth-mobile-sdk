@@ -22,21 +22,35 @@
 
 @interface PowerAuthWatchSDK : NSObject<PA2SessionStatusProvider>
 
-#pragma mark - PA2SessionStatusProvider implementation
+/**
+ Instance of the token store object, which provides interface for generating token based authentication headers.
+ The current implementation is keeping acquired tokens in the PA2Keychain under the `PA2KeychainConfiguration.keychainInstanceName_TokenStore` service name.
+ */
+@property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
 
-- (BOOL) canStartActivation;
-{
-	return NO;
-}
+/**
+ Instance of configuration, provided during the object initialization.
+ 
+ Note that the copy of internal object is always returned and thus making changes to the returned object
+ doesn't affect this SDK instance.
+ */
+@property (nonatomic, strong, nonnull, readonly) PowerAuthConfiguration * configuration;
 
-- (BOOL) hasPendingActivation
-{
-	return NO;
-}
+/**
+ Contains activationId if counterpart session object on iPhone has a valid activation or nil if there's no
+ such activation.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString * activationId;
 
-- (BOOL) hasValidActivation
-{
-	return NO;
-}
+/**
+ A designated initializer.
+ */
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration*)configuration;
+
+
+/**
+ Retrieves activation status from iPhone.
+ */
+- (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion;
 
 @end

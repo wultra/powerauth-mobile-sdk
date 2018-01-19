@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2018 Lime - HighTech Solutions s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-#import "PA2PrivateMacros.h"
-#import "PA2ErrorConstants.h"
+#import "PA2WCSessionDataHandler.h"
 
-id PA2CastToImpl(id instance, Class desiredClass)
-{
-	if ([instance isKindOfClass:desiredClass]) {
-		return instance;
-	}
-	return nil;
-}
+@interface PA2WatchSynchronizationService : NSObject<PA2WCSessionDataHandler>
 
-NSError * PA2MakeError(NSInteger errorCode, NSString * message)
-{
-	NSDictionary * info = message ? @{ NSLocalizedDescriptionKey: message} : nil;
-	return [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:info];
-}
+@property (class, nonnull, readonly) PA2WatchSynchronizationService * sharedInstance;
+
+- (nullable NSString*) activationIdForSessionInstanceId:(nonnull NSString*)sessionInstanceId;
+
+- (void) updateActivationId:(nullable NSString*)activationId forSessionInstanceId:(nonnull NSString*)sessionInstanceId;
+
+@end

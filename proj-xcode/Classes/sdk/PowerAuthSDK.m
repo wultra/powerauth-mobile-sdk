@@ -18,6 +18,7 @@
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
+#import "PA2WCSessionManager+Private.h"
 #import <UIKit/UIKit.h>
 
 #pragma mark - Constants
@@ -119,7 +120,20 @@ static PowerAuthSDK *inst;
 	// Attempt to restore session state
 	[self restoreState];
 	
+	// Register this instance to handle messages
+	// NOTE: The actual PA2WCSessionDataHandler implementation is in +WatchSupportPrivate category,
+	//       so we can freely cast self to this protocol.
+	[[PA2WCSessionManager sharedInstance] registerDataHandler:(id<PA2WCSessionDataHandler>)self];
 }
+
+- (void) dealloc
+{
+	// Unregister this instance for processing packets...
+	// NOTE: The actual PA2WCSessionDataHandler implementation is in +WatchSupportPrivate category,
+	//       so we can freely cast self to this protocol.
+	[[PA2WCSessionManager sharedInstance] unregisterDataHandler:(id<PA2WCSessionDataHandler>)self];
+}
+
 
 + (void) throwInvalidConfigurationException {
 	[NSException raise:PA2ExceptionMissingConfig
@@ -129,6 +143,12 @@ static PowerAuthSDK *inst;
 - (PowerAuthConfiguration*) configuration
 {
 	return [_configuration copy];
+}
+
+- (NSString*) privateInstanceId
+{
+	// Private getter, used inside the IOS-SDK
+	return _configuration.instanceId;
 }
 
 /**

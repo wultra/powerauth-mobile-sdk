@@ -75,6 +75,9 @@
 		BF37D7551FBE14A800C73855 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF37D7541FBE14A800C73855 /* PA2PrivateMacros.m */; };
 		BF37D7641FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF37D7621FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m */; };
 		BF3C8ADB1CEA28EB0003341F /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */; };
+		BF462B6F2011007200529EFC /* PA2WCSessionPacket_Success.m in Sources */ = {isa = PBXBuildFile; fileRef = BF462B6E2011007200529EFC /* PA2WCSessionPacket_Success.m */; };
+		BF462B762011013800529EFC /* PowerAuthToken+WatchSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BF462B752011013800529EFC /* PowerAuthToken+WatchSupport.m */; };
+		BF462B7C201112E200529EFC /* PowerAuthSDK+WatchSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BF462B7B201112E200529EFC /* PowerAuthSDK+WatchSupport.m */; };
 		BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */; };
 		BF4DBC971CDF3482008F3A47 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8F1CDF3428008F3A47 /* libcc7tests-ios.a */; };
 		BF4DBC9A1CDF34C6008F3A47 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8D1CDF3428008F3A47 /* libcc7-ios.a */; };
@@ -100,6 +103,13 @@
 		BF79E3D71FBDCE05003DF179 /* PA2PrivateTokenData.m in Sources */ = {isa = PBXBuildFile; fileRef = BF79E3D61FBDCE05003DF179 /* PA2PrivateTokenData.m */; };
 		BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */; };
 		BF7ECF041FC7220D0017A7C5 /* PA2RemoveTokenRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7ECF031FC7220D0017A7C5 /* PA2RemoveTokenRequest.m */; };
+		BFA0E2A3200D12420011F0A6 /* PA2WCSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2A1200D12420011F0A6 /* PA2WCSessionManager.m */; };
+		BFA0E2B1200D3CD90011F0A6 /* PA2WCSessionPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2B0200D3CD90011F0A6 /* PA2WCSessionPacket.m */; };
+		BFA0E2B4200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2B3200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.m */; };
+		BFA0E2B7200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2B6200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m */; };
+		BFA0E2BA200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2B9200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.m */; };
+		BFA0E2D6200FB33B0011F0A6 /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2D5200FB33B0011F0A6 /* PA2WeakArray.m */; };
+		BFA0E2DC200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2DB200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m */; };
 		BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */; };
 		BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
 		BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
@@ -340,6 +350,11 @@
 		BF37D7621FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2DirectCreateActivationRequest.m; sourceTree = "<group>"; };
 		BF37D7631FBF27DD00C73855 /* PA2DirectCreateActivationRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2DirectCreateActivationRequest.h; sourceTree = "<group>"; };
 		BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2URLEncodingTests.cpp; sourceTree = "<group>"; };
+		BF462B6C2011007100529EFC /* PA2WCSessionPacket_Success.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionPacket_Success.h; sourceTree = "<group>"; };
+		BF462B6E2011007200529EFC /* PA2WCSessionPacket_Success.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionPacket_Success.m; sourceTree = "<group>"; };
+		BF462B742011013800529EFC /* PowerAuthToken+WatchSupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PowerAuthToken+WatchSupport.h"; sourceTree = "<group>"; };
+		BF462B752011013800529EFC /* PowerAuthToken+WatchSupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "PowerAuthToken+WatchSupport.m"; sourceTree = "<group>"; };
+		BF462B7B201112E200529EFC /* PowerAuthSDK+WatchSupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "PowerAuthSDK+WatchSupport.m"; sourceTree = "<group>"; };
 		BF4680FE1EC45E1400EEB175 /* PublicTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PublicTypes.cpp; sourceTree = "<group>"; };
 		BF4DBB9B1CDF3130008F3A47 /* libPowerAuth2.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuth2.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuth2Tests.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -385,6 +400,21 @@
 		BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
 		BF7ECF021FC7220D0017A7C5 /* PA2RemoveTokenRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2RemoveTokenRequest.h; sourceTree = "<group>"; };
 		BF7ECF031FC7220D0017A7C5 /* PA2RemoveTokenRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2RemoveTokenRequest.m; sourceTree = "<group>"; };
+		BFA0E2A0200D12420011F0A6 /* PA2WCSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionManager.h; sourceTree = "<group>"; };
+		BFA0E2A1200D12420011F0A6 /* PA2WCSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionManager.m; sourceTree = "<group>"; };
+		BFA0E2AA200D2B2A0011F0A6 /* PA2WCSessionManager+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PA2WCSessionManager+Private.h"; sourceTree = "<group>"; };
+		BFA0E2AD200D2C2A0011F0A6 /* PA2WCSessionDataHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionDataHandler.h; sourceTree = "<group>"; };
+		BFA0E2AF200D3CD90011F0A6 /* PA2WCSessionPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionPacket.h; sourceTree = "<group>"; };
+		BFA0E2B0200D3CD90011F0A6 /* PA2WCSessionPacket.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionPacket.m; sourceTree = "<group>"; };
+		BFA0E2B2200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionPacket_ActivationStatus.h; sourceTree = "<group>"; };
+		BFA0E2B3200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionPacket_ActivationStatus.m; sourceTree = "<group>"; };
+		BFA0E2B5200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionPacket_TokenData.h; sourceTree = "<group>"; };
+		BFA0E2B6200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionPacket_TokenData.m; sourceTree = "<group>"; };
+		BFA0E2B8200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WCSessionPacket_Constants.h; sourceTree = "<group>"; };
+		BFA0E2B9200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionPacket_Constants.m; sourceTree = "<group>"; };
+		BFA0E2D4200FB33B0011F0A6 /* PA2WeakArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WeakArray.h; sourceTree = "<group>"; };
+		BFA0E2D5200FB33B0011F0A6 /* PA2WeakArray.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArray.m; sourceTree = "<group>"; };
+		BFA0E2DB200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionManager_IOSServices.m; sourceTree = "<group>"; };
 		BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKTests.m; sourceTree = "<group>"; };
 		BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerAPI.h; sourceTree = "<group>"; };
 		BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerAPI.m; sourceTree = "<group>"; };
@@ -478,12 +508,15 @@
 			children = (
 				1B0A23981D6C6F7600D24167 /* PowerAuthSDK.h */,
 				1B0A23991D6C6F7600D24167 /* PowerAuthSDK.m */,
+				BF462B7B201112E200529EFC /* PowerAuthSDK+WatchSupport.m */,
 				1B0A239B1D6C6F9E00D24167 /* PowerAuthConfiguration.h */,
 				1B0A239C1D6C6F9E00D24167 /* PowerAuthConfiguration.m */,
 				1B0A239E1D6C714100D24167 /* PowerAuthAuthentication.h */,
 				1B0A239F1D6C714100D24167 /* PowerAuthAuthentication.m */,
 				BF79E3C81FBDA33F003DF179 /* PowerAuthToken.h */,
 				BF79E3C91FBDA33F003DF179 /* PowerAuthToken.m */,
+				BF462B742011013800529EFC /* PowerAuthToken+WatchSupport.h */,
+				BF462B752011013800529EFC /* PowerAuthToken+WatchSupport.m */,
 			);
 			path = sdk;
 			sourceTree = "<group>";
@@ -530,6 +563,7 @@
 				BF79E3CE1FBDC9F6003DF179 /* token */,
 				1BFD68781D742BED00B08338 /* system */,
 				1B6A65281E642A9400327545 /* util */,
+				BFA0E29F200D12420011F0A6 /* watch */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -558,6 +592,8 @@
 				BF79E3C21FBD8AEE003DF179 /* PA2PrivateCrypto.h */,
 				BF5A23731FE005A600B78DE2 /* PA2PrivateCrypto_Ext.m */,
 				BF79E3C31FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm */,
+				BFA0E2D4200FB33B0011F0A6 /* PA2WeakArray.h */,
+				BFA0E2D5200FB33B0011F0A6 /* PA2WeakArray.m */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -929,6 +965,36 @@
 			path = token;
 			sourceTree = "<group>";
 		};
+		BFA0E29F200D12420011F0A6 /* watch */ = {
+			isa = PBXGroup;
+			children = (
+				BFA0E2AE200D3CB80011F0A6 /* model */,
+				BFA0E2A0200D12420011F0A6 /* PA2WCSessionManager.h */,
+				BFA0E2A1200D12420011F0A6 /* PA2WCSessionManager.m */,
+				BFA0E2AA200D2B2A0011F0A6 /* PA2WCSessionManager+Private.h */,
+				BFA0E2DB200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m */,
+				BFA0E2AD200D2C2A0011F0A6 /* PA2WCSessionDataHandler.h */,
+			);
+			path = watch;
+			sourceTree = "<group>";
+		};
+		BFA0E2AE200D3CB80011F0A6 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				BFA0E2AF200D3CD90011F0A6 /* PA2WCSessionPacket.h */,
+				BFA0E2B0200D3CD90011F0A6 /* PA2WCSessionPacket.m */,
+				BFA0E2B8200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.h */,
+				BFA0E2B9200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.m */,
+				BF462B6C2011007100529EFC /* PA2WCSessionPacket_Success.h */,
+				BF462B6E2011007200529EFC /* PA2WCSessionPacket_Success.m */,
+				BFA0E2B2200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.h */,
+				BFA0E2B3200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.m */,
+				BFA0E2B5200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.h */,
+				BFA0E2B6200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
 		BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */ = {
 			isa = PBXGroup;
 			children = (
@@ -1164,6 +1230,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFA0E2A3200D12420011F0A6 /* PA2WCSessionManager.m in Sources */,
 				1B6A652D1E642AB600327545 /* PA2PasswordUtil.m in Sources */,
 				BF1FA8CF1D07216600392EC7 /* Password.cpp in Sources */,
 				1B0A239D1D6C6F9E00D24167 /* PowerAuthConfiguration.m in Sources */,
@@ -1181,28 +1248,36 @@
 				BF30176C1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m in Sources */,
 				BFF9CE0B1F07DC34001C892B /* PA2ActivationResult.m in Sources */,
 				BF79E3CA1FBDA33F003DF179 /* PowerAuthToken.m in Sources */,
+				BFA0E2B1200D3CD90011F0A6 /* PA2WCSessionPacket.m in Sources */,
 				BF79E3C01FB60933003DF179 /* PA2PrivateImpl.mm in Sources */,
 				BF234CA01CE5B14C00312A7F /* PrivateTypes.cpp in Sources */,
 				BF77510D1FC4876B008455A6 /* PA2EncryptedRequest.m in Sources */,
 				BFE5DBC31FB1DACC00A4FBAB /* ECIES.cpp in Sources */,
 				1BCC37011D91380100709311 /* PowerAuthSDK.m in Sources */,
+				BF462B7C201112E200529EFC /* PowerAuthSDK+WatchSupport.m in Sources */,
 				1B2EEF721D662CAA0039D92A /* PA2ActivationStatusResponse.m in Sources */,
+				BFA0E2D6200FB33B0011F0A6 /* PA2WeakArray.m in Sources */,
+				BF462B6F2011007200529EFC /* PA2WCSessionPacket_Success.m in Sources */,
 				1B968C5A1E2CED4500F429E0 /* PA2EncryptedObject.m in Sources */,
 				1B6A65301E64515000327545 /* PA2OtpUtil.mm in Sources */,
 				1B9AD2C01DA5B2F200CF52C9 /* PA2OperationTask.m in Sources */,
 				BF79E3C41FBD8AEE003DF179 /* PA2PrivateCrypto_IOS.mm in Sources */,
 				BF37D7641FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m in Sources */,
+				BFA0E2BA200E48ED0011F0A6 /* PA2WCSessionPacket_Constants.m in Sources */,
 				BFD3865E1F2A0A2300F74FF9 /* OtpUtil.cpp in Sources */,
 				BF79E3D71FBDCE05003DF179 /* PA2PrivateTokenData.m in Sources */,
 				1B00DF5D1DBEC8980027B092 /* PA2Bluetooth.m in Sources */,
 				BF77510E1FC4876B008455A6 /* PA2EncryptedResponse.m in Sources */,
+				BFA0E2DC200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m in Sources */,
 				1B789F461E2640640095519E /* PA2NonPersonalizedEncryptedObject.m in Sources */,
 				BF4680FF1EC45E1400EEB175 /* PublicTypes.cpp in Sources */,
 				1B2EEF6F1D662CA00039D92A /* PA2Response.m in Sources */,
 				BF79E3D21FBDCA81003DF179 /* PA2PrivateTokenKeychainStore.m in Sources */,
 				1B789F591E265E2F0095519E /* PA2EncryptorFactory.m in Sources */,
+				BF462B762011013800529EFC /* PowerAuthToken+WatchSupport.m in Sources */,
 				BF234C9A1CE5196700312A7F /* ECC.cpp in Sources */,
 				BF7751111FC487BC008455A6 /* PA2GetTokenResponse.m in Sources */,
+				BFA0E2B7200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m in Sources */,
 				BF14FE861CF8A4800032B30C /* DataReader.cpp in Sources */,
 				1B2EEF4A1D662AB10039D92A /* PA2Session.mm in Sources */,
 				1B5D5A071D91D77D000995A7 /* PA2AuthorizationHttpHeader.m in Sources */,
@@ -1210,6 +1285,7 @@
 				1B789F521E2654170095519E /* PA2PersonalizedEncryptedObject.m in Sources */,
 				1B1FA3401D99897600287F5E /* PA2ClientSslNoValidationStrategy.m in Sources */,
 				BFE5DBCC1FB3908E00A4FBAB /* PA2ECIESEncryptor.mm in Sources */,
+				BFA0E2B4200D3F460011F0A6 /* PA2WCSessionPacket_ActivationStatus.m in Sources */,
 				1B2EEF741D662CAA0039D92A /* PA2VaultUnlockResponse.m in Sources */,
 				BF234CAC1CE5DFFC00312A7F /* AES.cpp in Sources */,
 				BF234CAF1CE5E07500312A7F /* Hash.cpp in Sources */,
@@ -1368,7 +1444,6 @@
 					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
@@ -1419,7 +1494,6 @@
 					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

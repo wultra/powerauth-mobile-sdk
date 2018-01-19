@@ -73,3 +73,6 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeWrongParameter;
 
 /** Error code for accessing an unknown token */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidToken;
+
+/** Error code for a general error related to WatchConnectivity */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeWatchConnectivity;

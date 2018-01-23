@@ -7,12 +7,10 @@ set +v
 #
 # The main purpose of this script is build and prepare files hierarchy for 
 # cocoapod library distribution. The result of the build process is a framework 
-# with FAT static library. As a by product, script is copying all public and
-# private source codes to 'Sources' directory. 
+# with FAT static library. 
 #
 # Script is using following folders (if not changed):
 #
-#    ./Lib/{Platform}/Sources      - result for platform build
 #    ./Lib/{Platform}/FW.framework - final framework with FAT library
 #    ./Tmp                         - for all temporary data
 #
@@ -35,21 +33,15 @@ SOURCES_DIR="${XCODE_DIR}/Extensions"
 COMMON_SOURCES="Extensions/Common"
 
 # watchOS configuration
-WOS_SPECIFIC_SOURCES="Extensions/WatchOS"
 WOS_SCHEME_PREFIX="PA2Watch"
-WOS_SHARED_FILE="${SOURCES_DIR}/SharedFiles_WatchOS.csv"
-WOS_FRAMEWORK="PowerAuth2ForWatchOS"
+WOS_FRAMEWORK="PowerAuth2ForWatch"
 # IOS extension configuration
-EXT_SPECIFIC_SOURCES="Extensions/IOS"
 EXT_SCHEME_PREFIX="PA2Ext"
-EXT_SHARED_FILE="${SOURCES_DIR}/SharedFiles_IOS.csv"
 EXT_FRAMEWORK="PowerAuth2ForExtensions"
 
 # Variables, will be set in params processing loop
 PLATFORM_SDK=""
 PLATFORM_SDK2=""
-PLATFORM_SHARED_FILE=""
-PLATFORM_SOURCES=""
 PLATFORM_SCHEME_PREFIX=""
 OUT_FRAMEWORK=""
 BUILD_TYPE="Release"
@@ -187,28 +179,6 @@ function BUILD_SCHEME
 	BUILD_COMMAND ${SCHEME} ${PLATFORM} build
 	BUILD_COMMAND ${SCHEME} ${SIM_PLATFORM} build
 	MAKE_FAT_LIB ${SCHEME} ${PLATFORM} ${SIM_PLATFORM}
-	
-	# Headers
-	# We want to copy all headers, except those with 'Private'
-	# in the file name.
-	LOG "-----------------------------------------------------"
-	LOG "Copying source files..."
-	LOG "-----------------------------------------------------"
-	local OUT_DIR_FULL="`( cd \"$OUT_DIR\" && pwd )`"
-	OUT_DIR_FULL="${OUT_DIR_FULL}/Sources"
-	$MD "${OUT_DIR_FULL}/Private"
-	
-	PUSH_DIR "${XCODE_DIR}"
-	####
-	# Copy files from predefined directories
-	local sources=(`grep -R -null --include "*.h" --include "*.m" "" ${COMMON_SOURCES} ${PLATFORM_SOURCES}`)
-	sources+=(`cat ${PLATFORM_SHARED_FILE}`)
-	for ix in ${!sources[*]}
-	do
-		COPY_SRC_FILE "${sources[$ix]}" "${OUT_DIR_FULL}"
-	done
-	####
-	POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -240,16 +210,12 @@ do
 		watchos)
 			PLATFORM_SDK='watchos'
 			PLATFORM_SDK2='watchsimulator'
-			PLATFORM_SHARED_FILE="${WOS_SHARED_FILE}"
-			PLATFORM_SOURCES="${WOS_SPECIFIC_SOURCES}"
 			PLATFORM_SCHEME_PREFIX="${WOS_SCHEME_PREFIX}"
 			OUT_FRAMEWORK="${WOS_FRAMEWORK}"
 			;;
 		ios)
 			PLATFORM_SDK='iphoneos'
 			PLATFORM_SDK2='iphonesimulator'
-			PLATFORM_SHARED_FILE="${EXT_SHARED_FILE}"
-			PLATFORM_SOURCES="${EXT_SPECIFIC_SOURCES}"
 			PLATFORM_SCHEME_PREFIX="${EXT_SCHEME_PREFIX}"
 			OUT_FRAMEWORK="${EXT_FRAMEWORK}"
 			;;

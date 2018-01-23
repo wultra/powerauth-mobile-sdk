@@ -134,9 +134,6 @@
 		BF5A23961FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenInterfaces.h; path = Classes/token/PA2PrivateTokenInterfaces.h; sourceTree = "<group>"; };
 		BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2AuthorizationHttpHeader.m; path = Classes/networking/base/PA2AuthorizationHttpHeader.m; sourceTree = "<group>"; };
 		BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2AuthorizationHttpHeader.h; path = Classes/networking/base/PA2AuthorizationHttpHeader.h; sourceTree = "<group>"; };
-		BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_IOS.csv; path = Extensions/SharedFiles_IOS.csv; sourceTree = "<group>"; };
-		BF7D50621FDFFBC700200119 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = Extensions/README.md; sourceTree = "<group>"; };
-		BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */ = {isa = PBXFileReference; lastKnownFileType = text; name = SharedFiles_WatchOS.csv; path = Extensions/SharedFiles_WatchOS.csv; sourceTree = "<group>"; };
 		BF7D50661FE0002600200119 /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2Keychain.m; path = Classes/keychain/PA2Keychain.m; sourceTree = "<group>"; };
 		BF7D50671FE0002600200119 /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2Keychain.h; path = Classes/keychain/PA2Keychain.h; sourceTree = "<group>"; };
 		BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ExtensionLibrary.h; sourceTree = "<group>"; };
@@ -337,9 +334,6 @@
 		BF7D50601FDFFB5A00200119 /* PowerAuthShared */ = {
 			isa = PBXGroup;
 			children = (
-				BF7D50621FDFFBC700200119 /* README.md */,
-				BF7D50611FDFFBAB00200119 /* SharedFiles_IOS.csv */,
-				BF7D50631FDFFC7B00200119 /* SharedFiles_WatchOS.csv */,
 				BF5A23711FE0055800B78DE2 /* core */,
 				BF5A23841FE00A0400B78DE2 /* keychain */,
 				BF5A23921FE00A5B00B78DE2 /* sdk */,

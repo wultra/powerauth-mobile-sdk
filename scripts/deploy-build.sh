@@ -43,7 +43,7 @@ function USAGE
 PODSPEC="PowerAuth2.podspec"
 PODSPEC_DBG="PowerAuth2-Debug.podspec"
 PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
-PODSPEC_WOS="PowerAuth2ForWatchOS.podspec"
+PODSPEC_WOS="PowerAuth2ForWatch.podspec"
 
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
@@ -115,12 +115,13 @@ function PUSH_VERSIONING_FILES
 		LOG "----- Generating ${PODSPEC_DBG}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_DBG}" > "$SRC_ROOT/${PODSPEC_DBG}"
 		git add ${PODSPEC} ${PODSPEC_DBG}
-		# watchos, extensions
-		#LOG "----- Generating ${PODSPEC_WOS}..."
-		#sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
+		# watchos
+		LOG "----- Generating ${PODSPEC_WOS}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
+		git add ${PODSPEC_WOS}
+		# ios app extensions
 		LOG "----- Generating ${PODSPEC_EXT}..."
-		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
-		#git add ${PODSPEC_WOS} 
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}" 
 		git add ${PODSPEC_EXT}
 	fi
 	if [ x$DO_ANDROID == x1 ]; then
@@ -176,8 +177,8 @@ function DEPLOY_IOS
 	pod trunk push ${PODSPEC}
 	LOG "----- Publishing ${PODSPEC_DBG} to CocoaPods..."
 	pod trunk push ${PODSPEC_DBG}
-	#LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-	#pod trunk push ${PODSPEC_WOS}
+	LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
+	pod trunk push ${PODSPEC_WOS}
 	LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
 	pod trunk push ${PODSPEC_EXT}
 	####

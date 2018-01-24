@@ -16,6 +16,10 @@
 
 #import "PA2PrivateRemoteTokenProvider.h"
 
+/**
+ The PA2WatchRemoteTokenProvider class implements getting tokens from iPhone
+ over the WatchConnectivity framework.
+ */
 @interface PA2WatchRemoteTokenProvider : NSObject<PA2PrivateRemoteTokenProvider>
 
 @end

@@ -17,7 +17,13 @@
 #import "PA2WCSessionManager+Private.h"
 #import "PA2WatchSynchronizationService.h"
 
+/**
+ The PA2WCSessionManager_RegisterDefaultHandlers function is called once per process
+ lifetime, just after the PA2WCSessionManager shared instance is created.
+ */
 void PA2WCSessionManager_RegisterDefaultHandlers(PA2WCSessionManager * sessionManager)
 {
+	// On watchOS side, there's only one class registered for data processing.
+	// Check PA2WatchSynchronizationService class documentation for details.
 	[sessionManager registerDataHandler:[PA2WatchSynchronizationService sharedInstance]];
 }

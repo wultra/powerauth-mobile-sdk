@@ -32,6 +32,17 @@
 
 #pragma mark - Cancellable task
 
+/*
+ Cancellable task
+ 
+ The any-kind of cancellable task is required by the PA2PrivateRemoteTokenProvider.
+ To fulfill this contract, we're using a simple NSMutableData as cancel request
+ value holder.
+ 
+ If the task is cancelled, then the execution is is completed as usual, but
+ the completion block to the user's code is not called.
+ */
+
 static id _TaskMakeNew()
 {
 	return [NSMutableData dataWithLength:1];

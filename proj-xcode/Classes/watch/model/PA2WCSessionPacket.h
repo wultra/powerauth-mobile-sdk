@@ -71,6 +71,20 @@
  */
 @property (nonatomic, strong) id<PA2WCSessionPacketData> payload;
 
+// Not serialized properties
+
+/**
+ Contains YES, only if this is a request packet, but response handler is not available.
+ This gives data handler opportunity to send response internally, if it is required.
+ */
+@property (nonatomic, assign) BOOL requestWithoutReplyHandler;
+
+/**
+ Contains YES for response packets, when the response may be send to counterpart
+ as lazy transmission (without completion)
+ */
+@property (nonatomic, assign) BOOL sendLazyResponseIfPossible;
+
 // Easy accessors
 
 /**

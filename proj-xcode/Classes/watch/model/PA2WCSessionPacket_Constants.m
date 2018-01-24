@@ -30,8 +30,8 @@ NSString * const PA2WCSessionPacket_KEY_ERROR_MSG		= @"errorMsg";
 
 NSString * const PA2WCSessionPacket_KEY_ACTIVATION_CMD	= @"activationCmd";
 NSString * const PA2WCSessionPacket_KEY_ACTIVATION_ID	= @"activationId";
-NSString * const PA2WCSessionPacket_CMD_SESSION_GET		= @"get_status";
-NSString * const PA2WCSessionPacket_CMD_SESSION_PUT		= @"put_status";
+NSString * const PA2WCSessionPacket_CMD_SESSION_GET		= @"get_session";
+NSString * const PA2WCSessionPacket_CMD_SESSION_PUT		= @"put_session";
 
 NSString * const PA2WCSessionPacket_KEY_TOKEN_CMD		= @"tokenCmd";
 NSString * const PA2WCSessionPacket_KEY_TOKEN_NAME		= @"tokenName";

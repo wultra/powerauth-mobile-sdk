@@ -47,10 +47,30 @@
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration*)configuration;
 
+@end
 
 /**
- Retrieves activation status from iPhone.
+ The StatusSynchronization category provides interface for activation status from iPhone.
  */
-- (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion;
+@interface PowerAuthWatchSDK (StatusSynchronization)
+
+/**
+ Gets activation status update from the paired iPhone. The status transmission is performed with using
+ `WCSession.transferUserInfo()` method, so the information will be available once watchOS and IOS decide
+ to transmit data and appropriate response.
+ 
+ Method returns YES if send operation has been issued, otherwise NO. You can get the negative return value
+ typically when the WCSession is not activated yet.
+ */
+- (BOOL) updateActivationStatus;
+
+/**
+ Gets activation status update from the paired iPhone. The status transmission is performed immediately
+ with using `WCSession.sendMessageData(..)` method, so the iPhone has to be reachable in the time of the call.
+ 
+ The completion handler will be called on main thread, with non-nil `activationId` if the session is still active
+ on iPhone. The error parameter is non-nil only in case of communication error.
+ */
+- (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSString * _Nullable activationId, NSError * _Nullable error))completion;
 
 @end

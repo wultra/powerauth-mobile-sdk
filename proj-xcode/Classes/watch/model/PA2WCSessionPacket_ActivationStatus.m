@@ -42,7 +42,7 @@
 - (BOOL) validatePacketData
 {
 	if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_PUT]) {
-		return _activationId.length > 0;
+		return YES;
 	} else if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_GET]) {
 		return YES;
 	}

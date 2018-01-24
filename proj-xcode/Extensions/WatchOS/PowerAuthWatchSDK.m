@@ -19,8 +19,12 @@
 #import "PA2WatchRemoteTokenProvider.h"
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2Keychain.h"
+#import "PA2PrivateMacros.h"
 
 #import "PA2WCSessionPacket_ActivationStatus.h"
+#import "PA2WCSessionManager+Private.h"
+
+#pragma mark - Main Class -
 
 @implementation PowerAuthWatchSDK
 {
@@ -83,11 +87,65 @@
 	return self.activationId != nil;
 }
 
+@end
+
+
+
+#pragma mark - Status Synchronization -
+
+@implementation PowerAuthWatchSDK (StatusSynchronization)
+
 #pragma mark - Public methods
 
-- (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion
+- (BOOL) updateActivationStatus
 {
-	
+	PA2WCSessionPacket * request = [self requestStatusPacket];
+	PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
+	if (manager.validSession) {
+		// The response will be handled in PA2WatchSynchronizationService as received userInfo message.
+		[manager sendPacket:request];
+		return YES;
+	}
+	return NO;
+}
+
+- (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSString * _Nullable activationId, NSError * _Nullable error))completion
+{
+	if (!completion) {
+		PALog(@"PowerAuthWatchSDK::updateActivationStatusWithCompletion: Missing completion block.");
+		return;
+	}
+	PA2WCSessionPacket * request = [self requestStatusPacket];
+	[[PA2WCSessionManager sharedInstance] sendPacketWithResponse:request responseClass:[PA2WCSessionPacket_ActivationStatus class] completion:^(PA2WCSessionPacket *response, NSError *error) {
+		NSString * activationId = nil;
+		if (!error) {
+			PA2WCSessionPacket_ActivationStatus * status = PA2ObjectAs(response.payload, PA2WCSessionPacket_ActivationStatus);
+			BOOL invalidPacket = YES;
+			if ([status validatePacketData]) {
+				if ([status.command isEqualToString:PA2WCSessionPacket_CMD_SESSION_PUT]) {
+					activationId = status.activationId;
+					[[PA2WatchSynchronizationService sharedInstance] updateActivationId:activationId forSessionInstanceId:_configuration.instanceId];
+					invalidPacket = NO;
+				}
+			}
+			if (invalidPacket) {
+				error = PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PowerAuthWatchSDK: Wrong status object received from iPhone.");
+			}
+		}
+		dispatch_async(dispatch_get_main_queue(), ^{
+			completion(activationId, error);
+		});
+	}];
+}
+
+#pragma mark - Private methods
+
+- (PA2WCSessionPacket*) requestStatusPacket
+{
+	NSString * target = [PA2WCSessionPacket_SESSION_TARGET stringByAppendingString:_configuration.instanceId];
+	PA2WCSessionPacket_ActivationStatus * status = [[PA2WCSessionPacket_ActivationStatus alloc] init];
+	status.command = PA2WCSessionPacket_CMD_SESSION_GET;
+	return [PA2WCSessionPacket packetWithData:status target:target];
 }
 
 @end

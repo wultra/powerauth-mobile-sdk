@@ -201,6 +201,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 			break;
 		}
 		// ...and finally get the response
+		packet.requestWithoutReplyHandler = replyHandler == nil;
 		response = [handler sessionManager:self responseForPacket:packet];
 		
 	} while (false);
@@ -219,6 +220,8 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 	} else {
 		if (errorMessage) {
 			PALog(@"%@", errorMessage);
+		} else if (response.sendLazyResponseIfPossible) {
+			[self sendPacket:response];
 		}
 	}
 	return YES;

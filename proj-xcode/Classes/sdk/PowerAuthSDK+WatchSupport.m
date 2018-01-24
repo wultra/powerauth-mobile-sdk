@@ -151,7 +151,15 @@
 			if ([command isEqualToString:PA2WCSessionPacket_CMD_SESSION_GET]) {
 				// watch App requesting status of this object.
 				response = [self prepareActivationStatusPacket];
-				response.target = PA2WCSessionPacket_RESPONSE_TARGET;
+				if (!packet.requestWithoutReplyHandler) {
+					// Reply handler is present. The target should be modified.
+					response.target = PA2WCSessionPacket_RESPONSE_TARGET;
+				} else {
+					// Getting status without response handler. The target is already
+					// valid from 'prepareActivationStatusPacket' method, so just send
+					// that response back to watch.
+					response.sendLazyResponseIfPossible = YES;
+				}
 				//
 			} else {
 				errorMessage = [NSString stringWithFormat:@"PowerAuthSDK+WatchSupport: Unsupported command '%@'. Target: %@", command, packet.target];

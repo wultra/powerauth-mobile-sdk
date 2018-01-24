@@ -16,11 +16,34 @@
 
 #import "PA2WCSessionPacket.h"
 
+/**
+ The PA2WCSessionPacket_TokenData object contains information
+ about one named token.
+ */
 @interface PA2WCSessionPacket_TokenData : NSObject<PA2WCSessionPacketData>
 
+/**
+ Supported commands:
+ 	PA2WCSessionPacket_CMD_TOKEN_GET - when watchOS is asking for token from iIOS.
+ 		- response is PA2WCSessionPacket_CMD_TOKEN_PUT
+ 	PA2WCSessionPacket_CMD_TOKEN_REMOVE - when IOS wants to remove token from watchOS
+ 		- response is "Success" packet
+ 	PA2WCSessionPacket_CMD_TOKEN_PUT - when IOS wants to push token to the watchOS
+ 		- response is "Success" packet
+ */
 @property (nonatomic, strong) NSString * command;
+/**
+ Symbolic name of the token. The value is required in all commands.
+ */
 @property (nonatomic, strong) NSString * tokenName;
+/**
+ Required only for PUT command. If PUT command is used and value is nil, then the tokenNotFound
+ must be set to YES.
+ */
 @property (nonatomic, strong) NSData * tokenData;
+/**
+ Contains YES when PUT command is used as reply and requested token is not available on counterpart.
+ */
 @property (nonatomic, assign) BOOL tokenNotFound;
 
 @end

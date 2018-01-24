@@ -16,7 +16,11 @@
 
 #import "PA2WCSessionManager+Private.h"
 
+/**
+ The PA2WCSessionManager_RegisterDefaultHandlers function is called once per process
+ lifetime, just after the PA2WCSessionManager shared instance is created.
+ */
 void PA2WCSessionManager_RegisterDefaultHandlers(PA2WCSessionManager * sessionManager)
 {
-	// TODO: add registration for all default handlers here...
+	// We don't need default handlers on IOS side yet.
 }

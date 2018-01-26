@@ -51,8 +51,8 @@ static id _TaskMakeNew()
 static BOOL _TaskIsCancelled(id task)
 {
 	NSMutableData * data = PA2ObjectAs(task, NSMutableData);
-	if (data.length == 1) {
-		const char * bytes = (const char *)data.bytes;
+	const char * bytes = (const char *)data.bytes;
+	if (data.length == 1 && bytes != NULL) {
 		return bytes[0] != 0;
 	}
 	return NO;
@@ -61,14 +61,19 @@ static BOOL _TaskIsCancelled(id task)
 static void _TaskCancel(id task)
 {
 	NSMutableData * data = PA2ObjectAs(task, NSMutableData);
-	if (data.length == 1) {
-		char * bytes = (char *)data.mutableBytes;
+	char * bytes = (char *)data.mutableBytes;
+	if (data.length == 1 && bytes != NULL) {
 		bytes[0] = 1;
 	}
 }
 
 
 #pragma mark - PA2PrivateRemoteTokenProvider
+
+- (BOOL) authenticationIsRequired
+{
+	return NO;
+}
 
 - (void) prepareInstanceForConfiguration:(nonnull PowerAuthConfiguration*)configuration
 {
@@ -78,7 +83,7 @@ static void _TaskCancel(id task)
 
 
 - (nullable PowerAuthTokenStoreTask) requestTokenWithName:(nonnull NSString*)name
-										   authentication:(nonnull PowerAuthAuthentication*)authentication
+										   authentication:(nullable PowerAuthAuthentication*)authentication
 											   completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion
 {
 	//
@@ -101,9 +106,13 @@ static void _TaskCancel(id task)
 		if (!error) {
 			PA2WCSessionPacket_TokenData * responseData = PA2ObjectAs(response.payload, PA2WCSessionPacket_TokenData);
 			if ([responseData.command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_PUT]) {
-				tokenData = [PA2PrivateTokenData deserializeWithData:responseData.tokenData];
-				if (!tokenData) {
-					error = PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WatchRemoteTokenProvider: Wront token data received.");
+				if (!responseData.tokenNotFound) {
+					tokenData = [PA2PrivateTokenData deserializeWithData:responseData.tokenData];
+					if (!tokenData) {
+						error = PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WatchRemoteTokenProvider: Wront token data received.");
+					}
+				} else {
+					error = PA2MakeError(PA2ErrorCodeInvalidToken, @"Token not found on paired iPhone.");
 				}
 			} else {
 				error = PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WatchRemoteTokenProvider: Wront command received.");
@@ -117,7 +126,7 @@ static void _TaskCancel(id task)
 - (nullable PowerAuthTokenStoreTask) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
 										  completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion
 {
-	completion(NO, PA2MakeError(PA2ErrorCodeInvalidToken, @"Remote token removal is unsupported operation"));
+	completion(NO, PA2MakeError(PA2ErrorCodeInvalidToken, @"Removing token on iPhone is unsupported operation"));
 	return nil;
 }
 

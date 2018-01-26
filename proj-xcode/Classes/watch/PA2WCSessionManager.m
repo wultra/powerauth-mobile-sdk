@@ -335,8 +335,9 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 	if (!session) {
 		// On IOS, switch to debug build and check log what's the reason of unavailability.
 		// On watchOS, the session is typically not activated
+		PALog(@"PA2WCSessionManager: WCSession is currently not available for messaging.");
 		if (completion) {
-			completion(nil, PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WCSessionManager: WCSession is not available at this time."));
+			completion(nil, PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WCSessionManager: WCSession is currently not available for messaging."));
 		}
 		return;
 	}

@@ -129,12 +129,33 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	return [_statusProvider hasValidActivation];
 }
 
-
 - (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
 										authentication:(PowerAuthAuthentication*)authentication
 											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
-	if (!name || !authentication || !completion) {
+	return [self requestAccessTokenImpl:name authentication:authentication completion:completion];
+}
+
+- (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
+											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+{
+	return [self requestAccessTokenImpl:name authentication:nil completion:completion];
+}
+
+/*
+ This is an actual implementation of `requestAccessTokenWithName...` method, but allowing authentication to be nil.
+ */
+- (PowerAuthTokenStoreTask) requestAccessTokenImpl:(NSString*)name
+									authentication:(PowerAuthAuthentication*)authentication
+										completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+{
+	if (!name || !completion) {
+		if (completion) {
+			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
+		}
+		return nil;
+	}
+	if (!authentication && [_remoteTokenProvider authenticationIsRequired]) {
 		if (completion) {
 			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
 		}

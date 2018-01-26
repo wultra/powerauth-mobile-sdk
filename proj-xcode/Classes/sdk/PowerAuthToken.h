@@ -110,6 +110,21 @@ typedef id PowerAuthTokenStoreTask;
 													 completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
 
 /**
+ Create a new access token with given name without needing an authentication object. The method
+ is useful only on watchOS platform, when the token is being acquired from counterpart iOS application.
+ In this case, it's expected that token is already cached on iPhone and therefore the authentication
+ object is not required.
+ 
+ On iOS, method always returns invalid parameter error.
+ 
+ Returns cancellable object if operation is asynchronous, or nil, when the completion
+ block was executed synchronously. That typically happens when token is locally present
+ and available (e.g. doesn't need to be acquired from the server) or in case of error.
+ */
+- (nullable PowerAuthTokenStoreTask) requestAccessTokenWithName:(nonnull NSString*)name
+													 completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
+
+/**
  Removes previously created access token from the server and from local database.
  
  Note that if the removal request doesn't succeed, then the local token's data is not removed.

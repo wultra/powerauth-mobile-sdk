@@ -44,6 +44,11 @@
 	return self;
 }
 
+- (BOOL) authenticationIsRequired
+{
+	return YES;
+}
+
 - (void) prepareInstanceForConfiguration:(PowerAuthConfiguration*)configuration
 {
 	// Prepare encryptor

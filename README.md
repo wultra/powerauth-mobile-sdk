@@ -6,6 +6,7 @@ In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile
 
 - [PowerAuth SDK for iOS Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
 - [PowerAuth SDK for iOS Extensions](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS-Extensions)
+- [PowerAuth SDK for watchOS](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
 - [PowerAuth SDK for Android Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
 
 ## License

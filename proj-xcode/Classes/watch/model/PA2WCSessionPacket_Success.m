@@ -31,7 +31,7 @@
 - (id) initWithDictionary:(NSDictionary*)dictionary
 {
 	NSNumber * num = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_SUCCESS], NSNumber);
-	if (!num) {
+	if (num == nil) {
 		return nil;
 	}
 	self = [super init];

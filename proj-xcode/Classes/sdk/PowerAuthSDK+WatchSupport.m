@@ -190,19 +190,24 @@
 			NSString * command = tokenRequest.command;
 			if ([command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_GET]) {
 				// watch App requesting information about token
-				PowerAuthToken * localToken = [self.tokenStore localTokenWithName: tokenRequest.tokenName];
-				if (localToken) {
-					// Prepare response with token data in payload
-					response = [localToken prepareTokenDataPacketForWatch];
-					response.target = PA2WCSessionPacket_RESPONSE_TARGET;
+				if (self.hasValidActivation) {
+					PowerAuthToken * localToken = [self.tokenStore localTokenWithName: tokenRequest.tokenName];
+					if (localToken) {
+						// Prepare response with token data in payload
+						response = [localToken prepareTokenDataPacketForWatch];
+						response.target = PA2WCSessionPacket_RESPONSE_TARGET;
+					} else {
+						// Prepare "token not found" response
+						PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
+						packetData.command = PA2WCSessionPacket_CMD_TOKEN_PUT;
+						packetData.tokenName = tokenRequest.tokenName;
+						packetData.tokenData = nil;
+						packetData.tokenNotFound = YES;
+						response = [PA2WCSessionPacket packetWithData:packetData target:PA2WCSessionPacket_RESPONSE_TARGET];
+					}
 				} else {
-					// Prepare "token not found" response
-					PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
-					packetData.command = PA2WCSessionPacket_CMD_TOKEN_PUT;
-					packetData.tokenName = tokenRequest.tokenName;
-					packetData.tokenData = nil;
-					packetData.tokenNotFound = YES;
-					response = [PA2WCSessionPacket packetWithData:packetData target:PA2WCSessionPacket_RESPONSE_TARGET];
+					NSError * error = PA2MakeError(PA2ErrorCodeMissingActivation, @"Token for Watch cannot be obtained, because activation is no longer valid.");
+					response = [PA2WCSessionPacket packetWithError:error];
 				}
 				//
 			} else {

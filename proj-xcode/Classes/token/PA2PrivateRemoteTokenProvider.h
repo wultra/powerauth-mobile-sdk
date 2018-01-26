@@ -27,6 +27,11 @@
 @protocol PA2PrivateRemoteTokenProvider <NSObject>
 
 /**
+ Implementation may return YES, if `PowerAuthAuthentication` object is required for getting remote token.
+ */
+- (BOOL) authenticationIsRequired;
+
+/**
  Called once per instance, before request or remove methods are called. So, the implementation can safely put
  a lazy initialization code to this method.
  */
@@ -40,7 +45,7 @@
  block was executed synchronously. That typically happens in case of error.
  */
 - (nullable PowerAuthTokenStoreTask) requestTokenWithName:(nonnull NSString*)name
-										   authentication:(nonnull PowerAuthAuthentication*)authentication
+										   authentication:(nullable PowerAuthAuthentication*)authentication
 											   completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion;
 
 /**

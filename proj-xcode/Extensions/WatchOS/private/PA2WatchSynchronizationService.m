@@ -71,28 +71,49 @@
 - (void) updateActivationId:(nullable NSString*)activationId forSessionInstanceId:(nonnull NSString*)sessionInstanceId
 {
 	if (sessionInstanceId.length > 0) {
+		BOOL removeAssociatedTokens = NO;
 		NSData * currentData = [_statusKeychain dataForKey:sessionInstanceId status:NULL];
 		if (activationId) {
 			NSData * activationIdData = [activationId dataUsingEncoding:NSUTF8StringEncoding];
 			if (currentData) {
 				if (![currentData isEqualToData:activationIdData]) {
 					[_statusKeychain updateValue:activationIdData forKey:sessionInstanceId];
-					PALog(@"PA2WatchSynchronizationService: Session with instanceId %@' is now activated (with different activation ID).", sessionInstanceId);
+					PALog(@"PA2WatchSynchronizationService: Session with instanceId '%@' is now activated (with different activation ID).", sessionInstanceId);
+					removeAssociatedTokens = YES;
 				}
 			} else {
 				[_statusKeychain addValue:activationIdData forKey:sessionInstanceId];
-				PALog(@"PA2WatchSynchronizationService: Session with instanceId %@' is now activated.", sessionInstanceId);
+				PALog(@"PA2WatchSynchronizationService: Session with instanceId '%@' is now activated.", sessionInstanceId);
 			}
 		} else {
 			// Removing activation status
 			if (currentData) {
 				[_statusKeychain deleteDataForKey:sessionInstanceId];
-				PALog(@"PA2WatchSynchronizationService: Session with instanceId %@' is no longer activated.", sessionInstanceId);
+				PALog(@"PA2WatchSynchronizationService: Session with instanceId '%@' is no longer activated.", sessionInstanceId);
 			}
+			removeAssociatedTokens = YES;
+		}
+		// If activation has been removed, or activationId has been changed, then we should remove all associated tokens
+		if (removeAssociatedTokens) {
+			[self removeAllTokensForInstanceId:sessionInstanceId];
 		}
 	} else {
 		PALog(@"PA2WatchSynchronizationService: ERROR: Session's instanceId is empty.");
 	}
+}
+
+#pragma mark - Private methods
+
+- (void) removeAllTokensForInstanceId:(NSString*)instanceId
+{
+	PALog(@"PA2WatchSynchronizationService: Removing all tokens for instanceId '%@'", instanceId);
+	PA2Keychain * keychain = [[PA2Keychain alloc] initWithIdentifier:instanceId];
+	NSString * keychainPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:instanceId];
+	[[keychain allItems] enumerateKeysAndObjectsUsingBlock:^(NSString * identifier, id foo, BOOL * stop) {
+		if ([identifier hasPrefix:keychainPrefix]) {
+			[keychain deleteDataForKey:identifier];
+		}
+	}];
 }
 
 

@@ -18,19 +18,11 @@
 #import "PowerAuthConfiguration.h"
 #import "PowerAuthToken+WatchSupport.h"
 
-#import "PA2Client.h"
 #import "PA2Session.h"
-#import "PA2Networking.h"
-#import "PA2Keychain.h"
-#import "PA2Macros.h"
-#import "PA2System.h"
-#import "PA2Bluetooth.h"
-#import "PA2ErrorConstants.h"
 #import "PA2EncryptorFactory.h"
-#import "PA2PasswordUtil.h"
-#import "PA2OtpUtil.h"
 #import "PA2ActivationResult.h"
-#import "PA2SessionStatusProvider.h"
+#import "PA2OperationTask.h"
+#import "PA2AuthorizationHttpHeader.h"
 
 @interface PowerAuthSDK : NSObject<PA2SessionStatusProvider>
 

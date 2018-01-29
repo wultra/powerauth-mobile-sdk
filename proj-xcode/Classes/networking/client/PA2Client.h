@@ -24,7 +24,7 @@
 
 /** Build absolute URL for given resource using given base URL.
  
- @param path Path to the resource, relative to given base URL.
+ @param urlPath Path to the resource, relative to given base URL.
  @return Absolute URL for given resource.
  */
 - (nonnull NSURL*) urlForRelativePath:(nonnull NSString*)urlPath;

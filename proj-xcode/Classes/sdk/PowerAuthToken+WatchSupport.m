@@ -42,15 +42,19 @@
 
 - (BOOL) sendToWatch
 {
-	if ([self.tokenStore canRequestForAccessToken]) {
-		PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
-		if (manager.validSession) {
-			[manager sendPacket:[self prepareTokenDataPacketForWatch]];
-			return YES;
+	if (@available(iOS 9, *)) {
+		if ([self.tokenStore canRequestForAccessToken]) {
+			PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
+			if (manager.validSession) {
+				[manager sendPacket:[self prepareTokenDataPacketForWatch]];
+				return YES;
+			}
+			PALog(@"PowerAuthToken: WCSession is not ready for message sending.");
+		} else {
+			PALog(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
 		}
-		PALog(@"PowerAuthToken: WCSession is not ready for message sending.");
 	} else {
-		PALog(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
+		PALog(@"PowerAuthToken: WCSession is not supported on older iOS versions.");
 	}
 	return NO;
 }
@@ -93,10 +97,12 @@
 
 - (BOOL) removeFromWatch
 {
-	PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
-	if (manager.validSession) {
-		[manager sendPacket:[self prepareTokenRemovePacketForWatch]];
-		return YES;
+	if (@available(iOS 9, *)) {
+		PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
+		if (manager.validSession) {
+			[manager sendPacket:[self prepareTokenRemovePacketForWatch]];
+			return YES;
+		}
 	}
 	PALog(@"PowerAuthToken: WCSession is not ready for message sending.");
 	return NO;
@@ -105,14 +111,20 @@
 
 - (void) removeFromWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion
 {
-	PA2WCSessionPacket * packet = [self prepareTokenRemovePacketForWatch];
-	[[PA2WCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
+	if (@available(iOS 9, *)) {
+		PA2WCSessionPacket * packet = [self prepareTokenRemovePacketForWatch];
+		[[PA2WCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
+			if (completion) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					completion(error);
+				});
+			}
+		}];
+	} else {
 		if (completion) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				completion(error);
-			});
+			completion(PA2MakeError(PA2ErrorCodeWatchConnectivity, @"Not supported on older iOS versions"));
 		}
-	}];
+	}
 }
 
 @end

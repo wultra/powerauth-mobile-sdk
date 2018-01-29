@@ -14,8 +14,8 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-               BuildableName = "libPowerAuth2.a"
+               BlueprintIdentifier = "BFA5851D201F8771000DCD22"
+               BuildableName = "PowerAuth2.framework"
                BlueprintName = "PowerAuth2"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
@@ -79,9 +79,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
+            BlueprintIdentifier = "BF4DBBAD1CDF3377008F3A47"
+            BuildableName = "libPowerAuth2Tests.a"
+            BlueprintName = "PowerAuth2Tests"
             ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -102,9 +102,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
+            BlueprintIdentifier = "BF4DBBAD1CDF3377008F3A47"
+            BuildableName = "libPowerAuth2Tests.a"
+            BlueprintName = "PowerAuth2Tests"
             ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -120,9 +120,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
+            BlueprintIdentifier = "BF4DBBAD1CDF3377008F3A47"
+            BuildableName = "libPowerAuth2Tests.a"
+            BlueprintName = "PowerAuth2Tests"
             ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

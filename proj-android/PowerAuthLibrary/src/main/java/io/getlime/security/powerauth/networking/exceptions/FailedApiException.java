@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.networking.exceptions;
 
+import com.google.gson.JsonObject;
+
 /**
  * Signals that a REST connection failed with an unknown response from the server.
  * You can investigate a received HTTP response code and response body string
@@ -33,14 +35,21 @@ public class FailedApiException extends Exception {
     private String responseBody;
 
     /**
+     * JSON parsed from response body or null if received content is not JSON
+     */
+    private JsonObject responseJson;
+
+    /**
      * Constructs an exception with response code and response body.
      *
      * @param responseCode HTTP response code
      * @param responseBody HTTP response body
+     * @param responseJson JsonObject parsed from responseBody
      */
-    public FailedApiException(int responseCode, String responseBody) {
+    public FailedApiException(int responseCode, String responseBody, JsonObject responseJson) {
         this.responseCode = responseCode;
         this.responseBody = responseBody;
+        this.responseJson = responseJson;
     }
 
 
@@ -50,20 +59,33 @@ public class FailedApiException extends Exception {
      * @param message message from another exception
      * @param responseCode HTTP response code
      * @param responseBody HTTP response body
+     * @param responseJson JsonObject parsed from responseBody
      */
-    public FailedApiException(String message, int responseCode, String responseBody) {
+    public FailedApiException(String message, int responseCode, String responseBody, JsonObject responseJson) {
         super(message);
         this.responseCode = responseCode;
         this.responseBody = responseBody;
+        this.responseJson = responseJson;
     }
 
     /**
      * @return HTTP response code
      */
-    public int getResponseCode() { return responseCode; }
+    public int getResponseCode() {
+        return responseCode;
+    }
 
     /**
      * @return HTTP response body. The returned value may be null.
      */
-    public String getResponseBody() { return responseBody; }
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+    /**
+     * @return JsonObject parsed from response body or null if received content is not JSON
+     */
+    public JsonObject getResponseJson() {
+        return responseJson;
+    }
 }

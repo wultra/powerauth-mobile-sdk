@@ -14,8 +14,8 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-               BuildableName = "libPowerAuth2.a"
+               BlueprintIdentifier = "BFA5851D201F8771000DCD22"
+               BuildableName = "PowerAuth2.framework"
                BlueprintName = "PowerAuth2"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
@@ -80,8 +80,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
+            BuildableName = "libPowerAuth2xx.a"
+            BlueprintName = "PowerAuth2xx"
             ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -99,15 +99,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
-            ReferencedContainer = "container:PowerAuthLib.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -117,15 +108,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF4DBB9A1CDF3130008F3A47"
-            BuildableName = "libPowerAuth2.a"
-            BlueprintName = "PowerAuth2"
-            ReferencedContainer = "container:PowerAuthLib.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

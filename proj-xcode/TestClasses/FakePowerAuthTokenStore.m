@@ -70,6 +70,15 @@
 	return nil;
 }
 
+- (nullable PowerAuthTokenStoreTask) requestAccessTokenWithName:(nonnull NSString*)name
+													 completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion
+{
+	if (completion) {
+		completion(nil, [NSError errorWithDomain:@"FakeTokenStoreError" code:-999 userInfo:nil]);
+	}
+	return nil;
+}
+
 - (nullable PowerAuthTokenStoreTask) removeAccessTokenWithName:(nonnull NSString*)name
 													completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion
 {

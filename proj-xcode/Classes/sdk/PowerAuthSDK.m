@@ -15,6 +15,10 @@
  */
 
 #import "PowerAuthSDK.h"
+#import "PA2Client.h"
+#import "PA2Keychain.h"
+#import "PA2OtpUtil.h"
+
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"

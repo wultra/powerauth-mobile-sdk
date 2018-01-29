@@ -21,6 +21,18 @@
 #import "PA2WCSessionPacket.h"
 #import "PA2WeakArray.h"
 
+// Unguarded availability warning
+//
+// PA2WCSessionManager is correctly handling existence of WCSession on the system,
+// but it's difficult to wrap all parts of the code to silent the warning.
+// Currently, 'sendImpl' is the most problematic part of the code, so check
+// that method for details (there's comment at the beginning of the method)
+//
+// For future, we need to increase minimum supported version to iOS9.0
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability"
+
 @implementation PA2WCSessionManager
 {
 	dispatch_semaphore_t _lock;
@@ -300,14 +312,20 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 	[self sendImpl:packet withResponse:YES responseClass:responseClass completion:completion];
 }
 
-/**
- 
- */
+
+// Unguarded availability warning
+//
+// We're targetting SDK to 8.0+, so it's expected that compiler will scream about
+// usage of WCSession, which is available sice 9.0. The problematic part of code
+// begins when we acquire WCSession from self.validSession but we can ignore that,
+// because that property already checks whether the session is available on the
+// current system.
+
 - (void) sendImpl:(PA2WCSessionPacket*)request
 	 withResponse:(BOOL)withResponse
 	responseClass:(Class)responseClass
 	   completion:(void(^)(PA2WCSessionPacket * response, NSError * error))completion
-{	
+{
 	// Validate input
 	if (withResponse && (completion == nil)) {
 		PALog(@"PA2WCSessionManager: Response is required but completion block is missing.");
@@ -440,8 +458,10 @@ static WCSession * _ValidateSession(WCSession * session)
 static WCSession * _PrepareSession()
 {
 	// On IOS, check if session is supported
-	if ([WCSession isSupported]) {
-		return [WCSession defaultSession];
+	if (@available(iOS 9.0, *)) {
+		if ([WCSession isSupported]) {
+			return [WCSession defaultSession];
+		}
 	}
 	return nil;
 }
@@ -473,4 +493,6 @@ static WCSession * _ValidateSession(WCSession * session)
 }
 
 #endif // !defined(PA2_WATCH_SDK)
+
+#pragma clang diagnostic pop	// pop "-Wunguarded-availability"
 

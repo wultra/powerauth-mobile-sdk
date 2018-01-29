@@ -33,7 +33,7 @@
  on this device and Watch app is installed on the currently paired and active Apple Watch.
  On watchOS, property always contains session's singleton.
  */
-@property (nonatomic, strong, nullable, readonly) WCSession * validSession;
+@property (nonatomic, strong, nullable, readonly) WCSession * validSession __IOS_AVAILABLE(9.0);
 
 // Messages from counterpart
 

@@ -53,16 +53,20 @@
 
 - (BOOL) sendActivationStatusToWatch
 {
-	PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
-	if (manager.validSession == nil) {
-		return NO;
+	if (@available(iOS 9, *)) {
+		PA2WCSessionManager * manager = [PA2WCSessionManager sharedInstance];
+		if (manager.validSession == nil) {
+			return NO;
+		}
+		PA2WCSessionPacket * packet = [self prepareActivationStatusPacket];
+		if (!packet) {
+			return NO;
+		}
+		[manager sendPacket:packet];
+		return YES;
 	}
-	PA2WCSessionPacket * packet = [self prepareActivationStatusPacket];
-	if (!packet) {
-		return NO;
-	}
-	[manager sendPacket:packet];
-	return YES;
+	PALog(@"PowerAuthSDK: Not supported on older iOS versions.");
+	return NO;
 }
 
 

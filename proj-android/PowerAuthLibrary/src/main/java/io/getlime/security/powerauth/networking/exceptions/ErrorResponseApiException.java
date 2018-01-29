@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.networking.exceptions;
 
+import com.google.gson.JsonObject;
+
 import io.getlime.core.rest.model.base.entity.Error;
 
 /**
@@ -27,21 +29,49 @@ public class ErrorResponseApiException extends Exception {
     /**
      * Error response received from the server
      */
-    private Error mErrorResponse;
+    private Error errorResponse;
+
+    /**
+     * Full response body received from the server
+     */
+    private String responseBody;
+
+    /**
+     * JSON parsed from response body or null if received content is not JSON
+     */
+    private JsonObject responseJson;
+
 
     /**
      * Constructs a new exception with error received from server.
      *
      * @param errorResponse error received from server
      */
-    public ErrorResponseApiException(Error errorResponse) {
-        this.mErrorResponse = errorResponse;
+    public ErrorResponseApiException(Error errorResponse, String responseBody, JsonObject responseJson) {
+        this.errorResponse = errorResponse;
+        this.responseBody = responseBody;
+        this.responseJson = responseJson;
     }
 
     /**
      * @return ErrorModel with failure reason
      */
     public Error getErrorResponse() {
-        return mErrorResponse;
+        return errorResponse;
+    }
+
+    /**
+     * @return Full response body received from the server
+     */
+    public String getResponseBody() {
+        return responseBody;
+    }
+
+
+    /**
+     * @return JsonObject parsed from response body or null if received content is not JSON
+     */
+    public JsonObject getResponseJson() {
+        return responseJson;
     }
 }

@@ -182,9 +182,6 @@ public class PA2Client {
                 // Get response code & try to get response body
                 final int responseCode = urlConnection.getResponseCode();
                 final boolean responseOk =  responseCode / 100 == 2;
-                final boolean tryParseJson = responseOk ||
-                        responseCode == HttpURLConnection.HTTP_BAD_REQUEST ||
-                        responseCode == HttpURLConnection.HTTP_UNAUTHORIZED;
 
                 // Get response body from InputStream
                 final InputStream inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
@@ -198,46 +195,45 @@ public class PA2Client {
                             url.toString(), responseCode, propStr, bodyStr);
                 }
 
-                // If response code has known status code, then try to parse responseBody as a JSON
+                // Always try to parse response as a JSON
                 String exceptionMessage = null;
+                JsonObject responseJson = null;
 
-                if (tryParseJson) {
-                    try {
-                        final JsonElement jsonRoot = new JsonParser().parse(responseBody);
-                        final JsonObject jsonObject = jsonRoot.isJsonObject() ? jsonRoot.getAsJsonObject() : null;
-                        // Try to get "status" & "responseObject"
-                        if (jsonObject != null) {
-                            final JsonElement statusElement = jsonObject.get("status");
-                            final JsonElement responseElement = jsonObject.get("responseObject");
-                            if (statusElement != null && statusElement.isJsonPrimitive()) {
-                                // Check status & build corresponding response for UI
-                                if (statusElement.getAsString().equalsIgnoreCase("OK")) {
-                                    // Status is "OK", try to create response object from objectElement.
-                                    if (requestDefinition.getResponseType() != null) {
-                                        // Create a final response object
-                                        final TResponse response = mGson.fromJson(responseElement, requestDefinition.getResponseType().getType());
-                                        callOnResponseUi(response, responseListener);
-                                    } else {
-                                        // No response object, just report null
-                                        callOnResponseUi(null, responseListener);
-                                    }
+                try {
+                    final JsonElement jsonRoot = new JsonParser().parse(responseBody);
+                    responseJson = jsonRoot.isJsonObject() ? jsonRoot.getAsJsonObject() : null;
+                    // Try to get "status" & "responseObject"
+                    if (responseJson != null) {
+                        final JsonElement statusElement = responseJson.get("status");
+                        final JsonElement responseElement = responseJson.get("responseObject");
+                        if (statusElement != null && statusElement.isJsonPrimitive()) {
+                            // Check status & build corresponding response for UI
+                            if (statusElement.getAsString().equalsIgnoreCase("OK")) {
+                                // Status is "OK", try to create response object from objectElement.
+                                if (requestDefinition.getResponseType() != null) {
+                                    // Create a final response object
+                                    final TResponse response = mGson.fromJson(responseElement, requestDefinition.getResponseType().getType());
+                                    callOnResponseUi(response, responseListener);
                                 } else {
-                                    // Status is not "OK", try to create ErrorModel object
-                                    final Error error = mGson.fromJson(responseElement, TypeToken.get(Error.class).getType());
-                                    callOnErrorUi(new ErrorResponseApiException(error), responseListener);
+                                    // No response object, just report null
+                                    callOnResponseUi(null, responseListener);
                                 }
-                                // Return now, because for all other cases, we will report an error...
-                                return null;
+                            } else {
+                                // Status is not "OK", try to create ErrorModel object
+                                final Error error = mGson.fromJson(responseElement, TypeToken.get(Error.class).getType());
+                                callOnErrorUi(new ErrorResponseApiException(error, responseBody, responseJson), responseListener);
                             }
+                            // Return now, because for all other cases, we will report an error...
+                            return null;
                         }
-
-                    } catch (JsonParseException e) {
-                        // Failed on JSON parser, we should keep json exception message
-                        exceptionMessage = e.getMessage();
                     }
+
+                } catch (JsonParseException e) {
+                    // Failed on JSON parser, we should keep json exception message
+                    exceptionMessage = e.getMessage();
                 }
                 // For all other cases report an error constructed with response code, body and optional exception message.
-                callOnErrorUi(new FailedApiException(exceptionMessage, responseCode, responseBody), responseListener);
+                callOnErrorUi(new FailedApiException(exceptionMessage, responseCode, responseBody, responseJson), responseListener);
 
             } catch (IOException | JsonParseException e) {
                 // All other cases report as produced exception.

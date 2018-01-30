@@ -22,11 +22,9 @@ FOUNDATION_EXPORT double PowerAuth2VersionNumber;
 //! Project version string for PowerAuth2.
 FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <PowerAuth2/PublicHeader.h>
-
 #import "PowerAuthSDK.h"
+// PA2Client is very heavy, we should split it to multiple headers or make net model private.
 #import "PA2Client.h"
-#import "PA2Networking.h"
 #import "PA2Macros.h"
 #import "PA2System.h"
 #import "PA2Keychain.h"
@@ -34,7 +32,6 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 #import "PA2ErrorConstants.h"
 #import "PA2EncryptorFactory.h"
 #import "PA2PasswordUtil.h"
+#import "PA2Password.h"
 #import "PA2OtpUtil.h"
-#import "PA2ActivationResult.h"
-#import "PA2SessionStatusProvider.h"
 #import "PA2ECIESEncryptor.h"

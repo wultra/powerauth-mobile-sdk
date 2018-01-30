@@ -180,6 +180,7 @@
 		BFA585C3201F8D67000DCD22 /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
 		BFA585C8201F9CEE000DCD22 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA5851E201F8771000DCD22 /* PowerAuth2.framework */; };
 		BFA585C9201F9E80000DCD22 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA5851E201F8771000DCD22 /* PowerAuth2.framework */; };
+		BFA585D02020BA08000DCD22 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8D1CDF3428008F3A47 /* libcc7-ios.a */; };
 		BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */; };
 		BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
 		BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
@@ -464,6 +465,7 @@
 		BFA58526201F87E9000DCD22 /* PowerAuth2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuth2.h; sourceTree = "<group>"; };
 		BFA58527201F87E9000DCD22 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFA5852A201F891A000DCD22 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		BFA585CE2020B9E6000DCD22 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKTests.m; sourceTree = "<group>"; };
 		BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerAPI.h; sourceTree = "<group>"; };
 		BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerAPI.m; sourceTree = "<group>"; };
@@ -535,6 +537,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BFA585D02020BA08000DCD22 /* libcc7-ios.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1049,6 +1052,7 @@
 		BFA585C7201F9CEE000DCD22 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BFA585CE2020B9E6000DCD22 /* libc++.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

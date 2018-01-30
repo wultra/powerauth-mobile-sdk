@@ -111,6 +111,26 @@ function MAKE_FAT_LIB
 }
 
 # -----------------------------------------------------------------------------
+# Validates whether given library has all expected platforms
+# Parameters:
+#   $1   - library path
+#   $2   - architectures, space separated values
+# -----------------------------------------------------------------------------
+function VALIDATE_FAT_ARCHITECTURES
+{
+	local LIB="$1"
+	local ARCHITECTURES=($2)
+	local INFO=`${LIPO} -info ${LIB}`
+	for ARCH in "${ARCHITECTURES[@]}"
+	do
+		local HAS_ARCH=`echo $INFO | grep $ARCH | wc -l`
+		if [ $HAS_ARCH != "1" ]; then 
+			FAILURE "Architecture $ARCH is missing in final FAT library."
+		fi
+	done
+}
+
+# -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
 #   $1   - scheme name (e.g. PA2_Debug)
@@ -129,7 +149,7 @@ function BUILD_COMMAND
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS2"
 	fi
 	
-	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${PLATFORM}"
+	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
 	
 	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
 	local COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
@@ -140,7 +160,7 @@ function BUILD_COMMAND
 	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -sdk ${PLATFORM}"
 	COMMAND_LINE="$COMMAND_LINE -derivedDataPath ${TMP_DIR}/DerivedData"
 	COMMAND_LINE="$COMMAND_LINE BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO"
-	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\""
+	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\" ONLY_ACTIVE_ARCH=NO"
 	COMMAND_LINE="$COMMAND_LINE ${COMMAND}"
 	DEBUG_LOG ${COMMAND_LINE}
 	eval ${COMMAND_LINE}
@@ -165,7 +185,11 @@ function BUILD_SCHEME
 	BUILD_COMMAND $SCHEME $PLATFORM_SDK1 build
 	BUILD_COMMAND $SCHEME $PLATFORM_SDK2 build
 	
-	MAKE_FAT_LIB $SCHEME $PLATFORM_SDK1 $PLATFORM_SDK2
+	MAKE_FAT_LIB $SCHEME $PLATFORM_SDK1 $PLATFORM_SDK2 
+	
+	local FW_LIB="${OUT_DIR}/${OUT_FRAMEWORK}.framework/${OUT_FRAMEWORK}"
+	local ALL_ARCHS="${PLATFORM_ARCHS1} ${PLATFORM_ARCHS2}"
+	VALIDATE_FAT_ARCHITECTURES "${FW_LIB}" "${ALL_ARCHS}"
 }
 
 # -----------------------------------------------------------------------------
@@ -208,7 +232,7 @@ do
 			TMP_DIR="$2"
 			shift
 			;;
-		--lib-dir)
+		--out-dir)
 			OUT_DIR="$2"
 			shift
 			;;

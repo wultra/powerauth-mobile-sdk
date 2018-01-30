@@ -29,5 +29,6 @@ Pod::Spec.new do |s|
 	
 	# Produced files
   s.vendored_frameworks   = 'Library/PowerAuth2.framework'
+  s.libraries             = 'c++'
 	
 end

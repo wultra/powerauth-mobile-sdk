@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2018 Lime - HighTech Solutions s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
+// All imports for public interfaces
+
 #import "PA2ClientConfiguration.h"
+#import "PA2NetworkObject.h"
 #import "PA2Request.h"
 #import "PA2Response.h"
-#import "PA2ActivationStatusRequest.h"
-#import "PA2ActivationStatusResponse.h"
-#import "PA2CreateActivationRequest.h"
-#import "PA2DirectCreateActivationRequest.h"
-#import "PA2CreateActivationResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2ErrorResponse.h"
 #import "PA2AuthorizationHttpHeader.h"
+#import "PA2ActivationResult.h"
+#import "PA2ErrorResponse.h"
+#import "PA2Error.h"
+#import "PA2ClientSslValidationStrategy.h"
 #import "PA2ClientSslNoValidationStrategy.h"
 #import "PA2OperationTask.h"
-#import "PA2NonPersonalizedEncryptedObject.h"
-#import "PA2PersonalizedEncryptedObject.h"
-#import "PA2EncryptedRequest.h"
-#import "PA2EncryptedResponse.h"
-#import "PA2RemoveTokenRequest.h"

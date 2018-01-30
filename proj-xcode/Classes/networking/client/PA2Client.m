@@ -15,6 +15,7 @@
  */
 
 #import "PA2Client.h"
+#import "PA2PrivateNetworking.h"
 #import "PA2ErrorConstants.h"
 #import "PA2PrivateMacros.h"
 
@@ -174,8 +175,11 @@
 		}
 	}];
 }
+@end
 
 #pragma mark - High-level Methods
+
+@implementation PA2Client (Private)
 
 - (NSURLSessionDataTask*) createActivation:(PA2CreateActivationRequest*)request
 								  callback:(void(^)(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *error))callback {

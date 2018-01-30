@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
 #import "PA2RequestResponseNonPersonalizedEncryptor.h"
 #import "PA2Session.h"
 

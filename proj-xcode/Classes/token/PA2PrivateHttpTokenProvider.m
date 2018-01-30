@@ -17,11 +17,7 @@
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PowerAuthSDK.h"
 #import "PA2ECIESEncryptor.h"
-#import "PA2Client.h"
-#import "PA2EncryptedRequest.h"
-#import "PA2EncryptedResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2PrivateMacros.h"
+#import "PA2PrivateNetworking.h"
 
 @implementation PA2PrivateHttpTokenProvider
 {

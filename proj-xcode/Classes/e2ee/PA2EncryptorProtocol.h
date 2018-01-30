@@ -15,7 +15,7 @@
  */
 
 
-#import <Foundation/Foundation.h>
+#import "PA2EncryptedObject.h"
 
 /** Protocol responsible for declaring methods related to encryption process.
  */

@@ -21,17 +21,13 @@ Pod::Spec.new do |s|
 		:submodules => true
 	}
 	
-	# FAT library build
+	# FAT framework build
 	s.platform        = :ios, '8.0'
 	s.prepare_command = <<-CMD
-		./scripts/ios-build-libraries.sh debug --lib-dir Library --hdr-dir Library
+		./scripts/ios-build-libraries.sh debug --out-dir Library
 	CMD
 	
 	# Produced files
-	s.source_files          = 'Library/**/*.h'
-	s.public_header_files   = 'Library/**/*.h'
-	s.vendored_libraries    = 'Library/libPowerAuth2.a'
-	s.requires_arc          = true
-	s.libraries             = 'c++'
+  s.vendored_frameworks   = 'Library/PowerAuth2.framework'
 	
 end

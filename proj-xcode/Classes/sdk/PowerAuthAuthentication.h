@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Macros.h"
 
 /** Class representing a multi-factor authentication object.
  */
@@ -34,9 +34,17 @@
 
 /** (optional) Specifies the text displayed on Touch ID prompt in case Touch ID is required to obtain data.
  
- Use this value to give user a hint on what is Touch ID used for in this specific authentication. For example, include a name of the account user uses to log in.
+ This property is deprecated, please use `biometryPrompt` as a replacement. Setting value to this property
+ automatically change content of `biometryPrompt`.
  */
-@property (nonatomic, strong, nullable) NSString *touchIdPrompt;
+@property (nonatomic, strong, nullable) NSString *touchIdPrompt PA2_DEPRECATED;
+
+/** (optional) Specifies the text displayed on Touch or Face ID prompt in case biometry is required to obtain data.
+ 
+ Use this value to give user a hint on what is biometric authentication used for in this specific authentication.
+ For example, include a name of the account user uses to log in.
+ */
+@property (nonatomic, strong, nullable) NSString *biometryPrompt;
 
 /** (optional) If 'usePossession' is set to YES, this value may specify possession key data. If no custom data is specified, default possession key is used.
  */

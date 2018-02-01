@@ -42,7 +42,13 @@
 	#define PALog(...)
 #endif
 
-
+/**
+ Macro for marking interface as deprecated.
+ 
+ We're keeping deprecated API's up to the next major release of SDK. For example, if something
+ is marked as deprecated in 0.18.x, then the interface will be removed in 0.19.0
+ */
+#define PA2_DEPRECATED __attribute__((deprecated))
 
 #pragma mark - Extern declaration
 

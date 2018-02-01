@@ -239,7 +239,7 @@ static PowerAuthSDK *inst;
 		if (authentication.overridenBiometryKey) { // user specified a custom biometry key
 			biometryKey = authentication.overridenBiometryKey;
 		} else { // default biometry key should be fetched
-			biometryKey = [self biometryRelatedKeyUserCancelled:userCancelled prompt:authentication.touchIdPrompt];
+			biometryKey = [self biometryRelatedKeyUserCancelled:userCancelled prompt:authentication.biometryPrompt];
 			if (*userCancelled) {
 				return nil;
 			}
@@ -717,7 +717,7 @@ static PowerAuthSDK *inst;
 		
 		[_statusKeychain addValue:_session.serializedState forKey:_configuration.instanceId];
 		if (biometryKey) {
-			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier useTouchId:YES];
+			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier useBiometry:YES];
 		}
 	}
 	
@@ -946,7 +946,7 @@ static PowerAuthSDK *inst;
 	PA2SignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication userCancelled:&userCancelled];
 	if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
 		if (error) {
-			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeTouchIDCancel userInfo:nil];
+			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryCancel userInfo:nil];
 		}
 		return nil;
 	}
@@ -1024,9 +1024,9 @@ static PowerAuthSDK *inst;
 - (PA2OperationTask*) addBiometryFactor:(NSString*)password
 							   callback:(void(^)(NSError *error))callback {
 	
-	// Check if Touch ID can be used
-	if (![PA2Keychain canUseTouchId]) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeTouchIDNotAvailable userInfo:nil];
+	// Check if biometry can be used
+	if (![PA2Keychain canUseBiometricAuthentication]) {
+		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryNotAvailable userInfo:nil];
 		callback(error);
 		PA2OperationTask *task = [[PA2OperationTask alloc] init]; // tmp task
 		[task cancel];
@@ -1067,7 +1067,7 @@ static PowerAuthSDK *inst;
 				// Update keychain values after each successful calculations
 				[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
 				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useTouchId:YES];
+				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
 				callback(nil);
 			}
 		} else {

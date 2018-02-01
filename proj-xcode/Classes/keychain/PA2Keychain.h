@@ -16,15 +16,36 @@
 
 #import "PA2KeychainConfiguration.h"
 
-/** Enum encapsulating possible Keychain query result.
+/**
+ Enum encapsulating possible Keychain query result.
  */
 typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 	PA2KeychainStoreItemResult_Ok = 0,
-	PA2KeychainStoreItemResult_TouchIDNotAvailable = 1,
+	PA2KeychainStoreItemResult_BiometryNotAvailable = 1,
 	PA2KeychainStoreItemResult_Duplicate = 2,
 	PA2KeychainStoreItemResult_NotFound = 3,
-	PA2KeychainStoreItemResult_Other = 4
+	PA2KeychainStoreItemResult_Other = 4,
+	PA2KeychainStoreItemResult_TouchIDNotAvailable PA2_DEPRECATED = 100
 };
+
+/**
+ Enum encapsulating supported biometric authentication types.
+ */
+typedef NS_ENUM(int, PA2SupportedBiometricAuthentication) {
+	/**
+	 Biometric authentication is not supported on the current system.
+	 */
+	PA2SupportedBiometricAuthentication_None,
+	/**
+	 Touch ID is supported on the current system.
+	 */
+	PA2SupportedBiometricAuthentication_TouchID,
+	/**
+	 Face ID is supported on the current system.
+	 */
+	PA2SupportedBiometricAuthentication_FaceID,
+};
+
 
 /** Simple wrapper on top of an iOS Keychain.
  */
@@ -39,14 +60,16 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
  */
 @property (nonatomic, strong, nullable, readonly) NSString * accessGroup;
 
-/** Init a new keychain instance for a service with given identifier.
+/**
+ Init a new keychain instance for a service with given identifier.
 
  @param identifier Identifier of the service.
  @return New instance of a PA2Keychain.
  */
 - (nonnull instancetype) initWithIdentifier:(nonnull NSString*)identifier;
 
-/** Init a new keychain instance for a service with given identifier.
+/**
+ Init a new keychain instance for a service with given identifier.
  
  @param identifier Identifier of the service.
  @param accessGroup Access group for the Keychain Sharing.
@@ -63,7 +86,9 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 - (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
 								 forKey:(nonnull NSString*)key;
 
-/** Store data for given key in the Keychain asynchronously, return the result in a callback. If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned.
+/**
+ Store data for given key in the Keychain asynchronously, return the result in a callback. If a value for given key exists,
+ 'PA2KeychainStoreItemResult_Duplicate' is returned.
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
@@ -73,34 +98,41 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 		   forKey:(nonnull NSString*)key
 	   completion:(nonnull void(^)(PA2KeychainStoreItemResult status))completion;
 
-/** Store data for given key in the Keychain synchronously.
+/**
+ Store data for given key in the Keychain synchronously.
  
- If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally protect the record with Touch ID on iOS 9.0 and newer. When iOS version is lower than 9.0 nad Touch ID is requested, this method returns 'PA2KeychainStoreItemResult_TouchIDNotAvailable' response code.
+ If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
+ protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
+ this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
- @param useTouchId If set to true, the record will be protected using Touch ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
+ @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
  @return Operation result.
  */
 - (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
 								 forKey:(nonnull NSString*)key
-							 useTouchId:(BOOL)useTouchId;
+							useBiometry:(BOOL)useBiometry;
 
-/** Store data for given key in the Keychain asynchronously, return the result in a callback.
+/**
+ Store data for given key in the Keychain asynchronously, return the result in a callback.
  
- If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally protect the record with Touch ID on iOS 9.0 and newer. When iOS version is lower than 9.0 nad Touch ID is requested, this method returns 'PA2KeychainStoreItemResult_TouchIDNotAvailable' response code.
+ If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
+ protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
+ this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
- @param useTouchId If set to true, the record will be protected using Touch ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
+ @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
  @param completion Callback with the operation result.
  */
 - (void) addValue:(nonnull NSData*)data
 		   forKey:(nonnull NSString*)key
-	   useTouchId:(BOOL)useTouchId
+	  useBiometry:(BOOL)useBiometry
 	   completion:(nonnull void(^)(PA2KeychainStoreItemResult status))completion;
 
-/** Updates data for given key in the Keychain synchronously. If a value for given key does not exist, 'PA2KeychainStoreItemResult_NotFound' is returned.
+/**
+ Updates data for given key in the Keychain synchronously. If a value for given key does not exist, 'PA2KeychainStoreItemResult_NotFound' is returned.
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
@@ -109,7 +141,9 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 - (PA2KeychainStoreItemResult) updateValue:(nonnull NSData*)data
 									forKey:(nonnull NSString*)key;
 
-/** Updates data for given key in the Keychain asynchronously, returns the result in a callback. If a value for given key does not exist, 'PA2KeychainStoreItemResult_NotFound' is returned.
+/**
+ Updates data for given key in the Keychain asynchronously, returns the result in a callback. If a value for given key does not exist,
+ 'PA2KeychainStoreItemResult_NotFound' is returned.
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
@@ -134,15 +168,18 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 - (void) deleteDataForKey:(nonnull NSString*)key
 			   completion:(nonnull void(^)(BOOL deleted))completion;
 
-/** Delete all data that are stored for all keychains.
+/**
+ Delete all data that are stored for all keychains.
  */
 + (void) deleteAllData;
 
-/** Delete all data that are stored in this keychain.
+/**
+ Delete all data that are stored in this keychain.
  */
 - (void) deleteAllData;
 
-/** Retrieve the data for given key in the Keychain synchronously, in case record requires Touch ID, use given prompt in the dialog.
+/**
+ Retrieve the data for given key in the Keychain synchronously, in case record requires Touch ID, use given prompt in the dialog.
  
  @param key Key for which to retrieve the value.
  @param status Status that was returned when obtaining keychain item.
@@ -151,7 +188,8 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
  */
 - (nullable NSData*) dataForKey:(nonnull NSString *)key status:(nullable OSStatus *)status prompt:(nullable NSString*)prompt;
 
-/** Retrieve the data for given key in the Keychain synchronously.
+/**
+ Retrieve the data for given key in the Keychain synchronously.
  
  @param key Key for which to retrieve the value.
  @param status Status that was returned when obtaining keychain item.
@@ -159,17 +197,19 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
  */
 - (nullable NSData*) dataForKey:(nonnull NSString*)key status:(nullable OSStatus *)status;
 
-/** Retrieve the data for given key in the Keychain asynchronously, return result in a callbacl.
+/**
+ Retrieve the data for given key in the Keychain asynchronously, return result in a callbacl.
  
  @param key Key for which to retrieve the value.
- @param prompt Prompt displayed to user when requesting record with Touch ID.
+ @param prompt Prompt displayed to user when requesting record protected with biometry.
  @param completion Callback with the retrieved data.
  */
 - (void) dataForKey:(nonnull NSString*)key
 			 prompt:(nullable NSString*)prompt
 		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion;
 
-/** Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
+/**
+ Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
  
  @param key Key for which to retrieve the value.
  @param completion Callback with the retrieved data.
@@ -177,14 +217,16 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 - (void) dataForKey:(nonnull NSString*)key
 		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion;
 
-/** Checks if a value exists for given key in Keychain synchronously.
+/**
+ Checks if a value exists for given key in Keychain synchronously.
  
  @param key Key for which to check the value presence.
  @return Returns YES in case record for given key was found, NO otherwise.
  */
 - (BOOL) containsDataForKey:(nonnull NSString*)key;
 
-/** Checks if a value exists for given key in Keychain asynchronously, return result in a callback.
+/**
+ Checks if a value exists for given key in Keychain asynchronously, return result in a callback.
  
  @param key Key for which to check the value presence.
  @param completion Callback with the information about value presence.
@@ -192,28 +234,46 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 - (void) containsDataForKey:(nonnull NSString*)key
 				 completion:(nonnull void(^)(BOOL containsValue))completion;
 
-/** Return all items that are stored in this Keychain.
+/**
+ Return all items that are stored in this Keychain.
  
- If some of the items are protected by Touch ID, Touch ID authentication is required.
+ If some of the items are protected by Touch or Face ID, then biometric authentication is required.
  
- @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items, operation is cancelled or any error occurs.
+ @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
+         operation is cancelled or any error occurs.
  */
 - (nullable NSDictionary*) allItems;
 
-/** Return all items that are stored in this Keychain.
+/**
+ Return all items that are stored in this Keychain.
 
- If some of the items are protected by Touch ID, Touch ID authentication is required and prompt message specified as a parameter is used.
+ If some of the items are protected by Touch or Face ID, then biometric authentication is required and prompt message
+ specified as a parameter is used.
 
  @param prompt Prompt displayed in case that Touch ID authentication is required.
  @param status Status that was returned when obtaining keychain item.
- @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items, operation is cancelled or any error occurs.
+ @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
+         operation is cancelled or any error occurs.
  */
 - (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt withStatus: (nullable OSStatus *)status;
 
-/** Convenience method that checks if Touch ID can be used on current system.
- 
+/**
+ Convenience method that checks if Touch ID can be used on current system.
+ @deprecated Use `canUseBiometricAuthentication` as a replacement.
  @return YES if Touch ID can be used (iOS 9.0+), NO otherwise.
  */
-+ (BOOL) canUseTouchId;
++ (BOOL) canUseTouchId PA2_DEPRECATED;
+
+/**
+ Convenience static property that checks if Touch ID or Face ID can be used on the current system.
+ @return YES if biometry can be used (iOS 9.0+), NO otherwise. On watchOS or iOS App Extensions always returns NO.
+ */
+@property (class, readonly) BOOL canUseBiometricAuthentication;
+
+/**
+ Convenience static property that returns supported biometry on the current system.
+ @return Type of supported biometric authentication on current system. On watchOS or iOS App Extensions always returns None.
+ */
+@property (class, readonly) PA2SupportedBiometricAuthentication supportedBiometricAuthentication;
 
 @end

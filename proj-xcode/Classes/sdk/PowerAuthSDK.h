@@ -311,7 +311,7 @@
 
 /** Checks if a biometry related factor is present.
  
- This method returns the information about the key value being present in keychain. To check if TouchID is present and enabled on the device, use `PA2Keychain#canUseTouchID` method.
+ This method returns the information about the key value being present in keychain. To check if biometric suppoty is present and enabled on the device, use `PA2Keychain.canUseBiometricAuthentication` property.
  
  @return YES if there is a biometry factor present in the keychain, NO otherwise.
  */

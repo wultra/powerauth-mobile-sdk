@@ -25,11 +25,21 @@
 		copy->_usePossession = _usePossession;
 		copy->_useBiometry = _useBiometry;
 		copy->_usePassword = _usePassword;
-		copy->_touchIdPrompt = _touchIdPrompt;
+		copy->_biometryPrompt = _biometryPrompt;
 		copy->_overridenPossessionKey = _overridenPossessionKey;
 		copy->_overridenBiometryKey = _overridenBiometryKey;
 	}
 	return copy;
+}
+
+- (void) setTouchIdPrompt:(NSString *)touchIdPrompt
+{
+	_biometryPrompt = touchIdPrompt;
+}
+
+- (NSString*) biometryPrompt
+{
+	return _biometryPrompt;
 }
 
 #if DEBUG
@@ -47,7 +57,7 @@
 	}
 	NSString * factors_str = [factors componentsJoinedByString:@"_"];
 	NSMutableArray * info = [NSMutableArray array];
-	if (_touchIdPrompt) {
+	if (_biometryPrompt) {
 		[info addObject:@"+prompt"];
 	}
 	if (_overridenBiometryKey) {

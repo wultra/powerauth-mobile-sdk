@@ -51,27 +51,27 @@
 #pragma mark - Adding a new records
 
 - (PA2KeychainStoreItemResult)addValue:(NSData *)data forKey:(NSString *)key {
-	return [self addValue:data forKey:key useTouchId:NO];
+	return [self addValue:data forKey:key useBiometry:NO];
 }
 
-- (PA2KeychainStoreItemResult)addValue:(NSData *)data forKey:(NSString *)key useTouchId:(BOOL)useTouchId {
+- (PA2KeychainStoreItemResult)addValue:(NSData *)data forKey:(NSString *)key useBiometry:(BOOL)useBiometry {
 	if ([self containsDataForKey:key]) {
 		return PA2KeychainStoreItemResult_Duplicate;
 	} else {
-		return [self implAddValue:data forKey:key useTouchId:useTouchId];
+		return [self implAddValue:data forKey:key useBiometry:useBiometry];
 	}
 }
 
 - (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PA2KeychainStoreItemResult status))completion {
-	[self addValue:data forKey:key useTouchId:NO completion:completion];
+	[self addValue:data forKey:key useBiometry:NO completion:completion];
 }
 
-- (void) addValue:(NSData*)data forKey:(NSString*)key useTouchId:(BOOL)useTouchId completion:(void(^)(PA2KeychainStoreItemResult status))completion {
+- (void) addValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry completion:(void(^)(PA2KeychainStoreItemResult status))completion {
 	[self containsDataForKey:key completion:^(BOOL containsValue) {
 		if (containsValue) {
 			completion(PA2KeychainStoreItemResult_Duplicate);
 		} else {
-			completion([self implAddValue:data forKey:key useTouchId:useTouchId]);
+			completion([self implAddValue:data forKey:key useBiometry:useBiometry]);
 		}
 	}];
 }
@@ -262,39 +262,52 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
     return result;
 }
 
-#pragma mark - Touch ID support
+#pragma mark - Biometry support
 
 + (BOOL) canUseTouchId
 {
-#if defined(PA2_EXTENSION_SDK)
-	// On watchOS or extensions, always return NO
-	return NO;
-#else
-	// Regular IOS
-	// Don't allow Touch ID before iOS 9.0
-	if (@available(iOS 9, *)) {
-		// Check if Touch ID can be used on current system
-		NSError *error = nil;
-		LAContext *context = [[LAContext alloc] init];
-		BOOL hasTouchId = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
-		if (error.code == kLAErrorTouchIDNotAvailable) {
-			hasTouchId = NO;
-		}
-		return hasTouchId;
-	}
-	return NO;
-#endif
+	return [self canUseBiometricAuthentication];
 }
+
++ (BOOL) canUseBiometricAuthentication
+{
+	return [self supportedBiometricAuthentication] != PA2SupportedBiometricAuthentication_None;
+}
+
++ (PA2SupportedBiometricAuthentication) supportedBiometricAuthentication
+{
+#if !defined(PA2_EXTENSION_SDK)
+	// Check is available only for regular iOS applications
+	if (@available(iOS 9, *)) {
+		LAContext * context = [[LAContext alloc] init];
+		BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:nil];
+		if (canEvaluate) {
+			if (@available(iOS 11.0, *)) {
+				LABiometryType bt = context.biometryType;
+				if (bt == LABiometryTypeTouchID) {
+					return PA2SupportedBiometricAuthentication_TouchID;
+				} else if (bt == LABiometryTypeFaceID) {
+					return PA2SupportedBiometricAuthentication_FaceID;
+				}
+			}
+			// No Face ID before iOS11
+			return PA2SupportedBiometricAuthentication_TouchID;
+		}
+	}
+#endif // !defined(PA2_EXTENSION_SDK)
+	return PA2SupportedBiometricAuthentication_None;
+}
+
 
 #pragma mark - Private methods
 
-- (PA2KeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key useTouchId:(BOOL)useTouchId {
-	
+- (PA2KeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry
+{
 	// Return if iOS version is lower than iOS 9.0 - we cannot securely store a biometric key here.
 	// Call is moved here so that we spare further object allocations.
-	if (useTouchId) {
-		if (![PA2Keychain canUseTouchId]) {
-			return PA2KeychainStoreItemResult_TouchIDNotAvailable;
+	if (useBiometry) {
+		if (![PA2Keychain canUseBiometricAuthentication]) {
+			return PA2KeychainStoreItemResult_BiometryNotAvailable;
 		}
 	}
 	
@@ -307,7 +320,7 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
 	SecAccessControlCreateFlags flags;
 	if (@available(iOS 9, *)) {
-		flags = useTouchId ? kSecAccessControlTouchIDAny : kNilOptions;
+		flags = useBiometry ? kSecAccessControlTouchIDAny : kNilOptions;
 	} else {
 		flags = kNilOptions;
 	}

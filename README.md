@@ -16,3 +16,7 @@ All sources are licensed using Apache 2.0 license, you can use them with no rest
 ## Contact
 
 If you need any assistance, do not hesitate to drop us a line at hello@lime-company.eu.
+
+### Security Disclosure
+
+If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to hello@lime-company.eu. Please do not post it to a public issue tracker.

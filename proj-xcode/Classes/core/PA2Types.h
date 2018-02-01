@@ -456,6 +456,12 @@ typedef NS_ENUM(int, PA2ActivationState) {
  */
 @property (nonatomic, assign, readonly) UInt32 maxFailCount;
 /**
+ Contains (maxFailCount - failCount) if state is `PA2ActivationState_Active`,
+ otherwise 0.
+ */
+@property (nonatomic, assign, readonly) UInt32 remainingAttempts;
+
+/**
  Counter on the server's side. The value is only informational and may
  be used for debugging purposes. You can compare it with the value stored
  in the module's persistent data and deduce whether the server's counter

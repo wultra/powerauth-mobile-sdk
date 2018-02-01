@@ -56,7 +56,7 @@ INFO_PLIST_WOS="proj-xcode/Extensions/WatchOS/Info.plist"
 
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
-DEV_BRANCH="development"
+DEV_BRANCH="develop"
 # Runtime global vars
 GIT_VALIDATE_DEVELOPMENT_BRANCH=1
 GIT_SKIP_TAGS=0
@@ -66,7 +66,7 @@ DO_IOS=0
 DO_ANDROID=0
 
 # -----------------------------------------------------------------------------
-# Validate whether git branch is development
+# Validate whether git branch is 'develop'
 # -----------------------------------------------------------------------------
 function VALIDATE_GIT_STATUS
 {

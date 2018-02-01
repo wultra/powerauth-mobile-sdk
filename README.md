@@ -19,4 +19,4 @@ If you need any assistance, do not hesitate to drop us a line at hello@lime-comp
 
 ### Security Disclosure
 
-If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to hello@lime-company.eu. Please do not post it to a public issue tracker.
+If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to support@lime-company.eu. Please do not post it to a public issue tracker.

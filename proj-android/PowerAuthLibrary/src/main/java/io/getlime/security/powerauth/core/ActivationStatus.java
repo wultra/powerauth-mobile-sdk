@@ -56,6 +56,18 @@ public class ActivationStatus {
      Maximum number of allowed failed authentication attempts in a row.
      */
     public final int maxFailCount;
+
+    /**
+     * @return (maxFailCount - failCount) if state is State_Active, otherwise 0.
+     */
+    public final int getRemainingAttempts() {
+        if (state == State_Active) {
+            if (maxFailCount >= failCount) {
+                return maxFailCount - failCount;
+            }
+        }
+        return 0;
+    }
     
     /**
      Signing counter on the server's side. This value is usable only

@@ -197,6 +197,16 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 	return _status.maxFailCount;
 }
 
+- (UInt32) remainingAttempts
+{
+	if (_status.state == ActivationStatus::Active) {
+		if (_status.maxFailCount >= _status.failCount) {
+			return _status.maxFailCount - _status.failCount;
+		}
+	}
+	return 0;
+}
+
 #ifdef DEBUG
 - (NSString*) description
 {

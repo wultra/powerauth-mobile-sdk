@@ -31,9 +31,15 @@ function USAGE
 	echo "dangerous options:"
 	echo "    --any-branch      allow deployment from any git branch"
 	echo "                      This version will not be merged to master"
-	echo "    --skip-tags       skip version creation and tagging"
+	echo ""
+	echo "    --skip-tag        skip version creation and tagging"
 	echo "                      This is useful when publishing fails and"
 	echo "                      version files are already pushed in repo."
+	echo ""
+	echo "    --create-tag      prepares versioning files only, no deploy"
+	echo "                      This is useful when you need to prepare"
+	echo "                      versioning files only, without pushing"
+	echo "                      changes to remote repository"
 	echo ""
 	exit $1
 }
@@ -44,6 +50,9 @@ PODSPEC="PowerAuth2.podspec"
 PODSPEC_DBG="PowerAuth2-Debug.podspec"
 PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
 PODSPEC_WOS="PowerAuth2ForWatch.podspec"
+INFO_PLIST="proj-xcode/Classes/Info.plist"
+INFO_PLIST_EXT="proj-xcode/Extensions/IOS/Info.plist"
+INFO_PLIST_WOS="proj-xcode/Extensions/WatchOS/Info.plist"
 
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
@@ -51,6 +60,7 @@ DEV_BRANCH="development"
 # Runtime global vars
 GIT_VALIDATE_DEVELOPMENT_BRANCH=1
 GIT_SKIP_TAGS=0
+GIT_ONLY_TAGS=0
 STANDARD_BRANCH=0
 DO_IOS=0
 DO_ANDROID=0
@@ -96,16 +106,10 @@ function VALIDATE_GIT_STATUS
 }
 
 # -----------------------------------------------------------------------------
-# Prepares local files which contains version string, then commits those
-# files with appropriate tag and pushes everything to the remote git repository
+# Prepares all versioning files and commit & tag changes
 # -----------------------------------------------------------------------------
-function PUSH_VERSIONING_FILES
+function PREPARE_VERSIONING_FILES
 {
-	if [ x$GIT_SKIP_TAGS == x1 ]; then
-		WARNING "Skipping versioning files creation."
-		return
-	fi
-	
 	PUSH_DIR "${SRC_ROOT}"
 	####
 	if [ x$DO_IOS == x1 ]; then
@@ -121,8 +125,16 @@ function PUSH_VERSIONING_FILES
 		git add ${PODSPEC_WOS}
 		# ios app extensions
 		LOG "----- Generating ${PODSPEC_EXT}..."
-		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}" 
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
 		git add ${PODSPEC_EXT}
+		# Info.plist files
+		LOG "----- Generating ${INFO_PLIST}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
+		LOG "----- Generating ${INFO_PLIST_WOS}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Watch-Info.plist" > "$SRC_ROOT/${INFO_PLIST_WOS}"
+		LOG "----- Generating ${INFO_PLIST_EXT}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Ext-Info.plist" > "$SRC_ROOT/${INFO_PLIST_EXT}"
+		git add ${INFO_PLIST} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
 	fi
 	if [ x$DO_ANDROID == x1 ]; then
 		LOG "----- Generating gradle.properties..."
@@ -150,10 +162,33 @@ function PUSH_VERSIONING_FILES
 	
 	LOG "----- Tagging version ${VERSION}..."
 	git tag -a ${VERSION} -m "${TAG_MESSAGE}"
+	####
+	POP_DIR
+}
+
+# -----------------------------------------------------------------------------
+# Prepares local files which contains version string, then commits those
+# files with appropriate tag and pushes everything to the remote git repository
+# -----------------------------------------------------------------------------
+function PUSH_VERSIONING_FILES
+{
+	if [ x$GIT_SKIP_TAGS == x1 ]; then
+		WARNING "Skipping versioning files creation."
+		return
+	fi
 	
+	PREPARE_VERSIONING_FILES
+	
+	if [ x$GIT_ONLY_TAGS == x1 ]; then
+		LOG "All versioning files has been created. Check your local git repository for details."
+		LOG "Exiting process as requested."
+		exit 0
+	fi
+	
+	PUSH_DIR "${SRC_ROOT}"
+	###
 	LOG "----- Pushing changes..."
 	git push --follow-tags 
-	
 	####
 	POP_DIR
 }
@@ -273,8 +308,11 @@ do
 		--any-branch)
 			GIT_VALIDATE_DEVELOPMENT_BRANCH=0
 			;;
-		--skip-tags)
+		--skip-tag)
 			GIT_SKIP_TAGS=1
+			;;
+		--create-tag)
+			GIT_ONLY_TAGS=1
 			;;
 		android)
 			DO_ANDROID=1

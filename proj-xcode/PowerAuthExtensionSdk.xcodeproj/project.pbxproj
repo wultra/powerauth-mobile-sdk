@@ -112,8 +112,6 @@
 		BF462B702011009400529EFC /* PA2WCSessionPacket_Success.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_Success.h; path = Classes/watch/model/PA2WCSessionPacket_Success.h; sourceTree = "<group>"; };
 		BF462B712011009400529EFC /* PA2WCSessionPacket_Success.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_Success.m; path = Classes/watch/model/PA2WCSessionPacket_Success.m; sourceTree = "<group>"; };
 		BF5491D41FFFB9220036DB9E /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BF5491DD1FFFB9A90036DB9E /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BF5491FA1FFFBBF70036DB9E /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		BF5491FC1FFFBFA90036DB9E /* PowerAuth2ForExtensions-umbrella.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PowerAuth2ForExtensions-umbrella.h"; sourceTree = "<group>"; };
 		BF54921A1FFFE15C0036DB9E /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		BF5A23771FE0096100B78DE2 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateCrypto.h; path = Classes/core/PA2PrivateCrypto.h; sourceTree = "<group>"; };
@@ -140,8 +138,6 @@
 		BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ExtensionLibrary.m; sourceTree = "<group>"; };
 		BF8E4EFD2010DC7800010B74 /* PA2WatchRemoteTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WatchRemoteTokenProvider.h; sourceTree = "<group>"; };
 		BF8E4EFE2010DC7800010B74 /* PA2WatchRemoteTokenProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WatchRemoteTokenProvider.m; sourceTree = "<group>"; };
-		BFA0E25E200CF0F00011F0A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BFA0E25F200CF0F00011F0A6 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		BFA0E261200CF1A10011F0A6 /* PowerAuth2ForWatch-umbrella.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PowerAuth2ForWatch-umbrella.h"; sourceTree = "<group>"; };
 		BFA0E269200CF28A0011F0A6 /* PowerAuth2ForWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFA0E271200CF2F70011F0A6 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS4.2.sdk/System/Library/Frameworks/Security.framework; sourceTree = DEVELOPER_DIR; };
@@ -162,6 +158,10 @@
 		BFA0E2D7200FB5600011F0A6 /* PA2WeakArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WeakArray.h; path = Classes/core/PA2WeakArray.h; sourceTree = "<group>"; };
 		BFA0E2D8200FB5600011F0A6 /* PA2WeakArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WeakArray.m; path = Classes/core/PA2WeakArray.m; sourceTree = "<group>"; };
 		BFA0E2DD200FCF710011F0A6 /* PA2WCSessionManager_WatchServices.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WCSessionManager_WatchServices.m; sourceTree = "<group>"; };
+		BFCEF4842023A23A00C14EC1 /* PowerAuth2ForExtensions.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = PowerAuth2ForExtensions.modulemap; sourceTree = "<group>"; };
+		BFCEF4852023A23A00C14EC1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BFCEF4882023AA5C00C14EC1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BFCEF4892023AA5C00C14EC1 /* PowerAuth2ForWatch.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = PowerAuth2ForWatch.modulemap; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,15 +202,6 @@
 				BF0EBEDB1FE166B700E97918 /* PA2SessionStatusDataReader.m */,
 			);
 			path = Private;
-			sourceTree = "<group>";
-		};
-		BF5491DC1FFFB9A90036DB9E /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				BF5491FA1FFFBBF70036DB9E /* module.modulemap */,
-				BF5491DD1FFFB9A90036DB9E /* Info.plist */,
-			);
-			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		BF5492191FFFE15C0036DB9E /* Frameworks */ = {
@@ -309,7 +300,7 @@
 		BF7D505D1FDFFB3000200119 /* IOS */ = {
 			isa = PBXGroup;
 			children = (
-				BF5491DC1FFFB9A90036DB9E /* Supporting Files */,
+				BFCEF4832023A22A00C14EC1 /* Supporting Files */,
 				BF3017621FE024560099B253 /* PowerAuthExtensionSDK.h */,
 				BF3017631FE024560099B253 /* PowerAuthExtensionSDK.m */,
 				BF5491FC1FFFBFA90036DB9E /* PowerAuth2ForExtensions-umbrella.h */,
@@ -321,7 +312,7 @@
 		BF7D505E1FDFFB3000200119 /* WatchOS */ = {
 			isa = PBXGroup;
 			children = (
-				BFA0E25D200CF0F00011F0A6 /* Supporting Files */,
+				BFCEF4872023AA4700C14EC1 /* Supporting Files */,
 				BFA0E2D3200FA2E80011F0A6 /* private */,
 				BF3017651FE0247A0099B253 /* PowerAuthWatchSDK.h */,
 				BF3017661FE0247A0099B253 /* PowerAuthWatchSDK.m */,
@@ -342,15 +333,6 @@
 				BFA0E2A4200D128A0011F0A6 /* watch */,
 			);
 			name = PowerAuthShared;
-			sourceTree = "<group>";
-		};
-		BFA0E25D200CF0F00011F0A6 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				BFA0E25E200CF0F00011F0A6 /* Info.plist */,
-				BFA0E25F200CF0F00011F0A6 /* module.modulemap */,
-			);
-			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		BFA0E2A4200D128A0011F0A6 /* watch */ = {
@@ -392,6 +374,24 @@
 				BF8E4EFE2010DC7800010B74 /* PA2WatchRemoteTokenProvider.m */,
 			);
 			path = private;
+			sourceTree = "<group>";
+		};
+		BFCEF4832023A22A00C14EC1 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				BFCEF4852023A23A00C14EC1 /* Info.plist */,
+				BFCEF4842023A23A00C14EC1 /* PowerAuth2ForExtensions.modulemap */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		BFCEF4872023AA4700C14EC1 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				BFCEF4882023AA5C00C14EC1 /* Info.plist */,
+				BFCEF4892023AA5C00C14EC1 /* PowerAuth2ForWatch.modulemap */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -619,12 +619,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "Extensions/IOS/Supporting Files/Info.plist";
+				INFOPLIST_FILE = Extensions/IOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Extensions/IOS/Supporting Files/module.modulemap";
+				MODULEMAP_FILE = Extensions/IOS/PowerAuth2ForExtensions.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2ForExtensions;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -648,12 +648,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "Extensions/IOS/Supporting Files/Info.plist";
+				INFOPLIST_FILE = Extensions/IOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Extensions/IOS/Supporting Files/module.modulemap";
+				MODULEMAP_FILE = Extensions/IOS/PowerAuth2ForExtensions.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2ForExtensions;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -786,12 +786,12 @@
 					"$(inherited)",
 					"PA2_WATCH_SDK=1",
 				);
-				INFOPLIST_FILE = "Extensions/WatchOS/Supporting Files/Info.plist";
+				INFOPLIST_FILE = Extensions/WatchOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Extensions/WatchOS/Supporting Files/module.modulemap";
+				MODULEMAP_FILE = Extensions/WatchOS/PowerAuth2ForWatch.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2ForWatch;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = watchos;
@@ -819,12 +819,12 @@
 					"$(inherited)",
 					"PA2_WATCH_SDK=1",
 				);
-				INFOPLIST_FILE = "Extensions/WatchOS/Supporting Files/Info.plist";
+				INFOPLIST_FILE = Extensions/WatchOS/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "Extensions/WatchOS/Supporting Files/module.modulemap";
+				MODULEMAP_FILE = Extensions/WatchOS/PowerAuth2ForWatch.modulemap;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2ForWatch;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = watchos;

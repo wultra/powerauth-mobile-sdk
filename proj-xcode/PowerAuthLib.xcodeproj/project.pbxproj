@@ -460,7 +460,7 @@
 		BFA5851E201F8771000DCD22 /* PowerAuth2.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFA58526201F87E9000DCD22 /* PowerAuth2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuth2.h; sourceTree = "<group>"; };
 		BFA58527201F87E9000DCD22 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BFA5852A201F891A000DCD22 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		BFA5852A201F891A000DCD22 /* PowerAuth2.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = PowerAuth2.modulemap; sourceTree = "<group>"; };
 		BFA585CE2020B9E6000DCD22 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		BFA585D52020E30A000DCD22 /* PA2PublicNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PublicNetworking.h; sourceTree = "<group>"; };
 		BFA585D92020E32A000DCD22 /* PA2PrivateNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateNetworking.h; sourceTree = "<group>"; };
@@ -610,7 +610,7 @@
 				BFA0E29F200D12420011F0A6 /* watch */,
 				BFA58526201F87E9000DCD22 /* PowerAuth2.h */,
 				BFA58527201F87E9000DCD22 /* Info.plist */,
-				BFA5852A201F891A000DCD22 /* module.modulemap */,
+				BFA5852A201F891A000DCD22 /* PowerAuth2.modulemap */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -1719,7 +1719,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "$(SRCROOT)/Classes/module.modulemap";
+				MODULEMAP_FILE = Classes/PowerAuth2.modulemap;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -1753,7 +1753,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				MACH_O_TYPE = staticlib;
-				MODULEMAP_FILE = "$(SRCROOT)/Classes/module.modulemap";
+				MODULEMAP_FILE = Classes/PowerAuth2.modulemap;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";

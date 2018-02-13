@@ -31,14 +31,13 @@
 /** In case a config is missing, exception with this identifier is thrown. */
 NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 
-#pragma mark - Static variable for the configurable singleton
-
-static PowerAuthSDK *inst;
-
 #pragma mark - PowerAuth SDK implementation
 
 @implementation PowerAuthSDK {
-	PowerAuthConfiguration *_configuration;
+	PowerAuthConfiguration * _configuration;
+	PA2KeychainConfiguration * _keychainConfiguration;
+	PA2ClientConfiguration * _clientConfiguration;
+	
 	PA2Client *_client;
 	NSString *_biometryKeyIdentifier;
 	PA2Keychain *_statusKeychain;
@@ -49,7 +48,10 @@ static PowerAuthSDK *inst;
 
 #pragma mark - Private methods
 
-- (void) initializeWithConfiguration:(PowerAuthConfiguration*)configuration {
+- (void) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
+			   keychainConfiguration:(PA2KeychainConfiguration*)keychainConfiguration
+				 clientConfiguration:(PA2ClientConfiguration*)clientConfiguration
+{
 	
 	// Check if the configuration was nil
 	if (configuration == nil) {
@@ -60,7 +62,11 @@ static PowerAuthSDK *inst;
 	if (![configuration validateConfiguration]) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
-	_configuration = configuration;
+	
+	// Make copy of configuration objects
+	_configuration = [configuration copy];
+	_keychainConfiguration = [(_keychainConfiguration ? _keychainConfiguration : [PA2KeychainConfiguration sharedInstance]) copy];
+	_clientConfiguration = [(_clientConfiguration ? _clientConfiguration : [PA2ClientConfiguration sharedInstance]) copy];
 	
 	// Prepare identifier for biometry related keys - use instanceId by default, or a custom value if set
 	_biometryKeyIdentifier = _configuration.keychainKey_Biometry ? _configuration.keychainKey_Biometry : _configuration.instanceId;
@@ -81,19 +87,18 @@ static PowerAuthSDK *inst;
 	// Create and setup a new client
 	_client = [[PA2Client alloc] init];
 	_client.baseEndpointUrl = configuration.baseEndpointUrl;
-	_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
-	_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
+	_client.defaultRequestTimeout = _clientConfiguration.defaultRequestTimeout;
+	_client.sslValidationStrategy = _clientConfiguration.sslValidationStrategy;
 	
 	// Create a new keychain instances
-	PA2KeychainConfiguration *keychainConfiguration = [PA2KeychainConfiguration sharedInstance];
-	_statusKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
-													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Possession
-													accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Biometry];
+	_statusKeychain			= [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Status
+													accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+	_sharedKeychain			= [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Possession
+													accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+	_biometryOnlyKeychain	= [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Biometry];
 	// Initialize token store with its own keychain as a backing storage and remote token provider.
-	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
-																   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
+																   accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
 	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithSdk:self];
 	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
 																	 keychain:tokenStoreKeychain
@@ -150,6 +155,16 @@ static PowerAuthSDK *inst;
 	return [_configuration copy];
 }
 
+- (PA2ClientConfiguration*) clientConfiguration
+{
+	return [_clientConfiguration copy];
+}
+
+- (PA2KeychainConfiguration*) keychainConfiguration
+{
+	return [_keychainConfiguration copy];
+}
+
 - (NSString*) privateInstanceId
 {
 	// Private getter, used inside the IOS-SDK
@@ -185,12 +200,11 @@ static PowerAuthSDK *inst;
 
 #pragma mark - Key management
 
-- (NSData*) deviceRelatedKey {
+- (NSData*) deviceRelatedKey
+{
 	// Cache the possession key in the keychain
-	PA2KeychainConfiguration *keychainConfiguration = [PA2KeychainConfiguration sharedInstance];
-	if ([_sharedKeychain containsDataForKey:keychainConfiguration.keychainKey_Possession]) {
-		return [_sharedKeychain dataForKey:keychainConfiguration.keychainKey_Possession status:nil];
-	} else {
+	NSData * possessionKey = [_sharedKeychain dataForKey:_keychainConfiguration.keychainKey_Possession status:nil];
+	if (nil == possessionKey) {
 		NSString *uuidString;
 #if TARGET_IPHONE_SIMULATOR
 		uuidString = @"ffa184f9-341a-444f-8495-de04d0d490be";
@@ -198,10 +212,10 @@ static PowerAuthSDK *inst;
 		uuidString = [UIDevice currentDevice].identifierForVendor.UUIDString;
 #endif
 		NSData *uuidData = [uuidString dataUsingEncoding:NSUTF8StringEncoding];
-		NSData *possessionKey = [PA2Session normalizeSignatureUnlockKeyFromData:uuidData];
-		[_sharedKeychain addValue:possessionKey forKey:keychainConfiguration.keychainKey_Possession];
-		return possessionKey;
+		possessionKey = [PA2Session normalizeSignatureUnlockKeyFromData:uuidData];
+		[_sharedKeychain addValue:possessionKey forKey:_keychainConfiguration.keychainKey_Possession];
 	}
+	return possessionKey;
 }
 
 - (NSData*) biometryRelatedKeyUserCancelled:(nullable BOOL *)userCancelled prompt:(NSString*)prompt {
@@ -353,26 +367,49 @@ static PowerAuthSDK *inst;
 
 #pragma mark Initializers and SDK instance getters
 
-- (instancetype)initWithConfiguration:(PowerAuthConfiguration *)configuration {
+static PowerAuthSDK * s_inst;
+
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+						  keychainConfiguration:(nullable PA2KeychainConfiguration *)keychainConfiguration
+							clientConfiguration:(nullable PA2ClientConfiguration *)clientConfiguration
+{
 	self = [super init];
 	if (self) {
-		[self initializeWithConfiguration:configuration];
+		[self initializeWithConfiguration:configuration
+					keychainConfiguration:keychainConfiguration
+					  clientConfiguration:clientConfiguration];
 	}
 	return self;
 }
 
-+ (void) initSharedInstance:(PowerAuthConfiguration*)configuration {
+- (instancetype)initWithConfiguration:(PowerAuthConfiguration *)configuration
+{
+	return [self initWithConfiguration:configuration keychainConfiguration:nil clientConfiguration:nil];
+}
+
++ (void) initSharedInstance:(PowerAuthConfiguration*)configuration
+{
+	[self initSharedInstance:configuration keychainConfiguration:nil clientConfiguration:nil];
+}
+
++ (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration
+	  keychainConfiguration:(nullable PA2KeychainConfiguration *)keychainConfiguration
+		clientConfiguration:(nullable PA2ClientConfiguration *)clientConfiguration
+{
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		inst = [[PowerAuthSDK alloc] initWithConfiguration:configuration];
+		s_inst = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+									   keychainConfiguration:keychainConfiguration
+										 clientConfiguration:clientConfiguration];
 	});
 }
 
-+ (PowerAuthSDK*) sharedInstance {
-	if (!inst) {
++ (PowerAuthSDK*) sharedInstance
+{
+	if (!s_inst) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
-	return inst;
+	return s_inst;
 }
 
 #pragma mark Session state management

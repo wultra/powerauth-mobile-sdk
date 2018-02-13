@@ -51,10 +51,11 @@
 	NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:configuration.masterServerPublicKey options:0];
 	_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
 	// Prepare client
+	PA2ClientConfiguration * clientConfiguration = _sdk.clientConfiguration;
 	_client = [[PA2Client alloc] init];
 	_client.baseEndpointUrl = configuration.baseEndpointUrl;
-	_client.defaultRequestTimeout = [PA2ClientConfiguration sharedInstance].defaultRequestTimeout;
-	_client.sslValidationStrategy = [PA2ClientConfiguration sharedInstance].sslValidationStrategy;
+	_client.defaultRequestTimeout = clientConfiguration.defaultRequestTimeout;
+	_client.sslValidationStrategy = clientConfiguration.sslValidationStrategy;
 }
 
 - (PowerAuthTokenStoreTask) requestTokenWithName:(NSString *)name

@@ -24,6 +24,8 @@
 #import "PA2OperationTask.h"
 #import "PA2AuthorizationHttpHeader.h"
 
+@class PA2ClientConfiguration, PA2KeychainConfiguration;
+
 @interface PowerAuthSDK : NSObject<PA2SessionStatusProvider>
 
 /** Reference to the low-level PA2Session class.
@@ -48,25 +50,67 @@
  doesn't affect this SDK instance.
  */
 @property (nonatomic, strong, nonnull, readonly) PowerAuthConfiguration *configuration;
-
+/**
+ Instance of `PA2ClientConfiguration` object, provided during the object initialization.
+ 
+ Note that the copy of internal object is always returned and thus making changes to the returned object
+ doesn't affect this SDK instance.
+ */
+@property (nonatomic, strong, nonnull, readonly) PA2ClientConfiguration *clientConfiguration;
+/**
+ Instance of `PA2KeychainConfiguration` object, provided during the object initialization.
+ 
+ Note that the copy of internal object is always returned and thus making changes to the returned object
+ doesn't affect this SDK instance.
+ */
+@property (nonatomic, strong, nonnull, readonly) PA2KeychainConfiguration *keychainConfiguration;
+	
 /**
  Instance of the token store object, which provides interface for generating token based authentication headers.
  The current implementation is keeping acquired tokens in the PA2Keychain under the `PA2KeychainConfiguration.keychainInstanceName_TokenStore` service name.
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
 
-/** Creates an instance of SDK and initializes it with given configuration.
+/**
+ Creates an instance of SDK and initializes it with given configuration objects.
  
+ @param configuration to be used for initialization.
+ @param keychainConfiguration to be used for keychain configuration. If nil is provided, then `PA2KeychainConfiguration.sharedInstance()` is used.
+ @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then `PA2ClientConfiguration.sharedInstance()` is used.
+ 
+ @return Initialized instance.
+ */
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+						  keychainConfiguration:(nullable PA2KeychainConfiguration *)keychainConfiguration
+							clientConfiguration:(nullable PA2ClientConfiguration *)clientConfiguration;
+
+/**
+ Creates an instance of SDK and initializes it with given configuration.
+ The appropriate shared configs are used for object's `clientConfiguration` and `keychainConfiguration` properties.
+	 
  @param configuration to be used for initialization.
  @return Initialized instance.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration;
 
-/** Creates a default shared instance and initializes it with given configuration.
+/**
+ Creates a default shared instance and initializes it with given configuration.
+ The appropriate shared configs are used for shared instance's `clientConfiguration` and `keychainConfiguration` properties.
  
  @param configuration to be used for initialization.
  */
 + (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration;
+
+/**
+ Creates a default shared instance and initializes it with given configuration objects.
+ 
+ @param configuration to be used for initialization.
+ @param keychainConfiguration to be used for keychain configuration. If nil is provided, then `PA2KeychainConfiguration.sharedInstance()` is used.
+ @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then `PA2ClientConfiguration.sharedInstance()` is used.
+ */
++ (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration
+	  keychainConfiguration:(nullable PA2KeychainConfiguration *)keychainConfiguration
+		clientConfiguration:(nullable PA2ClientConfiguration *)clientConfiguration;
 
 /** Return the default shared instance of the PowerAuth SDK.
  

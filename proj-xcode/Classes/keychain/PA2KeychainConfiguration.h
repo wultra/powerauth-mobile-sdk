@@ -43,7 +43,7 @@ extern NSString * __nonnull const PA2KeychainKey_Possession;
 
 /** Class that is used to provide default (shared) Keychain storage configuration.
  */
-@interface PA2KeychainConfiguration : NSObject
+@interface PA2KeychainConfiguration : NSObject<NSCopying>
 
 /** Access group name used by the PowerAuthSDK keychain instances.
  */

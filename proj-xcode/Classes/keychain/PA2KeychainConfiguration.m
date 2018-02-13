@@ -41,6 +41,21 @@ NSString *const PA2Keychain_TokenStore		= @"io.getlime.PowerAuthKeychain.TokenSt
 	return self;
 }
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	PA2KeychainConfiguration * c = [[self.class allocWithZone:zone] init];
+	if (c) {
+		c->_keychainAttribute_AccessGroup = _keychainAttribute_AccessGroup;
+		c->_keychainAttribute_UserDefaultsSuiteName = _keychainAttribute_UserDefaultsSuiteName;
+		c->_keychainInstanceName_Status = _keychainInstanceName_Status;
+		c->_keychainInstanceName_Possession = _keychainInstanceName_Possession;
+		c->_keychainInstanceName_Biometry = _keychainInstanceName_Biometry;
+		c->_keychainInstanceName_TokenStore = _keychainInstanceName_TokenStore;
+		c->_keychainKey_Possession = _keychainKey_Possession;
+	}
+	return c;
+}
+
 + (PA2KeychainConfiguration *)sharedInstance
 {
 	static dispatch_once_t onceToken;

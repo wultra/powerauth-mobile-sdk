@@ -27,6 +27,16 @@
 	return self;
 }
 
+- (id)copyWithZone:(NSZone *)zone
+{
+	PA2ClientConfiguration * c = [[self.class allocWithZone:zone] init];
+	if (c) {
+		c->_defaultRequestTimeout = _defaultRequestTimeout;
+		c->_sslValidationStrategy = _sslValidationStrategy;
+	}
+	return c;
+}
+
 + (PA2ClientConfiguration *) sharedInstance
 {
 	static dispatch_once_t onceToken;

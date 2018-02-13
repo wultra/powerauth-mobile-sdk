@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BFA5851D201F8771000DCD22"
-               BuildableName = "PowerAuth2_Static.framework"
+               BuildableName = "PowerAuth2.framework"
                BlueprintName = "PowerAuth2_Static"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>

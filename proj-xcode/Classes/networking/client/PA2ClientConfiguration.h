@@ -18,7 +18,7 @@
 
 /** Class that is used to provide default (shared) RESTful API client configuration.
  */
-@interface PA2ClientConfiguration : NSObject
+@interface PA2ClientConfiguration : NSObject<NSCopying>
 
 /** Property that specifies the default HTTP client request timeout. The default value is 20.0 (seconds).
  */

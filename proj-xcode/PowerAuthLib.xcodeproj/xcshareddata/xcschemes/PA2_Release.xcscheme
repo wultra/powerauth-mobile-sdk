@@ -68,6 +68,9 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "PowerAuthConcurrencyTests">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKTests">
                </Test>
                <Test

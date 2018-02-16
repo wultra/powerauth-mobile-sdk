@@ -66,6 +66,11 @@
                BlueprintName = "XCTests"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthConcurrencyTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <AdditionalOptions>

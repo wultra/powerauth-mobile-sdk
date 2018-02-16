@@ -97,11 +97,22 @@ function BUILD_COMMAND
 	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
 	local COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
 	if [ $VERBOSE -lt 2 ]; then
-		COMMAND_LINE="$COMMAND_LINE -quiet"
+		COMMAND_LINE+=" -quiet"
 	fi
-	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -sdk ${PLATFORM}"
-	COMMAND_LINE="$COMMAND_LINE -derivedDataPath ${TMP_DIR}/DerivedData"
-	COMMAND_LINE="$COMMAND_LINE BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO ${COMMAND}"
+	COMMAND_LINE+=" -scheme ${SCHEME} -sdk ${PLATFORM}"
+	COMMAND_LINE+=" -derivedDataPath ${TMP_DIR}/DerivedData"
+	COMMAND_LINE+=" BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO"
+	COMMAND_LINE+=" ONLY_ACTIVE_ARCH=NO"
+	
+	# Add bitcode switch, depending on build type
+	if [ "${BUILD_TYPE}" == "Release" ]; then
+		COMMAND_LINE+=" OTHER_CFLAGS=-fembed-bitcode"
+	else
+		COMMAND_LINE+=" OTHER_CFLAGS=-fembed-bitcode-marker"
+	fi
+	
+	# Complete & Execute command line
+	COMMAND_LINE+=" ${COMMAND}"
 	DEBUG_LOG ${COMMAND_LINE}
 	${COMMAND_LINE}
 	

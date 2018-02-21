@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BFA5851D201F8771000DCD22"
+               BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
                BuildableName = "PowerAuth2.framework"
-               BlueprintName = "PowerAuth2_Static"
+               BlueprintName = "PowerAuth2_Dynamic"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

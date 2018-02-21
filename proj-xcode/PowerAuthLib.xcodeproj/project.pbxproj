@@ -35,6 +35,8 @@
 		BF4DBCD81CDF9DEC008F3A47 /* libPowerAuth2Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBBB41CDF3377008F3A47 /* libPowerAuth2Tests.a */; };
 		BF4DBCDA1CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCD91CDF9F34008F3A47 /* pa2DataWriterReaderTests.cpp */; };
 		BF5184B81EBCCA9B0073E018 /* AsyncHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */; };
+		BF564CE3203D91FB00839ADA /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */; };
+		BF564CE4203D927800839ADA /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */; };
 		BF7751131FC48A1A008455A6 /* PowerAuthTokenTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */; };
 		BF7B3FA71CFEE0410032317C /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF7B3FA61CFEE0410032317C /* pa2SessionTests.cpp */; };
 		BF8CF47F2032EB41002A6B6E /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
@@ -317,8 +319,6 @@
 		BFA585C1201F8D67000DCD22 /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CAD1CE5E07500312A7F /* Hash.cpp */; };
 		BFA585C2201F8D67000DCD22 /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB21FB0B89C00A4FBAB /* KDF.cpp */; };
 		BFA585C3201F8D67000DCD22 /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFE5DBB41FB0B8C400A4FBAB /* MAC.cpp */; };
-		BFA585C8201F9CEE000DCD22 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA5851E201F8771000DCD22 /* PowerAuth2.framework */; };
-		BFA585C9201F9E80000DCD22 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA5851E201F8771000DCD22 /* PowerAuth2.framework */; };
 		BFA585D02020BA08000DCD22 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8D1CDF3428008F3A47 /* libcc7-ios.a */; };
 		BFA585D82020E313000DCD22 /* PA2PublicNetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA585D52020E30A000DCD22 /* PA2PublicNetworking.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA585DA2020E361000DCD22 /* PA2PrivateNetworking.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA585D92020E32A000DCD22 /* PA2PrivateNetworking.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -379,12 +379,26 @@
 			remoteGlobalIDString = BF4DBBAD1CDF3377008F3A47;
 			remoteInfo = PowerAuth2Tests;
 		};
-		BFA585C5201F9CE7000DCD22 /* PBXContainerItemProxy */ = {
+		BF564CDD203D8E7100839ADA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = BFA5851D201F8771000DCD22;
-			remoteInfo = PowerAuth2;
+			remoteGlobalIDString = BF8CF47D2032EB41002A6B6E;
+			remoteInfo = PowerAuth2_Dynamic;
+		};
+		BF564CDF203D8E8E00839ADA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFB1A6B31CB5937800B2D172;
+			remoteInfo = "cc7-ios";
+		};
+		BF564CE1203D8E9900839ADA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBC861CDF3428008F3A47 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFB1A6B31CB5937800B2D172;
+			remoteInfo = "cc7-ios";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -660,7 +674,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFA585C8201F9CEE000DCD22 /* PowerAuth2.framework in Frameworks */,
+				BF564CE3203D91FB00839ADA /* PowerAuth2.framework in Frameworks */,
 				BF4DBC971CDF3482008F3A47 /* libcc7tests-ios.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -669,7 +683,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFA585C9201F9E80000DCD22 /* PowerAuth2.framework in Frameworks */,
+				BF564CE4203D927800839ADA /* PowerAuth2.framework in Frameworks */,
 				BF20EA931EACB1A000733D91 /* libxml2.tbd in Frameworks */,
 				BF4DBCD81CDF9DEC008F3A47 /* libPowerAuth2Tests.a in Frameworks */,
 			);
@@ -1462,7 +1476,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BFA585C6201F9CE7000DCD22 /* PBXTargetDependency */,
+				BF564CDE203D8E7100839ADA /* PBXTargetDependency */,
 				BF4DBC951CDF3461008F3A47 /* PBXTargetDependency */,
 			);
 			name = PowerAuth2Tests;
@@ -1500,6 +1514,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF564CE0203D8E8E00839ADA /* PBXTargetDependency */,
 			);
 			name = PowerAuth2_Dynamic;
 			productName = PowerAuth2;
@@ -1518,6 +1533,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF564CE2203D8E9900839ADA /* PBXTargetDependency */,
 			);
 			name = PowerAuth2_Static;
 			productName = PowerAuth2;
@@ -1861,10 +1877,20 @@
 			target = BF4DBBAD1CDF3377008F3A47 /* PowerAuth2Tests */;
 			targetProxy = BF4DBCD31CDF9CDE008F3A47 /* PBXContainerItemProxy */;
 		};
-		BFA585C6201F9CE7000DCD22 /* PBXTargetDependency */ = {
+		BF564CDE203D8E7100839ADA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BFA5851D201F8771000DCD22 /* PowerAuth2_Static */;
-			targetProxy = BFA585C5201F9CE7000DCD22 /* PBXContainerItemProxy */;
+			target = BF8CF47D2032EB41002A6B6E /* PowerAuth2_Dynamic */;
+			targetProxy = BF564CDD203D8E7100839ADA /* PBXContainerItemProxy */;
+		};
+		BF564CE0203D8E8E00839ADA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7-ios";
+			targetProxy = BF564CDF203D8E8E00839ADA /* PBXContainerItemProxy */;
+		};
+		BF564CE2203D8E9900839ADA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7-ios";
+			targetProxy = BF564CE1203D8E9900839ADA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

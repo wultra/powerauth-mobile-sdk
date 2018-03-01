@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import <XCTest/XCTest.h>
 #import "PA2PrivateImpl.h"
+#import <XCTest/XCTest.h>
 
 /*
  This file contains mostly simple unit tests for ObjC objects using

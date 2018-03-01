@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-
-#import <XCTest/XCTest.h>
 #include <PowerAuthTests/PowerAuthTestsList.h>
+#import <XCTest/XCTest.h>
 
 using namespace cc7;
 

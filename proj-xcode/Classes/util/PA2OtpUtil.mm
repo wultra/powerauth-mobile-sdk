@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2OtpUtil.h"
 #import <PowerAuth/OtpUtil.h>
 #import <cc7/objc/ObjcHelper.h>
+
+#import "PA2OtpUtil.h"
 
 using namespace io::getlime::powerAuth;
 

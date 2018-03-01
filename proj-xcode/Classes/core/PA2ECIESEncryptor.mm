@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2ECIESEncryptor.h"
 #include <PowerAuth/ECIES.h>
 #include <cc7/objc/ObjcHelper.h>
+
+#import "PA2ECIESEncryptor.h"
 #import "PA2PrivateImpl.h"
 
 using namespace io::getlime::powerAuth;

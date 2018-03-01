@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2Session.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
+
+#import "PA2Session.h"
 #import "PA2PrivateImpl.h"
 #import "PA2Macros.h"
 

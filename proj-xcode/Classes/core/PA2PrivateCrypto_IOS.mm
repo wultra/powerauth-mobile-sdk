@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
+// For IOS, we can use CC7 as a crypto provider
+#include <cc7/objc/ObjcHelper.h>
+#include "CryptoUtils.h"
+
 #import "PA2PrivateCrypto.h"
 
 #if defined(PA2_EXTENSION_SDK)
 #error "This should not be compiled in IOS extensions or WatchOS projects"
 #endif
 
-// For IOS, we can use CC7 as a crypto provider
-#include <cc7/objc/ObjcHelper.h>
-#include "CryptoUtils.h"
 using namespace io::getlime::powerAuth;
 
 NSData * PA2PrivateCrypto_HMAC_SHA256(NSData * data, NSData * key)

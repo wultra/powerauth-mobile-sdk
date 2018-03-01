@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-#import "PA2Password.h"
 #import "PA2PrivateImpl.h"
-
+#import "PA2Password.h"
 
 #pragma mark -
 #pragma mark Password -

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import "PA2Types.h"
 #import "PA2PrivateImpl.h"
+#import "PA2Types.h"
 
 using namespace io::getlime::powerAuth;
 

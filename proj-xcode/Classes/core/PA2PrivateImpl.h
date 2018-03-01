@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-#import "PA2PrivateMacros.h"
-#import "PA2Types.h"
-#import "PA2Password.h"
-#import "PA2Encryptor.h"
-#import "PA2ECIESEncryptor.h"
-
 #include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ECIES.h>
 
-#include <cc7/ByteArray.h>
 #include <cc7/objc/ObjcHelper.h>
 
+#import "PA2PrivateMacros.h"
+#import "PA2Types.h"
+#import "PA2Password.h"
+#import "PA2Encryptor.h"
+#import "PA2ECIESEncryptor.h"
 
 /*
  This header contains various private interfaces, internally used

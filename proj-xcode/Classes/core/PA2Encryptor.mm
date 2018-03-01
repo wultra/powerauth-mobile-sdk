@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#import "PA2Encryptor.h"
 #import "PA2PrivateImpl.h"
+#import "PA2Encryptor.h"
 
 #pragma mark - PA2Encryptor -
 

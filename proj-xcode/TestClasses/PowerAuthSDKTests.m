@@ -43,6 +43,8 @@
 	BOOL _invalidConfig;
 }
 
+static NSString * PA_Ver = @"2.1";
+
 #pragma mark - Test setup
 
 - (void)setUp
@@ -279,7 +281,7 @@
 		result[key] = [value substringWithRange:NSMakeRange(1, value.length-2)];
 	}];
 	if (!error) {
-		error = ![result[@"pa_version"] isEqualToString:@"2.0"];
+		error = ![result[@"pa_version"] isEqualToString:PA_Ver];
 		XCTAssertFalse(error, @"Unknown PA version");
 	}
 	return error ? nil : result;
@@ -686,7 +688,8 @@
 	XCTAssertNotNil(payload.signature);
 	
 	// Normalization is: data&nonce&message
-	NSData * qr_code_data = [[@[payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
+	NSString * activationId = _sdk.activationIdentifier ? _sdk.activationIdentifier : @"";
+	NSData * qr_code_data = [[@[activationId, payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
 	result = [_sdk verifyServerSignedData:qr_code_data signature:payload.signature];
 	XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
 	

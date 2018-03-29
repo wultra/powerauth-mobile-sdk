@@ -26,6 +26,7 @@
 
 #import "PA2ActivationStatusRequest.h"
 #import "PA2ActivationStatusResponse.h"
+#import "PA2VaultUnlockRequest.h"
 #import "PA2VaultUnlockResponse.h"
 #import "PA2EncryptedRequest.h"
 #import "PA2EncryptedResponse.h"
@@ -46,6 +47,7 @@
 										  callback:(nonnull void(^)(PA2RestResponseStatus status, NSError * _Nullable error))callback;
 
 - (nonnull NSURLSessionDataTask*) vaultUnlock:(nonnull PA2AuthorizationHttpHeader*)signatureHeader
+									  request:(nonnull PA2VaultUnlockRequest*)request
 									 callback:(nonnull void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse * _Nullable response, NSError * _Nullable error))callback;
 
 - (nonnull NSURLSessionDataTask*) createToken:(nonnull PA2AuthorizationHttpHeader*)signatureHeader

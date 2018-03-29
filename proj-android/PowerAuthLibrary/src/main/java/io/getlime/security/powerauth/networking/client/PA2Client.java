@@ -67,6 +67,7 @@ import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequ
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
 import io.getlime.security.powerauth.rest.api.model.request.TokenCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.TokenRemoveRequest;
+import io.getlime.security.powerauth.rest.api.model.request.VaultUnlockRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.TokenCreateResponse;
@@ -351,8 +352,9 @@ public class PA2Client {
     @CheckResult
     public AsyncTask vaultUnlock(
             @NonNull Map<String, String> headers,
+            @NonNull VaultUnlockRequest request,
             @NonNull INetworkResponseListener<VaultUnlockResponse> listener) {
-        return execute(new PA2VaultUnlockEndpoint(mConfiguration.getBaseEndpointUrl()), null, headers, listener);
+        return execute(new PA2VaultUnlockEndpoint(mConfiguration.getBaseEndpointUrl()), request, headers, listener);
     }
 
     @CheckResult

@@ -25,6 +25,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
+import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -68,6 +69,7 @@ import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryp
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateCustomRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.rest.api.model.request.VaultUnlockRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
@@ -81,6 +83,7 @@ import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateList
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
+import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
 
@@ -279,7 +282,7 @@ public class PowerAuthSDK {
     }
 
     @CheckResult
-    private @Nullable AsyncTask fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
+    private @Nullable AsyncTask fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
 
         checkForValidSetup();
 
@@ -289,14 +292,19 @@ public class PowerAuthSDK {
             return null;
         }
 
+        // Prepare vault unlock request & request data
+        final VaultUnlockRequest request = new VaultUnlockRequest();
+        request.setReason(reason);
+        final byte[] requestData = mClient.serializeRequestObject(request).first;
+
         // Compute authorization header based on constants from the specification.
-        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, true, "POST", PA2VaultUnlockEndpoint.VAULT_UNLOCK, null);
+        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, true, "POST", PA2VaultUnlockEndpoint.VAULT_UNLOCK, requestData);
         if (httpHeader.getPowerAuthErrorCode() == PowerAuthErrorCodes.PA2Succeed) {
             final Map<String, String> headers = new HashMap<>();
             headers.put(httpHeader.getKey(), httpHeader.getValue());
 
             // Perform the server request
-            return mClient.vaultUnlock(headers, new INetworkResponseListener<VaultUnlockResponse>() {
+            return mClient.vaultUnlock(headers, request, new INetworkResponseListener<VaultUnlockResponse>() {
 
                 @Override
                 public void onNetworkResponse(VaultUnlockResponse vaultUnlockResponse) {
@@ -1077,7 +1085,7 @@ public class PowerAuthSDK {
     public AsyncTask signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
 
         // Fetch vault encryption key using vault unlock request.
-        return this.fetchEncryptedVaultUnlockKey(context, authentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return this.fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
@@ -1139,7 +1147,7 @@ public class PowerAuthSDK {
         authentication.usePossession = true;
         authentication.usePassword = oldPassword;
 
-        return fetchEncryptedVaultUnlockKey(context, authentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.PASSWORD_CHANGE, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
@@ -1203,7 +1211,7 @@ public class PowerAuthSDK {
         authAuthentication.usePassword = password;
 
         // Fetch vault unlock key
-        return fetchEncryptedVaultUnlockKey(context, authAuthentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
@@ -1264,7 +1272,7 @@ public class PowerAuthSDK {
         authAuthentication.usePossession = true;
         authAuthentication.usePassword = password;
 
-        return fetchEncryptedVaultUnlockKey(context, authAuthentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
@@ -1328,7 +1336,7 @@ public class PowerAuthSDK {
      * @return AsyncTask associated with the running request.
      */
     public @Nullable AsyncTask fetchEncryptionKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, final long index, @NonNull final IFetchEncryptionKeyListener listener) {
-        return fetchEncryptedVaultUnlockKey(context, authentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.FETCH_ENCRYPTION_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
@@ -1365,7 +1373,7 @@ public class PowerAuthSDK {
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.usePossession = true;
         authentication.usePassword = password;
-        return fetchEncryptedVaultUnlockKey(context, authentication, new IFetchEncryptedVaultUnlockKeyListener() {
+        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.PASSWORD_VALIDATE, new IFetchEncryptedVaultUnlockKeyListener() {
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
                 listener.onPasswordValid();

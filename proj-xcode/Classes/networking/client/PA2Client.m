@@ -207,10 +207,11 @@
 }
 
 - (NSURLSessionDataTask*) vaultUnlock:(PA2AuthorizationHttpHeader*)signatureHeader
+							  request:(nonnull PA2VaultUnlockRequest*)request
 							 callback:(void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/vault/unlock"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:nil headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
 		callback(status, (PA2VaultUnlockResponse*)response, error);
 	}];
 }

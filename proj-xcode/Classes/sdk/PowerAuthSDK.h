@@ -207,6 +207,12 @@
 - (BOOL) commitActivationWithPassword:(nonnull NSString*)password
 								error:(NSError * _Nullable * _Nullable)error;
 
+/**
+ Read only property contains activation identifier or nil if object has no valid activation.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString *activationIdentifier;
+
+
 /** Fetch the activation status for current activation.
  
  If server returns custom object, it is returned in the callback as NSDictionary.

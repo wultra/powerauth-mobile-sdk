@@ -28,6 +28,8 @@
 		BF234C951CE5166700312A7F /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C941CE5166700312A7F /* pa2CryptoAESTests.cpp */; };
 		BF234C971CE5180200312A7F /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234C961CE5180200312A7F /* pa2CryptoHMACTests.cpp */; };
 		BF234CA81CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF234CA71CE5D8C600312A7F /* pa2ProtocolUtilsTests.cpp */; };
+		BF30DB5C206CEAE900430C12 /* PA2VaultUnlockRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BF30DB5A206CEAE900430C12 /* PA2VaultUnlockRequest.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BF30DB5D206CEAE900430C12 /* PA2VaultUnlockRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30DB5B206CEAE900430C12 /* PA2VaultUnlockRequest.m */; };
 		BF3C8ADB1CEA28EB0003341F /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF3C8ADA1CEA28EB0003341F /* pa2URLEncodingTests.cpp */; };
 		BF4DBC971CDF3482008F3A47 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF4DBC8F1CDF3428008F3A47 /* libcc7tests-ios.a */; };
 		BF4DBCC31CDF9979008F3A47 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4DBCC21CDF9979008F3A47 /* PowerAuthTestsList.cpp */; };
@@ -395,6 +397,8 @@
 		BF30176A1FE026F80099B253 /* PA2PrivateHttpTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateHttpTokenProvider.h; sourceTree = "<group>"; };
 		BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateHttpTokenProvider.m; sourceTree = "<group>"; };
 		BF30176D1FE027A20099B253 /* PA2SessionStatusProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SessionStatusProvider.h; sourceTree = "<group>"; };
+		BF30DB5A206CEAE900430C12 /* PA2VaultUnlockRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2VaultUnlockRequest.h; sourceTree = "<group>"; };
+		BF30DB5B206CEAE900430C12 /* PA2VaultUnlockRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2VaultUnlockRequest.m; sourceTree = "<group>"; };
 		BF3606BC1E22E03600768FB2 /* PA2Encryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Encryptor.h; sourceTree = "<group>"; };
 		BF3606BD1E22E03600768FB2 /* PA2Encryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Encryptor.mm; sourceTree = "<group>"; };
 		BF37D7541FBE14A800C73855 /* PA2PrivateMacros.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateMacros.m; sourceTree = "<group>"; };
@@ -693,6 +697,8 @@
 				1B2EEF5F1D662C960039D92A /* PA2CreateActivationRequest.m */,
 				BF37D7631FBF27DD00C73855 /* PA2DirectCreateActivationRequest.h */,
 				BF37D7621FBF27DD00C73855 /* PA2DirectCreateActivationRequest.m */,
+				BF30DB5A206CEAE900430C12 /* PA2VaultUnlockRequest.h */,
+				BF30DB5B206CEAE900430C12 /* PA2VaultUnlockRequest.m */,
 				BF7ECF021FC7220D0017A7C5 /* PA2RemoveTokenRequest.h */,
 				BF7ECF031FC7220D0017A7C5 /* PA2RemoveTokenRequest.m */,
 				BF77510C1FC4876B008455A6 /* PA2EncryptedRequest.h */,
@@ -1223,6 +1229,7 @@
 				BF8CF5052032EB41002A6B6E /* PA2OtpUtil.h in Headers */,
 				BF8CF5062032EB41002A6B6E /* PA2PrivateRemoteTokenProvider.h in Headers */,
 				BF8CF5072032EB41002A6B6E /* PA2WCSessionPacket_Constants.h in Headers */,
+				BF30DB5C206CEAE900430C12 /* PA2VaultUnlockRequest.h in Headers */,
 				BF8CF5082032EB41002A6B6E /* PA2CreateActivationResponse.h in Headers */,
 				BF8CF5092032EB41002A6B6E /* PA2ErrorResponse.h in Headers */,
 				BF8CF50A2032EB41002A6B6E /* PowerAuthSDK.h in Headers */,
@@ -1508,6 +1515,7 @@
 				BF8CF4BE2032EB41002A6B6E /* PA2PrivateHttpTokenProvider.m in Sources */,
 				BF8CF4BF2032EB41002A6B6E /* PA2ECIESEncryptor.mm in Sources */,
 				BF8CF4C02032EB41002A6B6E /* PA2EncryptedRequest.m in Sources */,
+				BF30DB5D206CEAE900430C12 /* PA2VaultUnlockRequest.m in Sources */,
 				BF8CF4C12032EB41002A6B6E /* PA2OperationTask.m in Sources */,
 				BF8CF4C22032EB41002A6B6E /* PA2Types.mm in Sources */,
 				BF8CF4C32032EB41002A6B6E /* PA2WCSessionManager_IOSServices.m in Sources */,

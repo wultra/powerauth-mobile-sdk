@@ -111,7 +111,9 @@
 		PALog(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
 		PALog(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
 		PALog(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-		PALog(@"- Error: %@", error ? error.localizedDescription : @"no error");
+		if (error) {
+			PALog(@"- Error: %@", error.localizedDescription);
+		}
 		[[NSOperationQueue mainQueue] addOperationWithBlock: ^{
 			completion(data, response, error);
 		}];

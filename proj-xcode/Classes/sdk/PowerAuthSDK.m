@@ -292,7 +292,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	if (authentication.useBiometry) {
 		factor |= PA2SignatureFactor_Biometry;
 	}
-	if (vaultUnlock) {
+	if (factor > 0 && vaultUnlock) {
 		factor |= PA2SignatureFactor_PrepareForVaultUnlock;
 	}
 	return factor;

@@ -337,6 +337,14 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Get activation identifier.
+     * @return Activation identifier or null if object has no activation.
+     */
+    public @Nullable String getActivationIdentifier() {
+        return mSession.getActivationIdentifier();
+    }
+
+    /**
      * Return the encryptor factory instance, useful for generating custom encryptors.
      *
      * @return Encryptor factory instance.

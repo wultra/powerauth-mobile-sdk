@@ -245,35 +245,21 @@ public class PowerAuthSDK {
         return new SignatureUnlockKeys(possessionKey, biometryKey, knowledgeKey);
     }
 
-    private int determineSignatureFactorForAuthentication(PowerAuthAuthentication authentication) {
-        if (authentication.usePossession && authentication.usePassword == null && authentication.useBiometry == null) {
-            return SignatureFactor.Possession;
-        }
-        if (!authentication.usePossession && authentication.usePassword != null && authentication.useBiometry == null) {
-            return SignatureFactor.Knowledge;
-        }
-        if (!authentication.usePossession && authentication.usePassword == null && authentication.useBiometry != null) {
-            return SignatureFactor.Biometry;
-        }
-        if (authentication.usePossession && authentication.usePassword != null && authentication.useBiometry == null) {
-            return SignatureFactor.Possession_Knowledge;
-        }
-        if (authentication.usePossession && authentication.usePassword == null && authentication.useBiometry != null) {
-            return SignatureFactor.Possession_Biometry;
-        }
-        if (authentication.usePossession && authentication.usePassword != null && authentication.useBiometry != null) {
-            return SignatureFactor.Possession_Knowledge_Biometry;
-        }
-        // In case invalid combination was selected (no factors, knowledge & biometry), expect the worst...
-        return SignatureFactor.Possession_Knowledge_Biometry;
-    }
-
     private int determineSignatureFactorForAuthentication(PowerAuthAuthentication authentication, boolean vaultUnlock) {
-        if (vaultUnlock) {
-            return determineSignatureFactorForAuthentication(authentication) + SignatureFactor.PrepareForVaultUnlock;
-        } else {
-            return determineSignatureFactorForAuthentication(authentication);
+        int factor = 0;
+        if (authentication.usePossession) {
+            factor |= SignatureFactor.Possession;
         }
+        if (authentication.usePassword != null) {
+            factor |= SignatureFactor.Knowledge;
+        }
+        if (authentication.useBiometry != null) {
+            factor |= SignatureFactor.Biometry;
+        }
+        if (vaultUnlock) {
+            factor |= SignatureFactor.PrepareForVaultUnlock;
+        }
+        return factor;
     }
 
     private interface IFetchEncryptedVaultUnlockKeyListener {
@@ -981,14 +967,17 @@ public class PowerAuthSDK {
             return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
         }
 
+        // Determine authentication factor type
+        final int signatureFactor = determineSignatureFactorForAuthentication(authentication, vaultUnlock);
+        if (signatureFactor == 0) {
+            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter);
+        }
+
         // Generate signature key encryption keys
         SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
         if (keys == null) {
             return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData);
         }
-
-        // Determine authentication factor type
-        int signatureFactor = determineSignatureFactorForAuthentication(authentication, vaultUnlock);
 
         // Compute authorization header for provided values and return result.
         SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null);
@@ -1038,7 +1027,11 @@ public class PowerAuthSDK {
         }
 
         // Determine authentication factor type
-        int signatureFactor = determineSignatureFactorForAuthentication(authentication, false);
+        final int signatureFactor = determineSignatureFactorForAuthentication(authentication, false);
+        if (signatureFactor == 0) {
+            // Wrong parameter
+            return null;
+        }
 
         // Compute authorization header for provided values and return result.
         SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce);

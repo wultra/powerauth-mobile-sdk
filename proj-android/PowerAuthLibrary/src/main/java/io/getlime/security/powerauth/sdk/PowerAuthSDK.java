@@ -256,7 +256,7 @@ public class PowerAuthSDK {
         if (authentication.useBiometry != null) {
             factor |= SignatureFactor.Biometry;
         }
-        if (vaultUnlock) {
+        if (factor > 0 && vaultUnlock) {
             factor |= SignatureFactor.PrepareForVaultUnlock;
         }
         return factor;

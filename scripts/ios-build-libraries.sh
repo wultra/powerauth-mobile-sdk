@@ -15,7 +15,7 @@ set +v
 #      code, plus thin ObjC wrapper written on top of that codes.
 #
 #    SDK sources:
-#      all SDK higl level source codes are copied to destination directory.
+#      all SDK high level source codes are copied to destination directory.
 #      all private headers are copied into "Private" sub directory.
 #
 # Script is using following folders (if not changed):

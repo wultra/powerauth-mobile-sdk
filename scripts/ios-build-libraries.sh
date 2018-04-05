@@ -215,6 +215,7 @@ function COPY_SOURCE_FILES
 	LOG "-----------------------------------------------------"
 	
 	# Prepare dirs in output directory
+	DST="`( cd \"$DST\" && pwd )`"
 	$MD "${DST}"
 	$MD "${DST}/Private"
 	

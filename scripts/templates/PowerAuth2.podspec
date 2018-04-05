@@ -28,7 +28,10 @@ Pod::Spec.new do |s|
 	CMD
 	
 	# Produced files
-  s.vendored_frameworks   = 'Library/PowerAuth2.framework'
-  s.libraries             = 'c++'
+	s.source_files          = 'Library/**/*.{h,m}'
+	s.private_header_files  = 'Library/Private/*.h'
+	s.vendored_libraries    = 'Library/libPowerAuthCore.a'
+	s.requires_arc          = true
+	s.libraries             = 'c++'
 	
 end

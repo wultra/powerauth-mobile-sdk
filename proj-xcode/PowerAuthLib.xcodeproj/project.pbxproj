@@ -414,6 +414,8 @@
 			children = (
 				1B0A23911D6C487C00D24167 /* PA2Error.h */,
 				1B0A23921D6C487C00D24167 /* PA2Error.m */,
+				1B0A238E1D6C486900D24167 /* PA2ErrorResponse.h */,
+				1B0A238F1D6C486900D24167 /* PA2ErrorResponse.m */,
 				1B968C581E2CED4500F429E0 /* PA2EncryptedObject.h */,
 				1B968C591E2CED4500F429E0 /* PA2EncryptedObject.m */,
 				1B789F441E2640640095519E /* PA2NonPersonalizedEncryptedObject.h */,
@@ -475,10 +477,9 @@
 		1B2EEF361D662AB10039D92A /* networking */ = {
 			isa = PBXGroup;
 			children = (
+				BF61F8EA20766DD800520C57 /* private */,
 				1B2EEF551D662C960039D92A /* base */,
 				1B0A23971D6C6F1900D24167 /* entity */,
-				1B2EEF5B1D662C960039D92A /* request */,
-				1B2EEF601D662C960039D92A /* response */,
 				1B1FA33C1D99897500287F5E /* ssl */,
 				1B9AD2BD1DA5B2F200CF52C9 /* operation */,
 				1B0A23871D6C3BEC00D24167 /* client */,
@@ -524,8 +525,6 @@
 		1B2EEF601D662C960039D92A /* response */ = {
 			isa = PBXGroup;
 			children = (
-				1B0A238E1D6C486900D24167 /* PA2ErrorResponse.h */,
-				1B0A238F1D6C486900D24167 /* PA2ErrorResponse.m */,
 				1B2EEF611D662C960039D92A /* PA2ActivationStatusResponse.h */,
 				1B2EEF621D662C960039D92A /* PA2ActivationStatusResponse.m */,
 				1B2EEF631D662C960039D92A /* PA2CreateActivationResponse.h */,
@@ -689,6 +688,24 @@
 			path = TestClasses;
 			sourceTree = "<group>";
 		};
+		BF61F8E920766D7300520C57 /* private */ = {
+			isa = PBXGroup;
+			children = (
+				BFA0E2AE200D3CB80011F0A6 /* model */,
+				BFA0E2AD200D2C2A0011F0A6 /* PA2WCSessionDataHandler.h */,
+			);
+			path = private;
+			sourceTree = "<group>";
+		};
+		BF61F8EA20766DD800520C57 /* private */ = {
+			isa = PBXGroup;
+			children = (
+				1B2EEF5B1D662C960039D92A /* request */,
+				1B2EEF601D662C960039D92A /* response */,
+			);
+			path = private;
+			sourceTree = "<group>";
+		};
 		BF79E3CE1FBDC9F6003DF179 /* token */ = {
 			isa = PBXGroup;
 			children = (
@@ -707,12 +724,11 @@
 		BFA0E29F200D12420011F0A6 /* watch */ = {
 			isa = PBXGroup;
 			children = (
-				BFA0E2AE200D3CB80011F0A6 /* model */,
+				BF61F8E920766D7300520C57 /* private */,
 				BFA0E2A0200D12420011F0A6 /* PA2WCSessionManager.h */,
 				BFA0E2A1200D12420011F0A6 /* PA2WCSessionManager.m */,
 				BFA0E2AA200D2B2A0011F0A6 /* PA2WCSessionManager+Private.h */,
 				BFA0E2DB200FCEC20011F0A6 /* PA2WCSessionManager_IOSServices.m */,
-				BFA0E2AD200D2C2A0011F0A6 /* PA2WCSessionDataHandler.h */,
 			);
 			path = watch;
 			sourceTree = "<group>";

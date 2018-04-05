@@ -109,8 +109,8 @@
 		BF30176F1FE037B60099B253 /* PA2PrivateTokenKeychainStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateTokenKeychainStore.m; path = Classes/token/PA2PrivateTokenKeychainStore.m; sourceTree = "<group>"; };
 		BF3017701FE037B60099B253 /* PA2PrivateRemoteTokenProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateRemoteTokenProvider.h; path = Classes/token/PA2PrivateRemoteTokenProvider.h; sourceTree = "<group>"; };
 		BF3017711FE037B60099B253 /* PA2PrivateTokenKeychainStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenKeychainStore.h; path = Classes/token/PA2PrivateTokenKeychainStore.h; sourceTree = "<group>"; };
-		BF462B702011009400529EFC /* PA2WCSessionPacket_Success.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_Success.h; path = Classes/watch/model/PA2WCSessionPacket_Success.h; sourceTree = "<group>"; };
-		BF462B712011009400529EFC /* PA2WCSessionPacket_Success.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_Success.m; path = Classes/watch/model/PA2WCSessionPacket_Success.m; sourceTree = "<group>"; };
+		BF462B702011009400529EFC /* PA2WCSessionPacket_Success.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_Success.h; path = Classes/watch/private/model/PA2WCSessionPacket_Success.h; sourceTree = "<group>"; };
+		BF462B712011009400529EFC /* PA2WCSessionPacket_Success.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_Success.m; path = Classes/watch/private/model/PA2WCSessionPacket_Success.m; sourceTree = "<group>"; };
 		BF5491D41FFFB9220036DB9E /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF5491FC1FFFBFA90036DB9E /* PowerAuth2ForExtensions-umbrella.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PowerAuth2ForExtensions-umbrella.h"; sourceTree = "<group>"; };
 		BF54921A1FFFE15C0036DB9E /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -144,15 +144,15 @@
 		BFA0E2A5200D12990011F0A6 /* PA2WCSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionManager.m; path = Classes/watch/PA2WCSessionManager.m; sourceTree = "<group>"; };
 		BFA0E2A6200D12990011F0A6 /* PA2WCSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionManager.h; path = Classes/watch/PA2WCSessionManager.h; sourceTree = "<group>"; };
 		BFA0E2AB200D2B530011F0A6 /* PA2WCSessionManager+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "PA2WCSessionManager+Private.h"; path = "Classes/watch/PA2WCSessionManager+Private.h"; sourceTree = "<group>"; };
-		BFA0E2BC200E65B60011F0A6 /* PA2WCSessionDataHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionDataHandler.h; path = Classes/watch/PA2WCSessionDataHandler.h; sourceTree = "<group>"; };
-		BFA0E2BE200E65D60011F0A6 /* PA2WCSessionPacket_TokenData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_TokenData.h; path = Classes/watch/model/PA2WCSessionPacket_TokenData.h; sourceTree = "<group>"; };
-		BFA0E2BF200E65D60011F0A6 /* PA2WCSessionPacket_Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_Constants.m; path = Classes/watch/model/PA2WCSessionPacket_Constants.m; sourceTree = "<group>"; };
-		BFA0E2C0200E65D60011F0A6 /* PA2WCSessionPacket_TokenData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_TokenData.m; path = Classes/watch/model/PA2WCSessionPacket_TokenData.m; sourceTree = "<group>"; };
-		BFA0E2C1200E65D60011F0A6 /* PA2WCSessionPacket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket.m; path = Classes/watch/model/PA2WCSessionPacket.m; sourceTree = "<group>"; };
-		BFA0E2C2200E65D60011F0A6 /* PA2WCSessionPacket_ActivationStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_ActivationStatus.h; path = Classes/watch/model/PA2WCSessionPacket_ActivationStatus.h; sourceTree = "<group>"; };
-		BFA0E2C3200E65D60011F0A6 /* PA2WCSessionPacket_Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_Constants.h; path = Classes/watch/model/PA2WCSessionPacket_Constants.h; sourceTree = "<group>"; };
-		BFA0E2C4200E65D60011F0A6 /* PA2WCSessionPacket_ActivationStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_ActivationStatus.m; path = Classes/watch/model/PA2WCSessionPacket_ActivationStatus.m; sourceTree = "<group>"; };
-		BFA0E2C5200E65D60011F0A6 /* PA2WCSessionPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket.h; path = Classes/watch/model/PA2WCSessionPacket.h; sourceTree = "<group>"; };
+		BFA0E2BC200E65B60011F0A6 /* PA2WCSessionDataHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionDataHandler.h; path = Classes/watch/private/PA2WCSessionDataHandler.h; sourceTree = "<group>"; };
+		BFA0E2BE200E65D60011F0A6 /* PA2WCSessionPacket_TokenData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_TokenData.h; path = Classes/watch/private/model/PA2WCSessionPacket_TokenData.h; sourceTree = "<group>"; };
+		BFA0E2BF200E65D60011F0A6 /* PA2WCSessionPacket_Constants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_Constants.m; path = Classes/watch/private/model/PA2WCSessionPacket_Constants.m; sourceTree = "<group>"; };
+		BFA0E2C0200E65D60011F0A6 /* PA2WCSessionPacket_TokenData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_TokenData.m; path = Classes/watch/private/model/PA2WCSessionPacket_TokenData.m; sourceTree = "<group>"; };
+		BFA0E2C1200E65D60011F0A6 /* PA2WCSessionPacket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket.m; path = Classes/watch/private/model/PA2WCSessionPacket.m; sourceTree = "<group>"; };
+		BFA0E2C2200E65D60011F0A6 /* PA2WCSessionPacket_ActivationStatus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_ActivationStatus.h; path = Classes/watch/private/model/PA2WCSessionPacket_ActivationStatus.h; sourceTree = "<group>"; };
+		BFA0E2C3200E65D60011F0A6 /* PA2WCSessionPacket_Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket_Constants.h; path = Classes/watch/private/model/PA2WCSessionPacket_Constants.h; sourceTree = "<group>"; };
+		BFA0E2C4200E65D60011F0A6 /* PA2WCSessionPacket_ActivationStatus.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2WCSessionPacket_ActivationStatus.m; path = Classes/watch/private/model/PA2WCSessionPacket_ActivationStatus.m; sourceTree = "<group>"; };
+		BFA0E2C5200E65D60011F0A6 /* PA2WCSessionPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WCSessionPacket.h; path = Classes/watch/private/model/PA2WCSessionPacket.h; sourceTree = "<group>"; };
 		BFA0E2CF200FA1D30011F0A6 /* PA2WatchSynchronizationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2WatchSynchronizationService.h; sourceTree = "<group>"; };
 		BFA0E2D0200FA1D30011F0A6 /* PA2WatchSynchronizationService.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WatchSynchronizationService.m; sourceTree = "<group>"; };
 		BFA0E2D7200FB5600011F0A6 /* PA2WeakArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2WeakArray.h; path = Classes/core/PA2WeakArray.h; sourceTree = "<group>"; };
@@ -276,6 +276,15 @@
 			name = networking;
 			sourceTree = "<group>";
 		};
+		BF61F90520766EA200520C57 /* private */ = {
+			isa = PBXGroup;
+			children = (
+				BFA0E2BB200E65A90011F0A6 /* model */,
+				BFA0E2BC200E65B60011F0A6 /* PA2WCSessionDataHandler.h */,
+			);
+			name = private;
+			sourceTree = "<group>";
+		};
 		BF7D502D1FDF03EB00200119 = {
 			isa = PBXGroup;
 			children = (
@@ -338,11 +347,10 @@
 		BFA0E2A4200D128A0011F0A6 /* watch */ = {
 			isa = PBXGroup;
 			children = (
-				BFA0E2BB200E65A90011F0A6 /* model */,
+				BF61F90520766EA200520C57 /* private */,
 				BFA0E2A6200D12990011F0A6 /* PA2WCSessionManager.h */,
 				BFA0E2A5200D12990011F0A6 /* PA2WCSessionManager.m */,
 				BFA0E2AB200D2B530011F0A6 /* PA2WCSessionManager+Private.h */,
-				BFA0E2BC200E65B60011F0A6 /* PA2WCSessionDataHandler.h */,
 			);
 			name = watch;
 			sourceTree = "<group>";
@@ -504,7 +512,7 @@
 		BF7D502E1FDF03EB00200119 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 0930;
 				ORGANIZATIONNAME = "Juraj Durech";
 				TargetAttributes = {
 					BF5491D31FFFB9220036DB9E = {
@@ -678,6 +686,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -685,6 +694,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -734,6 +744,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -741,6 +752,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;

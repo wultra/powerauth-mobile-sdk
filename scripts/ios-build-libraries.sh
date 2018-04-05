@@ -8,15 +8,27 @@ set +v
 # The main purpose of this script is build and prepare PA2 "fat" libraries for
 # library distribution. Typically, this script is used for CocoaPods integration.
 # 
-# The result of the build process is one multi-architecture framework library 
-# (also called as "fat") with all supported microprocessor architectures in 
-# one file.
-# 
+# The result of the build process is:
+#    libPowerAuthCore.a:
+#      multi-architecture static library (also called as "fat") with all 
+#      core functionality of PowerAuth2 SDK. The library contains all C++
+#      code, plus thin ObjC wrapper written on top of that codes.
+#
+#    SDK sources:
+#      all SDK higl level source codes are copied to destination directory.
+#      all private headers are copied into "Private" sub directory.
+#
 # Script is using following folders (if not changed):
 #
-#    ./Lib/Debug/PowerAuth2.framework       - result of debug configuration
-#    ./Lib/Release/PowerAuth2.framework     - result of release configuration
-#    ./Tmp                                  - for all temporary data
+#    ./Lib/Debug          - result of debug configuration, containing
+#                           final fat library, source codes and public headers
+#    ./Lib/Debug/Private  - contains all private headers
+#
+#    ./Lib/Debug          - result of release configuration, containing
+#                           final fat library, source codes and public headers
+#    ./Lib/Debug/Private  - contains all private headers
+#
+#    ./Tmp                - for all temporary data
 #
 # ----------------------------------------------------------------------------
 
@@ -29,7 +41,8 @@ source "${TOP}/common-functions.sh"
 #
 # Source headers & Xcode project location
 #
-XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthLib.xcodeproj"
+XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthCore.xcodeproj"
+SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
 
 #
 # Architectures & Target libraries
@@ -38,16 +51,16 @@ PLATFORM_SDK1="iphoneos"
 PLATFORM_SDK2="iphonesimulator"
 PLATFORM_ARCHS1="armv7 armv7s arm64"
 PLATFORM_ARCHS2="i386 x86_64"
-OUT_FRAMEWORK="PowerAuth2"
-BUILD_TYPE="Release"
+OUT_LIBRARY="libPowerAuthCore.a"
 
 # Variables loaded from command line
 VERBOSE=1
 FULL_REBUILD=1
 CLEANUP_AFTER=1
-SCHEME_NAME=""
-OUT_DIR=""
-TMP_DIR=""
+SCHEME_NAME=''
+CONFIG_NAME=''
+OUT_DIR=''
+TMP_DIR=''
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -81,33 +94,31 @@ function USAGE
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
 #   $1   - scheme name (e.g. PA2Ext_Debug, PA2Watch_Release)
-#   $2   - platform SDK (watchos, iphoneos)
-#   $3   - simulator SDK (watchsimulator, iphonesimulator)
+#   $2   - configuration name (e.g. Debug, Release)
+#   $3   - platform SDK (watchos, iphoneos)
+#   $4   - simulator SDK (watchsimulator, iphonesimulator)
 # -----------------------------------------------------------------------------
 function MAKE_FAT_LIB
 {
 	local SCHEME=$1
-	local NAT_PLATFORM=$2
-	local SIM_PLATFORM=$3
-	local FW="${OUT_FRAMEWORK}.framework"
-	local LIB=${OUT_FRAMEWORK}
+	local CONFIG=$2
+	local NAT_PLATFORM=$3
+	local SIM_PLATFORM=$4
+	local LIB=${OUT_LIBRARY}
 	
 	LOG "-----------------------------------------------------"
-	LOG "FATalizing   ${FW}"
+	LOG "FATalizing   ${LIB}"
 	LOG "-----------------------------------------------------"
 	
-	local NAT_FW_DIR="${TMP_DIR}/${SCHEME}-${NAT_PLATFORM}/${BUILD_TYPE}-${NAT_PLATFORM}/${FW}"
-	local SIM_FW_DIR="${TMP_DIR}/${SCHEME}-${SIM_PLATFORM}/${BUILD_TYPE}-${SIM_PLATFORM}/${FW}"
-	local FAT_FW_DIR="${TMP_DIR}/${SCHEME}/${FW}"
-	# copy ALL files from native framework to ${TMP_DIR}/${SCHEME} 
-	$MD "${TMP_DIR}/${SCHEME}"
-	$CP -r "${NAT_FW_DIR}" "${TMP_DIR}/${SCHEME}"
-	$RM "${FAT_FW_DIR}/${LIB}"
+	local NAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${NAT_PLATFORM}/${CONFIG}-${NAT_PLATFORM}"
+	local SIM_LIB_DIR="${TMP_DIR}/${SCHEME}-${SIM_PLATFORM}/${CONFIG}-${SIM_PLATFORM}"
+	local FAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${CONFIG}"
+
+	$MD "${FAT_LIB_DIR}"	
+  	${LIPO} -create "${NAT_LIB_DIR}/${LIB}" "${SIM_LIB_DIR}/${LIB}" -output "${FAT_LIB_DIR}/${LIB}"
 	
-  	${LIPO} -create "${NAT_FW_DIR}/${LIB}" "${SIM_FW_DIR}/${LIB}" -output "${FAT_FW_DIR}/${LIB}"
-	
-	LOG "Copying final framework..."
-	$CP -r ${FAT_FW_DIR} ${OUT_DIR}
+	LOG "Copying final library..."
+	$CP -r "${FAT_LIB_DIR}/${LIB}" "${OUT_DIR}"
 }
 
 # -----------------------------------------------------------------------------
@@ -131,17 +142,111 @@ function VALIDATE_FAT_ARCHITECTURES
 }
 
 # -----------------------------------------------------------------------------
+# Copy file from $1 to $2. 
+#   If $1 is header and contains "Private" or "private" in path, 
+#   then copy to $2/Private
+# Parameters:
+#   $1   - source file
+#   $2   - destination directory
+# -----------------------------------------------------------------------------
+function COPY_SRC_FILE
+{
+	local SRC=$1
+	local DST=$2
+	case "$SRC" in 
+	  *Private* | *private*)
+		[[ "$SRC" == *.h ]] && DST="$DST/Private"
+	    ;;
+	esac
+	$CP "${SRC}" "${DST}"
+}
+
+# -----------------------------------------------------------------------------
+# Copy all source files from $1 directory to $2. 
+#   If $3 contains "1" then only headers will be copied
+# Parameters:
+#   $1   - SDK folder (relative)
+#   $2   - SDK folder base
+#   $3   - destination directory
+#   $4   - only headers if equal to 1
+# -----------------------------------------------------------------------------
+function COPY_SRC_DIR
+{
+	local SRC=$1
+	local BASE=$2
+	local DST=$3
+	local ONLY_HEADERS=$4
+	
+	local SRC_FULL="${BASE}/$SRC"
+	local SRC_DIR_FULL="`( cd \"$SRC_FULL\" && pwd )`"
+	
+	LOG "Copying $SRC ..."
+	
+	PUSH_DIR "${SRC_DIR_FULL}"	
+	####
+	if [ x$ONLY_HEADERS == x1 ]; then
+		local files=(`grep -R -null --include "*.h" "" .`)
+	else
+		local files=(`grep -R -null --include "*.h" --include "*.m" "" .`)
+	fi
+	# Do for each file we found...
+	for ix in ${!files[*]}
+	do
+		local FILE="${files[$ix]}"
+		COPY_SRC_FILE "${FILE}" "${DST}"
+	done
+	####
+	POP_DIR
+}
+
+# -----------------------------------------------------------------------------
+# Copy all source files in SDK to destination directory
+# Parameters:
+#   $1   - source directory
+#   $2   - destination directory
+# -----------------------------------------------------------------------------
+function COPY_SOURCE_FILES
+{
+	local SRC=$1
+	local DST="$2"
+	
+	LOG "-----------------------------------------------------"
+	LOG "Copying SDK folders ..."
+	LOG "-----------------------------------------------------"
+	
+	# Prepare dirs in output directory
+	$MD "${DST}"
+	$MD "${DST}/Private"
+	
+	# Copy each SDK folder
+	COPY_SRC_DIR "sdk"        "$SRC" "$DST" 0
+	COPY_SRC_DIR "core"       "$SRC" "$DST" 1
+	COPY_SRC_DIR "networking" "$SRC" "$DST" 0
+	COPY_SRC_DIR "keychain"   "$SRC" "$DST" 0
+	COPY_SRC_DIR "e2ee"       "$SRC" "$DST" 0
+	COPY_SRC_DIR "token"      "$SRC" "$DST" 0
+	COPY_SRC_DIR "system"     "$SRC" "$DST" 0
+	COPY_SRC_DIR "util"       "$SRC" "$DST" 0
+	COPY_SRC_DIR "watch"      "$SRC" "$DST" 0
+	
+	# And finally, top level header..
+	$CP "${SRC}/PowerAuth2.h" "$DST" 
+}
+
+# -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
-#   $1   - scheme name (e.g. PA2_Debug)
-#   $2   - platform (iphoneos, iphonesimulator)
-#   $3   - command to execute. You can use 'build' or 'clean'
+#   $1   - scheme name (e.g. PA2Core_Lib)
+#   $2   - build configuration (e.g. Release | Debug)
+#   $3   - platform (iphoneos, iphonesimulator)
+#   $4   - command to execute. You can use 'build' or 'clean'
 # -----------------------------------------------------------------------------
 function BUILD_COMMAND
 {
 	local SCHEME=$1
-	local PLATFORM=$2
-	local COMMAND=$3
+	local CONFIG=$2
+	local PLATFORM=$3
+	local COMMAND=$4
 	
 	if [ $PLATFORM == $PLATFORM_SDK1 ]; then
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS1"
@@ -149,7 +254,7 @@ function BUILD_COMMAND
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS2"
 	fi
 	
-	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
+	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${CONFIG} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
 	
 	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
 	local COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
@@ -157,7 +262,7 @@ function BUILD_COMMAND
 		COMMAND_LINE="$COMMAND_LINE -quiet"
 	fi
 
-	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -sdk ${PLATFORM}"
+	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG} -sdk ${PLATFORM}"
 	COMMAND_LINE="$COMMAND_LINE -derivedDataPath ${TMP_DIR}/DerivedData"
 	COMMAND_LINE="$COMMAND_LINE BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO"
 	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\" ONLY_ACTIVE_ARCH=NO"
@@ -173,39 +278,46 @@ function BUILD_COMMAND
 # -----------------------------------------------------------------------------
 # Build scheme for both plaforms and create FAT libraries
 # Parameters:
-#   $1   - scheme name (e.g. PA2_Debug)
+#   $1   - scheme name (e.g. PA2Core_Lib)
+#   $2   - build configuration (e.g. Debug | Release)
 # -----------------------------------------------------------------------------
 function BUILD_SCHEME
 {
 	local SCHEME=$1
+	local CONFIG=$2
 	LOG "-----------------------------------------------------"
 	LOG "Building architectures..."
 	LOG "-----------------------------------------------------"
 	
-	BUILD_COMMAND $SCHEME $PLATFORM_SDK1 build
-	BUILD_COMMAND $SCHEME $PLATFORM_SDK2 build
+	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 build
+	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 build
+		
+	MAKE_FAT_LIB $SCHEME $CONFIG $PLATFORM_SDK1 $PLATFORM_SDK2 
 	
-	MAKE_FAT_LIB $SCHEME $PLATFORM_SDK1 $PLATFORM_SDK2 
-	
-	local FW_LIB="${OUT_DIR}/${OUT_FRAMEWORK}.framework/${OUT_FRAMEWORK}"
+	local FAT_LIB="${OUT_DIR}/${OUT_LIBRARY}"
 	local ALL_ARCHS="${PLATFORM_ARCHS1} ${PLATFORM_ARCHS2}"
-	VALIDATE_FAT_ARCHITECTURES "${FW_LIB}" "${ALL_ARCHS}"
+	VALIDATE_FAT_ARCHITECTURES "${FAT_LIB}" "${ALL_ARCHS}"
+	
+	# Copy source files...
+	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
 }
 
 # -----------------------------------------------------------------------------
 # Clear project for specific scheme
 # Parameters:
-#   $1  -   scheme name (e.g. PA2_Debug, PA2_Release...)
+#   $1  -   scheme name (e.g. PA2Core_Lib...)
+#   $2  -   configuration name
 # -----------------------------------------------------------------------------
 function CLEAN_SCHEME
 {
 	local SCHEME=$1
+	local CONFIG=$2
 	LOG "-----------------------------------------------------"
 	LOG "Cleaning architectures..."
 	LOG "-----------------------------------------------------"
 	
-	BUILD_COMMAND $SCHEME $PLATFORM_SDK1 clean
-	BUILD_COMMAND $SCHEME $PLATFORM_SDK2 clean
+	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 clean
+	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 clean
 }
 
 ###############################################################################
@@ -217,12 +329,12 @@ do
 	opt="$1"
 	case "$opt" in
 		debug)
-			SCHEME_NAME='PA2_Debug'
-			BUILD_TYPE="Debug"
+			SCHEME_NAME='PA2Core_Lib'
+			CONFIG_NAME='Debug'
 			;;
 		release)
-			SCHEME_NAME='PA2_Release'
-			BUILD_TYPE="Release"
+			SCHEME_NAME='PA2Core_Lib'
+			CONFIG_NAME="Release"
 			;;
 		-nc | --no-clean)
 			FULL_REBUILD=0 
@@ -250,13 +362,13 @@ do
 done
 
 # Check required parameters
-if [ x$SCHEME_NAME == x ]; then
+if [ x$SCHEME_NAME == x ] || [ x$CONFIG_NAME == x ]; then
 	FAILURE "You have to specify build configuration (debug or release)"
 fi
 
 # Defaulting target & temporary folders
 if [ -z "$OUT_DIR" ]; then
-	OUT_DIR="${TOP}/Lib/${BUILD_TYPE}"
+	OUT_DIR="${TOP}/Lib/${CONFIG_NAME}"
 fi
 if [ -z "$TMP_DIR" ]; then
 	TMP_DIR="${TOP}/Tmp"
@@ -273,7 +385,7 @@ if [ x$LIPO == x ]; then
 fi
 
 # Print current config
-DEBUG_LOG "Going to build scheme ${SCHEME_NAME}"
+DEBUG_LOG "Going to build scheme ${SCHEME_NAME} :: ${CONFIG_NAME}"
 DEBUG_LOG " >> OUT_DIR = ${OUT_DIR}"
 DEBUG_LOG " >> TMP_DIR = ${TMP_DIR}"
 DEBUG_LOG "    XCBUILD = ${XCBUILD}"
@@ -304,12 +416,12 @@ $MD "${TMP_DIR}"
 #
 # Perform clean if required
 #
-#[[ x$FULL_REBUILD == x1 ]] && CLEAN_SCHEME ${SCHEME_NAME}
+#[[ x$FULL_REBUILD == x1 ]] && CLEAN_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
 
 #
 # Build
 #
-BUILD_SCHEME ${SCHEME_NAME}
+BUILD_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
 #
 # Remove temporary data
 #

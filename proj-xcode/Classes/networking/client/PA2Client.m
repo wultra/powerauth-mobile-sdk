@@ -63,7 +63,7 @@
 
 /** Perform a POST request to given resource, with provided data (bytes) and HTTP headers. Returns result in the callback.
  
- @param urlString Absolute resource URL path.
+ @param url URL path.
  @param data Data of the POST request body.
  @param headers HTTP headers.
  @param completion A callback that returns either a correct HTTP response, or an error object in case networking issue occurred.

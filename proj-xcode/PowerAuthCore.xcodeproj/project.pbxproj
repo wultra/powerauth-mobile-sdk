@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
 		BF99D9022073E14100735ED2 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
@@ -133,6 +134,8 @@
 		BF3ACC9D2073DF5F00B8107E /* PowerAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuth.h; sourceTree = "<group>"; };
 		BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OtpUtil.h; sourceTree = "<group>"; };
 		BF3ACC9F2073DF5F00B8107E /* ECIES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
+		BF61F906207687C500520C57 /* PA2OtpUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2OtpUtil.h; sourceTree = "<group>"; };
+		BF61F909207687C500520C57 /* PA2OtpUtil.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2OtpUtil.mm; sourceTree = "<group>"; };
 		BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
 		BF99D8B02073E00D00735ED2 /* verify-encrypted-server-public-key-signature.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "verify-encrypted-server-public-key-signature.json"; sourceTree = "<group>"; };
 		BF99D8B12073E00D00735ED2 /* compute-master-secret-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "compute-master-secret-key.json"; sourceTree = "<group>"; };
@@ -505,6 +508,8 @@
 				BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */,
 				BFB47D2E20753359008A6A52 /* PA2WeakArray.h */,
 				BFB47D1D20753359008A6A52 /* PA2WeakArray.m */,
+				BF61F906207687C500520C57 /* PA2OtpUtil.h */,
+				BF61F909207687C500520C57 /* PA2OtpUtil.mm */,
 			);
 			name = core;
 			path = Classes/core;
@@ -647,6 +652,7 @@
 				BF99D90A2073E15100735ED2 /* PKCS7Padding.cpp in Sources */,
 				BF99D90D2073E15100735ED2 /* AES.cpp in Sources */,
 				BF99D9072073E14700735ED2 /* Constants.cpp in Sources */,
+				BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */,
 				BFB47D382075335A008A6A52 /* PA2PrivateImpl.mm in Sources */,
 				BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */,
 				BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */,

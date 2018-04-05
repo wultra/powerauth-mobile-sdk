@@ -231,7 +231,8 @@ function COPY_SOURCE_FILES
 	COPY_SRC_DIR "watch"      "$SRC" "$DST" 0
 	
 	# And finally, top level header..
-	$CP "${SRC}/PowerAuth2.h" "$DST" 
+	# Disabled, CocoaPods generates it own umbrella header. 
+	#$CP "${SRC}/PowerAuth2.h" "$DST" 
 }
 
 # -----------------------------------------------------------------------------

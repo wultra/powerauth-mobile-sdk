@@ -25,7 +25,7 @@ namespace powerAuth
 namespace protocol
 {
 	// Power Auth version string
-	#define PA_VERSION_STR	"2.0"
+	#define PA_VERSION_STR	"2.1"
 	
 	const std::string	PA_VERSION(PA_VERSION_STR);
 	

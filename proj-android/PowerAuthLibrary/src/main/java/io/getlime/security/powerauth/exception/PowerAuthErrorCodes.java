@@ -40,4 +40,5 @@ public class PowerAuthErrorCodes {
     public static final int PA2ErrorCodeInvalidActivationCode = 12;
     public static final int PA2ErrorCodeInvalidToken = 13;
     public static final int PA2ErrorCodeEncryptionError = 14;
+    public static final int PA2ErrorCodeWrongParameter = 15;
 }

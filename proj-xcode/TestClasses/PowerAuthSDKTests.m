@@ -19,7 +19,7 @@
 #import "PowerAuthTestServerConfig.h"
 #import "AsyncHelper.h"
 
-#import "PowerAuthSDK.h"
+#import "PowerAuth2.h"
 
 /**
  The purpose of `PowerAuthSDKTests` is to run a series of integration tests where the
@@ -42,6 +42,8 @@
 	BOOL _hasConfig;
 	BOOL _invalidConfig;
 }
+
+static NSString * PA_Ver = @"2.1";
 
 #pragma mark - Test setup
 
@@ -279,7 +281,7 @@
 		result[key] = [value substringWithRange:NSMakeRange(1, value.length-2)];
 	}];
 	if (!error) {
-		error = ![result[@"pa_version"] isEqualToString:@"2.0"];
+		error = ![result[@"pa_version"] isEqualToString:PA_Ver];
 		XCTAssertFalse(error, @"Unknown PA version");
 	}
 	return error ? nil : result;
@@ -686,7 +688,8 @@
 	XCTAssertNotNil(payload.signature);
 	
 	// Normalization is: data&nonce&message
-	NSData * qr_code_data = [[@[payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
+	NSString * activationId = _sdk.activationIdentifier ? _sdk.activationIdentifier : @"";
+	NSData * qr_code_data = [[@[activationId, payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
 	result = [_sdk verifyServerSignedData:qr_code_data signature:payload.signature];
 	XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
 	
@@ -1026,6 +1029,37 @@
 		XCTAssertFalse([task isCancelled]);
 	}] boolValue];
 	XCTAssertTrue(result);	// Must pass, valid password, activation is active again
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testWrongAPIUsage
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This validates various API misuses.
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	PATSInitActivationResponse * activationData = activation[0];
+	//PowerAuthAuthentication * auth = activation[1];
+	//BOOL result;
+	{
+		// Test for auth object without signature factors
+		PowerAuthAuthentication * emptyAuth = [[PowerAuthAuthentication alloc] init];
+		NSError * error = nil;
+		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:emptyAuth method:@"POST" uriId:@"some/uri/id" body:nil error:&error];
+		XCTAssertNil(header);
+		XCTAssertNotNil(error);
+		XCTAssertEqualObjects(error.domain,PA2ErrorDomain);
+		XCTAssertEqual(error.code, PA2ErrorCodeWrongParameter);
+	}
 	
 	// Cleanup
 	[self removeLastActivation:activationData];

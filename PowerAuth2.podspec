@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2'
-	s.version           = '0.17.2'
+	s.version           = '0.18.0'
 	s.summary           = 'PowerAuth 2.0 Mobile SDK for iOS'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
@@ -28,7 +28,12 @@ Pod::Spec.new do |s|
 	CMD
 	
 	# Produced files
-  s.vendored_frameworks   = 'Library/PowerAuth2.framework'
-  s.libraries             = 'c++'
+	s.source_files          = 'Library/**/*.{h,m}'
+	s.private_header_files  = 'Library/Private/*.h'
+	s.vendored_libraries    = 'Library/libPowerAuthCore.a'
+	s.requires_arc          = true
+	s.libraries             = 'c++'
+	# Tweaks
+	s.pod_target_xcconfig   = { 'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO' }
 	
 end

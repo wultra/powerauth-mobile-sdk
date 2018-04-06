@@ -59,7 +59,7 @@ BOOL pa_isJailbroken() {
 
 + (BOOL) isInDebug {
 	BOOL result = [PA2Session hasDebugFeatures];
-#if defined(ENABLE_PA2_LOG)
+#if defined(ENABLE_PA2_LOG) || defined(DEBUG)
 	result |= YES;
 #endif
 	return result;

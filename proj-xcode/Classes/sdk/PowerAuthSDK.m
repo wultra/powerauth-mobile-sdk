@@ -279,39 +279,27 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	return keys;
 }
 
-- (PA2SignatureFactor) determineSignatureFactorForAuthentication:(PowerAuthAuthentication*)authentication {
-	if (authentication.usePossession  && !authentication.usePassword && !authentication.useBiometry) {
-		return PA2SignatureFactor_Possession;
-	}
-	if (!authentication.usePossession && authentication.usePassword  && !authentication.useBiometry) {
-		return PA2SignatureFactor_Knowledge;
-	}
-	if (!authentication.usePossession && !authentication.usePassword && authentication.useBiometry) {
-		return PA2SignatureFactor_Biometry;
-	}
-	if (authentication.usePossession  &&  authentication.usePassword && !authentication.useBiometry) {
-		return PA2SignatureFactor_Possession_Knowledge;
-	}
-	if (authentication.usePossession  && !authentication.usePassword &&  authentication.useBiometry) {
-		return PA2SignatureFactor_Possession_Biometry;
-	}
-	if (authentication.usePossession  &&  authentication.usePassword && authentication.useBiometry) {
-		return PA2SignatureFactor_Possession_Knowledge_Biometry;
-	}
-	// In case invalid combination was selected (no factors, knowledge & biometry), expect the worst...
-	return PA2SignatureFactor_Possession_Knowledge_Biometry;
-}
-
 - (PA2SignatureFactor) determineSignatureFactorForAuthentication:(PowerAuthAuthentication*)authentication
-												 withVaultUnlock:(BOOL)vaultUnlock {
-	if (vaultUnlock) {
-		return [self determineSignatureFactorForAuthentication:authentication] + PA2SignatureFactor_PrepareForVaultUnlock;
-	} else {
-		return [self determineSignatureFactorForAuthentication:authentication];
+												 withVaultUnlock:(BOOL)vaultUnlock
+{
+	PA2SignatureFactor factor = 0;
+	if (authentication.usePossession) {
+		factor |= PA2SignatureFactor_Possession;
 	}
+	if (authentication.usePassword != nil) {
+		factor |= PA2SignatureFactor_Knowledge;
+	}
+	if (authentication.useBiometry) {
+		factor |= PA2SignatureFactor_Biometry;
+	}
+	if (factor > 0 && vaultUnlock) {
+		factor |= PA2SignatureFactor_PrepareForVaultUnlock;
+	}
+	return factor;
 }
 
 - (PA2OperationTask*) fetchEncryptedVaultUnlockKey:(PowerAuthAuthentication*)authentication
+											reason:(PA2VaultUnlockReason)reason
 										 callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback {
 	
 	PA2OperationTask *task = [[PA2OperationTask alloc] init];
@@ -330,13 +318,17 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		
+		// Build request object & request data
+		PA2VaultUnlockRequest * request = [[PA2VaultUnlockRequest alloc] initWithReason:reason];
+		NSData * requestData = [_client embedNetworkObjectIntoRequest:request];
+		
 		// Compute authorization header based on constants from the specification.
 		NSError *error = nil;
 		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication
 																			  vaultUnlock:YES
 																				   method:@"POST"
 																					uriId:@"/pa/vault/unlock"
-																					 body:nil
+																					 body:requestData
 																					error:&error];
 		if (error) {
 			callback(nil, error);
@@ -349,7 +341,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		}
 		
 		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
+		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader request:request callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
 			// Network communication completed correctly
 			if (status == PA2RestResponseStatus_OK) {
 				callback(response.encryptedVaultEncryptionKey, nil);
@@ -698,7 +690,8 @@ static PowerAuthSDK * s_inst;
 }
 
 - (BOOL) commitActivationWithPassword:(NSString*)password
-								error:(NSError**)error {
+								error:(NSError**)error
+{
 	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
 	authentication.useBiometry = YES;
 	authentication.usePossession = YES;
@@ -707,7 +700,8 @@ static PowerAuthSDK * s_inst;
 }
 
 - (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-									  error:(NSError**)error {
+									  error:(NSError**)error
+{
 	
 	[self checkForValidSetup];
 	
@@ -760,6 +754,11 @@ static PowerAuthSDK * s_inst;
 	
 	// Return result
 	return result;
+}
+
+- (NSString*) activationIdentifier
+{
+	return _session.activationIdentifier;
 }
 
 #pragma mark Getting activations state
@@ -973,7 +972,16 @@ static PowerAuthSDK * s_inst;
 	// Check if there is an activation present
 	if (!_session.hasValidActivation) {
 		if (error) {
-			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil];
+			*error = PA2MakeError(PA2ErrorCodeMissingActivation, nil);
+		}
+		return nil;
+	}
+	
+	// Determine authentication factor type
+	PA2SignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication withVaultUnlock:vaultUnlock];
+	if (factor == 0) {
+		if (error) {
+			*error = PA2MakeError(PA2ErrorCodeWrongParameter, nil);
 		}
 		return nil;
 	}
@@ -983,13 +991,10 @@ static PowerAuthSDK * s_inst;
 	PA2SignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication userCancelled:&userCancelled];
 	if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
 		if (error) {
-			*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryCancel userInfo:nil];
+			*error = PA2MakeError(PA2ErrorCodeBiometryCancel, nil);
 		}
 		return nil;
 	}
-	
-	// Determine authentication factor type
-	PA2SignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication withVaultUnlock:vaultUnlock];
 	
 	// Compute signature for provided values and return result.
 	PA2HTTPRequestDataSignature * signature = [_session signHttpRequestData:requestData keys:keys factor:factor];
@@ -998,7 +1003,7 @@ static PowerAuthSDK * s_inst;
 	[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
 	
 	if (signature == nil && error) {
-		*error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeSignatureError userInfo:nil];
+		*error = PA2MakeError(PA2ErrorCodeSignatureError, nil);
 	}
 	return signature;
 }
@@ -1040,7 +1045,7 @@ static PowerAuthSDK * s_inst;
 	authentication.usePassword = oldPassword;
 	authentication.useBiometry = NO;
 	
-	return [self fetchEncryptedVaultUnlockKey:authentication callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_PASSWORD_CHANGE callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			// Let's change the password
 			BOOL result = [_session changeUserPassword:[PA2Password passwordWithString:oldPassword]
@@ -1076,7 +1081,7 @@ static PowerAuthSDK * s_inst;
 	authentication.useBiometry		= NO;
 	authentication.usePassword		= password;
 	
-	return [self fetchEncryptedVaultUnlockKey:authentication callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_ADD_BIOMETRY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			
 			if (encryptedEncryptionKey == nil) {
@@ -1148,7 +1153,7 @@ static PowerAuthSDK * s_inst;
 - (PA2OperationTask*) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
 								   index:(UInt64)index
 								callback:(void(^)(NSData *encryptionKey, NSError *error))callback {
-	return [self fetchEncryptedVaultUnlockKey:authentication callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			
 			if (encryptedEncryptionKey == nil) {
@@ -1185,7 +1190,7 @@ static PowerAuthSDK * s_inst;
 - (PA2OperationTask*) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
 											  data:(NSData*)data
 										  callback:(void(^)(NSData *signature, NSError *error))callback {
-	return [self fetchEncryptedVaultUnlockKey:authentication callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			
 			if (encryptedEncryptionKey == nil) {
@@ -1222,7 +1227,7 @@ static PowerAuthSDK * s_inst;
 	authentication.usePossession = YES;
 	authentication.useBiometry = NO;
 	authentication.usePassword = password;
-	return [self fetchEncryptedVaultUnlockKey:authentication callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_PASSWORD_VALIDATE callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		callback(error);
 	}];
 }

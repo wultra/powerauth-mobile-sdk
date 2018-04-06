@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-               BuildableName = "PowerAuth2ForExtensions.framework"
-               BlueprintName = "PowerAuth2ForExtensions"
-               ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
+               BlueprintIdentifier = "BF99D9142073E17000735ED2"
+               BuildableName = "libPowerAuthCoreTests.a"
+               BlueprintName = "PowerAuthCoreTests"
+               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
-            ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -54,10 +45,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
-            ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
+            BlueprintIdentifier = "BF99D9142073E17000735ED2"
+            BuildableName = "libPowerAuthCoreTests.a"
+            BlueprintName = "PowerAuthCoreTests"
+            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -72,10 +63,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
-            ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
+            BlueprintIdentifier = "BF99D9142073E17000735ED2"
+            BuildableName = "libPowerAuthCoreTests.a"
+            BlueprintName = "PowerAuthCoreTests"
+            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

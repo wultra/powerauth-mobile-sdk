@@ -62,6 +62,7 @@ namespace powerAuthTests
 		std::string _activation_otp;
 		std::string _activation_id;
 
+		const std::string PA_VER = "2.1";
 		
 		void setUp() override
 		{
@@ -530,7 +531,7 @@ namespace powerAuthTests
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					ccstAssertEqual(parsedSignature["pa_signature_type"], "possession_knowledge_biometry");
-					ccstAssertEqual(parsedSignature["pa_version"], "2.0");
+					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
 					std::string our_signature = T_calculateSignatureForData(cc7::ByteRange(), "POST", "/user/login", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge_Biometry, 0);
@@ -570,7 +571,7 @@ namespace powerAuthTests
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					ccstAssertEqual(parsedSignature["pa_signature_type"], "possession_knowledge");
-					ccstAssertEqual(parsedSignature["pa_version"], "2.0");
+					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
 					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 1);
@@ -794,7 +795,7 @@ namespace powerAuthTests
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					ccstAssertEqual(parsedSignature["pa_signature_type"], "possession_knowledge");
-					ccstAssertEqual(parsedSignature["pa_version"], "2.0");
+					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
 					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 4);
@@ -840,7 +841,7 @@ namespace powerAuthTests
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					ccstAssertEqual(parsedSignature["pa_signature_type"], "biometry");
-					ccstAssertEqual(parsedSignature["pa_version"], "2.0");
+					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
 					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Biometry, 6);
@@ -866,7 +867,7 @@ namespace powerAuthTests
 					std::string nonceB64 = parsedSignature["pa_nonce"];
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					ccstAssertEqual(parsedSignature["pa_signature_type"], "possession_knowledge");
-					ccstAssertEqual(parsedSignature["pa_version"], "2.0");
+					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
 					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 7);

@@ -63,7 +63,7 @@
 
 /** Perform a POST request to given resource, with provided data (bytes) and HTTP headers. Returns result in the callback.
  
- @param urlString Absolute resource URL path.
+ @param url URL path.
  @param data Data of the POST request body.
  @param headers HTTP headers.
  @param completion A callback that returns either a correct HTTP response, or an error object in case networking issue occurred.
@@ -111,7 +111,9 @@
 		PALog(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
 		PALog(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
 		PALog(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-		PALog(@"- Error: %@", error ? error.localizedDescription : @"no error");
+		if (error) {
+			PALog(@"- Error: %@", error.localizedDescription);
+		}
 		[[NSOperationQueue mainQueue] addOperationWithBlock: ^{
 			completion(data, response, error);
 		}];
@@ -207,10 +209,11 @@
 }
 
 - (NSURLSessionDataTask*) vaultUnlock:(PA2AuthorizationHttpHeader*)signatureHeader
+							  request:(nonnull PA2VaultUnlockRequest*)request
 							 callback:(void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/vault/unlock"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:nil headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
 		callback(status, (PA2VaultUnlockResponse*)response, error);
 	}];
 }

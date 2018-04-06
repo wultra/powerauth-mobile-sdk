@@ -28,7 +28,16 @@ Pod::Spec.new do |s|
 	CMD
 	
 	# Produced files
-  s.vendored_frameworks   = 'Library/PowerAuth2.framework'
-  s.libraries             = 'c++'
+	s.source_files          = 'Library/**/*.{h,m}'
+	s.private_header_files  = 'Library/Private/*.h'
+	s.vendored_libraries    = 'Library/libPowerAuthCore.a'
+	s.requires_arc          = true
+	s.libraries             = 'c++'
+	# Tweaks
+	s.pod_target_xcconfig   = { 'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO' }
+
+	# PowerAuth2-Debug is now deprecated
+	s.deprecated = true
+	s.deprecated_in_favor_of = 'PowerAuth2'
 	
 end

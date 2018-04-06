@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2-Debug'
-	s.version           = '0.17.2'
+	s.version           = '0.18.0'
 	s.summary           = 'PowerAuth 2.0 Debug Mobile SDK for iOS'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
 	s.libraries             = 'c++'
 	# Tweaks
 	s.pod_target_xcconfig   = { 'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO' }
-	
+
 	# PowerAuth2-Debug is now deprecated
 	s.deprecated = true
 	s.deprecated_in_favor_of = 'PowerAuth2'

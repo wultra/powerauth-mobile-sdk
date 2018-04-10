@@ -47,7 +47,6 @@ function USAGE
 ###############################################################################
 # Config
 PODSPEC="PowerAuth2.podspec"
-PODSPEC_DBG="PowerAuth2-Debug.podspec"
 PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
 PODSPEC_WOS="PowerAuth2ForWatch.podspec"
 INFO_PLIST="proj-xcode/Classes/Info.plist"
@@ -116,9 +115,7 @@ function PREPARE_VERSIONING_FILES
 		# ios, ios-debug
 		LOG "----- Generating ${PODSPEC}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
-		LOG "----- Generating ${PODSPEC_DBG}..."
-		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_DBG}" > "$SRC_ROOT/${PODSPEC_DBG}"
-		git add ${PODSPEC} ${PODSPEC_DBG}
+		git add ${PODSPEC}
 		# watchos
 		LOG "----- Generating ${PODSPEC_WOS}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
@@ -206,12 +203,9 @@ function DEPLOY_IOS
 	####
 	LOG "----- Validating IOS build..."
 	pod lib lint ${PODSPEC}
-	pod lib lint ${PODSPEC_DBG}
 	pod lib lint ${PODSPEC_EXT}
 	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
-	LOG "----- Publishing ${PODSPEC_DBG} to CocoaPods..."
-	pod trunk push ${PODSPEC_DBG}
 	LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
 	pod trunk push ${PODSPEC_WOS}
 	LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."

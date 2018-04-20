@@ -332,6 +332,12 @@ fi
 #
 # Main job starts here...
 #
+case "$TOP" in
+	*\ *)
+		# Yes, this is lame, but better exit now than publish broken builds
+		FAILURE "Current path contains space character. This script has not been tested for such case."
+		;;
+esac
 VALIDATE_GIT_STATUS
 PUSH_VERSIONING_FILES
 DEPLOY_IOS

@@ -95,13 +95,13 @@ function BUILD_COMMAND
 	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${PLATFORM}"
 	
 	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
-	local COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
+	local COMMAND_LINE="${XCBUILD} -project \"${XCODE_PROJECT}\""
 	if [ $VERBOSE -lt 2 ]; then
 		COMMAND_LINE+=" -quiet"
 	fi
 	COMMAND_LINE+=" -scheme ${SCHEME} -sdk ${PLATFORM}"
-	COMMAND_LINE+=" -derivedDataPath ${TMP_DIR}/DerivedData"
-	COMMAND_LINE+=" BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO"
+	COMMAND_LINE+=" -derivedDataPath \""${TMP_DIR}/DerivedData\"""
+	COMMAND_LINE+=" BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_DIR}\" CODE_SIGNING_REQUIRED=NO"
 	COMMAND_LINE+=" ONLY_ACTIVE_ARCH=NO"
 	
 	# Add bitcode switch, depending on build type
@@ -114,7 +114,7 @@ function BUILD_COMMAND
 	# Complete & Execute command line
 	COMMAND_LINE+=" ${COMMAND}"
 	DEBUG_LOG ${COMMAND_LINE}
-	${COMMAND_LINE}
+	eval "${COMMAND_LINE}"
 	
 	if [ "${COMMAND}" == "clean" ] && [ -e "${BUILD_DIR}" ]; then
 		$RM -r "${BUILD_DIR}"
@@ -150,7 +150,7 @@ function MAKE_FAT_LIB
   	${LIPO} -create "${NAT_FW_DIR}/${LIB}" "${SIM_FW_DIR}/${LIB}" -output "${FAT_FW_DIR}/${LIB}"
 	
 	LOG "Copying final framework..."
-	$CP -r ${FAT_FW_DIR} ${OUT_DIR}
+	$CP -r "${FAT_FW_DIR}" "${OUT_DIR}"
 }
 
 # -----------------------------------------------------------------------------

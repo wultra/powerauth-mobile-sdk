@@ -94,6 +94,19 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 	return _signedData;
 }
 
+// Signing key
+
+- (PA2SigningDataKey) signingDataKey
+{
+	return static_cast<PA2SigningDataKey>(_signedData.signingKey);
+}
+
+- (void) setSigningDataKey:(PA2SigningDataKey)signingDataKey
+{
+	_signedData.signingKey = static_cast<SignedData::SigningKey>(signingDataKey);
+}
+
+
 // Bytes setters and getters
 
 - (NSData*) data

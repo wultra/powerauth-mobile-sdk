@@ -437,11 +437,15 @@ CC7_JNI_METHOD_PARAMS(jint, verifyServerSignedData, jobject signedData)
 		CC7_ASSERT(false, "Missing signedData or internal handle.");
 		return EC_WrongParam;
 	}
-	// Load parameters into C++ objects 
+	// Load parameters into C++ objects
+	jclass requestClazz		    = CC7_JNI_MODULE_FIND_CLASS("SignedData");
+	// Get type of key
+	bool useMasterKey           = CC7_JNI_GET_FIELD_BOOL(signedData, requestClazz, "useMasterKey");
+	// Prepare cpp structure
 	SignedData cppSignedData;
-	jclass requestClazz		= CC7_JNI_MODULE_FIND_CLASS("SignedData");
-	cppSignedData.data		= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
-	cppSignedData.signature	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
+	cppSignedData.signingKey    = useMasterKey ? SignedData::ECDSA_MasterServerKey : SignedData::ECDSA_PersonalizedKey;
+	cppSignedData.data		    = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
+	cppSignedData.signature	    = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
 	return (jint) session->verifyServerSignedData(cppSignedData);
 }
 

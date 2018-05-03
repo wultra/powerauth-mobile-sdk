@@ -1055,13 +1055,14 @@ public class PowerAuthSDK {
     }
 
     /***
-     * Validates whether the data has been signed with master server private key.
+     * Validates whether the data has been signed with master server private key, or personalized server's private key.
      *
      * @param data An arbitrary data
      * @param signature A signature calculated for data
+     * @param useMasterKey If true, then master server's public key is used for validaion, otherwise personalized server's key.
      * @return true if signature is valid
      */
-    public boolean verifyServerSignedData(byte[] data, byte[] signature) {
+    public boolean verifyServerSignedData(byte[] data, byte[] signature, boolean useMasterKey) {
 
         checkForValidSetup();
 
@@ -1071,7 +1072,7 @@ public class PowerAuthSDK {
         }
 
         // Verify signature
-        SignedData signedData = new SignedData(data, signature);
+        SignedData signedData = new SignedData(data, signature, useMasterKey);
         return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
     }
 

@@ -1011,10 +1011,12 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
 					  signature:(nonnull NSString*)signature
+					  masterKey:(BOOL)masterKey
 {
 	[self checkForValidSetup];
 	
 	PA2SignedData * signedData = [[PA2SignedData alloc] init];
+	signedData.signingDataKey = masterKey ? PA2SigningDataKey_ECDSA_MasterServerKey : PA2SigningDataKey_ECDSA_PersonalizedKey;
 	signedData.data = data;
 	signedData.signatureBase64 = signature;
 

@@ -605,23 +605,35 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: ServerSig: Session has no valid setup.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
+		bool use_master_server_key = data.signingKey == SignedData::ECDSA_MasterServerKey;
+		if (!use_master_server_key && !hasValidActivation()) {
+			CC7_LOG("Session %p, %d: ServerSig: There's no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
 		if (data.signature.empty()) {
 			CC7_LOG("Session %p, %d: ServerSig: The signature is empty.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
-		// Import master server public key
+		// Import public key
 		bool success = false;
 		crypto::BNContext ctx;
-		EC_KEY * master_public_key = master_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
-		if (nullptr != master_public_key) {
-			// calculate signature
-			success = crypto::ECDSA_ValidateSignature(data.data, data.signature, master_public_key);
+		EC_KEY * ec_public_key;
+		if (use_master_server_key) {
+			// Import master server public key
+			ec_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
+		} else {
+			// Import server public key, which is personalized and associated with this session.
+			ec_public_key = crypto::ECC_ImportPublicKey(nullptr, _pd->serverPublicKey);
+		}
+		if (nullptr != ec_public_key) {
+			// validate signature
+			success = crypto::ECDSA_ValidateSignature(data.data, data.signature, ec_public_key);
 			//
 		} else {
-			CC7_LOG("Session %p, %d: ServerSig: Master server public key is invalid.", this, sessionIdentifier());
+			CC7_LOG("Session %p, %d: ServerSig: %s public key is invalid.", this, sessionIdentifier(), use_master_server_key ? "Master server" : "Server");
 		}
 		// Free allocated OpenSSL resources
-		EC_KEY_free(master_public_key);
+		EC_KEY_free(ec_public_key);
 		
 		return success ? EC_Ok : EC_Encryption;
 	}

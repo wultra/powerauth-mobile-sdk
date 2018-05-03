@@ -983,6 +983,26 @@ namespace powerAuthTests
 					
 					delete enc1;
 				}
+				// Server signed data with personalized key
+				{
+					SignedData signedData;
+					signedData.signingKey = SignedData::ECDSA_PersonalizedKey;
+					signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
+					signedData.signature = T_calculateServerSignature(signedData.data, serverPrivateKey);
+					// Verify...
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_Ok);
+					
+					// modify data
+					signedData.data.pop_back();
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_Encryption);
+					
+					// use clear signature
+					signedData.signature.clear();
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_WrongParam);
+				}
 				
 				// release keys, just for sure
 				EC_KEY_free(serverPrivateKey);
@@ -998,8 +1018,10 @@ namespace powerAuthTests
 			ErrorCode ec;
 			
 			SignedData signedData;
+			signedData.signingKey = SignedData::ECDSA_MasterServerKey;
 			signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
 			signedData.signature = T_calculateServerSignature(signedData.data);
+			// Verify...
 			ec = s1.verifyServerSignedData(signedData);
 			ccstAssertTrue(ec == EC_Ok);
 
@@ -1125,10 +1147,13 @@ namespace powerAuthTests
 			return signature.base64String();
 		}
 		
-		cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data)
+		cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, EC_KEY * private_key = nullptr)
 		{
 			cc7::ByteArray signature;
-			bool result = crypto::ECDSA_ComputeSignature(data, _masterServerPrivateKey, signature);
+			if (private_key == nullptr) {
+				private_key = _masterServerPrivateKey;
+			}
+			bool result = crypto::ECDSA_ComputeSignature(data, private_key, signature);
 			if (!result) {
 				ccstFailure("Server signature calculation failed");
 				return cc7::ByteArray();

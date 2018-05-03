@@ -339,6 +339,22 @@ namespace powerAuth
 	 */
 	struct SignedData
 	{
+		enum SigningKey
+		{
+			/**
+			 `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
+			 */
+			ECDSA_MasterServerKey = 0,
+			/**
+			 `KEY_SERVER_PRIVATE` key was used for signature calculation
+			 */
+			ECDSA_PersonalizedKey = 1
+		};
+		
+		/**
+		 A key type used for signature calculation.
+		 */
+		SigningKey signingKey;
 		/**
 		 An arbitrary data
 		 */
@@ -347,6 +363,14 @@ namespace powerAuth
 		 A signagure calculated for data
 		 */
 		cc7::ByteArray signature;
+		
+		/**
+		 Default constructor
+		 */
+		SignedData(SigningKey signingKey = ECDSA_MasterServerKey) :
+			signingKey(signingKey)
+		{
+		}
 	};
 	
 	

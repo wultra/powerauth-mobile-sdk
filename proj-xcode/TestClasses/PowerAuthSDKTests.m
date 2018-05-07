@@ -679,23 +679,35 @@ static NSString * PA_Ver = @"2.1";
 	PATSInitActivationResponse * activationData = activation[0];
 	PowerAuthAuthentication * auth = activation[1];
 	
-	NSString * dataForSigning = @"All your money are belong to us!";
-	NSString * messageToUser = @"Please sign this important bank transfer.";
-	PATSOfflineSignaturePayload * payload = [_testServerApi createOfflineSignaturePayload:activationData.activationId data:dataForSigning message:messageToUser];
-	XCTAssertNotNil(payload);
-	XCTAssertTrue([payload.message isEqualToString:messageToUser]);
-	XCTAssertTrue([payload.data isEqualToString:dataForSigning]);
-	XCTAssertNotNil(payload.signature);
-	
-	// Normalization is: data&nonce&message
-	NSString * activationId = _sdk.activationIdentifier ? _sdk.activationIdentifier : @"";
-	NSData * qr_code_data = [[@[activationId, payload.dataHash, payload.nonce, payload.message] componentsJoinedByString:@"&"] dataUsingEncoding:NSUTF8StringEncoding];
-	result = [_sdk verifyServerSignedData:qr_code_data signature:payload.signature];
-	XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+	PATSOfflineSignaturePayload * payload;
+	{
+		// Verify data signed with master key (non-personalized)
+		NSString * dataForSigning = @"All your money are belong to us!";
+		payload = [_testServerApi createNonPersonalizedOfflineSignaturePayload:activationData.applicationId data:dataForSigning];
+		XCTAssertNotNil(payload);
+		XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+		XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"0"]);
+		
+		NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+		result = [_sdk verifyServerSignedData:signedData signature:payload.parsedSignature masterKey:YES];
+		XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+	}
+	{
+		// Verify data signed with server key (personalized)
+		NSString * dataForSigning = @"All your money are belong to us!";
+		payload = [_testServerApi createPersonalizedOfflineSignaturePayload:activationData.activationId data:dataForSigning];
+		XCTAssertNotNil(payload);
+		XCTAssertTrue([payload.parsedData isEqualToString:dataForSigning]);
+		XCTAssertTrue([payload.parsedSigningKey isEqualToString:@"1"]);
+		
+		NSData * signedData = [payload.parsedSignedData dataUsingEncoding:NSUTF8StringEncoding];
+		result = [_sdk verifyServerSignedData:signedData signature:payload.parsedSignature masterKey:NO];
+		XCTAssertTrue(result, @"Wrong signature calculation, or server did not sign this data");
+	}
 	
 	// Well, we have a data for offline signature, so let's try to verify it.
 	NSString * uriId = @"/operation/authorize/offline";
-	NSData * body = [[NSData alloc] initWithBase64EncodedString:payload.dataHash options:0];
+	NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
 	NSString * nonce = payload.nonce;
 
 	PowerAuthAuthentication * sign_auth = [[PowerAuthAuthentication alloc] init];

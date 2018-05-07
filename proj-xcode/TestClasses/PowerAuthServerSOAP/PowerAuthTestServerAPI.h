@@ -156,12 +156,18 @@
 // Offline signatures
 
 /**
- Request creates a data for offline signature QR code.
+ Request creates a data for offline non-personalized signature QR code.
  Returns result object created from SOAP response or nil in case of failure.
  */
-- (PATSOfflineSignaturePayload*) createOfflineSignaturePayload:(NSString*)activationId
-														  data:(NSString*)data
-													   message:(NSString*)message;
+- (PATSOfflineSignaturePayload*) createNonPersonalizedOfflineSignaturePayload:(NSString*)applicationId
+																		 data:(NSString*)data;
+
+/**
+ Request creates a data for offline personalized signature QR code.
+ Returns result object created from SOAP response or nil in case of failure.
+ */
+- (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
+																	  data:(NSString*)data;
 
 /**
  Request for PA2 signature calculation.

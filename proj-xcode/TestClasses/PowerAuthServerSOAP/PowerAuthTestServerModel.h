@@ -140,11 +140,14 @@ typedef enum _PATSActivationStatusEnum {
 
 @interface PATSOfflineSignaturePayload : NSObject
 
-@property (nonatomic, strong) NSString * data;
-@property (nonatomic, strong) NSString * dataHash;
-@property (nonatomic, strong) NSString * message;
+@property (nonatomic, strong) NSString * offlineData;
 @property (nonatomic, strong) NSString * nonce;
-@property (nonatomic, strong) NSString * signature;
+// Attributes parsed from offlineData
+@property (nonatomic, strong, readonly) NSString * parsedData;
+@property (nonatomic, strong, readonly) NSString * parsedNonce;
+@property (nonatomic, strong, readonly) NSString * parsedSigningKey;
+@property (nonatomic, strong, readonly) NSString * parsedSignature;
+@property (nonatomic, strong, readonly) NSString * parsedSignedData;
 
 @end
 

@@ -462,8 +462,11 @@ namespace powerAuth
 		 You can display this code to the UI and user can confirm visually
 		 if the code is the same on both, server & client sides. This feature
 		 must be supported on the server's side of the activation flow.
+		 
+		 Note: The value is equivalent to H_K_DEVICE_PUBLIC mentioned in
+		 PowerAuth crypto protocol documentation.
 		 */
-		std::string	hkDevicePublicKey;
+		std::string	activationFingerprint;
 	};
 	
 	

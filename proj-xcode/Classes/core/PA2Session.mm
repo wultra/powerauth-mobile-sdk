@@ -128,12 +128,13 @@ using namespace io::getlime::powerAuth;
 
 - (nullable NSString*) activationIdentifier
 {
-	if (_session->hasValidActivation()) {
-		return cc7::objc::CopyToNSString(_session->activationIdentifier());
-	}
-	return nil;
+	return cc7::objc::CopyToNullableNSString(_session->activationIdentifier());
 }
 
+- (nullable NSString*) activationFingerprint
+{
+	return cc7::objc::CopyToNullableNSString(_session->activationFingerprint());
+}
 
 - (nullable PA2ActivationStep1Result*) startActivation:(nonnull PA2ActivationStep1Param*)param
 {

@@ -345,6 +345,14 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Get activation fingerpint calculated from device's public key.
+     * @return Activation fingerprint or null if object has no activation.
+     */
+    public @Nullable String getActivationFingerprint() {
+        return mSession.getActivationFingerprint();
+    }
+
+    /**
      * Return the encryptor factory instance, useful for generating custom encryptors.
      *
      * @return Encryptor factory instance.
@@ -523,7 +531,7 @@ public class PowerAuthSDK {
                 final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
                 if (resultStep2.errorCode == ErrorCode.OK) {
                     // Everything was OK
-                    listener.onActivationCreateSucceed(resultStep2.hkDevicePublicKey, response.getCustomAttributes());
+                    listener.onActivationCreateSucceed(resultStep2.activationFingerprint, response.getCustomAttributes());
                 } else {
                     // Error occurred
                     mSession.resetSession();
@@ -632,7 +640,7 @@ public class PowerAuthSDK {
                     ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
 
                     if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
-                        listener.onActivationCreateSucceed(step2Result.hkDevicePublicKey, activationCreateResponse.getCustomAttributes());
+                        listener.onActivationCreateSucceed(step2Result.activationFingerprint, activationCreateResponse.getCustomAttributes());
                     } else {
                         mSession.resetSession();
                         listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));

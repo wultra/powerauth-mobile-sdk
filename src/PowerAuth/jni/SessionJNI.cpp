@@ -226,6 +226,18 @@ CC7_JNI_METHOD(jstring, getActivationIdentifier)
 }
 
 //
+// public native String getActivationFingerprint()
+//
+CC7_JNI_METHOD(jstring, getActivationFingerprint)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session || !session->hasValidActivation()) {
+		return NULL;
+	}
+	return cc7::jni::CopyToNullableJavaString(env, session->activationFingerprint());
+}
+
+//
 // public native ActivationStep1Result startActivation(ActivationStep1Param param);
 //
 CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
@@ -283,7 +295,7 @@ CC7_JNI_METHOD_PARAMS(jobject, validateActivationResponse, jobject param)
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStep2Result"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "hkDevicePublicKey",  cc7::jni::CopyToJavaString(env, cppResult.hkDevicePublicKey));
+		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationFingerprint",  cc7::jni::CopyToJavaString(env, cppResult.activationFingerprint));
 	}
 	return resultObject;
 }

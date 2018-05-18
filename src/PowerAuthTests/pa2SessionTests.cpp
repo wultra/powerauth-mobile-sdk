@@ -320,7 +320,7 @@ namespace powerAuthTests
 				// SERVER STEP 2
 				//  ... validate result1 & prepare param2
 				ActivationStep2Param param2;
-				std::string hkKEY_DEVICE_PUBLIC;
+				std::string ACTIVATION_FINGERPRINT;
 				cc7::ByteArray MASTER_SHARED_SECRET;
 				{
 					// Validate "received" activation signature
@@ -393,7 +393,7 @@ namespace powerAuthTests
 					v = v % 100000000;
 					char buffer[32];
 					sprintf(buffer, "%08d", v);
-					hkKEY_DEVICE_PUBLIC = buffer;
+					ACTIVATION_FINGERPRINT = buffer;
 					
 					ccstMessage("Shared secret: %s", MASTER_SHARED_SECRET.hexString().c_str());
 				}
@@ -403,7 +403,7 @@ namespace powerAuthTests
 				{
 					ec = s1.validateActivationResponse(param2, result2);
 					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(hkKEY_DEVICE_PUBLIC, result2.hkDevicePublicKey);
+					ccstAssertEqual(ACTIVATION_FINGERPRINT, result2.activationFingerprint);
 					
 					ccstAssertTrue(s1.hasValidSetup());
 					ccstAssertFalse(s1.canStartActivation());
@@ -509,6 +509,8 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertFalse(s1.hasPendingActivation());
 					ccstAssertTrue(s1.hasValidActivation());
+					// Compare whether the fingerprint is still correct
+					ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
 				}
 				// Signature test #1
 				{

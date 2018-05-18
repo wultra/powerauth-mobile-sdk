@@ -416,7 +416,7 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
  if the code is the same on both, server & client sides. This feature
  must be supported on the server's side of the activation flow.
  */
-@property (nonatomic, strong, nonnull) NSString * hkDevicePublicKey;
+@property (nonatomic, strong, nonnull) NSString * activationFingerprint;
 
 @end
 

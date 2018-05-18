@@ -506,7 +506,7 @@ static PowerAuthSDK * s_inst;
 				if (resultStep2) {
 					// Everything is OK
 					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.activationFingerprint = resultStep2.activationFingerprint;
 					activationResult.customAttributes = response.customAttributes;
 				} else {
 					// Encryption error
@@ -639,7 +639,7 @@ static PowerAuthSDK * s_inst;
 				if (resultStep2) {
 					// Everything is OK
 					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.activationFingerprint = resultStep2.activationFingerprint;
 					activationResult.customAttributes = responseObject.customAttributes;
 				} else {
 					// Error occurred

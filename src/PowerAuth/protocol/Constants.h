@@ -83,7 +83,7 @@ namespace protocol
 	const size_t ACTIVATION_SHORT_ID_SIZE = 11;
 	
 	// Length of decimalized signature, calculated from device public key
-	const size_t HK_DEVICE_PUBLIC_KEY_SIZE = 8;
+	const size_t ACTIVATION_FINGERPRINT_SIZE = 8;
 	
 	// Length of status blob
 	const size_t STATUS_BLOB_SIZE = 32;

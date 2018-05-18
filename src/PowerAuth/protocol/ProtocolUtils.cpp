@@ -544,10 +544,10 @@ namespace protocol
 	{
 		std::string result = std::to_string(val);
 		static const std::string zero("00000000");
-		if (result.length() < protocol::HK_DEVICE_PUBLIC_KEY_SIZE) {
-			result.insert(0, zero.substr(0, protocol::HK_DEVICE_PUBLIC_KEY_SIZE - result.length()));
+		if (result.length() < protocol::ACTIVATION_FINGERPRINT_SIZE) {
+			result.insert(0, zero.substr(0, protocol::ACTIVATION_FINGERPRINT_SIZE - result.length()));
 		}
-		CC7_ASSERT(result.length() == protocol::HK_DEVICE_PUBLIC_KEY_SIZE, "Wrong normalized size");
+		CC7_ASSERT(result.length() == protocol::ACTIVATION_FINGERPRINT_SIZE, "Wrong normalized size");
 		return result;
 	}
 	

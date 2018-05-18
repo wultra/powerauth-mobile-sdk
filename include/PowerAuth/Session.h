@@ -143,6 +143,15 @@ namespace powerAuth
 		std::string activationIdentifier() const;
 		
 		/**
+		 If the session has valid activation, then returns decimalized fingerprint, calculated
+		 from device's public key. Otherwise returns empty string.
+		 
+		 Note: The value is equivalent to H_K_DEVICE_PUBLIC mentioned in PowerAuth crypto
+		 protocol documentation.
+		 */
+		std::string activationFingerprint() const;
+		
+		/**
 		 Starts a new activation process. The session must have valid setup. Once the activation
 		 is started you have to complete whole activation sequence or reset a whole session.
 		 

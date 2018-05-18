@@ -192,6 +192,25 @@ namespace powerAuth
 		return std::string();
 	}
 	
+	std::string Session::activationFingerprint() const
+	{
+		LOCK_GUARD();
+		std::string result;
+		if (hasValidActivation()) {
+			crypto::BNContext ctx;
+			EC_KEY * public_key = crypto::ECC_ImportPublicKey(nullptr, _pd->devicePublicKey, ctx);
+			auto coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(public_key, ctx);
+			if (!coord_x.empty()) {
+				result = protocol::CalculateDecimalizedSignature(crypto::SHA256(coord_x));
+				if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
+					result.clear();
+				}
+			}
+			EC_KEY_free(public_key);
+		}
+		return result;
+	}
+	
 	ErrorCode Session::startActivation(const ActivationStep1Param & param, ActivationStep1Result & result)
 	{
 		LOCK_GUARD();
@@ -333,8 +352,8 @@ namespace powerAuth
 				break;
 			}
 			// So far so good, the last step is decimalization of device's public key
-			result.hkDevicePublicKey = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyCoordX));
-			if (result.hkDevicePublicKey.length() != protocol::HK_DEVICE_PUBLIC_KEY_SIZE) {
+			result.activationFingerprint = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyCoordX));
+			if (result.activationFingerprint.length() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
 				CC7_LOG("Session %p, %d: Step 2: Unable to calculate decimalized signature.", this, sessionIdentifier());
 				break;
 			}

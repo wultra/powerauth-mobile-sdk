@@ -761,6 +761,11 @@ static PowerAuthSDK * s_inst;
 	return _session.activationIdentifier;
 }
 
+- (NSString*) activationFingerprint
+{
+	return _session.activationFingerprint;
+}
+
 #pragma mark Getting activations state
 
 - (PA2OperationTask*) fetchActivationStatusWithCallback:(void(^)(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error))callback {

@@ -33,10 +33,10 @@ public class ActivationStep2Result {
      if the code is the same on both, server &amp; client sides. This feature
      must be supported on the server's side of the activation flow.
      */
-    public final String hkDevicePublicKey;
+    public final String activationFingerprint;
 
     public ActivationStep2Result() {
         this.errorCode = 0;
-        this.hkDevicePublicKey = null;
+        this.activationFingerprint = null;
     }
 }

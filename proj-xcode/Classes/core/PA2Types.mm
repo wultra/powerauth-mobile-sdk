@@ -94,6 +94,19 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 	return _signedData;
 }
 
+// Signing key
+
+- (PA2SigningDataKey) signingDataKey
+{
+	return static_cast<PA2SigningDataKey>(_signedData.signingKey);
+}
+
+- (void) setSigningDataKey:(PA2SigningDataKey)signingDataKey
+{
+	_signedData.signingKey = static_cast<SignedData::SigningKey>(signingDataKey);
+}
+
+
 // Bytes setters and getters
 
 - (NSData*) data
@@ -306,7 +319,7 @@ void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, io::getlime::
 PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2)
 {
 	PA2ActivationStep2Result * res = [[PA2ActivationStep2Result alloc] init];
-	res.hkDevicePublicKey			= cc7::objc::CopyToNSString(cpp_r2.hkDevicePublicKey);
+	res.activationFingerprint		= cc7::objc::CopyToNSString(cpp_r2.activationFingerprint);
 	return res;
 }
 

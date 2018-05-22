@@ -212,6 +212,11 @@
  */
 @property (nonatomic, strong, nullable, readonly) NSString *activationIdentifier;
 
+/**
+ Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString *activationFingerprint;
+
 
 /** Fetch the activation status for current activation.
  
@@ -315,12 +320,14 @@
 													nonce:(nonnull NSString*)nonce
 													error:(NSError * _Nullable * _Nullable)error;
 /**
- Validates whether the data has been signed with master server private key.
+ Validates whether the data has been signed with master server private key or personalized server's private key.
  @param data An arbitrary data
  @param signature A signature calculated for data, in Base64 format
+ @param masterKey If YES, then master server public key is used for validation, otherwise personalized server's public key.
  */
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
-					  signature:(nonnull NSString*)signature;
+					  signature:(nonnull NSString*)signature
+					  masterKey:(BOOL)masterKey;
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  

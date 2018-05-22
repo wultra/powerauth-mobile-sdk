@@ -110,6 +110,12 @@
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
 
 /**
+ If the session has valid activation, then returns decimalized fingerprint, calculated
+ from device's public key. Otherwise returns nil.
+ */
+@property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;
+
+/**
  Starts a new activation process. The session must have valid setup. Once the activation 
  is started you have to complete whole activation sequence or reset a whole session.
  

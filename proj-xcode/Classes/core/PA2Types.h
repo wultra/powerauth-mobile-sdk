@@ -277,10 +277,25 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
 @end
 
 /**
+ The PA2SigningDataKey enumeration defines key type used for signature calculation.
+ */
+typedef NS_ENUM(int, PA2SigningDataKey) {
+	/**
+	 `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
+	 */
+	PA2SigningDataKey_ECDSA_MasterServerKey = 0,
+	/**
+	 `KEY_SERVER_PRIVATE` key was used for signature calculation
+	 */
+	PA2SigningDataKey_ECDSA_PersonalizedKey = 1,
+};
+
+/**
  The PA2SignedData object contains data and signature calculated from data.
  */
 @interface PA2SignedData : NSObject
 
+@property (nonatomic, assign) PA2SigningDataKey signingDataKey;
 /**
  A data protected with signature
  */
@@ -401,7 +416,7 @@ extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
  if the code is the same on both, server & client sides. This feature
  must be supported on the server's side of the activation flow.
  */
-@property (nonatomic, strong, nonnull) NSString * hkDevicePublicKey;
+@property (nonatomic, strong, nonnull) NSString * activationFingerprint;
 
 @end
 

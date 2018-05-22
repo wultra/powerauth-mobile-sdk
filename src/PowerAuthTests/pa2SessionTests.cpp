@@ -320,7 +320,7 @@ namespace powerAuthTests
 				// SERVER STEP 2
 				//  ... validate result1 & prepare param2
 				ActivationStep2Param param2;
-				std::string hkKEY_DEVICE_PUBLIC;
+				std::string ACTIVATION_FINGERPRINT;
 				cc7::ByteArray MASTER_SHARED_SECRET;
 				{
 					// Validate "received" activation signature
@@ -393,7 +393,7 @@ namespace powerAuthTests
 					v = v % 100000000;
 					char buffer[32];
 					sprintf(buffer, "%08d", v);
-					hkKEY_DEVICE_PUBLIC = buffer;
+					ACTIVATION_FINGERPRINT = buffer;
 					
 					ccstMessage("Shared secret: %s", MASTER_SHARED_SECRET.hexString().c_str());
 				}
@@ -403,7 +403,7 @@ namespace powerAuthTests
 				{
 					ec = s1.validateActivationResponse(param2, result2);
 					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(hkKEY_DEVICE_PUBLIC, result2.hkDevicePublicKey);
+					ccstAssertEqual(ACTIVATION_FINGERPRINT, result2.activationFingerprint);
 					
 					ccstAssertTrue(s1.hasValidSetup());
 					ccstAssertFalse(s1.canStartActivation());
@@ -509,6 +509,8 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertFalse(s1.hasPendingActivation());
 					ccstAssertTrue(s1.hasValidActivation());
+					// Compare whether the fingerprint is still correct
+					ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
 				}
 				// Signature test #1
 				{
@@ -983,6 +985,26 @@ namespace powerAuthTests
 					
 					delete enc1;
 				}
+				// Server signed data with personalized key
+				{
+					SignedData signedData;
+					signedData.signingKey = SignedData::ECDSA_PersonalizedKey;
+					signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
+					signedData.signature = T_calculateServerSignature(signedData.data, serverPrivateKey);
+					// Verify...
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_Ok);
+					
+					// modify data
+					signedData.data.pop_back();
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_Encryption);
+					
+					// use clear signature
+					signedData.signature.clear();
+					ec = s1.verifyServerSignedData(signedData);
+					ccstAssertTrue(ec == EC_WrongParam);
+				}
 				
 				// release keys, just for sure
 				EC_KEY_free(serverPrivateKey);
@@ -998,8 +1020,10 @@ namespace powerAuthTests
 			ErrorCode ec;
 			
 			SignedData signedData;
+			signedData.signingKey = SignedData::ECDSA_MasterServerKey;
 			signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
 			signedData.signature = T_calculateServerSignature(signedData.data);
+			// Verify...
 			ec = s1.verifyServerSignedData(signedData);
 			ccstAssertTrue(ec == EC_Ok);
 
@@ -1125,10 +1149,13 @@ namespace powerAuthTests
 			return signature.base64String();
 		}
 		
-		cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data)
+		cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, EC_KEY * private_key = nullptr)
 		{
 			cc7::ByteArray signature;
-			bool result = crypto::ECDSA_ComputeSignature(data, _masterServerPrivateKey, signature);
+			if (private_key == nullptr) {
+				private_key = _masterServerPrivateKey;
+			}
+			bool result = crypto::ECDSA_ComputeSignature(data, private_key, signature);
 			if (!result) {
 				ccstFailure("Server signature calculation failed");
 				return cc7::ByteArray();

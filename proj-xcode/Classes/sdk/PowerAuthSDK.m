@@ -506,7 +506,7 @@ static PowerAuthSDK * s_inst;
 				if (resultStep2) {
 					// Everything is OK
 					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.activationFingerprint = resultStep2.activationFingerprint;
 					activationResult.customAttributes = response.customAttributes;
 				} else {
 					// Encryption error
@@ -639,7 +639,7 @@ static PowerAuthSDK * s_inst;
 				if (resultStep2) {
 					// Everything is OK
 					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.hkDevicePublicKey;
+					activationResult.activationFingerprint = resultStep2.activationFingerprint;
 					activationResult.customAttributes = responseObject.customAttributes;
 				} else {
 					// Error occurred
@@ -759,6 +759,11 @@ static PowerAuthSDK * s_inst;
 - (NSString*) activationIdentifier
 {
 	return _session.activationIdentifier;
+}
+
+- (NSString*) activationFingerprint
+{
+	return _session.activationFingerprint;
 }
 
 #pragma mark Getting activations state
@@ -1011,10 +1016,12 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
 					  signature:(nonnull NSString*)signature
+					  masterKey:(BOOL)masterKey
 {
 	[self checkForValidSetup];
 	
 	PA2SignedData * signedData = [[PA2SignedData alloc] init];
+	signedData.signingDataKey = masterKey ? PA2SigningDataKey_ECDSA_MasterServerKey : PA2SigningDataKey_ECDSA_PersonalizedKey;
 	signedData.data = data;
 	signedData.signatureBase64 = signature;
 

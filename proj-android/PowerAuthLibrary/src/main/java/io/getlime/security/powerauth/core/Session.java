@@ -144,6 +144,12 @@ public class Session {
      no activation then returns null.
      */
 	public native String getActivationIdentifier();
+
+	/**
+	 If the session has valid activation, then returns decimalized fingerprint, calculated
+	 from device's public key. Otherwise returns null.
+	 */
+	public native String getActivationFingerprint();
     
     /**
      Starts a new activation process. The Session must be in its initial state. Once the

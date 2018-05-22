@@ -29,9 +29,15 @@ public class SignedData {
      A signagure calculated for data
      */
     public final byte[] signature;
+    /**
+     If true, then master server's public key is used for validation, otherwise
+     personalized server's public key.
+     */
+    public final boolean useMasterKey;
 
-    public SignedData(byte[] data, byte[] signature) {
+    public SignedData(byte[] data, byte[] signature, boolean useMasterKey) {
         this.data = data;
         this.signature = signature;
+        this.useMasterKey = useMasterKey;
     }
 }

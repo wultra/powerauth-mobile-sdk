@@ -440,20 +440,31 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	return [components componentsJoinedByString:@"&"];
 }
 
-- (PATSOfflineSignaturePayload*) createOfflineSignaturePayload:(NSString*)activationId
-														  data:(NSString*)data
-													   message:(NSString*)message
+- (PATSOfflineSignaturePayload*) createNonPersonalizedOfflineSignaturePayload:(NSString*)applicationId
+																		 data:(NSString*)data
 {
 	[self checkForValidConnection];
-	NSArray * params = @[activationId, data, message];
-	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreateOfflineSignaturePayload" params:params response:@"CreateOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSArray * params = @[applicationId, data];
+	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreateNonPersonalizedOfflineSignaturePayload" params:params response:@"CreateNonPersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
-		if (!localError) obj.data			= [[resp nodeForXPath:@"pa:data" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.dataHash		= [[resp nodeForXPath:@"pa:dataHash" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.message		= [[resp nodeForXPath:@"pa:message" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.offlineData	= [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.nonce			= [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.signature		= [[resp nodeForXPath:@"pa:signature" namespaceMappings:ns error:&localError] stringValue];
+		return !localError ? obj : nil;
+	}];
+	return response;
+}
+
+- (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
+																	  data:(NSString*)data
+{
+	[self checkForValidConnection];
+	NSArray * params = @[activationId, data];
+	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreatePersonalizedOfflineSignaturePayload" params:params response:@"CreatePersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+		NSError * localError = nil;
+		PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
+		if (!localError) obj.offlineData	= [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.nonce			= [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
 		return !localError ? obj : nil;
 	}];
 	return response;

@@ -115,7 +115,8 @@ function MAKE_FAT_LIB
 	local FAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${CONFIG}"
 
 	$MD "${FAT_LIB_DIR}"	
-  	${LIPO} -create "${NAT_LIB_DIR}/${LIB}" "${SIM_LIB_DIR}/${LIB}" -output "${FAT_LIB_DIR}/${LIB}"
+
+	eval "${LIPO} -create \"$NAT_LIB_DIR/$LIB\" \"$SIM_LIB_DIR/$LIB\" -output \"$FAT_LIB_DIR/$LIB\""
 	
 	LOG "Copying final library..."
 	$CP -r "${FAT_LIB_DIR}/${LIB}" "${OUT_DIR}"
@@ -131,7 +132,7 @@ function VALIDATE_FAT_ARCHITECTURES
 {
 	local LIB="$1"
 	local ARCHITECTURES=($2)
-	local INFO=`${LIPO} -info ${LIB}`
+	local INFO=`${LIPO} -info "${LIB}"`
 	for ARCH in "${ARCHITECTURES[@]}"
 	do
 		local HAS_ARCH=`echo $INFO | grep $ARCH | wc -l`
@@ -172,10 +173,10 @@ function COPY_SRC_FILE
 # -----------------------------------------------------------------------------
 function COPY_SRC_DIR
 {
-	local SRC=$1
-	local BASE=$2
-	local DST=$3
-	local ONLY_HEADERS=$4
+	local SRC="$1"
+	local BASE="$2"
+	local DST="$3"
+	local ONLY_HEADERS="$4"
 	
 	local SRC_FULL="${BASE}/$SRC"
 	local SRC_DIR_FULL="`( cd \"$SRC_FULL\" && pwd )`"
@@ -207,7 +208,7 @@ function COPY_SRC_DIR
 # -----------------------------------------------------------------------------
 function COPY_SOURCE_FILES
 {
-	local SRC=$1
+	local SRC="$1"
 	local DST="$2"
 	
 	LOG "-----------------------------------------------------"
@@ -245,10 +246,10 @@ function COPY_SOURCE_FILES
 # -----------------------------------------------------------------------------
 function BUILD_COMMAND
 {
-	local SCHEME=$1
-	local CONFIG=$2
-	local PLATFORM=$3
-	local COMMAND=$4
+	local SCHEME="$1"
+	local CONFIG="$2"
+	local PLATFORM="$3"
+	local COMMAND="$4"
 	
 	if [ $PLATFORM == $PLATFORM_SDK1 ]; then
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS1"
@@ -259,14 +260,14 @@ function BUILD_COMMAND
 	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${CONFIG} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
 	
 	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
-	local COMMAND_LINE="${XCBUILD} -project ${XCODE_PROJECT}"
+	local COMMAND_LINE="${XCBUILD} -project \"${XCODE_PROJECT}\""
 	if [ $VERBOSE -lt 2 ]; then
 		COMMAND_LINE="$COMMAND_LINE -quiet"
 	fi
 
 	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG} -sdk ${PLATFORM}"
-	COMMAND_LINE="$COMMAND_LINE -derivedDataPath ${TMP_DIR}/DerivedData"
-	COMMAND_LINE="$COMMAND_LINE BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_DIR}" CODE_SIGNING_REQUIRED=NO"
+	COMMAND_LINE="$COMMAND_LINE -derivedDataPath \"${TMP_DIR}/DerivedData\""
+	COMMAND_LINE="$COMMAND_LINE BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_DIR}\" CODE_SIGNING_REQUIRED=NO"
 	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\" ONLY_ACTIVE_ARCH=NO"
 	COMMAND_LINE="$COMMAND_LINE ${COMMAND}"
 	DEBUG_LOG ${COMMAND_LINE}
@@ -285,8 +286,8 @@ function BUILD_COMMAND
 # -----------------------------------------------------------------------------
 function BUILD_SCHEME
 {
-	local SCHEME=$1
-	local CONFIG=$2
+	local SCHEME="$1"
+	local CONFIG="$2"
 	LOG "-----------------------------------------------------"
 	LOG "Building architectures..."
 	LOG "-----------------------------------------------------"

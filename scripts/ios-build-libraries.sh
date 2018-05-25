@@ -37,6 +37,7 @@ set +v
 # -----------------------------------------------------------------------------
 TOP=$(dirname $0)
 source "${TOP}/common-functions.sh"
+SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 #
 # Source headers & Xcode project location
@@ -106,9 +107,9 @@ function MAKE_FAT_LIB
 	local SIM_PLATFORM=$4
 	local LIB=${OUT_LIBRARY}
 	
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "FATalizing   ${LIB}"
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	
 	local NAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${NAT_PLATFORM}/${CONFIG}-${NAT_PLATFORM}"
 	local SIM_LIB_DIR="${TMP_DIR}/${SCHEME}-${SIM_PLATFORM}/${CONFIG}-${SIM_PLATFORM}"
@@ -211,9 +212,9 @@ function COPY_SOURCE_FILES
 	local SRC="$1"
 	local DST="$2"
 	
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Copying SDK folders ..."
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	
 	# Prepare dirs in output directory
 	DST="`( cd \"$DST\" && pwd )`"
@@ -288,9 +289,9 @@ function BUILD_SCHEME
 {
 	local SCHEME="$1"
 	local CONFIG="$2"
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Building architectures..."
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	
 	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 build
 	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 build
@@ -315,9 +316,9 @@ function CLEAN_SCHEME
 {
 	local SCHEME=$1
 	local CONFIG=$2
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Cleaning architectures..."
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	
 	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 clean
 	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 clean
@@ -429,9 +430,9 @@ BUILD_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
 # Remove temporary data
 #
 if [ x$CLEANUP_AFTER == x1 ]; then
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Removing temporary data..."
 	$RM -r "${TMP_DIR}"
 fi
-LOG "-----------------------------------------------------"
+LOG_LINE
 LOG "SUCCESS"

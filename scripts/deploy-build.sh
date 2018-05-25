@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 TOP=$(dirname $0)
 source "${TOP}/common-functions.sh"
+SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter

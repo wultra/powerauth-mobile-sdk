@@ -21,6 +21,7 @@ set +v
 # -----------------------------------------------------------------------------
 TOP=$(dirname $0)
 source "${TOP}/common-functions.sh"
+SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 #
 # Source headers & Xcode project location
@@ -136,7 +137,7 @@ function MAKE_FAT_LIB
 	local FW="${OUT_FRAMEWORK}.framework"
 	local LIB=${OUT_FRAMEWORK}
 	
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "FATalizing   ${FW}"
 	
 	local NAT_FW_DIR="${TMP_DIR}/${SCHEME}-${NAT_PLATFORM}/${BUILD_TYPE}-${NAT_PLATFORM}/${FW}"
@@ -184,9 +185,9 @@ function BUILD_SCHEME
 	local SCHEME=$1
 	local PLATFORM=$2
 	local SIM_PLATFORM=$3
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Compiling $SCHEME..."
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	BUILD_COMMAND ${SCHEME} ${PLATFORM} build
 	BUILD_COMMAND ${SCHEME} ${SIM_PLATFORM} build
 	MAKE_FAT_LIB ${SCHEME} ${PLATFORM} ${SIM_PLATFORM}
@@ -204,9 +205,9 @@ function CLEAN_SCHEME
 	local SCHEME=$1
 	local PLATFORM=$2
 	local SIM_PLATFORM=$3
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	LOG "Cleaning ${SCHEME}..."
-	LOG "-----------------------------------------------------"
+	LOG_LINE
 	BUILD_COMMAND ${SCHEME} ${PLATFORM} clean
 	BUILD_COMMAND ${SCHEME} ${SIM_PLATFORM} clean
 }
@@ -321,10 +322,10 @@ BUILD_SCHEME ${PLATFORM_SCHEME} ${PLATFORM_SDK} ${PLATFORM_SDK2}
 #
 # Remove temporary data
 #
-LOG "-----------------------------------------------------"
+LOG_LINE
 LOG "Removing temporary data..."
 $RM -r "${TMP_DIR}"
 
 
-LOG "-----------------------------------------------------"
+LOG_LINE
 LOG "SUCCESS"

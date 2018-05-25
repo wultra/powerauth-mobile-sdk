@@ -365,6 +365,8 @@ do
 	shift
 done
 
+UPDATE_VERBOSE_COMMANDS
+
 # Check required parameters
 if [ x$SCHEME_NAME == x ] || [ x$CONFIG_NAME == x ]; then
 	FAILURE "You have to specify build configuration (debug or release)"
@@ -394,19 +396,6 @@ DEBUG_LOG " >> OUT_DIR = ${OUT_DIR}"
 DEBUG_LOG " >> TMP_DIR = ${TMP_DIR}"
 DEBUG_LOG "    XCBUILD = ${XCBUILD}"
 DEBUG_LOG "    LIPO    = ${LIPO}"
-
-# Setup verbose shell commands
-if [ $VERBOSE -lt 2 ]; then
-	# No verbose
-	CP="cp"
-	RM="rm -f"
-	MD="mkdir -p"
-else
-	# verbose
-	CP="cp -v"
-	RM="rm -f -v"
-	MD="mkdir -p -v"
-fi
 
 # -----------------------------------------------------------------------------
 # Real job starts here :) 

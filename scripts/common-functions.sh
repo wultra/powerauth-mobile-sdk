@@ -138,6 +138,27 @@ function SET_VERBOSE_LEVEL_FROM_SWITCH
 	fi
 }
 # -----------------------------------------------------------------------------
+# Updates verbose switches for common commands. Function will create following
+# global variables:
+#  - $MD = mkdir -p [-v]
+#  - $RM = rm -f [-v]
+#  - $CP = cp [-v]
+# -----------------------------------------------------------------------------
+function UPDATE_VERBOSE_COMMANDS
+{
+	if [ $VERBOSE -lt 2 ]; then
+		# No verbose
+		CP="cp"
+		RM="rm -f"
+		MD="mkdir -p"
+	else
+		# verbose
+		CP="cp -v"
+		RM="rm -f -v"
+		MD="mkdir -p -v"
+	fi
+}
+# -----------------------------------------------------------------------------
 # Validate if $1 as VERSION has valid format: x.y.z
 # Also sets global VERSION to $1 if VERSION string is empty.
 # -----------------------------------------------------------------------------

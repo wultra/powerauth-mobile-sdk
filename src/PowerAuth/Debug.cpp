@@ -24,6 +24,13 @@ namespace getlime
 {
 namespace powerAuth
 {
+
+#if defined(DEBUG)
+	// Following string is useful for debug build detection during the library deployment.
+	// Check out our 'android-validate-build.sh' script for details.
+	const char * gFooDEBUG = "ThisIsDebugBuild_PA";
+#endif
+
 	bool HasDebugFeaturesTurnedOn()
 	{
 		// Get features status from CC7 library

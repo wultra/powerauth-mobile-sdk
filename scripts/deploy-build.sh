@@ -212,11 +212,15 @@ function DEPLOY_ANDROID
 	
 	PUSH_DIR "${SRC_ROOT}/proj-android/PowerAuthLibrary/build"
 	####
-	LOG "----- Publishing to jcenter..."
 	local ARCHIVE="release-${VERSION}.zip"
 	if [ ! -f "${ARCHIVE}" ]; then
 		FAILURE "The 'generateRelease' gradle tasks did not produce ${ARCHIVE}"
 	fi
+	
+	LOG "----- Validating debug features..."
+	${TOP}/android-validate-build.sh --zip "${ARCHIVE}"
+
+	LOG "----- Publishing to jcenter..."
 	
 	local BT_API="https://api.bintray.com"
 	local F_PUBLISH=1

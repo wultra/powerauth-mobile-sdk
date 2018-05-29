@@ -125,7 +125,11 @@ LOCAL_CPP_FEATURES		+= exceptions
 
 LOCAL_STATIC_LIBRARIES 	:= PowerAuth2
 LOCAL_LDLIBS            := -llog
-LOCAL_LDFLAGS           := -Wl,--exclude-libs,ALL
+ifeq ($(NDK_DEBUG),1)
+	LOCAL_LDFLAGS       := -Wl,--exclude-libs,ALL
+else
+	LOCAL_LDFLAGS       := -Wl,-s,--exclude-libs,ALL
+endif
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../include \

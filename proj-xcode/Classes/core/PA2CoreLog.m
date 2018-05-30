@@ -32,14 +32,14 @@ void PA2CoreLogImpl(NSString * format, ...)
 	NSLog(@"[PowerAuthCore] %@", message);
 }
 
-void PA2CoreLogSetEnabledImpl(BOOL enabled)
+#endif // ENABLE_PA2_CORE_LOG
+
+void PA2CoreLogSetEnabled(BOOL enabled)
 {
 	CC7_LOG_ENABLE(enabled);
 }
 
-BOOL PA2CoreLogIsEnabledImpl(void)
+BOOL PA2CoreLogIsEnabled(void)
 {
 	return CC7_LOG_IS_ENABLED();
 }
-
-#endif // ENABLE_PA2_CORE_LOG

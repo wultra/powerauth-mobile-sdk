@@ -16,7 +16,6 @@
 
 #import "PA2PrivateImpl.h"
 #import "PA2Session.h"
-#import "PA2Macros.h"
 
 using namespace io::getlime::powerAuth;
 
@@ -39,9 +38,9 @@ void PA2Objc_DebugDumpErrorImpl(id instance, NSString * message, ErrorCode code)
 		if ([instance isKindOfClass:[PA2Session class]]) {
 			PA2Session * session = (PA2Session*)instance;
 			unsigned int sessionId = (unsigned int)session.sessionIdentifier;
-			PALog(@"%@(0x%p, ID:%d): %@: Low level operation failed with error %@.", className, instancePtr, sessionId, message, codeStr);
+			PA2CoreLog(@"%@(0x%p, ID:%d): %@: Low level operation failed with error %@.", className, instancePtr, sessionId, message, codeStr);
 		} else {
-			PALog(@"%@(0x%p): %@: Low level operation failed with error %@.", className, instancePtr, message, codeStr);
+			PA2CoreLog(@"%@(0x%p): %@: Low level operation failed with error %@.", className, instancePtr, message, codeStr);
 		}
 	}
 }

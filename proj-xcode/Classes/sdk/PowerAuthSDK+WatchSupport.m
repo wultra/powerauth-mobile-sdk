@@ -38,7 +38,7 @@
 	NSString * instanceIdentifier   = self.privateInstanceId;
 	
 	if (!instanceIdentifier) {
-		PALog(@"PowerAuthSDK instance is not properly configured. PowerAuthConfiguration has no instanceId.");
+		PA2Log(@"PowerAuthSDK instance is not properly configured. PowerAuthConfiguration has no instanceId.");
 		return nil;
 	}
 	
@@ -65,7 +65,7 @@
 		[manager sendPacket:packet];
 		return YES;
 	}
-	PALog(@"PowerAuthSDK: Not supported on older iOS versions.");
+	PA2Log(@"PowerAuthSDK: Not supported on older iOS versions.");
 	return NO;
 }
 

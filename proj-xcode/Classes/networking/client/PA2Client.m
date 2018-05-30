@@ -75,7 +75,7 @@
 						 completion:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completion {
 	
 	if ([url.absoluteString hasPrefix:@"http://"]) {
-		PALog(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
+		PA2Log(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
 	}
 	
 	NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -100,19 +100,19 @@
 	[request setHTTPMethod:@"POST"];
 	[request setHTTPBody:data];
 	
-	PALog(@"PA2Client Request");
-	PALog(@"- Method: POST");
-	PALog(@"- URL: %@", url.absoluteString);
-	PALog(@"- Headers: %@", request.allHTTPHeaderFields);
-	PALog(@"- Body: %@", data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"empty body");
+	PA2Log(@"PA2Client Request");
+	PA2Log(@"- Method: POST");
+	PA2Log(@"- URL: %@", url.absoluteString);
+	PA2Log(@"- Headers: %@", request.allHTTPHeaderFields);
+	PA2Log(@"- Body: %@", data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"empty body");
 	NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-		PALog(@"PA2Client Response");
-		PALog(@"- URL: %@", url.absoluteString);
-		PALog(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
-		PALog(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
-		PALog(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+		PA2Log(@"PA2Client Response");
+		PA2Log(@"- URL: %@", url.absoluteString);
+		PA2Log(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
+		PA2Log(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
+		PA2Log(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 		if (error) {
-			PALog(@"- Error: %@", error.localizedDescription);
+			PA2Log(@"- Error: %@", error.localizedDescription);
 		}
 		[[NSOperationQueue mainQueue] addOperationWithBlock: ^{
 			completion(data, response, error);

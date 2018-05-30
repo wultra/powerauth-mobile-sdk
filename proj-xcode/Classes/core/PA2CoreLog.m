@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-#import <UIKit/UIKit.h>
+#import "PA2CoreLog.h"
+#import <cc7/Platform.h>
 
-//! Project version number for PowerAuth2.
-FOUNDATION_EXPORT double PowerAuth2VersionNumber;
+#ifdef ENABLE_PA2_CORE_LOG
 
-//! Project version string for PowerAuth2.
-FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
+void PA2CoreLogImpl(NSString * format, ...)
+{
+	if (!PA2CoreLogIsEnabled()) {
+		return;
+	}
+	va_list args;
+	va_start(args, format);
+	NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
+	va_end(args);
+	
+	NSLog(@"[PowerAuthCore] %@", message);
+}
 
-#import "PowerAuthSDK.h"
+void PA2CoreLogSetEnabledImpl(BOOL enabled)
+{
+	CC7_LOG_ENABLE(enabled);
+}
 
-#import "PA2Client.h"
-#import "PA2Log.h"
-#import "PA2Macros.h"
-#import "PA2System.h"
-#import "PA2Keychain.h"
+BOOL PA2CoreLogIsEnabledImpl(void)
+{
+	return CC7_LOG_IS_ENABLED();
+}
 
-#import "PA2ErrorConstants.h"
-#import "PA2PasswordUtil.h"
-#import "PA2Password.h"
-#import "PA2OtpUtil.h"
-#import "PA2ECIESEncryptor.h"
-
-#import "PA2WCSessionManager.h"
+#endif // ENABLE_PA2_CORE_LOG

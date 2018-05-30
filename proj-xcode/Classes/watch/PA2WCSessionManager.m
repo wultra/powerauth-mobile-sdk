@@ -165,12 +165,12 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 {
 	NSDictionary * dict = [packet toDictionary];
 	if (!dict) {
-		PALog(@"PA2WCSessionManager: Cannon serialize packet to dictionary.");
+		PA2Log(@"PA2WCSessionManager: Cannon serialize packet to dictionary.");
 		return nil;
 	}
 	NSData * JSONData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:NULL];
 	if (!JSONData) {
-		PALog(@"PA2WCSessionManager: Cannon serialize packet to JSON.");
+		PA2Log(@"PA2WCSessionManager: Cannon serialize packet to JSON.");
 		return nil;
 	}
 	NSMutableData * data = [NSMutableData dataWithCapacity:_HeaderSize + JSONData.length];
@@ -224,14 +224,14 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 			if (!errorMessage) {
 				errorMessage = @"PA2WCSessionManager: Cannot create response packet.";
 			}
-			PALog(@"%@", errorMessage);
+			PA2Log(@"%@", errorMessage);
 			NSError * error = PA2MakeError(PA2ErrorCodeWatchConnectivity, errorMessage);
 			response = [PA2WCSessionPacket packetWithError:error];
 		}
 		replyHandler(_SerializePacket(response));
 	} else {
 		if (errorMessage) {
-			PALog(@"%@", errorMessage);
+			PA2Log(@"%@", errorMessage);
 		} else if (response.sendLazyResponseIfPossible) {
 			[self sendPacket:response];
 		}
@@ -328,7 +328,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 {
 	// Validate input
 	if (withResponse && (completion == nil)) {
-		PALog(@"PA2WCSessionManager: Response is required but completion block is missing.");
+		PA2Log(@"PA2WCSessionManager: Response is required but completion block is missing.");
 		return;
 	}
 	
@@ -353,7 +353,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 	if (!session) {
 		// On IOS, switch to debug build and check log what's the reason of unavailability.
 		// On watchOS, the session is typically not activated
-		PALog(@"PA2WCSessionManager: WCSession is currently not available for messaging.");
+		PA2Log(@"PA2WCSessionManager: WCSession is currently not available for messaging.");
 		if (completion) {
 			completion(nil, PA2MakeError(PA2ErrorCodeWatchConnectivity, @"PA2WCSessionManager: WCSession is currently not available for messaging."));
 		}
@@ -404,11 +404,11 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 						ec == WCErrorCodeSessionNotActivated ||
 						ec == WCErrorCodeDeviceNotPaired ||
 						ec == WCErrorCodeWatchAppNotInstalled) {
-						PALog(@"PA2WCSessionManager: Message for target '%@' failed to deliver. Error: %@", request.target, error);
+						PA2Log(@"PA2WCSessionManager: Message for target '%@' failed to deliver. Error: %@", request.target, error);
 						return;
 					}
 				}
-				PALog(@"PA2WCSessionManager: Message for target '%@' failed to deliver, but we'll try transferUserInfo. Error: %@", request.target, error);
+				PA2Log(@"PA2WCSessionManager: Message for target '%@' failed to deliver, but we'll try transferUserInfo. Error: %@", request.target, error);
 				[session transferUserInfo: @{ PA2WCSessionPacket_USER_INFO_KEY : requestData }];
 			}];
 		} else {
@@ -439,7 +439,7 @@ static WCSession * _ValidateSession(WCSession * session)
 		if (session.activationState == WCSessionActivationStateActivated) {
 			return session;
 		} else {
-			PALog(@"PA2WCSessionManager: WCSession is not activated on this device.");
+			PA2Log(@"PA2WCSessionManager: WCSession is not activated on this device.");
 			return nil;
 		}
 	}
@@ -480,12 +480,12 @@ static WCSession * _ValidateSession(WCSession * session)
 	}
 #ifdef DEBUG
 	if (!session) {
-		PALog(@"PA2WCSessionManager: WCSession is not supported on this device.");
+		PA2Log(@"PA2WCSessionManager: WCSession is not supported on this device.");
 	} else {
 		if (!session.isPaired) {
-			PALog(@"PA2WCSessionManager: Warning: This device is not paired with Apple Watch.");
+			PA2Log(@"PA2WCSessionManager: Warning: This device is not paired with Apple Watch.");
 		} else {
-			PALog(@"PA2WCSessionManager: Warning: Watch App is not installed on the currently paired and active Apple Watch.");
+			PA2Log(@"PA2WCSessionManager: Warning: Watch App is not installed on the currently paired and active Apple Watch.");
 		}
 	}
 #endif // DEBUG

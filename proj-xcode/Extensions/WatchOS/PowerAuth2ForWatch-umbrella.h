@@ -34,6 +34,7 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2ForWatchVersionString[];
 
 // Import all public headers...
 #import "PA2Macros.h"
+#import "PA2Log.h"
 #import "PA2ErrorConstants.h"
 #import "PA2SessionStatusProvider.h"
 #import "PA2KeychainConfiguration.h"

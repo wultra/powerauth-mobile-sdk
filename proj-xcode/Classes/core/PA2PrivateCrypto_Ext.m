@@ -15,6 +15,7 @@
  */
 
 #import "PA2PrivateCrypto.h"
+#import "PA2Log.h"
 
 #if !defined(PA2_EXTENSION_SDK)
 #error "This file is for IOS extensions or WatchOS projects only"
@@ -49,6 +50,6 @@ NSData * PA2PrivateCrypto_GetRandomBytes(size_t count)
 			return data;
 		}
 	}
-	PALog(@"PA2PrivateCrypto_GetRandomBytes: Failed to generat %@ random bytes.", @(count));
+	PA2Log(@"PA2PrivateCrypto_GetRandomBytes: Failed to generat %@ random bytes.", @(count));
 	return nil;
 }

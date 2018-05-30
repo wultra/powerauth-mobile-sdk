@@ -23,34 +23,28 @@
 #endif
 
 #ifdef ENABLE_PA2_CORE_LOG
-
-	// Implementations
-
-	PA2_EXTERN_C void PA2CoreLogImpl(NSString * format, ...);
-	PA2_EXTERN_C void PA2CoreLogSetEnabledImpl(BOOL enabled);
-	PA2_EXTERN_C BOOL PA2CoreLogIsEnabledImpl(void);
-
-	// Macros
-
 	/**
 	 PA2CoreLog(...) macro prints a debug information into the debug console and is used internally
 	 in the PowerAuthCore library. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
 	 For RELEASE builds, the message is completely suppressed during the compilation.
 	 */
-	#define PA2CoreLog(...) 				PA2CoreLogImpl(__VA_ARGS__)
-	/**
-	 PA2CoreLogSetEnabled(BOOL enabled) disables or enables PA2Log() messages.
-	 */
-	#define PA2CoreLogSetEnabled(enabled)	PA2CoreLogSetEnabledImpl(enabled)
-	/**
-	 BOOL PA2CoreLogIsEnabled() returns current status of PA2Log() macro logging.
-	 */
-	#define PA2CoreLogIsEnabled()			PA2CoreLogIsEnabledImpl()
+	PA2_EXTERN_C void PA2CoreLogImpl(NSString * format, ...);
+	#define PA2CoreLog(...) PA2CoreLogImpl(__VA_ARGS__)
 
 #else
 	// If PA2Log is disabled, then disable everything
 	#define PA2CoreLog(...)
-	#define PA2CoreLogSetEnabled(enabled)
-	#define PA2CoreLogIsEnabled() 			NO
 
 #endif // ENABLE_PA2_CORE_LOG
+
+/**
+ Function enables or disables internal PowerAuthCore logging.
+ Note that it's effective only when library is compiled in DEBUG build configuration.
+ */
+PA2_EXTERN_C void PA2CoreLogSetEnabled(BOOL enabled);
+
+/**
+ Function returns YES if internal PowerAuthCore logging is enabled.
+ Note that when library is compiled in RELEASE configuration, then always returns NO.
+ */
+PA2_EXTERN_C BOOL PA2CoreLogIsEnabled(void);

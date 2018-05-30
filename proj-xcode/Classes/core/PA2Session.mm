@@ -65,7 +65,11 @@ using namespace io::getlime::powerAuth;
 
 + (BOOL) hasDebugFeatures
 {
-	return io::getlime::powerAuth::HasDebugFeaturesTurnedOn();
+	BOOL debug_features = io::getlime::powerAuth::HasDebugFeaturesTurnedOn();
+#if defined(ENABLE_PA2_CORE_LOG) || defined(DEBUG)
+	debug_features |= YES;
+#endif
+	return debug_features;
 }
 
 

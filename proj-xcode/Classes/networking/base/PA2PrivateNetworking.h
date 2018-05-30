@@ -18,6 +18,7 @@
 
 #import "PA2Client.h"
 #import "PA2PrivateMacros.h"
+#import "PA2Log.h"
 
 // Requests / Responses
 #import "PA2CreateActivationRequest.h"

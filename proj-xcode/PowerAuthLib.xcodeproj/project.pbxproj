@@ -149,6 +149,9 @@
 		BFB47D6C207536B1008A6A52 /* libPowerAuthCoreTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D6420753640008A6A52 /* libPowerAuthCoreTests.a */; };
 		BFD386621F2B528600F74FF9 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
 		BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
+		BFDFED9520BEEF730094138A /* PA2CoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED9420BEEF730094138A /* PA2CoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFDFED9820BEEFAC0094138A /* PA2Log.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED9620BEEFAC0094138A /* PA2Log.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFDFED9920BEEFAC0094138A /* PA2Log.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED9720BEEFAC0094138A /* PA2Log.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -352,6 +355,9 @@
 		BFD386611F2B528600F74FF9 /* TestConfig */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TestConfig; sourceTree = SOURCE_ROOT; };
 		BFD386651F2B6BE700F74FF9 /* PowerAuthTestServerConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerConfig.h; sourceTree = "<group>"; };
 		BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerConfig.m; sourceTree = "<group>"; };
+		BFDFED9420BEEF730094138A /* PA2CoreLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CoreLog.h; sourceTree = "<group>"; };
+		BFDFED9620BEEFAC0094138A /* PA2Log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2Log.h; sourceTree = "<group>"; };
+		BFDFED9720BEEFAC0094138A /* PA2Log.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2Log.m; sourceTree = "<group>"; };
 		BFE5DBCA1FB3908E00A4FBAB /* PA2ECIESEncryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ECIESEncryptor.h; sourceTree = "<group>"; };
 		BFF9CE091F07DC34001C892B /* PA2ActivationResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ActivationResult.h; sourceTree = "<group>"; };
 		BFF9CE0A1F07DC34001C892B /* PA2ActivationResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ActivationResult.m; sourceTree = "<group>"; };
@@ -464,6 +470,7 @@
 				BF30176D1FE027A20099B253 /* PA2SessionStatusProvider.h */,
 				1B2EEF321D662AB10039D92A /* PA2Types.h */,
 				1B6F00051D6DCDA700EC1C5A /* PA2Macros.h */,
+				BFDFED9420BEEF730094138A /* PA2CoreLog.h */,
 				1B7A3A531D8FCC0D002D1043 /* PA2PrivateMacros.h */,
 				1B9AD2B61DA448D600CF52C9 /* PA2ErrorConstants.h */,
 				BFE5DBCA1FB3908E00A4FBAB /* PA2ECIESEncryptor.h */,
@@ -586,6 +593,8 @@
 			children = (
 				1BFD687A1D742C1C00B08338 /* PA2System.h */,
 				1BFD687B1D742C1C00B08338 /* PA2System.m */,
+				BFDFED9620BEEFAC0094138A /* PA2Log.h */,
+				BFDFED9720BEEFAC0094138A /* PA2Log.m */,
 			);
 			path = system;
 			sourceTree = "<group>";
@@ -835,6 +844,7 @@
 				BF8CF4ED2032EB41002A6B6E /* PA2ActivationResult.h in Headers */,
 				BF8CF4EE2032EB41002A6B6E /* PA2PrivateNetworking.h in Headers */,
 				BF8CF4EF2032EB41002A6B6E /* PA2EncryptedRequest.h in Headers */,
+				BFDFED9520BEEF730094138A /* PA2CoreLog.h in Headers */,
 				BF8CF4F02032EB41002A6B6E /* PA2VaultUnlockResponse.h in Headers */,
 				BF8CF4F12032EB41002A6B6E /* PA2Session.h in Headers */,
 				BF8CF4F22032EB41002A6B6E /* PA2PrivateHttpTokenProvider.h in Headers */,
@@ -842,6 +852,7 @@
 				BF8CF4F42032EB41002A6B6E /* PA2ClientSslValidationStrategy.h in Headers */,
 				BF8CF4F52032EB41002A6B6E /* PA2Keychain.h in Headers */,
 				BF8CF4F62032EB41002A6B6E /* PowerAuthConfiguration.h in Headers */,
+				BFDFED9820BEEFAC0094138A /* PA2Log.h in Headers */,
 				BF8CF4F72032EB41002A6B6E /* PA2WCSessionPacket.h in Headers */,
 				BF8CF4F82032EB41002A6B6E /* PowerAuthAuthentication.h in Headers */,
 				BF61F90C20768BBC00520C57 /* PA2OtpUtil.h in Headers */,
@@ -1065,6 +1076,7 @@
 				BF8CF4C02032EB41002A6B6E /* PA2EncryptedRequest.m in Sources */,
 				BF30DB5D206CEAE900430C12 /* PA2VaultUnlockRequest.m in Sources */,
 				BF8CF4C12032EB41002A6B6E /* PA2OperationTask.m in Sources */,
+				BFDFED9920BEEFAC0094138A /* PA2Log.m in Sources */,
 				BF8CF4C32032EB41002A6B6E /* PA2WCSessionManager_IOSServices.m in Sources */,
 				BF8CF4C52032EB41002A6B6E /* PA2Client.m in Sources */,
 				BF8CF4C62032EB41002A6B6E /* PA2AuthorizationHttpHeader.m in Sources */,

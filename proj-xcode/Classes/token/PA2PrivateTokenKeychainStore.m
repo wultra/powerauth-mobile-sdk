@@ -175,7 +175,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PALog(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		PA2Log(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
 		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
@@ -216,7 +216,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PALog(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
+		PA2Log(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
 		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
 		return nil;
 	}
@@ -354,7 +354,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		NSData * data = [tokenData serializedData];
 		if ([_keychain containsDataForKey:identifier]) {
 			// This is just warning, but creating two tokens with the same name at the same time, is not recommended.
-			PALog(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
+			PA2Log(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
 			[_keychain updateValue:data forKey:identifier];
 		} else {
 			[_keychain addValue:data forKey:identifier];
@@ -383,7 +383,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
 			// on the server.
 			// This warning is also displayed for removal and creation operations created at the same time.
-			PALog(@"TokenKeychainStore: WARNING: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
+			PA2Log(@"TokenKeychainStore: WARNING: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
 		} else {
 			[_pendingNamedOperations addObject:name];
 		}

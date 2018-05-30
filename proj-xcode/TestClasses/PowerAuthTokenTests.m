@@ -20,7 +20,7 @@
 #import "AsyncHelper.h"
 #import "FakePowerAuthTokenStore.h"
 
-#import "PowerAuthSDK.h"
+#import "PowerAuth2.h"
 
 /**
  The `PowerAuthTokenTests` test class is similar to `PowerAuthSDKTests`
@@ -82,6 +82,8 @@
  */
 - (void) runOnceForAllTests
 {
+	PA2LogSetEnabled(YES);
+	
 	if (_hasConfig || _invalidConfig) {
 		return;
 	}

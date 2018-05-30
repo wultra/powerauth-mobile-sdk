@@ -86,6 +86,8 @@ static NSString * PA_Ver = @"2.1";
  */
 - (void) runOnceForAllTests
 {
+	PA2LogSetEnabled(YES);
+	
 	if (_hasConfig || _invalidConfig) {
 		return;
 	}

@@ -97,13 +97,15 @@
 		// This is tricky. We need to embed that request object before the signature is calculated.
 		// We need to use the same function as is used in the PA2Client for data preparation.
 		NSData * jsonData = [_client embedNetworkObjectIntoRequest:requestObject];
-		if (!jsonData || error) {
-			safeCompletion(nil, error);
+		if (!jsonData) {
+			safeCompletion(nil, PA2MakeError(PA2ErrorCodeWrongParameter, @"Token reequest serialization failed."));
+			return;
 		}
 		// Now sign encrypted data
 		PA2AuthorizationHttpHeader * header = [strongSdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/token/create" body:jsonData error:&error];
 		if (!header || error) {
 			safeCompletion(nil, error);
+			return;
 		}
 		task.dataTask = [_client createToken:header encryptedData:requestObject callback:^(PA2RestResponseStatus status, PA2EncryptedResponse * encryptedResponse, NSError * error) {
 			PA2PrivateTokenData * tokenData = nil;

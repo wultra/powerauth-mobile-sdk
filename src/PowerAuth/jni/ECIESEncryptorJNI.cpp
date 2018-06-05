@@ -194,7 +194,7 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequest, jbyteArray requestData)
 //
 // public native byte[] decryptResponse(ECIESCryptogram cryptogram);
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponse, jbyteArray cryptogram)
+CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponse, jobject cryptogram)
 {
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {

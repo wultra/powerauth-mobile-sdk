@@ -114,7 +114,7 @@
  Returns YES if encryption succeeded or NO in case of error.
  */
 - (BOOL) encryptRequest:(nullable NSData *)data
-			 completion:(void (^_Nonnull)(PA2ECIESCryptogram * _Nullable cryptogram, PA2ECIESEncryptor * _Nullable decryptor))completion;
+			 completion:(void (NS_NOESCAPE ^_Nonnull)(PA2ECIESCryptogram * _Nullable cryptogram, PA2ECIESEncryptor * _Nullable decryptor))completion;
 
 @end
 

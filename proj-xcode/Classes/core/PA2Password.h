@@ -102,7 +102,7 @@
  
  Returns NO if passphrase is empty, or result returned from the block.
  */
-- (BOOL) validatePasswordComplexity:(BOOL (^_Nullable)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
+- (BOOL) validatePasswordComplexity:(BOOL (NS_NOESCAPE ^_Nullable)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
 
 @end
 

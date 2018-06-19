@@ -640,7 +640,7 @@ CC7_JNI_METHOD_PARAMS(jint, addExternalEncryptionKey, jbyteArray eek)
 // 
 // public native int removeExternalEncryptionKey();
 //
-CC7_JNI_METHOD(jboolean, removeExternalEncryptionKey)
+CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {

@@ -26,6 +26,7 @@
 #import "PA2Password.h"
 #import "PA2Encryptor.h"
 #import "PA2ECIESEncryptor.h"
+#import "PA2CoreLog.h"
 
 /*
  This header contains various private interfaces, internally used

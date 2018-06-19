@@ -62,6 +62,7 @@
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
 		BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
+		BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -227,6 +228,8 @@
 		BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateImpl.h; sourceTree = "<group>"; };
 		BFB47D3D207533E6008A6A52 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
 		BFB47D3E20753444008A6A52 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
+		BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CoreLog.h; sourceTree = "<group>"; };
+		BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2CoreLog.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -495,6 +498,8 @@
 				BFB47D2F20753359008A6A52 /* PA2Types.h */,
 				BFB47D2920753359008A6A52 /* PA2Types.mm */,
 				BFB47D2A20753359008A6A52 /* PA2Macros.h */,
+				BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */,
+				BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */,
 				BFB47D1E20753359008A6A52 /* PA2PrivateMacros.h */,
 				BFB47D2C20753359008A6A52 /* PA2PrivateMacros.m */,
 				BFB47D2D20753359008A6A52 /* PA2ErrorConstants.h */,
@@ -661,6 +666,7 @@
 				BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */,
 				BF99D90E2073E15100735ED2 /* Hash.cpp in Sources */,
 				BF99D90C2073E15100735ED2 /* ECC.cpp in Sources */,
+				BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */,
 				BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */,
 				BFB47D342075335A008A6A52 /* PA2ErrorConstants.m in Sources */,
 				BFB47D352075335A008A6A52 /* PA2Encryptor.mm in Sources */,

@@ -261,7 +261,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 			// was requested, generate a "fake key" so that signature can silently fail
 			else {
 				if (biometryKey == nil) {
-					PALog(@"ERROR! You are attempting Touch ID authentication despite the fact related key value is not present in the Keychain. We have generated an ad-hoc random key and your authentication will fail. Use PowerAuthSDK:hasBiometryFactor method to check the status of this key and disable Touch ID if the method returns NO / false value.");
+					PA2Log(@"ERROR! You are attempting Touch ID authentication despite the fact related key value is not present in the Keychain. We have generated an ad-hoc random key and your authentication will fail. Use PowerAuthSDK:hasBiometryFactor method to check the status of this key and disable Touch ID if the method returns NO / false value.");
 					biometryKey = [PA2Session generateSignatureUnlockKey];
 				}
 			}
@@ -884,7 +884,7 @@ static PowerAuthSDK * s_inst;
 		error = error || ![_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
 	}
 	if (error) {
-		PALog(@"Removing activaton data from keychain failed. We can't recover from this error.");
+		PA2Log(@"Removing activaton data from keychain failed. We can't recover from this error.");
 	}
 	[_tokenStore removeAllLocalTokens];
 	[_session resetSession];

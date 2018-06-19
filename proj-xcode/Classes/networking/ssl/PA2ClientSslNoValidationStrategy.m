@@ -15,7 +15,7 @@
  */
 
 #import "PA2ClientSslNoValidationStrategy.h"
-#import "PA2Macros.h"
+#import "PA2Log.h"
 
 @implementation PA2ClientSslNoValidationStrategy
 
@@ -25,7 +25,7 @@
 	
 	// Allow any SSL certificate
 	
-	PALog(@"Warning: SSL validation is disabled. This code must not be present in production!");
+	PA2CriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
 	if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
 		NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
 		completionHandler(NSURLSessionAuthChallengeUseCredential,credential);

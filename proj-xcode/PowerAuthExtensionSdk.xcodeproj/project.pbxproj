@@ -94,6 +94,10 @@
 		BFA0E2D9200FB5600011F0A6 /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA0E2D7200FB5600011F0A6 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BFA0E2DA200FB5600011F0A6 /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2D8200FB5600011F0A6 /* PA2WeakArray.m */; };
 		BFA0E2DE200FCF710011F0A6 /* PA2WCSessionManager_WatchServices.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2DD200FCF710011F0A6 /* PA2WCSessionManager_WatchServices.m */; };
+		BFDFEDA920BEF6D30094138A /* PA2Log.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFEDA720BEF6D30094138A /* PA2Log.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFDFEDAA20BEF6D30094138A /* PA2Log.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFEDA720BEF6D30094138A /* PA2Log.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFDFEDAB20BEF6D30094138A /* PA2Log.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFEDA820BEF6D30094138A /* PA2Log.m */; };
+		BFDFEDAC20BEF6D30094138A /* PA2Log.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFEDA820BEF6D30094138A /* PA2Log.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -162,6 +166,8 @@
 		BFCEF4852023A23A00C14EC1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFCEF4882023AA5C00C14EC1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFCEF4892023AA5C00C14EC1 /* PowerAuth2ForWatch.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = PowerAuth2ForWatch.modulemap; sourceTree = "<group>"; };
+		BFDFEDA720BEF6D30094138A /* PA2Log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2Log.h; sourceTree = "<group>"; };
+		BFDFEDA820BEF6D30094138A /* PA2Log.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2Log.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +196,8 @@
 				BF0EBED91FE166B700E97918 /* Private */,
 				BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */,
 				BF8C30372004E20000EAF830 /* PA2ExtensionLibrary.m */,
+				BFDFEDA720BEF6D30094138A /* PA2Log.h */,
+				BFDFEDA820BEF6D30094138A /* PA2Log.m */,
 			);
 			name = Common;
 			path = Extensions/Common;
@@ -420,6 +428,7 @@
 				BF54920D1FFFC6FE0036DB9E /* PowerAuthToken.h in Headers */,
 				BF5492121FFFC7170036DB9E /* PA2AuthorizationHttpHeader.h in Headers */,
 				BF5492131FFFC7210036DB9E /* PowerAuthExtensionSDK.h in Headers */,
+				BFDFEDA920BEF6D30094138A /* PA2Log.h in Headers */,
 				BF5492141FFFC7860036DB9E /* PowerAuth2ForExtensions-umbrella.h in Headers */,
 				BF5492071FFFC6DB0036DB9E /* PA2PrivateMacros.h in Headers */,
 				BF5492081FFFC6DF0036DB9E /* PA2PrivateCrypto.h in Headers */,
@@ -456,6 +465,7 @@
 				BFA0E28A200CF48B0011F0A6 /* PA2PrivateTokenData.h in Headers */,
 				BFA0E2CA200E65D70011F0A6 /* PA2WCSessionPacket_ActivationStatus.h in Headers */,
 				BFA0E2A8200D12990011F0A6 /* PA2WCSessionManager.h in Headers */,
+				BFDFEDAA20BEF6D30094138A /* PA2Log.h in Headers */,
 				BFA0E28E200CF49B0011F0A6 /* PA2PrivateTokenKeychainStore.h in Headers */,
 				BFA0E2CB200E65D70011F0A6 /* PA2WCSessionPacket_Constants.h in Headers */,
 				BFA0E27B200CF4290011F0A6 /* PA2SessionStatusProvider.h in Headers */,
@@ -566,6 +576,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF5491E91FFFBAC60036DB9E /* PA2PrivateTokenData.m in Sources */,
+				BFDFEDAB20BEF6D30094138A /* PA2Log.m in Sources */,
 				BF5491FF1FFFC1770036DB9E /* PowerAuthExtensionSDK.m in Sources */,
 				BF5491E41FFFBAB70036DB9E /* PA2KeychainConfiguration.m in Sources */,
 				BF5491E21FFFBAAF0036DB9E /* PA2PrivateMacros.m in Sources */,
@@ -602,6 +613,7 @@
 				BF8E4F002010DC7800010B74 /* PA2WatchRemoteTokenProvider.m in Sources */,
 				BFA0E276200CF3D60011F0A6 /* PA2ExtensionLibrary.m in Sources */,
 				BFA0E28B200CF4900011F0A6 /* PA2PrivateTokenData.m in Sources */,
+				BFDFEDAC20BEF6D30094138A /* PA2Log.m in Sources */,
 				BFA0E27D200CF43E0011F0A6 /* PA2PrivateMacros.m in Sources */,
 				BFA0E2DA200FB5600011F0A6 /* PA2WeakArray.m in Sources */,
 				BFA0E2D2200FA1D30011F0A6 /* PA2WatchSynchronizationService.m in Sources */,

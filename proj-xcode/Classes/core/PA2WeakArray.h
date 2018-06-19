@@ -54,12 +54,12 @@
  At first, removes all nil references from underlying array and then enumerates over all
  still valid objects.
  */
-- (void) enumerateWeakObjectsUsingBlock:(void (^_Nonnull)(ObjectType _Nonnull item, BOOL * _Nonnull stop))block;
+- (void) enumerateWeakObjectsUsingBlock:(void (NS_NOESCAPE ^_Nonnull)(ObjectType _Nonnull item, BOOL * _Nonnull stop))block;
 /**
  At first, removes all nil references from underlying array and then calls block for each still valid object.
  The enumeration stops when block returns YES and the last enumerated object is returned.
  */
-- (nullable ObjectType) findObjectUsingBlock:(BOOL (^_Nonnull)(ObjectType _Nonnull item))block;
+- (nullable ObjectType) findObjectUsingBlock:(BOOL (NS_NOESCAPE ^_Nonnull)(ObjectType _Nonnull item))block;
 /**
  At first, removes all nil references from underlying array and then returns all still valid objects in
  strong referenced array.

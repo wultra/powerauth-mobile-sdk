@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PA2Macros.h"
+#import "PA2Log.h"
 
 /** Constant specifying the default name of the 'key' used to store flag in NSUserDefaults about initialized PowerAuthSDK instances. Used to cleanup the keychain data after the app re-install.
  */

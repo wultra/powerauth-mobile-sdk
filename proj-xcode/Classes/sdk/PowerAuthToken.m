@@ -18,7 +18,7 @@
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateCrypto.h"
 #import "PA2AuthorizationHttpHeader.h"
-#import "PA2Macros.h"
+#import "PA2Log.h"
 
 @implementation PowerAuthToken
 {
@@ -62,9 +62,9 @@
 	if (!self.canGenerateHeader) {
 #if defined(DEBUG)
 		if (!self.isValid) {
-			PALog(@"PowerAuthToken: Token contains invalid data.");
+			PA2Log(@"PowerAuthToken: Token contains invalid data.");
 		} else {
-			PALog(@"PowerAuthToken: The associated token store has no longer valid activation.");
+			PA2Log(@"PowerAuthToken: The associated token store has no longer valid activation.");
 		}
 #endif
 		return nil;
@@ -79,7 +79,7 @@
 	NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];
 	NSData * nonce = PA2PrivateCrypto_GetRandomBytes(16);
 	if (nonce.length != 16) {
-		PALog(@"PowerAuthToken: Random generator did not generate enough bytes.");
+		PA2Log(@"PowerAuthToken: Random generator did not generate enough bytes.");
 		return nil;
 	}
 	NSMutableData * data = [nonce mutableCopy];
@@ -91,7 +91,7 @@
 	NSString * nonceBase64 = [nonce base64EncodedStringWithOptions:0];
 	// Final check...
 	if (digest.length == 0 || !digestBase64 || !nonceBase64 || !currentTimeString) {
-		PALog(@"PowerAuthToken: Digest calculation did fail.");
+		PA2Log(@"PowerAuthToken: Digest calculation did fail.");
 		return nil;
 	}
 	NSString * value = [NSString stringWithFormat:

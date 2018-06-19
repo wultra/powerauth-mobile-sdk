@@ -17,6 +17,7 @@
 #import "PA2WCSessionManager.h"
 #import "PA2WCSessionDataHandler.h"
 #import "PA2WCSessionPacket.h"
+#import "PA2Log.h"
 
 @interface PA2WCSessionManager (Private)
 

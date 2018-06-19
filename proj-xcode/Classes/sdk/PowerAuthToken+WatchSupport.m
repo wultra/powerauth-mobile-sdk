@@ -49,12 +49,12 @@
 				[manager sendPacket:[self prepareTokenDataPacketForWatch]];
 				return YES;
 			}
-			PALog(@"PowerAuthToken: WCSession is not ready for message sending.");
+			PA2Log(@"PowerAuthToken: WCSession is not ready for message sending.");
 		} else {
-			PALog(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
+			PA2Log(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
 		}
 	} else {
-		PALog(@"PowerAuthToken: WCSession is not supported on older iOS versions.");
+		PA2Log(@"PowerAuthToken: WCSession is not supported on older iOS versions.");
 	}
 	return NO;
 }
@@ -104,7 +104,7 @@
 			return YES;
 		}
 	}
-	PALog(@"PowerAuthToken: WCSession is not ready for message sending.");
+	PA2Log(@"PowerAuthToken: WCSession is not ready for message sending.");
 	return NO;
 }
 

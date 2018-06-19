@@ -90,7 +90,7 @@
 		//	3. user install application again
 		//	4. user enables extension without running application for first time
 		// The result is that this function may return YES but the stored activation is not valid.
-		PALog(@"WARNING: Missing setup for PA2Keychain.keychainAttribute_UserDefaultsSuiteName.");
+		PA2Log(@"WARNING: Missing setup for PA2Keychain.keychainAttribute_UserDefaultsSuiteName.");
 	}
 	// Retrieve & investigate data stored in keychain
 	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];

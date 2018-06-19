@@ -112,7 +112,7 @@
 - (void) updateActivationStatusWithCompletion:(void(^ _Nonnull)(NSString * _Nullable activationId, NSError * _Nullable error))completion
 {
 	if (!completion) {
-		PALog(@"PowerAuthWatchSDK::updateActivationStatusWithCompletion: Missing completion block.");
+		PA2Log(@"PowerAuthWatchSDK::updateActivationStatusWithCompletion: Missing completion block.");
 		return;
 	}
 	PA2WCSessionPacket * request = [self requestStatusPacket];

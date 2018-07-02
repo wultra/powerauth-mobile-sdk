@@ -264,11 +264,6 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 #pragma mark - Biometry support
 
-+ (BOOL) canUseTouchId
-{
-	return [self canUseBiometricAuthentication];
-}
-
 + (BOOL) canUseBiometricAuthentication
 {
 	return [self supportedBiometricAuthentication] != PA2SupportedBiometricAuthentication_None;

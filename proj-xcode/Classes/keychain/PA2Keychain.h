@@ -25,7 +25,6 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 	PA2KeychainStoreItemResult_Duplicate = 2,
 	PA2KeychainStoreItemResult_NotFound = 3,
 	PA2KeychainStoreItemResult_Other = 4,
-	PA2KeychainStoreItemResult_TouchIDNotAvailable PA2_DEPRECATED = 100
 };
 
 /**
@@ -256,13 +255,6 @@ typedef NS_ENUM(int, PA2SupportedBiometricAuthentication) {
          operation is cancelled or any error occurs.
  */
 - (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt withStatus: (nullable OSStatus *)status;
-
-/**
- Convenience method that checks if Touch ID can be used on current system.
- @deprecated Use `canUseBiometricAuthentication` as a replacement.
- @return YES if Touch ID can be used (iOS 9.0+), NO otherwise.
- */
-+ (BOOL) canUseTouchId PA2_DEPRECATED;
 
 /**
  Convenience static property that checks if Touch ID or Face ID can be used on the current system.

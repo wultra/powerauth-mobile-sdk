@@ -56,18 +56,6 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeActivationPending;
 /** Error code for keychanin related errors */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeKeychain;
 
-/**
- Error code for TouchID not available error.
- Constant is deprecated, please use PA2ErrorCodeBiometryNotAvailable as replacement.
- */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeTouchIDNotAvailable PA2_DEPRECATED;
-
-/**
- Error code for TouchID action cancel error
- Constant is deprecated, please use PA2ErrorCodeBiometryCancel as replacement.
- */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeTouchIDCancel PA2_DEPRECATED;
-
 /** Error code for TouchID or FaceID not available error */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryNotAvailable;
 

@@ -71,7 +71,7 @@ typedef NS_ENUM(int, PA2BiometricAuthenticationStatus) {
 	PA2BiometricAuthenticationStatus_NotEnrolled,
 	/**
 	 Biometric authentication is supported, but too many failed attempts caused its lockout.
-	 User has authenticate with the password or passcode.
+	 User has to authenticate with the password or passcode.
 	 */
 	PA2BiometricAuthenticationStatus_Lockout,
 	/**
@@ -82,7 +82,7 @@ typedef NS_ENUM(int, PA2BiometricAuthenticationStatus) {
 
 /**
  The PA2BiometricAuthenticationInfo structure contains information about
- supported biometry and its current status on the system.
+ supported type of biometry and its current status on the system.
  */
 typedef struct PA2BiometricAuthenticationInfo {
 	/**
@@ -90,7 +90,7 @@ typedef struct PA2BiometricAuthenticationInfo {
 	 */
 	PA2BiometricAuthenticationStatus currentStatus;
 	/**
-	 Type of supported biometric authentication the system.
+	 Type of supported biometric authentication on the system.
 	 */
 	PA2BiometricAuthenticationType biometryType;
 	

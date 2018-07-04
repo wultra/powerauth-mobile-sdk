@@ -264,33 +264,106 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 #pragma mark - Biometry support
 
-+ (BOOL) canUseBiometricAuthentication
+/**
+ Private helper function to convert LABiometryType enum into our PA2BiometricAuthenticationType
+ */
+API_AVAILABLE(ios(11.0))
+static PA2BiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 {
-	return [self supportedBiometricAuthentication] != PA2SupportedBiometricAuthentication_None;
+	if (bt == LABiometryTypeTouchID) {
+		return PA2BiometricAuthenticationType_TouchID;
+	} else if (bt == LABiometryTypeFaceID) {
+		return PA2BiometricAuthenticationType_FaceID;
+	}
+	// Looks like Apple introduced a new biometry type. We should try to continue,
+	// and pretend that TouchID is available. Application's UI will probably display
+	// wrong information, but at least it may work.
+	PA2Log(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
+	return PA2BiometricAuthenticationType_TouchID;
 }
 
-+ (PA2SupportedBiometricAuthentication) supportedBiometricAuthentication
+/**
+ A private function returns full information about biometric support on the system. The method internally
+ uses `LAContext.canEvaluatePolicy()`.
+ */
+static PA2BiometricAuthenticationInfo _getBiometryInfo()
 {
+	PA2BiometricAuthenticationInfo info = { PA2BiometricAuthenticationStatus_NotSupported, PA2BiometricAuthenticationType_None };
 #if !defined(PA2_EXTENSION_SDK)
 	// Check is available only for regular iOS applications
 	if (@available(iOS 9, *)) {
 		LAContext * context = [[LAContext alloc] init];
-		BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:nil];
+		NSError * error = nil;
+		BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
 		if (canEvaluate) {
+			// If we can evaluate, then everything is quite simple.
+			info.currentStatus = PA2BiometricAuthenticationStatus_Available;
+			// Now check the type of biometry
 			if (@available(iOS 11.0, *)) {
+				info.biometryType = _LABiometryTypeToPAType(context.biometryType);
+			} else {
+				// No FaceID before iOS11, so it has to be TouchID
+				info.biometryType = PA2BiometricAuthenticationType_TouchID;
+			}
+			//
+		} else {
+			// In case of error we cannot evaluate, but the type of biometry can be determined.
+			NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
+			if (@available(iOS 11.0, *)) {
+				// On iOS 11 its quite simple, we have type property available and status can be determined
+				// from the error.
 				LABiometryType bt = context.biometryType;
-				if (bt == LABiometryTypeTouchID) {
-					return PA2SupportedBiometricAuthentication_TouchID;
-				} else if (bt == LABiometryTypeFaceID) {
-					return PA2SupportedBiometricAuthentication_FaceID;
+				// The short living LABiometryNone was introduced in IOS 11.0 and deprecated in 11.2 :D
+				// Following condition will probably cause a warning in future SDKs. If this happens, then we
+				// can safely use the 0 constant, because the new LABiometryTypeNone requires targeting IOS 11.2+,
+				// and that's not acceptable. Both constants are equal to 0...
+				if (bt != LABiometryNone) {
+					info.biometryType = _LABiometryTypeToPAType(bt);
+					if (code == LAErrorBiometryLockout) {
+						info.currentStatus = PA2BiometricAuthenticationStatus_Lockout;
+					} else if (code == LAErrorBiometryNotEnrolled) {
+						info.currentStatus = PA2BiometricAuthenticationStatus_NotEnrolled;
+					} else {
+						// The biometry is available, but returned error is unknown.
+						PA2Log(@"LAContext.canEvaluatePolicy() failed with error: %@", error);
+						info.currentStatus = PA2BiometricAuthenticationStatus_NotAvailable;
+					}
+				}
+			} else {
+				// On older systems (IOS 8..10), only Touch ID is available.
+				if (code == LAErrorTouchIDLockout) {
+					info.currentStatus = PA2BiometricAuthenticationStatus_Lockout;
+					info.biometryType  = PA2BiometricAuthenticationType_TouchID;
+				} else if (code == LAErrorTouchIDNotEnrolled) {
+					info.currentStatus = PA2BiometricAuthenticationStatus_NotEnrolled;
+					info.biometryType  = PA2BiometricAuthenticationType_TouchID;
 				}
 			}
-			// No Face ID before iOS11
-			return PA2SupportedBiometricAuthentication_TouchID;
 		}
 	}
 #endif // !defined(PA2_EXTENSION_SDK)
-	return PA2SupportedBiometricAuthentication_None;
+	return info;
+}
+
++ (BOOL) canUseBiometricAuthentication
+{
+	// The behavior of this property is that it returns YES, only if biometry policy can be evaluated.
+	return _getBiometryInfo().currentStatus == PA2BiometricAuthenticationStatus_Available;
+}
+
++ (PA2BiometricAuthenticationType) supportedBiometricAuthentication
+{
+	PA2BiometricAuthenticationInfo info = _getBiometryInfo();
+	// The behavior of this property is that if the biometry policy cannot be evaluated, then returns "None".
+	if (info.currentStatus == PA2BiometricAuthenticationStatus_Available) {
+		return info.biometryType;
+	}
+	return PA2BiometricAuthenticationType_None;
+}
+
++ (PA2BiometricAuthenticationInfo) biometricAuthenticationInfo
+{
+	return _getBiometryInfo();
 }
 
 

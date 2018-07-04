@@ -25,26 +25,76 @@ typedef NS_ENUM(int, PA2KeychainStoreItemResult) {
 	PA2KeychainStoreItemResult_Duplicate = 2,
 	PA2KeychainStoreItemResult_NotFound = 3,
 	PA2KeychainStoreItemResult_Other = 4,
-	PA2KeychainStoreItemResult_TouchIDNotAvailable PA2_DEPRECATED = 100
 };
 
 /**
  Enum encapsulating supported biometric authentication types.
  */
-typedef NS_ENUM(int, PA2SupportedBiometricAuthentication) {
+typedef NS_ENUM(int, PA2BiometricAuthenticationType) {
 	/**
 	 Biometric authentication is not supported on the current system.
 	 */
-	PA2SupportedBiometricAuthentication_None,
+	PA2BiometricAuthenticationType_None,
 	/**
 	 Touch ID is supported on the current system.
 	 */
-	PA2SupportedBiometricAuthentication_TouchID,
+	PA2BiometricAuthenticationType_TouchID,
 	/**
 	 Face ID is supported on the current system.
 	 */
-	PA2SupportedBiometricAuthentication_FaceID,
+	PA2BiometricAuthenticationType_FaceID,
 };
+
+/**
+ The PA2SupportedBiometricAuthentication is deprecated since SDK version 0.19.
+ You can use PA2BiometricAuthenticationType as a full replacement.
+ */
+typedef PA2BiometricAuthenticationType PA2SupportedBiometricAuthentication PA2_DEPRECATED(0.19);
+
+/**
+ Enum encapsulating status of biometric authentication on the system.
+ */
+typedef NS_ENUM(int, PA2BiometricAuthenticationStatus) {
+	/**
+	 Biometric authentication is not present on the system
+	 */
+	PA2BiometricAuthenticationStatus_NotSupported,
+	/**
+	 Biometric authentication is available on the system, but for an unknown
+	 reason is not available right now. This may happen on iOS 11+, when an
+	 unknown error is returned from `LAContext.canEvaluatePolicy()`.
+	 */
+	PA2BiometricAuthenticationStatus_NotAvailable,
+	/**
+	 Biometric authentication is supported, but not enrolled on the system.
+	 */
+	PA2BiometricAuthenticationStatus_NotEnrolled,
+	/**
+	 Biometric authentication is supported, but too many failed attempts caused its lockout.
+	 User has to authenticate with the password or passcode.
+	 */
+	PA2BiometricAuthenticationStatus_Lockout,
+	/**
+	 Biometric authentication is supported and can be evaluated on the system.
+	 */
+	PA2BiometricAuthenticationStatus_Available,
+};
+
+/**
+ The PA2BiometricAuthenticationInfo structure contains information about
+ supported type of biometry and its current status on the system.
+ */
+typedef struct PA2BiometricAuthenticationInfo {
+	/**
+	 Current status of supported biometry on the system.
+	 */
+	PA2BiometricAuthenticationStatus currentStatus;
+	/**
+	 Type of supported biometric authentication on the system.
+	 */
+	PA2BiometricAuthenticationType biometryType;
+	
+} PA2BiometricAuthenticationInfo;
 
 
 /** Simple wrapper on top of an iOS Keychain.
@@ -258,22 +308,31 @@ typedef NS_ENUM(int, PA2SupportedBiometricAuthentication) {
 - (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt withStatus: (nullable OSStatus *)status;
 
 /**
- Convenience method that checks if Touch ID can be used on current system.
- @deprecated Use `canUseBiometricAuthentication` as a replacement.
- @return YES if Touch ID can be used (iOS 9.0+), NO otherwise.
- */
-+ (BOOL) canUseTouchId PA2_DEPRECATED;
-
-/**
  Convenience static property that checks if Touch ID or Face ID can be used on the current system.
+ 
+ Note that the property contains "NO" also if biometry is not enrolled or if it has been locked down. To distinguish between
+ an availability and lockdown you can use `biometricAuthenticationInfo` static property.
+ 
  @return YES if biometry can be used (iOS 9.0+), NO otherwise. On watchOS or iOS App Extensions always returns NO.
  */
 @property (class, readonly) BOOL canUseBiometricAuthentication;
 
 /**
  Convenience static property that returns supported biometry on the current system.
+ 
+ Note that the property contains "None" also if biometry is not enrolled or if it has been locked down. To distinguish between
+ an availability and lockdown you can use `biometricAuthenticationInfo` static property.
+ 
  @return Type of supported biometric authentication on current system. On watchOS or iOS App Extensions always returns None.
  */
-@property (class, readonly) PA2SupportedBiometricAuthentication supportedBiometricAuthentication;
+@property (class, readonly) PA2BiometricAuthenticationType supportedBiometricAuthentication;
+
+/**
+ Static property that returns full information about biometry on the system. The resturned structure contains
+ information about supported type (Touch ID or Face ID) and also actual biometry status (N/A, not enrolled, etc..).
+ 
+ @return Structure containing full information about current supported biometry and its status on the system.
+ */
+@property (class, readonly) PA2BiometricAuthenticationInfo biometricAuthenticationInfo;
 
 @end

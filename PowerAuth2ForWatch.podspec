@@ -1,8 +1,8 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2ForWatch'
-	s.version           = '0.18.0'
-	s.summary           = 'PowerAuth 2.0 Mobile SDK for watchOS'
+	s.version           = '0.19.0'
+	s.summary           = 'PowerAuth Mobile SDK for watchOS'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'
 	s.documentation_url = 'https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS'

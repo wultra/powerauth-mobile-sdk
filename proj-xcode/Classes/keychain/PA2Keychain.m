@@ -265,11 +265,22 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 #pragma mark - Biometry support
 
 /**
- Looks like Apple introduced a new biometry type. We should try to continue,
- and pretend that TouchID is available. Application's UI will probably display
- wrong information, but at least it may work.
+ Private helper function to convert LABiometryType enum into our PA2BiometricAuthenticationType
  */
-#define __BiometricAuthenticationType_Fallback 	PA2BiometricAuthenticationType_TouchID
+API_AVAILABLE(ios(11.0))
+static PA2BiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
+{
+	if (bt == LABiometryTypeTouchID) {
+		return PA2BiometricAuthenticationType_TouchID;
+	} else if (bt == LABiometryTypeFaceID) {
+		return PA2BiometricAuthenticationType_FaceID;
+	}
+	// Looks like Apple introduced a new biometry type. We should try to continue,
+	// and pretend that TouchID is available. Application's UI will probably display
+	// wrong information, but at least it may work.
+	PA2Log(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
+	return PA2BiometricAuthenticationType_TouchID;
+}
 
 /**
  A private function returns full information about biometric support on the system. The method internally
@@ -289,16 +300,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 			info.currentStatus = PA2BiometricAuthenticationStatus_Available;
 			// Now check the type of biometry
 			if (@available(iOS 11.0, *)) {
-				LABiometryType bt = context.biometryType;
-				if (bt == LABiometryTypeTouchID) {
-					info.biometryType = PA2BiometricAuthenticationType_TouchID;
-				} else if (bt == LABiometryTypeFaceID) {
-					info.biometryType = PA2BiometricAuthenticationType_FaceID;
-				} else {
-					// Check comment above "__BiometricAuthenticationType_Fallback" for details.
-					PA2Log(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
-					info.biometryType = __BiometricAuthenticationType_Fallback;
-				}
+				info.biometryType = _LABiometryTypeToPAType(context.biometryType);
 			} else {
 				// No FaceID before iOS11, so it has to be TouchID
 				info.biometryType = PA2BiometricAuthenticationType_TouchID;
@@ -308,7 +310,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 			// In case of error we cannot evaluate, but the type of biometry can be determined.
 			NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
 			if (@available(iOS 11.0, *)) {
-				// On iOS 11 its quite simple, we have type property available and status can be determied
+				// On iOS 11 its quite simple, we have type property available and status can be determined
 				// from the error.
 				LABiometryType bt = context.biometryType;
 				// The short living LABiometryNone was introduced in IOS 11.0 and deprecated in 11.2 :D
@@ -316,15 +318,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 				// can safely use the 0 constant, because the new LABiometryTypeNone requires targeting IOS 11.2+,
 				// and that's not acceptable. Both constants are equal to 0...
 				if (bt != LABiometryNone) {
-					if (bt == LABiometryTypeTouchID) {
-						info.biometryType  = PA2BiometricAuthenticationType_TouchID;
-					} else if (bt == LABiometryTypeFaceID) {
-						info.biometryType  = PA2BiometricAuthenticationType_FaceID;
-					} else {
-						// Check comment above "__BiometricAuthenticationType_Fallback" for details.
-						PA2Log(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
-						info.biometryType = __BiometricAuthenticationType_Fallback;
-					}
+					info.biometryType = _LABiometryTypeToPAType(bt);
 					if (code == LAErrorBiometryLockout) {
 						info.currentStatus = PA2BiometricAuthenticationStatus_Lockout;
 					} else if (code == LAErrorBiometryNotEnrolled) {

@@ -264,6 +264,11 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 #pragma mark - Biometry support
 
+#if !defined(PA2_EXTENSION_SDK)
+//
+// IOS
+//
+
 /**
  Private helper function to convert LABiometryType enum into our PA2BiometricAuthenticationType
  */
@@ -283,14 +288,13 @@ static PA2BiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 }
 
 /**
- A private function returns full information about biometric support on the system. The method internally
+ Private function returns full information about biometric support on the system. The method internally
  uses `LAContext.canEvaluatePolicy()`.
  */
 static PA2BiometricAuthenticationInfo _getBiometryInfo()
 {
 	PA2BiometricAuthenticationInfo info = { PA2BiometricAuthenticationStatus_NotSupported, PA2BiometricAuthenticationType_None };
-#if !defined(PA2_EXTENSION_SDK)
-	// Check is available only for regular iOS applications
+	// PowerAuth SDK requires features added in iOS9, so we don't support biometry on iOS8.
 	if (@available(iOS 9, *)) {
 		LAContext * context = [[LAContext alloc] init];
 		NSError * error = nil;
@@ -341,9 +345,29 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 			}
 		}
 	}
-#endif // !defined(PA2_EXTENSION_SDK)
 	return info;
 }
+
+#else  // !defined(PA2_EXTENSION_SDK)
+//
+// watchOS + IOS App Extensions
+//
+
+/**
+ Returns information about biometric support on the system. This is a special implementation
+ returning information that biometry is not supported on watchOS & IOS App Extension.
+ */
+static PA2BiometricAuthenticationInfo _getBiometryInfo()
+{
+	PA2BiometricAuthenticationInfo info = { PA2BiometricAuthenticationStatus_NotSupported, PA2BiometricAuthenticationType_None };
+	return info;
+}
+
+#endif // !defined(PA2_EXTENSION_SDK)
+
+//
+// High level biometry interfaces
+//
 
 + (BOOL) canUseBiometricAuthentication
 {

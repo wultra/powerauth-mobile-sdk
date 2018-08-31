@@ -146,6 +146,7 @@
 		BFAF73151EAA8AB9005E7572 /* SoapRequests.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */; };
 		BFB47D6720753675008A6A52 /* libPowerAuthCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D6220753640008A6A52 /* libPowerAuthCore.a */; };
 		BFB47D6C207536B1008A6A52 /* libPowerAuthCoreTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D6420753640008A6A52 /* libPowerAuthCoreTests.a */; };
+		BFD2241E21396A8600E26692 /* PA2CryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFD2241D21396A8500E26692 /* PA2CryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFD27D8721144DA20020ABA4 /* PowerAuthInvalidCurveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */; };
 		BFD386621F2B528600F74FF9 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
 		BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
@@ -352,6 +353,7 @@
 		BFAF73121EAA8986005E7572 /* SoapHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoapHelper.m; sourceTree = "<group>"; };
 		BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = SoapRequests.bundle; sourceTree = "<group>"; };
 		BFB47D5B20753640008A6A52 /* PowerAuthCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = PowerAuthCore.xcodeproj; sourceTree = "<group>"; };
+		BFD2241D21396A8500E26692 /* PA2CryptoUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CryptoUtils.h; sourceTree = "<group>"; };
 		BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthInvalidCurveTests.m; sourceTree = "<group>"; };
 		BFD386611F2B528600F74FF9 /* TestConfig */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TestConfig; sourceTree = SOURCE_ROOT; };
 		BFD386651F2B6BE700F74FF9 /* PowerAuthTestServerConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerConfig.h; sourceTree = "<group>"; };
@@ -478,6 +480,7 @@
 				BF79E3C21FBD8AEE003DF179 /* PA2PrivateCrypto.h */,
 				BFA0E2D4200FB33B0011F0A6 /* PA2WeakArray.h */,
 				BF61F90B20768BBC00520C57 /* PA2OtpUtil.h */,
+				BFD2241D21396A8500E26692 /* PA2CryptoUtils.h */,
 			);
 			path = core;
 			sourceTree = "<group>";
@@ -876,6 +879,7 @@
 				BF8CF5092032EB41002A6B6E /* PA2ErrorResponse.h in Headers */,
 				BF8CF50A2032EB41002A6B6E /* PowerAuthSDK.h in Headers */,
 				BF8CF50B2032EB41002A6B6E /* PA2Error.h in Headers */,
+				BFD2241E21396A8600E26692 /* PA2CryptoUtils.h in Headers */,
 				BF8CF50C2032EB41002A6B6E /* PA2PrivateCrypto.h in Headers */,
 				BF8CF50D2032EB41002A6B6E /* PA2PrivateMacros.h in Headers */,
 			);

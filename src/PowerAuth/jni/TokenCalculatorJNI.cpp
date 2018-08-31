@@ -46,6 +46,9 @@ static std::string _GetTimestamp()
 	return std::to_string((uint64_t) msSinceEpoch);
 }
 
+//
+// public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData)
+//
 CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
 {
 	if (privateData == NULL || env == NULL) {

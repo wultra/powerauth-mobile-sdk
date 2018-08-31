@@ -143,7 +143,8 @@ LOCAL_SRC_FILES := \
 	PowerAuth/jni/EncryptorJNI.cpp \
 	PowerAuth/jni/OtpUtilJNI.cpp \
 	PowerAuth/jni/ECIESEncryptorJNI.cpp \
-	PowerAuth/jni/TokenCalculatorJNI.cpp
+	PowerAuth/jni/TokenCalculatorJNI.cpp \
+	PowerAuth/jni/CryptoUtilsJNI.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

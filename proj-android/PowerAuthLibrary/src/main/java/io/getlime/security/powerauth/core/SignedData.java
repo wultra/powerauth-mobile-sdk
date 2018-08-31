@@ -26,7 +26,7 @@ public class SignedData {
      */
     public final byte[] data;
     /**
-     A signagure calculated for data
+     A signature calculated for data
      */
     public final byte[] signature;
     /**

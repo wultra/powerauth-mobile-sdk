@@ -4,10 +4,10 @@ In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile
 
 ## Integration Tutorials
 
-- [PowerAuth SDK for iOS Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
-- [PowerAuth SDK for iOS Extensions](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS-Extensions)
-- [PowerAuth SDK for watchOS](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
-- [PowerAuth SDK for Android Apps](https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
+- [PowerAuth SDK for iOS Apps](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
+- [PowerAuth SDK for iOS Extensions](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS-Extensions)
+- [PowerAuth SDK for watchOS](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
+- [PowerAuth SDK for Android Apps](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
 
 ## License
 
@@ -15,8 +15,8 @@ All sources are licensed using Apache 2.0 license, you can use them with no rest
 
 ## Contact
 
-If you need any assistance, do not hesitate to drop us a line at hello@lime-company.eu.
+If you need any assistance, do not hesitate to drop us a line at hello@wultra.com.
 
 ### Security Disclosure
 
-If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to support@lime-company.eu. Please do not post it to a public issue tracker.
+If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to support@wultra.com. Please do not post it to a public issue tracker.

@@ -62,6 +62,7 @@
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
 		BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
+		BFD2241A2139601400E26692 /* PA2CryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFD224192139601400E26692 /* PA2CryptoUtils.mm */; };
 		BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */; };
 /* End PBXBuildFile section */
 
@@ -228,6 +229,8 @@
 		BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateImpl.h; sourceTree = "<group>"; };
 		BFB47D3D207533E6008A6A52 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
 		BFB47D3E20753444008A6A52 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
+		BFD224182139601400E26692 /* PA2CryptoUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CryptoUtils.h; sourceTree = "<group>"; };
+		BFD224192139601400E26692 /* PA2CryptoUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2CryptoUtils.mm; sourceTree = "<group>"; };
 		BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CoreLog.h; sourceTree = "<group>"; };
 		BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2CoreLog.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -515,6 +518,8 @@
 				BFB47D1D20753359008A6A52 /* PA2WeakArray.m */,
 				BF61F906207687C500520C57 /* PA2OtpUtil.h */,
 				BF61F909207687C500520C57 /* PA2OtpUtil.mm */,
+				BFD224182139601400E26692 /* PA2CryptoUtils.h */,
+				BFD224192139601400E26692 /* PA2CryptoUtils.mm */,
 			);
 			name = core;
 			path = Classes/core;
@@ -665,6 +670,7 @@
 				BFB47D3A2075335A008A6A52 /* PA2ECIESEncryptor.mm in Sources */,
 				BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */,
 				BF99D90E2073E15100735ED2 /* Hash.cpp in Sources */,
+				BFD2241A2139601400E26692 /* PA2CryptoUtils.mm in Sources */,
 				BF99D90C2073E15100735ED2 /* ECC.cpp in Sources */,
 				BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */,
 				BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */,

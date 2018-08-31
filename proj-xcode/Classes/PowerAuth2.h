@@ -35,5 +35,6 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 #import "PA2Password.h"
 #import "PA2OtpUtil.h"
 #import "PA2ECIESEncryptor.h"
+#import "PA2CryptoUtils.h"
 
 #import "PA2WCSessionManager.h"

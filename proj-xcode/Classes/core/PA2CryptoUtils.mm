@@ -83,11 +83,6 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Getters
 
-- (BOOL) isValid
-{
-	return _key != nullptr;
-}
-
 - (EC_KEY*) ecKeyRef
 {
 	return _key;

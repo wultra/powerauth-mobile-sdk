@@ -26,11 +26,8 @@
 	// Allow any SSL certificate
 	
 	PA2CriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
-	if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
-		NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-		completionHandler(NSURLSessionAuthChallengeUseCredential,credential);
-	}
-	
+	NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+	completionHandler(NSURLSessionAuthChallengeUseCredential,credential);
 }
 
 @end

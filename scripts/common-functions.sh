@@ -182,7 +182,7 @@ function VALIDATE_AND_SET_VERSION_STRING
 # Loads shared credentials, like API keys & logins. The function performs
 # lookup in following order:
 #   if LIME_CREDENTIALS == 1 then does nothing, credentials are loaded
-#	if file exists at ${LIME_CREDENTIALS_FILE}, then loads the file
+#   if file exists at ${LIME_CREDENTIALS_FILE}, then loads the file
 #   if file exists at ~/.lime/credentials, then loads the file
 #   if file exists at .lime-credentials, then loads the file
 # -----------------------------------------------------------------------------
@@ -238,7 +238,7 @@ function __COMMON_FUNCTIONS_SELF_UPDATE
 {
 	local self=$0
 	local backup=$self.backup
-	local remote="https://raw.githubusercontent.com/lime-company/swift-library-deploy/master/common-functions.sh"
+	local remote="https://raw.githubusercontent.com/wultra/swift-library-deploy/master/common-functions.sh"
 	LOG_LINE
 	LOG "This script is going to update itself:"
 	LOG "  source : $remote"

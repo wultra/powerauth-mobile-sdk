@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@
 		PA2Log(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
 	}
 	
-	NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+	NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];
 	configuration.URLCache = nil;
 	
 	NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration
@@ -244,7 +244,7 @@
 #pragma mark - NSURLSessionDelegate methods
 
 - (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler {
-	if (self.sslValidationStrategy) {
+	if (self.sslValidationStrategy && [challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
 		[self.sslValidationStrategy validateSslForSession:session challenge:challenge completionHandler:completionHandler];
 	} else {
 		completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);

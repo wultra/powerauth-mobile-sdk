@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2017 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <cc7tests/CC7Tests.h>
 #include <cc7tests/detail/StringUtils.h>
 #include <PowerAuth/ECIES.h>
+#include <cc7/HexString.h>
 #include "../PowerAuth/crypto/CryptoUtils.h"
 
 using namespace cc7;
@@ -37,6 +38,7 @@ namespace powerAuthTests
 		pa2ECIESTests()
 		{
 			CC7_REGISTER_TEST_METHOD(testEncryptorDecryptor)
+			CC7_REGISTER_TEST_METHOD(testInvalidCurve)
 		}
 		
 //#define TLOG	CC7_LOG
@@ -152,6 +154,15 @@ namespace powerAuthTests
 			}
 			TLOG("   ]");
 			TLOG("}");
+		}
+		
+		void testInvalidCurve()
+		{
+			auto invalid_public_key = cc7::FromHexString("02B70BF043C144935756F8F4578C369CF960EE510A5A0F90E93A373A21F0D1397F");
+			auto encryptor = ECIESEncryptor(invalid_public_key, cc7::ByteRange());		
+			ECIESCryptogram cryptogram;
+			auto code = encryptor.encryptRequest(cc7::MakeRange("should not be encrypted"), cryptogram);
+			ccstAssertTrue(code == EC_Encryption);
 		}
 	};
 	

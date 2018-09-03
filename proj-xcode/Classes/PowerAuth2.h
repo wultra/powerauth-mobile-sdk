@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Lime - HighTech Solutions s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,5 +35,6 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 #import "PA2Password.h"
 #import "PA2OtpUtil.h"
 #import "PA2ECIESEncryptor.h"
+#import "PA2CryptoUtils.h"
 
 #import "PA2WCSessionManager.h"

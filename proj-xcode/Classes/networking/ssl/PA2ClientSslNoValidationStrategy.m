@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,8 @@
 	// Allow any SSL certificate
 	
 	PA2CriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
-	if([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]){
-		NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-		completionHandler(NSURLSessionAuthChallengeUseCredential,credential);
-	}
-	
+	NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+	completionHandler(NSURLSessionAuthChallengeUseCredential,credential);
 }
 
 @end

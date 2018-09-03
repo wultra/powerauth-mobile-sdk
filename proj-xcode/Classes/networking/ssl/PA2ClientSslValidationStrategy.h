@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Lime - HighTech Solutions s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,12 @@
 
 @protocol PA2ClientSslValidationStrategy <NSObject>
 
+/**
+ The method is called when an underlying NSURLSession first establishes a connection to a remote server that uses SSL or TLS,
+ to allow your app to verify the server’s certificate chain. The challenge parameter is already tested for `NSURLAuthenticationMethodServerTrust`.
+ 
+ The implementation must call `completionHandler` with an appropriate result of the verification.
+ */
 - (void) validateSslForSession:(NSURLSession *)session
 					 challenge:(NSURLAuthenticationChallenge *)challenge
 			 completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler;

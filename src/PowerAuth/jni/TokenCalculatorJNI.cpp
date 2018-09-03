@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2017 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,9 @@ static std::string _GetTimestamp()
 	return std::to_string((uint64_t) msSinceEpoch);
 }
 
+//
+// public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData)
+//
 CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
 {
 	if (privateData == NULL || env == NULL) {

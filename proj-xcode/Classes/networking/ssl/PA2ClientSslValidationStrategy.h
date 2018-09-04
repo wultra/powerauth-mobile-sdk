@@ -24,8 +24,8 @@
  
  The implementation must call `completionHandler` with an appropriate result of the verification.
  */
-- (void) validateSslForSession:(NSURLSession *)session
-					 challenge:(NSURLAuthenticationChallenge *)challenge
-			 completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler;
+- (void) validateSslForSession:(nonnull NSURLSession *)session
+					 challenge:(nonnull NSURLAuthenticationChallenge *)challenge
+			 completionHandler:(void (^ _Nonnull)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler;
 
 @end

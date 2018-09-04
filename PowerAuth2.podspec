@@ -34,6 +34,9 @@ Pod::Spec.new do |s|
 	s.requires_arc          = true
 	s.libraries             = 'c++'
 	# Tweaks
-	s.pod_target_xcconfig   = { 'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO' }
+	s.pod_target_xcconfig   = {
+		'OTHER_LDFLAGS' => '-ObjC',
+		'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
+	}
 	
 end

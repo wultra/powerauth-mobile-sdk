@@ -1281,6 +1281,7 @@
 				MACH_O_TYPE = mh_dylib;
 				MODULEMAP_FILE = Classes/PowerAuth2.modulemap;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
 				PRODUCT_NAME = PowerAuth2;
 				SKIP_INSTALL = YES;
@@ -1313,6 +1314,7 @@
 				MACH_O_TYPE = mh_dylib;
 				MODULEMAP_FILE = Classes/PowerAuth2.modulemap;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getlime.lib.PowerAuth2;
 				PRODUCT_NAME = PowerAuth2;
 				SKIP_INSTALL = YES;

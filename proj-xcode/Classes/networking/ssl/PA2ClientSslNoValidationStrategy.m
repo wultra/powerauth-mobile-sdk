@@ -19,15 +19,14 @@
 
 @implementation PA2ClientSslNoValidationStrategy
 
-- (void)validateSslForSession:(NSURLSession *)session
-					challenge:(NSURLAuthenticationChallenge *)challenge
-			completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler {
-	
+- (void) validateSslForSession:(nonnull NSURLSession *)session
+					 challenge:(nonnull NSURLAuthenticationChallenge *)challenge
+			 completionHandler:(void (^ _Nonnull)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler
+{
 	// Allow any SSL certificate
-	
 	PA2CriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
 	NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-	completionHandler(NSURLSessionAuthChallengeUseCredential,credential);
+	completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
 }
 
 @end

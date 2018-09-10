@@ -378,4 +378,9 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         }
     };
 
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        mFingerprintAuthenticationHandler.releaseFingerprintCallback();
+    }
 }

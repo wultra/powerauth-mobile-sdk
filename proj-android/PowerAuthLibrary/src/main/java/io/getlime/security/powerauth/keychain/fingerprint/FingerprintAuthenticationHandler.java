@@ -40,7 +40,7 @@ import javax.crypto.spec.IvParameterSpec;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class FingerprintAuthenticationHandler extends FingerprintManager.AuthenticationCallback {
 
-    private final FingerprintCallback mCallback;
+    private FingerprintCallback mCallback;
     private final FingerprintManager mFingerprintManager;
     private CancellationSignal mCancellationSignal;
     private FingerprintManager.CryptoObject mCryptoObject;
@@ -87,6 +87,18 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
         if (!initKeyStore()) {
             mCallback.onAuthenticationFailed();
         }
+    }
+
+    /**
+     * Relase fingerprint callback to avoid memory leak.
+     * The callback is a {@link android.app.DialogFragment} which holds reference to the activity.
+     *
+     * It's necessary to break the reference chain because
+     * {@link FingerprintManager} doesn't release reference to {@link FingerprintAuthenticationHandler}
+     * and we leak activities when using {@link FingerprintManager}.
+     */
+    public void releaseFingerprintCallback() {
+        mCallback = null;
     }
 
     //<editor-fold desc="Methods related to fingerprint authentication availability checks">

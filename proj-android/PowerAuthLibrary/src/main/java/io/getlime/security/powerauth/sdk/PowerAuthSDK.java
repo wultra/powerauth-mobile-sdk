@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.app.FragmentManager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -24,8 +23,8 @@ import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.FragmentManager;
 import android.util.Base64;
-import android.util.Pair;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -64,7 +63,15 @@ import io.getlime.security.powerauth.networking.client.PA2Client;
 import io.getlime.security.powerauth.networking.endpoints.PA2RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
+import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
+import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
+import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
+import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
+import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
+import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
+import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateCustomRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
@@ -73,14 +80,6 @@ import io.getlime.security.powerauth.rest.api.model.request.VaultUnlockRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
-import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
-import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
-import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
-import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
-import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
-import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
-import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
-import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;

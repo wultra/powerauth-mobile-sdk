@@ -10,6 +10,12 @@ def localReleaseDest = "${buildDir}/release/${version}"
 task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    // adds libraries to classpath
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.getJavaCompiler().classpath
+        }
+    }
 }
 
 task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {

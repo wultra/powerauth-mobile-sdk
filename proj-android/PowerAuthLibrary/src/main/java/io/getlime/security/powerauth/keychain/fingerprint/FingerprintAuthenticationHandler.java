@@ -22,6 +22,8 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.DialogFragment;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -90,8 +92,8 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     }
 
     /**
-     * Relase fingerprint callback to avoid memory leak.
-     * The callback is a {@link android.app.DialogFragment} which holds reference to the activity.
+     * Release fingerprint callback to avoid memory leak.
+     * The callback is a {@link DialogFragment} which holds reference to the activity.
      *
      * It's necessary to break the reference chain because
      * {@link FingerprintManager} doesn't release reference to {@link FingerprintAuthenticationHandler}

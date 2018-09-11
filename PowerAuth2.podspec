@@ -1,13 +1,13 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2'
-	s.version           = '0.19.0'
+	s.version           = '0.19.1'
 	s.summary           = 'PowerAuth Mobile SDK for iOS'
-	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
-	s.social_media_url  = 'https://twitter.com/lime_company'
-	s.documentation_url = 'https://github.com/lime-company/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
+	s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
+	s.social_media_url  = 'https://twitter.com/wultra'
+	s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS'
 	s.author            = { 
-	  'Lime - HighTech Solution s.r.o.' => 'support@lime-company.eu'
+	  'Wultra s.r.o.' => 'support@wultra.com'
 	}
 	s.license = { 
 		:type => 'Apache License, Version 2.0', 
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 		
 	# Source files
 	s.source = { 
-		:git => 'https://github.com/lime-company/powerauth-mobile-sdk.git',
+		:git => 'https://github.com/wultra/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
 		:submodules => true
 	}

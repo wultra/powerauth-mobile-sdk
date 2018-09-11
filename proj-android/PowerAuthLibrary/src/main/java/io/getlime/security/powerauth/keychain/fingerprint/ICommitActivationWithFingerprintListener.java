@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.keychain.fingerprint;
 
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+
 /**
  * Interface used as a callback for committing the activation with fingerprint authentication.
  *
@@ -30,7 +32,9 @@ public interface ICommitActivationWithFingerprintListener {
 
     /**
      * Fingerprint authentication succeeded.
+     *
+     * @param activationErrorCode {@link PowerAuthErrorCodes} error code of the activation.
      */
-    void onFingerprintDialogSuccess();
+    void onFingerprintDialogSuccess(int activationErrorCode);
 
 }

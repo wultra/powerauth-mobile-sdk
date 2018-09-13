@@ -53,6 +53,9 @@ namespace powerAuthTests
 		CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
 		CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
 		
+		// Misc
+		CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
+
 		return list;
 	}
 	

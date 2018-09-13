@@ -26,6 +26,8 @@
 		BF99D90F2073E15100735ED2 /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8D52073E00D00735ED2 /* KDF.cpp */; };
 		BF99D9102073E15100735ED2 /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DB2073E00D00735ED2 /* MAC.cpp */; };
 		BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
+		BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD66214ABE2500A9221F /* CRC16.cpp */; };
+		BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
 		BFB47D06207532BE008A6A52 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */; };
 		BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */; };
 		BFB47D08207532C5008A6A52 /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */; };
@@ -205,6 +207,9 @@
 		BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OtpUtil.cpp; sourceTree = "<group>"; };
 		BF99D8FF2073E00D00735ED2 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreTests.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFABCD63214ABDCB00A9221F /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
+		BFABCD66214ABE2500A9221F /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
+		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
 		BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2SessionStatusProvider.h; sourceTree = "<group>"; };
 		BFB47D1C20753359008A6A52 /* PA2Password.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Password.mm; sourceTree = "<group>"; };
 		BFB47D1D20753359008A6A52 /* PA2WeakArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArray.m; sourceTree = "<group>"; };
@@ -440,6 +445,8 @@
 				BF99D8E92073E00D00735ED2 /* DataWriter.cpp */,
 				BF99D8E62073E00D00735ED2 /* URLEncoding.h */,
 				BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */,
+				BFABCD63214ABDCB00A9221F /* CRC16.h */,
+				BFABCD66214ABE2500A9221F /* CRC16.cpp */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -476,6 +483,7 @@
 				BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */,
 				BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */,
 				BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */,
+				BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -678,6 +686,7 @@
 				BFB47D352075335A008A6A52 /* PA2Encryptor.mm in Sources */,
 				BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */,
 				BF99D9002073E14100735ED2 /* Session.cpp in Sources */,
+				BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */,
 				BFB47D372075335A008A6A52 /* PA2PrivateCrypto_IOS.mm in Sources */,
 				BF99D90F2073E15100735ED2 /* KDF.cpp in Sources */,
 				BF99D9022073E14100735ED2 /* Debug.cpp in Sources */,
@@ -698,6 +707,7 @@
 				BFB47D14207532CB008A6A52 /* pa2SignatureCalculationTests.cpp in Sources */,
 				BFB47D13207532CB008A6A52 /* pa2MasterSecretKeyComputation.cpp in Sources */,
 				BFB47D06207532BE008A6A52 /* PowerAuthTestsList.cpp in Sources */,
+				BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */,
 				BFB47D09207532C5008A6A52 /* pa2PasswordTests.cpp in Sources */,
 				BFB47D0B207532C5008A6A52 /* pa2ECIESTests.cpp in Sources */,
 				BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */,

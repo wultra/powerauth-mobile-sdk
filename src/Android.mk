@@ -57,7 +57,8 @@ LOCAL_SRC_FILES := \
 	PowerAuth/protocol/ProtocolUtils.cpp \
 	PowerAuth/utils/DataReader.cpp \
 	PowerAuth/utils/DataWriter.cpp \
-	PowerAuth/utils/URLEncoding.cpp
+	PowerAuth/utils/URLEncoding.cpp \
+	PowerAuth/utils/CRC16.cpp
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -105,6 +106,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2URLEncodingTests.cpp \
 	PowerAuthTests/pa2OtpUtilTests.cpp \
 	PowerAuthTests/pa2ECIESTests.cpp \
+	PowerAuthTests/pa2CRC16Tests.cpp \
 	PowerAuthTests/TestData/pa2.generated/g_pa2Files.cpp
 
 include $(BUILD_STATIC_LIBRARY)

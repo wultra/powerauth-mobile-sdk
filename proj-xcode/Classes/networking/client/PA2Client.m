@@ -72,7 +72,7 @@
 - (NSURLSessionDataTask*) postToUrl:(NSURL*)url
 							   data:(NSData*)data
 							headers:(NSDictionary*)headers
-						 completion:(void(^)(NSData *data, NSURLResponse *response, NSError *error))completion {
+						 completion:(void(^)(NSData *data, NSHTTPURLResponse *response, NSError *error))completion {
 	
 	if ([url.absoluteString hasPrefix:@"http://"]) {
 		PA2Log(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
@@ -106,16 +106,17 @@
 	PA2Log(@"- Headers: %@", request.allHTTPHeaderFields);
 	PA2Log(@"- Body: %@", data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"empty body");
 	NSURLSessionDataTask *postDataTask = [session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+		NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
 		PA2Log(@"PA2Client Response");
 		PA2Log(@"- URL: %@", url.absoluteString);
-		PA2Log(@"- Status code: %ld", (long)((NSHTTPURLResponse*)response).statusCode);
-		PA2Log(@"- Headers: %@", ((NSHTTPURLResponse*)response).allHeaderFields);
+		PA2Log(@"- Status code: %ld", (long)httpResponse.statusCode);
+		PA2Log(@"- Headers: %@", httpResponse.allHeaderFields);
 		PA2Log(@"- Body: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 		if (error) {
 			PA2Log(@"- Error: %@", error.localizedDescription);
 		}
 		[[NSOperationQueue mainQueue] addOperationWithBlock: ^{
-			completion(data, response, error);
+			completion(data, httpResponse, error);
 		}];
 		[[NSURLCache sharedURLCache] removeCachedResponseForRequest:request];
 	}];

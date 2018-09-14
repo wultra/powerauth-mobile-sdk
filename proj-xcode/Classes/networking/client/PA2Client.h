@@ -38,7 +38,7 @@
 - (nonnull NSURLSessionDataTask*) postToUrl:(nonnull NSURL*)url
 									   data:(nonnull NSData*)data
 									headers:(nullable NSDictionary*)headers
-								 completion:(nonnull void(^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completion;
+								 completion:(nonnull void(^)(NSData * _Nullable data, NSHTTPURLResponse * _Nullable response, NSError * _Nullable error))completion;
 
 - (nonnull NSURLSessionDataTask*) postToUrl:(nonnull NSURL*)absoluteUrl
 							  requestObject:(nullable id<PA2NetworkObject>)requestObject

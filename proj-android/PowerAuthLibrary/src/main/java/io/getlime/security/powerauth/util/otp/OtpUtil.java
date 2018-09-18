@@ -17,7 +17,17 @@
 package io.getlime.security.powerauth.util.otp;
 
 /**
- * Class for parsing and validation the OTP code.
+ * Class for parsing and validation the activation code.
+ *
+ * Current format of code:
+ * <pre>
+ * code without signature:  CCCCC-CCCCC-CCCCC-CCCCC
+ * code with signature:     CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
+ * </pre>
+ *
+ * Where the 'C' is Base32 sequence of characters, fully decodable into the sequence of bytes.
+ * The validator then compares CRC-16 checksum calculated for the first 10 bytes and compares
+ * it to last two bytes (in big endian order).
  */
 public class OtpUtil {
 
@@ -27,7 +37,7 @@ public class OtpUtil {
 
     /**
      * Parses an input |activationCode| (which may or may not contain an optional signature) and
-     * returns Otp object filled with valid data. The method doesn't perform an autocorrection,
+     * returns Otp object filled with valid data. The method doesn't perform an auto-correction,
      * so the provided code must be valid.
      *
      * @return Otp object if code is valid, or null
@@ -43,9 +53,9 @@ public class OtpUtil {
     /**
      * Validates an input |utfCodepoint| and returns 0 if it's not valid or cannot be corrected.
      * The non-zero returned value contains the same input character, or the corrected
-     * one. You can use this method for validation &amp; autocorrection of just typed characters.
+     * one. You can use this method for validation &amp; auto-correction of just typed characters.
      * <p>
-     * The function performs following autocorrections:
+     * The function performs following auto-corrections:
      * <ul>
      * <li>lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')</li>
      * <li>'0' is corrected to 'O' (zero to capital O)</li>

@@ -49,7 +49,7 @@
 {
 	// Prepare encryptor
 	NSData * pubKeyData = [[NSData alloc] initWithBase64EncodedString:configuration.masterServerPublicKey options:0];
-	_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo2:nil];
+	_encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:pubKeyData sharedInfo1:nil sharedInfo2:nil];
 	// Prepare client
 	PA2ClientConfiguration * clientConfiguration = _sdk.clientConfiguration;
 	_client = [[PA2Client alloc] init];

@@ -42,9 +42,12 @@ using namespace io::getlime::powerAuth;
 	return self;
 }
 
-- (id) initWithPublicKey:(NSData*)publicKey sharedInfo2:(NSData*)sharedInfo
+- (id) initWithPublicKey:(NSData*)publicKey
+			 sharedInfo1:(NSData*)sharedInfo1
+			 sharedInfo2:(NSData*)sharedInfo2
 {
-	return [self initWithObject: ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo))];
+	auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
+	return [self initWithObject: encryptor];
 }
 
 - (id) initWithEnvelopeKey:(NSData*)envelopeKey sharedInfo2:(NSData*)sharedInfo

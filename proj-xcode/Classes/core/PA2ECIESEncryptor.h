@@ -30,10 +30,12 @@
 #pragma mark Initialization
 
 /**
- Initializes an ecnryptor with server's |publicKey| and optional |sharedInfo2|.
+ Initializes an ecnryptor with server's |publicKey| and optional |sharedInfo1| and |sharedInfo2|.
  The initialized instance can be used for both encryption and decryption tasks.
  */
-- (nullable instancetype) initWithPublicKey:(nonnull NSData*)publicKey sharedInfo2:(nullable NSData*)sharedInfo;
+- (nullable instancetype) initWithPublicKey:(nonnull NSData*)publicKey
+								sharedInfo1:(nullable NSData*)sharedInfo1
+								sharedInfo2:(nullable NSData*)sharedInfo2;
 
 /**
  Initializes an encryptor with previously calculated |envelopeKey| and optional |sharedInfo|.

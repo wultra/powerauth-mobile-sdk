@@ -513,7 +513,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	[self checkForValidConnection];
 	
 	NSData * publicKey = [[NSData alloc] initWithBase64EncodedString:application.masterPublicKey options:0];
-	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo2:nil];
+	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo1:nil sharedInfo2:nil];
 	PA2ECIESCryptogram * cryptogram = [encryptor encryptRequest:nil];
 	if (!cryptogram) {
 		return nil;

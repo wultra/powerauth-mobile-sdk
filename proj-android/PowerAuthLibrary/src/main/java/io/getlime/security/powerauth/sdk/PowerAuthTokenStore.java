@@ -99,7 +99,7 @@ public class PowerAuthTokenStore {
         this.keychain = keychain;
         this.httpClient = httpClient;
         this.localTokens = new HashMap<>();
-        this.encryptor = new ECIESEncryptor(httpClient.getConfiguration().getMasterServerPublicKey(), null);
+        this.encryptor = new ECIESEncryptor(httpClient.getConfiguration().getMasterServerPublicKey(), null, null);
         this.keychainKeyPrefix = TOKENS_KEY_PREFIX + "__" + sdk.getConfiguration().getInstanceId() + "__";
     }
 

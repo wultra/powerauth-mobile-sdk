@@ -78,13 +78,14 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 }
 
 //
-// private native long init(String publicKey, byte[] sharedInfo2)
+// private native long init(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2)
 //
-CC7_JNI_METHOD_PARAMS(jlong, init, jstring publicKey, jbyteArray sharedInfo2)
+CC7_JNI_METHOD_PARAMS(jlong, init, jstring publicKey, jbyteArray sharedInfo1, jbyteArray sharedInfo2)
 {
 	auto cppPublicKey = cc7::FromBase64String(cc7::jni::CopyFromJavaString(env, publicKey));
+	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
 	auto cppSharedInfo2 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo2);
-	auto encryptor = new ECIESEncryptor(cppPublicKey, cppSharedInfo2);
+	auto encryptor = new ECIESEncryptor(cppPublicKey, cppSharedInfo1, cppSharedInfo2);
 	return reinterpret_cast<jlong>(encryptor);
 }
 
@@ -123,6 +124,19 @@ CC7_JNI_METHOD(jstring, getPublicKey)
 	}
 	auto publicKey = encryptor->publicKey().base64String();
 	return cc7::jni::CopyToNullableJavaString(env, publicKey);
+}
+
+//
+// public native byte[] getSharedInfo1();
+//
+CC7_JNI_METHOD(jbyteArray, getSharedInfo1)
+{
+	auto encryptor = CC7_THIS_OBJ();
+	if (!encryptor) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return NULL;
+	}
+	return cc7::jni::CopyToNullableJavaByteArray(env, encryptor->sharedInfo1());
 }
 
 //

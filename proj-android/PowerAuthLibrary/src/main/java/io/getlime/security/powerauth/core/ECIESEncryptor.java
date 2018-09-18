@@ -41,10 +41,11 @@ public class ECIESEncryptor {
     /**
      * Constructs a new encryptor with public key and optional shared info2 parameter.
      * @param publicKey EC public key in Base64 format
-     * @param sharedInfo2 An optional shared info data
+     * @param sharedInfo1 An optional shared info 1 data
+     * @param sharedInfo2 An optional shared info 2 data
      */
-    public ECIESEncryptor(String publicKey, byte[] sharedInfo2) {
-        this.handle = init(publicKey, sharedInfo2);
+    public ECIESEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2) {
+        this.handle = init(publicKey, sharedInfo1, sharedInfo2);
     }
 
 
@@ -117,10 +118,11 @@ public class ECIESEncryptor {
      * Internal JNI initialization.
      *
      * @param publicKey EC public key in Base64 format
-     * @param sharedInfo2 An optional shared info bytes
+     * @param sharedInfo1 An optional shared info 1 bytes
+     * @param sharedInfo2 An optional shared info 2 bytes
      * @return A handle representing underlying native C++ object
      */
-    private native long init(String publicKey, byte[] sharedInfo2);
+    private native long init(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2);
 
     /**
      * Internal JNI copy.
@@ -138,6 +140,11 @@ public class ECIESEncryptor {
      * @return EC public key in Base64 format
      */
     public native String getPublicKey();
+
+    /**
+     * @return nullable byte array with shared info1 parameter.
+     */
+    public native byte[] getSharedInfo1();
 
     /**
      * @return nullable byte array with shared info2 parameter.

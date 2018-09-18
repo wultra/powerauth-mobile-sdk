@@ -26,7 +26,10 @@
  Curve:	NID_X9_62_prime256v1
 		 * just like the rest of PA
  KDF:	ANSI X9.63:2001 with SHA256
-		 * with ephemeral public key bytes as optional info parameter
+		 * with ephemeral public key bytes as optional shared info 1 parameter
+		   (we still can parametrize SH1, but the bytes from ephemeral key are always
+            passed to the KDF function. In this case, SH1 is simply prefix for that
+            ephemeral key bytes)
 		 * derived key is then split into K_ENC || K_MAC
  MAC:   HMAC_SHA256
  ENC:	AES_CBC with PKCS7 padding, 128 bit key
@@ -37,7 +40,8 @@
  Input:
  	PUBLIC_KEY - server's public key
  	TEXT - data to be encrypted
-	SH2 - shared info 2, (or param#2 in some papers)
+ 	SH1 - optional shared info 1, (or param#1 in some papers)
+ 	SH2 - optional shared info 2, (or param#2 in some papers)
  Output:
 	C - cryptogram structure with KEY, BODY & MAC
  
@@ -51,7 +55,7 @@
  
  	// Derive key matherial from SHARED_SECRET and exported public key.
  	// We're using public key's data as optional parameter to KDF function.
-	let ENVELOPE_KEY  = KDF(key: SHARED_SECRET, info: C.KEY, length: 32)
+	let ENVELOPE_KEY  = KDF(key: SHARED_SECRET, info: SH1 || C.KEY, length: 32)
  	let K_ENC = ENVELOPE_KEY[ 0...15]
  	let K_MAC = ENVELOPE_KEY[16...31]
  
@@ -65,7 +69,7 @@
  Input:
  	ENVELOPE_KEY - a key calculated in 1.a
  	C - cryptogram structure with body & mac (produced in 2.b)
-	SH2 - shared info 2, (or param#2 in some papers)
+ 	SH2 - optional shared info 2, (or param#2 in some papers)
  Output:
 	TEXT - decrypted data
  
@@ -86,14 +90,15 @@
  Input:
  	PRIVATE_KEY - server's private key
  	C - cryptogram, produced in 1.a
- 	HS2 - shared info 2
+ 	SH1 - optional shared info 1, (or param#1 in some papers)
+ 	SH2 - optional shared info 2, (or param#2 in some papers)
  Output:
  	TEXT - data
  
  Process:
  	// Calculate shared secret from ephemeral key and private key
  	let SHARED_SECRET = ECDH_SharedSecret(PRIVATE_KEY, C.KEY)
-	let ENVELOPE_KEY  = KDF(key: SHARED_SECRET, info: C.KEY, length: 32)
+	let ENVELOPE_KEY  = KDF(key: SHARED_SECRET, info: SH1 || C.KEY, length: 32)
  	let K_ENC = ENVELOPE_KEY[ 0...15]
  	let K_MAC = ENVELOPE_KEY[16...31]
  
@@ -109,7 +114,7 @@
  Input:
  	ENVELOPE_KEY - a key calculated in 2.a
  	TEXT - data to be encrypted
-	SH2 - shared info 2, (or param#2 in some papers)
+ 	SH2 - shared info 2, (or param#2 in some papers)
  Output:
  	TEXT - data
 
@@ -171,12 +176,14 @@ namespace powerAuth
 		/// Returns key for HMAC calculation.
 		const cc7::ByteRange macKey() const;
 		
-		/// Creates a new instance of ECIESEnvelopeKey from EC |publiKey|. The method also stores a newly created
-		/// ephemeral public key to the |out_ephemeralKey| reference.
-		static ECIESEnvelopeKey fromPublicKey(const cc7::ByteRange & public_key, cc7::ByteArray & out_ephemeral_key);
+		/// Creates a new instance of ECIESEnvelopeKey from EC |publiKey| and optional |shared_info1|.
+		/// For optional |shared_info1| you can provide an empty range, if you have no such information available.
+		/// The method also stores a newly created ephemeral public key to the |out_ephemeralKey| reference.
+		static ECIESEnvelopeKey fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key);
 		
-		/// Creates a new instance of ECIESEnvelopeKey from EC |privateKey| and |ephemeralKey| key-pair.
-		static ECIESEnvelopeKey fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key);
+		/// Creates a new instance of ECIESEnvelopeKey from EC |privateKey|, |ephemeralKey| key-pair and optional |shared_info1|.
+		/// For optional |shared_info1| you can provide an empty range, if you have no such information available.
+		static ECIESEnvelopeKey fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1);
 		
 	private:
 
@@ -196,12 +203,12 @@ namespace powerAuth
 		/// Constructs an empty encryptor object.
 		ECIESEncryptor() = default;
 		
-		/// Constructs an ecnryptor with server's |public_key| and optional |shared_info2|. For optional |shared_info2|
-		/// you can provide an empty range, if you have no such information available for the purpose.
+		/// Constructs an ecnryptor with server's |public_key| and optional |shared_info1| and |shared_info2|.
+		/// For both optional parameters you can provide an empty range, if you have no such information available.
 		/// The constructed instance can be used for both encryption and decryption tasks.
-		ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info2);
+		ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
 		
-		/// Constructs an encryptor with previously calculated |envelope_key| and optional |shared_info|.
+		/// Constructs an encryptor with previously calculated |envelope_key| and optional |shared_info2|.
 		/// For optional |shared_info2| you can provide an empty range, if you have no such information available.
 		/// The constructed instance can be used only for decryption process.
 		ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
@@ -212,6 +219,12 @@ namespace powerAuth
 
 		/// Returns a reference to envelope key.
 		const ECIESEnvelopeKey & envelopeKey() const;
+		
+		/// Returns a reference to shared info 1.
+		const cc7::ByteArray & sharedInfo1() const;
+		
+		/// Sets a new value to internal |shared_info1| property.
+		void setSharedInfo1(const cc7::ByteRange & shared_info1);
 		
 		/// Returns a reference to shared info 2.
 		const cc7::ByteArray & sharedInfo2() const;
@@ -247,9 +260,11 @@ namespace powerAuth
 	private:
 		
 		/// A data for public key.
-		cc7::ByteArray	 _public_key;
+		cc7::ByteArray _public_key;
+		/// Content of shared info1 optional parameter.
+		cc7::ByteArray _shared_info1;
 		/// Content of shared info2 optional parameter.
-		cc7::ByteArray   _shared_info2;
+		cc7::ByteArray _shared_info2;
 		/// Last calculated envelope key.
 		ECIESEnvelopeKey _envelope_key;
 	};
@@ -264,9 +279,9 @@ namespace powerAuth
 		/// Constructs an empty decryptor object.
 		ECIESDecryptor() = default;
 		
-		/// Constructs a decryptor with a server's |private_key| and optional |shared_info2|.
+		/// Constructs a decryptor with a server's |private_key| and optional |shared_info1| and |shared_info2|.
 		/// The constructed instance can be used for both decryption & encryption tasks.
-		ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info2);
+		ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
 	
 		/// Constructs a decryptor with previously calculated |envelope_key| and optional |shared_info2|.
 		/// The constructed instance can be used only for encryption taks.
@@ -277,6 +292,12 @@ namespace powerAuth
 		
 		/// Returns a reference to internal envelope key.
 		const ECIESEnvelopeKey & envelopeKey() const;
+
+		/// Returns a reference to internal |shared_info1| property.
+		const cc7::ByteArray & sharedInfo1() const;
+		
+		/// Sets a new value to internal |shared_info1| property.
+		void setSharedInfo1(const cc7::ByteRange & shared_info1);
 		
 		/// Returns a reference to internal |shared_info2| property.
 		const cc7::ByteArray & sharedInfo2() const;
@@ -312,6 +333,8 @@ namespace powerAuth
 	private:
 		/// A data for private key.
 		cc7::ByteArray   _private_key;
+		/// Content of shared info1 optional parameter.
+		cc7::ByteArray   _shared_info1;
 		/// Content of shared info2 optional parameter.
 		cc7::ByteArray   _shared_info2;
 		/// Last calculated envelope key.

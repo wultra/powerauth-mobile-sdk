@@ -30,6 +30,14 @@ namespace getlime
 {
 namespace powerAuthTests
 {
+
+#define PRINT_TLOG 0
+#if PRINT_TLOG == 1
+	#define TLOG ccstMessage
+#else
+	#define TLOG(fmt, ...)
+#endif
+	
 	extern TestDirectory g_pa2Files;
 	
 	class pa2ECIESTests : public UnitTest
@@ -41,9 +49,6 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testInvalidCurve)
 		}
 		
-//#define TLOG	ccstMessage
-#define TLOG(fmt, ...)
-
 		void testEncryptorDecryptor()
 		{
 			ErrorCode ec;
@@ -84,7 +89,14 @@ namespace powerAuthTests
 			cc7::ByteArray master_private_key = crypto::ECC_ExportPrivateKey(master_keypair);
 			EC_KEY_free(master_keypair);
 			master_keypair = nullptr;
-
+			// Make the private key compatible with Java. We need to force the big number as always positive,
+			// because Java's using signed bytes. So, If the sequence of bytes in big number begins with
+			// value greater than 127, then the whole big number is treated as negative.
+			// Fortunately, we have to do this trick only for the testing purposes, because normally,
+			// we don't exchange the private keys :)
+			if (master_private_key[0] > 0x7F) {
+				master_private_key.insert(master_private_key.begin(), 0x00);
+			}
 			TLOG("{");
 			TLOG("   \"keys\": {");
 			TLOG("       \"serverPrivateKey\": \"%s\",", master_private_key.base64String().c_str());

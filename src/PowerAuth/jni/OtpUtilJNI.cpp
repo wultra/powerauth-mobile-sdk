@@ -48,8 +48,7 @@ CC7_JNI_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
 	// Copy cppResult into java result object
 	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("Otp");
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("Otp"), "()V");
-	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationIdShort",	cc7::jni::CopyToJavaString(env, cppComponents.activationIdShort));
-	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationOtp",		cc7::jni::CopyToJavaString(env, cppComponents.activationOtp));
+	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationCode",	cc7::jni::CopyToJavaString(env, cppComponents.activationCode));
 	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationSignature",	cc7::jni::CopyToNullableJavaString(env, cppComponents.activationSignature));
 	return resultObject;
 }

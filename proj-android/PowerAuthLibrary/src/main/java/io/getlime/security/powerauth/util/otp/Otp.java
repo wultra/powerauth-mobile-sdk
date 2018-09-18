@@ -24,11 +24,18 @@ public class Otp {
     /**
      * Short activation ID
      */
+    @Deprecated
     public final String activationIdShort;
     /**
      * Activation OTP (one time password)
      */
+    @Deprecated
     public final String activationOtp;
+
+    /**
+     * Activation code, without signature part.
+     */
+    public final String activationCode;
     /**
      * Signature calculated from activationIdShort and activationOtp.
      * The value is typically optional for cases, when the user re-typed activation code
@@ -42,19 +49,25 @@ public class Otp {
     public Otp() {
         this.activationIdShort = null;
         this.activationOtp = null;
+        this.activationCode = null;
         this.activationSignature = null;
     }
 
     //
     // Getters for compatibility with older codes
     //
-
+    @Deprecated
     public String getActivationIdShort() {
         return activationIdShort;
     }
 
+    @Deprecated
     public String getActivationOtp() {
         return activationOtp;
+    }
+
+    public String getActivationCode() {
+        return activationCode;
     }
 
     public String getActivationSignature() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Macros.h"
 
 /**
  The `PA2Otp` object contains parsed components from user-provided activation
@@ -24,11 +24,16 @@
 /**
  Short activation ID
  */
-@property (nonnull, nonatomic, strong, readonly) NSString* activationIdShort;
+@property (nonnull, nonatomic, strong, readonly) NSString* activationIdShort PA2_DEPRECATED("to-remove");
 /**
  Activation OTP (one time password)
  */
-@property (nonnull, nonatomic, strong, readonly) NSString* activationOtp;
+@property (nonnull, nonatomic, strong, readonly) NSString* activationOtp PA2_DEPRECATED("to-remove");
+
+/**
+ Activation code, without signature part.
+ */
+@property (nonnull, nonatomic, strong, readonly) NSString * activationCode;
 /**
  Signature calculated from activationIdShort and activationOtp.
  The value is typically optional for cases, when the user re-typed activation ode
@@ -47,7 +52,9 @@
  code without signature:	CCCCC-CCCCC-CCCCC-CCCCC
  code with signature:		CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
  
- Where the 'C' is a character from range [A-Z2-7]
+ Where the 'C' is Base32 sequence of characters, fully decodable into the sequence of bytes.
+ The validator then compares CRC-16 checksum calculated for the first 10 bytes and compares
+ it to last two bytes (in big endian order).
  */
 @interface PA2OtpUtil : NSObject
 
@@ -62,9 +69,9 @@
 /**
  Validates an input |utfCodepoint| and returns '\0' (NUL) if it's not valid or cannot be corrected.
  The non-NUL returned value contains the same input character, or the corrected one.
- You can use this method for validation & autocorrection of just typed characters.
+ You can use this method for validation & auto-correction of just typed characters.
  
- The function performs following autocorections:
+ The function performs following auto-corections:
  - lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')
  - '0' is corrected to 'O'
  - '1' is corrected to 'I'
@@ -81,7 +88,7 @@
 
 /**
  Parses an input |activationCode| (which may or may not contain an optional signature) and returns PA2Otp 
- object filled with valid data. The method doesn't perform an autocorrection, so the provided code must be valid.
+ object filled with valid data. The method doesn't perform an auto-correction, so the provided code must be valid.
  
  Returns PA2Otp object if code is valid, or nil.
  */

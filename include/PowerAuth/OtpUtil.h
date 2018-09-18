@@ -29,17 +29,13 @@ namespace powerAuth
 	 code. You can use methods from `OtpUtil` class to fill this structure with valid data.
 	 */
 	struct OtpComponents
-	{
+	{		
 		/**
-		 Short activation ID
+		 Activation code.
 		 */
-		std::string activationIdShort;
+		std::string activationCode;
 		/**
-		 Activation OTP (one time password)
-		 */
-		std::string activationOtp;
-		/**
-		 Signature calculated from activationIdShort and activationOtp.
+		 Signature calculated from activationCode.
 		 The value is typically optional for cases, when the user re-typed activation ode
 		 manually.
 		 */

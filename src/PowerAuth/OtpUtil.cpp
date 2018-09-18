@@ -17,6 +17,8 @@
 
 #include <PowerAuth/OtpUtil.h>
 #include <cc7/Base64.h>
+#include <cc7/Base32.h>
+#include "utils/CRC16.h"
 
 namespace io
 {
@@ -41,27 +43,21 @@ namespace powerAuth
 		// At first, look for #
 		auto hash_pos = activationCode.find('#');
 		auto has_signature = hash_pos != std::string::npos;
-		std::string whole_code;
 		if (has_signature) {
 			// split activationCode to code and signature
-			whole_code = activationCode.substr(0, hash_pos);
+			out_components.activationCode = activationCode.substr(0, hash_pos);
 			out_components.activationSignature = activationCode.substr(hash_pos + 1);
 			// validate signature
 			if (!validateSignature(out_components.activationSignature)) {
 				return false;
 			}
 		} else {
-			// use a whole input string as code
-			whole_code = activationCode;
+			// use a whole input string as a code
+			out_components.activationCode = activationCode;
+			out_components.activationSignature.clear();
 		}
 		// Now validate just the code
-		if (!validateActivationCode(whole_code)) {
-			return false;
-		}
-		// split whole code to ID & OTP
-		out_components.activationIdShort = whole_code.substr(0, 11);	// ABCDE-ABCDE-...........
-		out_components.activationOtp     = whole_code.substr(12, 11);	// ...........-ABCDE-ABCDE
-		return true;
+		return validateActivationCode(out_components.activationCode);
 	}
 	
 	
@@ -98,20 +94,26 @@ namespace powerAuth
 		if (code.length() != 23) {
 			return false;
 		}
+		std::string code_base32;
+		code_base32.reserve(20);
 		for (size_t i = 0; i < code.length(); i++) {
 			auto c = code[i];
-			// test between dash & alphanumeric
+			// validate dash at right position
 			if ((i % 6) == 5) {
 				if (c != '-') {
 					return false;
 				}
 			} else {
-				if (!validateTypedCharacter(c)) {
-					return false;
-				}
+				code_base32.push_back(c);
 			}
 		}
-		return true;
+		cc7::ByteArray code_bytes;
+		if (!cc7::Base32_Decode(code_base32, false, code_bytes)) {
+			// Not a valid Base32 string
+			return false;
+		}
+		// Finally, validate CRC-16 checksum
+		return utils::CRC16_Validate(code_bytes);
 	}
 	
 	

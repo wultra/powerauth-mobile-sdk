@@ -94,16 +94,6 @@ CC7_EXTERN_C void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, 
  */
 CC7_EXTERN_C PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
 
-/**
- Converts PA2EncryptedMessage object into EncryptedMessage C++ structure.
- */
-CC7_EXTERN_C void PA2EncryptedMessageToStruct(PA2EncryptedMessage * msg, io::getlime::powerAuth::EncryptedMessage& cpp_msg);
-/**
- Returns new instance of PA2EncryptedMessage object, with content copied from EncryptedMessage C++ structure.
- */
-CC7_EXTERN_C PA2EncryptedMessage * PA2EncryptedMessageToObject(const io::getlime::powerAuth::EncryptedMessage& cpp_msg);
-
-
 #pragma mark - Debug functions
 
 #if defined(DEBUG)

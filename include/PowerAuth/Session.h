@@ -18,7 +18,6 @@
 
 #include <PowerAuth/PublicTypes.h>
 #include <map>
-#include <tuple>
 #include <mutex>
 
 namespace io
@@ -35,11 +34,6 @@ namespace powerAuth
 		struct PersistentData;
 		struct ActivationData;
 	}
-	
-	/*
-	 Forward declaration for public objects.
-	 */
-	class Encryptor;
 	
 	/**
 	 The Session class provides all cryptographic operations defined in PowerAuth2
@@ -473,59 +467,7 @@ namespace powerAuth
 		 */
 		ErrorCode removeExternalEncryptionKey();
 		
-		
-		// MARK: - End-To-End Encryption -
-		
-		/**
-		 Creates a new instace of Encryptor class initialized for nonpersonalized End-To-End Encryption.
-		 The nonpersonalized mode of E2EE is available after the correct Session object initialization,
-		 so you can basically use the method anytime during the object's lifetime. The |session_index|
-		 range must point to 16 bytes long sequence of bytes. If your application doesn't have mechanism
-		 for session index creation, then you can use generateSignatureUnlockKey() for this purpose.
-		 
-		 Note that the method doesn't change persistent state of the Session, so you don't need to
-		 serialize its state after the call.
-		 
-		 Returns a tuple containing error code and newly created instance of Encryptor. The returned
-		 pointer is valid only when the operation succeeds.
-		 
-		 ErrorCode value is:
-					EC_Ok		  if operation succeeded. The returned pointer is valid.
-					EC_WrongState if session has no valid setup. The returned pointer is nullptr.
-					EC_WrongParam if session_index has wrong size, or
-								  if session_index is filled with zeros, or
-								  The returned pointer is nullptr.
-					EC_Encryption if internal cryptographic operation failed. The returned pointer is nullptr.
-		 */
-		std::tuple<ErrorCode, Encryptor*> createNonpersonalizedEncryptor(const cc7::ByteRange & session_index);
-		
-		/**
-		 Creates a new instace of Encryptor class initialized for personalized End-To-End Encryption.
-		 The personalized mode of E2EE is available only when the session contains valid activation.
-		 The |session_index| range has to be 16 bytes long sequence of bytes. If your application doesn't
-		 have mechanism for session index creation, then you can use generateSignatureUnlockKey() for
-		 this purpose.
-		 The provided |keys| structure must contain valid unlock key for a possession factor.
-		 
-		 Note that the method doesn't change persistent state of the Session, so you don't need to
-		 serialize its state after the call.
-		 
-		 Returns a tuple containing error code and newly created instance of Encryptor. The returned
-		 pointer is valid only when the operation succeeds.
-		 
-		 ErrorCode value is:
-					EC_Ok			if operation succeeded. The returned pointer is valid.
-					EC_WrongState	if session has no valid activation. The returned pointer is nullptr.
-					EC_WrongParam	if session_index has wrong size, or
-									if session_index is filled with zeros, or
-									if possession unlock key is missing.
-									The returned pointer is nullptr.
-					EC_Encryption	if internal cryptographic operation failed. The returned pointer is nullptr.
-		 */
-		std::tuple<ErrorCode, Encryptor*> createPersonalizedEncryptor(const cc7::ByteRange & session_index,
-																	  const SignatureUnlockKeys & keys);
-		
-		
+
 		// MARK: - Utilities for generic keys -
 		
 		/**

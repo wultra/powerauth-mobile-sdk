@@ -12,7 +12,6 @@
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
 		BF99D9022073E14100735ED2 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
 		BF99D9032073E14100735ED2 /* Password.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E22073E00D00735ED2 /* Password.cpp */; };
-		BF99D9042073E14100735ED2 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8D02073E00D00735ED2 /* Encryptor.cpp */; };
 		BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */; };
 		BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8FF2073E00D00735ED2 /* ECIES.cpp */; };
 		BF99D9072073E14700735ED2 /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EC2073E00D00735ED2 /* Constants.cpp */; };
@@ -50,7 +49,6 @@
 		BFB47D322075335A008A6A52 /* PA2Password.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1C20753359008A6A52 /* PA2Password.mm */; };
 		BFB47D332075335A008A6A52 /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1D20753359008A6A52 /* PA2WeakArray.m */; };
 		BFB47D342075335A008A6A52 /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
-		BFB47D352075335A008A6A52 /* PA2Encryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2120753359008A6A52 /* PA2Encryptor.mm */; };
 		BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2320753359008A6A52 /* PA2Session.mm */; };
 		BFB47D372075335A008A6A52 /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
 		BFB47D382075335A008A6A52 /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */; };
@@ -130,7 +128,6 @@
 /* Begin PBXFileReference section */
 		BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3ACC962073DF5F00B8107E /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
-		BF3ACC982073DF5F00B8107E /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
 		BF3ACC992073DF5F00B8107E /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
 		BF3ACC9A2073DF5F00B8107E /* PublicTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicTypes.h; sourceTree = "<group>"; };
 		BF3ACC9B2073DF5F00B8107E /* Session.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Session.h; sourceTree = "<group>"; };
@@ -171,7 +168,6 @@
 		BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ProtocolUtilsTests.cpp; sourceTree = "<group>"; };
 		BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
 		BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PasswordTests.cpp; sourceTree = "<group>"; };
-		BF99D8D02073E00D00735ED2 /* Encryptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
 		BF99D8D22073E00D00735ED2 /* KDF.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KDF.h; sourceTree = "<group>"; };
 		BF99D8D32073E00D00735ED2 /* PRNG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PRNG.h; sourceTree = "<group>"; };
 		BF99D8D42073E00D00735ED2 /* PKCS7Padding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PKCS7Padding.h; sourceTree = "<group>"; };
@@ -216,10 +212,8 @@
 		BFB47D1E20753359008A6A52 /* PA2PrivateMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateMacros.h; sourceTree = "<group>"; };
 		BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2ErrorConstants.m; sourceTree = "<group>"; };
 		BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ECIESEncryptor.h; sourceTree = "<group>"; };
-		BFB47D2120753359008A6A52 /* PA2Encryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Encryptor.mm; sourceTree = "<group>"; };
 		BFB47D2220753359008A6A52 /* PA2Password.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Password.h; sourceTree = "<group>"; };
 		BFB47D2320753359008A6A52 /* PA2Session.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Session.mm; sourceTree = "<group>"; };
-		BFB47D2420753359008A6A52 /* PA2Encryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Encryptor.h; sourceTree = "<group>"; };
 		BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateCrypto_IOS.mm; sourceTree = "<group>"; };
 		BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateCrypto.h; sourceTree = "<group>"; };
 		BFB47D2720753359008A6A52 /* PA2Session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Session.h; sourceTree = "<group>"; };
@@ -314,7 +308,6 @@
 				BF3ACC9D2073DF5F00B8107E /* PowerAuth.h */,
 				BF3ACC9A2073DF5F00B8107E /* PublicTypes.h */,
 				BF3ACC9B2073DF5F00B8107E /* Session.h */,
-				BF3ACC982073DF5F00B8107E /* Encryptor.h */,
 				BF3ACC9C2073DF5F00B8107E /* Password.h */,
 				BF3ACC992073DF5F00B8107E /* Debug.h */,
 				BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */,
@@ -406,7 +399,6 @@
 				BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */,
 				BF99D8F32073E00D00735ED2 /* Debug.cpp */,
 				BF99D8E22073E00D00735ED2 /* Password.cpp */,
-				BF99D8D02073E00D00735ED2 /* Encryptor.cpp */,
 				BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */,
 				BF99D8FF2073E00D00735ED2 /* ECIES.cpp */,
 			);
@@ -499,8 +491,6 @@
 		BFB47D1A20753359008A6A52 /* core */ = {
 			isa = PBXGroup;
 			children = (
-				BFB47D2420753359008A6A52 /* PA2Encryptor.h */,
-				BFB47D2120753359008A6A52 /* PA2Encryptor.mm */,
 				BFB47D2220753359008A6A52 /* PA2Password.h */,
 				BFB47D1C20753359008A6A52 /* PA2Password.mm */,
 				BFB47D2720753359008A6A52 /* PA2Session.h */,
@@ -660,7 +650,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF99D90B2073E15100735ED2 /* PRNG.cpp in Sources */,
-				BF99D9042073E14100735ED2 /* Encryptor.cpp in Sources */,
 				BFB47D322075335A008A6A52 /* PA2Password.mm in Sources */,
 				BFB47D392075335A008A6A52 /* PA2Types.mm in Sources */,
 				BF99D9102073E15100735ED2 /* MAC.cpp in Sources */,
@@ -683,7 +672,6 @@
 				BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */,
 				BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */,
 				BFB47D342075335A008A6A52 /* PA2ErrorConstants.m in Sources */,
-				BFB47D352075335A008A6A52 /* PA2Encryptor.mm in Sources */,
 				BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */,
 				BF99D9002073E14100735ED2 /* Session.cpp in Sources */,
 				BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */,

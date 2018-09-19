@@ -41,7 +41,6 @@ LOCAL_SRC_FILES := \
 	PowerAuth/Session.cpp \
 	PowerAuth/PublicTypes.cpp \
 	PowerAuth/Password.cpp \
-	PowerAuth/Encryptor.cpp \
 	PowerAuth/Debug.cpp \
 	PowerAuth/OtpUtil.cpp \
 	PowerAuth/ECIES.cpp \
@@ -142,7 +141,6 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
 	PowerAuth/jni/SessionJNI.cpp \
 	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/EncryptorJNI.cpp \
 	PowerAuth/jni/OtpUtilJNI.cpp \
 	PowerAuth/jni/ECIESEncryptorJNI.cpp \
 	PowerAuth/jni/TokenCalculatorJNI.cpp \

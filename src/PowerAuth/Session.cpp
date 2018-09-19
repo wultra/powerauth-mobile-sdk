@@ -15,7 +15,6 @@
  */
 
 #include <PowerAuth/Session.h>
-#include <PowerAuth/Encryptor.h>
 
 #include <cc7/Base64.h>
 #include "protocol/ProtocolUtils.h"
@@ -1019,106 +1018,7 @@ namespace powerAuth
 	
 	// MARK: - End-To-End Encryption
 	
-	std::tuple<ErrorCode, Encryptor*> Session::createNonpersonalizedEncryptor(const cc7::ByteRange & session_index)
-	{
-		LOCK_GUARD();
-		// Validate state & parameters
-		if (!hasValidSetup()) {
-			CC7_LOG("Session %p, %d: E2EE-NP: There's no valid setup.", this, sessionIdentifier());
-			return { EC_WrongState, nullptr };
-		}
-		if (session_index.size() != protocol::SIGNATURE_KEY_SIZE || session_index == protocol::ZERO_IV) {
-			CC7_LOG("Session %p, %d: E2EE-NP: Session index has wrong size or contains only zero bytes.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
-		}
-		
-		//
-		// Encryptor in nonpersonalized mode is slightly more complex than the personalized one.
-		// The next big sequence of code is creating an ephemeral key for ECDH. The shared secrted,
-		// created from the ECDH is then reduced to 16B and used as a transport key for the encryptor.
-		//
-		bool error = true;
-		EC_KEY * master_public_key = nullptr;
-		EC_KEY * ephemeral_key     = nullptr;
-		cc7::ByteArray transport_key;
-		std::string ephemeral_public_key;
-		do {
-			crypto::BNContext ctx;
-			
-			// Import master server public key & try to validate OTP+ShortID signature
-			master_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
-			if (nullptr == master_public_key) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Master server public key is invalid.", this, sessionIdentifier());
-				break;
-			}
-			ephemeral_key = crypto::ECC_GenerateKeyPair();
-			if (nullptr == ephemeral_key) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Can't generate ephemeral key.", this, sessionIdentifier());
-				break;
-			}
-			transport_key = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(master_public_key, ephemeral_key));
-			if (transport_key.empty()) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Can't calculate shared secret from ephemeral key.", this, sessionIdentifier());
-				break;
-			}
-			// Export public par for ephemeral key to B64 format.
-			ephemeral_public_key = crypto::ECC_ExportPublicKeyToB64(ephemeral_key);
-			// So far, so good.
-			error = false;
-			
-		} while (false);
-		
-		// Free allocated OpenSSL resources
-		EC_KEY_free(master_public_key);
-		EC_KEY_free(ephemeral_key);
-		
-		Encryptor * enc = nullptr;
-		if (!error) {
-			enc = new Encryptor(Encryptor::Nonpersonalized, session_index, transport_key);
-			enc->setNonpersonalizedParams(ephemeral_public_key, _setup.applicationKey);
-			error = !enc->validateConfiguration();
-			if (error) {
-				delete enc;
-				enc = nullptr;
-			}
-		}
-		return { enc == nullptr ? EC_Encryption : EC_Ok, enc };
-	}
-	
-	std::tuple<ErrorCode, Encryptor*> Session::createPersonalizedEncryptor(const cc7::ByteRange & session_index, const SignatureUnlockKeys & keys)
-	{
-		LOCK_GUARD();
-		// Validate state & parameters
-		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: E2EE-P: There's no valid activation.", this, sessionIdentifier());
-			return { EC_WrongState, nullptr };
-		}
-		if (session_index.size() != protocol::SIGNATURE_KEY_SIZE || session_index == protocol::ZERO_IV) {
-			CC7_LOG("Session %p, %d: E2EE-P: Session index has wrong length or contains only zero bytes.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
-		}
-		// Unlock transport key
-		protocol::SignatureKeys plain;
-		protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), nullptr, 0);
-		if (false == protocol::UnlockSignatureKeys(plain, _pd->sk, unlock_request)) {
-			CC7_LOG("Session %p, %d: E2EE-P: You have to provide possession key.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
-		}
-		//
-		// The personalized encryptor's implementation is way more simple than the nonpersonalized one.
-		// The transport key is already present in the SignatureKeys structure, so we need to just
-		// construct a proper Encryptor.
-		//
-		Encryptor * enc = new Encryptor(Encryptor::Personalized, session_index, plain.transportKey);
-		enc->setPersonalizedParams(activationIdentifier());
-		if (false == enc->validateConfiguration()) {
-			delete enc;
-			enc = nullptr;
-		}
-		return { enc == nullptr ? EC_Encryption : EC_Ok, enc };
-	}
-	
-	
+	// TODO: add factories for our ECIES modes
 	
 	// MARK: - Private methods -
 	

@@ -22,6 +22,5 @@
  */
 
 #include <PowerAuth/Session.h>
-#include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ECIES.h>
 #include <PowerAuth/Debug.h>

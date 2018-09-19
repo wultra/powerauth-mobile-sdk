@@ -19,7 +19,6 @@
 #import "PowerAuthToken+WatchSupport.h"
 
 #import "PA2Session.h"
-#import "PA2EncryptorFactory.h"
 #import "PA2ActivationResult.h"
 #import "PA2OperationTask.h"
 #import "PA2AuthorizationHttpHeader.h"
@@ -40,9 +39,6 @@
  */
 @property (nonatomic, strong, nonnull, readonly) PA2Session *session;
 
-/** Instance of the encryptor factory, useful for implementing use-cases that leverage end-to-end encryption.
- */
-@property (nonatomic, strong, nonnull, readonly) PA2EncryptorFactory *encryptorFactory;
 /**
  Instance of configuration, provided during the object initialization.
  

@@ -337,36 +337,7 @@ using namespace io::getlime::powerAuth;
 }
 
 
-#pragma mark - E2EE
-
-- (nullable PA2Encryptor*) nonpersonalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-{
-	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-	Encryptor * cpp_encryptor = nullptr;
-	ErrorCode error = EC_Ok;
-	std::tie(error, cpp_encryptor) = _session->createNonpersonalizedEncryptor(cpp_session_index);
-	if (error == EC_Ok) {
-		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-	}
-	PA2Objc_DebugDumpError(self, @"NonpersonalizedEncryptorForSessionIndex", error);
-	return nil;
-}
-
-- (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
-{
-	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-	SignatureUnlockKeys cpp_keys;
-	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-	Encryptor * cpp_encryptor = nullptr;
-	ErrorCode error = EC_Ok;
-	std::tie(error, cpp_encryptor) = _session->createPersonalizedEncryptor(cpp_session_index, cpp_keys);
-	if (error == EC_Ok) {
-		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-	}
-	PA2Objc_DebugDumpError(self, @"PersonalizedEncryptorForSessionIndex", error);
-	return nil;
-}
+#pragma mark - ECIES
 
 
 #pragma mark - External encryption key

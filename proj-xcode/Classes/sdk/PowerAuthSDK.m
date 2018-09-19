@@ -121,11 +121,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		[tokenStoreKeychain deleteAllData];
 		[userDefaults setBool:YES forKey:PA2Keychain_Initialized];
 		[userDefaults synchronize];
-	}
-	
-	// Initialize encryptor factory
-	_encryptorFactory = [[PA2EncryptorFactory alloc] initWithSession:_session];
-	
+	}	
 	
 	// Attempt to restore session state
 	[self restoreState];
@@ -537,142 +533,8 @@ static PowerAuthSDK * s_inst;
 								   httpHeaders:(NSDictionary*)httpHeaders
 									  callback:(void(^)(PA2ActivationResult *result, NSError * error))callback {
 	
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	
-	[self checkForValidSetup];
-	
-	// Check if activation may be started
-	if (![self canStartActivation]) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
-		callback(nil, error);
-		[task cancel];
-		return task;
-	}
-	
-	// Reset session & possible activation data
-	[self removeActivationLocal];
-
-	// Prepare identity attributes token
-	NSData *identityAttributesData = [_session prepareKeyValueDictionaryForDataSigning:identityAttributes];
-	NSString *identityAttributesString = [identityAttributesData base64EncodedStringWithOptions:kNilOptions];
-	
-	// Prepare crypto module request
-	PA2ActivationStep1Param *paramStep1 = [[PA2ActivationStep1Param alloc] init];
-	paramStep1.activationIdShort = identityAttributesString;
-	paramStep1.activationOtp = customSecret;
-	paramStep1.activationSignature = nil;
-	
-	// Obtain crypto module response
-	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
-	if (nil == resultStep1) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-		callback(nil, error);
-		[task cancel];
-		return task;
-	}
-	// After this point, each error must lead to [_session resetSession];
-	
-	// Perform exchange over PowerAuth 2.0 Standard RESTful API
-	PA2CreateActivationRequest *powerauth = [[PA2CreateActivationRequest alloc] init];
-	powerauth.activationIdShort = paramStep1.activationIdShort;
-	powerauth.activationName = name;
-	powerauth.activationNonce = resultStep1.activationNonce;
-	powerauth.applicationKey = _configuration.appKey;
-	powerauth.applicationSignature = resultStep1.applicationSignature;
-	powerauth.encryptedDevicePublicKey = resultStep1.cDevicePublicKey;
-	powerauth.ephemeralPublicKey = resultStep1.ephemeralPublicKey;
-	powerauth.extras = extras;
-	
-	PA2DirectCreateActivationRequest * request = [[PA2DirectCreateActivationRequest alloc] init];
-	request.identity = identityAttributes;
-	request.customAttributes = customAttributes;
-	request.powerauth = powerauth;
-	
-	NSData *requestData = [NSJSONSerialization dataWithJSONObject:[request toDictionary]
-														  options:kNilOptions
-															error:nil];
-	
-	PA2RequestResponseNonPersonalizedEncryptor *encryptor = [_encryptorFactory buildRequestResponseNonPersonalizedEncryptor];
-	
-	PA2Request *encryptedRequest = [encryptor encryptRequestData:requestData error:nil];
-	NSData *encryptedRequestData = [NSJSONSerialization dataWithJSONObject:[encryptedRequest toDictionary]
-																   options:kNilOptions
-																	 error:nil];
-	
-	NSURLSessionDataTask *dataTask = [_client postToUrl:url data:encryptedRequestData headers:httpHeaders completion:^(NSData * httpData, NSURLResponse * response, NSError * clientError) {
-		
-		NSError * errorToReport = clientError;
-		PA2ActivationResult * activationResult = nil;
-		if (!errorToReport) {
-			NSDictionary *encryptedResponseDictionary;
-			if (httpData) {
-				encryptedResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
-			} else {
-				encryptedResponseDictionary = nil;
-			}
-			PA2Response *encryptedResponse = [[PA2Response alloc] initWithDictionary:encryptedResponseDictionary
-																  responseObjectType:[PA2NonPersonalizedEncryptedObject class]];
-			
-			// Network communication completed correctly
-			if (encryptedResponse.status == PA2RestResponseStatus_OK) {
-				
-				NSData *decryptedResponseData = [encryptor decryptResponse:encryptedResponse error:nil];
-				NSDictionary *createActivationResponseDictionary;
-				if (decryptedResponseData) {
-					createActivationResponseDictionary = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:decryptedResponseData options:0 error:nil], NSDictionary);
-				} else {
-					createActivationResponseDictionary = nil;
-				}
-				
-				PA2CreateActivationResponse *responseObject = [[PA2CreateActivationResponse alloc] initWithDictionary:createActivationResponseDictionary];
-				
-				// Prepare crypto module request
-				PA2ActivationStep2Param *paramStep2 = [[PA2ActivationStep2Param alloc] init];
-				paramStep2.activationId = responseObject.activationId;
-				paramStep2.ephemeralNonce = responseObject.activationNonce;
-				paramStep2.ephemeralPublicKey = responseObject.ephemeralPublicKey;
-				paramStep2.encryptedServerPublicKey = responseObject.encryptedServerPublicKey;
-				paramStep2.serverDataSignature = responseObject.encryptedServerPublicKeySignature;
-				
-				// Obtain crypto module response
-				PA2ActivationStep2Result *resultStep2 = [_session validateActivationResponse:paramStep2];
-				if (resultStep2) {
-					// Everything is OK
-					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.activationFingerprint;
-					activationResult.customAttributes = responseObject.customAttributes;
-				} else {
-					// Error occurred
-					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-				}
-			} else {
-				// Activation error occurred, propagate response data to the error object
-				// Try to parse response data as JSON
-				NSDictionary * responseJsonObject;
-				if (httpData){
-					responseJsonObject = PA2ObjectAs([NSJSONSerialization JSONObjectWithData:httpData options:kNilOptions error:nil], NSDictionary);
-				} else {
-					responseJsonObject = nil;
-				}
-				NSMutableDictionary * additionalInfo = [NSMutableDictionary dictionaryWithCapacity:2];
-				if (httpData) {
-					additionalInfo[PA2ErrorInfoKey_ResponseData] = httpData;
-				}
-				if (responseJsonObject) {
-					additionalInfo[PA2ErrorInfoKey_AdditionalInfo] = responseJsonObject;
-				}
-				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:additionalInfo];
-			}
-		}
-		if (errorToReport) {
-			[_session resetSession];
-		}
-		callback(activationResult, errorToReport);
-		
-	}];
-	task.dataTask = dataTask;
-	return task;
-	
+#warning TODO: implement V3 activation
+	return nil;
 }
 
 - (PA2OperationTask*) createActivationWithName:(NSString*)name

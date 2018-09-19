@@ -16,7 +16,6 @@
 
 #include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
-#include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ECIES.h>
 
 #include <cc7/objc/ObjcHelper.h>
@@ -24,7 +23,6 @@
 #import "PA2PrivateMacros.h"
 #import "PA2Types.h"
 #import "PA2Password.h"
-#import "PA2Encryptor.h"
 #import "PA2ECIESEncryptor.h"
 #import "PA2CoreLog.h"
 
@@ -36,12 +34,6 @@
 @interface PA2Password (Private)
 - (io::getlime::powerAuth::Password &) passObjRef;
 @end
-
-
-@interface PA2Encryptor (Private)
-- (id) initWithEncryptorPtr:(io::getlime::powerAuth::Encryptor*)encryptor;
-@end
-
 
 @interface PA2HTTPRequestDataSignature (Private)
 - (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;

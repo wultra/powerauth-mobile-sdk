@@ -15,7 +15,6 @@
  */
 
 #include "PasswordJNI.h"
-#include "EncryptorJNI.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #include <map>
@@ -650,42 +649,6 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 	return session->removeExternalEncryptionKey();
 }
 
-// ----------------------------------------------------------------------------
-// E2EE
-// ----------------------------------------------------------------------------
-
-//
-// public native Encryptor createNonpersonalizedEncryptor(byte[] sessionIndex);
-//
-CC7_JNI_METHOD_PARAMS(jobject, createNonpersonalizedEncryptor, jbyteArray sessionIndex)
-{
-	auto session = CC7_THIS_OBJ();
-	ErrorCode code = EC_WrongParam;
-	Encryptor * encryptor = NULL;
-	if (CC7_CHECK(session != NULL, "Missing internal handle.")) {
-		auto cpp_sessionIndex = cc7::jni::CopyFromJavaByteArray(env, sessionIndex);
-		std::tie(code, encryptor) = session->createNonpersonalizedEncryptor(cpp_sessionIndex);		
-	}
-	return CreateJavaEncryptorForCppClass(env, encryptor, code);
-}
-
-//
-// public native Encryptor createPersonalizedEncryptor(byte[] sessionIndex, SignatureUnlockKeys unlockKeys);
-//
-CC7_JNI_METHOD_PARAMS(jobject, createPersonalizedEncryptor, jbyteArray sessionIndex, jobject unlockKeys)
-{
-	auto session = CC7_THIS_OBJ();
-	ErrorCode code = EC_WrongParam;
-	Encryptor * encryptor = NULL;
-	if (CC7_CHECK(session != NULL, "Missing internal handle.")) {
-		auto cpp_sessionIndex = cc7::jni::CopyFromJavaByteArray(env, sessionIndex);
-		SignatureUnlockKeys cpp_unlockKeys;
-		if (LoadSignatureUnlockKeys(cpp_unlockKeys, env, unlockKeys)) {
-			std::tie(code, encryptor) = session->createPersonalizedEncryptor(cpp_sessionIndex, cpp_unlockKeys);
-		}		
-	}
-	return CreateJavaEncryptorForCppClass(env, encryptor, code);
-}
 
 // ----------------------------------------------------------------------------
 // Utilities

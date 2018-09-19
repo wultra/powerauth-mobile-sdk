@@ -24,16 +24,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentManager;
-import android.util.Base64;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import io.getlime.core.rest.model.base.request.ObjectRequest;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
 import io.getlime.security.powerauth.core.ActivationStep1Result;
@@ -48,9 +42,6 @@ import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
 import io.getlime.security.powerauth.core.SignedData;
-import io.getlime.security.powerauth.e2ee.PA2EncryptionFailedException;
-import io.getlime.security.powerauth.e2ee.PA2EncryptorFactory;
-import io.getlime.security.powerauth.e2ee.PA2RequestResponseNonPersonalizedEncryptor;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.exception.PowerAuthMissingConfigException;
@@ -72,8 +63,6 @@ import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
 import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
-import io.getlime.security.powerauth.rest.api.model.entity.NonPersonalizedEncryptedPayloadModel;
-import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateCustomRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
 import io.getlime.security.powerauth.rest.api.model.request.VaultUnlockRequest;
@@ -99,7 +88,6 @@ public class PowerAuthSDK {
     private PowerAuthKeychainConfiguration mKeychainConfiguration;
     private PA2Client mClient;
     private ISavePowerAuthStateListener mStateListener;
-    private PA2EncryptorFactory mEncryptorFactory;
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
     private PowerAuthTokenStore mTokenStore;
@@ -168,7 +156,6 @@ public class PowerAuthSDK {
             );
 
             instance.mSession = new Session(sessionSetup);
-            instance.mEncryptorFactory = new PA2EncryptorFactory(instance.mSession);
 
             boolean b = instance.restoreState(instance.mStateListener.serializedState(instance.mConfiguration.getInstanceId()));
 
@@ -349,15 +336,6 @@ public class PowerAuthSDK {
      */
     public @Nullable String getActivationFingerprint() {
         return mSession.getActivationFingerprint();
-    }
-
-    /**
-     * Return the encryptor factory instance, useful for generating custom encryptors.
-     *
-     * @return Encryptor factory instance.
-     */
-    public PA2EncryptorFactory getEncryptorFactory() {
-        return mEncryptorFactory;
     }
 
     /**
@@ -548,115 +526,8 @@ public class PowerAuthSDK {
     }
 
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
-
-        // Check if activation may be started
-        if (!canStartActivation()) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
-            return null;
-        }
-
-        // Wipe out possible activation data.
-        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
-        //       exists when old session data is still persisted. This is unfortunately a more complex
-        //       task and therefore here's just workaround which may keep a shared biometry key present
-        //       on the device. That's no big deal, because an actual key used for biometry factor
-        //       is already removed in this state.
-        removeActivationLocal(null, false);
-
-        // Prepare identity attributes token
-        byte[] identityAttributesBytes = mSession.prepareKeyValueDictionaryForDataSigning(identityAttributes);
-        String identityAttributesString = Base64.encodeToString(identityAttributesBytes, Base64.DEFAULT);
-
-        // Prepare crypto module request
-        final ActivationStep1Param paramStep1 = new ActivationStep1Param(identityAttributesString, customSecret, null);
-
-        // Obtain crypto module response
-        final ActivationStep1Result resultStep1 = mSession.startActivation(paramStep1);
-        if (resultStep1.errorCode != ErrorCode.OK) {
-            final int errorCode = resultStep1.errorCode == ErrorCode.Encryption
-                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
-                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-            return null;
-        }
-        // After this point, each error must lead to mSession.resetSession()
-
-        // Perform exchange over PowerAuth 2.0 Standard RESTful API
-        ActivationCreateRequest powerauth = new ActivationCreateRequest();
-        powerauth.setActivationIdShort(paramStep1.activationIdShort);
-        powerauth.setActivationName(name);
-        powerauth.setActivationNonce(resultStep1.activationNonce);
-        powerauth.setApplicationKey(mConfiguration.getAppKey());
-        powerauth.setApplicationSignature(resultStep1.applicationSignature);
-        powerauth.setEncryptedDevicePublicKey(resultStep1.cDevicePublicKey);
-        powerauth.setEphemeralPublicKey(resultStep1.ephemeralPublicKey);
-        powerauth.setExtras(extras);
-
-        ActivationCreateCustomRequest request = new ActivationCreateCustomRequest();
-        request.setIdentity(identityAttributes);
-        request.setCustomAttributes(customAttributes);
-        request.setPowerauth(powerauth);
-
-        final Gson gson = new GsonBuilder().create();
-        String requestDataString = gson.toJson(request);
-        if (requestDataString == null) {
-            mSession.resetSession();
-            listener.onActivationCreateFailed(new PA2EncryptionFailedException());
-            return null;
-        }
-        byte[] requestData = requestDataString.getBytes();
-
-        final PA2RequestResponseNonPersonalizedEncryptor encryptor = mEncryptorFactory.buildRequestResponseNonPersonalizedEncryptor();
-
-        ObjectRequest<NonPersonalizedEncryptedPayloadModel> encryptedRequest = null;
-        try {
-            encryptedRequest = encryptor.encryptRequestData(requestData);
-        } catch (PA2EncryptionFailedException e) {
-            mSession.resetSession();
-            listener.onActivationCreateFailed(e);
-            return null;
-        }
-
-        return mClient.sendNonPersonalizedEncryptedObjectToUrl(encryptedRequest.getRequestObject(), url, httpHeaders, new INetworkResponseListener<NonPersonalizedEncryptedPayloadModel>() {
-
-            @Override
-            public void onNetworkResponse(NonPersonalizedEncryptedPayloadModel nonPersonalizedEncryptedPayloadModel) {
-                try {
-                    byte[] originalBytes = encryptor.decryptResponse(new ObjectResponse<NonPersonalizedEncryptedPayloadModel>(
-                            ObjectResponse.Status.OK,
-                            nonPersonalizedEncryptedPayloadModel
-                    ));
-                    ActivationCreateResponse activationCreateResponse = gson.fromJson(new String(originalBytes), ActivationCreateResponse.class);
-
-                    ActivationStep2Param step2Param = new ActivationStep2Param(
-                            activationCreateResponse.getActivationId(),
-                            activationCreateResponse.getActivationNonce(),
-                            activationCreateResponse.getEphemeralPublicKey(),
-                            activationCreateResponse.getEncryptedServerPublicKey(),
-                            activationCreateResponse.getEncryptedServerPublicKeySignature()
-                    );
-
-                    ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
-
-                    if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
-                        listener.onActivationCreateSucceed(step2Result.activationFingerprint, activationCreateResponse.getCustomAttributes());
-                    } else {
-                        mSession.resetSession();
-                        listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-                    }
-
-                } catch (PA2EncryptionFailedException e) {
-                    mSession.resetSession();
-                    listener.onActivationCreateFailed(e);
-                }
-            }
-
-            @Override
-            public void onNetworkError(Throwable t) {
-                mSession.resetSession();
-                listener.onActivationCreateFailed(t);
-            }
-        });
+        // TODO: implement new activation
+        return null;
     }
 
     public AsyncTask createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {

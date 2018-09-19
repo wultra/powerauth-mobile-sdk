@@ -15,7 +15,6 @@
  */
 
 #import "PA2Types.h"
-#import "PA2Encryptor.h"
 #import "PA2SessionStatusProvider.h"
 
 @interface PA2Session : NSObject<PA2SessionStatusProvider>
@@ -445,50 +444,8 @@
  */
 - (BOOL) removeExternalEncryptionKey;
 
-#pragma mark - E2EE
+#pragma mark - ECIES
 
-/**
- Creates a new instace of PA2Encryptor class initialized for nonpersonalized End-To-End Encryption.
- The nonpersonalized mode of E2EE is available after the correct PA2Session object initialization,
- so you can basically use the method anytime during the object's lifetime. The |sessionIndex|
- object must contain a 16 bytes long sequence of bytes. If your application doesn't have mechanism
- for session index creation, then you can use +generateSignatureUnlockKey method for this purpose.
- 
- Note that the method doesn't change persistent state of the PA2Session, so you don't need to
- serialize its state after the call.
- 
- Returns an PA2Encryptor object if succeeded or nil in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok		  if operation succeeded. The returned pointer is valid.
-	EC_WrongState if session has no valid setup.
-	EC_WrongParam if session_index has wrong size, or
-				  if session_index is filled with zeros, or
-	EC_Encryption if internal cryptographic operation failed.
- */
-- (nullable PA2Encryptor*) nonpersonalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex;
-
-/**
- Creates a new instace of PA2Encryptor class initialized for personalized End-To-End Encryption.
- The personalized mode of E2EE is available only when the session contains valid activation.
- The |sessionIndex| object must contain a 16 bytes long sequence of bytes. If your application doesn't
- have mechanism for session index creation, then you can use +generateSignatureUnlockKey method for
- this purpose.
- The provided |unlockKeys| object must contain valid unlock key for a possession factor.
- 
- Note that the method doesn't change persistent state of the PA2Session, so you don't need to
- serialize its state after the call.
- 
- Returns an PA2Encryptor object if succeeded or nil in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok			if operation succeeded.
-	EC_WrongState	if session has no valid activation.
-	EC_WrongParam	if session_index has wrong size, or
-					if session_index is filled with zeros, or
-					if possession unlock key is missing.
-	EC_Encryption	if internal cryptographic operation failed.
- */
-- (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
 
 #pragma mark - Utilities for generic keys
 

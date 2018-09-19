@@ -23,7 +23,6 @@
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
 #include <PowerAuth/Session.h>
-#include <PowerAuth/Encryptor.h>
 #include <map>
 
 using namespace cc7;
@@ -233,49 +232,6 @@ namespace powerAuthTests
 				EC_KEY * ephemeralKey  = nullptr;
 
 				s1.resetSession();
-				
-				// E2EE - Nonpersonalized
-				{
-					// Create encryptor
-					auto sessionIndex = crypto::GetRandomData(16);
-					Encryptor * enc1;
-					std::tie(ec, enc1) = s1.createNonpersonalizedEncryptor(sessionIndex);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertNotNull(enc1);
-					
-					// Encrypt some message
-					EncryptedMessage msg;
-					auto plaintext = crypto::GetRandomData(334);
-					ec = enc1->encrypt(plaintext, msg);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(msg.sessionIndex, sessionIndex.base64String());
-					ccstAssertEqual(msg.applicationKey, s1.sessionSetup()->applicationKey);
-					ccstAssertEqual(msg.activationId.length(), 0);
-					ccstAssertFalse(msg.encryptedData.empty());
-					ccstAssertFalse(msg.mac.empty());
-					ccstAssertFalse(msg.adHocIndex.empty());
-					ccstAssertFalse(msg.macIndex.empty());
-					ccstAssertFalse(msg.nonce.empty());
-					ccstAssertFalse(msg.ephemeralPublicKey.empty());
-					
-					cc7::ByteArray decrypted;
-					ec = enc1->decrypt(msg, decrypted);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(plaintext, decrypted);
-					
-					delete enc1;
-				}
-				// E2EE - Personalized (should not work)
-				{
-					// Create encryptor
-					SignatureUnlockKeys keys;
-					keys.possessionUnlockKey = Session::generateSignatureUnlockKey();;
-					auto sessionIndex = crypto::GetRandomData(16);
-					Encryptor * enc1;
-					std::tie(ec, enc1) = s1.createPersonalizedEncryptor(sessionIndex, keys);
-					ccstAssertEqual(ec, EC_WrongState);
-					ccstAssertNull(enc1);
-				}
 				
 				// SERVER STEP 1,
 				//  ...prepare short-id, otp & activation signature
@@ -920,70 +876,6 @@ namespace powerAuthTests
 					cc7::ByteArray vault_key = protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 2000);
 					cc7::ByteArray expected_derived_key = protocol::DeriveSecretKey(vault_key, 1977);
 					ccstAssertEqual(derived_key, expected_derived_key);
-				}
-				// E2EE - Nonpersonalized (after activation)
-				{
-					// Create encryptor
-					auto sessionIndex = crypto::GetRandomData(16);
-					Encryptor * enc1;
-					std::tie(ec, enc1) = s1.createNonpersonalizedEncryptor(sessionIndex);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertNotNull(enc1);
-					
-					// Encrypt some message
-					EncryptedMessage msg;
-					auto plaintext = crypto::GetRandomData(334);
-					ec = enc1->encrypt(plaintext, msg);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(msg.sessionIndex, sessionIndex.base64String());
-					ccstAssertEqual(msg.applicationKey, s1.sessionSetup()->applicationKey);
-					ccstAssertEqual(msg.activationId.length(), 0);
-					ccstAssertFalse(msg.encryptedData.empty());
-					ccstAssertFalse(msg.mac.empty());
-					ccstAssertFalse(msg.adHocIndex.empty());
-					ccstAssertFalse(msg.macIndex.empty());
-					ccstAssertFalse(msg.nonce.empty());
-					ccstAssertFalse(msg.ephemeralPublicKey.empty());
-					
-					cc7::ByteArray decrypted;
-					ec = enc1->decrypt(msg, decrypted);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(plaintext, decrypted);
-					
-					delete enc1;
-				}
-				// E2EE - Personalized
-				{
-					// Create encryptor
-					SignatureUnlockKeys keys;
-					keys.possessionUnlockKey = possessionUnlock;
-					auto sessionIndex = crypto::GetRandomData(16);
-					Encryptor * enc1;
-					std::tie(ec, enc1) = s1.createPersonalizedEncryptor(sessionIndex, keys);
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertNotNull(enc1);
-					
-					// Encrypt some message
-					EncryptedMessage msg;
-					auto plaintext = crypto::GetRandomData(334);
-					ec = enc1 ? enc1->encrypt(plaintext, msg) : EC_WrongState;
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(msg.sessionIndex, sessionIndex.base64String());
-					ccstAssertEqual(msg.activationId, s1.activationIdentifier());
-					ccstAssertEqual(msg.applicationKey.length(), 0);
-					ccstAssertFalse(msg.encryptedData.empty());
-					ccstAssertFalse(msg.mac.empty());
-					ccstAssertFalse(msg.adHocIndex.empty());
-					ccstAssertFalse(msg.macIndex.empty());
-					ccstAssertFalse(msg.nonce.empty());
-					ccstAssertTrue(msg.ephemeralPublicKey.empty());
-					
-					cc7::ByteArray decrypted;
-					ec = enc1 ? enc1->decrypt(msg, decrypted) : EC_WrongState;
-					ccstAssertEqual(ec, EC_Ok);
-					ccstAssertEqual(plaintext, decrypted);
-					
-					delete enc1;
 				}
 				// Server signed data with personalized key
 				{

@@ -439,43 +439,6 @@ public class Session {
      then the operation succeeded.
 	 */
     public native int removeExternalEncryptionKey();
-
-    //
-    // E2EE
-    //
-    
-    /**
-     Creates a new instace of Encryptor class initialized for nonpersonalized End-To-End Encryption.
-     The nonpersonalized mode of E2EE is available after the correct Session object initialization,
-     so you can basically use the method anytime during the object's lifetime. The |sessionIndex|
-     object must contain a 16 bytes long sequence of bytes. If your application doesn't have mechanism
-     for session index creation, then you can use generateSignatureUnlockKey() method for this purpose.
-
-     Note that the method doesn't change persistent state of the Session, so you don't need to
-     serialize its state after the call.
-
-     Returns always instance of Encryptor object. If the operation fails then the returned encryptor
-     is not valid (e.g. Encryptor.isValid() returns false and Encryptor.lastErrorCode contains 
-     appropriate error code)
-     */
-    public native Encryptor createNonpersonalizedEncryptor(byte[] sessionIndex);
-    
-    /**
-     Creates a new instace of Encryptor class initialized for personalized End-To-End Encryption.
-     The personalized mode of E2EE is available only when the session contains valid activation.
-     The |sessionIndex| object must contain a 16 bytes long sequence of bytes. If your application doesn't
-     have mechanism for session index creation, then you can use generateSignatureUnlockKey() method for
-     this purpose.
-     The provided |unlockKeys| object must contain valid unlock key for a possession factor.
-
-     Note that the method doesn't change persistent state of the Session, so you don't need to
-     serialize its state after the call.
-
-     Returns always instance of Encryptor object. If the operation fails then the returned encryptor
-     is not valid (e.g. Encryptor.isValid() returns false and Encryptor.lastErrorCode contains 
-     appropriate error code)
-     */
-    public native Encryptor createPersonalizedEncryptor(byte[] sessionIndex, SignatureUnlockKeys unlockKeys);
     
 	//
 	// Utilities

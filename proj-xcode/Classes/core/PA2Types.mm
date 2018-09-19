@@ -322,31 +322,3 @@ PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::p
 	res.activationFingerprint		= cc7::objc::CopyToNSString(cpp_r2.activationFingerprint);
 	return res;
 }
-
-void PA2EncryptedMessageToStruct(PA2EncryptedMessage * msg, io::getlime::powerAuth::EncryptedMessage& cpp_msg)
-{
-	cpp_msg.applicationKey			= cc7::objc::CopyFromNSString(msg.applicationKey);
-	cpp_msg.activationId			= cc7::objc::CopyFromNSString(msg.activationId);
-	cpp_msg.encryptedData			= cc7::objc::CopyFromNSString(msg.encryptedData);
-	cpp_msg.mac						= cc7::objc::CopyFromNSString(msg.mac);
-	cpp_msg.sessionIndex			= cc7::objc::CopyFromNSString(msg.sessionIndex);
-	cpp_msg.adHocIndex				= cc7::objc::CopyFromNSString(msg.adHocIndex);
-	cpp_msg.macIndex				= cc7::objc::CopyFromNSString(msg.macIndex);
-	cpp_msg.nonce					= cc7::objc::CopyFromNSString(msg.nonce);
-	cpp_msg.ephemeralPublicKey		= cc7::objc::CopyFromNSString(msg.ephemeralPublicKey);
-}
-
-PA2EncryptedMessage * PA2EncryptedMessageToObject(const io::getlime::powerAuth::EncryptedMessage& cpp_msg)
-{
-	PA2EncryptedMessage * res = [[PA2EncryptedMessage alloc] init];
-	res.applicationKey				= cc7::objc::CopyToNullableNSString(cpp_msg.applicationKey);
-	res.activationId				= cc7::objc::CopyToNullableNSString(cpp_msg.activationId);
-	res.encryptedData				= cc7::objc::CopyToNSString(cpp_msg.encryptedData);
-	res.mac							= cc7::objc::CopyToNSString(cpp_msg.mac);
-	res.sessionIndex				= cc7::objc::CopyToNSString(cpp_msg.sessionIndex);
-	res.adHocIndex					= cc7::objc::CopyToNSString(cpp_msg.adHocIndex);
-	res.macIndex					= cc7::objc::CopyToNSString(cpp_msg.macIndex);
-	res.nonce						= cc7::objc::CopyToNSString(cpp_msg.nonce);
-	res.ephemeralPublicKey			= cc7::objc::CopyToNullableNSString(cpp_msg.ephemeralPublicKey);
-	return res;
-}

@@ -27,6 +27,11 @@ namespace getlime
 namespace powerAuth
 {
 	/*
+	 Forward declaration for public objects
+	 */
+	class ECIESEncryptor;
+	
+	/*
 	 Forward declaration for private objects
 	 */
 	namespace protocol
@@ -467,6 +472,23 @@ namespace powerAuth
 		 */
 		ErrorCode removeExternalEncryptionKey();
 		
+	public:
+		
+		// MARK: - ECIES Factory -
+		
+		/**
+		 Constructs an ECIES encryptor for the required |scope| and for optional |sharedInfo1|.
+		 The resulting encryptor object is stored to the |out_encryptor| reference. The |keys| parameter
+		 must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
+		 For "application" scope, the |keys| reference may point to the empty structure.
+		 
+		 Returns EC_Ok			if operation succeeded and |out_encryptor| contains proper encryptor.
+		 		 EC_WrongState	if activation scope is requested and session has no valid activation, or
+		 						if session object has no valid setup
+		 		 EC_Encryption	if the possession key is missing in keys structure
+		 */
+		ErrorCode getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys,
+								   	const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const;
 
 		// MARK: - Utilities for generic keys -
 		

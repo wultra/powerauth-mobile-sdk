@@ -171,7 +171,7 @@ namespace protocol
 	{
 		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() == SIGNATURE_KEY_SIZE) {
 			// Calculate HMAC SHA256 without cropping the result
-			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index, 0);
+			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index);
 			if (result.size() == 32) {
 				// Everything looks fine, just xor the final array.
 				for (size_t i = 0; i < 16; i++) {
@@ -430,22 +430,22 @@ namespace protocol
 		for (size_t i = 0; i < keys.size(); i++) {
 			// Outer loop, for over key in the vector.
 			const cc7::ByteArray & signature_key = *keys[i];
-			auto derived_key = crypto::HMAC_SHA256(counter, signature_key, 0);
+			auto derived_key = crypto::HMAC_SHA256(counter, signature_key);
 			if (derived_key.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
 			for (size_t j = 0; j < i; j++) {
 				const cc7::ByteArray & signature_key_inner = *keys[j + 1];
-				auto derived_key_inner = crypto::HMAC_SHA256(counter, signature_key_inner, 0);
-				derived_key = crypto::HMAC_SHA256(derived_key, derived_key_inner, 0);
+				auto derived_key_inner = crypto::HMAC_SHA256(counter, signature_key_inner);
+				derived_key = crypto::HMAC_SHA256(derived_key, derived_key_inner);
 				if (derived_key.size() == 0) {
 					CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 					return std::string();
 				}
 			}
 			// Calculate HMAC for given data
-			auto signature_long = crypto::HMAC_SHA256(data, derived_key, 0);
+			auto signature_long = crypto::HMAC_SHA256(data, derived_key);
 			if (signature_long.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
@@ -532,7 +532,7 @@ namespace protocol
 		data_for_signature.append(AMP);
 		data_for_signature.append(applicationKey);
 		
-		auto signature = crypto::HMAC_SHA256(cc7::MakeRange(data_for_signature), app_secret, 0);
+		auto signature = crypto::HMAC_SHA256(cc7::MakeRange(data_for_signature), app_secret);
 		return cc7::ToBase64String(signature);
 	}
 

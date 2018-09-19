@@ -15,6 +15,7 @@
  */
 
 #include <PowerAuth/Session.h>
+#include <PowerAuth/ECIES.h>
 
 #include <cc7/Base64.h>
 #include "protocol/ProtocolUtils.h"
@@ -1013,12 +1014,51 @@ namespace powerAuth
 		}
 		return nullptr;
 	}
-
 	
+	// MARK: - ECIES Factory -
 	
-	// MARK: - End-To-End Encryption
-	
-	// TODO: add factories for our ECIES modes
+	ErrorCode Session::getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys, const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const
+	{
+		LOCK_GUARD();
+		if (!hasValidSetup()) {
+			CC7_LOG("Session %p, %d: ECIES: Session has no valid setup.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		// Other parameters for ECIES encryptor
+		cc7::ByteArray ecPublicKey;
+		cc7::ByteArray sharedInfo2;
+		//
+		if (scope == ECIES_ApplicationScope) {
+			// For "application" scope, the setup is quite simple.
+			// We have to just compute hash from APP_SECRET (as is) and use
+			// the master server public key.
+			sharedInfo2 = crypto::SHA256(cc7::MakeRange(_setup.applicationSecret));
+			ecPublicKey = cc7::FromBase64String(_setup.masterServerPublicKey);
+			//
+		} else {
+			// For the "activation" scope, we need to at first validate whether there's
+			// some activation.
+			if (!hasValidActivation()) {
+				CC7_LOG("Session %p, %d: ECIES: Session has no valid activation.", this, sessionIdentifier());
+				return EC_WrongState;
+			}
+			// Acquire the transport key
+			protocol::SignatureKeys plain_keys;
+			protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
+			if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
+				CC7_LOG("Session %p, %d: ECIES: You have to provide valid possession key.", this, sessionIdentifier());
+				return EC_Encryption;
+			}
+			// The sharedInfo2 is defined as HMAC_SHA256(key: KEY_TRANSPORT, data: APP_SECRET)
+			// We need to also use the server's public key as EC public key.
+			sharedInfo2 = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain_keys.transportKey);
+			ecPublicKey = _pd->serverPublicKey;
+			//
+		}
+		// Now construct the encryptor with prepared setup.
+		out_encryptor = ECIESEncryptor(ecPublicKey, sharedInfo1, sharedInfo2);
+		return EC_Ok;
+	}
 	
 	// MARK: - Private methods -
 	

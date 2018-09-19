@@ -536,6 +536,23 @@ namespace powerAuth
 	// MARK: - End-To-End Encryption -
 	//
 
+	/**
+	 The ECIESEncryptorScope enumeration defines how ECIES encryptor is configured
+	 in Session.getEciesEncryptor() method.
+	 */
+	enum ECIESEncryptorScope
+	{
+		/**
+		 An application scope means that encryptor can be constructed also when
+		 the session has no valid activation.
+		 */
+		ECIES_ApplicationScope = 0,
+		/**
+		 An activation scope menas that the encryptor can be constructed only when
+		 the session has a valid activation.
+		 */
+		ECIES_ActivationScope  = 1
+	};
 	
 } // io::getlime::powerAuth
 } // io::getlime

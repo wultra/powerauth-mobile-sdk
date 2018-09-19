@@ -23,6 +23,7 @@
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
 #include <PowerAuth/Session.h>
+#include <PowerAuth/ECIES.h>
 #include <map>
 
 using namespace cc7;
@@ -289,7 +290,7 @@ namespace powerAuthTests
 					signed_data.append("&");
 					signed_data.append(_setup.applicationKey);
 					cc7::ByteArray app_secret_key			= cc7::FromBase64String(_setup.applicationSecret);
-					cc7::ByteArray expected_app_signature	= crypto::HMAC_SHA256(cc7::MakeRange(signed_data), app_secret_key, 0);
+					cc7::ByteArray expected_app_signature	= crypto::HMAC_SHA256(cc7::MakeRange(signed_data), app_secret_key);
 					cc7::ByteArray app_signature			= cc7::FromBase64String(result1.applicationSignature);
 					ccstAssertTrue(app_signature.size() == 32);
 					ccstAssertEqual(app_signature, expected_app_signature);
@@ -897,6 +898,57 @@ namespace powerAuthTests
 					ec = s1.verifyServerSignedData(signedData);
 					ccstAssertTrue(ec == EC_WrongParam);
 				}
+				// ECIES "application" scope
+				{
+					SignatureUnlockKeys foo;
+					ECIESEncryptor encryptor;
+					ec = s1.getEciesEncryptor(ECIES_ApplicationScope, foo, cc7::MakeRange("/pa/test"), encryptor);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/test"));
+					ccstAssertEqual(encryptor.sharedInfo2(), crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
+					ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_setup.masterServerPublicKey));
+					
+					// Now try to encrypt data
+					ECIESCryptogram request_enc;
+					ec = encryptor.encryptRequest(cc7::MakeRange("Hello!"), request_enc);
+					ccstAssertEqual(ec, EC_Ok);
+					
+					// ...and decrypt on "server" side
+					ECIESCryptogram request_dec;
+					ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_masterServerPrivateKey),
+											 cc7::MakeRange("/pa/test"),
+											 crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
+					cc7::ByteArray request_data;
+					ec = decryptor.decryptRequest(request_enc, request_data);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertEqual(request_data, cc7::MakeRange("Hello!"));
+				}
+				// ECIES "activation" scope
+				{					
+					SignatureUnlockKeys keys;
+					keys.possessionUnlockKey = possessionUnlock;
+					ECIESEncryptor encryptor;
+					ec = s1.getEciesEncryptor(ECIES_ActivationScope, keys, cc7::MakeRange("/pa/activation/test"), encryptor);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/activation/test"));
+					ccstAssertEqual(encryptor.sharedInfo2(), crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
+					ccstAssertEqual(encryptor.publicKey(), crypto::ECC_ExportPublicKey(serverPrivateKey));
+					
+					// Now try to encrypt data
+					ECIESCryptogram request_enc;
+					ec = encryptor.encryptRequest(cc7::MakeRange("Plan9!"), request_enc);
+					ccstAssertEqual(ec, EC_Ok);
+					
+					// ...and decrypt on "server" side
+					ECIESCryptogram request_dec;
+					ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(serverPrivateKey),
+											 cc7::MakeRange("/pa/activation/test"),
+											 crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
+					cc7::ByteArray request_data;
+					ec = decryptor.decryptRequest(request_enc, request_data);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertEqual(request_data, cc7::MakeRange("Plan9!"));
+				}
 				
 				// release keys, just for sure
 				EC_KEY_free(serverPrivateKey);
@@ -1109,13 +1161,13 @@ namespace powerAuthTests
 			std::string result;
 			for (size_t i = 0; i < sigKeys.size(); i++) {
 				cc7::ByteArray signatureKey = sigKeys.at(i);
-				cc7::ByteArray derivedKey   = crypto::HMAC_SHA256(counterData, signatureKey, 0);
+				cc7::ByteArray derivedKey   = crypto::HMAC_SHA256(counterData, signatureKey);
 				for (size_t j = 0; j < i; j++) {
 					cc7::ByteArray signatureKeyInnter = sigKeys.at(j + 1);
-					cc7::ByteArray derivedKeyInner    = crypto::HMAC_SHA256(counterData, signatureKeyInnter, 0);
-					derivedKey						  = crypto::HMAC_SHA256(derivedKey,  derivedKeyInner, 0);
+					cc7::ByteArray derivedKeyInner    = crypto::HMAC_SHA256(counterData, signatureKeyInnter);
+					derivedKey						  = crypto::HMAC_SHA256(derivedKey,  derivedKeyInner);
 				}
-				cc7::ByteArray signatureLong = crypto::HMAC_SHA256(cc7::MakeRange(sigData),  derivedKey, 0);
+				cc7::ByteArray signatureLong = crypto::HMAC_SHA256(cc7::MakeRange(sigData),  derivedKey);
 				ccstAssertTrue(signatureLong.size() >= 4);
 				size_t offset = signatureLong.size() - 4;
 				const cc7::byte * signatureBytes = (const cc7::byte *)signatureLong.data();

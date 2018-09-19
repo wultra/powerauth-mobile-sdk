@@ -146,7 +146,7 @@ namespace powerAuth
 		const size_t encryptedDataSize = out_cryptogram.body.size();
 		// mac = MAC(body || S2)
 		out_cryptogram.body.append(info2);
-		out_cryptogram.mac = crypto::HMAC_SHA256(out_cryptogram.body, ek.macKey(), 0);
+		out_cryptogram.mac = crypto::HMAC_SHA256(out_cryptogram.body, ek.macKey());
 		if (out_cryptogram.mac.empty()) {
 			return EC_Encryption;
 		}
@@ -160,7 +160,7 @@ namespace powerAuth
 		// Prepare data for HMAC calculation
 		auto data_for_mac = cryptogram.body;
 		data_for_mac.append(info2);
-		auto mac = crypto::HMAC_SHA256(data_for_mac, ek.macKey(), 0);
+		auto mac = crypto::HMAC_SHA256(data_for_mac, ek.macKey());
 		// Verify calculated mac
 		if (mac.empty() || mac != cryptogram.mac) {
 			return EC_Encryption;

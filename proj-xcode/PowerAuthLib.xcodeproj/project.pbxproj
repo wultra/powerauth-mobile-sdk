@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		BF13A03A1FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */; };
+		BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */; };
 		BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
 		BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
 		BF20EA881EACB17600733D91 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */; };
@@ -233,6 +235,8 @@
 		1BFD687B1D742C1C00B08338 /* PA2System.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2System.m; sourceTree = "<group>"; };
 		BF13A0381FC3315D00E6F9B3 /* FakePowerAuthTokenStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakePowerAuthTokenStore.h; sourceTree = "<group>"; };
 		BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FakePowerAuthTokenStore.m; sourceTree = "<group>"; };
+		BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateEncryptorFactory.h; sourceTree = "<group>"; };
+		BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateEncryptorFactory.m; sourceTree = "<group>"; };
 		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
 		BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXHTMLDocument.m; sourceTree = "<group>"; };
 		BF20EA701EACB17600733D91 /* CXMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument.h; sourceTree = "<group>"; };
@@ -430,6 +434,7 @@
 				BF79E3CE1FBDC9F6003DF179 /* token */,
 				1BFD68781D742BED00B08338 /* system */,
 				1B6A65281E642A9400327545 /* util */,
+				BF2007512152B3E1001F3614 /* ecies */,
 				BFA0E29F200D12420011F0A6 /* watch */,
 				BFA58526201F87E9000DCD22 /* PowerAuth2.h */,
 				BFA58527201F87E9000DCD22 /* Info.plist */,
@@ -562,6 +567,15 @@
 				BFDFED9720BEEFAC0094138A /* PA2Log.m */,
 			);
 			path = system;
+			sourceTree = "<group>";
+		};
+		BF2007512152B3E1001F3614 /* ecies */ = {
+			isa = PBXGroup;
+			children = (
+				BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */,
+				BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */,
+			);
+			path = ecies;
 			sourceTree = "<group>";
 		};
 		BF20EA6B1EACB17600733D91 /* TouchXML */ = {
@@ -821,6 +835,7 @@
 				BF8CF4FB2032EB41002A6B6E /* PA2RemoveTokenRequest.h in Headers */,
 				BF8CF4FC2032EB41002A6B6E /* PA2WCSessionPacket_Success.h in Headers */,
 				BF8CF4FD2032EB41002A6B6E /* PA2PrivateTokenInterfaces.h in Headers */,
+				BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */,
 				BF8CF4FE2032EB41002A6B6E /* PA2AuthorizationHttpHeader.h in Headers */,
 				BF8CF4FF2032EB41002A6B6E /* PA2PasswordUtil.h in Headers */,
 				BF8CF5002032EB41002A6B6E /* PA2WCSessionDataHandler.h in Headers */,
@@ -1027,6 +1042,7 @@
 				BF8CF4B42032EB41002A6B6E /* PA2CreateActivationResponse.m in Sources */,
 				BF8CF4B52032EB41002A6B6E /* PA2PasswordUtil.m in Sources */,
 				BF8CF4B72032EB41002A6B6E /* PowerAuthConfiguration.m in Sources */,
+				BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */,
 				BF8CF4B92032EB41002A6B6E /* PA2WCSessionPacket.m in Sources */,
 				BF8CF4BC2032EB41002A6B6E /* PA2ActivationStatusRequest.m in Sources */,
 				BF8CF4BD2032EB41002A6B6E /* PA2ErrorResponse.m in Sources */,

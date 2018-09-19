@@ -446,6 +446,14 @@
 
 #pragma mark - ECIES
 
+/**
+ Constructs the `PA2ECIESEncryptor` object for the required `scope` and for optional `sharedInfo1`.
+ The `keys` parameter must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
+ For "application" scope, the `keys` object may be nil.
+ */
+- (nullable PA2ECIESEncryptor*) eciesEncryptorForScope:(PA2ECIESEncryptorScope)scope
+												  keys:(nullable PA2SignatureUnlockKeys*)unlockKeys
+										   sharedInfo1:(nullable NSData*)sharedInfo1;
 
 #pragma mark - Utilities for generic keys
 

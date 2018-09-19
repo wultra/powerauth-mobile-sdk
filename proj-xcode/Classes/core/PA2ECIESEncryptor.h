@@ -17,11 +17,12 @@
 #import <Foundation/Foundation.h>
 
 @class PA2ECIESCryptogram;
+@class PA2ECIESMetaData;
 
 #pragma mark - ECIES Encryptor -
 
 /**
- The PA2ECIESEncryptor class implements a request encryption and response decryption for our custom ECIES scheme.
+ The `PA2ECIESEncryptor` class implements a request encryption and response decryption for our custom ECIES scheme.
  For more details about our ECIES implementation, please check documentation available at the beginning of
  <PowerAuth/ECIES.h> C++ header.
  */
@@ -118,13 +119,22 @@
 - (BOOL) encryptRequest:(nullable NSData *)data
 			 completion:(void (NS_NOESCAPE ^_Nonnull)(PA2ECIESCryptogram * _Nullable cryptogram, PA2ECIESEncryptor * _Nullable decryptor))completion;
 
+
+#pragma mark Associated metadata
+
+/**
+ Contains metadata associated to this encryptor. The assigned object is not required for an actual
+ request encryption, but it's useful for correct HTTP request & response processing.
+ */
+@property (nonatomic, strong, nullable) PA2ECIESMetaData * associatedMetaData;
+
 @end
 
 
 #pragma mark - ECIES cryptogram -
 
 /**
- The PA2ECIESCryptogram object represents cryptogram transmitted
+ The `PA2ECIESCryptogram` object represents cryptogram transmitted
  over the network.
  */
 @interface PA2ECIESCryptogram : NSObject
@@ -157,5 +167,47 @@
  to the `mac` property.
  */
 @property (nonatomic, strong, nullable) NSString * keyBase64;
+
+@end
+
+
+#pragma mark - ECIES metadata -
+
+/**
+ The `PA2ECIESMetaData` object represents additional data associated
+ to the ECIES encryptor. The content stored in this object is typically
+ required for the correct HTTP request & response processing, but is not
+ involved in the actual data encryption.
+ */
+@interface PA2ECIESMetaData : NSObject
+
+/**
+ Initializes object with required `applicationKey` and with optional `activationIdentifier`
+ */
+- (nonnull instancetype) initWithApplicationKey:(nonnull NSString*)applicationKey
+						   activationIdentifier:(nullable NSString*)activationIdentifier;
+
+/**
+ Contains required application key required for the HTTP header construction.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
+
+/**
+ Contains optional activation identifier.
+ */
+@property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
+
+
+#pragma mark - HTTP
+
+/**
+ Returns key for HTTP header.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * httpHeaderKey;
+
+/**
+ Returns value for HTTP header.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * httpHeaderValue;
 
 @end

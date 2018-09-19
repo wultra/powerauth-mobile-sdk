@@ -240,9 +240,6 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 
 @end
 
-@implementation PA2EncryptedMessage
-@end
-
 
 #pragma mark - Conversion routines
 

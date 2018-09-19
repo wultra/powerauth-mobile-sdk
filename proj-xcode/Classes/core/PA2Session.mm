@@ -337,9 +337,6 @@ using namespace io::getlime::powerAuth;
 }
 
 
-#pragma mark - ECIES
-
-
 #pragma mark - External encryption key
 
 - (BOOL) hasExternalEncryptionKey
@@ -368,6 +365,23 @@ using namespace io::getlime::powerAuth;
 	return error == EC_Ok;
 }
 
+
+#pragma mark - ECIES
+
+- (nullable PA2ECIESEncryptor*) eciesEncryptorForScope:(PA2ECIESEncryptorScope)scope
+												  keys:(nullable PA2SignatureUnlockKeys*)unlockKeys
+										   sharedInfo1:(nullable NSData*)sharedInfo1
+{
+	ECIESEncryptorScope cpp_scope   = (ECIESEncryptorScope)scope;
+	cc7::ByteArray cpp_shared_info1 = cc7::objc::CopyFromNSData(sharedInfo1);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	
+	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] init];
+	auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, encryptor.encryptorRef);
+	PA2Objc_DebugDumpError(self, @"GetEciesEncryptor", error);
+	return errno == EC_Ok ? encryptor : nil;
+}
 
 #pragma mark - Utilities for generic keys
 

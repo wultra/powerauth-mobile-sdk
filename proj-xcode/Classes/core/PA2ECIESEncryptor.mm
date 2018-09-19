@@ -207,3 +207,40 @@ using namespace io::getlime::powerAuth;
 
 @end
 
+
+#pragma mark - ECIES metadata -
+
+@implementation PA2ECIESMetaData
+
+- (instancetype) initWithApplicationKey:(NSString*)applicationKey
+				   activationIdentifier:(NSString*)activationIdentifier
+{
+	self = [super init];
+	if (self) {
+		_applicationKey = applicationKey;
+		_activationIdentifier = activationIdentifier;
+	}
+	return self;
+}
+
+- (NSString*) httpHeaderKey
+{
+	return @"X-PowerAuth-Encryption";
+}
+
+- (NSString*) httpHeaderValue
+{
+	NSString * value = [[@"PowerAuth version=\"3.0\" application_key=\""
+						 stringByAppendingString:_applicationKey]
+						stringByAppendingString:@"\""];
+	if (_activationIdentifier) {
+		return [[[value stringByAppendingString:@" activation_id=\""]
+				 stringByAppendingString:_activationIdentifier]
+				stringByAppendingString:@"\""];
+	}
+	return value;
+}
+
+@end
+
+

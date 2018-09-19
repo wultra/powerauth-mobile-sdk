@@ -490,71 +490,22 @@ typedef NS_ENUM(int, PA2ActivationState) {
 
 #pragma mark - End to End Encryption -
 
-/**
- The PA2EncryptedMessage object represents an encrypted data transmitted
- between the client and the server. The object is mostly used as a parameter in
- interface, provided by PA2Encryptor class.
- 
- The message is used in both ways, for the request encryption and also for
- response decryption. Note that some members of the structure are optional
- or depends on the mode of E2EE or the direction of communication.
- 
- For more details check the online documentation about End-To-End Encryption.
- */
-@interface PA2EncryptedMessage : NSObject
+// Forward declaration for ECIES encryptor
+@class PA2ECIESEncryptor;
 
 /**
- Contains applicationKey copied from the PA2Session which constructed the PA2Encryptor
- object. The value is valid only for non-personalized encryption and is
- validated in responses, received from the server.
+ The `PA2ECIESEncryptorScope` enumeration defines how `PA2ECIESEncryptor` encryptor is configured
+ in `PA2Session.getEciesEncryptor()` method.
  */
-@property (nonatomic, strong, nullable) NSString * applicationKey;
-/**
- Contains activationId copied  from the PA2Session which constructed the PA2Encryptor
- object. The value is valid only for personalized encryption and is validated
- in responses, received from the server.
- */
-@property (nonatomic, strong, nullable) NSString * activationId;
-/**
- Data encrypted in the PA2Encryptor or decrypted by the class when received
- a response from the server.
- */
-@property (nonatomic, strong, nonnull) NSString * encryptedData;
-/**
- Encrypted data signature.
- */
-@property (nonatomic, strong, nonnull) NSString * mac;
-/**
- Key index specific for one particular PA2Encryptor. The value is validated for
- responses received from the server.
- 
- Note that the term "session" is different than the PA2Session used in this PA2
- implementation. The "sessionIndex" in this case is a constant representing
- an estabilished session between client and the server. It's up to application
- to acquire and manage the value. Check the PA2 online documentation for details.
- */
-@property (nonatomic, strong, nonnull) NSString * sessionIndex;
-/**
- Key index used for one request or response. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * adHocIndex;
-/**
- Key index used for one request or response. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * macIndex;
-/**
- Nonce value used as IV for encryption. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * nonce;
-/**
- A key used for deriving temporary secret. The value is provided by
- the PA2Encryptor class during the encryption operation, but only if the
- nonpersonalized mode is in use.
- */
-@property (nonatomic, strong, nullable) NSString * ephemeralPublicKey;
-
-@end
-
+typedef NS_ENUM(int, PA2ECIESEncryptorScope) {
+	/**
+	 An application scope means that encryptor can be constructed also when
+	 the session has no valid activation.
+	 */
+	PA2ECIESEncryptorScope_Application  = 0,
+	/**
+	 An activation scope menas that the encryptor can be constructed only when
+	 the session has a valid activation.
+	 */
+	PA2ECIESEncryptorScope_Activation  = 1,
+};

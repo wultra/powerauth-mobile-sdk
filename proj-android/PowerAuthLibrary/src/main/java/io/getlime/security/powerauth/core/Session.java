@@ -439,6 +439,17 @@ public class Session {
      then the operation succeeded.
 	 */
     public native int removeExternalEncryptionKey();
+
+    //
+	// End to End encryption
+	//
+
+	/**
+	 Constructs the {@link ECIESEncryptor} object for the required scope and for optional sharedInfo1.
+	 The unlockKeys parameter must contain a valid possessionUnlockKey in case that the "activation"
+	 scope is requested. For "application" scope, the unlockKeys object may be null.
+	 */
+	public native ECIESEncryptor getEciesEncryptor(ECIESEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
     
 	//
 	// Utilities

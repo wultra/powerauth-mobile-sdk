@@ -32,13 +32,13 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 // Helper functions
 // ----------------------------------------------------------------------------
 
-jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, ECIESCryptogram & cryptogram)
+jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & cryptogram)
 {
 	if (!env) {
 		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
 		return NULL;
 	}
-	// Create Encryptor java class instance
+	// Create ECIESCryptogram java class instance
 	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("ECIESCryptogram");
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ECIESCryptogram"), "()V");
 	if (!resultObject) {
@@ -59,6 +59,22 @@ void LoadCppCryptogramFromJavaObject(JNIEnv * env, jobject cryptogram, ECIESCryp
 	cppCryptogram.key	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "key"));
 }
 
+jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & encryptor)
+{
+	if (!env) {
+		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
+		return NULL;
+	}
+	// Create ECIESEncryptor java class instance
+	ECIESEncryptor * encryptor_copy = new ECIESEncryptor(encryptor);
+	jlong encryptor_copy_long = reinterpret_cast<jlong>(encryptor_copy);
+	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ECIESEncryptor"), "(J)V", encryptor_copy_long);
+	if (NULL == resultObject) {
+		// If java object was not constructed then we delete the encryptor's copy.
+		delete encryptor_copy;
+	}
+	return resultObject;
+}
 
 // ----------------------------------------------------------------------------
 // Init & Destroy

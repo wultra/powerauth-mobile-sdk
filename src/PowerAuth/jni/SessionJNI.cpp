@@ -15,6 +15,7 @@
  */
 
 #include "PasswordJNI.h"
+#include "ECIESEncryptorJNI.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #include <map>
@@ -647,6 +648,40 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 		return false;
 	}
 	return session->removeExternalEncryptionKey();
+}
+
+// ----------------------------------------------------------------------------
+// ECIES
+// ----------------------------------------------------------------------------
+
+//
+// public native ECIESEncryptor getEciesEncryptor(ECIESEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
+//
+CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jobject scope, jobject unlockKeys, jbyteArray sharedInfo1)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return NULL;
+	}
+	// Load parameters into C++ objects
+	jclass scopeClazz = CC7_JNI_MODULE_FIND_CLASS("ECIESEncryptorScope");
+	auto cppScope = (ECIESEncryptorScope) CC7_JNI_GET_FIELD_INT(scope, scopeClazz, "numericValue");
+	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
+	SignatureUnlockKeys cppUnlockKeys;
+	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+		return NULL;
+	}
+
+	// Call Session
+	ECIESEncryptor cppEncryptor;
+	auto result = session->getEciesEncryptor(cppScope, cppUnlockKeys, cppSharedInfo1, cppEncryptor);
+	if (EC_Ok != result) {
+		CC7_ASSERT(false, "getEciesEncryptor failed with error %d", result);
+		return NULL;
+	}
+	// Convert CPP object to java object
+	return CreateJavaEncryptorFromCppObject(env, cppEncryptor);
 }
 
 

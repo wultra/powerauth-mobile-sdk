@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.core;
 
 import android.util.Pair;
 
+import io.getlime.security.powerauth.ecies.ECIESMetaData;
+
 /**
  *  The <code>ECIESEncryptor</code> class implements a request encryption and response decryption for
  *  our custom ECIES scheme. For more details about our ECIES implementation, please check documentation
@@ -209,6 +211,7 @@ public class ECIESEncryptor {
         if (cryptogram != null) {
             ECIESEncryptor decryptor = this.copyForDecryption();
             if (decryptor != null) {
+                decryptor.setMetaData(this.metaData);
                 return new Pair<>(decryptor, cryptogram);
             }
         }
@@ -223,4 +226,33 @@ public class ECIESEncryptor {
      * @return decrypted bytes or null in case of error
      */
     public native byte[] decryptResponse(ECIESCryptogram cryptogram);
+
+
+    //
+    // Metadata
+    //
+
+    /**
+     *  Data associated to this encryptor.
+     */
+    private ECIESMetaData metaData;
+
+    /**
+     * Sets metadata object to this encryptor. Note that the metadata object is not required
+     * for data encryption or decryption, but it's typically useful for request & response
+     * processing.
+     *
+     * @param metaData object associated with this encryptor
+     */
+    public void setMetaData(ECIESMetaData metaData) {
+        this.metaData = metaData;
+    }
+
+
+    /**
+     * @return metadata object associated to this encryptor.
+     */
+    public ECIESMetaData getMetaData() {
+        return metaData;
+    }
 }

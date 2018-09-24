@@ -59,7 +59,11 @@ using namespace io::getlime::powerAuth;
 - (nullable PA2ECIESEncryptor*) copyForDecryption
 {
 	if (_encryptor.canDecryptResponse()) {
-		return [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+		PA2ECIESEncryptor * decryptor = [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+		if (decryptor) {
+			decryptor->_associatedMetaData = _associatedMetaData;
+		}
+		return decryptor;
 	}
 	return nil;
 }

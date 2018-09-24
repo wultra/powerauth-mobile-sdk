@@ -68,20 +68,45 @@ public class ActivationStatus {
         }
         return 0;
     }
-    
+
+    // Activation version
+
     /**
-     Signing counter on the server's side. This value is usable only
-     for the debugging purposes. You should avoid dumping this value
-     to the debug console.
+     Server contains activation V2 data.
      */
-    public final long counter;
-    
+    public static final int Version_V2 = 2;
+    /**
+     Server contains activation V3 data.
+     */
+    public static final int Version_V3 = 3;
+
+    /**
+     The activation version currently stored on the server.
+     You can compare this value to {@link #Version_V2} or {@link #Version_V3} constants.
+     */
+    public final int currentVersion;
+    /**
+     Defines version of data supported on the server. If the value is different than {@link #currentVersion},
+     then the activation migration is available.
+     You can compare this value to {@link #Version_V2} or {@link #Version_V3} constants.
+     */
+    public final int upgradeVersion;
+
+    /**
+     Contains true, if migration to newer activation data is available.
+     */
+    public final boolean isMigrationAvailable;
+
+
+    // Constructor
 
     public ActivationStatus() {
         this.errorCode = 0;
         this.state = 0;
         this.failCount = 0;
         this.maxFailCount = 0;
-        this.counter = 0;
+        this.currentVersion = 0;
+        this.upgradeVersion = 0;
+        this.isMigrationAvailable = false;
     }
 }

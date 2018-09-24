@@ -53,6 +53,14 @@
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
 @end
 
+
+@interface PA2ActivationStatus (Private)
+@property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
+@property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
+@property (nonatomic, assign, readonly) BOOL isMigrationAvailable;
+@end
+
+
 /**
  Converts PA2SessionSetup object into SessionSetup C++ structure.
  */

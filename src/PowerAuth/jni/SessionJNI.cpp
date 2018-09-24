@@ -349,10 +349,12 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStatus"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 	cppStatus.state);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "failCount", 	cppStatus.failCount);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",	cppStatus.maxFailCount);
-		CC7_JNI_SET_FIELD_LONG	(resultObject, resultClazz, "counter",	 	cppStatus.counter);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 			cppStatus.state);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "failCount", 			cppStatus.failCount);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "currentVersion",		cppStatus.currentVersion);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "upgradeVersion",		cppStatus.upgradeVersion);
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isMigrationAvailable",	cppStatus.isMigrationAvailable());
 	}
 	return resultObject;
 }

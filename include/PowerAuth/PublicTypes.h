@@ -501,6 +501,16 @@ namespace powerAuth
 		};
 		
 		/**
+		 The Version enumeration defines version of activation data, stored on the server.
+		 */
+		enum Version
+		{
+			V2 = 2,				// PowerAuth Crypto V2
+			V3 = 3,				// PowerAuth Crypto V3
+			MaxSupported = V3,	// Max supported version defined by this SDK
+		};
+		
+		/**
 		 State of the activation
 		 */
 		State state;
@@ -513,10 +523,13 @@ namespace powerAuth
 		 */
 		cc7::U32 maxFailCount;
 		/**
-		 Counter on the server's side. The session should not synchronize
-		 itself with this counter.
+		 Current activation version stored on the server
 		 */
-		cc7::U64 counter;
+		cc7::byte currentVersion;
+		/**
+		 If different than `currentVersion`, then activation migration is available.
+		 */
+		cc7::byte upgradeVersion;
 		
 		/**
 		 Constructs a new empty activation status structure.
@@ -525,9 +538,15 @@ namespace powerAuth
 			state(Created),
 			failCount(0),
 			maxFailCount(0),
-			counter(0)
+			currentVersion(0),
+			upgradeVersion(0)
 		{
 		}
+		
+		/**
+		 Returns true if migration to a new activation data is possible.
+		 */
+		bool isMigrationAvailable() const;
 	};
 	
 	

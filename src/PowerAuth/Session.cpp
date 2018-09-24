@@ -473,25 +473,34 @@ namespace powerAuth
 		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, protocol::ZERO_IV, encrypted_status_blob));
 		cc7::ByteRange hdr;
 		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
-		cc7::U64 counter = 0;
+		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
+	
 		result = reader.readMemoryRange(hdr, 4) &&
 				 reader.readByte(state) &&
-				 reader.readU64(counter) &&
+				 reader.readByte(curr_ver) &&
+				 reader.readByte(upgrade_ver) &&
+				 reader.skipBytes(6) &&
 				 reader.readByte(fail_ctr) &&
 				 reader.readByte(max_fail_ctr);
 		if (!result) {
 			return EC_Encryption;
 		}
-		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || hdr[3] != 0xD1) {
+		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || (hdr[3] & 0xF0) != 0xD0) {
+			return EC_Encryption;
+		}
+		// HDR[3] can be 0xDx, but at least 0xD1.
+		// We can use this byte to identify the status blob versions in future protocol versions.
+		if (!((hdr[3] & 0x0F) >= 1)) {
 			return EC_Encryption;
 		}
 		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
 			return EC_Encryption;
 		}
-		status.state        = static_cast<ActivationStatus::State>(state);
-		status.failCount    = fail_ctr;
-		status.maxFailCount = max_fail_ctr;
-		status.counter      = counter;
+		status.state        	= static_cast<ActivationStatus::State>(state);
+		status.failCount    	= fail_ctr;
+		status.maxFailCount 	= max_fail_ctr;
+		status.currentVersion	= curr_ver;
+		status.upgradeVersion	= upgrade_ver;
 		
 		return EC_Ok;
 	}

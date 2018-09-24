@@ -504,7 +504,7 @@ typedef NS_ENUM(int, PA2ECIESEncryptorScope) {
 	 */
 	PA2ECIESEncryptorScope_Application  = 0,
 	/**
-	 An activation scope menas that the encryptor can be constructed only when
+	 An activation scope means that the encryptor can be constructed only when
 	 the session has a valid activation.
 	 */
 	PA2ECIESEncryptorScope_Activation  = 1,

@@ -548,7 +548,7 @@ namespace powerAuth
 		 */
 		ECIES_ApplicationScope = 0,
 		/**
-		 An activation scope menas that the encryptor can be constructed only when
+		 An activation scope means that the encryptor can be constructed only when
 		 the session has a valid activation.
 		 */
 		ECIES_ActivationScope  = 1

@@ -195,11 +195,6 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 	return static_cast<PA2ActivationState>(_status.state);
 }
 
-- (UInt64) counter
-{
-	return _status.counter;
-}
-
 - (UInt32) failCount
 {
 	return _status.failCount;
@@ -234,9 +229,27 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 			status_str = @"<<unknown>>"; break;
 			
 	}
-	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@, ctr %@>", status_str, @(_status.failCount), @(_status.maxFailCount), @(_status.counter)];
+	bool migration = _status.isMigrationAvailable();
+	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@%@>", status_str, @(_status.failCount), @(_status.maxFailCount), migration ? @", migration" : @""];
 }
 #endif
+
+// Private
+
+- (UInt8) currentActivationVersion
+{
+	return _status.currentVersion;
+}
+
+- (UInt8) upgradeActivationVersion
+{
+	return _status.upgradeVersion;
+}
+
+- (BOOL) isMigrationAvailable
+{
+	return _status.isMigrationAvailable();
+}
 
 @end
 

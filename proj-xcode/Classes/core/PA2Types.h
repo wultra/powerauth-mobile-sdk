@@ -476,16 +476,6 @@ typedef NS_ENUM(int, PA2ActivationState) {
  */
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
 
-/**
- Counter on the server's side. The value is only informational and may
- be used for debugging purposes. You can compare it with the value stored
- in the module's persistent data and deduce whether the server's counter
- is ahead or not.
- 
- You should NOT dumpt this value into the debug console.
- */
-@property (nonatomic, assign, readonly) UInt64 counter;
-
 @end
 
 #pragma mark - End to End Encryption -

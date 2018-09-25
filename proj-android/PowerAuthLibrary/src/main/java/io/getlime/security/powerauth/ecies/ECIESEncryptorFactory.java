@@ -56,8 +56,8 @@ public class ECIESEncryptorFactory {
      * application's custom purposes. The application server can typically decrypt data,
      * encrypted with this configuration.
      */
-    public @Nullable ECIESEncryptor getPublicEncryptorForApplicationScope() {
-        return getEncryptor(ECIESEncryptorScope.Application, null, true);
+    public @Nullable ECIESEncryptor getGenericEncryptorForApplicationScope() {
+        return getEncryptor(ECIESEncryptorScope.Application, "/pa/generic/application", true);
     }
 
     /**
@@ -65,8 +65,8 @@ public class ECIESEncryptorFactory {
      * application's custom purposes. The application server can typically decrypt data,
      * encrypted with this configuration.
      */
-    public @Nullable ECIESEncryptor getPublicEncryptorForActivationScope() {
-        return getEncryptor(ECIESEncryptorScope.Activation, null, true);
+    public @Nullable ECIESEncryptor getGenericEncryptorForActivationScope() {
+        return getEncryptor(ECIESEncryptorScope.Activation, "/pa/generic/activation", true);
     }
 
 
@@ -76,12 +76,12 @@ public class ECIESEncryptorFactory {
 
     /**
      * Constructs a new encryptor for activation purposes.
-     * In current SDK implementation, the method uses {@link #getPublicEncryptorForApplicationScope()}
+     * In current SDK implementation, the method uses {@link #getGenericEncryptorForApplicationScope()}
      * internally, so the payload encrypted with the returned object can be decrypted by
      * the application server.
      */
     public @Nullable ECIESEncryptor getEncryptorForActivationRequest() {
-        return getPublicEncryptorForApplicationScope();
+        return getGenericEncryptorForApplicationScope();
     }
 
     /**

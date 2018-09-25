@@ -33,14 +33,14 @@
  application's custom purposes. The application server can typically decrypt data,
  encrypted with this configuration.
  */
-- (PA2ECIESEncryptor*) publicEncryptorForApplicationScope;
+- (PA2ECIESEncryptor*) genericEncryptorForApplicationScope;
 
 /**
  Constructs a new encryptor for an activation scope, which can be used for an
  application's custom purposes. The application server can typically decrypt data,
  encrypted with this configuration.
  */
-- (PA2ECIESEncryptor*) publicEncryptorForActivationScope;
+- (PA2ECIESEncryptor*) genericEncryptorForActivationScope;
 
 
 #pragma mark - SDK private purposes

@@ -35,14 +35,14 @@
 
 #pragma mark - Public encryptors
 
-- (PA2ECIESEncryptor*) publicEncryptorForApplicationScope
+- (PA2ECIESEncryptor*) genericEncryptorForApplicationScope
 {
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:nil meta:YES];
+	return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
 }
 
-- (PA2ECIESEncryptor*) publicEncryptorForActivationScope
+- (PA2ECIESEncryptor*) genericEncryptorForActivationScope
 {
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:nil meta:YES];
+	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES];
 }
 
 
@@ -50,7 +50,7 @@
 
 - (PA2ECIESEncryptor*) encryptorForActivationRequest
 {
-	return [self publicEncryptorForApplicationScope];
+	return [self genericEncryptorForApplicationScope];
 }
 
 - (PA2ECIESEncryptor*) encryptorForActivationPayload

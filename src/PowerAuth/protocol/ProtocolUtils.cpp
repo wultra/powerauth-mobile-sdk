@@ -410,7 +410,13 @@ namespace protocol
 	}
 
 	
-	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, cc7::U64 ctr, const cc7::ByteRange & data)
+	cc7::ByteArray SignatureCounterToData(cc7::U64 counter)
+	{
+		return _U64ToData(counter);
+	}
+	
+	
+	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data)
 	{
 		// Prepare keys into one linear vector
 		std::vector<const cc7::ByteArray*> keys;
@@ -425,19 +431,18 @@ namespace protocol
 		}
 		
 		// Prepare data with counter; [ 0x0 * 8 + BigEndian(ctr) ]
-		auto counter = _U64ToData(ctr);
 		std::string result;
 		for (size_t i = 0; i < keys.size(); i++) {
 			// Outer loop, for over key in the vector.
 			const cc7::ByteArray & signature_key = *keys[i];
-			auto derived_key = crypto::HMAC_SHA256(counter, signature_key);
+			auto derived_key = crypto::HMAC_SHA256(ctr_data, signature_key);
 			if (derived_key.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
 			for (size_t j = 0; j < i; j++) {
 				const cc7::ByteArray & signature_key_inner = *keys[j + 1];
-				auto derived_key_inner = crypto::HMAC_SHA256(counter, signature_key_inner);
+				auto derived_key_inner = crypto::HMAC_SHA256(ctr_data, signature_key_inner);
 				derived_key = crypto::HMAC_SHA256(derived_key, derived_key_inner);
 				if (derived_key.size() == 0) {
 					CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");

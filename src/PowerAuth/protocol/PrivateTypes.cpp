@@ -157,15 +157,21 @@ namespace protocol
 	//
 	
 	const cc7::byte PD_TAG     = 'P';
-	const cc7::byte PD_VERSION = '3';
+	const cc7::byte PD_VERSION_V2 = '3';	// data version is one step ahead
+	const cc7::byte PD_VERSION_V3 = '4';
 	
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer)
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		writer.openVersion(PD_TAG, PD_VERSION);
+		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V3 : PD_VERSION_V2);
 		
-		writer.writeU64		(pd.signatureCounter);
+		// Serialize hash data or counter, depending on data version
+		if (pd.isV3()) {
+			writer.writeData(pd.signatureCounterData);
+		} else {
+			writer.writeU64	(pd.signatureCounter);
+		}
 		writer.writeString	(pd.activationId);
 		writer.writeU32		(pd.passwordIterations);
 		writer.writeData	(pd.passwordSalt);
@@ -188,9 +194,17 @@ namespace protocol
 	
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
 	{
-		bool result = reader.openVersion(PD_TAG, PD_VERSION);
+		// Open version with V2, which automatically allows deserialization of both variants.
+		bool result = reader.openVersion(PD_TAG, PD_VERSION_V2);
 		
-		result = result && reader.readU64		(pd.signatureCounter);
+		// Deserialize hash data or counter, depending on version stored in the header.
+		if (reader.currentVersion() == PD_VERSION_V3) {
+			result = result && reader.readData	(pd.signatureCounterData, SIGNATURE_KEY_SIZE);
+			pd.signatureCounter = 0;
+		} else {
+			result = result && reader.readU64	(pd.signatureCounter);
+			pd.signatureCounterData.clear();
+		}
 		result = result && reader.readString	(pd.activationId);
 		result = result && reader.readU32		(pd.passwordIterations);
 		result = result && reader.readData		(pd.passwordSalt, PBKDF2_SALT_SIZE);
@@ -221,7 +235,7 @@ namespace protocol
 	
 	//
 	// For a historical reasons, we still have to support old persistent data format,
-	// which has been used in very old, closed source version, of PowerAuth library.
+	// which has been used in very old, closed source version of PowerAuth library.
 	//
 	// Once all users will migrate to app based on our open source library, then this
 	// code will be removed.

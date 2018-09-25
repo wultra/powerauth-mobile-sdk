@@ -22,6 +22,7 @@
 
 #import "PA2PrivateMacros.h"
 #import "PA2Types.h"
+#import "PA2MigrationData.h"
 #import "PA2Password.h"
 #import "PA2ECIESEncryptor.h"
 #import "PA2CoreLog.h"
@@ -47,12 +48,10 @@
 - (io::getlime::powerAuth::ECIESCryptogram &) cryptogramRef;
 @end
 
-
 @interface PA2ECIESEncryptor (Private)
 - (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef;
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
 @end
-
 
 @interface PA2ActivationStatus (Private)
 @property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
@@ -60,6 +59,9 @@
 @property (nonatomic, assign, readonly) BOOL isMigrationAvailable;
 @end
 
+@protocol PA2MigrationDataPrivate <PA2MigrationData>
+- (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref;
+@end
 
 /**
  Converts PA2SessionSetup object into SessionSetup C++ structure.

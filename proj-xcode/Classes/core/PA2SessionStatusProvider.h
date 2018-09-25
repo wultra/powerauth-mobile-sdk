@@ -21,7 +21,7 @@
  information about PowerAuth session.
  */
 @protocol PA2SessionStatusProvider <NSObject>
-
+@required
 /**
  Check if it is possible to start an activation process
  

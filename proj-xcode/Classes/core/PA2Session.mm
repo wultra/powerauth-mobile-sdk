@@ -109,7 +109,10 @@ using namespace io::getlime::powerAuth;
 	return _session->hasValidActivation();
 }
 
-
+- (PA2ProtocolVersion) protocolVersion
+{
+	return (PA2ProtocolVersion) _session->protocolVersion();
+}
 
 #pragma mark - Serialization
 
@@ -380,7 +383,7 @@ using namespace io::getlime::powerAuth;
 	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] init];
 	auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, encryptor.encryptorRef);
 	PA2Objc_DebugDumpError(self, @"GetEciesEncryptor", error);
-	return errno == EC_Ok ? encryptor : nil;
+	return error == EC_Ok ? encryptor : nil;
 }
 
 #pragma mark - Utilities for generic keys
@@ -396,5 +399,23 @@ using namespace io::getlime::powerAuth;
 	return cc7::objc::CopyToNSData(Session::generateSignatureUnlockKey());
 }
 
+
+#pragma mark - Protocol migration
+
+- (BOOL) commitMigrationData:(id<PA2MigrationData>)migrationDataObject
+{
+	ErrorCode error;
+	if ([migrationDataObject conformsToProtocol:@protocol(PA2MigrationDataPrivate)]) {
+		id<PA2MigrationDataPrivate> migrationData = (id<PA2MigrationDataPrivate>)migrationDataObject;
+		// Convert data to C++ & commit to underlying session
+		MigrationData cpp_migration_data;
+		[migrationData setupStructure:cpp_migration_data];
+		error = _session->commitMigration(cpp_migration_data);
+	} else {
+		error = EC_WrongParam;
+	}
+	PA2Objc_DebugDumpError(self, @"CommitMigrationData", error);
+	return error == EC_Ok;
+}
 
 @end

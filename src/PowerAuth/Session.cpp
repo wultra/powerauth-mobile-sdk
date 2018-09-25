@@ -114,7 +114,7 @@ namespace powerAuth
 	bool Session::hasValidActivation() const
 	{
 		LOCK_GUARD();
-		if (_state == SS_Activated && hasValidSetup()) {
+		if (_state == SS_Activated) {
 			if (CC7_CHECK(_pd != nullptr && _ad == nullptr, "Internal error. Only PD & setup should be valid when activated.")) {
 				return true;
 			}
@@ -122,7 +122,14 @@ namespace powerAuth
 		return false;
 	}
 	
-	
+	Version Session::protocolVersion() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->protocolVersion();
+		}
+		return Version_Latest;
+	}
 	
 	// MARK: - Serialization -
 	
@@ -591,7 +598,8 @@ namespace powerAuth
 		// Normalize data and calculate signature
 		const std::string & app_secret = request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationSecret;
 		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
-		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, _pd->signatureCounter, data);
+		cc7::ByteArray ctr_data = _pd->isV3() ? _pd->signatureCounterData : protocol::SignatureCounterToData(_pd->signatureCounter);
+		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data);
 		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
 			return EC_Encryption;
@@ -614,7 +622,7 @@ namespace powerAuth
 		}
 		
 		// Fill the rest of values to out structure
-		out.version			= protocol::PA_VERSION;
+		out.version			= _pd->isV3() ? protocol::PA_VERSION_V3 : protocol::PA_VERSION_V2;
 		out.activationId	= _pd->activationId;
 		out.applicationKey	= request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationKey;
 		
@@ -1067,6 +1075,36 @@ namespace powerAuth
 		// Now construct the encryptor with prepared setup.
 		out_encryptor = ECIESEncryptor(ecPublicKey, sharedInfo1, sharedInfo2);
 		return EC_Ok;
+	}
+	
+	// MARK: - Protocol migration -
+	
+	ErrorCode Session::commitMigration(const MigrationData & migration_data)
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: Migration: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		switch (_pd->protocolVersion()) {
+			case Version_V2:
+			{
+				cc7::ByteArray ctrData;
+				if (!cc7::Base64_Decode(migration_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
+					CC7_LOG("Session %p, %d: Migration: Wrong V3 migration data.", this, sessionIdentifier());
+					return EC_WrongParam;
+				}
+				// Everything looks fine, we can commit
+				_pd->signatureCounterData = ctrData;
+				_pd->signatureCounter = 0;
+				return EC_Ok;
+			}
+			case Version_V3:
+			{
+				CC7_LOG("Session %p, %d: Migration: Session is already in V3.", this, sessionIdentifier());
+				return EC_WrongState;
+			}
+		}
 	}
 	
 	// MARK: - Private methods -

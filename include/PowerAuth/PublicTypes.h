@@ -132,6 +132,22 @@ namespace powerAuth
 		EC_WrongParam,
 	};
 	
+	/**
+	 The Version enum defines PowerAuth protocol version. The main difference
+	 between V2 & V3 is that V3 is using hash-based counter instead of linear one,
+	 and all E2EE tasks are now implemented by ECIES.
+	 
+	 This version of SDK is supporting V2 protol in very limited scope, where only
+	 the V2 signature calculations are supported.
+	 */
+	enum Version
+	{
+		Version_V2 = 2,
+		Version_V3 = 3,
+		
+		// Special constant for "latest" version
+		Version_Latest = Version_V3
+	};
 	
 	//
 	// MARK: - Signatures -
@@ -571,6 +587,26 @@ namespace powerAuth
 		 the session has a valid activation.
 		 */
 		ECIES_ActivationScope  = 1
+	};
+
+	
+	
+	//
+	// MARK: - Migration -
+	//
+	
+	struct MigrationData
+	{
+		struct V3
+		{
+			/**
+			 Data for new hash based counter. The Base64 string with 16 bytes
+			 of encoded data is expected.
+			 */
+			std::string ctrData;
+		};
+		
+		V3 toV3;
 	};
 	
 } // io::getlime::powerAuth

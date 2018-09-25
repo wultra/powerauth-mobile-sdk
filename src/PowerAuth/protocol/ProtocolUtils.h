@@ -104,11 +104,17 @@ namespace protocol
 	bool ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & eek, bool protect);
 	
 	/**
-	 Calculates multi-factor signature from given |data|, for using |counter| and |keys|.
+	 Converts V2 signature sequential |counter| byte array. The result can be then passed to `CalculateSignature`
+	 function to calculate V2 signature.
+	 */
+	cc7::ByteArray SignatureCounterToData(cc7::U64 counter);
+	
+	/**
+	 Calculates multi-factor signature from given |data|, for using |ctr_data| and |keys|.
 	 */
 	std::string CalculateSignature(const SignatureKeys & sk,
 								   SignatureFactor factor,
-								   cc7::U64 ctr,
+								   const cc7::ByteRange & ctr_data,
 								   const cc7::ByteRange & data);
 	
 	/**

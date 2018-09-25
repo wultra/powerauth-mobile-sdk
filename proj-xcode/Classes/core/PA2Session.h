@@ -15,6 +15,7 @@
  */
 
 #import "PA2Types.h"
+#import "PA2MigrationData.h"
 #import "PA2SessionStatusProvider.h"
 
 @interface PA2Session : NSObject<PA2SessionStatusProvider>
@@ -77,6 +78,11 @@
  the server has been estabilished. You can sign data in this state.
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
+/**
+ Contains version of protocol in which the session currently operates. If session has no activation,
+ then the most up to date version is returned.
+ */
+@property (nonatomic, assign, readonly) PA2ProtocolVersion protocolVersion;
 
 
 #pragma mark - Serialization
@@ -483,5 +489,15 @@
  for all other situations, when the generated random key is required.
  */
 + (nonnull NSData*) generateSignatureUnlockKey;
+
+#pragma mark - Protocol migration
+
+/**
+ Commits migration data to the session. The version of migration data is determined by the
+ object you provide. Currently, only `PA2MigrationDataV3` is supported.
+ 
+ Returns YES if session has been successfully migrated.
+ */
+- (BOOL) commitMigrationData:(nonnull id<PA2MigrationData>)migrationData;
 
 @end

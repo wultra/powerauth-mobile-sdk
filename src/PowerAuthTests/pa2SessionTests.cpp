@@ -51,6 +51,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testActivationWithEEKUsingSetter);
 			CC7_REGISTER_TEST_METHOD(testServerSignedData);
 			CC7_REGISTER_TEST_METHOD(testOldDataMigration);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataMigrationToV3);
 		}
 		
 		EC_KEY *	_masterServerPrivateKey;
@@ -1074,6 +1075,49 @@ namespace powerAuthTests
 				cc7::ByteArray expected_derived_key = protocol::DeriveSecretKey(vault_key, 1977);
 				ccstAssertEqual(derived_key, expected_derived_key);
 			}
+		}
+		
+		void testPersistentDataMigrationToV3()
+		{
+			// constants
+			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
+			
+			SessionSetup oldSetup;
+			oldSetup.applicationKey		= "MDEyMzQ1Njc4OUFCQ0RFRg==";
+			oldSetup.applicationSecret	= "QUJDREVGMDEyMzQ1Njc4OQ==";
+			oldSetup.masterServerPublicKey = master_server_public_key;
+			
+			Session s1(oldSetup);
+			
+			auto v2_data = cc7::FromBase64String("UEECUDMAAAAAAAAAABtGVUxMLUJVVC1GQUtFLUFDVElWQVRJT04tSUQAACcQEFxD134A7"
+												 "jgrfXqjmzRSNEoQ+WilNdYscLQ/pbrYJqh9bhDqVVY8lLy2ZvMAtpwZwGrtEGAsKs9Rh8"
+												 "mZL1u+aQ3kdsgQKe2HE5aMUP+3mc0Zgzo1XSEC+N8Q8lTW59BH/5x6H+eahxi9n7A4ajz"
+												 "LgtaC3tTJhD8AMA3jUBawHBE2zowK9ThJL4kCPJPfzZVEcZhh6v1+IrQybj5WeD2HhFLw"
+												 "EJr1nHvmSQAAAAA=");
+			
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			auto ec = s1.loadSessionState(v2_data);
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V2);
+			ccstAssertFalse(s1.canStartActivation());
+			ccstAssertTrue(s1.hasValidActivation());
+			ccstAssertFalse(s1.hasPendingActivation());
+			ccstAssertFalse(s1.hasExternalEncryptionKey());
+			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			
+			MigrationData migration_data;
+			migration_data.toV3.ctrData = crypto::GetRandomData(16).base64String();
+			ec = s1.commitMigration(migration_data);
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			
+			// Try to save, reset & reload data
+			cc7::ByteArray v3_data = s1.saveSessionState();
+			s1.resetSession();
+			
+			ec = s1.loadSessionState(v3_data);
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
 		}
 		
 		

@@ -34,7 +34,7 @@ public enum ECIESEncryptorScope {
     Activation(1);
 
     /**
-     * The value associated to the enumeration. The property is mainly accessed from JNI code.
+     * The value associated to the enumeration.
      */
     public final int numericValue;
 

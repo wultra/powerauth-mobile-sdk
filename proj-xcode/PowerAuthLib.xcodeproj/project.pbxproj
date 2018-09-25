@@ -10,6 +10,7 @@
 		BF13A03A1FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */; };
 		BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */; };
+		BF200762215A6030001F3614 /* PA2MigrationData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF200761215A602F001F3614 /* PA2MigrationData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
 		BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
 		BF20EA881EACB17600733D91 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */; };
@@ -237,6 +238,7 @@
 		BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FakePowerAuthTokenStore.m; sourceTree = "<group>"; };
 		BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateEncryptorFactory.h; sourceTree = "<group>"; };
 		BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateEncryptorFactory.m; sourceTree = "<group>"; };
+		BF200761215A602F001F3614 /* PA2MigrationData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2MigrationData.h; sourceTree = "<group>"; };
 		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
 		BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXHTMLDocument.m; sourceTree = "<group>"; };
 		BF20EA701EACB17600733D91 /* CXMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument.h; sourceTree = "<group>"; };
@@ -450,6 +452,7 @@
 				1B2EEF301D662AB10039D92A /* PA2Session.h */,
 				BF30176D1FE027A20099B253 /* PA2SessionStatusProvider.h */,
 				1B2EEF321D662AB10039D92A /* PA2Types.h */,
+				BF200761215A602F001F3614 /* PA2MigrationData.h */,
 				1B6F00051D6DCDA700EC1C5A /* PA2Macros.h */,
 				BFDFED9420BEEF730094138A /* PA2CoreLog.h */,
 				1B7A3A531D8FCC0D002D1043 /* PA2PrivateMacros.h */,
@@ -805,6 +808,7 @@
 				BF8CF4DE2032EB41002A6B6E /* PA2PrivateTokenKeychainStore.h in Headers */,
 				BF8CF4E02032EB41002A6B6E /* PA2Response.h in Headers */,
 				BF8CF4E12032EB41002A6B6E /* PA2Request.h in Headers */,
+				BF200762215A6030001F3614 /* PA2MigrationData.h in Headers */,
 				BF8CF4E22032EB41002A6B6E /* PA2Macros.h in Headers */,
 				BF8CF4E32032EB41002A6B6E /* PA2NetworkObject.h in Headers */,
 				BF8CF4E42032EB41002A6B6E /* PA2ECIESEncryptor.h in Headers */,

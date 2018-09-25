@@ -16,6 +16,7 @@
 
 #include "PasswordJNI.h"
 #include "ECIESEncryptorJNI.h"
+#include "ProtocolVersionJNI.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #include <map>
@@ -150,6 +151,14 @@ CC7_JNI_METHOD(jboolean, hasValidSetup)
 	return session ? session->hasValidSetup() : false;
 }
 
+//
+// public native ProtocolVersion getProtocolVersion()
+//
+CC7_JNI_METHOD(jobject, getProtocolVersion)
+{
+	auto session = CC7_THIS_OBJ();
+	return CreateJavaProtocolVersion(env, session ? session->protocolVersion() : Version_Latest);
+}
 
 // ----------------------------------------------------------------------------
 // Serialization
@@ -349,11 +358,14 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStatus"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
+		const char * versionSig = CC7_JNI_MODULE_CLASS_SIGNATURE("ProtocolVersion");
+		jobject currentVersionObject = CreateJavaProtocolVersion(env, cppStatus.currentVersion);
+		jobject upgradeVersionObject = CreateJavaProtocolVersion(env, cppStatus.upgradeVersion);
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 			cppStatus.state);
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "failCount", 			cppStatus.failCount);
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "currentVersion",		cppStatus.currentVersion);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "upgradeVersion",		cppStatus.upgradeVersion);
+		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
+		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
 		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isMigrationAvailable",	cppStatus.isMigrationAvailable());
 	}
 	return resultObject;
@@ -706,6 +718,35 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, normalizeSignatureUnlockKeyFromData, jbyteArra
 CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
 {
 	return cc7::jni::CopyToJavaByteArray(env, Session::generateSignatureUnlockKey());
+}
+
+
+
+// ----------------------------------------------------------------------------
+// Protocol migration
+// ----------------------------------------------------------------------------
+
+//
+// public native int commitMigration(MigrationData migrationData);
+//
+CC7_JNI_METHOD_PARAMS(jint, commitMigration, jobject md)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return EC_WrongParam;
+	}
+	// Load parameters into C++ struct
+
+	jclass mdClazz = CC7_JNI_MODULE_FIND_CLASS("MigrationData");
+	auto cpp_version = (Version) CC7_JNI_GET_FIELD_INT(md, mdClazz, "toVersion");
+
+	MigrationData cpp_md;
+	if (cpp_version == Version_V3) {
+		// Load V3 fields...
+		cpp_md.toV3.ctrData = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(md, mdClazz, "v3CtrData"));
+	}
+	return (jint) session->commitMigration(cpp_md);
 }
 
 CC7_JNI_MODULE_CLASS_END()

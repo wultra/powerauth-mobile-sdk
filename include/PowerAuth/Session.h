@@ -114,6 +114,12 @@ namespace powerAuth
 		 */
 		bool hasValidActivation() const;
 		
+		/**
+		 Returns version of protocol in which the session currently operates. The version is determined by the
+		 session's state. If session has no activation, then the most up to date version is returned.
+		 */
+		Version protocolVersion() const;
+		
 		
 		// MARK: - Serialization -
 		
@@ -518,6 +524,24 @@ namespace powerAuth
 		 for all other situations, when the generated random key is required.
 		 */
 		static cc7::ByteArray generateSignatureUnlockKey();
+		
+	public:
+		
+		// MARK: - Protocol migration -
+		
+		/**
+		 Commits |migration_data| to the session. The |migration_data| structure must contain
+		 all required information for migration _from_ current state to a new one. For example,
+		 if session is in V2 protocol version, then the structure must contain data for migration
+		 from V2 to V3 (typically named as `toV3`)
+		 
+		 Returns EC_Ok			if operation succeeded and session has been successfully
+		 						migrated to new protocol version.
+		 		 EC_WrongState	if migration is not required, or
+		 						if session has no valid activation.
+		 		 EC_WrongParam	if migration data contains invalid data.
+		 */
+		ErrorCode commitMigration(const MigrationData & migration_data);
 
 		
 	public:

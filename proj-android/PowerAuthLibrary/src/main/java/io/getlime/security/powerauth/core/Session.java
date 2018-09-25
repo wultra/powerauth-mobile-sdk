@@ -95,6 +95,12 @@ public class Session {
      or not.
 	 */
 	public native boolean hasValidSetup();
+
+	/**
+	 * @return Version of protocol in which the session currently operates. If the session has no
+	 *         activation, then the most up to date version is returned.
+	 */
+	public native ProtocolVersion getProtocolVersion();
 	
 	//
 	// Serialization
@@ -251,17 +257,17 @@ public class Session {
      method of signed request. The |request.uri| parameter should be relative URI. Check the original PA2
      documentation for details about signing the HTTP requests.
 
-     If you're going to sign request for a vault key retrieving, then you have to specifiy signature
+     If you're going to sign request for a vault key retrieving, then you have to specify signature
      factor combined with SignatureFactor.PrepareForVaultUnlock flag. Otherwise the subsequent
      vault unlock operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) 
      and you'll not be able to complete the operation.
 
-     The returned object contais 'errorCode' and 'signature' string, which is an exact and 
+     The returned object contains 'errorCode' and 'signature' string, which is an exact and
      complete value for "X-PowerAuth-Authorization" HTTP header.
 
      WARNING
 
-     You have to save Session's state after the successfull operation, because the internal counter
+     You have to save Session's state after the successful operation, because the internal counter
      is changed. If you don't save the state then you'll sooner or later loose synchronization
      with the server and your client will not be able to sign data anymore.
 
@@ -456,7 +462,7 @@ public class Session {
 	//
 	
 	/**
-     Returns bytes with normalized key suitable for a signagure keys protection. The key is computed from
+     Returns bytes with normalized key suitable for a signature keys protection. The key is computed from
      provided data with using one-way hash function (SHA256)
 
      Discussion
@@ -481,4 +487,17 @@ public class Session {
      for all other situations, when the generated random key is required.
      */
 	public native byte[] generateSignatureUnlockKey();
+
+	//
+	// Protocol migration
+	//
+
+	/**
+	 * Commits migration data to the session. You need to construct migration data object
+	 * to match the migration from current protocol version, to the upgraded one.
+	 *
+	 * Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
+	 * then the operation succeeded.
+	 */
+	public native int commitMigration(MigrationData migrationData);
 }

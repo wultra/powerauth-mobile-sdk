@@ -108,6 +108,27 @@ typedef NS_ENUM(int, PA2CoreErrorCode) {
 };
 
 
+/**
+ The PA2ProtocolVersion enum defines PowerAuth protocol version. The main difference
+ between V2 & V3 is that V3 is using hash-based counter instead of linear one,
+ and all E2EE tasks are now implemented by ECIES.
+ 
+ This version of SDK is supporting V2 protol in very limited scope, where only
+ the V2 signature calculations are supported. Basically, you cannot connect
+ to V2 servers with V3 SDK.
+ */
+typedef NS_ENUM(int, PA2ProtocolVersion) {
+	/**
+	 Protocol version 2
+	 */
+	PA2ProtocolVersion_V2 = 2,
+	/**
+	 Protocol version 3
+	 */
+	PA2ProtocolVersion_V3 = 3,
+};
+
+
 #pragma mark - Signatures -
 
 /**

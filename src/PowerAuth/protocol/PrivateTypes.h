@@ -145,9 +145,13 @@ namespace protocol
 	struct PersistentData
 	{
 		/**
-		 Counter for signature calculations
+		 V2: Counter for signature calculations
 		 */
 		cc7::U64		signatureCounter;
+		/**
+		 V3: Data for hash-based counter for signature calculations
+		 */
+		cc7::ByteArray	signatureCounterData;
 		/**
 		 ActivationId, that's our identity known on the server
 		 */
@@ -199,6 +203,21 @@ namespace protocol
 			passwordIterations(0),
 			flagsU32(0)
 		{
+		}
+		
+		/**
+		 Returns version of protocol, depending on data stored in the structure.
+		 */
+		inline Version protocolVersion() const
+		{
+			return signatureCounterData.empty() ? Version_V2 : Version_V3;
+		}
+		
+		/**
+		 Returns true if data stored in structure matches V3 protocol.
+		 */
+		inline bool isV3() const {
+			return protocolVersion() == Version_V3;
 		}
 	};
 	

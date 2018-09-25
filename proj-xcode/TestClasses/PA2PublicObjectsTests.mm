@@ -73,14 +73,16 @@ using namespace io::getlime::powerAuth;
 		ActivationStatus cpp_status;
 		cpp_status.failCount = (cc7::U32)idx;
 		cpp_status.maxFailCount = (cc7::U32)(100 - idx);
-		cpp_status.counter = (cc7::U32)(999 + idx);
 		cpp_status.state = coreStates[idx];
+		cpp_status.currentVersion = ActivationStatus::V2;
+		cpp_status.upgradeVersion = ActivationStatus::V3;
 		
 		PA2ActivationStatus * so = PA2ActivationStatusToObject(cpp_status);
 		XCTAssertEqual(so.state, (PA2ActivationState)pa2st.integerValue);
 		XCTAssertEqual(so.maxFailCount, 100 - idx);
 		XCTAssertEqual(so.failCount, idx);
-		XCTAssertEqual(so.counter, 999 + idx);
+		XCTAssertEqual(so.currentActivationVersion, 2);
+		XCTAssertEqual(so.upgradeActivationVersion, 3);
 	}];
 }
 

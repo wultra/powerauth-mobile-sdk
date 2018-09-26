@@ -605,21 +605,8 @@ namespace powerAuth
 			return EC_Encryption;
 		}
 		
-		// Increase signing counter
-		_pd->signatureCounter += 1;
-		// Handle "Prepare for vault unlock"
-		if (_pd->flags.waitingForVaultUnlock) {
-			// This is just a warning. Your client probably did not receive response from a previous vault unlock HTTP request.
-			CC7_LOG("Session %p, %d: Sign: Session is already waiting for a vault unlocking.");
-		}
-		if (vault_unlock) {
-			// If we're signing vault unlock request then the counter must be increased for one more time
-			_pd->signatureCounter += 1;
-			_pd->flags.waitingForVaultUnlock = 1;
-		} else {
-			// Clear waiting flag.
-			_pd->flags.waitingForVaultUnlock = 0;
-		}
+		// Move counter forward
+		protocol::CalculateNextCounterValue(*_pd, vault_unlock);
 		
 		// Fill the rest of values to out structure
 		out.version			= _pd->isV3() ? protocol::PA_VERSION_V3 : protocol::PA_VERSION_V2;
@@ -1094,9 +1081,10 @@ namespace powerAuth
 					CC7_LOG("Session %p, %d: Migration: Wrong V3 migration data.", this, sessionIdentifier());
 					return EC_WrongParam;
 				}
-				// Everything looks fine, we can commit
+				// Everything looks fine, we can commit new data
 				_pd->signatureCounterData = ctrData;
 				_pd->signatureCounter = 0;
+				_pd->flags.waitingForVaultUnlock = 0;
 				return EC_Ok;
 			}
 			case Version_V3:

@@ -110,6 +110,11 @@ namespace protocol
 	cc7::ByteArray SignatureCounterToData(cc7::U64 counter);
 	
 	/**
+	 Calculates next signature counter value in |pd|. The function distinguinsh between V2 and V3 signature counter.
+	 */
+	void CalculateNextCounterValue(PersistentData & pd, bool v2_vault_unlock);
+	
+	/**
 	 Calculates multi-factor signature from given |data|, for using |ctr_data| and |keys|.
 	 */
 	std::string CalculateSignature(const SignatureKeys & sk,

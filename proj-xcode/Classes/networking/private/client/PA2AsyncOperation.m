@@ -38,9 +38,6 @@
 {
 	self = [super init];
 	if (self) {
-		_reported = NO;
-		_isExecuting = NO;
-		_isFinished = NO;
 		_reportQueue = queue;
 		_lock = [[NSLock alloc] init];
 	}

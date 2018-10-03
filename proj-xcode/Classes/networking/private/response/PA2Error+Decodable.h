@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
+#import "PA2Error.h"
 #import "PA2Codable.h"
 
-@class PA2ECIESCryptogram;
-
-@interface PA2EncryptedResponse: NSObject<PA2Decodable>
-
-@property (nonatomic, strong) NSString * encryptedData;
-@property (nonatomic, strong) NSString * mac;
-
-- (PA2ECIESCryptogram*) cryptogram;
-
+@interface PA2Error (Decodable) <PA2Decodable>
 @end

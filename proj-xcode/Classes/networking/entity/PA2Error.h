@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Macros.h"
 
-/** Class representing an error in the RESTful API.
+/**
+ Class representing an error in the RESTful API.
  */
-@interface PA2Error : NSObject <PA2NetworkObject>
+@interface PA2Error : NSObject
 
 /** Error code
  */

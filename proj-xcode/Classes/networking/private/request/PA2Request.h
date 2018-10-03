@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
 /**
  Class representing a generic PowerAuth 2.0 Standard API requests.
@@ -22,9 +22,14 @@
  Client classes are supposed to create a new object using 'initWithDictionary:requestObjectType:'
  method and serialize request objects using 'toDictionary' method.
  */
-@interface PA2Request<T> : NSObject
+@interface PA2Request<T> : NSObject<PA2Encodable>
 
-@property (nonatomic, strong) T<PA2NetworkObject> requestObject;
+@property (nonatomic, strong) T<PA2Encodable> requestObject;
+
+/**
+ Initializes instance of PA2Request with embedded object.
+ */
+- (instancetype) initWithObject:(T<PA2Encodable>)object;
 
 /**
  Serialize request object to the dictionary that is ready to be serialized to the correct

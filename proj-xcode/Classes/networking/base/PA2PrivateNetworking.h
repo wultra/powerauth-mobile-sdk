@@ -19,11 +19,14 @@
 #import "PA2Client.h"
 #import "PA2PrivateMacros.h"
 #import "PA2Log.h"
+#import "PA2ErrorResponse+Decodable.h"
 
 // Requests / Responses
+#import "PA2Codable.h"
+#import "PA2Request.h"
+#import "PA2Response.h"
 #import "PA2CreateActivationRequest.h"
 #import "PA2CreateActivationResponse.h"
-#import "PA2DirectCreateActivationRequest.h"
 
 #import "PA2ActivationStatusRequest.h"
 #import "PA2ActivationStatusResponse.h"

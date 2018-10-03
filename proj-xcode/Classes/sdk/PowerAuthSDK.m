@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PowerAuthSDK.h"
+#import "PowerAuthSDK+Private.h"
 
 #import "PA2Keychain.h"
 #import "PA2OtpUtil.h"
@@ -127,17 +127,13 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	[self restoreState];
 	
 	// Register this instance to handle messages
-	// NOTE: The actual PA2WCSessionDataHandler implementation is in +WatchSupportPrivate category,
-	//       so we can freely cast self to this protocol.
-	[[PA2WCSessionManager sharedInstance] registerDataHandler:(id<PA2WCSessionDataHandler>)self];
+	[[PA2WCSessionManager sharedInstance] registerDataHandler:self];
 }
 
 - (void) dealloc
 {
 	// Unregister this instance for processing packets...
-	// NOTE: The actual PA2WCSessionDataHandler implementation is in +WatchSupportPrivate category,
-	//       so we can freely cast self to this protocol.
-	[[PA2WCSessionManager sharedInstance] unregisterDataHandler:(id<PA2WCSessionDataHandler>)self];
+	[[PA2WCSessionManager sharedInstance] unregisterDataHandler:self];
 }
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-#import "PA2CreateActivationRequest.h"
+#import "PA2ErrorResponse.h"
+#import "PA2Codable.h"
 
-@interface PA2DirectCreateActivationRequest : NSObject <PA2NetworkObject>
-
-@property (nonnull, nonatomic, strong) NSDictionary<NSString*, NSString*>* identity;
-@property (nonnull, nonatomic, strong) NSDictionary<NSString*, NSObject*>* customAttributes;
-@property (nonnull, nonatomic, strong) PA2CreateActivationRequest* powerauth;
-
+@interface PA2ErrorResponse (Decodable) <PA2Decodable>
 @end

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
 /** Request for '/pa/activation/create' endpoint.
  */
-@interface PA2CreateActivationRequest : NSObject <PA2NetworkObject>
+@interface PA2CreateActivationRequest : NSObject <PA2Encodable>
 
 @property (nonatomic, strong) NSString *activationIdShort;
 @property (nonatomic, strong) NSString *applicationKey;

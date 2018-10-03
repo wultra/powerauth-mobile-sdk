@@ -16,16 +16,17 @@
 
 #import "PA2EncryptedRequest.h"
 #import "PA2PrivateMacros.h"
+#import "PA2ECIESEncryptor.h"
 
 @implementation PA2EncryptedRequest
 
-- (instancetype) initWithDictionary:(NSDictionary *)dict
+- (id) initWithCryptogram:(PA2ECIESCryptogram*)cryptogram
 {
 	self = [super init];
 	if (self) {
-		_ephemeralPublicKey = PA2ObjectAs(dict[@"ephemeralPublicKey"], NSString);
-		_encryptedData		= PA2ObjectAs(dict[@"encryptedData"], NSString);
-		_mac				= PA2ObjectAs(dict[@"mac"], NSString);
+		_ephemeralPublicKey = cryptogram.keyBase64;
+		_encryptedData = cryptogram.bodyBase64;
+		_mac = cryptogram.macBase64;
 	}
 	return self;
 }

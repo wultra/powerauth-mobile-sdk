@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-#import "PA2Error.h"
-
-/**
- Enum representing the response status: ok, or error
- */
-typedef NS_ENUM(NSInteger, PA2RestResponseStatus) {
-	PA2RestResponseStatus_OK = 0,
-	PA2RestResponseStatus_ERROR = 1
-};
+#import "PA2Error+Decodable.h"
+#import "PA2RestResponseStatus.h"
 
 /** Class representing a generic PowerAuth 2.0 Standard API response.
  
@@ -35,7 +28,14 @@ typedef NS_ENUM(NSInteger, PA2RestResponseStatus) {
  Contains response status (OK or ERROR)
  */
 @property (nonatomic, assign) PA2RestResponseStatus status;
-@property (nonatomic, strong) T<PA2NetworkObject> responseObject;
+/**
+ Contains response object in case that status is OK.
+ */
+@property (nonatomic, strong) T<PA2Decodable> responseObject;
+/**
+ Contains PA2Error in case that status is ERROR.
+ */
+@property (nonatomic, strong) PA2Error * responseError;
 
 /**
  Initializes a new response from given dictionary (as it is received from PowerAuth 2.0 Standard RESTful API)
@@ -45,6 +45,6 @@ typedef NS_ENUM(NSInteger, PA2RestResponseStatus) {
  @param responseObjectType Class of the response Object type.
  @return New instance of PAResponse class.
  */
-- (instancetype)initWithDictionary:(NSDictionary<NSString*, NSObject*>*)dictionary responseObjectType:(Class)responseObjectType;
+- (instancetype) initWithDictionary:(NSDictionary<NSString*, NSObject*>*)dictionary responseObjectType:(Class)responseObjectType;
 
 @end

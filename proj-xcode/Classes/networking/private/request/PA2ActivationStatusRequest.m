@@ -19,20 +19,12 @@
 
 @implementation PA2ActivationStatusRequest
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super init];
-    if (self) {
-        _activationId = PA2ObjectAs(dictionary[@"activationId"], NSString);
-    }
-    return self;
-}
-
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if (_activationId) {
-        [dictionary setObject:_activationId forKey:@"activationId"];
-    }
-    return dictionary;
+- (NSDictionary*) toDictionary
+{
+	if (_activationId) {
+		return @{ @"activationId" : _activationId };
+	}
+	return @{};
 }
 
 

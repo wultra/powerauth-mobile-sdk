@@ -19,15 +19,6 @@
 
 @implementation PA2RemoveTokenRequest
 
-- (instancetype) initWithDictionary:(NSDictionary *)dictionary
-{
-	self = [super init];
-	if (self) {
-		_tokenId = PA2ObjectAs([dictionary objectForKey:@"tokenId"], NSString);
-	}
-	return self;
-}
-
 - (NSDictionary*) toDictionary
 {
 	return _tokenId ? @{ @"tokenId" : _tokenId } : @{};

@@ -19,7 +19,8 @@
 
 @implementation PA2CreateActivationResponse
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
     self = [super init];
     if (self) {
         _activationId						= PA2ObjectAs(dictionary[@"activationId"], NSString);
@@ -30,29 +31,6 @@
 		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
     }
     return self;
-}
-
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if (_activationId) {
-        [dictionary setObject:_activationId forKey:@"activationId"];
-    }
-    if (_activationNonce) {
-        [dictionary setObject:_activationNonce forKey:@"activationNonce"];
-    }
-    if (_ephemeralPublicKey) {
-        [dictionary setObject:_ephemeralPublicKey forKey:@"ephemeralPublicKey"];
-    }
-    if (_encryptedServerPublicKey) {
-        [dictionary setObject:_encryptedServerPublicKey forKey:@"encryptedServerPublicKey"];
-    }
-    if (_encryptedServerPublicKeySignature) {
-        [dictionary setObject:_encryptedServerPublicKeySignature forKey:@"encryptedServerPublicKeySignature"];
-    }
-	if (_customAttributes) {
-		[dictionary setObject:_customAttributes forKey:@"customAttributes"];
-	}
-    return dictionary;
 }
 
 @end

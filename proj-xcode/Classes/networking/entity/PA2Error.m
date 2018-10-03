@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-#import "PA2Error.h"
+#import "PA2Error+Decodable.h"
 #import "PA2PrivateMacros.h"
 
 @implementation PA2Error
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary
+#ifdef DEBUG
+- (NSString*) description
+{
+	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@>", _code ? _code : @"<null>", _message ? _message : @"<null>"];
+}
+#endif
+
+@end
+
+@implementation PA2Error (Decodable)
+
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
 {
 	self = [super init];
 	if (self) {
@@ -28,24 +39,5 @@
 	}
 	return self;
 }
-
-- (NSDictionary*) toDictionary
-{
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:2];
-	if (_code) {
-		dictionary[@"code"] = _code;
-	}
-	if (_message) {
-		dictionary[@"message"] = _message;
-	}
-	return dictionary;
-}
-
-#ifdef DEBUG
-- (NSString*) description
-{
-	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@>", _code ? _code : @"<null>", _message ? _message : @"<null>"];
-}
-#endif
 
 @end

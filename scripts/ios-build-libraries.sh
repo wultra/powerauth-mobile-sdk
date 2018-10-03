@@ -222,15 +222,15 @@ function COPY_SOURCE_FILES
 	$MD "${DST}/Private"
 	
 	# Copy each SDK folder
-	COPY_SRC_DIR "sdk"        "$SRC" "$DST" 0
-	COPY_SRC_DIR "core"       "$SRC" "$DST" 1
-	COPY_SRC_DIR "networking" "$SRC" "$DST" 0
-	COPY_SRC_DIR "keychain"   "$SRC" "$DST" 0
-	COPY_SRC_DIR "e2ee"       "$SRC" "$DST" 0
-	COPY_SRC_DIR "token"      "$SRC" "$DST" 0
-	COPY_SRC_DIR "system"     "$SRC" "$DST" 0
-	COPY_SRC_DIR "util"       "$SRC" "$DST" 0
-	COPY_SRC_DIR "watch"      "$SRC" "$DST" 0
+	COPY_SRC_DIR "sdk"        	"$SRC" "$DST" 0
+	COPY_SRC_DIR "sdk-private"	"$SRC" "$DST" 0
+	COPY_SRC_DIR "core"       	"$SRC" "$DST" 1
+	COPY_SRC_DIR "networking" 	"$SRC" "$DST" 0
+	COPY_SRC_DIR "keychain"   	"$SRC" "$DST" 0
+	COPY_SRC_DIR "token"      	"$SRC" "$DST" 0
+	COPY_SRC_DIR "system"     	"$SRC" "$DST" 0
+	COPY_SRC_DIR "util"       	"$SRC" "$DST" 0
+	COPY_SRC_DIR "watch"      	"$SRC" "$DST" 0
 	
 	# And finally, top level header..
 	# Disabled, CocoaPods generates it own umbrella header. 

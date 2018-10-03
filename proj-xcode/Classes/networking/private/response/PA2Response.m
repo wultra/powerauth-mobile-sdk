@@ -19,7 +19,7 @@
 
 @implementation PA2Response
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary responseObjectType:(Class)responseObjectType
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary responseObjectType:(Class)responseObjectType
 {
     self = [super init];
     if (self) {
@@ -27,14 +27,15 @@
 		NSString * statusString 		= PA2ObjectAs(dictionary[@"status"], NSString);
 		NSDictionary * objectDictionary = PA2ObjectAs(dictionary[@"responseObject"], NSDictionary);
 		// Check status
-		if ([[statusString lowercaseString] isEqualToString:@"ok"]) {
+		if ([statusString isEqualToString:@"ok"]) {
 			// Deserialize expected response object type
 			_status = PA2RestResponseStatus_OK;
 			_responseObject = [[responseObjectType alloc] initWithDictionary:objectDictionary];
 		} else {
 			// Deserialize error object
 			_status = PA2RestResponseStatus_ERROR;
-			_responseObject = [[PA2Error alloc] initWithDictionary:objectDictionary];
+			// TODO: looks like we're not using this property at all.
+			_responseError = [[PA2Error alloc] initWithDictionary:objectDictionary];
 		}
     }
     return self;

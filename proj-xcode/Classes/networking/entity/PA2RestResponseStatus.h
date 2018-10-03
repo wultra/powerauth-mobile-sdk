@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-#import "PA2Request.h"
+#import "PA2Macros.h"
 
-@implementation PA2Request
-
-- (NSDictionary*) toDictionary
-{
-	NSDictionary * dict = [_requestObject toDictionary];
-	return dict ? @{ @"requestObject" : dict } : @{};
-}
-
-@end
+/**
+ Enum representing the response status: OK, or ERROR
+ */
+typedef NS_ENUM(NSInteger, PA2RestResponseStatus) {
+	PA2RestResponseStatus_OK = 0,
+	PA2RestResponseStatus_ERROR = 1,
+};

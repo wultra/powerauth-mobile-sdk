@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Request.h"
 
-/** Protocol for basic network transport object API.
- */
-@protocol PA2NetworkObject <NSObject>
+@implementation PA2Request
 
-/** Initialize a new instance of PANetworkObject from a dictionary.
- 
- @param dictionary Dictionary with the field related to given network object.
- @return New instance of network object.
- */
-- (instancetype) initWithDictionary:(NSDictionary<NSString*, NSObject*>*)dictionary;
+- (instancetype) initWithObject:(id<PA2Encodable>)object
+{
+	self = [super init];
+	if (self) {
+		_requestObject = object;
+	}
+	return self;
+}
 
-/** Convert current network object instance to the dictionary.
- 
- @return Current object converted to the dictionary.
- */
-- (NSDictionary<NSString*, NSObject*>*) toDictionary;
+- (NSDictionary*) toDictionary
+{
+	NSDictionary * dict = [_requestObject toDictionary];
+	return dict ? @{ @"requestObject" : dict } : @{};
+}
 
 @end

@@ -15,6 +15,7 @@
  */
 
 #import "PA2PublicNetworking.h"
+#import "PA2Codable.h"
 
 @interface PA2Client : NSObject <NSURLSessionDelegate>
 
@@ -33,7 +34,7 @@
  Embeds PA2NetworkObject into PA2Request object and returns serialized NSData object with
  serialized JSON.
  */
-- (nonnull NSData*) embedNetworkObjectIntoRequest:(nullable id<PA2NetworkObject>)object;
+- (nonnull NSData*) embedNetworkObjectIntoRequest:(nullable id<PA2Encodable>)object;
 
 - (nonnull NSURLSessionDataTask*) postToUrl:(nonnull NSURL*)url
 									   data:(nonnull NSData*)data
@@ -41,9 +42,9 @@
 								 completion:(nonnull void(^)(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error))completion;
 
 - (nonnull NSURLSessionDataTask*) postToUrl:(nonnull NSURL*)absoluteUrl
-							  requestObject:(nullable id<PA2NetworkObject>)requestObject
+							  requestObject:(nullable id<PA2Encodable>)requestObject
 									headers:(nullable NSDictionary*)headers
 						responseObjectClass:(nullable Class)responseObjectClass
-								   callback:(nonnull void(^)(PA2RestResponseStatus status, id<PA2NetworkObject> _Nullable response, NSError * _Nullable error))callback;
+								   callback:(nonnull void(^)(PA2RestResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))callback;
 
 @end

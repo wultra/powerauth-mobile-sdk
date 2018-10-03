@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-// All imports for public interfaces
+#import "PowerAuthSDK.h"
+#import "PA2PrivateCryptoHelper.h"
+#import "PA2WCSessionDataHandler.h"
 
-#import "PA2ClientConfiguration.h"
-#import "PA2AuthorizationHttpHeader.h"
-#import "PA2ActivationResult.h"
-#import "PA2ErrorResponse.h"
-#import "PA2Error.h"
-#import "PA2ClientSslValidationStrategy.h"
-#import "PA2ClientSslNoValidationStrategy.h"
-#import "PA2OperationTask.h"
+@class PA2PrivateEncryptorFactory;
 
+// Exposing several private interfaces
+@interface PowerAuthSDK (Private)
+@property (nonatomic, strong, readonly) NSString * privateInstanceId;
+- (NSData*) deviceRelatedKey;
+@end
+
+// Declaration for PA2PrivateCryptoHelper
+@interface PowerAuthSDK (CryptoHelper) <PA2PrivateCryptoHelper>
+@end
+
+
+// Declaration required by watchSDK integration (see PowerAuthSDK+WatchSupport.m)
+@interface PowerAuthSDK (WatchSupportPrivate) <PA2WCSessionDataHandler>
+@end

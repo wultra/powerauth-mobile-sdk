@@ -14,30 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2ErrorResponse.h"
+#import "PA2ErrorResponse+Decodable.h"
+#import "PA2Error+Decodable.h"
 
 @implementation PA2ErrorResponse
-
-- (instancetype)initWithError:(PA2Error*)error {
-	self = [super init];
-	if (self) {
-		self.status = PA2RestResponseStatus_ERROR;
-		self.responseObject = error;
-	}
-	return self;
-}
-
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
-	self = [super init];
-	if (self) {
-		self.status = PA2RestResponseStatus_ERROR;
-		NSDictionary *errorDict = [dictionary objectForKey:@"responseObject"];
-		if (errorDict != nil) {
-			self.responseObject = [[PA2Error alloc] initWithDictionary:errorDict];
-		}
-	}
-	return self;
-}
 
 #ifdef DEBUG
 - (NSString*) description
@@ -48,5 +28,22 @@
 	return [NSString stringWithFormat:@"<PA2ErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
 }
 #endif
+
+@end
+
+@implementation PA2ErrorResponse (Decodable)
+
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
+	self = [super init];
+	if (self) {
+		self.status = PA2RestResponseStatus_ERROR;
+		NSDictionary *errorDict = [dictionary objectForKey:@"responseObject"];
+		if (errorDict != nil) {
+			self.responseObject = [[PA2Error alloc] initWithDictionary:errorDict];
+		}
+	}
+	return self;
+}
 
 @end

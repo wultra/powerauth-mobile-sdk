@@ -19,23 +19,9 @@
 
 @implementation PA2CreateActivationRequest
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
-    self = [super init];
-    if (self) {
-        _activationIdShort          = PA2ObjectAs(dictionary[@"activationIdShort"], NSString);
-        _activationName             = PA2ObjectAs(dictionary[@"activationName"], NSString);
-        _applicationKey             = PA2ObjectAs(dictionary[@"applicationKey"], NSString);
-        _activationNonce            = PA2ObjectAs(dictionary[@"activationNonce"], NSString);
-        _applicationSignature       = PA2ObjectAs(dictionary[@"applicationSignature"], NSString);
-        _encryptedDevicePublicKey   = PA2ObjectAs(dictionary[@"encryptedDevicePublicKey"], NSString);
-        _ephemeralPublicKey         = PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
-        _extras                     = PA2ObjectAs(dictionary[@"extras"], NSString);
-    }
-    return self;
-}
-
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+- (NSDictionary*) toDictionary
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:8];
     if (_activationIdShort) {
         [dictionary setObject:_activationIdShort forKey:@"activationIdShort"];
     }

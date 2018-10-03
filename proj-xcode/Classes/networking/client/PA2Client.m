@@ -21,6 +21,8 @@
 
 @implementation PA2Client
 
+#warning Class will be removed soon
+
 #pragma mark - Private Methods
 
 /** Take data from error RESTful API response and convert them to NSError.
@@ -37,7 +39,7 @@
 	// Create PA2ErrorResponse object
 	PA2ErrorResponse *httpResponseObject;
 	if (data == nil || err) { // there was no data or data could not be parsed as JSON
-		httpResponseObject = [[PA2ErrorResponse alloc] initWithError:nil];
+		httpResponseObject = [[PA2ErrorResponse alloc] initWithDictionary:nil];
 	} else {
 		httpResponseObject = [[PA2ErrorResponse alloc] initWithDictionary:responseDictionary];
 	}
@@ -125,7 +127,7 @@
 	return postDataTask;
 }
 
-- (NSData*) embedNetworkObjectIntoRequest:(id<PA2NetworkObject>)object
+- (NSData*) embedNetworkObjectIntoRequest:(id<PA2Encodable>)object
 {
 	if (!object) {
 		static char s_brackets[] = "{}";
@@ -137,10 +139,10 @@
 }
 
 - (NSURLSessionDataTask*) postToUrl:(NSURL*)absoluteUrl
-					  requestObject:(id<PA2NetworkObject>)requestObject
+					  requestObject:(id<PA2Encodable>)requestObject
 							headers:(NSDictionary*)headers
 				responseObjectClass:(Class)responseObjectClass
-						   callback:(void(^)(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error))callback {
+						   callback:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error))callback {
 	
 	// Prepare post data if any object was passed
 	NSData *postData = [self embedNetworkObjectIntoRequest:requestObject];
@@ -186,7 +188,7 @@
 - (NSURLSessionDataTask*) createActivation:(PA2CreateActivationRequest*)request
 								  callback:(void(^)(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/activation/create"];
-	return [self postToUrl:fullUrl requestObject:request headers:nil responseObjectClass:[PA2CreateActivationResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:nil responseObjectClass:[PA2CreateActivationResponse class] callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, (PA2CreateActivationResponse*)response, error);
 	}];
 }
@@ -194,7 +196,7 @@
 - (NSURLSessionDataTask*) getActivationStatus:(PA2ActivationStatusRequest*)request
 									 callback:(void(^)(PA2RestResponseStatus status, PA2ActivationStatusResponse *response, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/activation/status"];
-	return [self postToUrl:fullUrl requestObject:request headers:nil responseObjectClass:[PA2ActivationStatusResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:nil responseObjectClass:[PA2ActivationStatusResponse class] callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, (PA2ActivationStatusResponse*)response, error);
 	}];
 }
@@ -203,7 +205,7 @@
 								  callback:(void(^)(PA2RestResponseStatus status, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/activation/remove"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:nil headers:headers responseObjectClass:nil callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:nil headers:headers responseObjectClass:nil callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, error);
 	}];
 }
@@ -213,7 +215,7 @@
 							 callback:(void(^)(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *error))callback {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/vault/unlock"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2VaultUnlockResponse class] callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, (PA2VaultUnlockResponse*)response, error);
 	}];
 }
@@ -225,7 +227,7 @@
 {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/token/create"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:encryptedData headers:headers responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:encryptedData headers:headers responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, (PA2EncryptedResponse*)response, error);
 	}];
 }
@@ -236,7 +238,7 @@
 {
 	NSURL *fullUrl = [self urlForRelativePath:@"/pa/token/remove"];
 	NSDictionary *headers = @{ signatureHeader.key : signatureHeader.value };
-	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2NetworkObject> response, NSError *error) {
+	return [self postToUrl:fullUrl requestObject:request headers:headers responseObjectClass:[PA2EncryptedResponse class] callback:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		callback(status, error);
 	}];
 }

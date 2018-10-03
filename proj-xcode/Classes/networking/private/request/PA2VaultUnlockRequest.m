@@ -18,17 +18,17 @@
 #import "PA2PrivateMacros.h"
 
 
-static PA2VaultUnlockReason _StringToReason(NSString * str)
-{
-	if (str) {
-		if ([str isEqualToString:@"PASSWORD_VALIDATE"]) return PA2VaultUnlockReason_PASSWORD_VALIDATE;
-		if ([str isEqualToString:@"PASSWORD_CHANGE"]) return PA2VaultUnlockReason_PASSWORD_CHANGE;
-		if ([str isEqualToString:@"ADD_BIOMETRY"]) return PA2VaultUnlockReason_ADD_BIOMETRY;
-		if ([str isEqualToString:@"FETCH_ENCRYPTION_KEY"]) return PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY;
-		if ([str isEqualToString:@"SIGN_WITH_DEVICE_PRIVATE_KEY"]) return PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY;
-	}
-	return PA2VaultUnlockReason_Unknown;
-}
+//static PA2VaultUnlockReason _StringToReason(NSString * str)
+//{
+//	if (str) {
+//		if ([str isEqualToString:@"PASSWORD_VALIDATE"]) return PA2VaultUnlockReason_PASSWORD_VALIDATE;
+//		if ([str isEqualToString:@"PASSWORD_CHANGE"]) return PA2VaultUnlockReason_PASSWORD_CHANGE;
+//		if ([str isEqualToString:@"ADD_BIOMETRY"]) return PA2VaultUnlockReason_ADD_BIOMETRY;
+//		if ([str isEqualToString:@"FETCH_ENCRYPTION_KEY"]) return PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY;
+//		if ([str isEqualToString:@"SIGN_WITH_DEVICE_PRIVATE_KEY"]) return PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY;
+//	}
+//	return PA2VaultUnlockReason_Unknown;
+//}
 
 static NSString * _ReasonToString(PA2VaultUnlockReason reason)
 {
@@ -52,15 +52,6 @@ static NSString * _ReasonToString(PA2VaultUnlockReason reason)
 	self = [super init];
 	if (self) {
 		_reason = reason;
-	}
-	return self;
-}
-
-- (instancetype) initWithDictionary:(NSDictionary*)dictionary
-{
-	self = [super init];
-	if (self) {
-		_reason = _StringToReason(PA2ObjectAs([dictionary objectForKey:@"reason"], NSString));
 	}
 	return self;
 }

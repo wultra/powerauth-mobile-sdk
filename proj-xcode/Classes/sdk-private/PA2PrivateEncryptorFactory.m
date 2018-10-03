@@ -15,6 +15,8 @@
  */
 
 #import "PA2PrivateEncryptorFactory.h"
+#import "PA2Session.h"
+#import "PA2ECIESEncryptor.h"
 
 @implementation PA2PrivateEncryptorFactory
 {
@@ -32,47 +34,29 @@
 	return self;
 }
 
-
-#pragma mark - Public encryptors
-
-- (PA2ECIESEncryptor*) genericEncryptorForApplicationScope
+- (PA2ECIESEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
 {
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
+	switch (encryptorId) {
+		// Generic
+		case PA2EncryptorId_GenericApplicationScope:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
+		case PA2EncryptorId_GenericActivationScope:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES];
+		// Private
+		case PA2EncryptorId_ActivationRequest:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
+		case PA2EncryptorId_ActivationPayload:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/activation" meta:NO];
+		case PA2EncryptorId_MigrationStart:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/migration" meta:YES];
+		case PA2EncryptorId_VaultUnlock:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES];
+		case PA2EncryptorId_TokenCreate:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES];
+		default:
+			return nil;
+	}
 }
-
-- (PA2ECIESEncryptor*) genericEncryptorForActivationScope
-{
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES];
-}
-
-
-#pragma mark - Private, for SDK internals
-
-- (PA2ECIESEncryptor*) encryptorForActivationRequest
-{
-	return [self genericEncryptorForApplicationScope];
-}
-
-- (PA2ECIESEncryptor*) encryptorForActivationPayload
-{
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/activation" meta:NO];
-}
-
-- (PA2ECIESEncryptor*) encryptorForMigrationStartRequest
-{
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/migration" meta:YES];
-}
-
-- (PA2ECIESEncryptor*) encryptorForVaultUnlockRequest
-{
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES];
-}
-
-- (PA2ECIESEncryptor*) encryptorForCreateTokenRequest
-{
-	return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES];
-}
-
 
 #pragma mark - Private factory
 

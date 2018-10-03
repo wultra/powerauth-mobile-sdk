@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import <Foundation/Foundation.h>
 
-@class PA2ECIESCryptogram;
+@protocol PA2Encodable <NSObject>
+/**
+ Convert object instance to the dictionary.
+ 
+ @return Current object converted to the dictionary.
+ */
+- (NSDictionary<NSString*, NSObject*>*) toDictionary;
 
-@interface PA2EncryptedResponse: NSObject<PA2Decodable>
+@end
 
-@property (nonatomic, strong) NSString * encryptedData;
-@property (nonatomic, strong) NSString * mac;
+@protocol PA2Decodable <NSObject>
 
-- (PA2ECIESCryptogram*) cryptogram;
+/**
+ Initialize a new instance of object from a dictionary.
+ 
+ @param dictionary Dictionary with the field related to object properties.
+ @return New instance of object.
+ */
+- (instancetype) initWithDictionary:(NSDictionary<NSString*, NSObject*>*)dictionary;
 
 @end

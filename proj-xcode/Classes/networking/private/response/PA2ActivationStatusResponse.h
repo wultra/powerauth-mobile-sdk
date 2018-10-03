@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
 /** Response for '/pa/activation/status' endpoint.
  */
-@interface PA2ActivationStatusResponse : NSObject <PA2NetworkObject>
+@interface PA2ActivationStatusResponse : NSObject <PA2Decodable>
 
 @property (nonatomic, strong) NSString *activationId;
 @property (nonatomic, strong) NSString *encryptedStatusBlob;

@@ -129,9 +129,9 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-										   activationCode:(nonnull NSString*)activationCode
-												 callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+											activationCode:(nonnull NSString*)activationCode
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
  
@@ -142,10 +142,10 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-										   activationCode:(nonnull NSString*)activationCode
-												   extras:(nullable NSString*)extras
-												 callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+											activationCode:(nonnull NSString*)activationCode
+													extras:(nullable NSString*)extras
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
  
@@ -160,14 +160,14 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-									   identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-											 customSecret:(nonnull NSString*)customSecret
-												   extras:(nullable NSString*)extras
-										 customAttributes:(nullable NSDictionary<NSString*,NSString*>*)customAttributes
-													  url:(nonnull NSURL*)url
-											  httpHeaders:(nullable NSDictionary*)httpHeaders
-												 callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+										identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
+											  customSecret:(nonnull NSString*)customSecret
+													extras:(nullable NSString*)extras
+										  customAttributes:(nullable NSDictionary<NSString*,NSString*>*)customAttributes
+													   url:(nonnull NSURL*)url
+											   httpHeaders:(nullable NSDictionary*)httpHeaders
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
  
@@ -178,10 +178,10 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-									   identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-													  url:(nonnull NSURL*)url
-												 callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+										identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
+													   url:(nonnull NSURL*)url
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /** Commit activation that was created and store related data using provided authentication instance.
  
@@ -222,7 +222,7 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PA2ActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PA2ActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
 
 /** Remove current activation by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/remove'.
  
@@ -231,7 +231,7 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+- (nullable id<PA2OperationTask>) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
 														   callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Removes existing activation from the device.
@@ -296,7 +296,7 @@
 																	 method:(nonnull NSString*)method
 																	  uriId:(nonnull NSString*)uriId
 																	   body:(nullable NSData*)body
-																	  error:(NSError * _Nullable * _Nullable)error;
+																	  error:(NSError * _Nullable * _Nullable)error PA2_DEPRECATED(1.0.0);
 
 /** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
@@ -347,9 +347,9 @@
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nonnull id<PA2OperationTask>) changePasswordFrom:(nonnull NSString*)oldPassword
-												 to:(nonnull NSString*)newPassword
-										   callback:(nonnull void(^)(NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) changePasswordFrom:(nonnull NSString*)oldPassword
+												  to:(nonnull NSString*)newPassword
+											callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Regenerate a biometry related factor key.
  
@@ -359,8 +359,8 @@
  @param callback The callback method with the biometry key adding operation result.
  @return PA2OperationTask associated with the running request.
  */
-- (nonnull id<PA2OperationTask>) addBiometryFactor:(nonnull NSString*)password
-										  callback:(nonnull void(^)(NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) addBiometryFactor:(nonnull NSString*)password
+										   callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Checks if a biometry related factor is present.
  
@@ -391,9 +391,9 @@
  @param callback The callback method with the derived encryption key.
  @return PA2OperationTask associated with the running request.
  */
-- (nonnull id<PA2OperationTask>) fetchEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
-											  index:(UInt64)index
-										   callback:(nonnull void(^)(NSData * _Nullable encryptionKey, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) fetchEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
+											   index:(UInt64)index
+											callback:(nonnull void(^)(NSData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
 /** Sign given data with the original device private key (asymetric signature).
  
@@ -404,9 +404,9 @@
  @param callback The callback method with the data signature.
  @return PA2OperationTask associated with the running request.
  */
-- (nonnull id<PA2OperationTask>) signDataWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
-														 data:(nullable NSData*)data
-													 callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) signDataWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
+														  data:(nullable NSData*)data
+													  callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
 
 /** Validate a user password.
  
@@ -416,8 +416,8 @@
  @param callback The callback method with error associated with the password validation.
  @return PA2OperationTask associated with the running request.
  */
-- (nonnull id<PA2OperationTask>) validatePasswordCorrect:(nonnull NSString*)password
-												callback:(nonnull void(^)(NSError * _Nullable error))callback;
+- (nullable id<PA2OperationTask>) validatePasswordCorrect:(nonnull NSString*)password
+												 callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 @end
 

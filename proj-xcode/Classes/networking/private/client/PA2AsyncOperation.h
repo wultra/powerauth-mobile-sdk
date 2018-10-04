@@ -24,7 +24,7 @@
  "cancelBlock", to handle custom object cancelations and "reportBlock",
  which is issued to the "reportQueue".
  */
-@interface PA2AsyncOperation: NSOperation<PA2OperationTask>
+@interface PA2AsyncOperation: NSOperation
 
 #pragma mark - Initialization & setup
 
@@ -76,4 +76,9 @@
  */
 - (void) completeWithResult:(id)result error:(NSError*)error;
 
+@end
+
+// Make NSOperation compatible with PA2OperationTask (it already is, we need
+// to just make compiler happy with the object types)
+@interface NSOperation (TaskCompatibility) <PA2OperationTask>
 @end

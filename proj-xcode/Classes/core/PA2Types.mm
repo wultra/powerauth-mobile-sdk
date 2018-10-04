@@ -27,7 +27,6 @@ const PA2SignatureFactor PA2SignatureFactor_Biometry						= 0x0100;
 const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge			= 0x0011;
 const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry				= 0x0101;
 const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= 0x0111;
-const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 
 #pragma mark - Public types implementation
 

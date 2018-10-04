@@ -22,8 +22,13 @@
 
 // Exposing several private interfaces
 @interface PowerAuthSDK (Private)
+
+/// Contains instance identifier
 @property (nonatomic, strong, readonly) NSString * privateInstanceId;
+
+/// Returns key required for unlok the possesion factor.
 - (NSData*) deviceRelatedKey;
+
 @end
 
 // Declaration for PA2PrivateCryptoHelper

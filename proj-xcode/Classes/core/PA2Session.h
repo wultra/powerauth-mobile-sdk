@@ -226,11 +226,6 @@
  
  The result returned string contains a full value for X-PowerAuth-Authorization header.
  
- If you're going to sign request for a vault key retrieving, then you have to specifiy signature
- factor combined with 'PA2SignatureFactor_PrepareForVaultUnlock' flag. Otherwise the subsequent vault unlock
- operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
- not be able to complete the operation.
- 
  WARNING
  
  You have to save session's state after the successful operation, due to internal counter change.
@@ -303,18 +298,6 @@
  new biometryUnlockKey, which will be used for a protection of the newly created biometry signature key. 
  You should always save session's state after this operation, whether it ends with error or not.
  
- Discussion
- 
- The adding a new key for biometry factor is a quite complex task. At first, you need to ask server
- for a vault key and sign this HTTP request with using PA2SignatureFactor_PrepareForVaultUnlock flag 
- in combination with other required factors. The flag guarantees that the internal counter will be correctly raised
- and next subsequent operation for vault key decryption will finish correctly.
- 
- If you don't receive response from the server then it's OK to leave the session as is. The session's
- counter is probably at the same value as server's or slightly ahead and therefore everything should
- later work correctly. The session then only display a warning to the debug console about the previous
- pending vault unlock operation.
- 
  Returns YES if operation succeeds or NO in case of failure. The lastErrorCode is updated
  to following values:
 	 EC_Ok,         if operation succeeded
@@ -358,9 +341,6 @@
  or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
  course, keep the key in the volatile memory, if the application needs use the key for a longer period.
  
- Note that just like the "addBiometryFactor", you have to properly sign HTTP request with using
- PA2SignatureFactor_PrepareForVaultUnlock flag, otherwise the operation will fail.
- 
  Retuns NSData object with a derived cryptographic key or nil in case of failure. The lastErrorCode is 
  updated to the following values:
 	EC_Ok,			if operation succeeded
@@ -379,8 +359,7 @@
  Discussion
  
  The session's state contains device private key but it is encrypted with vault key, which is normally not
- available on the device. Just like other vault related operations, you have to properly sign HTTP request
- with using PA2SignatureFactor_PrepareForVaultUnlock flag, otherwise the operation will fail.
+ available on the device.
  
  Retuns NSData object with calculated signature or nil in case of failure. The lastErrorCode is
  updated to the following values:

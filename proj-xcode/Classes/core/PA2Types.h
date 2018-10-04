@@ -161,11 +161,6 @@ extern const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry;
  3FA, with using all supported factors.
  */
 extern const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry;
-/**
- You can combine any signature factor with this flag and prepare for vault unlock.
- */
-extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
-
 
 /**
  The PA2SignatureUnlockKeys object contains all keys, required for signature computation.

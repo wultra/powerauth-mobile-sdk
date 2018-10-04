@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-#import "PA2OperationTask.h"
+// Requests objects
+#import "PA2ActivationStatusRequest.h"
+#import "PA2CreateActivationRequest.h"
+#import "PA2VaultUnlockRequest.h"
+#import "PA2RemoveTokenRequest.h"
+#import "PA2EncryptedRequest.h"
 
-@implementation PA2OperationTask
-
-- (instancetype)init
-{
-	self = [super init];
-	if (self) {
-		_isCancelled = false;
-	}
-	return self;
-}
-
-- (void) cancel {
-	_isCancelled = true;
-	if (self.dataTask) {
-		[self.dataTask cancel];
-	}
-}
-
-#ifdef DEBUG
-- (NSString*) description
-{
-	return [NSString stringWithFormat:@"<PA2OperationTask cancel=%@, task:%@>", _isCancelled ? @"YES" : @"NO", [_dataTask description]];
-}
-#endif
-
-@end
+// Response objects
+#import "PA2ActivationStatusResponse.h"
+#import "PA2CreateActivationResponse.h"
+#import "PA2VaultUnlockResponse.h"
+#import "PA2GetTokenResponse.h"
+#import "PA2EncryptedResponse.h"

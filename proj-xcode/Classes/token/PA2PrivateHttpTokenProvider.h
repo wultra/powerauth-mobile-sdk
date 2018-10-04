@@ -16,7 +16,7 @@
 
 #import "PA2PrivateRemoteTokenProvider.h"
 
-@class PowerAuthSDK;
+@class PA2HttpClient;
 
 /**
  The `PA2PrivateHttpTokenProvider` class implements getting tokens from remote HTTP server.
@@ -24,14 +24,14 @@
 @interface PA2PrivateHttpTokenProvider : NSObject<PA2PrivateRemoteTokenProvider>
 
 /**
- A weak reference to the parent SDK.
+ A reference to PA2HttpClient, owned by the PowerAuthSDK.
  */
-@property (nonatomic, weak, readonly) PowerAuthSDK * sdk;
+@property (nonatomic, strong, readonly) PA2HttpClient * httpClient;
 
 /**
- Initializes remote token provider with parent PowerAuthSDK instance. The weak reference
- to SDK object is used internally.
+ Initializes remote token provider with HTTP client, providing
+ communication with the server.
  */
-- (id) initWithSdk:(PowerAuthSDK*)sdk;
+- (id) initWithHttpClient:(PA2HttpClient*)httpClient;
 
 @end

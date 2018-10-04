@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-// All imports for public interfaces
+#import <Foundation/Foundation.h>
 
-#import "PA2ClientConfiguration.h"
-#import "PA2AuthorizationHttpHeader.h"
-#import "PA2ActivationResult.h"
-#import "PA2ErrorResponse.h"
-#import "PA2Error.h"
-#import "PA2ClientSslValidationStrategy.h"
-#import "PA2ClientSslNoValidationStrategy.h"
-#import "PA2OperationTask.h"
+/**
+ Protocol representing an asynchronous operation created in PowerAuth SDK.
+ */
+@protocol PA2OperationTask <NSObject>
 
+/**
+ Flag indicating if the task was cancelled.
+ */
+@property (nonatomic, assign, readonly) BOOL isCancelled;
+
+/**
+ Cancels the task.
+ */
+- (void) cancel;
+
+@end

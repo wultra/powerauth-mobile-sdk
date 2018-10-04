@@ -48,3 +48,23 @@
 @property (nonatomic, strong, nullable) NSData *overridenBiometryKey;
 
 @end
+
+
+@interface PowerAuthAuthentication (EasyAccessors)
+
+/**
+ Returns a new instance of authentication object preconfigured for a possession factor.
+ */
++ (nonnull PowerAuthAuthentication*) possession;
+/**
+ Returns a new instance of authentication object preconfigured for a combination of
+ possession and biometry factors.
+ */
++ (nonnull PowerAuthAuthentication*) possessionWithBiometry;
+/**
+ Returns a new instance of authentication object preconfigured for combination of possesion
+ and knowledge factor.
+ */
++ (nonnull PowerAuthAuthentication*) possessionWithPassword:(nonnull NSString*)password;
+
+@end

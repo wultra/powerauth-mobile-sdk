@@ -15,22 +15,7 @@
  */
 
 #import "PA2RestApiEndpoint.h"
-
-// TODO: Move imports to "all objects" header later...
-
-// Requests objects
-#import "PA2ActivationStatusRequest.h"
-#import "PA2CreateActivationRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2EncryptedRequest.h"
-
-// Response objects
-#import "PA2ActivationStatusResponse.h"
-#import "PA2CreateActivationResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2EncryptedResponse.h"
+#import "PA2RestApiObjects.h"
 
 
 @implementation PA2RestApiEndpoint

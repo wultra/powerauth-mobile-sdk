@@ -16,6 +16,7 @@
 
 #import "PA2HttpRequest.h"
 #import "PA2RestResponseStatus.h"
+#import "PA2OperationTask.h"
 
 /**
  The `PA2AsyncOperation` implements a simple asynchronous NSOperation,
@@ -23,7 +24,7 @@
  "cancelBlock", to handle custom object cancelations and "reportBlock",
  which is issued to the "reportQueue".
  */
-@interface PA2AsyncOperation: NSOperation
+@interface PA2AsyncOperation: NSOperation<PA2OperationTask>
 
 #pragma mark - Initialization & setup
 

@@ -19,7 +19,9 @@
 #import "PA2Keychain.h"
 #import "PA2OtpUtil.h"
 
-#import "PA2PrivateNetworking.h"
+#import "PA2HttpClient.h"
+#import "PA2RestApiObjects.h"
+
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
@@ -38,7 +40,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	PA2KeychainConfiguration * _keychainConfiguration;
 	PA2ClientConfiguration * _clientConfiguration;
 	
-	PA2Client *_client;
+	PA2HttpClient *_client;
 	NSString *_biometryKeyIdentifier;
 	PA2Keychain *_statusKeychain;
 	PA2Keychain *_sharedKeychain;
@@ -85,10 +87,10 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	}
 	
 	// Create and setup a new client
-	_client = [[PA2Client alloc] init];
-	_client.baseEndpointUrl = configuration.baseEndpointUrl;
-	_client.defaultRequestTimeout = _clientConfiguration.defaultRequestTimeout;
-	_client.sslValidationStrategy = _clientConfiguration.sslValidationStrategy;
+	_client = [[PA2HttpClient alloc] initWithConfiguration:_clientConfiguration
+										   completionQueue:dispatch_get_main_queue()
+												   baseUrl:_configuration.baseEndpointUrl
+													helper:self];
 	
 	// Create a new keychain instances
 	_statusKeychain			= [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Status
@@ -99,7 +101,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	// Initialize token store with its own keychain as a backing storage and remote token provider.
 	PA2Keychain * tokenStoreKeychain = [[PA2Keychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
 																   accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
-	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithSdk:self];
+	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithHttpClient:_client];
 	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
 																	 keychain:tokenStoreKeychain
 															   statusProvider:_session
@@ -290,61 +292,58 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	return factor;
 }
 
-- (PA2OperationTask*) fetchEncryptedVaultUnlockKey:(PowerAuthAuthentication*)authentication
-											reason:(PA2VaultUnlockReason)reason
-										 callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback {
+- (id<PA2OperationTask>) fetchEncryptedVaultUnlockKey:(PowerAuthAuthentication*)authentication
+											   reason:(PA2VaultUnlockReason)reason
+											 callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback
+{
+	return nil;
 	
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	
-	[self checkForValidSetup];
-	
-	// Check if there is an activation present
-	if (!_session.hasValidActivation) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
-											 code:PA2ErrorCodeMissingActivation
-										 userInfo:nil];
-		callback(nil, error);
-		[task cancel];
-		return task;
-	}
-	
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		
-		// Build request object & request data
-		PA2VaultUnlockRequest * request = [[PA2VaultUnlockRequest alloc] initWithReason:reason];
-		NSData * requestData = [_client embedNetworkObjectIntoRequest:request];
-		
-		// Compute authorization header based on constants from the specification.
-		NSError *error = nil;
-		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication
-																			  vaultUnlock:YES
-																				   method:@"POST"
-																					uriId:@"/pa/vault/unlock"
-																					 body:requestData
-																					error:&error];
-		if (error) {
-			callback(nil, error);
-			return;
-		}
-		if (task.isCancelled) {
-			NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
-			callback(nil, error);
-			return;
-		}
-		
-		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader request:request callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
-			// Network communication completed correctly
-			if (status == PA2RestResponseStatus_OK) {
-				callback(response.encryptedVaultEncryptionKey, nil);
-			} else { // Network error occurred
-				callback(nil, clientError);
-			}
-		}];
-		task.dataTask = dataTask;
-	});
-	
-	return task;
+//	[self checkForValidSetup];
+//	// Check if there is an activation present
+//	if (!_session.hasValidActivation) {
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
+//											 code:PA2ErrorCodeMissingActivation
+//										 userInfo:nil];
+//		callback(nil, error);
+//		[task cancel];
+//		return task;
+//	}
+//
+//	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//
+//		// Build request object & request data
+//		PA2VaultUnlockRequest * request = [[PA2VaultUnlockRequest alloc] initWithReason:reason];
+//		NSData * requestData = [_client embedNetworkObjectIntoRequest:request];
+//
+//		// Compute authorization header based on constants from the specification.
+//		NSError *error = nil;
+//		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication
+//																			  vaultUnlock:YES
+//																				   method:@"POST"
+//																					uriId:@"/pa/vault/unlock"
+//																					 body:requestData
+//																					error:&error];
+//		if (error) {
+//			callback(nil, error);
+//			return;
+//		}
+//		if (task.isCancelled) {
+//			NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
+//			callback(nil, error);
+//			return;
+//		}
+//
+//		// Perform the server request
+//		NSURLSessionDataTask *dataTask = [_client vaultUnlock:httpHeader request:request callback:^(PA2RestResponseStatus status, PA2VaultUnlockResponse *response, NSError *clientError) {
+//			// Network communication completed correctly
+//			if (status == PA2RestResponseStatus_OK) {
+//				callback(response.encryptedVaultEncryptionKey, nil);
+//			} else { // Network error occurred
+//				callback(nil, clientError);
+//			}
+//		}];
+//		task.dataTask = dataTask;
+//	});
 }
 
 #pragma mark - Public methods
@@ -427,116 +426,119 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Creating a new activation
 
-- (PA2OperationTask*) createActivationWithName:(NSString*)name
-								activationCode:(NSString*)activationCode
-									  callback:(void(^)(PA2ActivationResult *result, NSError *error))callback {
+- (id<PA2OperationTask>) createActivationWithName:(NSString*)name
+								   activationCode:(NSString*)activationCode
+										 callback:(void(^)(PA2ActivationResult *result, NSError *error))callback
+{
 	return [self createActivationWithName:name activationCode:activationCode extras:nil callback:callback];
 }
 
-- (PA2OperationTask*) createActivationWithName:(NSString*)name
-								activationCode:(NSString*)activationCode
-										extras:(NSString*)extras
-									  callback:(void(^)(PA2ActivationResult *result, NSError *error))callback {
-	
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	
-	[self checkForValidSetup];
-	
-	// Check if activation may be started
-	if (![self canStartActivation]) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
-		callback(nil, error);
-		[task cancel];
-		return task;
-	}
-	
-	// Reset session & possible activation data
-	[self removeActivationLocal];
-		
-	// Prepare crypto module request
-	PA2ActivationStep1Param *paramStep1 = [self paramStep1WithActivationCode:activationCode];
-	
-	// Obtain crypto module response
-	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
-	if (nil == resultStep1) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-		callback(nil, error);
-		[task cancel];
-		return task;
-	}
-	// After this point, each error must lead to [_session resetSession];
-	
-	// Perform exchange over PowerAuth 2.0 Standard RESTful API
-	PA2CreateActivationRequest *request = [[PA2CreateActivationRequest alloc] init];
-	request.activationIdShort = paramStep1.activationIdShort;
-	request.activationName = name;
-	request.activationNonce = resultStep1.activationNonce;
-	request.applicationKey = _configuration.appKey;
-	request.applicationSignature = resultStep1.applicationSignature;
-	request.encryptedDevicePublicKey = resultStep1.cDevicePublicKey;
-	request.ephemeralPublicKey = resultStep1.ephemeralPublicKey;
-	request.extras = extras;
-	
-	NSURLSessionDataTask *dataTask = [_client createActivation:request callback:^(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *clientError) {
-		
-		NSError * errorToReport = clientError;
-		PA2ActivationResult * activationResult = nil;
-		if (!errorToReport) {
-			// Network communication completed correctly
-			if (status == PA2RestResponseStatus_OK) {
-				
-				// Prepare crypto module request
-				PA2ActivationStep2Param *paramStep2 = [[PA2ActivationStep2Param alloc] init];
-				paramStep2.activationId = response.activationId;
-				paramStep2.ephemeralNonce = response.activationNonce;
-				paramStep2.ephemeralPublicKey = response.ephemeralPublicKey;
-				paramStep2.encryptedServerPublicKey = response.encryptedServerPublicKey;
-				paramStep2.serverDataSignature = response.encryptedServerPublicKeySignature;
-				
-				// Obtain crypto module response
-				PA2ActivationStep2Result *resultStep2 = [_session validateActivationResponse:paramStep2];
-				if (resultStep2) {
-					// Everything is OK
-					activationResult = [[PA2ActivationResult alloc] init];
-					activationResult.activationFingerprint = resultStep2.activationFingerprint;
-					activationResult.customAttributes = response.customAttributes;
-				} else {
-					// Encryption error
-					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-				}
-				
-			} else {
-				// Activation error occurred
-				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-			}
-		}
-		if (errorToReport) {
-			[_session resetSession];
-		}
-		callback(activationResult, errorToReport);
-		
-	}];
-	task.dataTask = dataTask;
-	return task;
+- (id<PA2OperationTask>) createActivationWithName:(NSString*)name
+								   activationCode:(NSString*)activationCode
+										   extras:(NSString*)extras
+										 callback:(void(^)(PA2ActivationResult *result, NSError *error))callback
+{
+	return nil;
+//	PA2OperationTask *task = [[PA2OperationTask alloc] init];
+//
+//	[self checkForValidSetup];
+//
+//	// Check if activation may be started
+//	if (![self canStartActivation]) {
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
+//		callback(nil, error);
+//		[task cancel];
+//		return task;
+//	}
+//
+//	// Reset session & possible activation data
+//	[self removeActivationLocal];
+//
+//	// Prepare crypto module request
+//	PA2ActivationStep1Param *paramStep1 = [self paramStep1WithActivationCode:activationCode];
+//
+//	// Obtain crypto module response
+//	PA2ActivationStep1Result *resultStep1 = [_session startActivation:paramStep1];
+//	if (nil == resultStep1) {
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+//		callback(nil, error);
+//		[task cancel];
+//		return task;
+//	}
+//	// After this point, each error must lead to [_session resetSession];
+//
+//	// Perform exchange over PowerAuth 2.0 Standard RESTful API
+//	PA2CreateActivationRequest *request = [[PA2CreateActivationRequest alloc] init];
+//	request.activationIdShort = paramStep1.activationIdShort;
+//	request.activationName = name;
+//	request.activationNonce = resultStep1.activationNonce;
+//	request.applicationKey = _configuration.appKey;
+//	request.applicationSignature = resultStep1.applicationSignature;
+//	request.encryptedDevicePublicKey = resultStep1.cDevicePublicKey;
+//	request.ephemeralPublicKey = resultStep1.ephemeralPublicKey;
+//	request.extras = extras;
+//
+//	NSURLSessionDataTask *dataTask = [_client createActivation:request callback:^(PA2RestResponseStatus status, PA2CreateActivationResponse *response, NSError *clientError) {
+//
+//		NSError * errorToReport = clientError;
+//		PA2ActivationResult * activationResult = nil;
+//		if (!errorToReport) {
+//			// Network communication completed correctly
+//			if (status == PA2RestResponseStatus_OK) {
+//
+//				// Prepare crypto module request
+//				PA2ActivationStep2Param *paramStep2 = [[PA2ActivationStep2Param alloc] init];
+//				paramStep2.activationId = response.activationId;
+//				paramStep2.ephemeralNonce = response.activationNonce;
+//				paramStep2.ephemeralPublicKey = response.ephemeralPublicKey;
+//				paramStep2.encryptedServerPublicKey = response.encryptedServerPublicKey;
+//				paramStep2.serverDataSignature = response.encryptedServerPublicKeySignature;
+//
+//				// Obtain crypto module response
+//				PA2ActivationStep2Result *resultStep2 = [_session validateActivationResponse:paramStep2];
+//				if (resultStep2) {
+//					// Everything is OK
+//					activationResult = [[PA2ActivationResult alloc] init];
+//					activationResult.activationFingerprint = resultStep2.activationFingerprint;
+//					activationResult.customAttributes = response.customAttributes;
+//				} else {
+//					// Encryption error
+//					errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+//				}
+//
+//			} else {
+//				// Activation error occurred
+//				errorToReport = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+//			}
+//		}
+//		if (errorToReport) {
+//			[_session resetSession];
+//		}
+//		callback(activationResult, errorToReport);
+//
+//	}];
+//	task.dataTask = dataTask;
+//	return task;
 }
 
-- (PA2OperationTask*) createActivationWithName:(NSString*)name
-							identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
-								  customSecret:(NSString*)customSecret
-										extras:(NSString*)extras
-							  customAttributes:(NSDictionary<NSString*,NSString*>*)customAttributes
-										   url:(NSURL*)url
-								   httpHeaders:(NSDictionary*)httpHeaders
-									  callback:(void(^)(PA2ActivationResult *result, NSError * error))callback {
-	
+- (id<PA2OperationTask>) createActivationWithName:(NSString*)name
+							   identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
+									 customSecret:(NSString*)customSecret
+										   extras:(NSString*)extras
+								 customAttributes:(NSDictionary<NSString*,NSString*>*)customAttributes
+											  url:(NSURL*)url
+									  httpHeaders:(NSDictionary*)httpHeaders
+										 callback:(void(^)(PA2ActivationResult *result, NSError * error))callback
+{
 #warning TODO: implement V3 activation
 	return nil;
 }
 
-- (PA2OperationTask*) createActivationWithName:(NSString*)name
-							identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
-										   url:(NSURL*)url
-									  callback:(void(^)(PA2ActivationResult *result, NSError * error))callback {
+- (id<PA2OperationTask>) createActivationWithName:(NSString*)name
+							   identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
+											  url:(NSURL*)url
+										 callback:(void(^)(PA2ActivationResult *result, NSError * error))callback
+{
 	return [self createActivationWithName:name
 					   identityAttributes:identityAttributes
 							 customSecret:@"00000-00000" // aka "zero code"
@@ -626,113 +628,118 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Getting activations state
 
-- (PA2OperationTask*) fetchActivationStatusWithCallback:(void(^)(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error))callback {
-	
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	
-	[self checkForValidSetup];
-	
-	// Check if there is an activation present, valid or pending
-	if (!_session.hasValidActivation) {
-		NSInteger errorCode = _session.hasPendingActivation ? PA2ErrorCodeActivationPending : PA2ErrorCodeMissingActivation;
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
-		callback(nil, nil, error);
-		[task cancel];
-		return task;
-	}
-	
-	// Perform the server request
-	PA2ActivationStatusRequest *request = [[PA2ActivationStatusRequest alloc] init];
-	request.activationId = _session.activationIdentifier;
-	NSURLSessionDataTask *dataTask = [_client getActivationStatus:request callback:^(PA2RestResponseStatus status, PA2ActivationStatusResponse *response, NSError *clientError) {
-		
-		// Network communication completed correctly
-		if (status == PA2RestResponseStatus_OK) {
-			
-			// Prepare unlocking key (possession factor only)
-			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
-			keys.possessionUnlockKey = [self deviceRelatedKey];
-			
-			// Attempt to decode the activation status
-			PA2ActivationStatus *status = [_session decodeActivationStatus:response.encryptedStatusBlob keys:keys];
-			
-			// Everything was OK
-			if (status) {
-				callback(status, response.customObject, nil);
-			}
-			// Error occurred when decoding status
-			else {
-				NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
-				callback(nil, response.customObject, error);
-			}
-			
-		}
-		// Network error occurred
-		else {
-			callback(nil, nil, clientError);
-		}
-	}];
-	task.dataTask = dataTask;
-	return task;
+- (id<PA2OperationTask>) fetchActivationStatusWithCallback:(void(^)(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error))callback
+{
+	return nil;
+//
+//	PA2OperationTask *task = [[PA2OperationTask alloc] init];
+//
+//	[self checkForValidSetup];
+//
+//	// Check if there is an activation present, valid or pending
+//	if (!_session.hasValidActivation) {
+//		NSInteger errorCode = _session.hasPendingActivation ? PA2ErrorCodeActivationPending : PA2ErrorCodeMissingActivation;
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
+//		callback(nil, nil, error);
+//		[task cancel];
+//		return task;
+//	}
+//
+//	// Perform the server request
+//	PA2ActivationStatusRequest *request = [[PA2ActivationStatusRequest alloc] init];
+//	request.activationId = _session.activationIdentifier;
+//	NSURLSessionDataTask *dataTask = [_client getActivationStatus:request callback:^(PA2RestResponseStatus status, PA2ActivationStatusResponse *response, NSError *clientError) {
+//
+//		// Network communication completed correctly
+//		if (status == PA2RestResponseStatus_OK) {
+//
+//			// Prepare unlocking key (possession factor only)
+//			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
+//			keys.possessionUnlockKey = [self deviceRelatedKey];
+//
+//			// Attempt to decode the activation status
+//			PA2ActivationStatus *status = [_session decodeActivationStatus:response.encryptedStatusBlob keys:keys];
+//
+//			// Everything was OK
+//			if (status) {
+//				callback(status, response.customObject, nil);
+//			}
+//			// Error occurred when decoding status
+//			else {
+//				NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
+//				callback(nil, response.customObject, error);
+//			}
+//
+//		}
+//		// Network error occurred
+//		else {
+//			callback(nil, nil, clientError);
+//		}
+//	}];
+//	task.dataTask = dataTask;
+//	return task;
 }
 
 #pragma mark Removing an activation
 
-- (PA2OperationTask*) removeActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-												callback:(void(^)(NSError *error))callback {
-	
-	PA2OperationTask *task = [[PA2OperationTask alloc] init];
-	
-	[self checkForValidSetup];
-	
-	// Check if there is an activation present
-	if (!_session.hasValidActivation) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
-											 code:PA2ErrorCodeMissingActivation
-										 userInfo:nil];
-		callback(error);
-		[task cancel];
-		return task;
-	}
-	
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		
-		// Compute authorization header based on constants from the specification.
-		NSError *error = nil;
-		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/activation/remove" body:nil error:&error];
-		if (error) {
-			callback(error);
-			return;
-		}
-		
-		if (task.isCancelled) {
-			NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
-			callback(error);
-			return;
-		}
-		
-		// Perform the server request
-		NSURLSessionDataTask *dataTask = [_client removeActivation:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
-			// Network communication completed correctly
-			if (status == PA2RestResponseStatus_OK) {
-				[self removeActivationLocal];
-				callback(nil);
-			}
-			// Network error occurred
-			// TODO: Improvement: We can try to fetch status in case of error and handle possible network error silently.
-			else {
-				callback(clientError);
-			}
-		}];
-		
-		task.dataTask = dataTask;
-		
-	});
-	
-	return task;
+- (id<PA2OperationTask>) removeActivationWithAuthentication:(PowerAuthAuthentication*)authentication
+												   callback:(void(^)(NSError *error))callback
+{
+	return nil;
+//
+//	PA2OperationTask *task = [[PA2OperationTask alloc] init];
+//
+//	[self checkForValidSetup];
+//
+//	// Check if there is an activation present
+//	if (!_session.hasValidActivation) {
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain
+//											 code:PA2ErrorCodeMissingActivation
+//										 userInfo:nil];
+//		callback(error);
+//		[task cancel];
+//		return task;
+//	}
+//
+//	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//
+//		// Compute authorization header based on constants from the specification.
+//		NSError *error = nil;
+//		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/pa/activation/remove" body:nil error:&error];
+//		if (error) {
+//			callback(error);
+//			return;
+//		}
+//
+//		if (task.isCancelled) {
+//			NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeOperationCancelled userInfo:nil];
+//			callback(error);
+//			return;
+//		}
+//
+//		// Perform the server request
+//		NSURLSessionDataTask *dataTask = [_client removeActivation:httpHeader callback:^(PA2RestResponseStatus status, NSError *clientError) {
+//			// Network communication completed correctly
+//			if (status == PA2RestResponseStatus_OK) {
+//				[self removeActivationLocal];
+//				callback(nil);
+//			}
+//			// Network error occurred
+//			// TODO: Improvement: We can try to fetch status in case of error and handle possible network error silently.
+//			else {
+//				callback(clientError);
+//			}
+//		}];
+//
+//		task.dataTask = dataTask;
+//
+//	});
+//
+//	return task;
 }
 
-- (void) removeActivationLocal {
+- (void) removeActivationLocal
+{
 	[self checkForValidSetup];
 	BOOL error = NO;
 	if ([_statusKeychain containsDataForKey:_configuration.instanceId]) {
@@ -754,7 +761,8 @@ static PowerAuthSDK * s_inst;
 - (PA2AuthorizationHttpHeader*) requestGetSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
 																uriId:(NSString*)uriId
 															   params:(NSDictionary<NSString*, NSString*>*)params
-																error:(NSError**)error {
+																error:(NSError**)error
+{
 	NSData *data = [_session prepareKeyValueDictionaryForDataSigning:params];
 	return [self requestSignatureWithAuthentication:authentication
 											 method:@"GET"
@@ -767,7 +775,8 @@ static PowerAuthSDK * s_inst;
 															method:(NSString*)method
 															 uriId:(NSString*)uriId
 															  body:(NSData*)body
-															 error:(NSError**)error {
+															 error:(NSError**)error
+{
 	return [self requestSignatureWithAuthentication:authentication
 										vaultUnlock:NO
 											 method:method
@@ -890,8 +899,8 @@ static PowerAuthSDK * s_inst;
 #pragma mark Activation sign in factor management
 
 - (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
-							   to:(NSString*)newPassword {
-	
+							   to:(NSString*)newPassword
+{
 	BOOL result = [_session changeUserPassword:[PA2Password passwordWithString:oldPassword]
 								   newPassword:[PA2Password passwordWithString:newPassword]];
 	if (result) {
@@ -900,10 +909,10 @@ static PowerAuthSDK * s_inst;
 	return result;
 }
 
-- (PA2OperationTask*) changePasswordFrom:(NSString*)oldPassword
-									  to:(NSString*)newPassword
-								callback:(void(^)(NSError *error))callback {
-	
+- (id<PA2OperationTask>) changePasswordFrom:(NSString*)oldPassword
+										 to:(NSString*)newPassword
+								   callback:(void(^)(NSError *error))callback
+{
 	// Setup a new authentication object
 	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
 	authentication.usePossession = YES;
@@ -928,69 +937,73 @@ static PowerAuthSDK * s_inst;
 	}];
 }
 
-- (PA2OperationTask*) addBiometryFactor:(NSString*)password
-							   callback:(void(^)(NSError *error))callback {
+- (id<PA2OperationTask>) addBiometryFactor:(NSString*)password
+								  callback:(void(^)(NSError *error))callback
+{
+	return nil;
 	
-	// Check if biometry can be used
-	if (![PA2Keychain canUseBiometricAuthentication]) {
-		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryNotAvailable userInfo:nil];
-		callback(error);
-		PA2OperationTask *task = [[PA2OperationTask alloc] init]; // tmp task
-		[task cancel];
-		return task;
-	}
-	
-	// Compute authorization header based on constants from the specification.
-	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
-	authentication.usePossession	= YES;
-	authentication.useBiometry		= NO;
-	authentication.usePassword		= password;
-	
-	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_ADD_BIOMETRY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
-		if (!error) {
-			
-			if (encryptedEncryptionKey == nil) {
-				NSError *error = [NSError errorWithDomain:PA2ErrorDomain
-													 code:PA2ErrorCodeInvalidActivationState
-												 userInfo:nil];
-				callback(error);
-				return;
-			}
-			
-			// Let's add the biometry key
-			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
-			keys.possessionUnlockKey = [self deviceRelatedKey];
-			keys.biometryUnlockKey = [PA2Session generateSignatureUnlockKey];
-			
-			BOOL result = [_session addBiometryFactor:encryptedEncryptionKey
-												 keys:keys];
-			// Propagate error
-			if (!result) {
-				NSError *error = [NSError errorWithDomain:PA2ErrorDomain
-													 code:PA2ErrorCodeInvalidActivationState
-												 userInfo:nil];
-				callback(error);
-			} else {
-				// Update keychain values after each successful calculations
-				[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
-				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
-				callback(nil);
-			}
-		} else {
-			callback(error);
-		}
-	}];
+//	// Check if biometry can be used
+//	if (![PA2Keychain canUseBiometricAuthentication]) {
+//		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryNotAvailable userInfo:nil];
+//		callback(error);
+//		PA2OperationTask *task = [[PA2OperationTask alloc] init]; // tmp task
+//		[task cancel];
+//		return task;
+//	}
+//
+//	// Compute authorization header based on constants from the specification.
+//	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
+//	authentication.usePossession	= YES;
+//	authentication.useBiometry		= NO;
+//	authentication.usePassword		= password;
+//
+//	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_ADD_BIOMETRY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+//		if (!error) {
+//
+//			if (encryptedEncryptionKey == nil) {
+//				NSError *error = [NSError errorWithDomain:PA2ErrorDomain
+//													 code:PA2ErrorCodeInvalidActivationState
+//												 userInfo:nil];
+//				callback(error);
+//				return;
+//			}
+//
+//			// Let's add the biometry key
+//			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
+//			keys.possessionUnlockKey = [self deviceRelatedKey];
+//			keys.biometryUnlockKey = [PA2Session generateSignatureUnlockKey];
+//
+//			BOOL result = [_session addBiometryFactor:encryptedEncryptionKey
+//												 keys:keys];
+//			// Propagate error
+//			if (!result) {
+//				NSError *error = [NSError errorWithDomain:PA2ErrorDomain
+//													 code:PA2ErrorCodeInvalidActivationState
+//												 userInfo:nil];
+//				callback(error);
+//			} else {
+//				// Update keychain values after each successful calculations
+//				[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+//				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+//				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
+//				callback(nil);
+//			}
+//		} else {
+//			callback(error);
+//		}
+//	}];
 }
 
-- (BOOL) hasBiometryFactor {
+- (BOOL) hasBiometryFactor
+{
 	[self checkForValidSetup];
 	BOOL hasValue = [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier];
 	hasValue = hasValue && [_session hasBiometryFactor];
 	return hasValue;
 }
 
-- (BOOL) removeBiometryFactor {
+- (BOOL) removeBiometryFactor
+{
 	[self checkForValidSetup];
 	BOOL result = [_session removeBiometryFactor];
 	if (result) {
@@ -1002,7 +1015,8 @@ static PowerAuthSDK * s_inst;
 }
 
 - (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
-                            withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, bool userCanceled))block {
+                            withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, bool userCanceled))block
+{
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         OSStatus status;
         bool userCanceled;
@@ -1015,9 +1029,10 @@ static PowerAuthSDK * s_inst;
 #pragma mark Secure vault support
 
 
-- (PA2OperationTask*) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
-								   index:(UInt64)index
-								callback:(void(^)(NSData *encryptionKey, NSError *error))callback {
+- (id<PA2OperationTask>) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
+									  index:(UInt64)index
+								   callback:(void(^)(NSData *encryptionKey, NSError *error))callback
+{
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			
@@ -1052,9 +1067,10 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Asymmetric signatures
 
-- (PA2OperationTask*) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
-											  data:(NSData*)data
-										  callback:(void(^)(NSData *signature, NSError *error))callback {
+- (id<PA2OperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
+												 data:(NSData*)data
+											 callback:(void(^)(NSData *signature, NSError *error))callback
+{
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		if (!error) {
 			
@@ -1087,7 +1103,8 @@ static PowerAuthSDK * s_inst;
 	}];
 }
 
-- (nonnull PA2OperationTask*) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback {
+- (id<PA2OperationTask>) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback
+{
 	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
 	authentication.usePossession = YES;
 	authentication.useBiometry = NO;

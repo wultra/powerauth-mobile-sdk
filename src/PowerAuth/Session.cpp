@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Session.h>
 #include <PowerAuth/ECIES.h>
+#include <PowerAuth/OtpUtil.h>
 
 #include <cc7/Base64.h>
 #include "protocol/ProtocolUtils.h"
@@ -230,9 +231,12 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Step 1: Called in wrong state.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (param.activationOtp.empty() || param.activationIdShort.empty()) {
-			CC7_LOG("Session %p, %d: Step 1: Wrong parameters.", this, sessionIdentifier());
-			return EC_WrongParam;
+		if (!param.activationCode.empty()) {
+			// If activation code is present, then check whether CRC16 checksum is OK
+			if (!OtpUtil::validateActivationCode(param.activationCode)) {
+				CC7_LOG("Session %p, %d: Step 1: Wrong activation code.", this, sessionIdentifier());
+				return EC_WrongParam;
+			}
 		}
 		
 		auto error_code = EC_Encryption;
@@ -247,12 +251,12 @@ namespace powerAuth
 				CC7_LOG("Session %p, %d: Step 1: Master server public key is invalid.", this, sessionIdentifier());
 				break;
 			}
-			if (!protocol::ValidateShortIdAndOtpSignature(param.activationIdShort, param.activationOtp, param.activationSignature, ad->masterServerPublicKey)) {
+			if (!protocol::ValidateActivationCodeSignature(param.activationCode, param.activationSignature, ad->masterServerPublicKey)) {
 				CC7_LOG("Session %p, %d: Step 1: Invalid OTP+ShortID signature.", this, sessionIdentifier());
 				break;
 			}
 			
-			// Generate device private & public key
+			// Generate device's private & public key pair
 			ad->devicePrivateKey = crypto::ECC_GenerateKeyPair();
 			if (nullptr == ad->devicePrivateKey) {
 				CC7_LOG("Session %p, %d: Step 1: Private key pair generator failed.", this, sessionIdentifier());
@@ -265,29 +269,9 @@ namespace powerAuth
 				break;
 			}
 			
-			// Encrypt device public key with expanded OTP and ephemeral secret. The 'EncryptDevicePublicKey'
-            // calculates expanded OTP key internally, ephemeral secret is calculated using server public key and
-            // ephemeral private key
-			ad->activationNonce = crypto::GetRandomData(protocol::ACTIVATION_NONCE_SIZE, true);
-            ad->ephemeralDeviceKey = crypto::ECC_GenerateKeyPair();
-			cc7::ByteArray c_device_public_key = protocol::EncryptDevicePublicKey(*ad, param.activationIdShort, param.activationOtp);
-			if (c_device_public_key.empty()) {
-				CC7_LOG("Session %p, %d: Step 1: Unable to encrypt device public key.", this, sessionIdentifier());
-				break;
-			}
-			
-			// Store output values in result structure, in Base64 format
-            result.ephemeralPublicKey = crypto::ECC_ExportPublicKeyToB64(ad->ephemeralDeviceKey);
-			result.activationNonce  = cc7::ToBase64String(ad->activationNonce);
-			result.cDevicePublicKey = cc7::ToBase64String(c_device_public_key);
-			
-			// Last step, calculate signature of this application
-			result.applicationSignature = protocol::CalculateApplicationSignature(param.activationIdShort, result.activationNonce, result.cDevicePublicKey,
-																				  _setup.applicationKey, _setup.applicationSecret);
-			if (result.applicationSignature.empty()) {
-				CC7_LOG("Session %p, %d: Step 1: Unable to calculate application signature.", this, sessionIdentifier());
-				break;
-			}
+			// V3 activation is much simpler than V2. We need to just store device's public key
+			// in Base64 format. The data encryption & protection is achieved by the ECIES.
+			result.devicePublicKey = ad->devicePublicKeyData.base64String();
 			
 			// Finally, everything is OK
 			error_code = EC_Ok;
@@ -314,10 +298,8 @@ namespace powerAuth
 			return EC_WrongState;
 		}
 		if (param.activationId.empty() ||
-			param.ephemeralNonce.empty() ||
-			param.ephemeralPublicKey.empty() ||
-			param.encryptedServerPublicKey.empty() ||
-			param.serverDataSignature.empty()) {
+			param.serverPublicKey.empty() ||
+			param.ctrData.empty()) {
 			CC7_LOG("Session %p, %d: Step 2: Missing input parameter.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
@@ -326,31 +308,19 @@ namespace powerAuth
 		do {
 			crypto::BNContext ctx;
 			
-			cc7::ByteArray ephemeral_nonce, ephemeral_public_key;
-			cc7::ByteArray c_server_public_key;
-			cc7::ByteArray server_data_signature;
-			
-			// Try to import all B64 encoded input parameters.
-			bool b_result;
-			b_result = ephemeral_nonce.readFromBase64String(param.ephemeralNonce);
-			b_result = b_result && ephemeral_public_key.readFromBase64String(param.ephemeralPublicKey);
-			b_result = b_result && c_server_public_key.readFromBase64String(param.encryptedServerPublicKey);
-			b_result = b_result && server_data_signature.readFromBase64String(param.serverDataSignature);
-			if (!b_result) {
+			// Validate CTR_DATA
+			if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
 				// Note that we treat all B64 decode failures as an encryption error.
-				CC7_LOG("Session %p, %d: Step 2: Base64 decode failed.", this, sessionIdentifier());
+				CC7_LOG("Session %p, %d: Step 2: CTR_DATA is invalid.", this, sessionIdentifier());
 				break;
 			}
-			// Validate provided data
-			if (!protocol::ValidateActivationDataSignature(param.activationId, param.encryptedServerPublicKey, server_data_signature, _ad->masterServerPublicKey)) {
-				CC7_LOG("Session %p, %d: Step 2: Invalid signature.", this, sessionIdentifier());
+			// Now try to import server's public key
+			_ad->serverPublicKey = crypto::ECC_ImportPublicKeyFromB64(nullptr, param.serverPublicKey);
+			if (!_ad->serverPublicKey) {
+				CC7_LOG("Session %p, %d: Step 2: Server's public key is not valid.", this, sessionIdentifier());
 				break;
 			}
-			// Decrypt server key
-			if (!protocol::DecryptServerPublicKey(*_ad, ephemeral_public_key, c_server_public_key, ephemeral_nonce)) {
-				CC7_LOG("Session %p, %d: Step 2: Unable to decrypt server public key.", this, sessionIdentifier());
-				break;
-			}
+
 			// Now we have all required information and can calculate ECDH shared secret
 			_ad->masterSharedSecret = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(_ad->serverPublicKey, _ad->devicePrivateKey));
 			if (_ad->masterSharedSecret.size() != protocol::SIGNATURE_KEY_SIZE) {
@@ -365,8 +335,9 @@ namespace powerAuth
 				break;
 			}
 			
-			// Everything is OK, keep activation identifier
+			// Everything is OK, keep other data for later
 			_ad->activationId = param.activationId;
+			
 			error_code = EC_Ok;
 			
 		} while (false);
@@ -397,13 +368,14 @@ namespace powerAuth
 		auto pd = new protocol::PersistentData();
 		do {
 			// Keep all required information in the PD
-			pd->signatureCounter	= 0;
-			pd->activationId		= _ad->activationId;
-			pd->passwordIterations	= protocol::PBKDF2_PASS_ITERATIONS;
-			pd->passwordSalt		= crypto::GetRandomData(protocol::PBKDF2_SALT_SIZE, true);
-			pd->devicePublicKey		= _ad->devicePublicKeyData;
-			pd->serverPublicKey		= _ad->serverPublicKeyData;
-			pd->flagsU32			= 0;
+			pd->signatureCounter		= 0;
+			pd->signatureCounterData	= _ad->ctrData;
+			pd->activationId			= _ad->activationId;
+			pd->passwordIterations		= protocol::PBKDF2_PASS_ITERATIONS;
+			pd->passwordSalt			= crypto::GetRandomData(protocol::PBKDF2_SALT_SIZE, true);
+			pd->devicePublicKey			= _ad->devicePublicKeyData;
+			pd->serverPublicKey			= _ad->serverPublicKeyData;
+			pd->flagsU32				= 0;
 			// Keep information about external key usage in the flags
 			pd->flags.usesExternalKey = eek() ? 1 : 0;
 			

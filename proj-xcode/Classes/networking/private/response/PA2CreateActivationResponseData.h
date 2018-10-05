@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-#import "PA2ActivationStatusResponse.h"
-#import "PA2PrivateMacros.h"
+#import "PA2Codable.h"
 
-@implementation PA2ActivationStatusResponse
+@interface PA2CreateActivationResponseData : NSObject<PA2Decodable>
 
-- (instancetype) initWithDictionary:(NSDictionary *)dictionary
-{
-	self = [super init];
-	if (self) {
-		_activationId			= PA2ObjectAs(dictionary[@"activationId"], NSString);
-		_encryptedStatusBlob	= PA2ObjectAs(dictionary[@"encryptedStatusBlob"], NSString);
-		_customObject			= PA2ObjectAs(dictionary[@"customObject"], NSDictionary);
-	}
-	return self;
-}
+@property (nonatomic, strong) NSString * activationId;
+@property (nonatomic, strong) NSString * serverPublicKey;
+@property (nonatomic, strong) NSString * ctrData;
 
 @end

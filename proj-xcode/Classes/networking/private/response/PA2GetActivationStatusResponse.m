@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import "PA2GetActivationStatusResponse.h"
+#import "PA2PrivateMacros.h"
 
-/** Response for '/pa/activation/status' endpoint.
- */
-@interface PA2ActivationStatusResponse : NSObject <PA2Decodable>
+@implementation PA2GetActivationStatusResponse
 
-@property (nonatomic, strong) NSString *activationId;
-@property (nonatomic, strong) NSString *encryptedStatusBlob;
-@property (nonatomic, strong) NSDictionary *customObject;
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_activationId			= PA2ObjectAs(dictionary[@"activationId"], NSString);
+		_encryptedStatusBlob	= PA2ObjectAs(dictionary[@"encryptedStatusBlob"], NSString);
+		_customObject			= PA2ObjectAs(dictionary[@"customObject"], NSDictionary);
+	}
+	return self;
+}
 
 @end

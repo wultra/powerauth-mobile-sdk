@@ -400,15 +400,11 @@ namespace powerAuth
 	struct ActivationStep1Param
 	{
 		/**
-		 Short activation ID
+		 Full activation code. The value is optional for custom activations.
 		 */
-		std::string activationIdShort;
+		std::string activationCode;
 		/**
-		 Activation OTP (one time password)
-		 */
-		std::string activationOtp;
-		/**
-		 Signature calculated from activationIdShort and activationOtp.
+		 Signature calculated from activationCode.
 		 The value is optional in cases, when the user re-typed codes
 		 manually. If the value is available, then the Base64 string is expected.
 		 */
@@ -421,23 +417,9 @@ namespace powerAuth
 	struct ActivationStep1Result
 	{
 		/**
-		 Activation nonce, in Base64 format.
+		 Device's public key, in Base64 format.
 		 */
-		std::string	activationNonce;
-		/**
-		 Encrypted device's public key, in Base64 format.
-		 */
-		std::string	cDevicePublicKey;
-		/**
-		 Application signature proving that activation was completed
-		 with correct application, in Base64 format.
-		 */
-		std::string	applicationSignature;
-        /**
-         An ephemeral public key used to deduce ad-hoc encryption
-         secret for cDevicePublicKey, in Base64 format.
-         */
-        std::string ephemeralPublicKey;
+		std::string	devicePublicKey;
 	};
 	
 	/**
@@ -450,22 +432,13 @@ namespace powerAuth
 		 */
 		std::string	activationId;
 		/**
-		 Ephemeral nonce, generated on the server, in Base64 format.
+		 Server's public key, in Base64 format.
 		 */
-		std::string	ephemeralNonce;
+		std::string	serverPublicKey;
 		/**
-		 Server's part for ephemeral key in Base64 format.
+		 Initial value for hash-based counter.
 		 */
-		std::string	ephemeralPublicKey;
-		/**
-		 Encrypted server public key, in Base64 format.
-		 */
-		std::string	encryptedServerPublicKey;
-		/**
-		 Siganture, calculated from activationId & encryptedServerPublicKey,
-		 in Base64 format.
-		 */
-		std::string	serverDataSignature;
+		std::string	ctrData;
 	};
 	
 	/**

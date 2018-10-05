@@ -81,12 +81,14 @@
 		// We will use it later, for the response decryption.
 		_encryptor = [helper encryptorWithId:_endpoint.encryptor];
 		// Encrypt object
-		requestData = [PA2ObjectSerialization encryptObject:_requestObject
-												  encryptor:_encryptor
-													  error:error];
-		if (!requestData) {
+		PA2EncryptedRequest * encrypted = [PA2ObjectSerialization encryptObject:_requestObject
+																	  encryptor:_encryptor
+																		  error:error];
+		if (!encrypted) {
 			return nil;
 		}
+		requestData = [PA2ObjectSerialization serializeObject:encrypted];
+		
 		// Set encryption HTTP headers, only if this doesn't collide with the signature.
 		// We don't sent the encryption header together with the signature header. The reason
 		// for that is fact, that signature header already contains values required for

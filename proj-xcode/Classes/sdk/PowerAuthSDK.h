@@ -121,7 +121,8 @@
  */
 - (BOOL) restoreState;
 
-/** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
+/**
+ Create a new standard activation with given name and activation code.
  
  @param name Activation name, for example "John's iPhone".
  @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
@@ -133,7 +134,8 @@
 											activationCode:(nonnull NSString*)activationCode
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
-/** Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
+/**
+ Create a new standard activation with given name, activation code and additional extras information.
  
  @param name Activation name, for example "John's iPhone".
  @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
@@ -146,44 +148,23 @@
 											activationCode:(nonnull NSString*)activationCode
 													extras:(nullable NSString*)extras
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
-
-/** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
+/**
+ Create a new custom activation with given name and custom activation.
  
  @param name Activation name, for example "John's iPhone".
  @param identityAttributes Custom activation parameters that are used to prove identity of a user.
- @param customSecret Custom OTP used for additional device public key AES encryption.
  @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
- @param customAttributes Custom attributes, that are not related to identity but still need to be sent along with the request.
- @param url Absolute URL to be called with the encrypted activation payload.
- @param httpHeaders HTTP headers used in the server call.
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PA2OperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
 										identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-											  customSecret:(nonnull NSString*)customSecret
 													extras:(nullable NSString*)extras
-										  customAttributes:(nullable NSDictionary<NSString*,NSString*>*)customAttributes
-													   url:(nonnull NSURL*)url
-											   httpHeaders:(nullable NSDictionary*)httpHeaders
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
-/** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
- 
- @param name Activation name, for example "John's iPhone".
- @param identityAttributes Custom activation parameters that are used to prove identity of a user.
- @param url Absolute URL to be called with the encrypted activation payload.
- @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
- @return PA2OperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
- */
-- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-										identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-													   url:(nonnull NSURL*)url
-												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
-
-/** Commit activation that was created and store related data using provided authentication instance.
+/**
+ Commit activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.

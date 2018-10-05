@@ -301,28 +301,22 @@ PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::
 
 void PA2ActivationStep1ParamToStruct(PA2ActivationStep1Param * p1, io::getlime::powerAuth::ActivationStep1Param & cpp_p1)
 {
-	cpp_p1.activationIdShort		= cc7::objc::CopyFromNSString(p1.activationIdShort);
-	cpp_p1.activationOtp			= cc7::objc::CopyFromNSString(p1.activationOtp);
-	cpp_p1.activationSignature		= cc7::objc::CopyFromNSString(p1.activationSignature);
+	cpp_p1.activationCode			= cc7::objc::CopyFromNSString(p1.activationCode.activationCode);
+	cpp_p1.activationSignature		= cc7::objc::CopyFromNSString(p1.activationCode.activationSignature);
 }
 
 PA2ActivationStep1Result * PA2ActivationStep1ResultToObject(const io::getlime::powerAuth::ActivationStep1Result& cpp_r1)
 {
 	PA2ActivationStep1Result * res = [[PA2ActivationStep1Result alloc] init];
-	res.activationNonce				= cc7::objc::CopyToNSString(cpp_r1.activationNonce);
-	res.cDevicePublicKey			= cc7::objc::CopyToNSString(cpp_r1.cDevicePublicKey);
-	res.applicationSignature		= cc7::objc::CopyToNSString(cpp_r1.applicationSignature);
-    res.ephemeralPublicKey          = cc7::objc::CopyToNSString(cpp_r1.ephemeralPublicKey);
+	res.devicePublicKey				= cc7::objc::CopyToNSString(cpp_r1.devicePublicKey);
 	return res;
 }
 
 void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, io::getlime::powerAuth::ActivationStep2Param & cpp_p2)
 {
 	cpp_p2.activationId				= cc7::objc::CopyFromNSString(p2.activationId);
-	cpp_p2.ephemeralNonce			= cc7::objc::CopyFromNSString(p2.ephemeralNonce);
-	cpp_p2.ephemeralPublicKey		= cc7::objc::CopyFromNSString(p2.ephemeralPublicKey);
-	cpp_p2.encryptedServerPublicKey	= cc7::objc::CopyFromNSString(p2.encryptedServerPublicKey);
-	cpp_p2.serverDataSignature		= cc7::objc::CopyFromNSString(p2.serverDataSignature);
+	cpp_p2.serverPublicKey			= cc7::objc::CopyFromNSString(p2.serverPublicKey);
+	cpp_p2.ctrData					= cc7::objc::CopyFromNSString(p2.ctrData);
 }
 
 PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2)

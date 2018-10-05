@@ -36,26 +36,10 @@ namespace protocol
 	bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk);
 	
 	/**
-	 Validates "activationId&cServerPublicKeyB64" sequence with provided master key and signature.
+	 Validates "activationCode" sequence with provided master key and signature.
+	 The code & signature may be empty for custom activation.
 	 */
-	bool ValidateActivationDataSignature(const std::string & activationId, const std::string & cServerPublicKeyB64, const cc7::ByteRange & sig, EC_KEY * mk);
-	
-	/**
-	 Expands activationId & otp into bigger key, with using PBKDF2 derivation.
-	 */
-	cc7::ByteArray ExpandOTPKey(const std::string & activationIdShort, const std::string & otp);
-	
-	/**
-	 Encrypts device public key with key, derived from activationIdShort and otp. The function
-	 reads key from ActivationData structure and writes expandedOtp into the same structure.
-	 */
-	cc7::ByteArray EncryptDevicePublicKey(ActivationData & ad, const std::string & activationIdShort, const std::string & otp);
-	
-	/**
-	 Decrypts encryptedPk with our private key & ephemeralKey. The function requires several
-	 attributes available in the ActivationData structure and stores result there.
-	 */
-	bool DecryptServerPublicKey(ActivationData & ad, const cc7::ByteRange & ephemeral, const cc7::ByteRange & encryptedPk, const cc7::ByteRange & nonce);
+	bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk);
 	
 	/**
 	 Reduces size of shared secret produced in ECDH.
@@ -136,17 +120,6 @@ namespace protocol
 	 Returns string representing given signature factor.
 	 */
 	std::string ConvertSignatureFactorToString(SignatureFactor factor);
-
-	/**
-	 Calculates application signature from given data. Nonce, encrypted key, application key and
-	 application secret should be in Base64 format. The method doesn't validate if strings are
-	 in correct format.
-	 */
-	std::string CalculateApplicationSignature(const std::string & activationIdShort,
-											  const std::string & activationNonce,
-											  const std::string & cDevicePublicKey,
-											  const std::string & applicationKey,
-											  const std::string & applicationSecret);
 	
 	/**
 	 Calculates decimalized signature from given data. The size of provided data object

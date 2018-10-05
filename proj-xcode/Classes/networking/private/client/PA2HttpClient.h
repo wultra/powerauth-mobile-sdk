@@ -79,4 +79,17 @@
 						 to:(PA2RestApiEndpoint*)endpoint
 				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion;
 
+/**
+ Post a HTTP request to the the given endpoint. The object and authentication parameters are optional.
+ The completion block is always issued to the "completionQueue", provided in the object's initialization.
+ 
+ The cancel block is called if application calls "cancel" on returned operation. This allows SDK to handle
+ special cases, where the consistency needs to be guaranteed.
+ */
+- (NSOperation*) postObject:(id<PA2Encodable>)object
+						 to:(PA2RestApiEndpoint*)endpoint
+					   auth:(PowerAuthAuthentication*)authentication
+				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+					 cancel:(void(^)(void))cancel;
+
 @end

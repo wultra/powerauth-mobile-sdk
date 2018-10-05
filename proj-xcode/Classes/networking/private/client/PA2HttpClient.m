@@ -85,14 +85,22 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 						 to:(PA2RestApiEndpoint*)endpoint
 				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion
 {
-	return [self postObject:object to:endpoint auth:nil completion:completion];
+	return [self postObject:object to:endpoint auth:nil completion:completion cancel:nil];
 }
-
 
 - (NSOperation*) postObject:(id<PA2Encodable>)object
 						 to:(PA2RestApiEndpoint*)endpoint
 					   auth:(PowerAuthAuthentication*)authentication
 				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+{
+	return [self postObject:object to:endpoint auth:authentication completion:completion cancel:nil];
+}
+
+- (NSOperation*) postObject:(id<PA2Encodable>)object
+						 to:(PA2RestApiEndpoint*)endpoint
+					   auth:(PowerAuthAuthentication*)authentication
+				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+					 cancel:(void(^)(void))customCancelBlock
 {
 	// Construct asynchronous operation & associated request
 	PA2AsyncOperation * op = [[PA2AsyncOperation alloc] initWithReportQueue:_completionQueue];
@@ -130,6 +138,9 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 	// Setup cancellation block
 	op.cancelBlock = ^(PA2AsyncOperation *op, id task) {
 		[PA2ObjectAs(task, NSURLSessionDataTask) cancel];
+		if (customCancelBlock) {
+			customCancelBlock();
+		}
 	};
 	
 	// Finally, add operation to the right queue

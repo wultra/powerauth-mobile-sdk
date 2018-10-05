@@ -15,8 +15,9 @@
  */
 
 #import "PA2Response.h"
-
-@class PA2ECIESEncryptor;
+#import "PA2EncryptedRequest.h"
+#import "PA2EncryptedResponse.h"
+#import "PA2ECIESEncryptor.h"
 
 /**
  The `PA2ObjectSerialization` class provides several static methods
@@ -60,16 +61,16 @@
 @interface PA2ObjectSerialization (E2EE)
 
 /**
- 
+ Encrypts given object with provided encryptor and returns encrypted request object.
  */
-+ (NSData*) encryptObject:(id<PA2Encodable>)object
-				encryptor:(PA2ECIESEncryptor*)encryptor
-					error:(NSError**)error;
++ (PA2EncryptedRequest*) encryptObject:(id<PA2Encodable>)object
+							 encryptor:(PA2ECIESEncryptor*)encryptor
+								 error:(NSError**)error;
 
 /**
  
  */
-+ (id<PA2Decodable>) decryptObject:(NSData*)data
++ (id<PA2Decodable>) decryptObject:(PA2EncryptedResponse*)response
 						  forClass:(Class)aClass
 						 decryptor:(PA2ECIESEncryptor*)decryptor
 							 error:(NSError**)error;

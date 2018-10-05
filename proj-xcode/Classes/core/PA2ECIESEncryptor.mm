@@ -119,7 +119,7 @@ using namespace io::getlime::powerAuth;
 }
 
 - (BOOL) encryptRequest:(NSData *)data
-			 completion:(void (^)(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor))completion
+			 completion:(void (NS_NOESCAPE ^)(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor))completion
 {
 	PA2ECIESEncryptor * decryptor;
 	PA2ECIESCryptogram * cryptogram;

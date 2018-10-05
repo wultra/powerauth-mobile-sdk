@@ -45,9 +45,9 @@
 }
 
 
-#pragma mark - main & cancel
+#pragma mark - start & cancel
 
-- (void) main
+- (void) start
 {
 	self.isExecuting = YES;
 	

@@ -43,6 +43,11 @@
 /// Object type expected in the response data.
 @property (nonatomic, strong, readonly) Class responseClass;
 
+/// Returns YES, if request needs to be processed in serialized queue.
+@property (nonatomic, assign, readonly) BOOL isSerialized;
+
+/// Returns YES, if request requires encryption
+@property (nonatomic, assign, readonly) BOOL isEncrypted;
 
 #pragma mark - Endpoint construction
 

@@ -49,7 +49,7 @@
 {
 	// Sanity checks.
 	BOOL needsSignature = _endpoint.authUriId != nil && _authentication != nil;
-	BOOL needsEncryption = _endpoint.encryptor != PA2EncryptorId_None;
+	BOOL needsEncryption = _endpoint.isEncrypted;
 
 	// Check whether the request object has expected type.
 	if (_endpoint.requestClass && ![_requestObject isKindOfClass:_endpoint.requestClass]) {

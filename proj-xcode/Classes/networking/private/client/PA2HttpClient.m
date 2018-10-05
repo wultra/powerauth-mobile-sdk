@@ -21,7 +21,20 @@
 @implementation PA2HttpClient
 {
 	dispatch_queue_t _completionQueue;
-	dispatch_queue_t _dispatchQueue;
+}
+
+/**
+ Returns a shared, concurrent queue.
+ */
+static NSOperationQueue * _GetSharedConcurrentQueue()
+{
+	static dispatch_once_t onceToken;
+	static NSOperationQueue * s_queue;
+	dispatch_once(&onceToken, ^{
+		s_queue = [[NSOperationQueue alloc] init];
+		s_queue.name = @"PA2HttpClient_Concurrent";
+	});
+	return s_queue;
 }
 
 - (instancetype) initWithConfiguration:(PA2ClientConfiguration*)configuration
@@ -42,22 +55,30 @@
 			_baseUrl = baseUrl;
 		}
 		
-		// Prepare queues.
-		// Note that dispatch queue is serial, but NSOPerationQueue is concurrent (by default)
-		_dispatchQueue = dispatch_queue_create("PA2HttpClient", DISPATCH_QUEUE_SERIAL);
-		_operationQueue = [[NSOperationQueue alloc] init];
-		_operationQueue.underlyingQueue = _dispatchQueue;
+		// Prepare serial queue
+		_serialQueue = [[NSOperationQueue alloc] init];
+		_serialQueue.maxConcurrentOperationCount = 1;
+		_serialQueue.name = @"PA2HttpClient_Serial";
 		
-		// Prepare NSURLSession's configuration
+		// Prepare NSURLSession's configuration (the copy is probably not required, but unfortunately,
+		// the documentation is not very specific, whether the new instance of ephemeral config is returned)
 		NSURLSessionConfiguration *sessionConfiguration = [[NSURLSessionConfiguration ephemeralSessionConfiguration] copy];
 		sessionConfiguration.URLCache = nil;
 		sessionConfiguration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 		sessionConfiguration.timeoutIntervalForRequest = configuration.defaultRequestTimeout;
 		
-		// And finally, construct the session
-		_session = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:self delegateQueue:_operationQueue];
+		// And finally, construct the session. We can use the shared concurrent queue for
+		// scheduling session's delegate messages.
+		_session = [NSURLSession sessionWithConfiguration:sessionConfiguration
+												 delegate:self
+											delegateQueue:_GetSharedConcurrentQueue()];
 	}
 	return self;
+}
+
+- (NSOperationQueue*) concurrentQueue
+{
+	return _GetSharedConcurrentQueue();
 }
 
 - (NSOperation*) postObject:(id<PA2Encodable>)object
@@ -111,8 +132,9 @@
 		[PA2ObjectAs(task, NSURLSessionDataTask) cancel];
 	};
 	
-	// Finally, add operation to the queue
-	[_operationQueue addOperation:op];
+	// Finally, add operation to the right queue
+	NSOperationQueue * queue = endpoint.isSerialized ? _serialQueue : _GetSharedConcurrentQueue();
+	[queue addOperation:op];
 	return op;
 }
 

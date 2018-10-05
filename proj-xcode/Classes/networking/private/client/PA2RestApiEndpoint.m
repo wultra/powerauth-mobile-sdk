@@ -109,6 +109,17 @@
 										  authUriId:@"/pa/vault/unlock"];
 }
 
+#pragma mark - Public getters
+
+- (BOOL) isSerialized
+{
+	return _authUriId != nil;
+}
+
+- (BOOL) isEncrypted
+{
+	return _encryptor != PA2EncryptorId_None;
+}
 
 #pragma mark - Private constructor
 

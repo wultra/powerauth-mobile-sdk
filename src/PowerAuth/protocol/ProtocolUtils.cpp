@@ -32,83 +32,23 @@ namespace protocol
 	// MARK: - Helpers and utilities related to PA2 -
 	//
 	
-	bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk)
+	bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk)
 	{
 		CC7_ASSERT(mk, "mk is required parametr");
-		CC7_ASSERT(!sid.empty(), "sid is required parameter");
-		CC7_ASSERT(!otp.empty(), "otp is required parameter");
-		if (sig.empty()) {
-			// Signature is optional, we can return true
+		if (code.empty() && sig.empty()) {
+			// For custom activations, there's no activation code & signature.
 			return true;
 		}
-		bool result;
+		if (!code.empty() && sig.empty()) {
+			// Code is present, but no signature. That's also valid state.
+			return true;
+		}
 		cc7::ByteArray signature;
-		result = signature.readFromBase64String(sig);
+		bool result = signature.readFromBase64String(sig);
 		if (!result || signature.empty()) {
 			return false;
 		}
-		// Prepare data for signature validation
-		std::string signed_data = sid;
-		signed_data.append(DASH);
-		signed_data.append(otp);
-		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(signed_data), signature, mk);
-	}
-	
-	
-	bool ValidateActivationDataSignature(const std::string & activationId, const std::string & cServerPublicKeyB64, const cc7::ByteRange & sig, EC_KEY * mk)
-	{
-		std::string signed_data;
-		signed_data.append(cc7::ToBase64String(cc7::MakeRange(activationId)));
-		signed_data.append(AMP);
-		signed_data.append(cServerPublicKeyB64);
-		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(signed_data), sig, mk);
-	}
-
-	
-	cc7::ByteArray ExpandOTPKey(const std::string & activationIdShort, const std::string & otp)
-	{
-		return crypto::PBKDF2_HMAC_SHA1(cc7::MakeRange(otp), cc7::MakeRange(activationIdShort), PBKDF2_OTP_EXPAND_ITERATIONS, SIGNATURE_KEY_SIZE);
-	}
-
-	
-	cc7::ByteArray EncryptDevicePublicKey(ActivationData & ad, const std::string & activationIdShort, const std::string & otp)
-	{
-		if (ad.devicePublicKeyData.empty() || (ad.activationNonce.size() != ACTIVATION_NONCE_SIZE) || (ad.activationNonce == ZERO_IV) || ad.ephemeralDeviceKey == nullptr) {
-			CC7_ASSERT(false, "The required parameter is missing.");
-			return cc7::ByteArray();
-		}
-        // Calculate and import ephemeral shared secret
-        cc7::ByteArray ephemeral_shared_secret = ReduceSharedSecret(crypto::ECDH_SharedSecret(ad.masterServerPublicKey, ad.ephemeralDeviceKey));
-        if (ephemeral_shared_secret.empty()) {
-            CC7_ASSERT(false, "Ephemeral shared key calculation failed.");
-            return cc7::ByteArray();
-        }
-		ad.expandedOtp = ExpandOTPKey(activationIdShort, otp);
-        cc7::ByteArray tmp_data = crypto::AES_CBC_Encrypt_Padding(ad.expandedOtp, ad.activationNonce, ad.devicePublicKeyData);
-        cc7::ByteArray result = crypto::AES_CBC_Encrypt_Padding(ephemeral_shared_secret, ad.activationNonce, tmp_data);
-        return result;
-	}
-
-	
-	bool DecryptServerPublicKey(ActivationData & ad, const cc7::ByteRange & ephemeral, const cc7::ByteRange & encryptedPk, const cc7::ByteRange & nonce)
-	{
-		crypto::BNContext ctx;
-		// Import ephemeral server key
-		ad.ephemeralServerKey = crypto::ECC_ImportPublicKey(nullptr, ephemeral, ctx);
-		if (!ad.ephemeralServerKey) {
-			return false;
-		}
-		// Calculate ephemeral shared secret
-		cc7::ByteArray ephemeral_shared_secret = ReduceSharedSecret(crypto::ECDH_SharedSecret(ad.ephemeralServerKey, ad.devicePrivateKey));
-		if (ephemeral_shared_secret.empty()) {
-			CC7_ASSERT(false, "Ephemeral shared key calculation failed.");
-			return false;
-		}
-		// Decrypt server's public key with double AES decryption
-		cc7::ByteArray tmp_data	= crypto::AES_CBC_Decrypt_Padding(ephemeral_shared_secret, nonce, encryptedPk);
-		ad.serverPublicKeyData	= crypto::AES_CBC_Decrypt_Padding(ad.expandedOtp, nonce, tmp_data);
-		ad.serverPublicKey		= crypto::ECC_ImportPublicKey(nullptr, ad.serverPublicKeyData, ctx);
-		return ad.serverPublicKey != nullptr;
+		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(code), signature, mk);
 	}
 	
 	
@@ -535,32 +475,7 @@ namespace protocol
 				return std::string();
 		}
 	}
-	
-	
-	std::string CalculateApplicationSignature(const std::string & activationIdShort,
-											  const std::string & activationNonce,
-											  const std::string & cDevicePublicKey,
-											  const std::string & applicationKey,
-											  const std::string & applicationSecret)
-	{
-		cc7::ByteArray app_secret;
-		bool b_result = app_secret.readFromBase64String(applicationSecret);
-		if (b_result == false || app_secret.empty()) {
-			return std::string();
-		}
-		
-		std::string data_for_signature;
-		data_for_signature.append(activationIdShort);
-		data_for_signature.append(AMP);
-		data_for_signature.append(activationNonce);
-		data_for_signature.append(AMP);
-		data_for_signature.append(cDevicePublicKey);
-		data_for_signature.append(AMP);
-		data_for_signature.append(applicationKey);
-		
-		auto signature = crypto::HMAC_SHA256(cc7::MakeRange(data_for_signature), app_secret);
-		return cc7::ToBase64String(signature);
-	}
+
 
 	/**
 	 Convers |val| to normalized string. Zero characters are used for the indentation padding

@@ -15,6 +15,7 @@
  */
 
 #import "PA2Password.h"
+#import "PA2OtpUtil.h"
 
 #pragma mark - Session setup & Error -
 
@@ -342,19 +343,10 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
 @interface PA2ActivationStep1Param : NSObject
 
 /**
- Short activation ID
+ Full, parsed activation code. The parameter is optional and may be nil
+ in case of custom activation.
  */
-@property (nonatomic, strong, nonnull) NSString * activationIdShort;
-/**
- Activation OTP (one time password)
- */
-@property (nonatomic, strong, nonnull) NSString * activationOtp;
-/**
- Signature calculated from activationIdShort and activationOtp.
- The value is optional in cases, when the user re-typed codes
- manually. If the value is available, then the Base64 string is expected.
- */
-@property (nonatomic, strong, nullable) NSString * activationSignature;
+@property (nonatomic, strong, nullable) PA2Otp * activationCode;
 
 @end
 
@@ -366,25 +358,9 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
 @interface PA2ActivationStep1Result : NSObject
 
 /**
- Activation nonce, in Base64 format
+ Device's public key, in Base64 format
  */
-@property (nonatomic, strong, nonnull) NSString * activationNonce;
-/**
- Encrypted device's public key, in Base64 format
- */
-@property (nonatomic, strong, nonnull) NSString * cDevicePublicKey;
-
-/**
- Application signature proving that activation was completed
- with correct application.
- */
-@property (nonatomic, strong, nonnull) NSString * applicationSignature;
-
-/**
- Ephemeral public key used for ad-hoc encryption used to protect
- cDevicePublicKey.
- */
-@property (nonatomic, strong, nonnull) NSString * ephemeralPublicKey;
+@property (nonatomic, strong, nonnull) NSString * devicePublicKey;
 
 @end
 
@@ -400,22 +376,13 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
  */
 @property (nonatomic, strong, nonnull) NSString * activationId;
 /**
- Ephemeral nonce, generated on the server, in Base64 format.
+ Server's public key, in Base64 format.
  */
-@property (nonatomic, strong, nonnull) NSString * ephemeralNonce;
+@property (nonatomic, strong, nonnull) NSString * serverPublicKey;
 /**
- Server's part for ephemeral key in Base64 format.
+ Initial value for hash-based counter.
  */
-@property (nonatomic, strong, nonnull) NSString * ephemeralPublicKey;
-/**
- Encrypted server public key, in Base64 format.
- */
-@property (nonatomic, strong, nonnull) NSString * encryptedServerPublicKey;
-/**
- Siganture, calculated from activationId & encryptedServerPublicKey,
- in Base64 format.
- */
-@property (nonatomic, strong, nonnull) NSString * serverDataSignature;
+@property (nonatomic, strong, nonnull) NSString * ctrData;
 
 @end
 

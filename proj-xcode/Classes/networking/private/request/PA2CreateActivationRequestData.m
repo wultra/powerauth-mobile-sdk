@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-// Requests objects
-#import "PA2CreateActivationRequest.h"
 #import "PA2CreateActivationRequestData.h"
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2EncryptedRequest.h"
 
-// Response objects
-#import "PA2CreateActivationResponse.h"
-#import "PA2CreateActivationResponseData.h"
-#import "PA2GetActivationStatusResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2EncryptedResponse.h"
+@implementation PA2CreateActivationRequestData
+
+- (NSDictionary<NSString*, NSObject*>*) toDictionary
+{
+	NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:3];
+	if (_activationName) {
+		dictionary[@"activationName"] = _activationName;
+	}
+	if (_devicePublicKey) {
+		dictionary[@"devicePublicKey"] = _devicePublicKey;
+	}
+	if (_extras) {
+		dictionary[@"extras"] = _extras;
+	}
+	return dictionary;
+}
+
+@end

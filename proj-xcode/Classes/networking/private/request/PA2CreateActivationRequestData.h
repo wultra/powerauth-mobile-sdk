@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 #import "PA2Codable.h"
 
-/** Request for '/pa/activation/status' endpoint.
+/**
+ The `PA2ActivationRequestData` object contains private data sent during the activation
+ directly to the PowerAuth server. The content of the object cannot be decrypted
+ by the intermediate application server.
  */
-@interface PA2ActivationStatusRequest : NSObject <PA2Encodable>
+@interface PA2CreateActivationRequestData : NSObject<PA2Encodable>
 
-@property (nonatomic, strong) NSString *activationId;
+@property (nonatomic, strong) NSString * devicePublicKey;
+@property (nonatomic, strong) NSString * activationName;
+@property (nonatomic, strong) NSString * extras;
 
 @end

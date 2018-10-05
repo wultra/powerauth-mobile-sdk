@@ -21,14 +21,6 @@
  code. You can use methods from `PA2OtpUtil` class to fill this object with valid data.
  */
 @interface PA2Otp : NSObject
-/**
- Short activation ID
- */
-@property (nonnull, nonatomic, strong, readonly) NSString* activationIdShort PA2_DEPRECATED("to-remove");
-/**
- Activation OTP (one time password)
- */
-@property (nonnull, nonatomic, strong, readonly) NSString* activationOtp PA2_DEPRECATED("to-remove");
 
 /**
  Activation code, without signature part.

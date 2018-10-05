@@ -34,8 +34,8 @@
 + (instancetype) getActivationStatus;
 {
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/activation/status"
-											request:[PA2ActivationStatusRequest class]
-										   response:[PA2ActivationStatusResponse class]
+											request:[PA2GetActivationStatusRequest class]
+										   response:[PA2GetActivationStatusResponse class]
 										  encryptor:PA2EncryptorId_None
 										  authUriId:nil];
 }

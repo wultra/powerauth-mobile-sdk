@@ -23,12 +23,9 @@
 {
     self = [super init];
     if (self) {
-        _activationId						= PA2ObjectAs(dictionary[@"activationId"], NSString);
-        _activationNonce					= PA2ObjectAs(dictionary[@"activationNonce"], NSString);
-        _ephemeralPublicKey					= PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
-        _encryptedServerPublicKey			= PA2ObjectAs(dictionary[@"encryptedServerPublicKey"], NSString);
-        _encryptedServerPublicKeySignature	= PA2ObjectAs(dictionary[@"encryptedServerPublicKeySignature"], NSString);
-		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
+		NSDictionary * activationDataDict	= PA2ObjectAs(dictionary[@"activationData"], NSDictionary);
+		_activationData = [[PA2EncryptedResponse alloc] initWithDictionary:activationDataDict];
+ 		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
     }
     return self;
 }

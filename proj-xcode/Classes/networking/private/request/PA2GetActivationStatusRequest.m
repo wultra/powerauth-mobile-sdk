@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#import "PA2ActivationStatusRequest.h"
+#import "PA2GetActivationStatusRequest.h"
 #import "PA2PrivateMacros.h"
 
-@implementation PA2ActivationStatusRequest
+@implementation PA2GetActivationStatusRequest
 
 - (NSDictionary*) toDictionary
 {

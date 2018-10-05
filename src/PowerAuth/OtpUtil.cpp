@@ -47,7 +47,7 @@ namespace powerAuth
 			// split activationCode to code and signature
 			out_components.activationCode = activationCode.substr(0, hash_pos);
 			out_components.activationSignature = activationCode.substr(hash_pos + 1);
-			// validate signature
+			// validate Base64 signature
 			if (!validateSignature(out_components.activationSignature)) {
 				return false;
 			}

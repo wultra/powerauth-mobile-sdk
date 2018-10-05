@@ -15,38 +15,45 @@
  */
 
 #import "PA2CreateActivationRequest.h"
+#import "PA2EncryptedRequest.h"
 #import "PA2PrivateMacros.h"
 
 @implementation PA2CreateActivationRequest
 
 - (NSDictionary*) toDictionary
 {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:8];
-    if (_activationIdShort) {
-        [dictionary setObject:_activationIdShort forKey:@"activationIdShort"];
-    }
-    if (_activationName) {
-        [dictionary setObject:_activationName forKey:@"activationName"];
-    }
-    if (_applicationKey) {
-        [dictionary setObject:_applicationKey forKey:@"applicationKey"];
-    }
-    if (_activationNonce) {
-        [dictionary setObject:_activationNonce forKey:@"activationNonce"];
-    }
-    if (_applicationSignature) {
-        [dictionary setObject:_applicationSignature forKey:@"applicationSignature"];
-    }
-    if (_encryptedDevicePublicKey) {
-        [dictionary setObject:_encryptedDevicePublicKey forKey:@"encryptedDevicePublicKey"];
-    }
-    if (_ephemeralPublicKey) {
-        [dictionary setObject:_ephemeralPublicKey forKey:@"ephemeralPublicKey"];
-    }
-    if (_extras) {
-        [dictionary setObject:_extras forKey:@"extras"];
-    }
+    NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:3];
+	if (_activationType) {
+		dictionary[@"type"] = _activationType;
+	}
+	if (_identityAttributes) {
+		dictionary[@"identityAttributes"] = _identityAttributes;
+	}
+	NSDictionary * activationData = [_activationData toDictionary];
+	if (activationData) {
+		dictionary[@"activationData"] = activationData;
+	}
     return dictionary;
+}
+
++ (instancetype) standardActivationWithCode:(NSString*)activationCode
+{
+	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
+	if (obj) {
+		obj->_activationType = @"CODE";
+		obj->_identityAttributes = @{ @"code" : activationCode };
+	}
+	return obj;
+}
+
++ (instancetype) customActivationWithIdentityAttributes:(NSDictionary<NSString*, NSString*>*)attributes
+{
+	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
+	if (obj) {
+		obj->_activationType = @"CUSTOM";
+		obj->_identityAttributes = attributes;
+	}
+	return obj;
 }
 
 @end

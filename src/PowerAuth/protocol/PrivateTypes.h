@@ -71,14 +71,11 @@ namespace protocol
 		
 		EC_KEY *		masterServerPublicKey;
 		EC_KEY *		devicePrivateKey;
-		EC_KEY *		ephemeralServerKey;
-        EC_KEY *		ephemeralDeviceKey;
 		EC_KEY *		serverPublicKey;
 		
 		// Information gathered during the activation
 		
-		std::string		activationIdShort;		// Step1: short activation ID
-		std::string		activationOtp;			// Step1: OTP
+		std::string		activationCode;			// Step1: short activation ID
 		std::string		activationId;			// Step2: Full activation ID
 		
 		// Information generated or received during the activation
@@ -87,21 +84,14 @@ namespace protocol
 		cc7::ByteArray	devicePublicKeyData;	// Our public key
 		cc7::ByteArray	devicePublicKeyCoordX;	// Public key in form of affine CoordX
 		
-		cc7::ByteArray	activationNonce;		// Activation nonce, generated in 1st step of activation
-												// Nonce is also used for data injection, during the tests
-		
-		cc7::ByteArray	expandedOtp;			// Real OTP, calculated as PBKDF2(idshort + otp). It is time consuming
-												// to get this value and therefore we need to keep it during the activation.
-		
 		cc7::ByteArray	masterSharedSecret;		// The result of ECDH. This value is VERY sensitive!
+		cc7::ByteArray	ctrData;				// Initial value for hash-based counter
 		
 		// Construction, destruction
 		
 		ActivationData() :
 			masterServerPublicKey(nullptr),
 			devicePrivateKey(nullptr),
-			ephemeralServerKey(nullptr),
-            ephemeralDeviceKey(nullptr),
 			serverPublicKey(nullptr)
 		{
 		}
@@ -110,8 +100,6 @@ namespace protocol
 		{
 			EC_KEY_free(masterServerPublicKey);
 			EC_KEY_free(devicePrivateKey);
-			EC_KEY_free(ephemeralServerKey);
-            EC_KEY_free(ephemeralDeviceKey);
 			EC_KEY_free(serverPublicKey);
 		}
 	};

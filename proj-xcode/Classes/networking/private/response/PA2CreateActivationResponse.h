@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import "PA2EncryptedResponse.h"
 
-/** Response for '/pa/activation/create' endpoint.
+/**
+ Response for '/pa/activation/create' endpoint.
  */
 @interface PA2CreateActivationResponse : NSObject <PA2Decodable>
 
-@property (nonatomic, strong) NSString *activationId;
-@property (nonatomic, strong) NSString *activationNonce;
-@property (nonatomic, strong) NSString *ephemeralPublicKey;
-@property (nonatomic, strong) NSString *encryptedServerPublicKey;
-@property (nonatomic, strong) NSString *encryptedServerPublicKeySignature;
+/**
+ Property contains encrypted, private data, returned from the PowerAuth server.
+ The encrypted `PA2CreateActivationResponseData` object is expected.
+ */
+@property (nonatomic, strong) PA2EncryptedResponse * activationData;
 
 /**
  Custom attributes received from the server. The value may be nil.

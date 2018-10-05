@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2016 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-// Requests objects
-#import "PA2CreateActivationRequest.h"
-#import "PA2CreateActivationRequestData.h"
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2EncryptedRequest.h"
+#import "PA2Codable.h"
 
-// Response objects
-#import "PA2CreateActivationResponse.h"
-#import "PA2CreateActivationResponseData.h"
-#import "PA2GetActivationStatusResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2EncryptedResponse.h"
+/** Response for '/pa/activation/status' endpoint.
+ */
+@interface PA2GetActivationStatusResponse : NSObject <PA2Decodable>
+
+@property (nonatomic, strong) NSString *activationId;
+@property (nonatomic, strong) NSString *encryptedStatusBlob;
+@property (nonatomic, strong) NSDictionary *customObject;
+
+@end

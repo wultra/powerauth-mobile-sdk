@@ -115,9 +115,9 @@
 
 @implementation PA2ObjectSerialization (E2EE)
 
-+ (NSData*) encryptObject:(id<PA2Encodable>)object
-				encryptor:(PA2ECIESEncryptor*)encryptor
-					error:(NSError**)error
++ (PA2EncryptedRequest*) encryptObject:(id<PA2Encodable>)object
+							 encryptor:(PA2ECIESEncryptor*)encryptor
+								 error:(NSError**)error
 {
 	// Serialize object
 	NSData * data = [self serializeObject:object];
@@ -128,18 +128,18 @@
 		return nil;
 	}
 	// Finally, construct a request body from cryptogram
-	PA2EncryptedRequest * requestObject = [[PA2EncryptedRequest alloc] initWithCryptogram:cryptogram];
-	return [PA2ObjectSerialization serializeObject:requestObject];
+	return [[PA2EncryptedRequest alloc] initWithCryptogram:cryptogram];
 }
 
 
-+ (id<PA2Decodable>) decryptObject:(NSData*)data
++ (id<PA2Decodable>) decryptObject:(PA2EncryptedResponse*)response
 						  forClass:(Class)aClass
 						 decryptor:(PA2ECIESEncryptor*)decryptor
 							 error:(NSError**)error
 {
-	NSData * decryptedData = [self decryptData:data decryptor:decryptor error:error];
+	NSData * decryptedData = [decryptor decryptResponse:[response cryptogram]];
 	if (!decryptedData) {
+		if (error) *error = PA2MakeError(PA2ErrorCodeEncryption, @"Failed to decrypt object data.");
 		return nil;
 	}
 	

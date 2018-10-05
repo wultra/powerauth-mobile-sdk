@@ -43,8 +43,24 @@
 @property (nonatomic, strong, readonly) PA2ClientConfiguration * configuration;
 @property (nonatomic, strong, readonly) NSString * baseUrl;
 
+/**
+ Contains NSURLSession object created during the client initialization.
+ */
 @property (nonatomic, strong, readonly) NSURLSession * session;
-@property (nonatomic, strong, readonly) NSOperationQueue * operationQueue;
+/**
+ Contains serialization queue. The queue is unique per PA2HttpClient instance, so basically
+ each instnace of PowerAuthSDK has its own queue.
+ 
+ Note that the queue may be blocked for an indefinite amount of time, when the biometry
+ signature is requested. The reson for that is that the entry, protected by biometry,
+ needs to be acquired from the underlying keychain.
+ */
+@property (nonatomic, strong, readonly) NSOperationQueue * serialQueue;
+/**
+ Contains concurrent queue. Note that this queue is shared between multiple PA2HttpClient
+ instances.
+ */
+@property (nonatomic, strong, readonly) NSOperationQueue * concurrentQueue;
 
 /**
  Post a HTTP request to the the given endpoint. The object and authentication parameters are optional.

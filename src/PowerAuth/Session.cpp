@@ -315,7 +315,8 @@ namespace powerAuth
 				break;
 			}
 			// Now try to import server's public key
-			_ad->serverPublicKey = crypto::ECC_ImportPublicKeyFromB64(nullptr, param.serverPublicKey);
+			_ad->serverPublicKeyData.readFromBase64String(param.serverPublicKey);
+			_ad->serverPublicKey = crypto::ECC_ImportPublicKey(nullptr, _ad->serverPublicKeyData);
 			if (!_ad->serverPublicKey) {
 				CC7_LOG("Session %p, %d: Step 2: Server's public key is not valid.", this, sessionIdentifier());
 				break;
@@ -831,13 +832,7 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Vault: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (!_pd->flags.waitingForVaultUnlock) {
-			CC7_LOG("Session %p, %d: Vault: The module is not waiting for a vault unlock.", this, sessionIdentifier());
-			return EC_WrongState;
-		}
-		// Clear waiting flag
-		_pd->flags.waitingForVaultUnlock = 0;
-		
+
 		// Check if there's encrypted vault key and if yes, try to decode from B64
 		if (c_vault_key.empty()) {
 			CC7_LOG("Session %p, %d: Vault: Missing encrypted vault key.", this, sessionIdentifier());
@@ -857,19 +852,8 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Vault: You have to provide possession key.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
-		
-		// Calculates KEY_ENCRYPTION_VAULT_TRANSPORT.
-		//
-		// The counter is already incremented, because we had to use SF_PrepareForVaultUnlock
-		// flag for the HTTP request signing. The current counter's value is equal to
-		// value AFTER the whole operation and therefore we don't need to increment it.
-		
-		cc7::ByteArray vault_transport_key = protocol::DeriveSecretKey(plain.transportKey, _pd->signatureCounter - 1);
-		if (vault_transport_key.empty()) {
-			return EC_Encryption;
-		}
-		// Finally, decrypt received vault key
-		out_key = crypto::AES_CBC_Decrypt_Padding(vault_transport_key, protocol::ZERO_IV, encrypted_vault_key);
+		// V3: Vault key is now simply encrypted with KEY_TRANSPORT
+		out_key = crypto::AES_CBC_Decrypt_Padding(plain.transportKey, protocol::ZERO_IV, encrypted_vault_key);
 		if (out_key.size() != protocol::VAULT_KEY_SIZE) {
 			return EC_Encryption;
 		}

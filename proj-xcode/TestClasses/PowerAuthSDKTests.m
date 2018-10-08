@@ -173,7 +173,7 @@ static NSString * PA_Ver = @"2.1";
 	__block NSError * fetchError = nil;
 	PA2ActivationStatus * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		// Start a fetch task.
-		PA2OperationTask * task = [_sdk fetchActivationStatusWithCallback:^(PA2ActivationStatus * status, NSDictionary * customObject, NSError * error) {
+		id<PA2OperationTask> task = [_sdk fetchActivationStatusWithCallback:^(PA2ActivationStatus * status, NSDictionary * customObject, NSError * error) {
 			activationStatusCustomObject = customObject;
 			fetchError = error;
 			[waiting reportCompletion:status];
@@ -182,9 +182,9 @@ static NSString * PA_Ver = @"2.1";
 		// Typically, if activation is not completed, then the asynchronous task is not started, but is reported
 		// as cancelled.
 		if (taskShouldWork) {
-			XCTAssertFalse([task isCancelled]);
+			XCTAssertNotNil(task);
 		} else {
-			XCTAssertTrue([task isCancelled]);
+			XCTAssertNil(task);
 		}
 	}];
 	if (taskShouldWork) {
@@ -200,10 +200,10 @@ static NSString * PA_Ver = @"2.1";
 - (BOOL) checkForPassword:(NSString*)password
 {
 	BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	return result;
 }
@@ -429,12 +429,12 @@ static NSString * PA_Ver = @"2.1";
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
-		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertTrue(result, @"Activation on client side did fail.");
@@ -591,11 +591,11 @@ static NSString * PA_Ver = @"2.1";
 	
 	// 1) At first, change password
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk changePasswordFrom:auth.usePassword to:newPassword callback:^(NSError * _Nullable error) {
+		id<PA2OperationTask> task = [_sdk changePasswordFrom:auth.usePassword to:newPassword callback:^(NSError * _Nullable error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);
 	
@@ -751,13 +751,13 @@ static NSString * PA_Ver = @"2.1";
 	__block NSData * resultSignature = nil;
 	__block NSError * resultError = nil;
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk signDataWithDevicePrivateKey:auth data:dataForSigning callback:^(NSData * signature, NSError * error) {
+		id<PA2OperationTask> task = [_sdk signDataWithDevicePrivateKey:auth data:dataForSigning callback:^(NSData * signature, NSError * error) {
 			resultSignature = signature;
 			resultError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);
 	
@@ -972,12 +972,12 @@ static NSString * PA_Ver = @"2.1";
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
-		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertFalse(result, @"Activation on client side did fail.");
@@ -1015,19 +1015,19 @@ static NSString * PA_Ver = @"2.1";
 	
 	// 2) At first, use invalid password
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertFalse(result); // Must not pass. Activation is blocked
 	
 	// 3) Now use a valid password
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertFalse(result);	// Must not pass. Activation is blocked
 	
@@ -1037,10 +1037,10 @@ static NSString * PA_Ver = @"2.1";
 	
 	// 5) Test password
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);	// Must pass, valid password, activation is active again
 	

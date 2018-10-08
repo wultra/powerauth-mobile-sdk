@@ -86,8 +86,6 @@ LOCAL_C_INCLUDES := \
 # Multiplatform sources
 LOCAL_SRC_FILES := \
 	PowerAuthTests/PowerAuthTestsList.cpp \
-	PowerAuthTests/pa2ActivationOTPExpandingTests.cpp \
-	PowerAuthTests/pa2ActivationSignatureValidationTest.cpp \
 	PowerAuthTests/pa2CryptoAESTests.cpp \
 	PowerAuthTests/pa2CryptoHMACTests.cpp \
 	PowerAuthTests/pa2CryptoPKCS7PaddingTests.cpp \
@@ -96,8 +94,6 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \
 	PowerAuthTests/pa2PasswordTests.cpp \
 	PowerAuthTests/pa2ProtocolUtilsTests.cpp \
-	PowerAuthTests/pa2ServerPublicKeyDecryption.cpp \
-	PowerAuthTests/pa2ServerPublicKeyVerification.cpp \
 	PowerAuthTests/pa2SessionTests.cpp \
 	PowerAuthTests/pa2SignatureCalculationTests.cpp \
 	PowerAuthTests/pa2SignatureKeysDerivationTest.cpp \

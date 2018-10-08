@@ -37,10 +37,6 @@
 		BFB47D0C207532CB008A6A52 /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */; };
 		BFB47D0D207532CB008A6A52 /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */; };
 		BFB47D0E207532CB008A6A52 /* pa2SignatureKeysDerivationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */; };
-		BFB47D0F207532CB008A6A52 /* pa2ActivationSignatureValidationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C32073E00D00735ED2 /* pa2ActivationSignatureValidationTest.cpp */; };
-		BFB47D10207532CB008A6A52 /* pa2ActivationOTPExpandingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C42073E00D00735ED2 /* pa2ActivationOTPExpandingTests.cpp */; };
-		BFB47D11207532CB008A6A52 /* pa2ServerPublicKeyDecryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C02073E00D00735ED2 /* pa2ServerPublicKeyDecryption.cpp */; };
-		BFB47D12207532CB008A6A52 /* pa2ServerPublicKeyVerification.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CA2073E00D00735ED2 /* pa2ServerPublicKeyVerification.cpp */; };
 		BFB47D13207532CB008A6A52 /* pa2MasterSecretKeyComputation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */; };
 		BFB47D14207532CB008A6A52 /* pa2SignatureCalculationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */; };
 		BFB47D15207532CB008A6A52 /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */; };
@@ -157,17 +153,13 @@
 		BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoHMACTests.cpp; sourceTree = "<group>"; };
 		BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureCalculationTests.cpp; sourceTree = "<group>"; };
 		BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PublicKeyFingerprintTests.cpp; sourceTree = "<group>"; };
-		BF99D8C02073E00D00735ED2 /* pa2ServerPublicKeyDecryption.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ServerPublicKeyDecryption.cpp; sourceTree = "<group>"; };
 		BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2MasterSecretKeyComputation.cpp; sourceTree = "<group>"; };
 		BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoAESTests.cpp; sourceTree = "<group>"; };
-		BF99D8C32073E00D00735ED2 /* pa2ActivationSignatureValidationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationSignatureValidationTest.cpp; sourceTree = "<group>"; };
-		BF99D8C42073E00D00735ED2 /* pa2ActivationOTPExpandingTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationOTPExpandingTests.cpp; sourceTree = "<group>"; };
 		BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureKeysDerivationTest.cpp; sourceTree = "<group>"; };
 		BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2OtpUtilTests.cpp; sourceTree = "<group>"; };
 		BF99D8C72073E00D00735ED2 /* pa2CryptoPKCS7PaddingTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoPKCS7PaddingTests.cpp; sourceTree = "<group>"; };
 		BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDHKDFTests.cpp; sourceTree = "<group>"; };
 		BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
-		BF99D8CA2073E00D00735ED2 /* pa2ServerPublicKeyVerification.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ServerPublicKeyVerification.cpp; sourceTree = "<group>"; };
 		BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2URLEncodingTests.cpp; sourceTree = "<group>"; };
 		BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ProtocolUtilsTests.cpp; sourceTree = "<group>"; };
 		BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
@@ -326,10 +318,6 @@
 				BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */,
 				BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */,
 				BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */,
-				BF99D8C32073E00D00735ED2 /* pa2ActivationSignatureValidationTest.cpp */,
-				BF99D8C42073E00D00735ED2 /* pa2ActivationOTPExpandingTests.cpp */,
-				BF99D8C02073E00D00735ED2 /* pa2ServerPublicKeyDecryption.cpp */,
-				BF99D8CA2073E00D00735ED2 /* pa2ServerPublicKeyVerification.cpp */,
 				BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */,
 				BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */,
 				BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */,
@@ -710,12 +698,8 @@
 				BFB47D15207532CB008A6A52 /* pa2PublicKeyFingerprintTests.cpp in Sources */,
 				BFB47D0D207532CB008A6A52 /* pa2URLEncodingTests.cpp in Sources */,
 				BFC92DEF2073E3860087851C /* pa2CryptoPKCS7PaddingTests.cpp in Sources */,
-				BFB47D12207532CB008A6A52 /* pa2ServerPublicKeyVerification.cpp in Sources */,
 				BFB47D08207532C5008A6A52 /* pa2SessionTests.cpp in Sources */,
-				BFB47D0F207532CB008A6A52 /* pa2ActivationSignatureValidationTest.cpp in Sources */,
-				BFB47D10207532CB008A6A52 /* pa2ActivationOTPExpandingTests.cpp in Sources */,
 				BFB47D0E207532CB008A6A52 /* pa2SignatureKeysDerivationTest.cpp in Sources */,
-				BFB47D11207532CB008A6A52 /* pa2ServerPublicKeyDecryption.cpp in Sources */,
 				BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */,
 				BFB47D0C207532CB008A6A52 /* pa2ProtocolUtilsTests.cpp in Sources */,
 			);

@@ -59,11 +59,10 @@ namespace powerAuthTests
 		std::string _masterServerPublicKeyStr;
 		SessionSetup _setup;
 		
-		std::string	_activation_short_id;
-		std::string _activation_otp;
+		std::string	_activation_code;
 		std::string _activation_id;
 
-		const std::string PA_VER = "2.1";
+		const std::string PA_VER = "3.0";
 		
 		void setUp() override
 		{
@@ -77,9 +76,8 @@ namespace powerAuthTests
 			_setup.sessionIdentifier		= 99;
 
 			// prepare some other constants
-			_activation_otp		 = "12456-ABCDE";
-			_activation_short_id = "FGHIJ-KLMNO";
-			_activation_id		 = "OUR-SUPER-ACTIVATION-ID";
+			_activation_code	 = "VVVVV-VVVVV-VVVVV-VTFVA";
+			_activation_id		 = "ED7BA470-8E54-465E-825C-99712043E01C";
 		}
 		
 		void tearDown() override
@@ -231,7 +229,6 @@ namespace powerAuthTests
 			
 				EC_KEY * serverPrivateKey = nullptr;
 				EC_KEY * devicePublicKey  = nullptr;
-				EC_KEY * ephemeralKey  = nullptr;
 
 				s1.resetSession();
 				
@@ -239,9 +236,8 @@ namespace powerAuthTests
 				//  ...prepare short-id, otp & activation signature
 				ActivationStep1Param param1;
 				{
-					param1.activationIdShort   = _activation_short_id;
-					param1.activationOtp       = _activation_otp;
-					param1.activationSignature = T_calculateActivationSignature(param1.activationIdShort, param1.activationOtp);
+					param1.activationCode		= _activation_code;
+					param1.activationSignature	= T_calculateActivationSignature(_activation_code);
 				}
 				// CLIENT STEP 1
 				//  ...process param1 & produce result1
@@ -280,69 +276,26 @@ namespace powerAuthTests
 				ActivationStep2Param param2;
 				std::string ACTIVATION_FINGERPRINT;
 				cc7::ByteArray MASTER_SHARED_SECRET;
+				cc7::ByteArray CTR_DATA;
 				{
-					// Validate "received" activation signature
-					std::string signed_data;
-					signed_data.append(param1.activationIdShort);
-					signed_data.append("&");
-					signed_data.append(result1.activationNonce);
-					signed_data.append("&");
-					signed_data.append(result1.cDevicePublicKey);
-					signed_data.append("&");
-					signed_data.append(_setup.applicationKey);
-					cc7::ByteArray app_secret_key			= cc7::FromBase64String(_setup.applicationSecret);
-					cc7::ByteArray expected_app_signature	= crypto::HMAC_SHA256(cc7::MakeRange(signed_data), app_secret_key);
-					cc7::ByteArray app_signature			= cc7::FromBase64String(result1.applicationSignature);
-					ccstAssertTrue(app_signature.size() == 32);
-					ccstAssertEqual(app_signature, expected_app_signature);
-                    ccstAssertTrue(result1.ephemeralPublicKey.size() > 0);
-					
 					// Let's make response for client
-					ephemeralKey     = crypto::ECC_GenerateKeyPair();
 					serverPrivateKey = crypto::ECC_GenerateKeyPair();
-					ccstAssertTrue(ephemeralKey != nullptr && serverPrivateKey != nullptr);
 					
-					cc7::ByteArray KEY_ENCRYPTION_OTP	= protocol::ExpandOTPKey(param1.activationIdShort, param1.activationOtp);
-					cc7::ByteArray ACTIVATION_NONCE		= cc7::FromBase64String(result1.activationNonce);
-					cc7::ByteArray C_DEVICE_PUB_KEY		= cc7::FromBase64String(result1.cDevicePublicKey);
-                    
-                    // Deduce ephemeral key for public key decryption
-                    EC_KEY       * ephemeralPublicKey   = crypto::ECC_ImportPublicKeyFromB64(nullptr, result1.ephemeralPublicKey);
-                    cc7::ByteArray EPH_KEY_IN           = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(ephemeralPublicKey, _masterServerPrivateKey));
-                    ccstAssertTrue(EPH_KEY_IN.size() == 16);
-                    
-                    cc7::ByteArray tmp_key              = crypto::AES_CBC_Decrypt_Padding(EPH_KEY_IN, ACTIVATION_NONCE, C_DEVICE_PUB_KEY);
-                    ccstAssertTrue(tmp_key.size() > 0);
-					cc7::ByteArray KEY_DEVICE_PUBLIC    = crypto::AES_CBC_Decrypt_Padding(KEY_ENCRYPTION_OTP, ACTIVATION_NONCE, tmp_key);
-                    ccstAssertTrue(KEY_DEVICE_PUBLIC.size() > 0);
+					cc7::ByteArray KEY_DEVICE_PUBLIC	= cc7::FromBase64String(result1.devicePublicKey);
+					ccstAssertTrue(KEY_DEVICE_PUBLIC.size() > 0);
 					devicePublicKey						= crypto::ECC_ImportPublicKey(nullptr, KEY_DEVICE_PUBLIC);
 					ccstAssertNotNull(devicePublicKey);
-                    
-					cc7::ByteArray EPH_KEY_OUT			= protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(devicePublicKey, ephemeralKey));
-					cc7::ByteArray EPHEMERAL_NONCE		= crypto::GetRandomData(16);
 					
-                    // Encrypt the response data
+                    // Prepare the response data
 					cc7::ByteArray serverPublicKey		= crypto::ECC_ExportPublicKey(serverPrivateKey);
-					cc7::ByteArray tmp					= crypto::AES_CBC_Encrypt_Padding(KEY_ENCRYPTION_OTP, EPHEMERAL_NONCE, serverPublicKey);
-					cc7::ByteArray C_KEY_SERVER_PUBLIC	= crypto::AES_CBC_Encrypt_Padding(EPH_KEY_OUT,        EPHEMERAL_NONCE, tmp);
-					
+					CTR_DATA							= crypto::GetRandomData(16);
+
 					MASTER_SHARED_SECRET				= protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(devicePublicKey, serverPrivateKey));
 					ccstAssertTrue(MASTER_SHARED_SECRET.size() == 16);
 					
-					std::string ACTIVATION_DATA;
-					ACTIVATION_DATA.append(cc7::MakeRange(_activation_id).base64String());
-					ACTIVATION_DATA.append("&");
-					ACTIVATION_DATA.append(C_KEY_SERVER_PUBLIC.base64String());
-
-					cc7::ByteArray SERVER_DATA_SIGNATURE;
-					bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(ACTIVATION_DATA), _masterServerPrivateKey, SERVER_DATA_SIGNATURE);
-					ccstAssertTrue(result);
-					
-					param2.ephemeralNonce           = EPHEMERAL_NONCE.base64String();
-					param2.ephemeralPublicKey       = crypto::ECC_ExportPublicKeyToB64(ephemeralKey);
-					param2.activationId             = _activation_id;
-					param2.encryptedServerPublicKey = C_KEY_SERVER_PUBLIC.base64String();
-					param2.serverDataSignature      = SERVER_DATA_SIGNATURE.base64String();
+					param2.activationId				= _activation_id;
+					param2.ctrData					= CTR_DATA.base64String();
+					param2.serverPublicKey          = serverPublicKey.base64String();
 					
 					// calculate hkKEY_DEVICE_PUBLIC on dummy server's side
 					cc7::ByteArray hash = crypto::SHA256(crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey));
@@ -494,7 +447,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::ByteRange(), "POST", "/user/login", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge_Biometry, 0);
+					std::string our_signature = T_calculateSignatureForData(cc7::ByteRange(), "POST", "/user/login", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge_Biometry, 0, CTR_DATA);
 					ccstAssertEqual(signature, our_signature);
 				}
 				
@@ -534,7 +487,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 1);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 1, CTR_DATA);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -585,7 +538,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 2);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 2, CTR_DATA);
 					// Signatures must not match.
 					ccstAssertNotEqual(signature, our_signature);
 				}
@@ -610,7 +563,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, "offline", SF_Possession_Knowledge, 3);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, "offline", SF_Possession_Knowledge, 3, CTR_DATA);
 					// Signatures must match.
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -663,7 +616,7 @@ namespace powerAuthTests
 						ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 						std::string signature = parsedSignature["pa_signature"];
 						ccstAssertTrue(!signature.empty());
-						std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession, 3 + attempt_count);
+						std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession, 3 + attempt_count, CTR_DATA);
 						// Signatures must match.
 						ccstAssertEqual(signature, our_signature);
 						// Save state for next loop or for subsequent tests...
@@ -698,7 +651,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3 + 3);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3 + 3, CTR_DATA);
 					// Signatures must match.
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -758,11 +711,11 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 4);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 4, CTR_DATA);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 					
-					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET, 5);
+					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
 					ccstAssertTrue(!cVaultKey.empty());
 				}
 				// Vault test #1-B, adding biometry factor back again
@@ -804,7 +757,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Biometry, 6);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Biometry, 5, CTR_DATA);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -830,11 +783,11 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 7);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 6, CTR_DATA);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 					// get encrypted vault
-					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET, 8);
+					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
 				}
 				// Vault test #2-B, signing data with private key
 				{
@@ -864,7 +817,7 @@ namespace powerAuthTests
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
 					// encrypted vault key
-					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET, 10);
+					cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
 				}
 				// Vault test #3-B, derive custom cryptographic key from vault key.
 				{
@@ -954,8 +907,7 @@ namespace powerAuthTests
 				// release keys, just for sure
 				EC_KEY_free(serverPrivateKey);
 				EC_KEY_free(devicePublicKey);
-				EC_KEY_free(ephemeralKey);
-
+				
 			} // for (int break_in_step...
 		}
 		
@@ -1057,10 +1009,10 @@ namespace powerAuthTests
 				std::string uriId  = "/vault/unlock";
 				SignatureFactor factor = SF_Possession_Knowledge | SF_PrepareForVaultUnlock;
 				//
-				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER);
+				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange());
 				ccstAssertTrue(expected_signature == sig["pa_signature"]);
 				// encrypted vault key
-				cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET, COUNTER + 1);
+				cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
 			}
 			// Decrypt vault key and generate some derived key.
 			{
@@ -1123,13 +1075,10 @@ namespace powerAuthTests
 		
 		// Helper methods
 		
-		std::string T_calculateActivationSignature(const std::string & aid, std::string & otp)
+		std::string T_calculateActivationSignature(const std::string & code)
 		{
-			std::string data_for_signing = aid;
-			data_for_signing.append("-");
-			data_for_signing.append(otp);
 			cc7::ByteArray signature;
-			bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(data_for_signing), _masterServerPrivateKey, signature);
+			bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(code), _masterServerPrivateKey, signature);
 			if (!result) {
 				ccstFailure("Activation signature calculation failed");
 				return std::string();
@@ -1151,6 +1100,23 @@ namespace powerAuthTests
 			return signature;
 		}
 		
+		cc7::ByteArray prepareCounterData(const cc7::ByteRange & base_ctr_data, cc7::U64 counter)
+		{
+			if (base_ctr_data.empty()) {
+				// V2 signature (older tests)
+				cc7::ByteArray counterData(8, 0);
+				cc7::U64 be_counter = cc7::ToBigEndian(counter);
+				counterData.append(cc7::MakeRange(be_counter));
+				return counterData;
+			}
+			cc7::ByteArray ctr = base_ctr_data;
+			while (counter > 0) {
+				ctr = protocol::ReduceSharedSecret(crypto::SHA256(ctr));
+				--counter;
+			}
+			return ctr;
+		}
+		
 		/*
 		 Complete PA2 signing reimplementation
 		 */
@@ -1163,7 +1129,8 @@ namespace powerAuthTests
 			const std::string &		nonce,
 			const std::string &		app_secret,
 			const SignatureFactor	factor,
-			const cc7::U64			counter
+			const cc7::U64			counter,
+		 	const cc7::ByteRange &	counter_data
 		)
 		{
 			// Normalize data
@@ -1198,9 +1165,7 @@ namespace powerAuthTests
 			}
 			
 			// Finally, calculate signature
-			cc7::ByteArray counterData(8, 0);
-			cc7::U64 be_counter = cc7::ToBigEndian(counter);
-			counterData.append(cc7::MakeRange(be_counter));
+			cc7::ByteArray counterData = prepareCounterData(counter_data, counter);
 			
 			std::string result;
 			for (size_t i = 0; i < sigKeys.size(); i++) {
@@ -1233,12 +1198,11 @@ namespace powerAuthTests
 			return result;
 		}
 		
-		std::string T_encryptedVaultKey(const cc7::ByteRange & master_shared_secret, cc7::U64 counter)
+		std::string T_encryptedVaultKey(const cc7::ByteRange & master_shared_secret)
 		{
 			cc7::ByteArray transport_key = protocol::DeriveSecretKey(master_shared_secret, 1000);
 			cc7::ByteArray vault_key = protocol::DeriveSecretKey(master_shared_secret, 2000);
-			cc7::ByteArray key_encryption_vault_transport = protocol::DeriveSecretKey(transport_key, counter);
-			cc7::ByteArray c_vault_key = crypto::AES_CBC_Encrypt_Padding(key_encryption_vault_transport, protocol::ZERO_IV, vault_key);
+			cc7::ByteArray c_vault_key = crypto::AES_CBC_Encrypt_Padding(transport_key, protocol::ZERO_IV, vault_key);
 			return c_vault_key.base64String();
 		}
 

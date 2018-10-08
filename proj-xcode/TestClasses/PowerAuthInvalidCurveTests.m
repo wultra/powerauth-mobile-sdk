@@ -162,7 +162,7 @@
 	__block NSError * fetchError = nil;
 	PA2ActivationStatus * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		// Start a fetch task.
-		PA2OperationTask * task = [_sdk fetchActivationStatusWithCallback:^(PA2ActivationStatus * status, NSDictionary * customObject, NSError * error) {
+		id<PA2OperationTask> task = [_sdk fetchActivationStatusWithCallback:^(PA2ActivationStatus * status, NSDictionary * customObject, NSError * error) {
 			activationStatusCustomObject = customObject;
 			fetchError = error;
 			[waiting reportCompletion:status];
@@ -171,9 +171,9 @@
 		// Typically, if activation is not completed, then the asynchronous task is not started, but is reported
 		// as cancelled.
 		if (taskShouldWork) {
-			XCTAssertFalse([task isCancelled]);
+			XCTAssertNotNil(task);
 		} else {
-			XCTAssertTrue([task isCancelled]);
+			XCTAssertNil(task);
 		}
 	}];
 	if (taskShouldWork) {
@@ -189,10 +189,10 @@
 - (BOOL) checkForPassword:(NSString*)password
 {
 	BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	return result;
 }
@@ -247,12 +247,12 @@
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
-		PA2OperationTask * task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
 			activationFingerprint = result.activationFingerprint;
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertTrue(result, @"Activation on client side did fail.");
@@ -339,7 +339,9 @@
 	[_testServerApi removeActivation:activationId];
 }
 
+// Following test needs to be rewritten to standard ECIES.
 
+/*
 #pragma mark - Integration tests
 
 - (void) testGetToken_InvalidEphemeralKey
@@ -399,5 +401,6 @@
 
 	XCTAssertFalse(success, @"Request should not finish with success.");
 }
+*/
 
 @end

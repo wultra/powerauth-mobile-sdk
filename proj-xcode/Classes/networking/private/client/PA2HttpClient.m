@@ -117,7 +117,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 			return nil;
 		}
 		// Construct & return data task.
-		return [_session dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * response, NSError * error) {
+		NSURLSessionDataTask * task = [_session dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * response, NSError * error) {
 			// DataTask completion
 			id<PA2Decodable> object;
 			if (!error) {
@@ -127,6 +127,8 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 			}
 			[op completeWithResult:object error:error];
 		}];
+		[task resume];
+		return task;
 	};
 	// Reporting block
 	op.reportBlock = ^(PA2AsyncOperation *op) {

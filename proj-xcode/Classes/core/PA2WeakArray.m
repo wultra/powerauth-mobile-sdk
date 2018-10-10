@@ -97,7 +97,7 @@
 	}];
 }
 
-- (void) enumerateWeakObjectsUsingBlock:(void (^_Nonnull)(id item, BOOL * stop))block
+- (void) enumerateWeakObjectsUsingBlock:(void (NS_NOESCAPE ^_Nonnull)(id item, BOOL * stop))block
 {
 	if (block) {
 		[[self allNonnullObjects] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL * stop) {
@@ -127,7 +127,7 @@
 	return strongArray;
 }
 
-- (id) findObjectUsingBlock:(BOOL (^)(id item))block
+- (id) findObjectUsingBlock:(BOOL (NS_NOESCAPE ^)(id item))block
 {
 	if (block) {
 		for (id strongInstance in [self allNonnullObjects]) {

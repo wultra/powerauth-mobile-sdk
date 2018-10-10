@@ -234,7 +234,7 @@ using namespace io::getlime::powerAuth;
 
 - (NSString*) httpHeaderValue
 {
-	NSString * value = [[@"PowerAuth version=\"3.0\" application_key=\""
+	NSString * value = [[@"PowerAuth version=\"3.0\", application_key=\""
 						 stringByAppendingString:_applicationKey]
 						stringByAppendingString:@"\""];
 	if (_activationIdentifier) {

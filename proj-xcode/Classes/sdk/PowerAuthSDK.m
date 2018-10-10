@@ -633,6 +633,7 @@ static PowerAuthSDK * s_inst;
 	if (responseData) {
 		// Validate response from the server
 		PA2ActivationStep2Param * paramStep2 = [[PA2ActivationStep2Param alloc] init];
+		paramStep2.activationId = responseData.activationId;
 		paramStep2.serverPublicKey = responseData.serverPublicKey;
 		paramStep2.ctrData = responseData.ctrData;
 		PA2ActivationStep2Result * resultStep2 = [_session validateActivationResponse:paramStep2];

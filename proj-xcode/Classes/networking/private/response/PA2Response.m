@@ -27,7 +27,7 @@
 		NSString * statusString 		= PA2ObjectAs(dictionary[@"status"], NSString);
 		NSDictionary * objectDictionary = PA2ObjectAs(dictionary[@"responseObject"], NSDictionary);
 		// Check status
-		if ([statusString isEqualToString:@"ok"]) {
+		if ([statusString isEqualToString:@"OK"]) {
 			// Deserialize expected response object type
 			_status = PA2RestResponseStatus_OK;
 			_responseObject = [[responseObjectType alloc] initWithDictionary:objectDictionary];

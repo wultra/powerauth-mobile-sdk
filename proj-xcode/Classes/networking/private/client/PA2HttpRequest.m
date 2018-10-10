@@ -68,7 +68,6 @@
 	// Build full URL & request object
 	NSURL * url = [NSURL URLWithString:[baseUrl stringByAppendingString:_endpoint.relativePath]];
 	NSMutableURLRequest * request = [[NSMutableURLRequest alloc] initWithURL:url];
-	request.HTTPMethod = _endpoint.method;
 	
 	// Now prepare body data.
 	NSData * requestData;
@@ -113,9 +112,14 @@
 		[request addValue:authHeader.value forHTTPHeaderField:authHeader.key];
 	}
 	
+	// Setup request
+	request.HTTPMethod = _endpoint.method;
+	request.HTTPBody = requestData;
+	
 	// Setup other headers
 	[request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
 	[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+	
 	return request;
 }
 

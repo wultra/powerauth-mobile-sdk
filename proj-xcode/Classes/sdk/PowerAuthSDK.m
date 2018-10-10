@@ -312,8 +312,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 											 code:PA2ErrorCodeMissingActivation
 										 userInfo:nil];
 		callback(nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -454,8 +453,7 @@ static PowerAuthSDK * s_inst;
 	if (![self canStartActivation]) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
 		callback(nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	// Reset session & possible activation data
@@ -469,8 +467,7 @@ static PowerAuthSDK * s_inst;
 	if (nil == resultStep1) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 		callback(nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	// After this point, each error must lead to [_session resetSession];
 	
@@ -545,8 +542,7 @@ static PowerAuthSDK * s_inst;
 	if (![self canStartActivation]) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationState userInfo:nil];
 		callback(nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	// Reset session & possible activation data
@@ -567,8 +563,7 @@ static PowerAuthSDK * s_inst;
 	if (nil == resultStep1) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidActivationData userInfo:nil];
 		callback(nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	// After this point, each error must lead to [_session resetSession];
 	
@@ -779,8 +774,7 @@ static PowerAuthSDK * s_inst;
 		NSInteger errorCode = _session.hasPendingActivation ? PA2ErrorCodeActivationPending : PA2ErrorCodeMissingActivation;
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:nil];
 		callback(nil, nil, error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	// Perform the server request
@@ -833,8 +827,7 @@ static PowerAuthSDK * s_inst;
 											 code:PA2ErrorCodeMissingActivation
 										 userInfo:nil];
 		callback(error);
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -1077,9 +1070,7 @@ static PowerAuthSDK * s_inst;
 	if (![PA2Keychain canUseBiometricAuthentication]) {
 		NSError *error = [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeBiometryNotAvailable userInfo:nil];
 		callback(error);
-		PA2OperationTask *task = [[PA2OperationTask alloc] init]; // tmp task
-		[task cancel];
-		return task;
+		return nil;
 	}
 	
 	// Compute authorization header based on constants from the specification.
@@ -1229,7 +1220,8 @@ static PowerAuthSDK * s_inst;
 	}];
 }
 
-- (nonnull PA2OperationTask*) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback {
+- (PA2OperationTask*) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback
+{
 	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
 	authentication.usePossession = YES;
 	authentication.useBiometry = NO;

@@ -238,7 +238,7 @@ using namespace io::getlime::powerAuth;
 						 stringByAppendingString:_applicationKey]
 						stringByAppendingString:@"\""];
 	if (_activationIdentifier) {
-		return [[[value stringByAppendingString:@" activation_id=\""]
+		return [[[value stringByAppendingString:@", activation_id=\""]
 				 stringByAppendingString:_activationIdentifier]
 				stringByAppendingString:@"\""];
 	}

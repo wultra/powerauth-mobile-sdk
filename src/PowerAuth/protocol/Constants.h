@@ -74,15 +74,6 @@ namespace protocol
 	// Length of key produced by ECDH
 	const size_t SHARED_SECRET_KEY_SIZE = 32;
 	
-	// Length of activation nonce
-	const size_t ACTIVATION_NONCE_SIZE = 16;
-	
-	// Length of OTP
-	const size_t ACTIVATION_OTP_SIZE = 11;
-	
-	// Length of SHORT_ID
-	const size_t ACTIVATION_SHORT_ID_SIZE = 11;
-	
 	// Length of decimalized signature, calculated from device public key
 	const size_t ACTIVATION_FINGERPRINT_SIZE = 8;
 	

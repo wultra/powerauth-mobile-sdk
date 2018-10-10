@@ -217,7 +217,7 @@
 	NSError * localError = nil;
 	// Try to deserialize JSON
 	id JSONData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&localError];
-	NSDictionary * responseDictionary = data ? nil : PA2ObjectAs(JSONData, NSDictionary);
+	NSDictionary * responseDictionary = data ? PA2ObjectAs(JSONData, NSDictionary) : nil;
 	// Create PA2ErrorResponse object.
 	// If there was an error with JSON decoding, then use nil for object constuction.
 	PA2ErrorResponse * httpResponseObject = [[PA2ErrorResponse alloc] initWithDictionary:localError ? nil : responseDictionary];

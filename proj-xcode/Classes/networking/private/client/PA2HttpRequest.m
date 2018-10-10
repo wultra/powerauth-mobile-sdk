@@ -68,6 +68,7 @@
 	// Build full URL & request object
 	NSURL * url = [NSURL URLWithString:[baseUrl stringByAppendingString:_endpoint.relativePath]];
 	NSMutableURLRequest * request = [[NSMutableURLRequest alloc] initWithURL:url];
+	request.HTTPMethod = _endpoint.method;
 	
 	// Now prepare body data.
 	NSData * requestData;

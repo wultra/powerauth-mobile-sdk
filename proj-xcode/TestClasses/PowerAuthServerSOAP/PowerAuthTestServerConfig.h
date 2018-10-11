@@ -17,6 +17,14 @@
 #import <Foundation/Foundation.h>
 
 /**
+ The `PowerAuthTestServerVersion` defines version of PowerAuth SOAP API.
+ */
+typedef NS_ENUM(int, PowerAuthTestServerVersion) {
+	PATS_V2 = 2,
+	PATS_V3 = 3,
+};
+
+/**
  The `PowerAuthTestServerConfig` object contains a configuration required for inregration
  testing. You can create a default config, or load it from JSON file.
  */
@@ -30,6 +38,11 @@
  String with URL to SOAP API
  */
 @property (nonatomic, strong, readonly) NSString * soapApiUrl;
+/**
+ String with version of SOAP API. "V2" & "V3" is expected in JSON config.
+ "V2" is the default value.
+ */
+@property (nonatomic, assign, readonly) PowerAuthTestServerVersion soapApiVersion;
 /**
  A name for application, which will be used on the PA2 server.
  Default value is @"AutomaticTest-IOS"

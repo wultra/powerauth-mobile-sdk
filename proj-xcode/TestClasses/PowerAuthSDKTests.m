@@ -757,7 +757,7 @@ static NSString * PA_Ver = @"2.1";
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertNil(task);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);
 	

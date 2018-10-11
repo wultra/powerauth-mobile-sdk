@@ -39,6 +39,7 @@
 	@{
 	  @"restApiUrl"           : POWERAUTH_BASE_URL @":13030/powerauth-webauth",
 	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":20010/powerauth-java-server/soap",
+	  @"soapApiVersion"       : @"V2",
 	  @"powerAuthAppName"     : @"AutomaticTest-IOS",
 	  @"powerAuthAppVersion"  : @"default"
 	  
@@ -66,12 +67,25 @@
 	return [self loadFromDictionary:object];
 }
 
++ (PowerAuthTestServerVersion) soapApiVersionFromString:(NSString*)string
+{
+	string = [string lowercaseString];
+	if ([string isEqualToString:@"v3"]) {
+		return PATS_V3;
+	} else if ([string isEqualToString:@"v2"]) {
+		return PATS_V2;
+	}
+	NSLog(@"%@: soapApiVersion is wrong. Defaulting to V2", [self class]);
+	return PATS_V2;
+}
+
 + (instancetype) loadFromDictionary:(NSDictionary*)dict
 {
 	PowerAuthTestServerConfig * instance = [[PowerAuthTestServerConfig alloc] init];
 	if (instance) {
 		instance->_restApiUrl = dict[@"restApiUrl"];
 		instance->_soapApiUrl = dict[@"soapApiUrl"];
+		instance->_soapApiVersion = [self soapApiVersionFromString:dict[@"soapApiVersion"]];
 		instance->_powerAuthAppName = dict[@"powerAuthAppName"];
 		instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];
 		instance->_userIdentifier = dict[@"userIdentifier"];

@@ -1,4 +1,4 @@
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="http://getlime.io/security/powerauth">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
 	<soapenv:Header/>
 	<soapenv:Body>
 		<pow:VerifySignatureRequest>

@@ -225,5 +225,9 @@
  to update this property.
  */
 @property (nonatomic, readonly, strong) PATSApplicationVersion * appVersion;
+/**
+ Contains server version, acquired from the initial configuration.
+ */
+@property (nonatomic, readonly) PowerAuthTestServerVersion serverVersion;
 
 @end

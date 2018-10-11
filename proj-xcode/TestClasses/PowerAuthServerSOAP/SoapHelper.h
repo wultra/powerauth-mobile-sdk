@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#import "PowerAuthTestServerConfig.h"
 #import "CXMLElement.h"
 #import "CXMLNode_XPathExtensions.h"
 
@@ -37,7 +38,7 @@
  The |url| defines endpoint, where the server listens for messages.
  */
 - (id) initWithBundle:(NSBundle*)bundle
-				  url:(NSURL*)url;
+			   config:(PowerAuthTestServerConfig*)config;
 
 /**
  Sends synchronous HTTP request to SOAP endpoint. The |reqiestName| and |params| parameters are
@@ -53,5 +54,14 @@
 		  response:(NSString*)responseNodeName
 		 transform:(id (^)(CXMLNode * responseObject, NSDictionary * xmlNamespaceMapping))transformBlock;
 
+
+@end
+
+@interface SoapHelperMapping : NSObject
+
+@property (nonatomic, strong, readonly) NSString * xmlns;			// namespace for powerauth types
+@property (nonatomic, strong, readonly) NSString * envelopePath;	// envelope path
+
++ (id) map:(NSArray*)mapArray;
 
 @end

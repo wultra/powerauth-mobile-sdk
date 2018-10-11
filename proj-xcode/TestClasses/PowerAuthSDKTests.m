@@ -182,9 +182,9 @@ static NSString * PA_Ver = @"2.1";
 		// Typically, if activation is not completed, then the asynchronous task is not started, but is reported
 		// as cancelled.
 		if (taskShouldWork) {
-			XCTAssertFalse([task isCancelled]);
+			XCTAssertNotNil(task);
 		} else {
-			XCTAssertTrue([task isCancelled]);
+			XCTAssertNil(task);
 		}
 	}];
 	if (taskShouldWork) {
@@ -203,7 +203,7 @@ static NSString * PA_Ver = @"2.1";
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	return result;
 }
@@ -434,7 +434,7 @@ static NSString * PA_Ver = @"2.1";
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertTrue(result, @"Activation on client side did fail.");
@@ -595,7 +595,7 @@ static NSString * PA_Ver = @"2.1";
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);
 	
@@ -757,7 +757,7 @@ static NSString * PA_Ver = @"2.1";
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);
 	
@@ -977,7 +977,7 @@ static NSString * PA_Ver = @"2.1";
 			reportedError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertFalse(result, @"Activation on client side did fail.");
@@ -1018,7 +1018,7 @@ static NSString * PA_Ver = @"2.1";
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertFalse(result); // Must not pass. Activation is blocked
 	
@@ -1027,7 +1027,7 @@ static NSString * PA_Ver = @"2.1";
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertFalse(result);	// Must not pass. Activation is blocked
 	
@@ -1040,7 +1040,7 @@ static NSString * PA_Ver = @"2.1";
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	XCTAssertTrue(result);	// Must pass, valid password, activation is active again
 	

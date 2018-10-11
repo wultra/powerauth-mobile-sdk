@@ -1,0 +1,13 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+	<soapenv:Header/>
+	<soapenv:Body>
+		<pow:CreateTokenRequest>
+			<pow:activationId>$1</pow:activationId>
+			<pow:applicationKey>$2</pow:applicationKey>
+			<pow:ephemeralPublicKey>$3</pow:ephemeralPublicKey>
+			<pow:encryptedData>$4</pow:encryptedData>
+			<pow:mac>$5</pow:mac>
+			<pow:signatureType>$6</pow:signatureType>
+		</pow:CreateTokenRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

@@ -171,9 +171,9 @@
 		// Typically, if activation is not completed, then the asynchronous task is not started, but is reported
 		// as cancelled.
 		if (taskShouldWork) {
-			XCTAssertFalse([task isCancelled]);
+			XCTAssertNotNil(task);
 		} else {
-			XCTAssertTrue([task isCancelled]);
+			XCTAssertNil(task);
 		}
 	}];
 	if (taskShouldWork) {
@@ -192,7 +192,7 @@
 		PA2OperationTask * task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
 			[waiting reportCompletion:@(error == nil)];
 		}];
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 	}] boolValue];
 	return result;
 }
@@ -252,7 +252,7 @@
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
-		XCTAssertFalse([task isCancelled]);
+		XCTAssertNotNil(task);
 		
 	}] boolValue];
 	XCTAssertTrue(result, @"Activation on client side did fail.");

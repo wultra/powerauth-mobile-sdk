@@ -23,7 +23,9 @@
 @property (nonatomic, strong) NSString * status;
 @property (nonatomic, strong) NSString * applicationName;
 @property (nonatomic, strong) NSString * applicationDisplayName;
+@property (nonatomic, strong) NSString * applicationEnvironment;
 @property (nonatomic, strong) NSString * timestamp;
+@property (nonatomic, strong) NSString * version;
 
 @end
 
@@ -68,6 +70,7 @@
 @property (nonatomic, strong) NSString * activationId;
 @property (nonatomic, strong) NSString * activationIdShort;
 @property (nonatomic, strong) NSString * activationOTP;
+@property (nonatomic, strong) NSString * activationCode;
 @property (nonatomic, strong) NSString * activationSignature;
 @property (nonatomic, strong) NSString * userId;
 @property (nonatomic, strong) NSString * applicationId;
@@ -112,6 +115,7 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, strong) NSString * timestampLastUsed;
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
+@property (nonatomic, assign) NSInteger protocolVersion;
 
 @end
 

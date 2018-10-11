@@ -30,6 +30,7 @@
 {
 	self = [super init];
 	if (self) {
+		_serverVersion = testServerConfig.soapApiVersion;
 		_testServerUrl = [NSURL URLWithString:testServerConfig.soapApiUrl];
 		_applicationNameString = testServerConfig.powerAuthAppName;
 		_applicationVersionString = testServerConfig.powerAuthAppVersion;
@@ -38,7 +39,7 @@
 		NSURL * soapBundleUrl = [mainBundle URLForResource:@"SoapRequests" withExtension:@"bundle"];
 		NSBundle * soapBundle = [NSBundle bundleWithURL:soapBundleUrl];
 		
-		_helper = [[SoapHelper alloc] initWithBundle:soapBundle url:_testServerUrl];
+		_helper = [[SoapHelper alloc] initWithBundle:soapBundle config:testServerConfig];
 	}
 	return self;
 }
@@ -111,7 +112,9 @@
 		if (!localError) obj.status					= [[resp nodeForXPath:@"pa:status" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.applicationName		= [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.applicationDisplayName	= [[resp nodeForXPath:@"pa:applicationDisplayName" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.applicationEnvironment	= [[resp nodeForXPath:@"pa:applicationEnvironment" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.timestamp				= [[resp nodeForXPath:@"pa:timestamp" namespaceMappings:ns error:&localError] stringValue];
+		if (!localError) obj.version				= [[resp nodeForXPath:@"pa:version" namespaceMappings:ns error:&localError] stringValue];
 		return !localError ? obj : nil;
 	}];
 	return response;
@@ -297,8 +300,18 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 		NSError * localError = nil;
 		PATSInitActivationResponse * obj = [[PATSInitActivationResponse alloc] init];
 		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationIdShort		= [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationOTP			= [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
+		if (_serverVersion == PATS_V2) {
+			// V2 server
+			if (!localError) obj.activationIdShort	= [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
+			if (!localError) obj.activationOTP		= [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
+		} else {
+			// V3 server, has only "activationCode", but we can emulate idShort & OTP
+			if (!localError) obj.activationCode		= [[resp nodeForXPath:@"pa:activationCode" namespaceMappings:ns error:&localError] stringValue];
+			if (!localError) {
+				obj.activationIdShort = [obj.activationCode substringToIndex:11];
+				obj.activationOTP     = [obj.activationCode substringFromIndex:12];
+			}
+		}
 		if (!localError) obj.activationSignature	= [[resp nodeForXPath:@"pa:activationSignature" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.applicationId			= [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
@@ -356,6 +369,11 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 		if (!localError) obj.timestampLastUsed		= [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.encryptedStatusBlob	= [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
+		if (_serverVersion == PATS_V3) {
+			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
+		} else {
+			obj.protocolVersion = 0;
+		}
 		return !localError ? obj : nil;
 	}];
 	return response;

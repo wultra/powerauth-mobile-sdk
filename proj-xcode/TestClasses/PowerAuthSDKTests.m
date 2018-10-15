@@ -546,6 +546,34 @@ static NSString * PA_Ver = @"2.1";
 }
 
 
+- (void) testRemoveActivation
+{
+	CHECK_TEST_CONFIG();
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+
+	// Remove activation from the server
+	NSError * removeError = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PA2OperationTask * task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * error) {
+			[waiting reportCompletion:error];
+		}];
+		XCTAssertNotNil(task);
+	}];
+	XCTAssertNil(removeError);
+	
+	// Cleanup, only if the SDK remove did fail
+	if (removeError) {
+		[self removeLastActivation:activationData];
+	}
+}
+
 - (void) testPasswordCorrect
 {
 	CHECK_TEST_CONFIG();

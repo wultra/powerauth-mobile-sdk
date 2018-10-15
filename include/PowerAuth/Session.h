@@ -115,6 +115,11 @@ namespace powerAuth
 		bool hasValidActivation() const;
 		
 		/**
+		 Returns true if the session has a pending protocol migration to a newer version.
+		 */
+		bool hasPendingActivationMigration() const;
+		
+		/**
 		 Returns version of protocol in which the session currently operates. The version is determined by the
 		 session's state. If session has no activation, then the most up to date version is returned.
 		 */
@@ -252,11 +257,6 @@ namespace powerAuth
 		 The result is stored to the |out_signature| structure and can be converted to a full value for
 		 X-PowerAuth-Authorization header.
 		 
-		 If you're going to sign request for a vault key retrieving, then you have to specifiy signature
-		 factor combined with SF_PrepareForVaultUnlock flag. Otherwise the subsequent vault unlock
-		 operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
-		 not be able to complete the operation.
-		 
 		 WARNING
 		 
 		 You have to save session's state after the successful operation, due to internal counter change.
@@ -327,22 +327,9 @@ namespace powerAuth
 		 biometry signature key. You should always save session's state after this operation, whether
 		 it ends with error or not.
 		 
-		 Discussion
-		 
-		 The adding a new key for biometry factor is a quite complex task. At first, you need to ask server
-		 for a vault key and sign this HTTP request with using SF_PrepareForVaultUnlock flag in combination
-		 with other required factors. The flag guarantees that the internal counter will be correctly raised
-		 and next subsequent operation for vault key decryption will finish correctly.
-		 
-		 If you don't receive response from the server then it's OK to leave the session as is. The session's
-		 counter is probably at the same value as server's or slightly ahead and therefore everything should
-		 later work correctly. The session then only display a warning to the debug console about the previous
-		 pending vault unlock operation.
-		 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 
 		 */
@@ -383,15 +370,10 @@ namespace powerAuth
 		 You should NOT store the produced key to the permanent storage. If you store the key to the filesystem
 		 or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
 		 course, keep the key in the volatile memory, if the application needs use the key for longer period.
-		 
-		 Note that just like the "addBiometryFactor", you have to properly sign HTTP request with using
-		 SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
-
 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 
 		 */
@@ -405,13 +387,11 @@ namespace powerAuth
 		 Discussion
 		 
 		 The session's state contains device private key but is encrypted with vault key, which is normally not
-		 available on the device. Just like other vault related operations, you have to properly sign HTTP request
-		 with using SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
+		 available on the device.
 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 		 */
 		ErrorCode signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
@@ -528,21 +508,62 @@ namespace powerAuth
 	public:
 		
 		// MARK: - Protocol migration -
+
 		
 		/**
-		 Commits |migration_data| to the session. The |migration_data| structure must contain
+		 Formally starts the protocol migration to a newer version. The function only sets flag
+		 indicating that migration to the next protocol version is in progress. You should serialize
+		 an activation status after this call. The version to which the migration has been started can be
+		 determined by calling `pendingActivationMigrationVersion()`.
+		 
+		 Note that some tasks provided by the session may be temporarily disabled durng
+		 the migration.
+		 
+		 Returns EC_Ok			if operation succeeded.
+		 		 EC_WrongState	if called in wrong session state
+		 */
+		ErrorCode startMigration();
+		
+		/**
+		 Determines which version of the protocol is the session being migrated to.
+		 
+		 Returns Version_NA		if there's no valid activation, or
+		 						if there's no pending migration
+		 		 Version_Vx		if there's pending migration to protocol version.
+		 */
+		Version pendingActivationMigrationVersion() const;
+		
+		/**
+		 Applies |migration_data| to the session. The |migration_data| structure must contain
 		 all required information for migration _from_ current state to a new one. For example,
 		 if session is in V2 protocol version, then the structure must contain data for migration
-		 from V2 to V3 (typically named as `toV3`)
+		 from V2 to V3 (typically named as `toV3`).
+		 
+		 Note that this method doesn't clear pending migration status. You need to call |finishMigration|
+		 to clear that pending flag, or repeat migration data applying, if session needs to be migrated
+		 over the various versions.
 		 
 		 Returns EC_Ok			if operation succeeded and session has been successfully
 		 						migrated to new protocol version.
 		 		 EC_WrongState	if migration is not required, or
+		 						if migration to appropriate version was not started, or
 		 						if session has no valid activation.
 		 		 EC_WrongParam	if migration data contains invalid data.
 		 */
-		ErrorCode commitMigration(const MigrationData & migration_data);
+		ErrorCode applyMigrationData(const MigrationData & migration_data);
 
+		/**
+		 Formally ends the protocol migration. The function resets flag indicating that migration
+		 to the next protocol version is in progress. The reset is possible only if the migration
+		 was successful (e.g. when migrating to V3, the protocol version is now V3)
+		 
+		 You should serialize an activation status ater this call.
+		 
+		 Returns EC_Ok			if operation succeeded.
+		 		 EC_WrongState	if called in wrong session state, or
+		 						if migration was not completed properly.
+		 */
+		ErrorCode finishMigration();
 		
 	public:
 		

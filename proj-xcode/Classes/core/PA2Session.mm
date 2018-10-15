@@ -109,6 +109,11 @@ using namespace io::getlime::powerAuth;
 	return _session->hasValidActivation();
 }
 
+- (BOOL) hasPendingActivationMigration
+{
+	return _session->hasPendingActivationMigration();
+}
+
 - (PA2ProtocolVersion) protocolVersion
 {
 	return (PA2ProtocolVersion) _session->protocolVersion();
@@ -402,7 +407,19 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Protocol migration
 
-- (BOOL) commitMigrationData:(id<PA2MigrationData>)migrationDataObject
+- (BOOL) startMigration
+{
+	ErrorCode error = _session->startMigration();
+	PA2Objc_DebugDumpError(self, @"StartMigration", error);
+	return error == EC_Ok;
+}
+
+- (PA2ProtocolVersion) pendingActivationMigrationVersion
+{
+	return (PA2ProtocolVersion) _session->pendingActivationMigrationVersion();
+}
+
+- (BOOL) applyMigrationData:(id<PA2MigrationData>)migrationDataObject
 {
 	ErrorCode error;
 	if ([migrationDataObject conformsToProtocol:@protocol(PA2MigrationDataPrivate)]) {
@@ -410,11 +427,18 @@ using namespace io::getlime::powerAuth;
 		// Convert data to C++ & commit to underlying session
 		MigrationData cpp_migration_data;
 		[migrationData setupStructure:cpp_migration_data];
-		error = _session->commitMigration(cpp_migration_data);
+		error = _session->applyMigrationData(cpp_migration_data);
 	} else {
 		error = EC_WrongParam;
 	}
-	PA2Objc_DebugDumpError(self, @"CommitMigrationData", error);
+	PA2Objc_DebugDumpError(self, @"ApplyMigrationData", error);
+	return error == EC_Ok;
+}
+
+- (BOOL) finishMigration
+{
+	ErrorCode error = _session->finishMigration();
+	PA2Objc_DebugDumpError(self, @"FinishMigration", error);
 	return error == EC_Ok;
 }
 

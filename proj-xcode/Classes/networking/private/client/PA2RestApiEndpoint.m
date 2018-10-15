@@ -51,16 +51,16 @@
 
 #pragma mark - Migration
 
-+ (instancetype) migrationStart
++ (instancetype) migrationStartV3
 {
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/start"
 											request:nil
-										   response:nil
+										   response:[PA2MigrationStartV3Response class]
 										  encryptor:PA2EncryptorId_MigrationStart
 										  authUriId:nil];
 }
 
-+ (instancetype) migrationCommit
++ (instancetype) migrationCommitV3
 {
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/commit"
 											request:nil

@@ -29,6 +29,7 @@
 #import "PA2PrivateMacros.h"
 #import "PA2WCSessionManager+Private.h"
 #import "PA2PrivateEncryptorFactory.h"
+#import "PA2GetActivationStatusTask.h"
 
 #import <UIKit/UIKit.h>
 
@@ -39,7 +40,10 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 
 #pragma mark - PowerAuth SDK implementation
 
-@implementation PowerAuthSDK {
+@implementation PowerAuthSDK
+{
+	id<NSLocking> _lock;
+	
 	PowerAuthConfiguration * _configuration;
 	PA2KeychainConfiguration * _keychainConfiguration;
 	PA2ClientConfiguration * _clientConfiguration;
@@ -50,6 +54,9 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	PA2Keychain *_sharedKeychain;
 	PA2Keychain *_biometryOnlyKeychain;
 	PA2PrivateHttpTokenProvider * _remoteHttpTokenProvider;
+	
+	/// Current pending status task.
+	PA2GetActivationStatusTask * _getStatusTask;
 }
 
 #pragma mark - Private methods
@@ -68,6 +75,9 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	if (![configuration validateConfiguration]) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
+	
+	// Exclusive lock
+	_lock = [[NSLock alloc] init];
 	
 	// Make copy of configuration objects
 	_configuration = [configuration copy];
@@ -354,7 +364,8 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Session state management
 
-- (BOOL) restoreState {
+- (BOOL) restoreState
+{
 	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];
 	if (sessionData) {
 		[_session resetSession];
@@ -364,22 +375,35 @@ static PowerAuthSDK * s_inst;
 	}
 }
 
-- (BOOL) canStartActivation {
+- (void) saveSessionState
+{
+	[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+}
+
+- (BOOL) canStartActivation
+{
 	[self checkForValidSetup];
 	return _session.canStartActivation;
 }
 
-- (BOOL) hasPendingActivation {
-	
+- (BOOL) hasPendingActivation
+{
 	[self checkForValidSetup];
 	return _session.hasPendingActivation;
 }
 
-- (BOOL) hasValidActivation {
-	
+- (BOOL) hasValidActivation
+{
 	[self checkForValidSetup];
 	return _session.hasValidActivation;
 }
+
+- (BOOL) hasPendingActivationMigration
+{
+	[self checkForValidSetup];
+	return _session.hasPendingActivationMigration;
+}
+
 
 #pragma mark - Activation
 #pragma mark Creating a new activation
@@ -659,39 +683,98 @@ static PowerAuthSDK * s_inst;
 - (id<PA2OperationTask>) fetchActivationStatusWithCallback:(void(^)(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error))callback
 {
 	[self checkForValidSetup];
+	
 	// Check for activation
 	if (!_session.hasValidActivation) {
 		NSInteger errorCode = _session.hasPendingActivation ? PA2ErrorCodeActivationPending : PA2ErrorCodeMissingActivation;
 		callback(nil, nil, PA2MakeError(errorCode, nil));
 		return nil;
 	}
-	// Perform the server request
-	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
-	request.activationId = _session.activationIdentifier;
-	return [_client postObject:request
-							to:[PA2RestApiEndpoint getActivationStatus]
-					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-						// HTTP request completion
-						PA2ActivationStatus * statusObject = nil;
-						NSDictionary * customObject = nil;
-						// Validate result
-						if (status == PA2RestResponseStatus_OK) {
-							// Cast to response object
-							PA2GetActivationStatusResponse * ro = response;
-							// Prepare unlocking key (possession factor only)
-							PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
-							keys.possessionUnlockKey = [self deviceRelatedKey];
-							// Try to decode the activation status
-							statusObject = [_session decodeActivationStatus:ro.encryptedStatusBlob keys:keys];
-							customObject = ro.customObject;
-							if (!statusObject) {
-								error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
-							}
-						}
-						// Call back to the application
-						callback(statusObject, customObject, error);
-					}];
+	// Create child task and add it to the status fetcher.
+	PA2GetActivationStatusChildTask * task = [[PA2GetActivationStatusChildTask alloc] initWithCompletionQueue:dispatch_get_main_queue() completion:callback];
+	[self getActivationStatusWithChildTask:task];
+	return task;
 }
+
+
+- (void) getActivationStatusWithChildTask:(PA2GetActivationStatusChildTask*)childTask
+{
+	PA2GetActivationStatusTask * oldTask = nil;
+	[_lock lock];
+	{
+		if (_getStatusTask) {
+			if ([_getStatusTask addChildTask:childTask] == NO) {
+				// unable to add child task. This means that current task is going to finish its execution soon,
+				// so we need to create a new one.
+				oldTask = _getStatusTask;
+				_getStatusTask = nil;
+			}
+		}
+		if (!_getStatusTask) {
+			// Task doesn't exist. We need to create a new one.
+			__weak PowerAuthSDK * weakSelf = self;
+			_getStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
+																   deviceRelatedKey:[self deviceRelatedKey]
+																			session:_session
+																	  sessionChange:^(PA2Session * session) {
+																		  [weakSelf saveSessionState];
+																	  } completion:^(PA2GetActivationStatusTask * task) {
+																		  [weakSelf completeActivationStatusTask:task];
+																	  }];
+			_getStatusTask.disableMigration = _configuration.disableAutomaticProtocolUpgrade;
+			[_getStatusTask addChildTask:childTask];
+			[_getStatusTask execute];
+		}
+	}
+	[_lock unlock];
+	
+	if (oldTask) {
+		// This is the reference to task which is going to finish its execution soon.
+		// The ivar no longer holds the reference to the task, but we should keep that reference
+		// for a little bit longer, to guarantee, that we don't destroy that object during its
+		// finalization stage.
+		[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+			// The following call does nothing, because the old task is no longer stored
+			// in the `_getStatusTask` ivar. It just guarantees that the object will be alive
+			// during waiting to execute the operation block.
+			[self completeActivationStatusTask:oldTask];
+		}];
+	}
+}
+
+
+/**
+ Completes pending PA2GetActivationStatusTask. The function resets internal `_getStatusTask` ivar,
+ but only if it equals to provided "task" object.
+ 
+ @param task task being completed
+ */
+- (void) completeActivationStatusTask:(PA2GetActivationStatusTask*)task
+{
+	[_lock lock];
+	{
+		if (task == _getStatusTask) {
+			_getStatusTask = nil;
+		}
+	}
+	[_lock unlock];
+}
+
+
+/**
+ Cancels possible pending PA2GetActivationStatusTask. The function can be called only in rare cases,
+ like when SDK object is going to reset its local state.
+ */
+- (void) cancelActivationStatusTask
+{
+	[_lock lock];
+	{
+		[_getStatusTask cancel];
+		_getStatusTask = nil;
+	}
+	[_lock unlock];
+}
+
 
 #pragma mark Removing an activation
 
@@ -724,6 +807,7 @@ static PowerAuthSDK * s_inst;
 	if (error) {
 		PA2Log(@"Removing activaton data from keychain failed. We can't recover from this error.");
 	}
+	[self cancelActivationStatusTask];
 	[_tokenStore removeAllLocalTokens];
 	[_session resetSession];
 }
@@ -842,7 +926,7 @@ static PowerAuthSDK * s_inst;
 	PA2HTTPRequestDataSignature * signature = [_session signHttpRequestData:requestData keys:keys factor:factor];
 	
 	// Update keychain values after each successful calculations
-	[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+	[self saveSessionState];
 	
 	if (signature == nil && error) {
 		*error = PA2MakeError(PA2ErrorCodeSignatureError, nil);
@@ -874,7 +958,7 @@ static PowerAuthSDK * s_inst;
 	BOOL result = [_session changeUserPassword:[PA2Password passwordWithString:oldPassword]
 								   newPassword:[PA2Password passwordWithString:newPassword]];
 	if (result) {
-		[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+		[self saveSessionState];
 	}
 	return result;
 }
@@ -889,7 +973,7 @@ static PowerAuthSDK * s_inst;
 			BOOL result = [_session changeUserPassword:[PA2Password passwordWithString:oldPassword]
 										   newPassword:[PA2Password passwordWithString:newPassword]];
 			if (result) {
-				[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+				[self saveSessionState];
 			} else {
 				error = PA2MakeError(PA2ErrorCodeInvalidActivationState, nil);
 			}
@@ -932,7 +1016,7 @@ static PowerAuthSDK * s_inst;
 												 keys:keys];
 			if (result) {
 				// Update keychain values after each successful calculations
-				[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+				[self saveSessionState];
 				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
 				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
 			} else {
@@ -958,7 +1042,7 @@ static PowerAuthSDK * s_inst;
 	BOOL result = [_session removeBiometryFactor];
 	if (result) {
 		// Update keychain values after each successful calculations
-		[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+		[self saveSessionState];
 		[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
 	}
 	return result;

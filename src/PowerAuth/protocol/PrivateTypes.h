@@ -172,7 +172,8 @@ namespace protocol
 
 		struct _Flags {
 			/**
-			 True if the session is waiting for vault key unlock
+			 True if the session is waiting for vault key unlock.
+			 The flag is deprecated sice protocol V3, and should not be used.
 			 */
 			cc7::U32	waitingForVaultUnlock	: 1;
 			/**
@@ -180,11 +181,17 @@ namespace protocol
 			 external key.
 			 */
 			cc7::U32	usesExternalKey			: 1;
+			/**
+			 Bits reserved for current pending migration
+			 */
+			cc7::U32	pendingMigration		: 8;
 		};
 		union {
 			_Flags		flags;
 			cc7::U32	flagsU32;
 		};
+		
+		static_assert(sizeof(_Flags) == sizeof(cc7::U32), "Flags structure is too big");
 		
 		PersistentData() :
 			signatureCounter(0),

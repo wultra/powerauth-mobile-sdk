@@ -199,6 +199,7 @@
 		BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OtpUtil.cpp; sourceTree = "<group>"; };
 		BF99D8FF2073E00D00735ED2 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreTests.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PA2Types+Private.h"; sourceTree = "<group>"; };
 		BFABCD63214ABDCB00A9221F /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
 		BFABCD66214ABE2500A9221F /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
 		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
@@ -490,6 +491,7 @@
 				BFB47D2320753359008A6A52 /* PA2Session.mm */,
 				BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */,
 				BFB47D2F20753359008A6A52 /* PA2Types.h */,
+				BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */,
 				BFB47D2920753359008A6A52 /* PA2Types.mm */,
 				BF20075C215A5DEF001F3614 /* PA2MigrationData.h */,
 				BF20075D215A5DEF001F3614 /* PA2MigrationData.mm */,

@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-// Requests objects
-#import "PA2CreateActivationRequest.h"
-#import "PA2CreateActivationRequestData.h"
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2EncryptedRequest.h"
+#import "PA2Codable.h"
 
-// Response objects
-#import "PA2CreateActivationResponse.h"
-#import "PA2CreateActivationResponseData.h"
-#import "PA2GetActivationStatusResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2EncryptedResponse.h"
-#import "PA2MigrationStartV3Response.h"
+/**
+ Object contains response received from "/pa/v3/migration/start" endpoint
+ */
+@interface PA2MigrationStartV3Response : NSObject<PA2Decodable>
+
+/**
+ Initial value for hash-based counter.
+ */
+@property (nonatomic, strong) NSString * ctrData;
+
+@end
+

@@ -356,7 +356,7 @@ namespace protocol
 	}
 	
 	
-	void CalculateNextCounterValue(PersistentData & pd, bool v2_vault_unlock)
+	void CalculateNextCounterValue(PersistentData & pd)
 	{
 		if (pd.isV3()) {
 			// Move hash-based counter forward. Vault unlock is ignored in V3
@@ -365,14 +365,6 @@ namespace protocol
 		} else {
 			// Move old counter forward
 			pd.signatureCounter += 1;
-			if (v2_vault_unlock) {
-				// If we're signing vault unlock request then the counter must be increased for one more time
-				pd.signatureCounter += 1;
-				pd.flags.waitingForVaultUnlock = 1;
-			} else {
-				// Clear waiting flag.
-				pd.flags.waitingForVaultUnlock = 0;
-			}
 		}
 	}
 	

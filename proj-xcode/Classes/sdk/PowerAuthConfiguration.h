@@ -48,6 +48,14 @@
  */
 @property (nonatomic, strong, nullable) NSData	*externalEncryptionKey;
 
+/**
+ If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+ This option should be used only for the testing purposes.
+ 
+ Default and recommended value is `NO`.
+ */
+@property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
+
 /** Validate that the configuration is properly set (all required values were filled in).
  */
 - (BOOL) validateConfiguration;

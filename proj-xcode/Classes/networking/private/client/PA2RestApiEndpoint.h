@@ -55,8 +55,8 @@
 + (instancetype) getActivationStatus;
 + (instancetype) removeActivation;
 
-+ (instancetype) migrationStart;
-+ (instancetype) migrationCommit;
++ (instancetype) migrationStartV3;
++ (instancetype) migrationCommitV3;
 
 + (instancetype) validateSignature;
 + (instancetype) vaultUnlock;

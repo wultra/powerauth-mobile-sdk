@@ -561,7 +561,7 @@ static NSString * PA_Ver = @"2.1";
 
 	// Remove activation from the server
 	NSError * removeError = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PA2OperationTask * task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * error) {
+		id<PA2OperationTask> task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * error) {
 			[waiting reportCompletion:error];
 		}];
 		XCTAssertNotNil(task);

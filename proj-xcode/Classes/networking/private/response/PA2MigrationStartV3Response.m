@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-// Requests objects
-#import "PA2CreateActivationRequest.h"
-#import "PA2CreateActivationRequestData.h"
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2VaultUnlockRequest.h"
-#import "PA2RemoveTokenRequest.h"
-#import "PA2EncryptedRequest.h"
-
-// Response objects
-#import "PA2CreateActivationResponse.h"
-#import "PA2CreateActivationResponseData.h"
-#import "PA2GetActivationStatusResponse.h"
-#import "PA2VaultUnlockResponse.h"
-#import "PA2GetTokenResponse.h"
-#import "PA2EncryptedResponse.h"
 #import "PA2MigrationStartV3Response.h"
+#import "PA2PrivateMacros.h"
+
+@implementation PA2MigrationStartV3Response
+
+- (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_ctrData = PA2ObjectAs(dictionary[@"ctrData"], NSString);
+	}
+	return self;
+}
+
+@end

@@ -46,4 +46,11 @@
  */
 - (BOOL) hasValidActivation;
 
+/**
+ Checks if there is a pending activation migration.
+
+ @return YES if session has a pending migration.
+ */
+- (BOOL) hasPendingActivationMigration;
+
 @end

@@ -142,7 +142,13 @@ namespace powerAuth
 	 */
 	enum Version
 	{
+		/// Constant defining that version is not available. The enumeration
+		/// has meaning in several APIs, where unknown or "no version"
+		/// state can be returned as a regular result.
+		Version_NA = 0,
+		/// Constant defining Protocol Version 2.
 		Version_V2 = 2,
+		/// Constant defining Protocol Version 3.
 		Version_V3 = 3,
 		
 		// Special constant for "latest" version
@@ -183,12 +189,6 @@ namespace powerAuth
 	 3FA, with using all supported factors.
 	 */
 	const SignatureFactor SF_Possession_Knowledge_Biometry	= SF_Possession | SF_Knowledge | SF_Biometry;
-	
-	/**
-	 You can combine any signature factor with this flag and prepare for vault unlock.
-	 */
-	const SignatureFactor SF_PrepareForVaultUnlock	= 0x1000;
-	
 	
 	/**
 	 The SignatureUnlockKeys object contains all keys, required for signature computation.

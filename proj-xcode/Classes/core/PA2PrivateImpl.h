@@ -29,7 +29,8 @@
 
 /*
  This header contains various private interfaces, internally used
- in the PA2's Objective-C wrappper.
+ in the PA2's Objective-C wrappper. This header contains C++ types,
+ so it's not available for Objective-C or Swift codes.
  */
 
 @interface PA2Password (Private)
@@ -51,12 +52,6 @@
 @interface PA2ECIESEncryptor (Private)
 - (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef;
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
-@end
-
-@interface PA2ActivationStatus (Private)
-@property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
-@property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
-@property (nonatomic, assign, readonly) BOOL isMigrationAvailable;
 @end
 
 @protocol PA2MigrationDataPrivate <PA2MigrationData>

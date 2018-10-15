@@ -120,6 +120,10 @@ typedef NS_ENUM(int, PA2CoreErrorCode) {
  */
 typedef NS_ENUM(int, PA2ProtocolVersion) {
 	/**
+	 Protocol version is not specified, or cannot be determined.
+	 */
+	PA2ProtocolVersion_NA = 0,
+	/**
 	 Protocol version 2
 	 */
 	PA2ProtocolVersion_V2 = 2,

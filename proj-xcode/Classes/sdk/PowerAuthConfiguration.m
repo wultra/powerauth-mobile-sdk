@@ -40,6 +40,7 @@
 		c->_masterServerPublicKey = _masterServerPublicKey;
 		c->_keychainKey_Biometry = _keychainKey_Biometry;
 		c->_externalEncryptionKey = _externalEncryptionKey;
+		c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
 	}
 	return c;
 }

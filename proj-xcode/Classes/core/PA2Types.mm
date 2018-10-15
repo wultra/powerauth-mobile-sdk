@@ -21,12 +21,12 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Constants
 
-const PA2SignatureFactor PA2SignatureFactor_Possession						= 0x0001;
-const PA2SignatureFactor PA2SignatureFactor_Knowledge						= 0x0010;
-const PA2SignatureFactor PA2SignatureFactor_Biometry						= 0x0100;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge			= 0x0011;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry				= 0x0101;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= 0x0111;
+const PA2SignatureFactor PA2SignatureFactor_Possession						= SF_Possession;
+const PA2SignatureFactor PA2SignatureFactor_Knowledge						= SF_Knowledge;
+const PA2SignatureFactor PA2SignatureFactor_Biometry						= SF_Biometry;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge			= SF_Possession_Knowledge;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry				= SF_Possession_Biometry;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_Possession_Knowledge_Biometry;
 
 #pragma mark - Public types implementation
 

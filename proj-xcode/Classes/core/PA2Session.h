@@ -79,6 +79,11 @@
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
 /**
+ Contains YES if the session has pending migration to newer protocol version.
+ Some operations may be temporarily blocked during the migration process.
+ */
+@property (nonatomic, assign, readonly) BOOL hasPendingActivationMigration;
+/**
  Contains version of protocol in which the session currently operates. If session has no activation,
  then the most up to date version is returned.
  */
@@ -302,8 +307,7 @@
  to following values:
 	 EC_Ok,         if operation succeeded
 	 EC_Encryption, if general encryption error occurs
-	 EC_WrongState, if the session has no valid activation or
-					if you did not sign previous HTTP request with PA2SignatureFactor_PrepareForVaultUnlock flag
+	 EC_WrongState, if the session has no valid activation
 	 EC_WrongParam, if some required parameter is missing
  */
 - (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
@@ -345,8 +349,7 @@
  updated to the following values:
 	EC_Ok,			if operation succeeded
 	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation or
-					if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
  */
 - (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
@@ -365,8 +368,7 @@
  updated to the following values:
 	EC_Ok,			if operation succeeded
 	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation or
-					if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
  */
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
@@ -469,14 +471,44 @@
  */
 + (nonnull NSData*) generateSignatureUnlockKey;
 
+
 #pragma mark - Protocol migration
 
 /**
- Commits migration data to the session. The version of migration data is determined by the
+ Formally starts the protocol migration to a newer version. The function only sets flag
+ indicating that migration is in progress. You should serialize an activation status
+ after this call.
+ 
+ Returns YES if migration has been started.
+ */
+- (BOOL) startMigration;
+
+/**
+ Determines which version of the protocol is the session being migrated to.
+ 
+ Retuns protocol version or `PA2ProtocolVersion_NA` if there's no migration, or session
+ has no activation.
+ */
+@property (nonatomic, assign, readonly) PA2ProtocolVersion pendingActivationMigrationVersion;
+
+/**
+ Applies migration data to the session. The version of migration data is determined by the
  object you provide. Currently, only `PA2MigrationDataV3` is supported.
  
  Returns YES if session has been successfully migrated.
  */
-- (BOOL) commitMigrationData:(nonnull id<PA2MigrationData>)migrationData;
+- (BOOL) applyMigrationData:(nonnull id<PA2MigrationData>)migrationData;
+
+
+/**
+ Formally ends the protocol migration. The function resets flag indicating that migration
+ to the next protocol version is in progress. The reset is possible only if the migration
+ was successful (e.g. when migrating to V3, the protocol version is now V3)
+ 
+ You should serialize an activation status ater this call.
+ 
+ Returns YES if migration has been finished successfully.
+ */
+- (BOOL) finishMigration;
 
 @end

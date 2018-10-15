@@ -696,7 +696,7 @@ namespace powerAuthTests
 					keys.userPassword        = cc7::MakeRange(new_password);
 					
 					HTTPRequestDataSignature sigData;
-					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigData);
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge, sigData);
 					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
@@ -769,7 +769,7 @@ namespace powerAuthTests
 					keys.userPassword        = cc7::MakeRange(new_password);
 					HTTPRequestDataSignature sig;
 					// counter value should be #7
-					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sig);
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge, sig);
 					std::string sigValue = sig.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
@@ -812,7 +812,7 @@ namespace powerAuthTests
 					
 					// counter value should be #9
 					HTTPRequestDataSignature sigData;
-					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge | SF_PrepareForVaultUnlock, sigData);
+					ec = s1.signHTTPRequestData(HTTPRequestData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock"), keys, SF_Possession_Knowledge, sigData);
 					std::string sigValue = sigData.buildAuthHeaderValue();
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertTrue(!sigValue.empty());
@@ -992,7 +992,7 @@ namespace powerAuthTests
 				cc7::ByteArray post_data = cc7::MakeRange("Getting vault key!");
 				std::string method = "POST";
 				std::string uriId  = "/vault/unlock";
-				SignatureFactor factor = SF_Possession_Knowledge | SF_PrepareForVaultUnlock;
+				SignatureFactor factor = SF_Possession_Knowledge;
 				
 				HTTPRequestDataSignature sigData;
 				ec = s1.signHTTPRequestData(HTTPRequestData(post_data, method, uriId), keys, factor, sigData);
@@ -1007,7 +1007,7 @@ namespace powerAuthTests
 				cc7::ByteArray post_data = cc7::MakeRange("Getting vault key!");
 				std::string method = "POST";
 				std::string uriId  = "/vault/unlock";
-				SignatureFactor factor = SF_Possession_Knowledge | SF_PrepareForVaultUnlock;
+				SignatureFactor factor = SF_Possession_Knowledge;
 				//
 				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange());
 				ccstAssertTrue(expected_signature == sig["pa_signature"]);
@@ -1056,12 +1056,25 @@ namespace powerAuthTests
 			ccstAssertFalse(s1.hasPendingActivation());
 			ccstAssertFalse(s1.hasExternalEncryptionKey());
 			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			ccstAssertEqual(Version_NA, s1.pendingActivationMigrationVersion());
+
+			ec = s1.startMigration();
+			ccstAssertEqual(ec, EC_Ok);
+			ccstAssertEqual(Version_V3, s1.pendingActivationMigrationVersion());
 			
+			// Apply migration data
 			MigrationData migration_data;
 			migration_data.toV3.ctrData = crypto::GetRandomData(16).base64String();
-			ec = s1.commitMigration(migration_data);
+			ec = s1.applyMigrationData(migration_data);
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertEqual(Version_V3, s1.pendingActivationMigrationVersion());
+			
+			// Now finish the migration
+			ec = s1.finishMigration();
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertEqual(Version_NA, s1.pendingActivationMigrationVersion());
 			
 			// Try to save, reset & reload data
 			cc7::ByteArray v3_data = s1.saveSessionState();

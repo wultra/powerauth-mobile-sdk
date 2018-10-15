@@ -123,6 +123,15 @@ namespace powerAuth
 		return false;
 	}
 	
+	bool Session::hasPendingActivationMigration() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->flags.pendingMigration != Version_NA;
+		}
+		return false;
+	}
+	
 	Version Session::protocolVersion() const
 	{
 		LOCK_GUARD();
@@ -538,10 +547,9 @@ namespace powerAuth
 			return EC_WrongParam;
 		}
 		// Check combination of offlineNonce & vaultUnlock.
-		bool vault_unlock = (signature_factor & SF_PrepareForVaultUnlock) != 0;
-		if (vault_unlock && !request.offlineNonce.empty()) {
-			CC7_LOG("Session %p, %d: Sign: Vault unlock should not be combined with offlineNonce.", this, sessionIdentifier());
-			return EC_WrongParam;
+		if (request.isOfflineRequest() && hasPendingActivationMigration()) {
+			CC7_LOG("Session %p, %d: Sign: Offline signature is not available during the pending migration.", this, sessionIdentifier());
+			return EC_WrongState;
 		}
 		
 		// Re-seed OpenSSL's PRNG.
@@ -579,7 +587,7 @@ namespace powerAuth
 		}
 		
 		// Move counter forward
-		protocol::CalculateNextCounterValue(*_pd, vault_unlock);
+		protocol::CalculateNextCounterValue(*_pd);
 		
 		// Fill the rest of values to out structure
 		out.version			= _pd->isV3() ? protocol::PA_VERSION_V3 : protocol::PA_VERSION_V2;
@@ -765,7 +773,6 @@ namespace powerAuth
 
 		// Clear encrypted biometry key and reset waiting for vault flag.
 		_pd->sk.biometryKey.clear();
-		_pd->flags.waitingForVaultUnlock = 0;
 		return EC_Ok;
 	}
 	
@@ -1022,19 +1029,52 @@ namespace powerAuth
 	
 	// MARK: - Protocol migration -
 	
-	ErrorCode Session::commitMigration(const MigrationData & migration_data)
+	ErrorCode Session::startMigration()
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: Migration: Session has no valid activation.", this, sessionIdentifier());
+			CC7_LOG("Session %p, %d: StartMigration: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		switch (_pd->protocolVersion()) {
+			case Version_V2:
+				_pd->flags.pendingMigration = Version_V3;
+				return EC_Ok;
+			default:
+				break;
+		}
+		CC7_LOG("Session %p, %d: StartMigration: Session is already in V3.", this, sessionIdentifier());
+		return EC_WrongState;
+	}
+	
+	
+	Version Session::pendingActivationMigrationVersion() const
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			return Version_NA;
+		}
+		return (Version) _pd->flags.pendingMigration;
+	}
+	
+	
+	ErrorCode Session::applyMigrationData(const MigrationData & migration_data)
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: ApplyMigrationData: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
 		switch (_pd->protocolVersion()) {
 			case Version_V2:
 			{
+				if (_pd->flags.pendingMigration != Version_V3) {
+					CC7_LOG("Session %p, %d: ApplyMigrationData: Migration to V3 was not properly started.", this, sessionIdentifier());
+					return EC_WrongState;
+				}
 				cc7::ByteArray ctrData;
 				if (!cc7::Base64_Decode(migration_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
-					CC7_LOG("Session %p, %d: Migration: Wrong V3 migration data.", this, sessionIdentifier());
+					CC7_LOG("Session %p, %d: ApplyMigrationData: Wrong V3 migration data.", this, sessionIdentifier());
 					return EC_WrongParam;
 				}
 				// Everything looks fine, we can commit new data
@@ -1043,12 +1083,34 @@ namespace powerAuth
 				_pd->flags.waitingForVaultUnlock = 0;
 				return EC_Ok;
 			}
-			case Version_V3:
-			{
-				CC7_LOG("Session %p, %d: Migration: Session is already in V3.", this, sessionIdentifier());
-				return EC_WrongState;
-			}
+			default:
+				break;
 		}
+		CC7_LOG("Session %p, %d: ApplyMigrationData: Session is already in V3.", this, sessionIdentifier());
+		return EC_WrongState;
+	}
+	
+	
+	ErrorCode Session::finishMigration()
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: FinishMigration: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		switch (_pd->flags.pendingMigration) {
+			case Version_V3:
+				if (_pd->protocolVersion() == Version_V3) {
+					// Migration to V3 succeeded.
+					_pd->flags.pendingMigration = Version_NA;
+					return EC_Ok;
+				}
+				CC7_LOG("Session %p, %d: FinishMigration: Migration to V3 is not finished yet.", this, sessionIdentifier());
+				break;
+			default:
+				break;
+		}
+		return EC_WrongState;
 	}
 	
 	// MARK: - Private methods -

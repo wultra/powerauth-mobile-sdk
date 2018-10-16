@@ -64,7 +64,6 @@
  */
 - (void) cancelChildTask:(PA2GetActivationStatusChildTask*)task;
 
-
 /**
  Executes this task.
  */
@@ -83,7 +82,6 @@
 /**
  Initializes child task with parent task, completion queue & completion closure.
 
- @param task Parent taks, which will manage this object.
  @param completionQueue queue where
  @param callback closure called when the parent task finishes its execution.
  @return instance of child task.

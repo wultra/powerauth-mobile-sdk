@@ -150,6 +150,8 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 {
 	// Unregister this instance for processing packets...
 	[[PA2WCSessionManager sharedInstance] unregisterDataHandler:self];
+	// Cancel possible get activation status task
+	[self cancelActivationStatusTask];
 }
 
 

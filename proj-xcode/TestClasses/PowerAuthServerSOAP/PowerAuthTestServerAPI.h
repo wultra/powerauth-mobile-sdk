@@ -190,14 +190,14 @@
  Creates a new token for given application and activation id.
  Note that this method is using PA2ECIESEncryptor internally for encryption and decryption.
  */
-- (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application
-							activationId:(NSString*)activationId
-						   signatureType:(NSString*)signatureType;
+//- (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application
+//							activationId:(NSString*)activationId
+//						   signatureType:(NSString*)signatureType;
 
 /**
  Removes a previously created token.
  */
-- (BOOL) removeToken:(PATSToken*)token;
+//- (BOOL) removeToken:(PATSToken*)token;
 
 /**
  Validates a token request. Returns response object with various information.

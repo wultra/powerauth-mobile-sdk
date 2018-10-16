@@ -38,10 +38,10 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V2) {
-			_templateMapping = [SoapHelper mappingForV2];
-		} else {
+		if (_version == PATS_V3) {
 			_templateMapping = [SoapHelper mappingForV3];
+		} else {
+			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 server is not supported." userInfo:nil];
 		}
 	}
 	return self;
@@ -208,42 +208,8 @@
 
 #define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV2
-{
-	NSString * ns = @"http://getlime.io/security/powerauth";
-	return @{
-			 @"BlockActivation" 				: MAP(ns, @"BlockActivation"),
-			 @"CommitActivation" 				: MAP(ns, @"CommitActivation"),
-			 @"CreateApplication" 				: MAP(ns, @"CreateApplication"),
-			 @"CreateApplicationVersion" 		: MAP(ns, @"CreateApplicationVersion"),
-			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(ns, @"CreateNonPersonalizedOfflineSignaturePayload"),
-			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(ns, @"CreatePersonalizedOfflineSignaturePayload"),
-			 @"CreateToken"						: MAP(ns, @"_v2/CreateToken"),
-			 @"GetActivationStatus"				: MAP(ns, @"GetActivationStatus"),
-			 @"GetApplicationDetail"			: MAP(ns, @"GetApplicationDetail"),
-			 @"GetApplicationList"				: MAP(ns, @"GetApplicationList"),
-			 @"GetNonpersonalizedEncryptionKey"	: MAP(ns, @"_v2/GetNonpersonalizedEncryptionKey"),
-			 @"GetSystemStatus"					: MAP(ns, @"GetSystemStatus"),
-			 @"InitActivation"					: MAP(ns, @"InitActivation"),
-			 @"RemoveActivation"				: MAP(ns, @"RemoveActivation"),
-			 @"RemoveToken"						: MAP(ns, @"RemoveToken"),
-			 @"SupportApplicationVersion"		: MAP(ns, @"SupportApplicationVersion"),
-			 @"UnblockActivation"				: MAP(ns, @"UnblockActivation"),
-			 @"UnsupportApplicationVersion"		: MAP(ns, @"UnsupportApplicationVersion"),
-			 @"ValidateToken"					: MAP(ns, @"ValidateToken"),
-			 @"VerifyECDSASignature"			: MAP(ns, @"VerifyECDSASignature"),
-			 @"VerifyOfflineSignature"			: MAP(ns, @"VerifyOfflineSignature"),
-			 @"VerifySignature"					: MAP(ns, @"_v2/VerifySignature"),
-			};
-}
-
 + (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV3
 {
-	// Note that all Crypto 3.0 specific requests are now identified with "_V3" suffix.
-	// This will be changed in Crypto 3.0 capable SDK. Right now, we just create entry in the table,
-	// but will not use them.
-	
-	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
 	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
 	return @{
 			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
@@ -252,14 +218,12 @@
 			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
 			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
 			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
-			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
-			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"CreateToken"						: MAP(v3, @"_v3/CreateToken"),
 			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
 			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
 			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
-			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
 			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
-			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"InitActivation"					: MAP(v3, @"InitActivation"),
 			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
 			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
 			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
@@ -268,10 +232,12 @@
 			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
 			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
 			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
-			 @"VerifySignature"					: MAP(v3, @"_v2/VerifySignature"),	// Must use V3 namespace
-			 @"VerifySignature_V3"				: MAP(v3, @"_v3/VerifySignature"),	// V3 template has an additional (optional) parameter
+			 @"VerifySignature"					: MAP(v3, @"_v3/VerifySignature"),	// Default signature validation (without specified version)
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"_v3/VerifySignature"),	// The same template, but with additional "signatureVersion" param
 			 };
 }
+
+#undef MAP
 
 @end
 

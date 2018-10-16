@@ -57,11 +57,18 @@
 
 @end
 
+
+/**
+ Internal helper object, defining mapping for each SOAP call to template file and its XML namespace.
+ */
 @interface SoapHelperMapping : NSObject
+/// XML Namespace for request & response object
+@property (nonatomic, strong, readonly) NSString * xmlns;
+/// Relative path to XML template file
+@property (nonatomic, strong, readonly) NSString * envelopePath;
 
-@property (nonatomic, strong, readonly) NSString * xmlns;			// namespace for powerauth types
-@property (nonatomic, strong, readonly) NSString * envelopePath;	// envelope path
-
+/// Initializes object with mapping array. The mapping array must contain values for xmlns and envelopePath,
+/// in that exact order.
 + (id) map:(NSArray*)mapArray;
 
 @end

@@ -43,7 +43,7 @@
 	BOOL _invalidConfig;
 }
 
-static NSString * PA_Ver = @"2.1";
+static NSString * PA_Ver = @"3.0";
 
 #pragma mark - Test setup
 

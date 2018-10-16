@@ -134,8 +134,8 @@
 		BF5A23931FE00A8800B78DE2 /* PA2PrivateTokenData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenData.h; path = Classes/token/PA2PrivateTokenData.h; sourceTree = "<group>"; };
 		BF5A23951FE00A8800B78DE2 /* PA2PrivateTokenData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2PrivateTokenData.m; path = Classes/token/PA2PrivateTokenData.m; sourceTree = "<group>"; };
 		BF5A23961FE00A8800B78DE2 /* PA2PrivateTokenInterfaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2PrivateTokenInterfaces.h; path = Classes/token/PA2PrivateTokenInterfaces.h; sourceTree = "<group>"; };
-		BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2AuthorizationHttpHeader.m; path = Classes/networking/base/PA2AuthorizationHttpHeader.m; sourceTree = "<group>"; };
-		BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2AuthorizationHttpHeader.h; path = Classes/networking/base/PA2AuthorizationHttpHeader.h; sourceTree = "<group>"; };
+		BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2AuthorizationHttpHeader.m; path = Classes/networking/public/PA2AuthorizationHttpHeader.m; sourceTree = "<group>"; };
+		BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2AuthorizationHttpHeader.h; path = Classes/networking/public/PA2AuthorizationHttpHeader.h; sourceTree = "<group>"; };
 		BF7D50661FE0002600200119 /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PA2Keychain.m; path = Classes/keychain/PA2Keychain.m; sourceTree = "<group>"; };
 		BF7D50671FE0002600200119 /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PA2Keychain.h; path = Classes/keychain/PA2Keychain.h; sourceTree = "<group>"; };
 		BF8C30362004E20000EAF830 /* PA2ExtensionLibrary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ExtensionLibrary.h; sourceTree = "<group>"; };
@@ -278,8 +278,7 @@
 		BF5A239C1FE00ADD00B78DE2 /* networking */ = {
 			isa = PBXGroup;
 			children = (
-				BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */,
-				BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */,
+				BF9D9C452176149B004FAE9C /* public */,
 			);
 			name = networking;
 			sourceTree = "<group>";
@@ -350,6 +349,15 @@
 				BFA0E2A4200D128A0011F0A6 /* watch */,
 			);
 			name = PowerAuthShared;
+			sourceTree = "<group>";
+		};
+		BF9D9C452176149B004FAE9C /* public */ = {
+			isa = PBXGroup;
+			children = (
+				BF5A239E1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.h */,
+				BF5A239D1FE00AFC00B78DE2 /* PA2AuthorizationHttpHeader.m */,
+			);
+			name = public;
 			sourceTree = "<group>";
 		};
 		BFA0E2A4200D128A0011F0A6 /* watch */ = {

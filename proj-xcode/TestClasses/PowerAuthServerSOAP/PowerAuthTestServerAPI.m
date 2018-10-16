@@ -528,42 +528,50 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 - (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application activationId:(NSString*)activationId signatureType:(NSString*)signatureType
 {
-	[self checkForValidConnection];
+//	[self checkForValidConnection];
+//
+//	NSData * publicKey = [[NSData alloc] initWithBase64EncodedString:application.masterPublicKey options:0];
+//	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo1:nil sharedInfo2:nil];
+//	PA2ECIESCryptogram * cryptogram = [encryptor encryptRequest:nil];
+//	if (!cryptogram) {
+//		return nil;
+//	}
+//	PA2ECIESEncryptor * decryptor = [encryptor copyForDecryption];
+//	NSArray * params = @[ activationId, signatureType.uppercaseString, cryptogram.keyBase64 ];
+//	PATSToken * response = [_helper soapRequest:@"CreateToken" params:params response:@"CreateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+//		NSDictionary * jsonObject = [self decryptECIESResponseWithDecryptor:decryptor resp:resp ns:ns as:[NSDictionary class]];
+//		BOOL success = NO;
+//		PATSToken * token = [[PATSToken alloc] init];
+//		if (jsonObject) {
+//			token.tokenIdentifier = jsonObject[@"tokenId"];
+//			token.tokenSecret = jsonObject[@"tokenSecret"];
+//			token.activationId = activationId;
+//			success = (token.tokenIdentifier != nil && token.tokenSecret != nil);
+//		}
+//		return success ? token : nil;
+//	}];
+//	return response;
 	
-	NSData * publicKey = [[NSData alloc] initWithBase64EncodedString:application.masterPublicKey options:0];
-	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo1:nil sharedInfo2:nil];
-	PA2ECIESCryptogram * cryptogram = [encryptor encryptRequest:nil];
-	if (!cryptogram) {
-		return nil;
-	}
-	PA2ECIESEncryptor * decryptor = [encryptor copyForDecryption];
-	NSArray * params = @[ activationId, signatureType.uppercaseString, cryptogram.keyBase64 ];
-	PATSToken * response = [_helper soapRequest:@"CreateToken" params:params response:@"CreateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSDictionary * jsonObject = [self decryptECIESResponseWithDecryptor:decryptor resp:resp ns:ns as:[NSDictionary class]];
-		BOOL success = NO;
-		PATSToken * token = [[PATSToken alloc] init];
-		if (jsonObject) {
-			token.tokenIdentifier = jsonObject[@"tokenId"];
-			token.tokenSecret = jsonObject[@"tokenSecret"];
-			token.activationId = activationId;
-			success = (token.tokenIdentifier != nil && token.tokenSecret != nil);
-		}
-		return success ? token : nil;
-	}];
-	return response;
+	// The implementation above is for V2. Looks like the function is no longer required, but
+	// if yes, then it has to be changed to V3 protocol first.
+	return nil;
 }
 
 - (BOOL) removeToken:(PATSToken*)token
 {
-	[self checkForValidConnection];
+//	[self checkForValidConnection];
+//
+//	NSDictionary * response = [_helper soapRequest:@"RemoveToken" params:@[token.tokenIdentifier, token.activationId] response:@"RemoveTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+//		NSError * localError = nil;
+//		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+//		if (!localError) obj[@"removed"] = @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
+//		return !localError ? obj : nil;
+//	}];
+//	return [response[@"removed"] boolValue];
 	
-	NSDictionary * response = [_helper soapRequest:@"RemoveToken" params:@[token.tokenIdentifier, token.activationId] response:@"RemoveTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
-		if (!localError) obj[@"removed"] = @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
-		return !localError ? obj : nil;
-	}];
-	return [response[@"removed"] boolValue];
+	// The implementation above is correct, but it looks like we don't need it for tests anymore.
+	// Should be removed later.
+	return NO;
 }
 
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request

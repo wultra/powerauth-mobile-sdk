@@ -18,7 +18,6 @@
 #import "PowerAuthTestServerAPI.h"
 #import "PowerAuthTestServerConfig.h"
 #import "AsyncHelper.h"
-#import "FakePowerAuthTokenStore.h"
 
 #import "PowerAuth2.h"
 
@@ -40,6 +39,8 @@
 	BOOL _hasConfig;
 	BOOL _invalidConfig;
 }
+
+static NSString * PA_Ver = @"3.0";
 
 #pragma mark - Test setup
 
@@ -376,7 +377,7 @@
 		result[key] = [value substringWithRange:NSMakeRange(1, value.length-2)];
 	}];
 	if (!error) {
-		error = ![result[@"version"] isEqualToString:@"2.1"];
+		error = ![result[@"version"] isEqualToString:PA_Ver];
 		XCTAssertFalse(error, @"Unknown PA Token version");
 	}
 	return error ? nil : result;
@@ -450,30 +451,6 @@
 		}];
 	}] boolValue];
 	XCTAssertTrue(tokenRemoved);
-}
-
-- (void) testTokens_WithFakeTokenStore
-{
-	CHECK_TEST_CONFIG();
-	
-	//
-	// The purpose of this test is to validate whether our SOAP API for token creation and validation
-	// is correct. The only mobile part tested in this routine is our ECIES encryptor, because it's used
-	// internally in the test server implementation.
-	//
-	
-	NSArray * activation = [self createActivation:YES removeAfter:NO];
-	XCTAssertTrue([activation.lastObject boolValue]);
-	if (!activation) {
-		return;
-	}
-	PATSInitActivationResponse * activationData = activation[0];
-	
-	FakePowerAuthTokenStore * tokenStore = [[FakePowerAuthTokenStore alloc] initWithTestServer:_testServerApi activationId:activationData.activationId];
-	[self runTestsForTokenStore:tokenStore activation:activation];
-	
-	// Cleanup
-	[self removeLastActivation:activationData];
 }
 
 - (void) testTokens_WithRealTokenStore

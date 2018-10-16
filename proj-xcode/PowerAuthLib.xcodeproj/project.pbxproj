@@ -11,7 +11,6 @@
 		BF0210402164C67F009745A2 /* PA2HttpClient.m in Sources */ = {isa = PBXBuildFile; fileRef = BF02103E2164C67F009745A2 /* PA2HttpClient.m */; };
 		BF0210432164D403009745A2 /* PA2AsyncOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = BF0210412164D403009745A2 /* PA2AsyncOperation.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF0210442164D403009745A2 /* PA2AsyncOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = BF0210422164D403009745A2 /* PA2AsyncOperation.m */; };
-		BF13A03A1FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */; };
 		BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */; };
 		BF200762215A6030001F3614 /* PA2MigrationData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF200761215A602F001F3614 /* PA2MigrationData.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -255,8 +254,6 @@
 		BF02103E2164C67F009745A2 /* PA2HttpClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2HttpClient.m; sourceTree = "<group>"; };
 		BF0210412164D403009745A2 /* PA2AsyncOperation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AsyncOperation.h; sourceTree = "<group>"; };
 		BF0210422164D403009745A2 /* PA2AsyncOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AsyncOperation.m; sourceTree = "<group>"; };
-		BF13A0381FC3315D00E6F9B3 /* FakePowerAuthTokenStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakePowerAuthTokenStore.h; sourceTree = "<group>"; };
-		BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FakePowerAuthTokenStore.m; sourceTree = "<group>"; };
 		BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateEncryptorFactory.h; sourceTree = "<group>"; };
 		BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateEncryptorFactory.m; sourceTree = "<group>"; };
 		BF200761215A602F001F3614 /* PA2MigrationData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2MigrationData.h; sourceTree = "<group>"; };
@@ -661,8 +658,6 @@
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
 				BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */,
 				BF9EED2020372AEB001D8DF8 /* PowerAuthConcurrencyTests.m */,
-				BF13A0381FC3315D00E6F9B3 /* FakePowerAuthTokenStore.h */,
-				BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */,
 				BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */,
 				BF4DBCD11CDF9CDE008F3A47 /* Info.plist */,
 				BF20EA921EACB1A000733D91 /* libxml2.tbd */,
@@ -1051,7 +1046,6 @@
 				BF20EA901EACB17600733D91 /* CXMLUnsupportedNode.m in Sources */,
 				BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */,
 				BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */,
-				BF13A03A1FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m in Sources */,
 				BF20EA881EACB17600733D91 /* CXMLDocument_PrivateExtensions.m in Sources */,
 				BF20EA8B1EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m in Sources */,
 				BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */,

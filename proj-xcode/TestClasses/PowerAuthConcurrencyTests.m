@@ -18,7 +18,6 @@
 #import "PowerAuthTestServerAPI.h"
 #import "PowerAuthTestServerConfig.h"
 #import "AsyncHelper.h"
-#import "FakePowerAuthTokenStore.h"
 
 #import "PowerAuth2.h"
 

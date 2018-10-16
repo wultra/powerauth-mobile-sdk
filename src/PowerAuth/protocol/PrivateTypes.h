@@ -191,7 +191,7 @@ namespace protocol
 			cc7::U32	flagsU32;
 		};
 		
-		static_assert(sizeof(_Flags) == sizeof(cc7::U32), "Flags structure is too big");
+		static_assert(sizeof(_Flags) <= sizeof(cc7::U32), "Flags structure is too big");
 		
 		PersistentData() :
 			signatureCounter(0),

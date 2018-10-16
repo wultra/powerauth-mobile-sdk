@@ -97,4 +97,9 @@
 	return PA2SessionStatusDataReader_DataContainsActivation(sessionData);
 }
 
+- (BOOL) hasPendingActivationMigration
+{
+	return NO;
+}
+
 @end

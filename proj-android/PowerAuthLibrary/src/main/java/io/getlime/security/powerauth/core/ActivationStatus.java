@@ -94,8 +94,8 @@ public class ActivationStatus {
         this.state = 0;
         this.failCount = 0;
         this.maxFailCount = 0;
-        this.currentVersion = ProtocolVersion.Unsupported;
-        this.upgradeVersion = ProtocolVersion.Unsupported;
+        this.currentVersion = ProtocolVersion.NA;
+        this.upgradeVersion = ProtocolVersion.NA;
         this.isMigrationAvailable = false;
     }
 }

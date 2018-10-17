@@ -43,7 +43,7 @@ jobject CreateJavaProtocolVersion(JNIEnv * env, int v)
 			field_name = "V3";
 			 break;
 		default: 
-			field_name = "Unsupported"; 
+			field_name = "NA";
 			break;
 	}
 	// Find enum class

@@ -26,28 +26,17 @@ public class ActivationStep2Param {
      */
     public final String activationId;
     /**
-     Ephemeral nonce, generated on the server, in Base64 format.
+     Server's public key, in Base64 format.
      */
-    public final String ephemeralNonce;
+    public final String serverPublicKey;
     /**
-     Server's part for ephemeral key in Base64 format.
+     Initial value for hash-based counter.
      */
-    public final String ephemeralPublicKey;
-    /**
-     Encrypted server public key, in Base64 format.
-     */
-    public final String encryptedServerPublicKey;
-    /**
-     Siganture, calculated from activationId &amp; encryptedServerPublicKey,
-     in Base64 format.
-     */
-    public final String serverDataSignature;
+    public final String ctrData;
 
-    public ActivationStep2Param(String activationId, String ephemeralNonce, String ephemeralPublicKey, String encryptedServerPublicKey, String serverDataSignature) {
+    public ActivationStep2Param(String activationId, String serverPublicKey, String ctrData) {
         this.activationId = activationId;
-        this.ephemeralNonce = ephemeralNonce;
-        this.ephemeralPublicKey = ephemeralPublicKey;
-        this.encryptedServerPublicKey = encryptedServerPublicKey;
-        this.serverDataSignature = serverDataSignature;
+        this.serverPublicKey = serverPublicKey;
+        this.ctrData = ctrData;
     }
 }

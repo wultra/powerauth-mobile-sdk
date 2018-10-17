@@ -189,8 +189,7 @@ public class PowerAuthSDK {
             return null;
         } else {
             return new ActivationStep1Param(
-                    otp.activationIdShort,
-                    otp.activationOtp,
+                    otp.activationCode,
                     otp.activationSignature
             );
         }
@@ -454,75 +453,78 @@ public class PowerAuthSDK {
             return null;
         }
 
-        // Wipe out possible activation data.
-        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
-        //       exists when old session data is still persisted. This is unfortunately a more complex
-        //       task and therefore here's just workaround which may keep a shared biometry key present
-        //       on the device. That's no big deal, because an actual key used for biometry factor
-        //       is already removed in this state.
-        removeActivationLocal(null, false);
+        // Temporary, just to remove compile errors.
+        return null;
 
-        // Prepare crypto module request
-        final ActivationStep1Param paramStep1 = paramStep1WithActivationCode(activationCode);
-        if (paramStep1 == null) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
-            return null;
-        }
-
-        // Obtain crypto module response
-        final ActivationStep1Result step1Result = mSession.startActivation(paramStep1);
-        if (step1Result.errorCode != ErrorCode.OK) {
-            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
-                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-            return null;
-        }
-        // After this point, each error must lead to mSession.resetSession()
-
-        // Perform exchange over PowerAuth 2.0 Standard RESTful API
-        final ActivationCreateRequest request = new ActivationCreateRequest();
-        request.setActivationIdShort(paramStep1.activationIdShort);
-        request.setActivationName(name);
-        request.setActivationNonce(step1Result.activationNonce);
-        request.setApplicationKey(mConfiguration.getAppKey());
-        request.setApplicationSignature(step1Result.applicationSignature);
-        request.setEncryptedDevicePublicKey(step1Result.cDevicePublicKey);
-        request.setEphemeralPublicKey(step1Result.ephemeralPublicKey);
-        request.setExtras(extras);
-
-        // Perform the server request
-        return mClient.createActivation(request, new INetworkResponseListener<ActivationCreateResponse>() {
-
-            @Override
-            public void onNetworkResponse(ActivationCreateResponse response) {
-                // Network communication completed correctly
-                final ActivationStep2Param paramStep2 = new ActivationStep2Param(
-                        response.getActivationId(),
-                        response.getActivationNonce(),
-                        response.getEphemeralPublicKey(),
-                        response.getEncryptedServerPublicKey(),
-                        response.getEncryptedServerPublicKeySignature());
-
-                // Obtain crypto module response
-                final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
-                if (resultStep2.errorCode == ErrorCode.OK) {
-                    // Everything was OK
-                    listener.onActivationCreateSucceed(resultStep2.activationFingerprint, response.getCustomAttributes());
-                } else {
-                    // Error occurred
-                    mSession.resetSession();
-                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-                }
-            }
-
-            @Override
-            public void onNetworkError(Throwable t) {
-                // Network error occurred
-                mSession.resetSession();
-                listener.onActivationCreateFailed(t);
-            }
-        });
+//        // Wipe out possible activation data.
+//        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
+//        //       exists when old session data is still persisted. This is unfortunately a more complex
+//        //       task and therefore here's just workaround which may keep a shared biometry key present
+//        //       on the device. That's no big deal, because an actual key used for biometry factor
+//        //       is already removed in this state.
+//        removeActivationLocal(null, false);
+//
+//        // Prepare crypto module request
+//        final ActivationStep1Param paramStep1 = paramStep1WithActivationCode(activationCode);
+//        if (paramStep1 == null) {
+//            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+//            return null;
+//        }
+//
+//        // Obtain crypto module response
+//        final ActivationStep1Result step1Result = mSession.startActivation(paramStep1);
+//        if (step1Result.errorCode != ErrorCode.OK) {
+//            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
+//                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
+//                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+//            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+//            return null;
+//        }
+//        // After this point, each error must lead to mSession.resetSession()
+//
+//        // Perform exchange over PowerAuth 2.0 Standard RESTful API
+//        final ActivationCreateRequest request = new ActivationCreateRequest();
+//        request.setActivationIdShort(paramStep1.activationIdShort);
+//        request.setActivationName(name);
+//        request.setActivationNonce(step1Result.activationNonce);
+//        request.setApplicationKey(mConfiguration.getAppKey());
+//        request.setApplicationSignature(step1Result.applicationSignature);
+//        request.setEncryptedDevicePublicKey(step1Result.cDevicePublicKey);
+//        request.setEphemeralPublicKey(step1Result.ephemeralPublicKey);
+//        request.setExtras(extras);
+//
+//        // Perform the server request
+//        return mClient.createActivation(request, new INetworkResponseListener<ActivationCreateResponse>() {
+//
+//            @Override
+//            public void onNetworkResponse(ActivationCreateResponse response) {
+//                // Network communication completed correctly
+//                final ActivationStep2Param paramStep2 = new ActivationStep2Param(
+//                        response.getActivationId(),
+//                        response.getActivationNonce(),
+//                        response.getEphemeralPublicKey(),
+//                        response.getEncryptedServerPublicKey(),
+//                        response.getEncryptedServerPublicKeySignature());
+//
+//                // Obtain crypto module response
+//                final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
+//                if (resultStep2.errorCode == ErrorCode.OK) {
+//                    // Everything was OK
+//                    listener.onActivationCreateSucceed(resultStep2.activationFingerprint, response.getCustomAttributes());
+//                } else {
+//                    // Error occurred
+//                    mSession.resetSession();
+//                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+//                }
+//            }
+//
+//            @Override
+//            public void onNetworkError(Throwable t) {
+//                // Network error occurred
+//                mSession.resetSession();
+//                listener.onActivationCreateFailed(t);
+//            }
+//        });
     }
 
     public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {

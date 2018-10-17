@@ -24,23 +24,17 @@ public class ActivationStep1Param {
     /**
      Short activation ID
      */
-    public final String activationIdShort;
-    
+    public final String activationCode;
+
     /**
-     Activation OTP (one time password)
-     */
-    public final String activationOtp;
-    
-    /**
-     Signature calculated from activationIdShort and activationOtp.
+     Signature calculated from activationCode.
      The value is optional in cases, when the user re-typed codes
      manually. If the value is available, then the Base64 string is expected.
      */
     public final String activationSignature;
 
-    public ActivationStep1Param(String activationIdShort, String activationOtp, String activationSignature) {
-        this.activationIdShort = activationIdShort;
-        this.activationOtp = activationOtp;
-        this.activationSignature = activationSignature;
+    public ActivationStep1Param(String activationCode, String activationSignature) {
+        this.activationCode = activationCode;
+         this.activationSignature = activationSignature;
     }
 }

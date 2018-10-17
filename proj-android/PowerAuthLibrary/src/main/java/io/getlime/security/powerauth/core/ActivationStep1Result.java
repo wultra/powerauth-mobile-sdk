@@ -28,32 +28,12 @@ public class ActivationStep1Result {
     public final int errorCode;
     
     /**
-     Activation nonce, in Base64 format
+     Device's public key, in Base64 format
      */
-    public final String activationNonce;
+    public final String devicePublicKey;
     
-    /**
-     Encrypted device's public key, in Base64 format
-     */
-    public final String cDevicePublicKey;
-    
-    /**
-     Application signature proving that activation was completed
-     with correct application.
-     */
-    public final String applicationSignature;
-
-    /**
-     Ephemeral public key used for ad-hoc encryption used to protect
-     cDevicePublicKey.
-     */
-    public final String ephemeralPublicKey;
-
     public ActivationStep1Result() {
         this.errorCode = 0;
-        this.activationNonce = null;
-        this.cDevicePublicKey = null;
-        this.applicationSignature = null;
-        this.ephemeralPublicKey = null;
+        this.devicePublicKey = null;
     }
 }

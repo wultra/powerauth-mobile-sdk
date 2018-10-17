@@ -52,6 +52,7 @@ public class SignatureFactor
      The PrepareForVaultUnlock flag can be combined with any signature factor and
      notifies Session about operation which will lead to vault unlock.
      */
+    @Deprecated
     public static final int PrepareForVaultUnlock           = 0x1000;
     
     /**

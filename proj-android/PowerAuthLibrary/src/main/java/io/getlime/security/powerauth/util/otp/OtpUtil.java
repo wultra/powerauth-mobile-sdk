@@ -68,6 +68,9 @@ public class OtpUtil {
      *  Returns true if |activationCode| is a valid activation code. The input code must not contain
      *  a signature part. You can use this method to validate a whole user-typed activation code
      *  at once.
+     *
+     *  Note that since protocol version V3, the activation code is protected with checksum, so the
+     *  code with right characters and right length can still be an invalid.
      */
     public native static boolean validateActivationCode(String activationCode);
 

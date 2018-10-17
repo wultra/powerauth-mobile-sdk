@@ -47,10 +47,10 @@ public class Session {
      */
     private native long init(SessionSetup setup);
 
-	/**
-	 Internal JNI destroy. You have to provide handle created during the initialization.
-	 */
-	private native void destroy(long handle);
+    /**
+     Internal JNI destroy. You have to provide handle created during the initialization.
+     */
+    private native void destroy(long handle);
     
     /**
      Destroys underlying native C++ object. You can call this method
@@ -72,90 +72,90 @@ public class Session {
     }
     
     /**
-	 Returns SessionSetup object used during the object creation.
-	 */
-	public native SessionSetup getSessionSetup();
+     Returns SessionSetup object used during the object creation.
+     */
+    public native SessionSetup getSessionSetup();
     
     /**
-	 Resets session into its initial state. The existing session's setup and EEK is preserved
+     Resets session into its initial state. The existing session's setup and EEK is preserved
      after the call.
-	 */
-	public native void resetSession();
+     */
+    public native void resetSession();
     
     /**
      Returns true if dynamic library was compiled with a debug features. It is highly recommended
      to check this boolean and force application to crash, if the producion, final app
      is running against a debug featured library.
      */
-	public native boolean hasDebugFeatures();
-	
-	/**
-	 Returns true if the internal SessionSetup object is valid.
+    public native boolean hasDebugFeatures();
+
+    /**
+     Returns true if the internal SessionSetup object is valid.
      Note that the method doesn't validate whether the provided master key is valid
      or not.
-	 */
-	public native boolean hasValidSetup();
-
-	/**
-	 * @return Version of protocol in which the session currently operates. If the session has no
-	 *         activation, then the most up to date version is returned.
-	 */
-	public native ProtocolVersion getProtocolVersion();
-	
-	//
-	// Serialization
-	//
-	
-	/**
-	 Saves state of session into the sequence of bytes. The saved sequence contains content of 
-	 internal PersistentData structure, if is present.
-	 
-	 Note that saving a state during the pending activation has no effect. In this case, 
-	 the returned byte sequence represents the state of the session before the activation started.
      */
-	public native byte[] serializedState();
-	
-	/**
+    public native boolean hasValidSetup();
+
+    /**
+     * @return Version of protocol in which the session currently operates. If the session has no
+     *         activation, then the most up to date version is returned.
+     */
+    public native ProtocolVersion getProtocolVersion();
+
+    //
+    // Serialization
+    //
+
+    /**
+     Saves state of session into the sequence of bytes. The saved sequence contains content of
+     internal PersistentData structure, if is present.
+
+     Note that saving a state during the pending activation has no effect. In this case,
+     the returned byte sequence represents the state of the session before the activation started.
+     */
+    public native byte[] serializedState();
+
+    /**
      Loads state of session from previously saved sequence of bytes. If the serialized state is
      invalid then the session ends in its initial state.
      
      Returns integer value, which can be compared to the constants from an ErrorCode class.
      */
-	public native int deserializeState(byte[] state);
-	
-	//
-	// Activation
-	//
-	
-	/**
+    public native int deserializeState(byte[] state);
+
+    //
+    // Activation
+    //
+
+    /**
      Returns true if Session is in its initial state an you can start activation.
      Otherwise returns false.
      */
-	public native boolean canStartActivation();
-	
-	/**
+    public native boolean canStartActivation();
+
+    /**
      Returns true if activation is in progress. You should not save the state of
      Session in this case.
      */
-	public native boolean hasPendingActivation();
-	
-	/**
+    public native boolean hasPendingActivation();
+
+    /**
      Returns true if Session has a valid activation and you can perform
      request signing and other post-activation tasks.
      */
-	public native boolean hasValidActivation();
-	
-	/**
+    public native boolean hasValidActivation();
+
+    /**
      Returns activation identifier if the Session has valid activation. If there's
      no activation then returns null.
      */
-	public native String getActivationIdentifier();
+    public native String getActivationIdentifier();
 
-	/**
-	 If the session has valid activation, then returns decimalized fingerprint, calculated
-	 from device's public key. Otherwise returns null.
-	 */
-	public native String getActivationFingerprint();
+    /**
+     If the session has valid activation, then returns decimalized fingerprint, calculated
+     from device's public key. Otherwise returns null.
+     */
+    public native String getActivationFingerprint();
     
     /**
      Starts a new activation process. The Session must be in its initial state. Once the
@@ -168,9 +168,9 @@ public class Session {
      The method always returns valid object and you have to check result's errorCode 
      property whether the operation failed or not.
      */
-	public native ActivationStep1Result startActivation(ActivationStep1Param param);
-	
-	/**
+    public native ActivationStep1Result startActivation(ActivationStep1Param param);
+
+    /**
      Validates activation response from the server. The Session expects that activation process
      was previously started with using 'startActivation' method. You have to provide
      ActivationStep2Param object with all properties available. The result of the operation
@@ -191,9 +191,9 @@ public class Session {
      Always returns valid object and you have to check result's errorCode property to check,
      whether the operation failed or not.
      */
-	public native ActivationStep2Result validateActivationResponse(ActivationStep2Param param);
-	
-	/**
+    public native ActivationStep2Result validateActivationResponse(ActivationStep2Param param);
+
+    /**
      Completes previously started activation process and protects sensitive local information with
      provided keys. Please check documentation for SignatureUnlockKeys class for details about
      constructing protection keys and for other related information.
@@ -207,50 +207,50 @@ public class Session {
      Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      then the operation succeeded.
      */
-	public native int completeActivation(SignatureUnlockKeys lockKeys);
-	
-	
-	//
-	// Activation status
-	//
-	
-	/**
+    public native int completeActivation(SignatureUnlockKeys lockKeys);
+
+
+    //
+    // Activation status
+    //
+
+    /**
      The method decodes received status blob into ActivationStatus object. You can call this method after a successful
      activation and obtain information about pairing between the client and the server. You have to provide valid
      possessionUnlockKey in unlockKeys keys object.
      
      Always returns valid object and you have to check result's errorCode property whether the operation failed or not.
      */
-	public native ActivationStatus decodeActivationStatus(String statusBlob, SignatureUnlockKeys unlockKeys);
-	
-	//
-	// Data signing
-	//
-	
-	/**
+    public native ActivationStatus decodeActivationStatus(String statusBlob, SignatureUnlockKeys unlockKeys);
+
+    //
+    // Data signing
+    //
+
+    /**
      Converts key:value dictionary into normalized data, suitable for data signing. The method is handy
      in cases where you have to sign parameters of GET request. You have to provide key-value map constructed
      from your GET parameters. The result is normalized data sequence, prepared for data signing.
 
      For a POST requests it's recommended to sign a whole POST body.
      */
-	public byte[] prepareKeyValueDictionaryForDataSigning(Map<String, String> keyValueMap) {
-	    ArrayList<String> keys = new ArrayList<>();
-	    ArrayList<String> values = new ArrayList<>();
-	    for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
-	        keys.add(entry.getKey());
-	        values.add(entry.getValue());
+    public byte[] prepareKeyValueDictionaryForDataSigning(Map<String, String> keyValueMap) {
+        ArrayList<String> keys = new ArrayList<>();
+        ArrayList<String> values = new ArrayList<>();
+        for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {
+            keys.add(entry.getKey());
+            values.add(entry.getValue());
         }
-	    return prepareKeyValueDictionaryForDataSigning(keys.toArray(new String[keys.size()]), values.toArray(new String[values.size()]));
-	}
-	
-	/**
-	 Internal JNI implementation for key-value data normalization. You have to provide two arrays, where
-	 the related keys and values are at the same indexes.
-	 */
-	private native byte[] prepareKeyValueDictionaryForDataSigning(String[] keys, String[] values);
-	
-	/**
+        return prepareKeyValueDictionaryForDataSigning(keys.toArray(new String[keys.size()]), values.toArray(new String[values.size()]));
+    }
+
+    /**
+     Internal JNI implementation for key-value data normalization. You have to provide two arrays, where
+     the related keys and values are at the same indexes.
+     */
+    private native byte[] prepareKeyValueDictionaryForDataSigning(String[] keys, String[] values);
+
+    /**
      Calculates signature from given data. You have to provide all involved |unlockKeys| required for
      the |signatureFactor|. For |request.body| you can provide whole POST body or prepare data with
      using 'prepareKeyValueDictionaryForDataSigning' method. The |request.method| parameter is the HTML
@@ -277,25 +277,25 @@ public class Session {
      guard this method with locking. There's possible race condition when the internal signing counter
      is raised in persistent data structure. The Session doesn't provide locking internally.
      */
-	public native SignatureResult signHTTPRequest(SignatureRequest request, SignatureUnlockKeys unlockKeys, int signatureFactor);
-	
-	/**
+    public native SignatureResult signHTTPRequest(SignatureRequest request, SignatureUnlockKeys unlockKeys, int signatureFactor);
+
+    /**
      Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
      You can calculate appropriate value with using 'signHTTPRequest' method.
      */
-	public native String getHttpAuthHeaderName();
+    public native String getHttpAuthHeaderName();
 
-	/**
-	 Validates whether the data has been signed with master server private key.
-	 Returns integer comparable to constants available at ErrorCode class.
-	 */
-	public native int verifyServerSignedData(SignedData signedData);
-	
-	//
-	// Signature keys management
-	//
-	
-	/**
+    /**
+     Validates whether the data has been signed with master server private key.
+     Returns integer comparable to constants available at ErrorCode class.
+     */
+    public native int verifyServerSignedData(SignedData signedData);
+
+    //
+    // Signature keys management
+    //
+
+    /**
      Changes user's password. You have to save Session's state to keep this change for later.
      Returns integer comparable to constants available at ErrorCode class.
      
@@ -320,9 +320,9 @@ public class Session {
      All this is a preliminary proposal functionality and is not covered by PA2 specification. 
      The behavior or a whole flow of changing password may be a subject of change in the future.
      */
-	public native int changeUserPassword(Password oldPassword, Password newPassword);
-	
-	/**
+    public native int changeUserPassword(Password oldPassword, Password newPassword);
+
+    /**
      Adds key for biometry factor. You have to provide encrypted vault key |cVaultKey| and |unlockKeys|
      object with a new biometryUnlockKey and a valid possessionUnlockKey. The possession key
      is required for a transport unlock key computation and the biometryUnlockKey is a new key which will
@@ -344,28 +344,28 @@ public class Session {
      should work correctly later. The Session only displays warning to debug console about previous
      pending vault unlock operation.
      */
-	public native int addBiometryFactor(String cVaultKey, SignatureUnlockKeys unlockKeys);
-	
-	/**
-	 Checks if there is a biometry factor present in a current session.
+    public native int addBiometryFactor(String cVaultKey, SignatureUnlockKeys unlockKeys);
+
+    /**
+     Checks if there is a biometry factor present in a current session.
      Returns true if there is a biometry factor related key present, false otherwise.
-	 */
-	public native boolean hasBiometryFactor();
-	
-	/**
+     */
+    public native boolean hasBiometryFactor();
+
+    /**
      Removes existing biometry key from persisting data. You have to save state of the Session after
      the operation.
      
      Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      then the operation succeeded.
      */
-	public native int removeBiometryFactor();
-	
-	//
-	// Vault operations
-	//
-	
-	/**
+    public native int removeBiometryFactor();
+
+    //
+    // Vault operations
+    //
+
+    /**
      Calculates a cryptographic key, derived from encrypted vault key, received from the server. The method
      is useful for situations, where the application needs to protect locally stored data with a cryptographic
      key, which is normally not present on the device and must be acquired from the server at first.
@@ -406,16 +406,16 @@ public class Session {
     //
     
     /**
-	 Returns true if EEK (external encryption key) is set.
-	 */
+     Returns true if EEK (external encryption key) is set.
+     */
     public native boolean hasExternalEncryptionKey();
 
     /**
-	 Sets a known external encryption key to the internal SessionSetup structure. This method 
-	 is useful, when the Session is using EEK, but the key is not known yet. You can restore 
-	 the session without the EEK and use it for a very limited set of operations, like the status 
-	 decode. The data signing will also work correctly, but only for a knowledge factor, which 
-	 is by design not protected with EEK.
+     Sets a known external encryption key to the internal SessionSetup structure. This method
+     is useful, when the Session is using EEK, but the key is not known yet. You can restore
+     the session without the EEK and use it for a very limited set of operations, like the status
+     decode. The data signing will also work correctly, but only for a knowledge factor, which
+     is by design not protected with EEK.
     
      Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      then the operation succeeded.
@@ -423,45 +423,45 @@ public class Session {
     public native int setExternalEncryptionKey(byte[] externalEncryptionKey);
     
     /**
-	 Adds a new external encryption key permanently to the activated Session and to the internal 
-	 SessionSetup structure. The method is different than 'setExternalEncryptionKey' and is useful 
-	 for scenarios, when you need to add the EEK additionally, after the activation.
-	 
-	 You have to save state of the session after the operation.
-	 
-	 Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
+     Adds a new external encryption key permanently to the activated Session and to the internal
+     SessionSetup structure. The method is different than 'setExternalEncryptionKey' and is useful
+     for scenarios, when you need to add the EEK additionally, after the activation.
+
+     You have to save state of the session after the operation.
+
+     Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      then the operation succeeded.
-	 */
+     */
     public native int addExternalEncryptionKey(byte[] externalEncryptionKey);
     
     /**
-	 Removes existing external encryption key from the activated Session. The method removes EEK permanently
-	 and clears internal EEK usage flag from the persistent data. The session has to be activated and EEK
-	 must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
+     Removes existing external encryption key from the activated Session. The method removes EEK permanently
+     and clears internal EEK usage flag from the persistent data. The session has to be activated and EEK
+     must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
 
-	 You have to save state of the session after the operation.
-	 
-	 Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
+     You have to save state of the session after the operation.
+
+     Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      then the operation succeeded.
-	 */
+     */
     public native int removeExternalEncryptionKey();
 
     //
-	// End to End encryption
-	//
+    // End to End encryption
+    //
 
-	/**
-	 Constructs the {@link ECIESEncryptor} object for the required scope and for optional sharedInfo1.
-	 The unlockKeys parameter must contain a valid possessionUnlockKey in case that the "activation"
-	 scope is requested. For "application" scope, the unlockKeys object may be null.
-	 */
-	public native ECIESEncryptor getEciesEncryptor(ECIESEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
+    /**
+     Constructs the {@link ECIESEncryptor} object for the required scope and for optional sharedInfo1.
+     The unlockKeys parameter must contain a valid possessionUnlockKey in case that the "activation"
+     scope is requested. For "application" scope, the unlockKeys object may be null.
+     */
+    public native ECIESEncryptor getEciesEncryptor(ECIESEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
     
-	//
-	// Utilities
-	//
-	
-	/**
+    //
+    // Utilities
+    //
+
+    /**
      Returns bytes with normalized key suitable for a signature keys protection. The key is computed from
      provided data with using one-way hash function (SHA256)
 
@@ -471,9 +471,9 @@ public class Session {
      but your source data is not normalized. For example, WI-FI or UDID doesn't fit to
      requirements for cryptographic key and this function helps derive the key from the input data.
      */
-	public native byte[] normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
-	
-	/**
+    public native byte[] normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
+
+    /**
      Returns bytes with a new normalized key usable for a signature keys protection.
 
      Discussion
@@ -486,18 +486,26 @@ public class Session {
      Internally, method only generates 16 bytes long random data and therefore is also suitable
      for all other situations, when the generated random key is required.
      */
-	public native byte[] generateSignatureUnlockKey();
+    public native byte[] generateSignatureUnlockKey();
 
-	//
-	// Protocol migration
-	//
+    //
+    // Protocol migration
+    //
 
-	/**
-	 * Commits migration data to the session. You need to construct migration data object
-	 * to match the migration from current protocol version, to the upgraded one.
-	 *
-	 * Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
-	 * then the operation succeeded.
-	 */
-	public native int commitMigration(MigrationData migrationData);
+    public native boolean hasPendingActivationMigration();
+
+    public native ProtocolVersion getPendingActivationMigrationVersion();
+
+    public native int startMigration();
+
+    /**
+     * Applies migration data to the session. You need to construct migration data object
+     * to match the migration from current protocol version, to the upgraded one.
+     *
+     * Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
+     * then the operation succeeded.
+     */
+    public native int applyMigrationData(MigrationData migrationData);
+
+    public native int finishMigration();
 }

@@ -11,9 +11,10 @@ package io.getlime.security.powerauth.core;
  */
 public enum ProtocolVersion {
     /**
-     * Constant for versions not supported by this SDK
+     * Version is not available. This enumeration can be returned from some APIs,
+     * when the value cannot be determined.
      */
-    Unsupported(0),
+    NA(0),
 
     /**
      * Protocol version 2

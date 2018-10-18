@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.networking.endpoints;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
+import io.getlime.security.powerauth.rest.api.model.response.v2.VaultUnlockResponse;
 
 /**
  * Created by miroslavmichalec on 26/10/2016.

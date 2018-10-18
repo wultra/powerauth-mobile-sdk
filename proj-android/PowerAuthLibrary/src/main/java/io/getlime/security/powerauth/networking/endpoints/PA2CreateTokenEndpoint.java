@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.networking.endpoints;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.TokenCreateResponse;
+import io.getlime.security.powerauth.rest.api.model.response.v2.TokenCreateResponse;
 
 public class PA2CreateTokenEndpoint implements IEndpointDefinition<TokenCreateResponse> {
 

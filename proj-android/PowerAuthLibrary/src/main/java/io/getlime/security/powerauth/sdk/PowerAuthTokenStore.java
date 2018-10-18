@@ -39,10 +39,10 @@ import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListe
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
-import io.getlime.security.powerauth.rest.api.model.request.TokenCreateRequest;
-import io.getlime.security.powerauth.rest.api.model.request.TokenRemoveRequest;
-import io.getlime.security.powerauth.rest.api.model.response.TokenCreateResponse;
-import io.getlime.security.powerauth.rest.api.model.response.TokenRemoveResponse;
+import io.getlime.security.powerauth.rest.api.model.request.v2.TokenCreateRequest;
+import io.getlime.security.powerauth.rest.api.model.request.v2.TokenRemoveRequest;
+import io.getlime.security.powerauth.rest.api.model.response.v2.TokenCreateResponse;
+import io.getlime.security.powerauth.rest.api.model.response.v2.TokenRemoveResponse;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 

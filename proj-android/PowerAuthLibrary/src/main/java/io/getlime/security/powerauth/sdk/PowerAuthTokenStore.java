@@ -43,7 +43,6 @@ import io.getlime.security.powerauth.rest.api.model.request.TokenCreateRequest;
 import io.getlime.security.powerauth.rest.api.model.request.TokenRemoveRequest;
 import io.getlime.security.powerauth.rest.api.model.response.TokenCreateResponse;
 import io.getlime.security.powerauth.rest.api.model.response.TokenRemoveResponse;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**

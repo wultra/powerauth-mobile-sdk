@@ -81,7 +81,6 @@ import io.getlime.security.powerauth.rest.api.model.response.ActivationCreateRes
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponse;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;

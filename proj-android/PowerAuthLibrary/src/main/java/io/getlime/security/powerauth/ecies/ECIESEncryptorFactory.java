@@ -47,77 +47,20 @@ public class ECIESEncryptorFactory {
         this.mPossessionUnlockKey = possessionUnlockKey;
     }
 
-    //
-    // Public encryptors
-    //
 
     /**
-     * Constructs a new encryptor for an application scope, which can be used for an
-     * application's custom purposes. The application server can typically decrypt data,
-     * encrypted with this configuration.
-     */
-    public @Nullable ECIESEncryptor getGenericEncryptorForApplicationScope() {
-        return getEncryptor(ECIESEncryptorScope.Application, "/pa/generic/application", true);
-    }
-
-    /**
-     * Constructs a new encryptor for an activation scope, which can be used for an
-     * application's custom purposes. The application server can typically decrypt data,
-     * encrypted with this configuration.
-     */
-    public @Nullable ECIESEncryptor getGenericEncryptorForActivationScope() {
-        return getEncryptor(ECIESEncryptorScope.Activation, "/pa/generic/activation", true);
-    }
-
-
-    //
-    // Encryptors internally use by SDK
-    //
-
-    /**
-     * Constructs a new encryptor for activation purposes.
-     * In current SDK implementation, the method uses {@link #getGenericEncryptorForApplicationScope()}
-     * internally, so the payload encrypted with the returned object can be decrypted by
-     * the application server.
-     */
-    public @Nullable ECIESEncryptor getEncryptorForActivationRequest() {
-        return getGenericEncryptorForApplicationScope();
-    }
-
-    /**
-     * Constructs a new encryptor for activation private purposes. The content encrypted
-     * with this object can be decrypted only by the PowerAuth server.
+     * Constructs a new ECIES encryptor object for given identifier. If the encryptor is for
+     * an activation scope, then the internal {@link Session} must have a valid activation.
      *
-     * Note that the returned encryptor has no associated metadata.
+     * @param identifier type of encryptor to be constructed
+     * @return {@link ECIESEncryptor} object or null, if encryptor cannot be constructed.
      */
-    public @Nullable ECIESEncryptor getEncryptorForActivationPayload() {
-        return getEncryptor(ECIESEncryptorScope.Application, "/pa/activation", false);
+    public @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorId identifier) {
+        if (identifier != ECIESEncryptorId.None) {
+            return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
+        }
+        return null;
     }
-
-    /**
-     * Constructs a new encryptor for the activation migration purposes. The content encrypted
-     * with this object can be decrypted only by the PowerAuth server.
-     */
-    public @Nullable ECIESEncryptor getEncryptorForMigrationStartRequest() {
-        return getEncryptor(ECIESEncryptorScope.Activation, "/pa/migration", true);
-    }
-
-    /**
-     * Constructs a new encryptor for the vault unlock request purposes. The content encrypted
-     * with this object can be decrypted only by the PowerAuth server.
-     */
-    public @Nullable ECIESEncryptor getEncryptorForVaultUnlockRequest() {
-        return getEncryptor(ECIESEncryptorScope.Activation, "/pa/vault/unlock", true);
-    }
-
-    /**
-     * Constructs a new encryptor for the create token request purposes. The content encrypted
-     * with this object can be decrypted only by the PowerAuth server.
-     */
-    public @Nullable ECIESEncryptor getEncryptorForCreateTokenRequest() {
-        return getEncryptor(ECIESEncryptorScope.Activation, "/pa/token/create", true);
-    }
-
 
     /**
      * Private function for constructing {@link ECIESEncryptor} objects.

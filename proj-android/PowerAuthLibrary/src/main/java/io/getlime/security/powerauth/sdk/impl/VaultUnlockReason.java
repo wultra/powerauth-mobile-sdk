@@ -22,7 +22,9 @@ package io.getlime.security.powerauth.sdk.impl;
  */
 public class VaultUnlockReason {
 
+    @Deprecated
     public static final String PASSWORD_VALIDATE = "PASSWORD_VALIDATE";
+    @Deprecated
     public static final String PASSWORD_CHANGE = "PASSWORD_CHANGE";
     public static final String ADD_BIOMETRY = "ADD_BIOMETRY";
     public static final String FETCH_ENCRYPTION_KEY = "FETCH_ENCRYPTION_KEY";

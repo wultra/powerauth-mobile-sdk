@@ -21,7 +21,6 @@ import android.support.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.TokenCalculator;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**

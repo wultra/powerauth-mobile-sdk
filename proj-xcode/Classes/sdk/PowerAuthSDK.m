@@ -81,18 +81,18 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	
 	// Make copy of configuration objects
 	_configuration = [configuration copy];
-	_keychainConfiguration = [(_keychainConfiguration ? _keychainConfiguration : [PA2KeychainConfiguration sharedInstance]) copy];
-	_clientConfiguration = [(_clientConfiguration ? _clientConfiguration : [PA2ClientConfiguration sharedInstance]) copy];
+	_keychainConfiguration = [(keychainConfiguration ? keychainConfiguration : [PA2KeychainConfiguration sharedInstance]) copy];
+	_clientConfiguration = [(clientConfiguration ? clientConfiguration : [PA2ClientConfiguration sharedInstance]) copy];
 	
 	// Prepare identifier for biometry related keys - use instanceId by default, or a custom value if set
 	_biometryKeyIdentifier = _configuration.keychainKey_Biometry ? _configuration.keychainKey_Biometry : _configuration.instanceId;
 	
 	// Create session setup parameters
 	PA2SessionSetup *setup = [[PA2SessionSetup alloc] init];
-	setup.applicationKey = configuration.appKey;
-	setup.applicationSecret = configuration.appSecret;
-	setup.masterServerPublicKey = configuration.masterServerPublicKey;
-	setup.externalEncryptionKey = configuration.externalEncryptionKey;
+	setup.applicationKey = _configuration.appKey;
+	setup.applicationSecret = _configuration.appSecret;
+	setup.masterServerPublicKey = _configuration.masterServerPublicKey;
+	setup.externalEncryptionKey = _configuration.externalEncryptionKey;
 	
 	// Create a new session
 	_session = [[PA2Session alloc] initWithSessionSetup:setup];
@@ -125,8 +125,8 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
 	// By default, the code uses standard user defaults, use `PA2KeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
 	NSUserDefaults *userDefaults = nil;
-	if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
-		userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+	if (_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
+		userDefaults = [[NSUserDefaults alloc] initWithSuiteName:_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
 	} else {
 		userDefaults = [NSUserDefaults standardUserDefaults];
 	}
@@ -137,7 +137,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		[tokenStoreKeychain deleteAllData];
 		[userDefaults setBool:YES forKey:PA2Keychain_Initialized];
 		[userDefaults synchronize];
-	}	
+	}
 	
 	// Attempt to restore session state
 	[self restoreState];

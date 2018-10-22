@@ -4,20 +4,25 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:3.1.4'
     }
 }
 
 ext {
-    compileSdkVersion = 25
-    buildToolsVersion = "25.0.2"
+    compileSdkVersion = 27
+    targetSdkVersion = 27
+    buildToolsVersion = "27.0.3"
+    supportLibVersion = "27.1.1"
 }
 
 allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+        jcenter()
+        google()
      }
 }

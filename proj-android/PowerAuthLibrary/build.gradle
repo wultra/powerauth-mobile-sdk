@@ -7,9 +7,11 @@ android {
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionName VERSION_NAME
         versionCode 1
+
+        vectorDrawables.useSupportLibrary = true
 
         externalNativeBuild {
             ndkBuild {
@@ -38,9 +40,11 @@ android {
     }
 
     dependencies {
-        compile 'io.getlime.security:powerauth-restful-model:0.18.0'
-        compile 'com.android.support:support-annotations:25.1.1'
-        compile 'com.google.code.gson:gson:2.8.0'
+        compile 'io.getlime.security:powerauth-restful-model:0.19.0'
+        compile "com.android.support:support-annotations:${rootProject.ext.supportLibVersion}"
+        compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+        compile "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
+        compile 'com.google.code.gson:gson:2.8.5'
     }
 
     externalNativeBuild {

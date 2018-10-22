@@ -10,6 +10,12 @@ def localReleaseDest = "${buildDir}/release/${version}"
 task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    // adds libraries to classpath
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.getJavaCompiler().classpath
+        }
+    }
 }
 
 task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
@@ -46,13 +52,16 @@ task zipRelease(type: Zip) {
 	archiveName "release-${version}.zip"
 }
 
-task generateRelease << {
-	println "Release ${version} can be found at ${localReleaseDest}/"
-	println "Release ${version} zipped can be found ${buildDir}/release-${version}.zip"
+task generateRelease {
+    doLast {
+        println "Release ${version} can be found at ${localReleaseDest}/"
+        println "Release ${version} zipped can be found ${buildDir}/release-${version}.zip"
+    }
 }
 
 generateRelease.dependsOn(uploadArchives)
 generateRelease.dependsOn(zipRelease)
+zipRelease.dependsOn(uploadArchives)
 
 artifacts {
 	archives androidSourcesJar

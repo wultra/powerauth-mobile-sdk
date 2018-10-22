@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2ForExtensions'
-	s.version           = '0.18.0'
+	s.version           = '0.18.2'
 	s.summary           = 'PowerAuth 2.0 Mobile SDK for iOS App Extensions'
 	s.homepage          = 'https://github.com/lime-company/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/lime_company'

@@ -126,6 +126,15 @@
 	return _authUriId != nil;
 }
 
+- (BOOL) isAvailableInProtocolUpgrade
+{
+	if (self.isSigned) {
+		return [_authUriId isEqualToString:@"/pa/migration/commit"];
+	}
+	// All not-signed requests are available.
+	return YES;
+}
+
 #pragma mark - Private constructor
 
 - (id) initWithPath:(NSString*)path

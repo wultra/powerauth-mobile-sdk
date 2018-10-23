@@ -17,6 +17,7 @@
 #import "PowerAuthSDK+Private.h"
 #import "PA2PrivateEncryptorFactory.h"
 #import "PA2RestApiEndpoint.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PowerAuthSDK (CryptoHelper)
 
@@ -33,11 +34,22 @@
 											authentication:(PowerAuthAuthentication*)authentication
 													 error:(NSError**)error
 {
-	return [self requestSignatureWithAuthentication:authentication
-											 method:endpoint.method
-											  uriId:endpoint.authUriId
-											   body:data
-											  error:error];
+	if (self.hasPendingActivationMigration) {
+		if (!endpoint.isAvailableInProtocolUpgrade) {
+			if (error) {
+				*error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Request is temporarily unavailable, due to pending protocol upgrade.");
+			}
+			return nil;
+		}
+	}
+	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
+	requestData.body = data;
+	requestData.method = endpoint.method;
+	requestData.uri = endpoint.authUriId;
+	PA2HTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
+														 authentication:authentication
+																  error:error];
+	return [PA2AuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue];
 }
 
 @end

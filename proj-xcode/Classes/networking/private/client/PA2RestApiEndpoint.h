@@ -52,6 +52,8 @@
 /// Returns YES, if request needs to be signed with PA signature
 @property (nonatomic, assign, readonly) BOOL isSigned;
 
+/// Returns YES, if endpoint is available during the protocol upgrade.
+@property (nonatomic, assign, readonly) BOOL isAvailableInProtocolUpgrade;
 
 #pragma mark - Endpoint construction
 

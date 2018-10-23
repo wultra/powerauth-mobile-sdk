@@ -259,26 +259,6 @@
 																	   body:(nullable NSData*)body
 																	  error:(NSError * _Nullable * _Nullable)error;
 
-/** Compute the HTTP signature header with vault unlock flag for given HTTP method, URI identifier and HTTP request body using provided authentication information.
- 
- This method may block a main thread - make sure to dispatch it asynchronously.
- 
- @param authentication An authentication instance specifying what factors should be used to sign the request.
- @param vaultUnlock A flag indicating this request is associcate with vault unlock operation.
- @param method HTTP method used for the signature computation.
- @param uriId URI identifier.
- @param body HTTP request body.
- @param error Error reference in case some error occurs.
- @return HTTP header with PowerAuth authorization signature. In case of error, this method return 'nil'.
- @exception NSException thrown in case configuration is not present.
- */
-- (nullable PA2AuthorizationHttpHeader*) requestSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-																vaultUnlock:(BOOL)vaultUnlock
-																	 method:(nonnull NSString*)method
-																	  uriId:(nonnull NSString*)uriId
-																	   body:(nullable NSData*)body
-																	  error:(NSError * _Nullable * _Nullable)error PA2_DEPRECATED(1.0.0);
-
 /** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.

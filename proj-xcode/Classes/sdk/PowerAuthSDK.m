@@ -836,6 +836,10 @@ static PowerAuthSDK * s_inst;
 															  body:(NSData*)body
 															 error:(NSError**)error
 {
+	if (self.hasPendingActivationMigration) {
+		if (error) *error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Data signing is temporarily unavailable, due to pending protocol upgrade.");
+		return nil;
+	}
 	PA2HTTPRequestData * requestData = [[PA2HTTPRequestData alloc] init];
 	requestData.body = body;
 	requestData.method = method;
@@ -846,22 +850,6 @@ static PowerAuthSDK * s_inst;
 	return [PA2AuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue];
 }
 
-- (PA2AuthorizationHttpHeader*) requestSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-													   vaultUnlock:(BOOL)vaultUnlock
-															method:(NSString*)method
-															 uriId:(NSString*)uriId
-															  body:(NSData*)body
-															 error:(NSError**)error
-{
-	// Deprecated, will be removed in next release
-	return [self requestSignatureWithAuthentication:authentication
-											 method:method
-											  uriId:uriId
-											   body:body
-											  error:error];
-}
-
-
 - (NSString*) offlineSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
 										   uriId:(NSString*)uriId
 											body:(NSData*)body
@@ -869,6 +857,12 @@ static PowerAuthSDK * s_inst;
 										   error:(NSError**)error
 {
 	if (!nonce) {
+		if (error) *error = PA2MakeError(PA2ErrorCodeWrongParameter, @"Nonce parameter is missing.");
+		return nil;
+	}
+	
+	if (self.hasPendingActivationMigration) {
+		if (error) *error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Offline data signing is temporarily unavailable, due to pending protocol upgrade.");
 		return nil;
 	}
 	

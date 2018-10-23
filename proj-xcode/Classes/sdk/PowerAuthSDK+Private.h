@@ -29,6 +29,11 @@
 /// Returns key required for unlok the possesion factor.
 - (NSData*) deviceRelatedKey;
 
+/// Low level signature calculation. This method doesn't check protocol upgrade.
+- (PA2HTTPRequestDataSignature*) signHttpRequestData:(PA2HTTPRequestData*)requestData
+									  authentication:(PowerAuthAuthentication*)authentication
+											   error:(NSError**)error;
+
 @end
 
 // Declaration for PA2PrivateCryptoHelper

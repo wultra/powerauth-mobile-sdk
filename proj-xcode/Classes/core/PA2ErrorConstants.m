@@ -40,3 +40,4 @@ NSInteger const PA2ErrorCodeWrongParameter				= 13;
 NSInteger const PA2ErrorCodeInvalidToken				= 14;
 NSInteger const PA2ErrorCodeWatchConnectivity			= 15;
 NSInteger const PA2ErrorCodeProtocolUpgrade				= 16;
+NSInteger const PA2ErrorCodePendingProtocolUpgrade		= 17;

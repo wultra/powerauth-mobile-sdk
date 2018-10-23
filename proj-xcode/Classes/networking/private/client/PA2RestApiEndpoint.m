@@ -121,6 +121,11 @@
 	return _encryptor != PA2EncryptorId_None;
 }
 
+- (BOOL) isSigned
+{
+	return _authUriId != nil;
+}
+
 #pragma mark - Private constructor
 
 - (id) initWithPath:(NSString*)path

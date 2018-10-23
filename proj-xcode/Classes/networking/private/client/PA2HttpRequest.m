@@ -48,9 +48,14 @@
 										  error:(NSError**)error
 {
 	// Sanity checks.
-	BOOL needsSignature = _endpoint.authUriId != nil && _authentication != nil;
+	BOOL needsSignature = _endpoint.isSigned;
 	BOOL needsEncryption = _endpoint.isEncrypted;
 
+	// Check whether we have authentication object for signed request.
+	if (needsSignature && _authentication == nil) {
+		if (error) *error = PA2MakeError(PA2ErrorCodeNetworkError, @"Authentication object is missing.");
+		return nil;
+	}
 	// Check whether the request object has expected type.
 	if (_endpoint.requestClass && ![_requestObject isKindOfClass:_endpoint.requestClass]) {
 		if (error) *error = PA2MakeError(PA2ErrorCodeNetworkError, @"Unexpected type of request object.");

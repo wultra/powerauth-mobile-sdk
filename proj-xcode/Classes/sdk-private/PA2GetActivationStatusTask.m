@@ -134,29 +134,30 @@
 	// Perform the server request
 	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
 	request.activationId = _session.activationIdentifier;
-	PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint getActivationStatus];
 	//
-	_currentOperation = [_client postObject:request to:endpoint completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-		// HTTP request completion
-		PA2ActivationStatus * statusObject = nil;
-		NSDictionary * customObject = nil;
-		// Validate result
-		if (status == PA2RestResponseStatus_OK) {
-			// Cast to response object
-			PA2GetActivationStatusResponse * ro = response;
-			// Prepare unlocking key (possession factor only)
-			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
-			keys.possessionUnlockKey = _deviceRelatedKey;
-			// Try to decode the activation status
-			statusObject = [_session decodeActivationStatus:ro.encryptedStatusBlob keys:keys];
-			customObject = ro.customObject;
-			if (!statusObject) {
-				error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
-			}
-		}
-		// Call back to the application
-		callback(statusObject, customObject, error);
-	}];
+	_currentOperation = [_client postObject:request
+										 to:[PA2RestApiEndpoint getActivationStatus]
+								 completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
+									 // HTTP request completion
+									 PA2ActivationStatus * statusObject = nil;
+									 NSDictionary * customObject = nil;
+									 // Validate result
+									 if (status == PA2RestResponseStatus_OK) {
+										 // Cast to response object
+										 PA2GetActivationStatusResponse * ro = response;
+										 // Prepare unlocking key (possession factor only)
+										 PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
+										 keys.possessionUnlockKey = _deviceRelatedKey;
+										 // Try to decode the activation status
+										 statusObject = [_session decodeActivationStatus:ro.encryptedStatusBlob keys:keys];
+										 customObject = ro.customObject;
+										 if (!statusObject) {
+											 error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
+										 }
+									 }
+									 // Call back to the application
+									 callback(statusObject, customObject, error);
+								 }];
 }
 
 
@@ -261,44 +262,50 @@
 
 - (void) startMigrationToV3
 {
-	_currentOperation = [_client postObject:nil to:[PA2RestApiEndpoint migrationStartV3] completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-		// Response from start migration request
-		if (status == PA2RestResponseStatus_OK) {
-			PA2MigrationStartV3Response * ro = response;
-			PA2MigrationDataV3 * v3data = [[PA2MigrationDataV3 alloc] init];
-			v3data.ctrData = ro.ctrData;
-			if ([_session applyMigrationData:v3data]) {
-				// Everything looks fine, we can continue with commit on server.
-				// Since this change, we can sign requests with V3 signatures
-				// and local protocol version is bumped to V3.
-				[self serializeSessionState];
-				[self commitMigrationToV3];
-				
-			} else {
-				// The PA2Session did reject our migration data.
-				NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to apply migration data.");
-				[self reportCompletionWithStatus:nil customObject:nil error:error];
-			}
-		} else {
-			// Migration start failed. This might be a temporary problem with the network,
-			// so try to repeat everything.
-			[self fetchActivationStatusAndTestMigration];
-		}
-	}];
+	_currentOperation = [_client postObject:nil
+										 to:[PA2RestApiEndpoint migrationStartV3]
+								 completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
+									 // Response from start migration request
+									 if (status == PA2RestResponseStatus_OK) {
+										 PA2MigrationStartV3Response * ro = response;
+										 PA2MigrationDataV3 * v3data = [[PA2MigrationDataV3 alloc] init];
+										 v3data.ctrData = ro.ctrData;
+										 if ([_session applyMigrationData:v3data]) {
+											 // Everything looks fine, we can continue with commit on server.
+											 // Since this change, we can sign requests with V3 signatures
+											 // and local protocol version is bumped to V3.
+											 [self serializeSessionState];
+											 [self commitMigrationToV3];
+											 
+										 } else {
+											 // The PA2Session did reject our migration data.
+											 NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to apply migration data.");
+											 [self reportCompletionWithStatus:nil customObject:nil error:error];
+										 }
+									 } else {
+										 // Migration start failed. This might be a temporary problem with the network,
+										 // so try to repeat everything.
+										 [self fetchActivationStatusAndTestMigration];
+									 }
+								 }];
 }
 
 - (void) commitMigrationToV3
 {
-	_currentOperation = [_client postObject:nil to:[PA2RestApiEndpoint migrationCommitV3] completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-		if (status == PA2RestResponseStatus_OK) {
-			// Everything looks fine, just finish the migration.
-			[self finisMigrationToV3];
-		} else {
-			// Migration start failed. This might be a temporary problem with the network,
-			// so try to repeat everything.
-			[self fetchActivationStatusAndTestMigration];
-		}
-	}];
+	_currentOperation = [_client postObject:nil
+										 to:[PA2RestApiEndpoint migrationCommitV3]
+									   auth:[PowerAuthAuthentication possession]
+								 completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
+									 // HTTP request completion
+									 if (status == PA2RestResponseStatus_OK) {
+										 // Everything looks fine, just finish the migration.
+										 [self finisMigrationToV3];
+									 } else {
+										 // Migration start failed. This might be a temporary problem with the network,
+										 // so try to repeat everything.
+										 [self fetchActivationStatusAndTestMigration];
+									 }
+								 }];
 }
 
 - (void) finisMigrationToV3

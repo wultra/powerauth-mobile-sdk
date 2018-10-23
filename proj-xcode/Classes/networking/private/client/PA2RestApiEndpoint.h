@@ -49,6 +49,10 @@
 /// Returns YES, if request requires encryption
 @property (nonatomic, assign, readonly) BOOL isEncrypted;
 
+/// Returns YES, if request needs to be signed with PA signature
+@property (nonatomic, assign, readonly) BOOL isSigned;
+
+
 #pragma mark - Endpoint construction
 
 + (instancetype) createActivation;

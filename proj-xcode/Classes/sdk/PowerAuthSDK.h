@@ -171,7 +171,7 @@
 									   customAttributes:(nullable NSDictionary<NSString*,NSString*>*)customAttributes
 													url:(nonnull NSURL*)url
 											httpHeaders:(nullable NSDictionary*)httpHeaders
-											   callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback PA2_DEPRECATED(0.19.3);
+											   callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback PA2_DEPRECATED(0.19.4);
 
 /** Create a new activation with given name and custom activation data by calling a custom RESTful API endpoint.
  
@@ -185,7 +185,7 @@
 - (nullable PA2OperationTask*) createActivationWithName:(nullable NSString*)name
 									 identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
 													url:(nonnull NSURL*)url
-											   callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback PA2_DEPRECATED(0.19.3);
+											   callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback PA2_DEPRECATED(0.19.4);
 
 /** Commit activation that was created and store related data using provided authentication instance.
  
@@ -300,7 +300,7 @@
 																	 method:(nonnull NSString*)method
 																	  uriId:(nonnull NSString*)uriId
 																	   body:(nullable NSData*)body
-																	  error:(NSError * _Nullable * _Nullable)error;
+																	  error:(NSError * _Nullable * _Nullable)error PA2_DEPRECATED(0.19.4);
 
 /** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  

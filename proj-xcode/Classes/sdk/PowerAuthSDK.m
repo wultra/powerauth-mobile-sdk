@@ -720,8 +720,8 @@ static PowerAuthSDK * s_inst;
 																			session:_session
 																	  sessionChange:^(PA2Session * session) {
 																		  [weakSelf saveSessionState];
-																	  } completion:^(PA2GetActivationStatusTask * task) {
-																		  [weakSelf completeActivationStatusTask:task];
+																	  } completion:^(PA2GetActivationStatusTask * task, PA2ActivationStatus* status, NSDictionary* customObject, NSError* error) {
+																		  [weakSelf completeActivationStatusTask:task status:status customObject:customObject error:error];
 																	  }];
 			_getStatusTask.disableMigration = _configuration.disableAutomaticProtocolUpgrade;
 			[_getStatusTask addChildTask:childTask];
@@ -739,7 +739,7 @@ static PowerAuthSDK * s_inst;
 			// The following call does nothing, because the old task is no longer stored
 			// in the `_getStatusTask` ivar. It just guarantees that the object will be alive
 			// during waiting to execute the operation block.
-			[self completeActivationStatusTask:oldTask];
+			[self completeActivationStatusTask:oldTask status:nil customObject:nil error:nil];
 		}];
 	}
 }
@@ -752,11 +752,29 @@ static PowerAuthSDK * s_inst;
  @param task task being completed
  */
 - (void) completeActivationStatusTask:(PA2GetActivationStatusTask*)task
+							   status:(PA2ActivationStatus*)status
+						 customObject:(NSDictionary*)customObject
+								error:(NSError*)error
 {
 	[_lock lock];
 	{
+		BOOL updateObjects;
 		if (task == _getStatusTask) {
+			// Regular processing, only one task was scheduled and it just finished.
 			_getStatusTask = nil;
+			updateObjects = YES;
+		} else {
+			// If _getStatusTask is nil, then it menas that last status task has been cancelled.
+			// In this case, we should not update the objects.
+			// If there's a different PA2GetActivationStatusTask object, then that means
+			// that during the finishing our batch, was scheduled the next one. In this situation
+			// we still can keep the last received objects, because there was no cancel, or reset.
+			updateObjects = _getStatusTask != nil;
+		}
+		// Update last received objects
+		if (!error && status && updateObjects) {
+			_lastReceivedActivationStatus = status;
+			_lastReceivedCustomObject = customObject;
 		}
 	}
 	[_lock unlock];
@@ -773,6 +791,8 @@ static PowerAuthSDK * s_inst;
 	{
 		[_getStatusTask cancel];
 		_getStatusTask = nil;
+		_lastReceivedActivationStatus = nil;
+		_lastReceivedCustomObject = nil;
 	}
 	[_lock unlock];
 }

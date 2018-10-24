@@ -51,7 +51,7 @@
 	NSData * _deviceRelatedKey;
 	PA2Session * _session;
 	PA2HttpClient * _client;
-	void(^_completion)(PA2GetActivationStatusTask*);
+	void(^_completion)(PA2GetActivationStatusTask*, PA2ActivationStatus*, NSDictionary*, NSError*);
 	void(^_sessionChange)(PA2Session*);
 	
 	__weak NSOperation * _currentOperation;
@@ -62,15 +62,13 @@
 	
 	// Migration data
 	NSInteger _migrationAttempts;
-	PA2ActivationStatus * _lastStatus;
-	NSDictionary * _lastCustomObject;
 }
 
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
 		 deviceRelatedKey:(NSData*)deviceRelatedKey
 				  session:(PA2Session*)session
 			sessionChange:(void(^)(PA2Session*))sessionChange
-			   completion:(void(^)(PA2GetActivationStatusTask*))completion
+			   completion:(void(^)(PA2GetActivationStatusTask*, PA2ActivationStatus*, NSDictionary*, NSError*))completion
 {
 	self = [super init];
 	if (self) {
@@ -166,8 +164,8 @@
 - (void) continueMigrationWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
 {
 	// Keep status objects for delayed processing.
-	_lastStatus = status;
-	_lastCustomObject = customObject;
+	_receivedStatus = status;
+	_receivedCustomObject = customObject;
 	
 	// Check whether we reached maximum attempts for migration
 	if (_migrationAttempts-- > 0) {
@@ -240,7 +238,7 @@
 			} else if (pendingMigrationVersion == PA2ProtocolVersion_NA) {
 				// Server's in V3, client's in V3, no pending migration.
 				// This is weird, but we can just report the result.
-				[self reportCompletionWithStatus:_lastStatus customObject:_lastCustomObject error:nil];
+				[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
 				return;
 			}
 		}
@@ -314,7 +312,7 @@
 		PA2Log(@"Migration: Activation was successfully migrated to protocol V3.");
 		// Everything looks fine, we can report previously cached status
 		[self serializeSessionState];
-		[self reportCompletionWithStatus:_lastStatus customObject:_lastCustomObject error:nil];
+		[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
 		
 	} else {
 		NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to finish migration process.");
@@ -393,17 +391,18 @@
 		return;
 	}
 	
+	// Call back to PowerAuthSDK, this should be done before we notify application, to update
+	// last status & object properties in PowerAuthSDK
+	if (_completion) {
+		_completion(self, status, customObject, error);
+		_completion = nil;
+	}
+	_sessionChange = nil;
+	
 	// Complete child tasks with result.
 	[childTasks enumerateObjectsUsingBlock:^(PA2GetActivationStatusChildTask * task, NSUInteger idx, BOOL * stop) {
 		[task completeWithStatus:status customObject:customObject error:error];
 	}];
-	
-	// Call back to PowerAuthSDK
-	if (_completion) {
-		_completion(self);
-		_completion = nil;
-	}
-	_sessionChange = nil;
 }
 
 @end
@@ -447,12 +446,12 @@
 	});
 }
 
-- (void) setParentTask:(PA2GetActivationStatusTask *)parentTask
+- (void) setParentTask:(PA2GetActivationStatusTask*)parentTask
 {
 	_parentTask = parentTask;
 }
 
-- (void) completeWithStatus:(PA2ActivationStatus *)status customObject:(NSDictionary *)customObject error:(NSError *)error
+- (void) completeWithStatus:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject error:(NSError*)error
 {
 	dispatch_async(_completionQueue, ^{
 		if (!_isCancelled) {

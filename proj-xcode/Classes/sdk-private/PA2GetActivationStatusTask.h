@@ -42,7 +42,7 @@
 		 deviceRelatedKey:(NSData*)deviceRelatedKey
 				  session:(PA2Session*)session
 			sessionChange:(void(^)(PA2Session*))sessionChange
-			   completion:(void(^)(PA2GetActivationStatusTask*))completion;
+			   completion:(void(^)(PA2GetActivationStatusTask*, PA2ActivationStatus*, NSDictionary*, NSError*))completion;
 
 /**
  Set to YES after task is constructed, to disable protocol migration
@@ -68,6 +68,16 @@
  Executes this task.
  */
 - (void) execute;
+
+/**
+ Contains received activation status object, if operation succeeded.
+ */
+@property (nonatomic, readonly, strong) PA2ActivationStatus * receivedStatus;
+
+/**
+ Contains optional custom object received from the server, if operation succeeded.
+ */
+@property (nonatomic, readonly, strong) NSDictionary* receivedCustomObject;
 
 @end
 

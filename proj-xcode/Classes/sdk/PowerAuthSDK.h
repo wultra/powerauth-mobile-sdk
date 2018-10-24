@@ -205,6 +205,20 @@
  */
 - (nullable id<PA2OperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PA2ActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
 
+/**
+ Read only property contains last activation status object received from the server.
+ You have to call `fetchActivationStatus()` method to update this value.
+ */
+@property (nonatomic, strong, nullable, readonly) PA2ActivationStatus * lastReceivedActivationStatus;
+
+/**
+ Read only property contains last custom object received from the server, together with the activation status.
+ Note that the value is optional and PowerAuth Application Server must support this custom object.
+ You have to call `fetchActivationStatus()` method to update this value.
+ */
+@property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* lastReceivedCustomObject;
+
+
 /** Remove current activation by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/remove'.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request.

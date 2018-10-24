@@ -17,8 +17,14 @@
 #import "PA2RestApiEndpoint.h"
 #import "PA2RestApiObjects.h"
 
+#define FL_SERIALIZED				(1 << 0)
+#define FL_ALLOWED_IN_UPGRADE		(1 << 1)
+#define IS_FLAG(v, f)				((v & f) == f)
 
 @implementation PA2RestApiEndpoint
+{
+	NSUInteger _flags;
+}
 
 #pragma mark - Activation
 
@@ -53,20 +59,26 @@
 
 + (instancetype) migrationStartV3
 {
+	// Migration start requires serialization due to fact, that we don't want to start upgrade
+	// concurrently with another signed request. The request is also allowed during the upgrade.
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/start"
 											request:nil
 										   response:[PA2MigrationStartV3Response class]
 										  encryptor:PA2EncryptorId_MigrationStart
-										  authUriId:nil];
+										  authUriId:nil
+											  flags:FL_SERIALIZED | FL_ALLOWED_IN_UPGRADE];
 }
 
 + (instancetype) migrationCommitV3
 {
+	// Migration commit requires signature, so it's serialized and also must be allowed
+	// during the upgrade :)
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/commit"
 											request:nil
 										   response:nil
 										  encryptor:PA2EncryptorId_None
-										  authUriId:@"/pa/migration/commit"];
+										  authUriId:@"/pa/migration/commit"
+											  flags:FL_SERIALIZED | FL_ALLOWED_IN_UPGRADE];
 }
 
 #pragma mark - Tokens
@@ -111,11 +123,6 @@
 
 #pragma mark - Public getters
 
-- (BOOL) isSerialized
-{
-	return _authUriId != nil;
-}
-
 - (BOOL) isEncrypted
 {
 	return _encryptor != PA2EncryptorId_None;
@@ -126,22 +133,45 @@
 	return _authUriId != nil;
 }
 
-- (BOOL) isAvailableInProtocolUpgrade
+- (BOOL) isSerialized
 {
-	if (self.isSigned) {
-		return [_authUriId isEqualToString:@"/pa/migration/commit"];
-	}
-	// All not-signed requests are available.
-	return YES;
+	return IS_FLAG(_flags, FL_SERIALIZED);
 }
 
-#pragma mark - Private constructor
+- (BOOL) isAvailableInProtocolUpgrade
+{
+	return IS_FLAG(_flags, FL_ALLOWED_IN_UPGRADE);
+}
+
+
+#pragma mark - Private constructors
 
 - (id) initWithPath:(NSString*)path
 			request:(Class)request
 		   response:(Class)response
 		  encryptor:(PA2EncryptorId)encryptor
 		  authUriId:(NSString*)authUriId
+{
+	// Default flags setup is:
+	//
+	// 1. If endpoint needs signature, then it's serialized, but not allowed in upgrade.
+	// 2. On opposite to that, not signed requests are not serialized, but allowed in upgrade.
+	//
+	NSUInteger flags = (authUriId != nil) ? FL_SERIALIZED : FL_ALLOWED_IN_UPGRADE;
+	return [self initWithPath:path
+					  request:request
+					 response:response
+					encryptor:encryptor
+					authUriId:authUriId
+						flags:flags];
+}
+
+- (id) initWithPath:(NSString*)path
+			request:(Class)request
+		   response:(Class)response
+		  encryptor:(PA2EncryptorId)encryptor
+		  authUriId:(NSString*)authUriId
+			  flags:(NSUInteger)flags
 {
 	self = [super init];
 	if (self) {
@@ -151,8 +181,8 @@
 		_responseClass = response;
 		_encryptor = encryptor;
 		_authUriId = authUriId;
+		_flags = flags;
 	}
 	return self;
 }
-
 @end

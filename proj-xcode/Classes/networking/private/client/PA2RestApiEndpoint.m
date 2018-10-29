@@ -55,13 +55,13 @@
 										  authUriId:@"/pa/activation/remove"];
 }
 
-#pragma mark - Migration
+#pragma mark - Protocol upgrade
 
 + (instancetype) migrationStartV3
 {
 	// Migration start requires serialization due to fact, that we don't want to start upgrade
 	// concurrently with another signed request. The request is also allowed during the upgrade.
-	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/start"
+	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/upgrade/start"
 											request:nil
 										   response:[PA2MigrationStartV3Response class]
 										  encryptor:PA2EncryptorId_MigrationStart
@@ -73,7 +73,7 @@
 {
 	// Migration commit requires signature, so it's serialized and also must be allowed
 	// during the upgrade :)
-	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/migration/commit"
+	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/upgrade/commit"
 											request:nil
 										   response:nil
 										  encryptor:PA2EncryptorId_None

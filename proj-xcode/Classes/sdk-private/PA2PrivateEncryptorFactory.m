@@ -48,7 +48,7 @@
 		case PA2EncryptorId_ActivationPayload:
 			return [self encryptorForScope:PA2ECIESEncryptorScope_Application sh1:@"/pa/activation" meta:NO];
 		case PA2EncryptorId_MigrationStart:
-			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/migration" meta:YES];
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/upgrade" meta:YES];
 		case PA2EncryptorId_VaultUnlock:
 			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES];
 		case PA2EncryptorId_TokenCreate:

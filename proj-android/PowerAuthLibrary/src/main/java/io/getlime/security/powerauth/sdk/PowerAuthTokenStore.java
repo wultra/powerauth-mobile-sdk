@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -113,7 +112,7 @@ public class PowerAuthTokenStore {
      * @param tokenName Name of requested token.
      * @param authentication An authentication instance specifying what factors should be used for token creation.
      * @param listener Listener with callbacks to receive a token.
-     * @return {@code AsyncTask} associated with the running server request or null if request has been processed synchronously.
+     * @return {@link ICancellable} object associated with the running HTTP request or null if request has been processed synchronously.
      */
     public @Nullable ICancellable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
 

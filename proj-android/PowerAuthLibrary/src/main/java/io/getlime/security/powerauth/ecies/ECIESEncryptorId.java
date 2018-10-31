@@ -51,7 +51,7 @@ public enum ECIESEncryptorId {
 
     /**
      Defines a new encryptor for an activation purposes. The configuration is identical to
-     generic application scope.
+     {@link #GenericApplicationScope}.
      */
     ActivationRequest(ECIESEncryptorScope.Application, "/pa/generic/application", true),
 

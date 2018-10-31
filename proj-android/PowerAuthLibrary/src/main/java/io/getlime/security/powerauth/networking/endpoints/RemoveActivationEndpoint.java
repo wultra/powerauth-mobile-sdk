@@ -16,35 +16,53 @@
 
 package io.getlime.security.powerauth.networking.endpoints;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.google.gson.reflect.TypeToken;
 
+import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 
-/**
- * Created by miroslavmichalec on 25/10/2016.
- */
+public class RemoveActivationEndpoint implements IEndpointDefinition<Void> {
 
-public class PA2RemoveActivationEndpoint implements IEndpointDefinition<Void> {
-
-    private String baseUrl;
-
-    /**
-     * Create a new activation remove endpoint with given PowerAuth 2.0 API base URL.
-     * @param baseUrl Base URL of the PA2.0 API endpoints.
-     */
-    public PA2RemoveActivationEndpoint(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public static final String ACTIVATION_REMOVE = "/pa/activation/remove";
-
+    @NonNull
     @Override
-    public String getEndpoint() {
-        return baseUrl + ACTIVATION_REMOVE;
+    public String getRelativePath() {
+        return "/pa/v3/activation/remove";
     }
 
+    @NonNull
+    @Override
+    public String getHttpMethod() {
+        return "POST";
+    }
+
+    @Nullable
+    @Override
+    public String getAuthorizationUriId() {
+        return "/pa/activation/remove";
+    }
+
+    @NonNull
+    @Override
+    public ECIESEncryptorId getEncryptorId() {
+        return ECIESEncryptorId.None;
+    }
+
+    @Nullable
     @Override
     public TypeToken<Void> getResponseType() {
         return null;
+    }
+
+    @Override
+    public boolean isSynchronized() {
+        return true;
+    }
+
+    @Override
+    public boolean isAvailableInProtocolUpgrade() {
+        return false;
     }
 }

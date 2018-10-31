@@ -25,11 +25,11 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentManager;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
-import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
+import io.getlime.security.powerauth.core.ECIESEncryptor;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.Session;
@@ -39,6 +39,8 @@ import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
 import io.getlime.security.powerauth.core.SignedData;
+import io.getlime.security.powerauth.ecies.ECIESEncryptorFactory;
+import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.exception.PowerAuthMissingConfigException;
@@ -47,10 +49,8 @@ import io.getlime.security.powerauth.keychain.fingerprint.FingerprintAuthenticat
 import io.getlime.security.powerauth.keychain.fingerprint.FingerprintKeystore;
 import io.getlime.security.powerauth.keychain.fingerprint.ICommitActivationWithFingerprintListener;
 import io.getlime.security.powerauth.keychain.fingerprint.IFingerprintActionHandler;
-import io.getlime.security.powerauth.networking.client.PA2Client;
-import io.getlime.security.powerauth.networking.endpoints.PA2RemoveActivationEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
-import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.networking.client.HttpClient;
+import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
@@ -58,13 +58,11 @@ import io.getlime.security.powerauth.networking.response.IChangePasswordListener
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
-import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
+import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
-import io.getlime.security.powerauth.rest.api.model.request.v2.ActivationStatusRequest;
-import io.getlime.security.powerauth.rest.api.model.request.v2.VaultUnlockRequest;
-import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
-import io.getlime.security.powerauth.rest.api.model.response.v2.VaultUnlockResponse;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
@@ -80,11 +78,12 @@ public class PowerAuthSDK {
     private PowerAuthConfiguration mConfiguration;
     private PowerAuthClientConfiguration mClientConfiguration;
     private PowerAuthKeychainConfiguration mKeychainConfiguration;
-    private PA2Client mClient;
+    private HttpClient mClient;
     private ISavePowerAuthStateListener mStateListener;
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
     private PowerAuthTokenStore mTokenStore;
+    private IExecutorProvider mExecutorProvider;
 
     /**
      * Helper class for building new instances.
@@ -130,8 +129,7 @@ public class PowerAuthSDK {
             } else {
                 instance.mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
-            instance.mClient = new PA2Client(mConfiguration, mClientConfiguration);
-
+            instance.mClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl());
             instance.mStatusKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainStatusId());
             instance.mBiometryKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainBiometryId());
 
@@ -163,6 +161,41 @@ public class PowerAuthSDK {
 
     private void throwInvalidConfigurationException() {
         throw new PowerAuthMissingConfigException("Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
+    }
+
+
+    /**
+     * Constructs a new private crypto helper object.
+     *
+     * @param context android context, required for activation scope.
+     * @return new instance of {@link IPrivateCryptoHelper}
+     */
+    private @NonNull IPrivateCryptoHelper getCryptoHelper(@Nullable final Context context) {
+        return new IPrivateCryptoHelper() {
+            @Nullable
+            @Override
+            public ECIESEncryptor getEciesEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException {
+                final byte[] deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
+                ECIESEncryptorFactory factory = new ECIESEncryptorFactory(mSession, deviceRelatedKey);
+                return factory.getEncryptor(identifier);
+            }
+
+            @NonNull
+            @Override
+            public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(@NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) {
+                return requestSignatureWithAuthentication(context, authentication, method, uriIdentifier, body);
+            }
+        };
+    }
+
+    /**
+     * @return executor provider associated to this instance of {@link PowerAuthSDK} object.
+     */
+    private @NonNull IExecutorProvider getExecutorProvider() {
+        if (mExecutorProvider == null) {
+            mExecutorProvider = new DefaultExecutorProvider();
+        }
+        return mExecutorProvider;
     }
 
     /**
@@ -248,45 +281,46 @@ public class PowerAuthSDK {
 
     @CheckResult
     private @Nullable AsyncTask fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
-
-        checkForValidSetup();
-
-        // Check if there is an activation present
-        if (!mSession.hasValidActivation()) {
-            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
-            return null;
-        }
-
-        // Prepare vault unlock request & request data
-        final VaultUnlockRequest request = new VaultUnlockRequest();
-        request.setReason(reason);
-        final byte[] requestData = mClient.serializeRequestObject(request).first;
-
-        // Compute authorization header based on constants from the specification.
-        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, true, "POST", PA2VaultUnlockEndpoint.VAULT_UNLOCK, requestData);
-        if (httpHeader.getPowerAuthErrorCode() == PowerAuthErrorCodes.PA2Succeed) {
-            final Map<String, String> headers = new HashMap<>();
-            headers.put(httpHeader.getKey(), httpHeader.getValue());
-
-            // Perform the server request
-            return mClient.vaultUnlock(headers, request, new INetworkResponseListener<VaultUnlockResponse>() {
-
-                @Override
-                public void onNetworkResponse(VaultUnlockResponse vaultUnlockResponse) {
-                    // Network communication completed correctly
-                    listener.onFetchEncryptedVaultUnlockKeySucceed(vaultUnlockResponse.getEncryptedVaultEncryptionKey());
-                }
-
-                @Override
-                public void onNetworkError(Throwable t) {
-                    // Network error occurred
-                    listener.onFetchEncryptedVaultUnlockKeyFailed(t);
-                }
-            });
-        } else {
-            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(httpHeader.getPowerAuthErrorCode()));
-            return null;
-        }
+        // TODO: add missing impl.
+        return null;
+//        checkForValidSetup();
+//
+//        // Check if there is an activation present
+//        if (!mSession.hasValidActivation()) {
+//            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+//            return null;
+//        }
+//
+//        // Prepare vault unlock request & request data
+//        final VaultUnlockRequest request = new VaultUnlockRequest();
+//        request.setReason(reason);
+//        final byte[] requestData = mClient.serializeRequestObject(request).first;
+//
+//        // Compute authorization header based on constants from the specification.
+//        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, true, "POST", VaultUnlockEndpoint.VAULT_UNLOCK, requestData);
+//        if (httpHeader.getPowerAuthErrorCode() == PowerAuthErrorCodes.PA2Succeed) {
+//            final Map<String, String> headers = new HashMap<>();
+//            headers.put(httpHeader.getKey(), httpHeader.getValue());
+//
+//            // Perform the server request
+//            return mClient.vaultUnlock(headers, request, new INetworkResponseListener<VaultUnlockResponse>() {
+//
+//                @Override
+//                public void onNetworkResponse(VaultUnlockResponse vaultUnlockResponse) {
+//                    // Network communication completed correctly
+//                    listener.onFetchEncryptedVaultUnlockKeySucceed(vaultUnlockResponse.getEncryptedVaultEncryptionKey());
+//                }
+//
+//                @Override
+//                public void onNetworkError(Throwable t) {
+//                    // Network error occurred
+//                    listener.onFetchEncryptedVaultUnlockKeyFailed(t);
+//                }
+//            });
+//        } else {
+//            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(httpHeader.getPowerAuthErrorCode()));
+//            return null;
+//        }
     }
 
     /**
@@ -648,47 +682,49 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable AsyncTask fetchActivationStatusWithCallback(@NonNull final Context context, @NonNull final IActivationStatusListener listener) {
+        // TODO: add missing impl.
+        return null;
 
-        checkForValidSetup();
-
-        // Check if there is an activation present, valid or pending
-        if (!mSession.hasValidActivation()) {
-            final int errorCode = mSession.hasPendingActivation()
-                                    ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
-                                    : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
-            listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
-            return null;
-        }
-
-        ActivationStatusRequest request = new ActivationStatusRequest();
-        request.setActivationId(mSession.getActivationIdentifier());
-
-        // Perform the server request
-        return mClient.getActivationStatus(request, new INetworkResponseListener<ActivationStatusResponse>() {
-
-            @Override
-            public void onNetworkResponse(ActivationStatusResponse activationStatusResponse) {
-                // Network communication completed correctly
-                // Prepare unlocking key (possession factor only)
-                final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                // Attempt to decode the activation status
-                final ActivationStatus activationStatus = mSession.decodeActivationStatus(activationStatusResponse.getEncryptedStatusBlob(), keys);
-                if (activationStatus != null) {
-                    // Everything was OK
-                    listener.onActivationStatusSucceed(activationStatus);
-                } else {
-                    // Error occurred when decoding status
-                    listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-                }
-            }
-
-            @Override
-            public void onNetworkError(Throwable t) {
-                // Network error occurred
-                listener.onActivationStatusFailed(t);
-
-            }
-        });
+//        checkForValidSetup();
+//
+//        // Check if there is an activation present, valid or pending
+//        if (!mSession.hasValidActivation()) {
+//            final int errorCode = mSession.hasPendingActivation()
+//                                    ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
+//                                    : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
+//            listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
+//            return null;
+//        }
+//
+//        ActivationStatusRequest request = new ActivationStatusRequest();
+//        request.setActivationId(mSession.getActivationIdentifier());
+//
+//        // Perform the server request
+//        return mClient.getActivationStatus(request, new INetworkResponseListener<ActivationStatusResponse>() {
+//
+//            @Override
+//            public void onNetworkResponse(ActivationStatusResponse activationStatusResponse) {
+//                // Network communication completed correctly
+//                // Prepare unlocking key (possession factor only)
+//                final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
+//                // Attempt to decode the activation status
+//                final ActivationStatus activationStatus = mSession.decodeActivationStatus(activationStatusResponse.getEncryptedStatusBlob(), keys);
+//                if (activationStatus != null) {
+//                    // Everything was OK
+//                    listener.onActivationStatusSucceed(activationStatus);
+//                } else {
+//                    // Error occurred when decoding status
+//                    listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+//                }
+//            }
+//
+//            @Override
+//            public void onNetworkError(Throwable t) {
+//                // Network error occurred
+//                listener.onActivationStatusFailed(t);
+//
+//            }
+//        });
     }
 
     /**
@@ -701,40 +737,41 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable AsyncTask removeActivationWithAuthentication(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final IActivationRemoveListener listener) {
-
-        checkForValidSetup();
-
-        // Check if there is an activation present
-        if (!mSession.hasValidActivation()) {
-            listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
-            return null;
-        }
-
-        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, "POST", PA2RemoveActivationEndpoint.ACTIVATION_REMOVE, null);
-        if (httpHeader.getPowerAuthErrorCode() != PowerAuthErrorCodes.PA2Succeed) {
-            listener.onActivationRemoveFailed(new PowerAuthErrorException(httpHeader.getPowerAuthErrorCode()));
-            return null;
-        }
-
-        final Map<String, String> headers = new HashMap<>();
-        headers.put(httpHeader.getKey(), httpHeader.getValue());
-
-        return mClient.removeActivation(headers, new INetworkResponseListener<Void>() {
-
-            @Override
-            public void onNetworkResponse(Void aVoid) {
-                // Network communication completed correctly
-                removeActivationLocal(context);
-                listener.onActivationRemoveSucceed();
-            }
-
-            @Override
-            public void onNetworkError(Throwable t) {
-                // Network error occurred
-                // TODO: fetch status & try to resolve the issue
-                listener.onActivationRemoveFailed(t);
-            }
-        });
+        // TODO: add missing impl.
+        return null;
+//        checkForValidSetup();
+//
+//        // Check if there is an activation present
+//        if (!mSession.hasValidActivation()) {
+//            listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+//            return null;
+//        }
+//
+//        PowerAuthAuthorizationHttpHeader httpHeader = requestSignatureWithAuthentication(context, authentication, "POST", RemoveActivationEndpoint.ACTIVATION_REMOVE, null);
+//        if (httpHeader.getPowerAuthErrorCode() != PowerAuthErrorCodes.PA2Succeed) {
+//            listener.onActivationRemoveFailed(new PowerAuthErrorException(httpHeader.getPowerAuthErrorCode()));
+//            return null;
+//        }
+//
+//        final Map<String, String> headers = new HashMap<>();
+//        headers.put(httpHeader.getKey(), httpHeader.getValue());
+//
+//        return mClient.removeActivation(headers, new INetworkResponseListener<Void>() {
+//
+//            @Override
+//            public void onNetworkResponse(Void aVoid) {
+//                // Network communication completed correctly
+//                removeActivationLocal(context);
+//                listener.onActivationRemoveSucceed();
+//            }
+//
+//            @Override
+//            public void onNetworkError(Throwable t) {
+//                // Network error occurred
+//                // TODO: fetch status & try to resolve the issue
+//                listener.onActivationRemoveFailed(t);
+//            }
+//        });
     }
 
     /**

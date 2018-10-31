@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,23 @@
 
 package io.getlime.security.powerauth.networking.interfaces;
 
+import android.support.annotation.NonNull;
+
+import java.util.concurrent.Executor;
+
 /**
- * Created by miroslavmichalec on 10/10/2016.
+ * The {@code IExecutorProvider} interface provides thread executors
+ * for serial or concurrent task execution.
  */
+public interface IExecutorProvider {
 
-public interface INetworkResponseListener<TResponse> {
+    /**
+     * @return {@link Executor} for serial task execution.
+     */
+    @NonNull Executor getSerialExecutor();
 
-    void onNetworkResponse(TResponse response);
-    void onNetworkError(Throwable t);
-    void onCancel();
+    /**
+     * @return {@link Executor} for concurrent task execution.
+     */
+    @NonNull Executor getConcurrentExecutor();
 }

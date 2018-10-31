@@ -21,7 +21,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import io.getlime.security.powerauth.keychain.PA2Keychain;
-import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
 
 /**
  * Default implementation of PowerAuth 2.0 state listener.

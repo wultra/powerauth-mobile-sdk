@@ -25,6 +25,8 @@ import io.getlime.security.powerauth.core.ECIESEncryptor;
 import io.getlime.security.powerauth.core.ECIESEncryptorScope;
 import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * The <code>ECIESEncryptorFactory</code> class helps with constructing {@link ECIESEncryptor}
@@ -40,9 +42,10 @@ public class ECIESEncryptorFactory {
      * The device related key is required only for activation scoped encryptors.
      *
      * @param session instance of {@link Session} object
-     * @param possessionUnlockKey key for decrypting the possession factor, stored in the {@link Session}
+     * @param possessionUnlockKey key for decrypting the possession factor, stored in the {@link Session}.
+     *                            If not provided, then activation scoped encryptors cannot be constructed.
      */
-    public ECIESEncryptorFactory(@NonNull Session session, @NonNull byte[] possessionUnlockKey) {
+    public ECIESEncryptorFactory(@NonNull Session session, @Nullable byte[] possessionUnlockKey) {
         this.mSession = session;
         this.mPossessionUnlockKey = possessionUnlockKey;
     }
@@ -55,7 +58,7 @@ public class ECIESEncryptorFactory {
      * @param identifier type of encryptor to be constructed
      * @return {@link ECIESEncryptor} object or null, if encryptor cannot be constructed.
      */
-    public @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorId identifier) {
+    public @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException {
         if (identifier != ECIESEncryptorId.None) {
             return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
         }
@@ -70,11 +73,14 @@ public class ECIESEncryptorFactory {
      * @param addMetaData if true, then {@link ECIESMetaData} will be assigned to the returned encryptor
      * @return encryptor object or null in case of error.
      */
-    private @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorScope scope, @Nullable String sharedInfo1, boolean addMetaData) {
+    private @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorScope scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
         final byte[] sharedInfo1Bytes = sharedInfo1 != null ? sharedInfo1.getBytes(Charset.defaultCharset()) : null;
         final SignatureUnlockKeys unlockKeys;
         final String activationId;
         if (scope == ECIESEncryptorScope.Activation) {
+            if (mPossessionUnlockKey == null) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Device related key is missing for activation scoped encryptor.");
+            }
             activationId = mSession.getActivationIdentifier();
             unlockKeys = new SignatureUnlockKeys(mPossessionUnlockKey, null, null);
         } else {

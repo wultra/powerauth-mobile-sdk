@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.response;
+package io.getlime.security.powerauth.sdk.impl;
 
 import android.support.annotation.Nullable;
 

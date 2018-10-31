@@ -16,32 +16,54 @@
 
 package io.getlime.security.powerauth.networking.endpoints;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.google.gson.reflect.TypeToken;
 
+import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.rest.api.model.response.v2.TokenCreateResponse;
 
-public class PA2CreateTokenEndpoint implements IEndpointDefinition<TokenCreateResponse> {
+public class CreateTokenEndpoint implements IEndpointDefinition<TokenCreateResponse> {
 
-    private String baseUrl;
-
-    /**
-     * Create a new remove token endpoint with given PowerAuth 2.1 API base URL.
-     * @param baseUrl Base URL of the PA2.1 API endpoints.
-     */
-    public PA2CreateTokenEndpoint(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public static final String CREATE_TOKEN = "/pa/token/create";
-
+    @NonNull
     @Override
-    public String getEndpoint() {
-        return baseUrl + CREATE_TOKEN;
+    public String getRelativePath() {
+        return "/pa/v3/token/create";
     }
 
+    @NonNull
+    @Override
+    public String getHttpMethod() {
+        return "POST";
+    }
+
+    @Nullable
+    @Override
+    public String getAuthorizationUriId() {
+        return "/pa/token/create";
+    }
+
+    @NonNull
+    @Override
+    public ECIESEncryptorId getEncryptorId() {
+        return ECIESEncryptorId.TokenCreate;
+    }
+
+    @Nullable
     @Override
     public TypeToken<TokenCreateResponse> getResponseType() {
         return TypeToken.get(TokenCreateResponse.class);
+    }
+
+    @Override
+    public boolean isSynchronized() {
+        return true;
+    }
+
+    @Override
+    public boolean isAvailableInProtocolUpgrade() {
+        return false;
     }
 }

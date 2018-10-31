@@ -16,37 +16,54 @@
 
 package io.getlime.security.powerauth.networking.endpoints;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.google.gson.reflect.TypeToken;
 
+import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
 
+public class GetActivationStatusEndpoint implements IEndpointDefinition<ActivationStatusResponse> {
 
-/**
- * Created by miroslavmichalec on 25/10/2016.
- */
-
-public class PA2ActivationStatusEndpoint implements IEndpointDefinition<ActivationStatusResponse> {
-
-    private String baseUrl;
-
-    /**
-     * Create a new activation status endpoint with given PowerAuth 2.0 API base URL.
-     * @param baseUrl Base URL of the PA2.0 API endpoints.
-     */
-    public PA2ActivationStatusEndpoint(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public static final String ACTIVATION_STATUS = "/pa/activation/status";
-
+    @NonNull
     @Override
-    public String getEndpoint() {
-        return baseUrl + ACTIVATION_STATUS;
+    public String getRelativePath(){
+        return "/pa/v3/activation/status";
     }
 
+    @NonNull
+    @Override
+    public String getHttpMethod() {
+        return "POST";
+    }
+
+    @Nullable
+    @Override
+    public String getAuthorizationUriId() {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public ECIESEncryptorId getEncryptorId() {
+        return ECIESEncryptorId.None;
+    }
+
+    @Nullable
     @Override
     public TypeToken<ActivationStatusResponse> getResponseType() {
         return TypeToken.get(ActivationStatusResponse.class);
+    }
+
+    @Override
+    public boolean isSynchronized() {
+        return false;
+    }
+
+    @Override
+    public boolean isAvailableInProtocolUpgrade() {
+        return true;
     }
 }

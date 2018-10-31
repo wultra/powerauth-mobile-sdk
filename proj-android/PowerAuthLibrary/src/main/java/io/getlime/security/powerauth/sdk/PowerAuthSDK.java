@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
@@ -52,6 +51,7 @@ import io.getlime.security.powerauth.keychain.fingerprint.IFingerprintActionHand
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
+import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancellable;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
@@ -444,10 +444,10 @@ public class PowerAuthSDK {
      * @param name           Activation name, for example "John's phone".
      * @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
      * @param listener       A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
-     * @return AsyncTask associated with the running server request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull String activationCode, @NonNull ICreateActivationListener listener) {
+    public @Nullable ICancellable createActivation(@Nullable String name, @NonNull String activationCode, @NonNull ICreateActivationListener listener) {
         return createActivation(name, activationCode, null, listener);
     }
 
@@ -458,10 +458,10 @@ public class PowerAuthSDK {
      * @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
      * @param extras         Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
      * @param listener       A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
-     * @return AsyncTask associated with the running server request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
+    public @Nullable ICancellable createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
 
         // Check if activation may be started
         if (!canStartActivation()) {
@@ -543,12 +543,12 @@ public class PowerAuthSDK {
 //        });
     }
 
-    public @Nullable AsyncTask createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
+    public @Nullable ICancellable createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
         // TODO: implement new activation
         return null;
     }
 
-    public AsyncTask createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {
+    public @Nullable ICancellable createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {
         return this.createActivation(name, identityAttributes, "00000-00000", null, null, url, null, listener);
     }
 
@@ -666,7 +666,7 @@ public class PowerAuthSDK {
      *
      * @param context  Context
      * @param listener A callback listener with activation status result - it contains status information in case of success and error in case of failure.
-     * @return AsyncTask associated with the running server request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable ICancellable fetchActivationStatusWithCallback(@NonNull final Context context, @NonNull final IActivationStatusListener listener) {
@@ -1041,26 +1041,19 @@ public class PowerAuthSDK {
      * @param oldPassword Old password, currently set to store the data.
      * @param newPassword New password, to be set in case authentication with old password passes.
      * @param listener    The callback method with the password change result.
-     * @return AsyncTask associated with the running request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable ICancellable changePassword(@NonNull Context context, @NonNull final String oldPassword, @NonNull final String newPassword, @NonNull final IChangePasswordListener listener) {
-
-        // Setup a new authentication object
-        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
-        authentication.usePassword = oldPassword;
-
-        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.PASSWORD_CHANGE, new IFetchEncryptedVaultUnlockKeyListener() {
-
+        // At first, validate the old password
+        return validatePasswordCorrect(context, oldPassword, new IValidatePasswordListener() {
             @Override
-            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
-                // Let's change the password
+            public void onPasswordValid() {
+                // Old password is valid, so let's change it to new one
                 final int result = mSession.changeUserPassword(new Password(oldPassword), new Password(newPassword));
                 if (result == ErrorCode.OK) {
                     // Update state
                     saveSerializedState();
-
                     listener.onPasswordChangeSucceed();
                 } else {
                     listener.onPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
@@ -1068,7 +1061,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
+            public void onPasswordValidationFailed(Throwable t) {
                 listener.onPasswordChangeFailed(t);
             }
         });
@@ -1104,7 +1097,7 @@ public class PowerAuthSDK {
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the encrypted key.
-     * @return AsyncTask associated with the running request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public @Nullable ICancellable addBiometryFactor(@NonNull final Context context, final FragmentManager fragmentManager, final String title, final String description, String password, @NonNull final IAddBiometryFactorListener listener) {
@@ -1169,7 +1162,7 @@ public class PowerAuthSDK {
      * @param password Password used for authentication during vault unlocking call.
      * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
      * @param listener The callback method with the encrypted key.
-     * @return AsyncTask associated with the running request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      */
     public @Nullable ICancellable addBiometryFactor(@NonNull final Context context, String password, final byte[] encryptedBiometryKey, @NonNull final IAddBiometryFactorListener listener) {
         final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
@@ -1237,7 +1230,7 @@ public class PowerAuthSDK {
      * @param authentication Authentication used for vault unlocking call.
      * @param index          Index of the derived key using KDF.
      * @param listener       The callback method with the derived encryption key.
-     * @return AsyncTask associated with the running request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      */
     public @Nullable ICancellable fetchEncryptionKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, final long index, @NonNull final IFetchEncryptionKeyListener listener) {
         return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.FETCH_ENCRYPTION_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
@@ -1271,23 +1264,36 @@ public class PowerAuthSDK {
      * @param context  Context.
      * @param password Password to be verified.
      * @param listener The callback method with error associated with the password validation.
-     * @return AsyncTask associated with the running request.
+     * @return {@link ICancellable} object associated with the running HTTP request.
      */
     public @Nullable ICancellable validatePasswordCorrect(@NonNull Context context, String password, @NonNull final IValidatePasswordListener listener) {
+
+        // Prepare authentication object
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.usePossession = true;
         authentication.usePassword = password;
-        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.PASSWORD_VALIDATE, new IFetchEncryptedVaultUnlockKeyListener() {
-            @Override
-            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
-                listener.onPasswordValid();
-            }
 
-            @Override
-            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onPasswordValidationFailed(t);
-            }
-        });
+        // Execute HTTP request
+        return mClient.post(
+                null,
+                new ValidateSignatureEndpoint(),
+                getCryptoHelper(context),
+                authentication,
+                new INetworkResponseListener<Void>() {
+                    @Override
+                    public void onNetworkResponse(Void aVoid) {
+                        listener.onPasswordValid();
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable t) {
+                        listener.onPasswordValidationFailed(t);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
     }
 
     /**

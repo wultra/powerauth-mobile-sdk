@@ -23,9 +23,9 @@ import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.v2.TokenCreateResponse;
+import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
 
-public class CreateTokenEndpoint implements IEndpointDefinition<TokenCreateResponse> {
+public class CreateTokenEndpoint implements IEndpointDefinition<TokenResponsePayload> {
 
     @NonNull
     @Override
@@ -53,8 +53,8 @@ public class CreateTokenEndpoint implements IEndpointDefinition<TokenCreateRespo
 
     @Nullable
     @Override
-    public TypeToken<TokenCreateResponse> getResponseType() {
-        return TypeToken.get(TokenCreateResponse.class);
+    public TypeToken<TokenResponsePayload> getResponseType() {
+        return TypeToken.get(TokenResponsePayload.class);
     }
 
     @Override

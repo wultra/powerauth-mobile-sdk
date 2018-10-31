@@ -33,10 +33,15 @@ public class HttpClient {
 
     private final PowerAuthClientConfiguration configuration;
     private final String baseUrl;
+    private final IExecutorProvider executorProvider;
 
-    public HttpClient(@NonNull PowerAuthClientConfiguration configuration, @NonNull String baseUrl) {
+    public HttpClient(
+            @NonNull PowerAuthClientConfiguration configuration,
+            @NonNull String baseUrl,
+            @NonNull IExecutorProvider executorProvider) {
         this.configuration = configuration;
         this.baseUrl = baseUrl;
+        this.executorProvider = executorProvider;
     }
 
     /**
@@ -45,7 +50,6 @@ public class HttpClient {
      * @param object object to be serialized into POST request
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
-     * @param executorProvider interface providing serialized or concurrent executors
      * @param listener response listener
      * @return {@link ICancellable} object which allows application cancel the pending operation
      */
@@ -54,9 +58,8 @@ public class HttpClient {
             @Nullable TRequest object,
             @NonNull IEndpointDefinition<TResponse> endpoint,
             @NonNull IPrivateCryptoHelper helper,
-            @NonNull IExecutorProvider executorProvider,
             @NonNull INetworkResponseListener<TResponse> listener) {
-        return post(object, endpoint, helper, null, executorProvider, listener);
+        return post(object, endpoint, helper, null, listener);
     }
 
     /**
@@ -77,7 +80,6 @@ public class HttpClient {
             @NonNull IEndpointDefinition<TResponse> endpoint,
             @NonNull IPrivateCryptoHelper helper,
             @Nullable PowerAuthAuthentication authentication,
-            @NonNull IExecutorProvider executorProvider,
             @NonNull INetworkResponseListener<TResponse> listener) {
 
         final HttpRequestHelper<TRequest, TResponse> request = new HttpRequestHelper<>(object, endpoint, authentication);

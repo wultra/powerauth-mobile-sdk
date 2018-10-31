@@ -27,22 +27,18 @@ import android.util.Pair;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import io.getlime.security.powerauth.core.ECIESCryptogram;
-import io.getlime.security.powerauth.core.ECIESEncryptor;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.PA2Keychain;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveTokenEndpoint;
+import io.getlime.security.powerauth.networking.interfaces.ICancellable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
-import io.getlime.security.powerauth.rest.api.model.request.v2.TokenCreateRequest;
-import io.getlime.security.powerauth.rest.api.model.request.v2.TokenRemoveRequest;
-import io.getlime.security.powerauth.rest.api.model.response.v2.TokenCreateResponse;
-import io.getlime.security.powerauth.rest.api.model.response.v2.TokenRemoveResponse;
+import io.getlime.security.powerauth.rest.api.model.request.v3.TokenRemoveRequest;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**
@@ -119,100 +115,61 @@ public class PowerAuthTokenStore {
      * @param listener Listener with callbacks to receive a token.
      * @return {@code AsyncTask} associated with the running server request or null if request has been processed synchronously.
      */
-    public @Nullable AsyncTask requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
-        // TODO: Add missing impl.
-        return null;
-//        Throwable error = null;
-//        PowerAuthPrivateTokenData tokenData = null;
-//
-//        synchronized (this) {
-//            if (this.canRequestForAccessToken()) {
-//                tokenData = this.getTokenData(context, tokenName);
-//            } else {
-//                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
-//            }
-//        }
-//
-//        // If there's private data or error available, then report that immediately to the listener.
-//        if (error != null) {
-//            listener.onGetTokenFailed(error);
-//            return null;
-//        } else if (tokenData != null) {
-//            listener.onGetTokenSucceeded(new PowerAuthToken(this, tokenData));
-//            return null;
-//        }
-//        // Launch HTTP request
-//
-//        // 1) Encrypt empty data to get ephemeral key
-//        final Pair<ECIESEncryptor, ECIESCryptogram> pair = encryptor.encryptRequestSynchronized(null);
-//        if (pair == null) {
-//            listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError));
-//            return null;
-//        }
-//        final ECIESEncryptor decryptor = pair.first;
-//        final ECIESCryptogram cryptogram = pair.second;
-//
-//        // 2) Build post data
-//        final TokenCreateRequest request = new TokenCreateRequest();
-//        request.setEphemeralPublicKey(cryptogram.getKeyBase64());
-//        final Pair<byte[], String> postData = httpClient.serializeRequestObject(request);
-//
-//        // 3) Sign that post data
-//        final PowerAuthAuthorizationHttpHeader authHeader = sdk.requestSignatureWithAuthentication(context, authentication, "POST", CreateTokenEndpoint.CREATE_TOKEN, postData.first);
-//        if (!authHeader.isValid()) {
-//            listener.onGetTokenFailed(new PowerAuthErrorException(authHeader.powerAuthErrorCode));
-//            return null;
-//        }
-//        final HashMap<String, String> headers = new HashMap<>();
-//        headers.put(authHeader.getKey(), authHeader.getValue());
-//
-//        // 4) Execute HTTP request
-//        return httpClient.createToken(headers, request, new INetworkResponseListener<TokenCreateResponse>() {
-//            @Override
-//            public void onNetworkResponse(TokenCreateResponse tokenCreateResponse) {
-//                // On success, we have to decrypt response
-//                PowerAuthPrivateTokenData newTokenData = decryptTokenData(decryptor, tokenCreateResponse, tokenName);
-//                if (newTokenData != null) {
-//                    // Store token data & report to listener
-//                    storeTokenData(context, newTokenData);
-//                    listener.onGetTokenSucceeded(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
-//                } else {
-//                    // Report encryption error
-//                    listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError));
-//                }
-//            }
-//
-//            @Override
-//            public void onNetworkError(Throwable t) {
-//                // On failure, just notify listener about that error
-//                listener.onGetTokenFailed(t);
-//            }
-//        });
+    public @Nullable ICancellable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
+
+        Throwable error = null;
+        PowerAuthPrivateTokenData tokenData = null;
+
+        synchronized (this) {
+            if (this.canRequestForAccessToken()) {
+                tokenData = this.getTokenData(context, tokenName);
+            } else {
+                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
+            }
+        }
+
+        // If there's private data or error available, then report that immediately to the listener.
+        if (error != null) {
+            listener.onGetTokenFailed(error);
+            return null;
+        } else if (tokenData != null) {
+            listener.onGetTokenSucceeded(new PowerAuthToken(this, tokenData));
+            return null;
+        }
+
+        // Execute HTTP request
+        return httpClient.post(
+                null,
+                new CreateTokenEndpoint(),
+                sdk.getCryptoHelper(context),
+                authentication,
+                new INetworkResponseListener<TokenResponsePayload>() {
+                    @Override
+                    public void onNetworkResponse(TokenResponsePayload response) {
+                        // Success, try to construct a new PowerAuthPrivateTokenData object.
+                        final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
+                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes);
+                        if (newTokenData.hasValidData()) {
+                            // Store token data & report to listener
+                            storeTokenData(context, newTokenData);
+                            listener.onGetTokenSucceeded(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
+                        } else {
+                            // Report encryption error
+                            listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError));
+                        }
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable t) {
+                        listener.onGetTokenFailed(t);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
+
     }
-
-    /**
-     * Decrypt response received from server and create a new {@link PowerAuthPrivateTokenData} token data.
-     *
-     * @param decryptor A decryptor for response data decryption
-     * @param response An encrypted response
-     * @param tokenName Name of token
-     * @return Private token's data or null in case of failure.
-     */
-//    private @Nullable PowerAuthPrivateTokenData decryptTokenData(ECIESEncryptor decryptor, TokenCreateResponse response, String tokenName) {
-//        final ECIESCryptogram cryptogram = new ECIESCryptogram(response.getEncryptedData(), response.getMac());
-//        final byte[] decryptedPayload = decryptor.decryptResponse(cryptogram);
-//        if (decryptedPayload == null) {
-//            return null;
-//        }
-//        TokenResponsePayload payload = httpClient.deserializePlainResponse(decryptedPayload, TokenResponsePayload.class);
-//        if (payload.getTokenId() == null || payload.getTokenSecret() == null) {
-//            return null;
-//        }
-//        final byte[] tokenSecretBytes = Base64.decode(payload.getTokenSecret(), Base64.NO_WRAP);
-//        final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(tokenName, payload.getTokenId(), tokenSecretBytes);
-//        return tokenData.hasValidData() ? tokenData : null;
-//    }
-
 
     /**
      * Remove previously created access token from the server and from local database.
@@ -224,61 +181,50 @@ public class PowerAuthTokenStore {
      * @param context Context
      * @param tokenName Name of token to be removed
      * @param listener Listener with callbacks.
-     * @return {@code AsyncTask} associated with the running server request or null in case of error.
+     * @return {@code ICancellable} associated with the running server request or null in case of error.
      */
-    public @Nullable AsyncTask removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
-        // TODO: add missing impl.
-        return null;
+    public @Nullable ICancellable removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
 
-//        Throwable error = null;
-//        PowerAuthPrivateTokenData tokenData;
-//
-//        synchronized (this) {
-//            tokenData = getTokenData(context, tokenName);
-//            if (tokenData == null) {
-//                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidToken);
-//            }
-//        }
-//
-//        if (error != null) {
-//            listener.onRemoveTokenFailed(error);
-//            return null;
-//        }
-//
-//        // Launch HTTP request...
-//
-//        // 1) Build request data
-//        final TokenRemoveRequest request = new TokenRemoveRequest();
-//        request.setTokenId(tokenData.identifier);
-//        final Pair<byte[], String> postData = httpClient.serializeRequestObject(request);
-//
-//        // 2) Sign request data with possession factor
-//        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-//        authentication.usePossession = true;
-//        //
-//        PowerAuthAuthorizationHttpHeader authHeader = sdk.requestSignatureWithAuthentication(context, authentication, "POST", RemoveTokenEndpoint.REMOVE_TOKEN, postData.first);
-//        if (!authHeader.isValid()) {
-//            listener.onRemoveTokenFailed(new PowerAuthErrorException(authHeader.powerAuthErrorCode));
-//            return null;
-//        }
-//        final HashMap<String, String> headers = new HashMap<>();
-//        headers.put(authHeader.getKey(), authHeader.getValue());
-//
-//        // 3) Execute HTTP request
-//        return httpClient.removeToken(headers, request, new INetworkResponseListener<TokenRemoveResponse>() {
-//            @Override
-//            public void onNetworkResponse(TokenRemoveResponse tokenRemoveResponse) {
-//               // On success, remove local token data & notify listener
-//               removeLocalToken(context, tokenName);
-//               listener.onRemoveTokenSucceeded();
-//            }
-//
-//            @Override
-//            public void onNetworkError(Throwable t) {
-//                // On failure, just notify listener about that error
-//                listener.onRemoveTokenFailed(t);
-//            }
-//        });
+        Throwable error = null;
+        PowerAuthPrivateTokenData tokenData;
+
+        synchronized (this) {
+            tokenData = getTokenData(context, tokenName);
+            if (tokenData == null) {
+                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidToken);
+            }
+        }
+
+        if (error != null) {
+            listener.onRemoveTokenFailed(error);
+            return null;
+        }
+
+        // Launch HTTP request...
+        final TokenRemoveRequest request = new TokenRemoveRequest();
+        request.setTokenId(tokenData.identifier);
+
+        return httpClient.post(
+                request,
+                new RemoveTokenEndpoint(),
+                sdk.getCryptoHelper(context),
+                new INetworkResponseListener<Void>() {
+                    @Override
+                    public void onNetworkResponse(Void aVoid) {
+                        // On success, remove local token data & notify listener
+                        removeLocalToken(context, tokenName);
+                        listener.onRemoveTokenSucceeded();
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable t) {
+                        listener.onRemoveTokenFailed(t);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
     }
 
 

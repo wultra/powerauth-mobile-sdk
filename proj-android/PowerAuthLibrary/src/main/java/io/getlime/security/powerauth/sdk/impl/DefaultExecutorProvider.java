@@ -32,15 +32,17 @@ import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
  */
 public class DefaultExecutorProvider implements IExecutorProvider {
 
-    private final Executor serialExecutor;
+    private Executor serialExecutor;
 
     public DefaultExecutorProvider() {
-        this.serialExecutor = new SerialExecutor();
     }
 
     @NonNull
     @Override
     public Executor getSerialExecutor() {
+        if (serialExecutor == null) {
+            serialExecutor = new SerialExecutor();
+        }
         return serialExecutor;
     }
 

@@ -71,4 +71,13 @@ public class SessionSetup {
         this.sessionIdentifier = sessionIdentifier;
         this.externalEncryptionKey = externalEncryptionKey;
     }
+
+    // Constructor accessed from JNI code.
+    public SessionSetup() {
+        this.applicationKey = null;
+        this.applicationSecret = null;
+        this.masterServerPublicKey = null;
+        this.sessionIdentifier = 0;
+        this.externalEncryptionKey = null;
+    }
 }

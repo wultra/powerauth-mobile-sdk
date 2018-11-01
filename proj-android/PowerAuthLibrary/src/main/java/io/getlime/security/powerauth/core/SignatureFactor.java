@@ -48,13 +48,7 @@ public class SignatureFactor
      3FA, with using all supported factors.
      */
     public static final int Possession_Knowledge_Biometry   = 0x0111;
-    /**
-     The PrepareForVaultUnlock flag can be combined with any signature factor and
-     notifies Session about operation which will lead to vault unlock.
-     */
-    @Deprecated
-    public static final int PrepareForVaultUnlock           = 0x1000;
-    
+
     /**
      Prevents class instantiation.
      */

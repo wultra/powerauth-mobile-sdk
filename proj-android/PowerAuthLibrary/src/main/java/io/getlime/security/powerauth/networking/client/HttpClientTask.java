@@ -42,15 +42,15 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
     /**
      * @param httpRequestHelper request helper responsible for object serialization and deserialization
      * @param baseUrl base URL
-     * @param cryptoHelper cryptographic helper
      * @param clientConfiguration client configuration
+     * @param cryptoHelper cryptographic helper
      * @param listener response listener
      */
     public HttpClientTask(
             @NonNull HttpRequestHelper<TRequest, TResponse> httpRequestHelper,
             @NonNull String baseUrl,
-            @NonNull IPrivateCryptoHelper cryptoHelper,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
+            @NonNull IPrivateCryptoHelper cryptoHelper,
             @NonNull INetworkResponseListener<TResponse> listener) {
         this.httpRequestHelper = httpRequestHelper;
         this.baseUrl = baseUrl;
@@ -91,7 +91,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             final HttpURLConnection urlConnection = (HttpURLConnection) requestData.url.openConnection();
             final boolean securedUrlConnection = urlConnection instanceof HttpsURLConnection;
 
-            // Setup that connection
+            // Setup the connection
             urlConnection.setRequestMethod(requestData.method);
             urlConnection.setDoOutput(true);
             urlConnection.setUseCaches(false);
@@ -116,7 +116,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                     }
                 }
             } else {
-                if (clientConfiguration.isUnsecuredConnectionAllowed() == false) {
+                if (!clientConfiguration.isUnsecuredConnectionAllowed()) {
                     throw new SSLException("Connection to non-TLS endpoint is not allowed.");
                 }
             }

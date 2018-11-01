@@ -162,19 +162,7 @@ public class JsonSerialization {
      */
     @NonNull
     public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull ECIESEncryptor encryptor) throws PowerAuthErrorException {
-        // 1. Serialize object into JSON
-        final byte[] plainData = serializeObject(object);
-        // 2. Encrypt serialized JSON data
-        final ECIESCryptogram cryptogram = encryptor.encryptRequest(plainData);
-        if (cryptogram == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt object data.");
-        }
-        // 3. Construct final request object from the cryptogram
-        final EciesEncryptedRequest request = new EciesEncryptedRequest();
-        request.setEncryptedData(cryptogram.getBodyBase64());
-        request.setEphemeralPublicKey(cryptogram.getKeyBase64());
-        request.setMac(cryptogram.getMacBase64());
-        // 4. And finally, serialize that request into JSON
+        final EciesEncryptedRequest request = encryptObjectToRequest(object, encryptor);
         return serializeObject(request);
     }
 
@@ -223,6 +211,55 @@ public class JsonSerialization {
         return deserializeObject(plainData, type);
     }
 
+    /**
+     * Encrypt provided object into {@link EciesEncryptedRequest} object.
+     *
+     * @param object object to encrypt and serialize
+     * @param encryptor the ECIES encryptor
+     * @param <TRequest> the type of the desired object
+     * @return @link EciesEncryptedRequest} object with encrypted content
+     * @throws PowerAuthErrorException if encryption fails
+     */
+    @NonNull
+    public <TRequest> EciesEncryptedRequest encryptObjectToRequest(@Nullable TRequest object, @NonNull ECIESEncryptor encryptor) throws PowerAuthErrorException {
+        // 1. Serialize object into JSON
+        final byte[] plainData = serializeObject(object);
+        // 2. Encrypt serialized JSON data
+        final ECIESCryptogram cryptogram = encryptor.encryptRequest(plainData);
+        if (cryptogram == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt object data.");
+        }
+        // 3. Construct final request object from the cryptogram
+        final EciesEncryptedRequest request = new EciesEncryptedRequest();
+        request.setEncryptedData(cryptogram.getBodyBase64());
+        request.setEphemeralPublicKey(cryptogram.getKeyBase64());
+        request.setMac(cryptogram.getMacBase64());
+        return request;
+    }
+
+
+    /**
+     * Decrypts object from response.
+     *
+     * @param response encrypted response
+     * @param decryptor the ECIES decryptor
+     * @param type {@link TypeToken} for object to be deserialized.
+     * @param <TResponse> the type of the desired object
+     * @return decrypted and deserialized response object
+     * @throws PowerAuthErrorException in case of decryption error
+     */
+    @NonNull
+    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull ECIESEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
+        // 1. Convert response into cryptogram object
+        final ECIESCryptogram cryptogram = new ECIESCryptogram(response.getEncryptedData(), response.getMac());
+        // 2. Try to decrypt the response
+        final byte[] plainData = decryptor.decryptResponse(cryptogram);
+        if (plainData == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to decrypt object data.");
+        }
+        // 3. Deserialize the object
+        return deserializeObject(plainData, type);
+    }
 
     // Lazy initialized GSON & JsonParser
 

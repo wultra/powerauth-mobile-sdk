@@ -252,8 +252,8 @@ CC7_JNI_METHOD(jstring, getActivationFingerprint)
 CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
 {
 	auto session = CC7_THIS_OBJ();
-	if (!session || !param) {
-		CC7_ASSERT(false, "Missing param or internal handle.");
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
 		return NULL;
 	}
 	// Copy params to C++ struct

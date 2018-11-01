@@ -24,10 +24,16 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentManager;
 
+import com.google.gson.reflect.TypeToken;
+
+import java.util.HashMap;
 import java.util.Map;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
+import io.getlime.security.powerauth.core.ActivationStep1Result;
+import io.getlime.security.powerauth.core.ActivationStep2Param;
+import io.getlime.security.powerauth.core.ActivationStep2Result;
 import io.getlime.security.powerauth.core.ECIESEncryptor;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.Password;
@@ -49,12 +55,13 @@ import io.getlime.security.powerauth.keychain.fingerprint.FingerprintKeystore;
 import io.getlime.security.powerauth.keychain.fingerprint.ICommitActivationWithFingerprintListener;
 import io.getlime.security.powerauth.keychain.fingerprint.IFingerprintActionHandler;
 import io.getlime.security.powerauth.networking.client.HttpClient;
+import io.getlime.security.powerauth.networking.client.JsonSerialization;
+import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancellable;
-import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
@@ -63,9 +70,14 @@ import io.getlime.security.powerauth.networking.response.IChangePasswordListener
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
+import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import io.getlime.security.powerauth.rest.api.model.request.v2.ActivationStatusRequest;
+import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer1Request;
+import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer2Request;
 import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
@@ -92,7 +104,6 @@ public class PowerAuthSDK {
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
     private PowerAuthTokenStore mTokenStore;
-    private IExecutorProvider mExecutorProvider;
 
     /**
      * Helper class for building new instances.
@@ -208,19 +219,6 @@ public class PowerAuthSDK {
         }
     }
 
-    @CheckResult
-    private @Nullable ActivationStep1Param paramStep1WithActivationCode(@NonNull String activationCode) {
-        Otp otp = OtpUtil.parseFromActivationCode(activationCode);
-        if (otp == null) {
-            return null;
-        } else {
-            return new ActivationStep1Param(
-                    otp.activationCode,
-                    otp.activationSignature
-            );
-        }
-    }
-
     /**
      * Return a default device related key used for computing the possession factor encryption key.
      * @param context Context.
@@ -256,7 +254,7 @@ public class PowerAuthSDK {
         return new SignatureUnlockKeys(possessionKey, biometryKey, knowledgeKey);
     }
 
-    private int determineSignatureFactorForAuthentication(PowerAuthAuthentication authentication, boolean vaultUnlock) {
+    private int determineSignatureFactorForAuthentication(PowerAuthAuthentication authentication) {
         int factor = 0;
         if (authentication.usePossession) {
             factor |= SignatureFactor.Possession;
@@ -266,9 +264,6 @@ public class PowerAuthSDK {
         }
         if (authentication.useBiometry != null) {
             factor |= SignatureFactor.Biometry;
-        }
-        if (factor > 0 && vaultUnlock) {
-            factor |= SignatureFactor.PrepareForVaultUnlock;
         }
         return factor;
     }
@@ -346,7 +341,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Get activation fingerpint calculated from device's public key.
+     * Get activation fingerprint calculated from device's public key.
      * @return Activation fingerprint or null if object has no activation.
      */
     public @Nullable String getActivationFingerprint() {
@@ -438,8 +433,9 @@ public class PowerAuthSDK {
         mSession = null;
     }
 
+
     /**
-     * Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
+     * Create a new standard activation with given name and activation code by calling a PowerAuth Standard RESTful API.
      *
      * @param name           Activation name, for example "John's phone".
      * @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
@@ -448,20 +444,97 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable ICancellable createActivation(@Nullable String name, @NonNull String activationCode, @NonNull ICreateActivationListener listener) {
-        return createActivation(name, activationCode, null, listener);
+        return createActivation(name, activationCode, null, null, listener);
     }
 
+
     /**
-     * Create a new activation with given name and activation code by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/create'.
+     * Create a new standard activation with given name and activation code by calling a PowerAuth Standard RESTful API.
      *
-     * @param name           Activation name, for example "John's iPhone".
-     * @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
-     * @param extras         Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
-     * @param listener       A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
+     * @param name              Activation name, for example "John's iPhone".
+     * @param activationCode    Activation code, obtained either via QR code scanning or by manual entry.
+     * @param extras            Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
+     * @param listener          A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
      * @return {@link ICancellable} object associated with the running HTTP request.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public @Nullable ICancellable createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
+        return createActivation(name, activationCode, extras, null, listener);
+    }
+
+
+    /**
+     * Create a new standard activation with given name and activation code by calling a PowerAuth Standard RESTful API.
+     *
+     * @param name              Activation name, for example "John's iPhone".
+     * @param activationCode    Activation code, obtained either via QR code scanning or by manual entry.
+     * @param extras            Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
+     * @param customAttributes  Extra attributes of the activation, used for application specific purposes. Unlike the {code extras} parameter, this dictionary is visible for the Application Server.
+     * @param listener          A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
+     * @return {@link ICancellable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable ICancellable createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
+
+        // Validate the code first
+        final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
+        if (otp == null) {
+            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+            return null;
+        }
+
+        // Prepare identity attributes for "code" based activation
+        final HashMap<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("code", otp.activationCode);
+
+        // Prepare request for a standard activation
+        final ActivationLayer1Request request = new ActivationLayer1Request();
+        request.setType(ActivationType.CODE);
+        request.setIdentityAttributes(identityAttributes);
+        request.setCustomAttributes(customAttributes);
+
+        return createActivationImpl(name, request, otp, extras, listener);
+    }
+
+
+    /**
+     * Create a new custom activation with given name and identity attributes by calling a PowerAuth Standard RESTful API.
+     *
+     * @param name                  Activation name, for example "John's iPhone".
+     * @param identityAttributes    Attributes identifying user on the Application Server.
+     * @param extras                Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
+     * @param customAttributes      Extra attributes of the activation, used for application specific purposes. Unlike the {code extras} parameter, this dictionary is visible for the Application Server.
+     * @param listener              A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
+     * @return {@link ICancellable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable ICancellable createCustomActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
+
+        // Prepare request for a custom activation
+        final ActivationLayer1Request request = new ActivationLayer1Request();
+        request.setType(ActivationType.CUSTOM);
+        request.setIdentityAttributes(identityAttributes);
+        request.setCustomAttributes(customAttributes);
+
+        return createActivationImpl(name, request, null, extras, listener);
+    }
+
+
+    /**
+     * Create an arbitrary activation. This method is an actual implementation for the activation creation.
+     *
+     * @param name          Activation name, for example "John's iPhone".
+     * @param request       Activation request. The type & identity attributes must be set in the object.
+     * @param otp           Otp object, which is valid only for standard activations
+     * @param extras        Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
+     * @param listener      A callback listener called when the process finishes
+     * @return {@link ICancellable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    private @Nullable ICancellable createActivationImpl(@Nullable String name, @NonNull ActivationLayer1Request request, @Nullable Otp otp, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
+
+        // Initial validation
+        checkForValidSetup();
 
         // Check if activation may be started
         if (!canStartActivation()) {
@@ -469,88 +542,96 @@ public class PowerAuthSDK {
             return null;
         }
 
-        // Temporary, just to remove compile errors.
-        return null;
+        final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
+        final JsonSerialization serialization = new JsonSerialization();
+        final ECIESEncryptor encryptor;
 
-//        // Wipe out possible activation data.
-//        // TODO: We have to check a whole SDK object's lifecycle and take care that empty session never
-//        //       exists when old session data is still persisted. This is unfortunately a more complex
-//        //       task and therefore here's just workaround which may keep a shared biometry key present
-//        //       on the device. That's no big deal, because an actual key used for biometry factor
-//        //       is already removed in this state.
-//        removeActivationLocal(null, false);
-//
-//        // Prepare crypto module request
-//        final ActivationStep1Param paramStep1 = paramStep1WithActivationCode(activationCode);
-//        if (paramStep1 == null) {
-//            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
-//            return null;
-//        }
-//
-//        // Obtain crypto module response
-//        final ActivationStep1Result step1Result = mSession.startActivation(paramStep1);
-//        if (step1Result.errorCode != ErrorCode.OK) {
-//            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-//                    ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
-//                    : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-//            listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-//            return null;
-//        }
-//        // After this point, each error must lead to mSession.resetSession()
-//
-//        // Perform exchange over PowerAuth 2.0 Standard RESTful API
-//        final ActivationCreateRequest request = new ActivationCreateRequest();
-//        request.setActivationIdShort(paramStep1.activationIdShort);
-//        request.setActivationName(name);
-//        request.setActivationNonce(step1Result.activationNonce);
-//        request.setApplicationKey(mConfiguration.getAppKey());
-//        request.setApplicationSignature(step1Result.applicationSignature);
-//        request.setEncryptedDevicePublicKey(step1Result.cDevicePublicKey);
-//        request.setEphemeralPublicKey(step1Result.ephemeralPublicKey);
-//        request.setExtras(extras);
-//
-//        // Perform the server request
-//        return mClient.createActivation(request, new INetworkResponseListener<ActivationCreateResponse>() {
-//
-//            @Override
-//            public void onNetworkResponse(ActivationCreateResponse response) {
-//                // Network communication completed correctly
-//                final ActivationStep2Param paramStep2 = new ActivationStep2Param(
-//                        response.getActivationId(),
-//                        response.getActivationNonce(),
-//                        response.getEphemeralPublicKey(),
-//                        response.getEncryptedServerPublicKey(),
-//                        response.getEncryptedServerPublicKeySignature());
-//
-//                // Obtain crypto module response
-//                final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
-//                if (resultStep2.errorCode == ErrorCode.OK) {
-//                    // Everything was OK
-//                    listener.onActivationCreateSucceed(resultStep2.activationFingerprint, response.getCustomAttributes());
-//                } else {
-//                    // Error occurred
-//                    mSession.resetSession();
-//                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-//                }
-//            }
-//
-//            @Override
-//            public void onNetworkError(Throwable t) {
-//                // Network error occurred
-//                mSession.resetSession();
-//                listener.onActivationCreateFailed(t);
-//            }
-//        });
+        try {
+            // Prepare cryptographic helper & Layer2 ECIES encryptor
+            encryptor = cryptoHelper.getEciesEncryptor(ECIESEncryptorId.ActivationPayload);
+            if (encryptor == null) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState);
+            }
+
+            // Prepare low level activation parameters
+            final ActivationStep1Param step1Param;
+            if (otp != null) {
+                step1Param = new ActivationStep1Param(otp.activationCode, otp.activationSignature);
+            } else {
+                step1Param = null;
+            }
+
+            // Start the activation
+            final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
+            if (step1Result.errorCode != ErrorCode.OK) {
+                // Looks like create activation failed
+                final int errorCode = step1Result.errorCode == ErrorCode.Encryption
+                        ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
+                        : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+                listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                return null;
+            }
+
+            // Prepare private payload & encrypt it
+            final ActivationLayer2Request privateData = new ActivationLayer2Request();
+            privateData.setActivationName(name);
+            privateData.setExtras(extras);
+            privateData.setDevicePublicKey(step1Result.devicePublicKey);
+
+            // Complete Layer1 request data
+            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+
+        } catch (PowerAuthErrorException e) {
+            mSession.resetSession();
+            listener.onActivationCreateFailed(e);
+            return null;
+        }
+
+        // Fire HTTP request
+        return mClient.post(
+                request,
+                new CreateActivationEndpoint(),
+                cryptoHelper,
+                new INetworkResponseListener<ActivationLayer1Response>() {
+                    @Override
+                    public void onNetworkResponse(ActivationLayer1Response response) {
+                        // Process response from the server
+                        try {
+                            // Try to decrypt Layer2 object from response
+                            final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
+                            // Prepare Step2 param for low level session
+                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData());
+                            // Validate the response
+                            final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
+                            //
+                            if (step2Result.errorCode == ErrorCode.OK) {
+                                listener.onActivationCreateSucceed(step2Result.activationFingerprint, response.getCustomAttributes());
+                                return;
+                            }
+                            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Invalid activation data received from the server.");
+
+                        } catch (PowerAuthErrorException e) {
+                            // In case of error, reset the session & report that exception
+                            mSession.resetSession();
+                            listener.onActivationCreateFailed(e);
+                        }
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable throwable) {
+                        // In case of error, reset the session & report that exception
+                        mSession.resetSession();
+                        listener.onActivationCreateFailed(throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // In case of cancel, reset the session
+                        mSession.resetSession();
+                    }
+                });
     }
 
-    public @Nullable ICancellable createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
-        // TODO: implement new activation
-        return null;
-    }
-
-    public @Nullable ICancellable createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {
-        return this.createActivation(name, identityAttributes, "00000-00000", null, null, url, null, listener);
-    }
 
     /**
      * Commit activation that was created and store related data using default authentication instance setup with provided password.
@@ -833,7 +914,7 @@ public class PowerAuthSDK {
      */
     public PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
         byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
-        return requestSignatureWithAuthentication(context, authentication, false, "GET", uriId, body);
+        return requestSignatureWithAuthentication(context, authentication, "GET", uriId, body);
     }
 
     /**
@@ -850,24 +931,6 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
-        return requestSignatureWithAuthentication(context, authentication, false, method, uriId, body);
-    }
-
-    /**
-     * Compute the HTTP signature header with vault unlock flag for given HTTP method, URI identifier and HTTP request body using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatch it asynchronously.
-     *
-     * @param context        Context.
-     * @param authentication An authentication instance specifying what factors should be used to sign the request.
-     * @param vaultUnlock    A flag indicating this request is associate with vault unlock operation.
-     * @param method         HTTP method used for the signature computation.
-     * @param uriId          URI identifier.
-     * @param body           HTTP request body.
-     * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
-     */
-    public PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, boolean vaultUnlock, String method, String uriId, byte[] body) {
 
         checkForValidSetup();
 
@@ -877,7 +940,7 @@ public class PowerAuthSDK {
         }
 
         // Determine authentication factor type
-        final int signatureFactor = determineSignatureFactorForAuthentication(authentication, vaultUnlock);
+        final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
             return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter);
         }
@@ -936,7 +999,7 @@ public class PowerAuthSDK {
         }
 
         // Determine authentication factor type
-        final int signatureFactor = determineSignatureFactorForAuthentication(authentication, false);
+        final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
             // Wrong parameter
             return null;
@@ -960,7 +1023,7 @@ public class PowerAuthSDK {
      *
      * @param data An arbitrary data
      * @param signature A signature calculated for data
-     * @param useMasterKey If true, then master server's public key is used for validaion, otherwise personalized server's key.
+     * @param useMasterKey If true, then master server's public key is used for validation, otherwise personalized server's key.
      * @return true if signature is valid
      */
     public boolean verifyServerSignedData(byte[] data, byte[] signature, boolean useMasterKey) {

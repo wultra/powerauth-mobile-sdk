@@ -83,7 +83,7 @@ public class HttpClient {
             @NonNull INetworkResponseListener<TResponse> listener) {
 
         final HttpRequestHelper<TRequest, TResponse> request = new HttpRequestHelper<>(object, endpoint, authentication);
-        final HttpClientTask<TRequest, TResponse> task = new HttpClientTask<>(request, baseUrl, helper, configuration, listener);
+        final HttpClientTask<TRequest, TResponse> task = new HttpClientTask<>(request, baseUrl, configuration, helper, listener);
 
         final Executor executor = endpoint.isSynchronized() ? executorProvider.getSerialExecutor() : executorProvider.getConcurrentExecutor();
         task.executeOnExecutor(executor, null, null);

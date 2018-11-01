@@ -17,12 +17,23 @@
 package io.getlime.security.powerauth.networking.interfaces;
 
 /**
- * Created by miroslavmichalec on 10/10/2016.
+ * The {@code INetworkResponseListener} defines callback interface from HTTP client
  */
-
 public interface INetworkResponseListener<TResponse> {
-
+    /**
+     * Called when HTTP request successfully ended and the response object is available.
+     * @param response
+     */
     void onNetworkResponse(TResponse response);
-    void onNetworkError(Throwable t);
+
+    /**
+     * Called when HTTP request failed with an error.
+     * @param throwable exception with an error
+     */
+    void onNetworkError(Throwable throwable);
+
+    /**
+     * Called when HTTP request was cancelled.
+     */
     void onCancel();
 }

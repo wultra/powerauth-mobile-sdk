@@ -9,6 +9,7 @@ def localReleaseDest = "${buildDir}/release/${version}"
 
 task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
+    // options.addStringOption('Xdoclint:none', '-quiet')
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     // adds libraries to classpath
     android.libraryVariants.all { variant ->

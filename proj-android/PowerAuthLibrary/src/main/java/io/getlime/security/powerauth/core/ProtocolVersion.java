@@ -2,7 +2,7 @@ package io.getlime.security.powerauth.core;
 
 /**
  * The <code>ProtocolVersion</code> enum defines PowerAuth protocol version. The main difference
- * between V2 & V3 is that V3 is using hash-based counter instead of linear one,
+ * between V2 &amp; V3 is that V3 is using hash-based counter instead of linear one,
  * and all E2EE tasks are now implemented by ECIES.
  *
  * This version of SDK is supporting V2 protocol in very limited scope, where only

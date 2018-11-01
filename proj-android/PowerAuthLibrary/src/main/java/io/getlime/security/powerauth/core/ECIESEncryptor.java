@@ -239,7 +239,7 @@ public class ECIESEncryptor {
 
     /**
      * Sets metadata object to this encryptor. Note that the metadata object is not required
-     * for data encryption or decryption, but it's typically useful for request & response
+     * for data encryption or decryption, but it's typically useful for request &amp; response
      * processing.
      *
      * @param metaData object associated with this encryptor

@@ -217,7 +217,7 @@ public class JsonSerialization {
      * @param object object to encrypt and serialize
      * @param encryptor the ECIES encryptor
      * @param <TRequest> the type of the desired object
-     * @return @link EciesEncryptedRequest} object with encrypted content
+     * @return {@link EciesEncryptedRequest} object with encrypted content
      * @throws PowerAuthErrorException if encryption fails
      */
     @NonNull

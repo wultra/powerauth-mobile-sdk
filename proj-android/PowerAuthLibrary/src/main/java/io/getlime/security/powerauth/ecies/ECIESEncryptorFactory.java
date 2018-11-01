@@ -38,7 +38,7 @@ public class ECIESEncryptorFactory {
     private final byte[] mPossessionUnlockKey;
 
     /**
-     * Initializes object with required session & optional device related key.
+     * Initializes object with required session &amp; optional device related key.
      * The device related key is required only for activation scoped encryptors.
      *
      * @param session instance of {@link Session} object

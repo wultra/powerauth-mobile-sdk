@@ -259,7 +259,7 @@ CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
 	// Copy params to C++ struct
 	ActivationStep1Param cppParam;
 	jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep1Param");
-	cppParam.activationCode		    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationIdShort"));
+	cppParam.activationCode		    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationCode"));
 	cppParam.activationSignature	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationSignature"));
 	// Call session
 	ActivationStep1Result cppResult;
@@ -677,8 +677,11 @@ CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jobject scope, jobject unlockK
 	auto cppScope = (ECIESEncryptorScope) CC7_JNI_GET_FIELD_INT(scope, scopeClazz, "numericValue");
 	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
 	SignatureUnlockKeys cppUnlockKeys;
-	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
-		return NULL;
+	if (cppScope == ECIES_ActivationScope) {
+		// Convert unlock keys only when activation scope is requested.
+		if (!LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+			return NULL;
+		}
 	}
 
 	// Call Session

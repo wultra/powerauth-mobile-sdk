@@ -179,11 +179,6 @@ public class PowerAuthSDK {
     private PowerAuthSDK() {
     }
 
-    private void throwInvalidConfigurationException() {
-        throw new PowerAuthMissingConfigException("Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
-    }
-
-
     /**
      * Constructs a new private crypto helper object. The method is package-private.
      *
@@ -210,12 +205,14 @@ public class PowerAuthSDK {
 
     /**
      * Checks for valid SessionSetup and throws a PowerAuthMissingConfigException when the provided configuration
-     is not correct or is missing.
+     * is not correct or is missing.
+     *
+     * @throws PowerAuthMissingConfigException if configuration is not valid or is missing.
      */
     private void checkForValidSetup() {
         // Check for the session setup
         if (mSession == null || !mSession.hasValidSetup()) {
-            throwInvalidConfigurationException();
+            throw new PowerAuthMissingConfigException("Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
         }
     }
 
@@ -228,7 +225,14 @@ public class PowerAuthSDK {
         return mSession.normalizeSignatureUnlockKeyFromData(mConfiguration.getFetchKeysStrategy().getPossessionUnlockKey(context).getBytes());
     }
 
-    private SignatureUnlockKeys signatureKeysForAuthentication(Context context, PowerAuthAuthentication authentication) {
+    /**
+     * Converts high level authentication object into low level {@link SignatureUnlockKeys} object.
+     *
+     * @param context android context object
+     * @param authentication authentication object to be converted
+     * @return {@link SignatureUnlockKeys} object with
+     */
+    private @NonNull SignatureUnlockKeys signatureKeysForAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
         // Generate signature key encryption keys
         byte[] possessionKey = null;
         byte[] biometryKey = null;
@@ -254,7 +258,14 @@ public class PowerAuthSDK {
         return new SignatureUnlockKeys(possessionKey, biometryKey, knowledgeKey);
     }
 
-    private int determineSignatureFactorForAuthentication(PowerAuthAuthentication authentication) {
+    /**
+     * Converts signature factors from {@link PowerAuthAuthentication} into numeric constant
+     * usable in low level signature calculation routines.
+     *
+     * @param authentication {@link PowerAuthAuthentication} object with signature factors set.
+     * @return Integer with an appropriate bits set. Each bit represents one signature factor.
+     */
+    private int determineSignatureFactorForAuthentication(@NonNull PowerAuthAuthentication authentication) {
         int factor = 0;
         if (authentication.usePossession) {
             factor |= SignatureFactor.Possession;
@@ -268,11 +279,35 @@ public class PowerAuthSDK {
         return factor;
     }
 
+    /**
+     * Private, defines callback interface for {@link #fetchEncryptedVaultUnlockKey(Context, PowerAuthAuthentication, String, IFetchEncryptedVaultUnlockKeyListener)}
+     * method.
+     */
     private interface IFetchEncryptedVaultUnlockKeyListener {
+        /**
+         * Called after the vault key has been successfully acquired.
+         *
+         * @param encryptedEncryptionKey encrypted vault key
+         */
         void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey);
-        void onFetchEncryptedVaultUnlockKeyFailed(Throwable t);
+
+        /**
+         * Called after the vault key was not acquired from the server.
+         *
+         * @param throwable Cause of the failure
+         */
+        void onFetchEncryptedVaultUnlockKeyFailed(Throwable throwable);
     }
 
+    /**
+     * Private method receives an encrypted vault unlock key from the server.
+     *
+     * @param context android context object
+     * @param authentication authentication object, with at least 2 factors defined.
+     * @param reason reason for vault unlock operation (See {@link VaultUnlockReason})
+     * @param listener private listener called with the operation result.
+     * @return {@link ICancellable} object with asynchronous operation.
+     */
     private @Nullable
     ICancellable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
         // Input validations

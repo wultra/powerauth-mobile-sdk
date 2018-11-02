@@ -360,7 +360,7 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
-		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isMigrationAvailable",	cppStatus.isMigrationAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isMigrationAvailable());
 	}
 	return resultObject;
 }
@@ -724,9 +724,9 @@ CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
 // ----------------------------------------------------------------------------
 
 //
-// public native boolean hasPendingActivationMigration();
+// public native boolean hasPendingProtocolUpgrade();
 //
-CC7_JNI_METHOD(jboolean, hasPendingActivationMigration)
+CC7_JNI_METHOD(jboolean, hasPendingProtocolUpgrade)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {
@@ -737,9 +737,9 @@ CC7_JNI_METHOD(jboolean, hasPendingActivationMigration)
 }
 
 //
-// public native ProtocolVersion getPendingActivationMigrationVersion();
+// public native ProtocolVersion getPendingProtocolUpgradeVersion();
 //
-CC7_JNI_METHOD(jobject, getPendingActivationMigrationVersion)
+CC7_JNI_METHOD(jobject, getPendingProtocolUpgradeVersion)
 {
 	auto session = CC7_THIS_OBJ();
 	Version v;
@@ -752,9 +752,9 @@ CC7_JNI_METHOD(jobject, getPendingActivationMigrationVersion)
 }
 
 //
-// public native int startMigration();
+// public native int startProtocolUpgrade();
 //
-CC7_JNI_METHOD(jint, startMigration)
+CC7_JNI_METHOD(jint, startProtocolUpgrade)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {
@@ -765,9 +765,9 @@ CC7_JNI_METHOD(jint, startMigration)
 }
 
 //
-// public native int applyMigrationData(MigrationData migrationData);
+// public native int applyProtocolUpgradeData(ProtocolUpgradeData protocolUpgradeData);
 //
-CC7_JNI_METHOD_PARAMS(jint, applyMigrationData, jobject md)
+CC7_JNI_METHOD_PARAMS(jint, applyProtocolUpgradeData, jobject md)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {
@@ -776,7 +776,7 @@ CC7_JNI_METHOD_PARAMS(jint, applyMigrationData, jobject md)
 	}
 	// Load parameters into C++ struct
 
-	jclass mdClazz = CC7_JNI_MODULE_FIND_CLASS("MigrationData");
+	jclass mdClazz = CC7_JNI_MODULE_FIND_CLASS("ProtocolUpgradeData");
 	auto cpp_version = (Version) CC7_JNI_GET_FIELD_INT(md, mdClazz, "toVersion");
 
 	MigrationData cpp_md;
@@ -788,9 +788,9 @@ CC7_JNI_METHOD_PARAMS(jint, applyMigrationData, jobject md)
 }
 
 //
-// public native int finishMigration();
+// public native int finishProtocolUpgrade();
 //
-CC7_JNI_METHOD(jint, finishMigration)
+CC7_JNI_METHOD(jint, finishProtocolUpgrade)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {

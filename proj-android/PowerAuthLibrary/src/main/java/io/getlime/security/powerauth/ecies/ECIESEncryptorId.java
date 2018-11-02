@@ -62,10 +62,10 @@ public enum ECIESEncryptorId {
     ActivationPayload(ECIESEncryptorScope.Application, "/pa/activation", false),
 
     /**
-     Constructs a new encryptor for the activation migration purposes. The content encrypted
+     Constructs a new encryptor for the activation upgrade purposes. The content encrypted
      with this object can be decrypted only by the PowerAuth server.
      */
-    MigrationStart(ECIESEncryptorScope.Activation, "/pa/migration", true),
+    UpgradeStart(ECIESEncryptorScope.Activation, "/pa/upgrade", true),
 
     /**
      Constructs a new encryptor for the vault unlock request purposes. The content encrypted

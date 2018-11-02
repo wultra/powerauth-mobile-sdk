@@ -189,8 +189,12 @@ class HttpRequestHelper<TRequest, TResponse> {
 
         // Sign data if requested
         if (needsSignature) {
-            final PowerAuthAuthorizationHttpHeader header = helper.getAuthorizationHeader(requestData, requestMethod, endpoint.getAuthorizationUriId(), authentication);
+            final boolean available = endpoint.isAvailableInProtocolUpgrade();
+            final PowerAuthAuthorizationHttpHeader header = helper.getAuthorizationHeader(available, requestData, requestMethod, endpoint.getAuthorizationUriId(), authentication);
             if (header.getPowerAuthErrorCode() != PowerAuthErrorCodes.PA2Succeed) {
+                if (header.getPowerAuthErrorCode() == PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade) {
+                    throw new PowerAuthErrorException(header.getPowerAuthErrorCode(), "Request is temporarily unavailable, due to pending protocol upgrade.");
+                }
                 throw new PowerAuthErrorException(header.getPowerAuthErrorCode());
             }
             // Keep authorization header

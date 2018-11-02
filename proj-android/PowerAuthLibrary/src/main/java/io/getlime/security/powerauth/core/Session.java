@@ -489,14 +489,27 @@ public class Session {
     public native byte[] generateSignatureUnlockKey();
 
     //
-    // Protocol migration
+    // Protocol upgrade
     //
 
-    public native boolean hasPendingActivationMigration();
+    /**
+     * @return true if session has pending upgrade to a newer protocol version. Note that some
+     *         operations may not be available in this situation.
+     */
+    public native boolean hasPendingProtocolUpgrade();
 
-    public native ProtocolVersion getPendingActivationMigrationVersion();
+    /**
+     * @return {@link ProtocolVersion} enumeration with version to which the session is currently
+     *         upgrading.
+     */
+    public native ProtocolVersion getPendingProtocolUpgradeVersion();
 
-    public native int startMigration();
+    /**
+     * Start protocol upgrade. You should serialize the session's state after this operation.
+     *
+     * @return {@link ErrorCode#OK} if upgrade has been started, or other error constants if not.
+     */
+    public native int startProtocolUpgrade();
 
     /**
      * Applies migration data to the session. You need to construct migration data object
@@ -504,8 +517,18 @@ public class Session {
      *
      * Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      * then the operation succeeded.
+     *
+     * You should serialize the session's state after this operation.
+     *
+     * @param protocolUpgradeData data required for protocol upgrade
+     * @return {@link ErrorCode#OK} if data has been applied, or other error constants if not.
      */
-    public native int applyMigrationData(MigrationData migrationData);
+    public native int applyProtocolUpgradeData(ProtocolUpgradeData protocolUpgradeData);
 
-    public native int finishMigration();
+    /**
+     * Completes the upgrade procedure. You should serialize the session's state after this operation.
+     *
+     * @return {@link ErrorCode#OK} if upgrade has been finished, or other error constants if not.
+     */
+    public native int finishProtocolUpgrade();
 }

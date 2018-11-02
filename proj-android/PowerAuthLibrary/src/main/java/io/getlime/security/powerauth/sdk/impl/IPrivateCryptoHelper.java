@@ -39,6 +39,7 @@ public interface IPrivateCryptoHelper {
     /**
      * Calculates PowerAuth signature for given data.
      *
+     * @param availableInProtocolUpgrade true, if request is available during the protocol upgrade
      * @param body data to be authorized
      * @param method http method (typically POST)
      * @param uriIdentifier URI identifier, required for PowerAuth signature
@@ -47,8 +48,18 @@ public interface IPrivateCryptoHelper {
      */
     @NonNull
     PowerAuthAuthorizationHttpHeader getAuthorizationHeader(
+            boolean availableInProtocolUpgrade,
             @NonNull final byte[] body,
             @NonNull final String method,
             @NonNull final String uriIdentifier,
             @NonNull final PowerAuthAuthentication authentication);
+
+
+    /**
+     * @return Default device related key used for computing the possession factor encryption key.
+     *         Function may return null if the key cannot be computed (typically, when Android
+     *         {@link android.content.Context} object is not available for the crypto helper.
+     */
+    @Nullable
+    byte[] getDeviceRelatedKey();
 }

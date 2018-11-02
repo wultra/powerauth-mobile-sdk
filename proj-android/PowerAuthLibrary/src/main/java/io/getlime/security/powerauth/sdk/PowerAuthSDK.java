@@ -80,6 +80,7 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
+import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
@@ -197,9 +198,20 @@ public class PowerAuthSDK {
 
             @NonNull
             @Override
-            public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(@NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) {
+            public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(boolean availableInProtocolUpgrade, @NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) {
+                if (mSession.hasPendingProtocolUpgrade() && !availableInProtocolUpgrade) {
+                    // Session is in upgrade and endpoint is not available
+                    return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade);
+                }
                 return requestSignatureWithAuthentication(context, authentication, method, uriIdentifier, body);
             }
+
+            @Nullable
+            @Override
+            public byte[] getDeviceRelatedKey() {
+                return context == null ? null : deviceRelatedKey(context);
+            }
+
         };
     }
 
@@ -780,6 +792,35 @@ public class PowerAuthSDK {
         }
     }
 
+    //
+    // Activation Status
+    //
+
+    /**
+     * Contains {@link GetActivationStatusTask} object when there's a pending fetch for an
+     * activation status.
+     */
+    private GetActivationStatusTask mGetActivationStatusTask;
+
+    /**
+     * Contains last fetched {@link ActivationStatus} object.
+     */
+    private ActivationStatus mLastFetchedActivationStatus;
+
+    /**
+     * Return {@link ActivationStatus} recently received from the server. You need to call
+     * {@link #fetchActivationStatusWithCallback(Context, IActivationStatusListener)} method to
+     * update result from this method.
+     *
+     * @return {@link ActivationStatus} object recently received from the server or null, if
+     *         there's no activation, or status was not received yet.
+     */
+    public @Nullable ActivationStatus getLastFetchedActivationStatus() {
+        synchronized (this) {
+            return mLastFetchedActivationStatus;
+        }
+    }
+
     /**
      * Fetch the activation status for current activation.
      * <p>
@@ -805,40 +846,88 @@ public class PowerAuthSDK {
             return null;
         }
 
-        // Execute request
-        final ActivationStatusRequest request = new ActivationStatusRequest();
-        request.setActivationId(mSession.getActivationIdentifier());
+        // Cancelable object returned to the application
+        ICancelable task = null;
 
-        return mClient.post(
-                request,
-                new GetActivationStatusEndpoint(),
-                getCryptoHelper(context),
-                new INetworkResponseListener<ActivationStatusResponse>() {
+        synchronized (this) {
+            if (mGetActivationStatusTask != null) {
+                // There's already some pending task, try to add this listener to it.
+                task = mGetActivationStatusTask.addActivationStatusListener(listener);
+                if (task == null) {
+                    // Looks like the current task is already exiting. We need to create a new one
+                    mGetActivationStatusTask = null;
+                }
+            }
+            if (mGetActivationStatusTask == null) {
+                // Create a new GetActivationStatusTask() object
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession, new GetActivationStatusTask.ICompletionListener() {
                     @Override
-                    public void onNetworkResponse(ActivationStatusResponse response) {
-                        // Network communication completed correctly
-                        // Prepare unlocking key (possession factor only)
-                        final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                        // Attempt to decode the activation status
-                        final ActivationStatus activationStatus = mSession.decodeActivationStatus(response.getEncryptedStatusBlob(), keys);
-                        if (activationStatus != null) {
-                            // Everything was OK
-                            listener.onActivationStatusSucceed(activationStatus);
-                        } else {
-                            // Error occurred when decoding status
-                            listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-                        }
+                    public void onSessionStateChange() {
+                        saveSerializedState();
+                    }
+                    @Override
+                    public void onSuccess(@NonNull GetActivationStatusTask task, @NonNull ActivationStatus status) {
+                        completeGetActivationStatusTask(task, status);
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
-                        listener.onActivationStatusFailed(t);
-                    }
-
-                    @Override
-                    public void onCancel() {
+                    public void onFailure(@NonNull GetActivationStatusTask task) {
+                        completeGetActivationStatusTask(task, null);
                     }
                 });
+                // Apply "disable" flag to task
+                mGetActivationStatusTask.setUpgradeDisabled(mConfiguration.isAutomaticProtocolUpgradeDisabled());
+                // And finally assign that task
+                task = mGetActivationStatusTask.addActivationStatusListener(listener);
+                mGetActivationStatusTask.execute();
+            }
+        }
+
+        return task;
+    }
+
+    /**
+     * Complete pending {@link GetActivationStatusTask} with received status. The method safely clears
+     * private {@link #mGetActivationStatusTask} property and updates {@link #mLastFetchedActivationStatus}
+     * if status has been really received.
+     *
+     * @param task task being completed
+     * @param status fetched status
+     */
+    private void completeGetActivationStatusTask(@Nullable GetActivationStatusTask task, @Nullable ActivationStatus status) {
+        synchronized (this) {
+            final boolean updateLastStatus;
+            if (task == mGetActivationStatusTask) {
+                // Regular processing, only one task was scheduled and it just finished.
+                mGetActivationStatusTask = null;
+                updateLastStatus = true;
+            } else {
+                // If mGetActivationStatusTask is null, then it means that last status task has been cancelled.
+                // In this case, we should not update the objects.
+                // If there's a different PA2GetActivationStatusTask object, then that means
+                // that during the finishing our batch, was scheduled the next one. In this situation
+                // we still can keep the last received objects, because there was no cancel, or reset.
+                updateLastStatus = mGetActivationStatusTask != null;
+            }
+            if (updateLastStatus && status != null) {
+                // It's safe to update last fetched status.
+                mLastFetchedActivationStatus = status;
+            }
+        }
+    }
+
+    /**
+     * Cancels possible pending {@link GetActivationStatusTask}. The method should be called
+     * only in rare cases, like when SDK object is going to reset its local state.
+     */
+    private void cancelGetActivationStatusTask() {
+        synchronized (this) {
+            if (mGetActivationStatusTask != null) {
+                mGetActivationStatusTask.cancel();
+                mGetActivationStatusTask = null;
+            }
+            mLastFetchedActivationStatus = null;
+        }
     }
 
     /**
@@ -940,6 +1029,8 @@ public class PowerAuthSDK {
         mSession.resetSession();
         // Serialize will notify state listener
         saveSerializedState();
+        // Cancel possible pending activation status task
+        cancelGetActivationStatusTask();
     }
 
     /**

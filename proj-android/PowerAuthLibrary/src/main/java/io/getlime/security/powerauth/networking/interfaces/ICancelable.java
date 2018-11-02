@@ -17,9 +17,9 @@
 package io.getlime.security.powerauth.networking.interfaces;
 
 /**
- * The {@code ICancellable} interface provides simple interface for cancelling the task.
+ * The {@code ICancelable} interface provides simple interface for cancelling the task.
  */
-public interface ICancellable {
+public interface ICancelable {
 
     /**
      * Attempt to cancel execution of the task.

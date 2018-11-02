@@ -31,7 +31,7 @@ import io.getlime.security.powerauth.keychain.PA2Keychain;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveTokenEndpoint;
-import io.getlime.security.powerauth.networking.interfaces.ICancellable;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
@@ -111,9 +111,10 @@ public class PowerAuthTokenStore {
      * @param tokenName Name of requested token.
      * @param authentication An authentication instance specifying what factors should be used for token creation.
      * @param listener Listener with callbacks to receive a token.
-     * @return {@link ICancellable} object associated with the running HTTP request or null if request has been processed synchronously.
+     * @return {@link ICancelable} object associated with the running HTTP request or null if request has been processed synchronously.
      */
-    public @Nullable ICancellable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
+    public @Nullable
+    ICancelable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
 
         Throwable error = null;
         PowerAuthPrivateTokenData tokenData = null;
@@ -179,9 +180,10 @@ public class PowerAuthTokenStore {
      * @param context Context
      * @param tokenName Name of token to be removed
      * @param listener Listener with callbacks.
-     * @return {@code ICancellable} associated with the running server request or null in case of error.
+     * @return {@code ICancelable} associated with the running server request or null in case of error.
      */
-    public @Nullable ICancellable removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
+    public @Nullable
+    ICancelable removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
 
         Throwable error = null;
         PowerAuthPrivateTokenData tokenData;

@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import java.util.concurrent.Executor;
 
-import io.getlime.security.powerauth.networking.interfaces.ICancellable;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
@@ -51,10 +51,10 @@ public class HttpClient {
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
      * @param listener response listener
-     * @return {@link ICancellable} object which allows application cancel the pending operation
+     * @return {@link ICancelable} object which allows application cancel the pending operation
      */
     @NonNull
-    public <TRequest, TResponse> ICancellable post(
+    public <TRequest, TResponse> ICancelable post(
             @Nullable TRequest object,
             @NonNull IEndpointDefinition<TResponse> endpoint,
             @NonNull IPrivateCryptoHelper helper,
@@ -72,10 +72,10 @@ public class HttpClient {
      * @param listener response listener
      * @param <TRequest> type of request object
      * @param <TResponse> type of response object
-     * @return {@link ICancellable} object which allows application cancel the pending operation
+     * @return {@link ICancelable} object which allows application cancel the pending operation
      */
     @NonNull
-    public <TRequest, TResponse> ICancellable post(
+    public <TRequest, TResponse> ICancelable post(
             @Nullable TRequest object,
             @NonNull IEndpointDefinition<TResponse> endpoint,
             @NonNull IPrivateCryptoHelper helper,

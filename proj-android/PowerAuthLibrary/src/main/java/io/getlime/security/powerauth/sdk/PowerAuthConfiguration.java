@@ -66,6 +66,14 @@ public class PowerAuthConfiguration {
     private IFetchKeysStrategy fetchKeysStrategy;
 
     /**
+     If set to true, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     This option should be used only for the testing purposes.
+
+     Default and recommended value is false.
+     */
+    private boolean disableAutomaticProtocolUpgrade;
+
+    /**
      * Constant for default PowerAuthSDK instance identifier.
      */
     public static final String DEFAULT_INSTANCE_ID = "defaultPowerAuthInstance";
@@ -101,6 +109,10 @@ public class PowerAuthConfiguration {
         return fetchKeysStrategy;
     }
 
+    public boolean isAutomaticProtocolUpgradeDisabled() {
+        return disableAutomaticProtocolUpgrade;
+    }
+
     public boolean validateConfiguration() {
         boolean result = appKey != null;
         result = result && appSecret != null;
@@ -119,6 +131,7 @@ public class PowerAuthConfiguration {
         private IFetchKeysStrategy fetchKeysStrategy;
         // optional
         private byte[] externalEncryptionKey = null;
+        private boolean disableAutomaticProtocolUpgrade = false;
 
         public Builder(@Nullable String instanceId, @NonNull String baseEndpointUrl, @NonNull String appKey, @NonNull String appSecret, @NonNull String masterServerPublicKey) {
             this(instanceId, baseEndpointUrl, appKey, appSecret, masterServerPublicKey, new DefaultFetchKeysStrategy());
@@ -142,6 +155,11 @@ public class PowerAuthConfiguration {
             return this;
         }
 
+        public Builder disableAutomaticProtocolUpgrade() {
+            this.disableAutomaticProtocolUpgrade = true;
+            return this;
+        }
+
         public PowerAuthConfiguration build() {
             final PowerAuthConfiguration powerAuthConfiguration = new PowerAuthConfiguration();
             powerAuthConfiguration.instanceId = instanceId;
@@ -151,6 +169,7 @@ public class PowerAuthConfiguration {
             powerAuthConfiguration.masterServerPublicKey = masterServerPublicKey;
             powerAuthConfiguration.externalEncryptionKey = externalEncryptionKey;
             powerAuthConfiguration.fetchKeysStrategy = fetchKeysStrategy;
+            powerAuthConfiguration.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
 
             return powerAuthConfiguration;
         }

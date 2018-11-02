@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+import java.util.Map;
+
 public class ActivationStatus {
     /**
      The activation is just created.
@@ -82,10 +84,15 @@ public class ActivationStatus {
     public final ProtocolVersion upgradeVersion;
 
     /**
-     Contains true, if migration to newer activation data is available.
+     Contains true, if protocol upgrade to newer activation data is available.
      */
-    public final boolean isMigrationAvailable;
+    public final boolean isUpgradeAvailable;
 
+    /**
+     Contains custom object received from the server together with the status. The value is optional
+     and the server's implementation must support it.
+     */
+    private Map<String, Object> customObject;
 
     // Constructor
 
@@ -96,6 +103,22 @@ public class ActivationStatus {
         this.maxFailCount = 0;
         this.currentVersion = ProtocolVersion.NA;
         this.upgradeVersion = ProtocolVersion.NA;
-        this.isMigrationAvailable = false;
+        this.isUpgradeAvailable = false;
+        this.customObject = null;
+    }
+
+
+    /**
+     * @param customObject custom object to set
+     */
+    public void setCustomObject(Map<String, Object> customObject) {
+        this.customObject = customObject;
+    }
+
+    /**
+     * @return custom dictionary received from the server together with the status.
+     */
+    public Map<String, Object> getCustomObject() {
+        return customObject;
     }
 }

@@ -7,7 +7,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -15,8 +14,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.networking.interfaces.ICancellable;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
@@ -26,7 +24,7 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
  * The {@code ClientTask} class implements an actual HTTP request & response processing, with using
  * {@link AsyncTask} infrastructure.
  */
-class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TResponse> implements ICancellable {
+class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TResponse> implements ICancelable {
 
     private final HttpRequestHelper<TRequest, TResponse> httpRequestHelper;
     private final String baseUrl;
@@ -84,6 +82,10 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
     @Override
     protected TResponse doInBackground(TRequest... tRequests) {
         try {
+            if (isCancelled()) {
+                return null;
+            }
+
             // Prepare request data
             HttpRequestHelper.RequestData requestData = httpRequestHelper.buildRequest(baseUrl, cryptoHelper);
 
@@ -125,13 +127,25 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             urlConnection.getOutputStream().write(requestData.body);
             urlConnection.connect();
 
+            if (isCancelled()) {
+                return null;
+            }
+
             // Get response code & try to get response body
             final int responseCode = urlConnection.getResponseCode();
             final boolean responseOk = responseCode / 100 == 2;
 
+            if (isCancelled()) {
+                return null;
+            }
+
             // Get response bytes from input stream
             final InputStream inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
             final byte[] responseData = loadBytesFromInputStream(inputStream);
+
+            if (isCancelled()) {
+                return null;
+            }
 
             // Try to deserialize response
             TResponse response = httpRequestHelper.buildResponse(responseCode, responseData);

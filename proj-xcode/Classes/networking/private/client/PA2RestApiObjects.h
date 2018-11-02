@@ -29,4 +29,4 @@
 #import "PA2VaultUnlockResponse.h"
 #import "PA2GetTokenResponse.h"
 #import "PA2EncryptedResponse.h"
-#import "PA2MigrationStartV3Response.h"
+#import "PA2UpgradeStartV3Response.h"

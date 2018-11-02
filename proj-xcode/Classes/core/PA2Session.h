@@ -15,7 +15,7 @@
  */
 
 #import "PA2Types.h"
-#import "PA2MigrationData.h"
+#import "PA2ProtocolUpgradeData.h"
 #import "PA2SessionStatusProvider.h"
 
 @interface PA2Session : NSObject<PA2SessionStatusProvider>
@@ -79,10 +79,10 @@
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
 /**
- Contains YES if the session has pending migration to newer protocol version.
- Some operations may be temporarily blocked during the migration process.
+ Contains YES if the session has pending upgrade to newer protocol version.
+ Some operations may be temporarily blocked during the upgrade process.
  */
-@property (nonatomic, assign, readonly) BOOL hasPendingActivationMigration;
+@property (nonatomic, assign, readonly) BOOL hasPendingProtocolUpgrade;
 /**
  Contains version of protocol in which the session currently operates. If session has no activation,
  then the most up to date version is returned.
@@ -472,43 +472,43 @@
 + (nonnull NSData*) generateSignatureUnlockKey;
 
 
-#pragma mark - Protocol migration
+#pragma mark - Protocol upgrade
 
 /**
- Formally starts the protocol migration to a newer version. The function only sets flag
- indicating that migration is in progress. You should serialize an activation status
+ Formally starts the protocol upgrade to a newer version. The function only sets flag
+ indicating that upgrade is in progress. You should serialize an activation status
  after this call.
  
- Returns YES if migration has been started.
+ Returns YES if upgrade has been started.
  */
-- (BOOL) startMigration;
+- (BOOL) startProtocolUpgrade;
 
 /**
- Determines which version of the protocol is the session being migrated to.
+ Determines which version of the protocol is the session being upgraded to.
  
- Retuns protocol version or `PA2ProtocolVersion_NA` if there's no migration, or session
+ Retuns protocol version or `PA2ProtocolVersion_NA` if there's no upgrade, or session
  has no activation.
  */
-@property (nonatomic, assign, readonly) PA2ProtocolVersion pendingActivationMigrationVersion;
+@property (nonatomic, assign, readonly) PA2ProtocolVersion pendingProtocolUpgradeVersion;
 
 /**
- Applies migration data to the session. The version of migration data is determined by the
- object you provide. Currently, only `PA2MigrationDataV3` is supported.
+ Applies upgrade data to the session. The version of data is determined by the
+ object you provide. Currently, only `PA2ProtocolUpgradeDataV3` is supported.
  
- Returns YES if session has been successfully migrated.
+ Returns YES if session has been successfully upgraded.
  */
-- (BOOL) applyMigrationData:(nonnull id<PA2MigrationData>)migrationData;
+- (BOOL) applyProtocolUpgradeData:(nonnull id<PA2ProtocolUpgradeData>)upgradeData;
 
 
 /**
- Formally ends the protocol migration. The function resets flag indicating that migration
- to the next protocol version is in progress. The reset is possible only if the migration
+ Formally ends the protocol upgrade. The function resets flag indicating that upgrade
+ to the next protocol version is in progress. The reset is possible only if the upgrade
  was successful (e.g. when migrating to V3, the protocol version is now V3)
  
  You should serialize an activation status ater this call.
  
- Returns YES if migration has been finished successfully.
+ Returns YES if upgrade has been finished successfully.
  */
-- (BOOL) finishMigration;
+- (BOOL) finishProtocolUpgrade;
 
 @end

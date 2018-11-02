@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import "PA2UpgradeStartV3Response.h"
+#import "PA2PrivateMacros.h"
 
-/**
- Object contains response received from "/pa/v3/migration/start" endpoint
- */
-@interface PA2MigrationStartV3Response : NSObject<PA2Decodable>
+@implementation PA2UpgradeStartV3Response
 
-/**
- Initial value for hash-based counter.
- */
-@property (nonatomic, strong) NSString * ctrData;
+- (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_ctrData = PA2ObjectAs(dictionary[@"ctrData"], NSString);
+	}
+	return self;
+}
 
 @end
-

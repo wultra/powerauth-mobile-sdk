@@ -400,10 +400,10 @@ static PowerAuthSDK * s_inst;
 	return _session.hasValidActivation;
 }
 
-- (BOOL) hasPendingActivationMigration
+- (BOOL) hasPendingProtocolUpgrade
 {
 	[self checkForValidSetup];
-	return _session.hasPendingActivationMigration;
+	return _session.hasPendingProtocolUpgrade;
 }
 
 
@@ -723,7 +723,7 @@ static PowerAuthSDK * s_inst;
 																	  } completion:^(PA2GetActivationStatusTask * task, PA2ActivationStatus* status, NSDictionary* customObject, NSError* error) {
 																		  [weakSelf completeActivationStatusTask:task status:status customObject:customObject error:error];
 																	  }];
-			_getStatusTask.disableMigration = _configuration.disableAutomaticProtocolUpgrade;
+			_getStatusTask.disableUpgrade = _configuration.disableAutomaticProtocolUpgrade;
 			[_getStatusTask addChildTask:childTask];
 			[_getStatusTask execute];
 		}
@@ -856,7 +856,7 @@ static PowerAuthSDK * s_inst;
 															  body:(NSData*)body
 															 error:(NSError**)error
 {
-	if (self.hasPendingActivationMigration) {
+	if (self.hasPendingProtocolUpgrade) {
 		if (error) *error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Data signing is temporarily unavailable, due to pending protocol upgrade.");
 		return nil;
 	}
@@ -881,7 +881,7 @@ static PowerAuthSDK * s_inst;
 		return nil;
 	}
 	
-	if (self.hasPendingActivationMigration) {
+	if (self.hasPendingProtocolUpgrade) {
 		if (error) *error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Offline data signing is temporarily unavailable, due to pending protocol upgrade.");
 		return nil;
 	}

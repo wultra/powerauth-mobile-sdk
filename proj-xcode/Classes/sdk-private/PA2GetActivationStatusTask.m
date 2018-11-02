@@ -60,8 +60,8 @@
 	BOOL _isCancelled;
 	BOOL _exiting;
 	
-	// Migration data
-	NSInteger _migrationAttempts;
+	// Upgrade attempts
+	NSInteger _upgradeAttempts;
 }
 
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
@@ -79,7 +79,7 @@
 		_childOperations = [NSMutableArray array];
 		_sessionChange = sessionChange;
 		_completion = completion;
-		_migrationAttempts = 3;
+		_upgradeAttempts = 3;
 	}
 	return self;
 }
@@ -100,23 +100,23 @@
 
 - (void) execute
 {
-	[self fetchActivationStatusAndTestMigration];
+	[self fetchActivationStatusAndTestUpgrade];
 }
 
 
 /**
- Performs getting status from the server and starts activation migration, if possible.
+ Performs getting status from the server and starts protocol upgrade, if possible.
  */
-- (void) fetchActivationStatusAndTestMigration
+- (void) fetchActivationStatusAndTestUpgrade
 {
 	[self fetchActivationStatus:^(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error) {
-		if (status.isMigrationAvailable || _session.hasPendingActivationMigration) {
-			if (!_disableMigration) {
-				// If migration is available, then simply switch to migration code.
-				[self continueMigrationWith:status customObject:customObject];
+		if (status.isProtocolUpgradeAvailable || _session.hasPendingProtocolUpgrade) {
+			if (!_disableUpgrade) {
+				// If protocol upgrade is available, then simply switch to upgrade code.
+				[self continueUpgradeWith:status customObject:customObject];
 				return;
 			}
-			PA2Log(@"WARNING: Migration to newer protocol version is disabled.");
+			PA2Log(@"WARNING: Upgrade to newer protocol version is disabled.");
 		}
 		// Otherwise return the result as usual.
 		[self reportCompletionWithStatus:status customObject:customObject error:error];
@@ -159,24 +159,24 @@
 }
 
 
-#pragma mark - Activation migration
+#pragma mark - Protocol upgrade
 
-- (void) continueMigrationWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
+- (void) continueUpgradeWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
 {
 	// Keep status objects for delayed processing.
 	_receivedStatus = status;
 	_receivedCustomObject = customObject;
 	
-	// Check whether we reached maximum attempts for migration
-	if (_migrationAttempts-- > 0) {
-		[self continueMigrationToV3:status];
+	// Check whether we reached maximum attempts for upgrade
+	if (_upgradeAttempts-- > 0) {
+		[self continueUpgradeToV3:status];
 	} else {
 		NSError * error = PA2MakeError(PA2ErrorCodeNetworkError, @"Number of upgrade attemps reached its maximum.");
 		[self reportCompletionWithStatus:nil customObject:nil error:error];
 	}
 }
 
-- (void) continueMigrationToV3:(PA2ActivationStatus*)status
+- (void) continueUpgradeToV3:(PA2ActivationStatus*)status
 {
 	PA2ProtocolVersion serverVersion = status.currentActivationVersion;
 	PA2ProtocolVersion localVersion = _session.protocolVersion;
@@ -184,14 +184,14 @@
 	if (serverVersion == PA2ProtocolVersion_V2) {
 		
 		// Server is still on V2 version, so we need to determine how to continue.
-		// At first, we should check whether the migration was started, because this
-		// continue method must handle all possible migration states.
+		// At first, we should check whether the upgrade was started, because this
+		// continue method must handle all possible upgrade states.
 		
-		if (_session.pendingActivationMigrationVersion == PA2ProtocolVersion_NA) {
-			// Migration has not been started yet.
-			PA2Log(@"Migration: Starting activation migration to protocol V3.");
-			if (NO == [_session startMigration]) {
-				NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to start activation migration.");
+		if (_session.pendingProtocolUpgradeVersion == PA2ProtocolVersion_NA) {
+			// Upgrade has not been started yet.
+			PA2Log(@"Upgrade: Starting upgrade to protocol V3.");
+			if (NO == [_session startProtocolUpgrade]) {
+				NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to start protocol upgrade.");
 				[self reportCompletionWithStatus:nil customObject:nil error:error];
 				return;
 			}
@@ -200,43 +200,43 @@
 		
 		// Now lets test current local protocol version
 		if (localVersion == PA2ProtocolVersion_V2) {
-			// Looks like we didn't start migration on the server, or the request
+			// Looks like we didn't start upgrade on the server, or the request
 			// didn't finish. In other words, we still don't have the CTR_DATA locally.
-			[self startMigrationToV3];
+			[self startUpgradeToV3];
 			return;
 			
 		} else if (localVersion == PA2ProtocolVersion_V3) {
 			// We already have CTR_DATA, but looks like server didn't receive our "commit" message.
 			// This is because server's version is still in V2.
-			[self commitMigrationToV3];
+			[self commitUpgradeToV3];
 			return;
 			
 		}
 		
 		// Current local version is unknown. This should never happen, unless there's
-		// a new protocol version and migration routine is not updated.
-		// This branch will report "Internal migration error"
+		// a new protocol version and upgrade routine is not updated.
+		// This branch will report "Internal protocol upgrade error"
 		
 	} else if (serverVersion == PA2ProtocolVersion_V3) {
 		
 		// Server is already on V3 version, check the local version
 		if (localVersion == PA2ProtocolVersion_V2) {
 			// This makes no sense. Server is in V3, but the client is still in V2.
-			NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Server-Client protocol version mish-mash.");
+			NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Server-Client protocol version mishmash.");
 			[self reportCompletionWithStatus:nil customObject:nil error:error];
 			return;
 			
 		} else if (localVersion == PA2ProtocolVersion_V3) {
 			// Server is in V3, local version is in V3
-			PA2ProtocolVersion pendingMigrationVersion = _session.pendingActivationMigrationVersion;
-			if (pendingMigrationVersion == PA2ProtocolVersion_V3) {
-				// Looks like we need to just finish the migration. Server and our local session
-				// are already on V3, but pending flag indicates, that we're still in migration.
-				[self finisMigrationToV3];
+			PA2ProtocolVersion pendingUpgradeVersion = _session.pendingProtocolUpgradeVersion;
+			if (pendingUpgradeVersion == PA2ProtocolVersion_V3) {
+				// Looks like we need to just finish the upgrade. Server and our local session
+				// are already on V3, but pending flag indicates, that we're still in upgrade.
+				[self finisUpgradeToV3];
 				return;
 				
-			} else if (pendingMigrationVersion == PA2ProtocolVersion_NA) {
-				// Server's in V3, client's in V3, no pending migration.
+			} else if (pendingUpgradeVersion == PA2ProtocolVersion_NA) {
+				// Server's in V3, client's in V3, no pending upgrade.
 				// This is weird, but we can just report the result.
 				[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
 				return;
@@ -244,8 +244,8 @@
 		}
 		
 		// Current local version is unknown. This should never happen, unless there's
-		// a new protocol version and migration routine is not updated.
-		// This branch will also report "Internal migration error"
+		// a new protocol version and upgrade routine is not updated.
+		// This branch will also report "Internal protocol upgrade error"
 		
 	} else {
 		// Server's version is unknown.
@@ -254,68 +254,68 @@
 		return;
 	}
 	
-	NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Internal migration error.");
+	NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Internal protocol upgrade error.");
 	[self reportCompletionWithStatus:nil customObject:nil error:error];
 }
 
-- (void) startMigrationToV3
+- (void) startUpgradeToV3
 {
 	_currentOperation = [_client postObject:nil
-										 to:[PA2RestApiEndpoint migrationStartV3]
+										 to:[PA2RestApiEndpoint upgradeStartV3]
 								 completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-									 // Response from start migration request
+									 // Response from start upgrade request
 									 if (status == PA2RestResponseStatus_OK) {
-										 PA2MigrationStartV3Response * ro = response;
-										 PA2MigrationDataV3 * v3data = [[PA2MigrationDataV3 alloc] init];
+										 PA2UpgradeStartV3Response * ro = response;
+										 PA2ProtocolUpgradeDataV3 * v3data = [[PA2ProtocolUpgradeDataV3 alloc] init];
 										 v3data.ctrData = ro.ctrData;
-										 if ([_session applyMigrationData:v3data]) {
+										 if ([_session applyProtocolUpgradeData:v3data]) {
 											 // Everything looks fine, we can continue with commit on server.
 											 // Since this change, we can sign requests with V3 signatures
 											 // and local protocol version is bumped to V3.
 											 [self serializeSessionState];
-											 [self commitMigrationToV3];
+											 [self commitUpgradeToV3];
 											 
 										 } else {
-											 // The PA2Session did reject our migration data.
-											 NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to apply migration data.");
+											 // The PA2Session did reject our upgrade data.
+											 NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to apply protocol upgrade data.");
 											 [self reportCompletionWithStatus:nil customObject:nil error:error];
 										 }
 									 } else {
-										 // Migration start failed. This might be a temporary problem with the network,
+										 // Upgrade start failed. This might be a temporary problem with the network,
 										 // so try to repeat everything.
-										 [self fetchActivationStatusAndTestMigration];
+										 [self fetchActivationStatusAndTestUpgrade];
 									 }
 								 }];
 }
 
-- (void) commitMigrationToV3
+- (void) commitUpgradeToV3
 {
 	_currentOperation = [_client postObject:nil
-										 to:[PA2RestApiEndpoint migrationCommitV3]
+										 to:[PA2RestApiEndpoint upgradeCommitV3]
 									   auth:[PowerAuthAuthentication possession]
 								 completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
 									 // HTTP request completion
 									 if (status == PA2RestResponseStatus_OK) {
-										 // Everything looks fine, just finish the migration.
-										 [self finisMigrationToV3];
+										 // Everything looks fine, just finish the upgrade.
+										 [self finisUpgradeToV3];
 									 } else {
-										 // Migration start failed. This might be a temporary problem with the network,
+										 // Upgrade start failed. This might be a temporary problem with the network,
 										 // so try to repeat everything.
-										 [self fetchActivationStatusAndTestMigration];
+										 [self fetchActivationStatusAndTestUpgrade];
 									 }
 								 }];
 }
 
-- (void) finisMigrationToV3
+- (void) finisUpgradeToV3
 {
-	if ([_session finishMigration]) {
-		PA2Log(@"Migration: Activation was successfully migrated to protocol V3.");
+	if ([_session finishProtocolUpgrade]) {
+		PA2Log(@"Upgrade: Activation was successfully upgraded to protocol V3.");
 		// Everything looks fine, we can report previously cached status
 		[self serializeSessionState];
 		[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
 		
 	} else {
-		NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to finish migration process.");
+		NSError * error = PA2MakeError(PA2ErrorCodeProtocolUpgrade, @"Failed to finish protocol upgrade process.");
 		[self reportCompletionWithStatus:nil customObject:nil error:error];
 	}
 }

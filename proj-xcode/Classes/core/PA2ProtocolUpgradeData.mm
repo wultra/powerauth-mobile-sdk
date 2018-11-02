@@ -18,13 +18,13 @@
 
 #pragma mark - V3 data -
 
-@implementation PA2MigrationDataV3
+@implementation PA2ProtocolUpgradeDataV3
 @end
 
-@interface PA2MigrationDataV3 (Private) <PA2MigrationDataPrivate>
+@interface PA2ProtocolUpgradeDataV3 (Private) <PA2ProtocolUpgradeDataPrivate>
 @end
 
-@implementation PA2MigrationDataV3 (Private)
+@implementation PA2ProtocolUpgradeDataV3 (Private)
 
 - (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref
 {

@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Codable.h"
 
 /**
- The `PA2MigrationData` protocol defines abstract interface for providing
- data for protocol migration.
+ Object contains response received from "/pa/v3/upgrade/start" endpoint
  */
-@protocol PA2MigrationData <NSObject>
-@end
+@interface PA2UpgradeStartV3Response : NSObject<PA2Decodable>
 
 /**
- The `PA2MigrationDataV3` object contains data required for protocol migration
- from version 2 to version 3.
- */
-@interface PA2MigrationDataV3 : NSObject<PA2MigrationData>
-
-/**
- Contains initial value for hash-based counter. The Base64 string is expected
- with exact 16 bytes long encoded data.
+ Initial value for hash-based counter.
  */
 @property (nonatomic, strong) NSString * ctrData;
 
 @end
+

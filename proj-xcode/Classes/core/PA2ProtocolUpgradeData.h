@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-#import "PA2MigrationStartV3Response.h"
-#import "PA2PrivateMacros.h"
+#import <Foundation/Foundation.h>
 
-@implementation PA2MigrationStartV3Response
+/**
+ The `PA2ProtocolUpgradeData` protocol defines abstract interface for providing
+ data for protocol upgrade.
+ */
+@protocol PA2ProtocolUpgradeData <NSObject>
+@end
 
-- (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
-{
-	self = [super init];
-	if (self) {
-		_ctrData = PA2ObjectAs(dictionary[@"ctrData"], NSString);
-	}
-	return self;
-}
+/**
+ The `PA2ProtocolUpgradeDataV3` object contains data required for protocol upgrade
+ from version 2 to version 3.
+ */
+@interface PA2ProtocolUpgradeDataV3 : NSObject<PA2ProtocolUpgradeData>
+
+/**
+ Contains initial value for hash-based counter. The Base64 string is expected
+ with exact 16 bytes long encoded data.
+ */
+@property (nonatomic, strong) NSString * ctrData;
 
 @end

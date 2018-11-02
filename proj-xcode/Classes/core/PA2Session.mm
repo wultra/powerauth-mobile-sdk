@@ -109,7 +109,7 @@ using namespace io::getlime::powerAuth;
 	return _session->hasValidActivation();
 }
 
-- (BOOL) hasPendingActivationMigration
+- (BOOL) hasPendingProtocolUpgrade
 {
 	return _session->hasPendingActivationMigration();
 }
@@ -405,40 +405,40 @@ using namespace io::getlime::powerAuth;
 }
 
 
-#pragma mark - Protocol migration
+#pragma mark - Protocol upgrade
 
-- (BOOL) startMigration
+- (BOOL) startProtocolUpgrade
 {
 	ErrorCode error = _session->startMigration();
-	PA2Objc_DebugDumpError(self, @"StartMigration", error);
+	PA2Objc_DebugDumpError(self, @"StartProtocolUpgrade", error);
 	return error == EC_Ok;
 }
 
-- (PA2ProtocolVersion) pendingActivationMigrationVersion
+- (PA2ProtocolVersion) pendingProtocolUpgradeVersion
 {
 	return (PA2ProtocolVersion) _session->pendingActivationMigrationVersion();
 }
 
-- (BOOL) applyMigrationData:(id<PA2MigrationData>)migrationDataObject
+- (BOOL) applyProtocolUpgradeData:(nonnull id<PA2ProtocolUpgradeData>)upgradeData
 {
 	ErrorCode error;
-	if ([migrationDataObject conformsToProtocol:@protocol(PA2MigrationDataPrivate)]) {
-		id<PA2MigrationDataPrivate> migrationData = (id<PA2MigrationDataPrivate>)migrationDataObject;
+	if ([upgradeData conformsToProtocol:@protocol(PA2ProtocolUpgradeDataPrivate)]) {
+		id<PA2ProtocolUpgradeDataPrivate> upgradeDataObject = (id<PA2ProtocolUpgradeDataPrivate>)upgradeData;
 		// Convert data to C++ & commit to underlying session
 		MigrationData cpp_migration_data;
-		[migrationData setupStructure:cpp_migration_data];
+		[upgradeDataObject setupStructure:cpp_migration_data];
 		error = _session->applyMigrationData(cpp_migration_data);
 	} else {
 		error = EC_WrongParam;
 	}
-	PA2Objc_DebugDumpError(self, @"ApplyMigrationData", error);
+	PA2Objc_DebugDumpError(self, @"ApplyProtocolUpgradeData", error);
 	return error == EC_Ok;
 }
 
-- (BOOL) finishMigration
+- (BOOL) finishProtocolUpgrade
 {
 	ErrorCode error = _session->finishMigration();
-	PA2Objc_DebugDumpError(self, @"FinishMigration", error);
+	PA2Objc_DebugDumpError(self, @"FinishProtocolUpgrade", error);
 	return error == EC_Ok;
 }
 

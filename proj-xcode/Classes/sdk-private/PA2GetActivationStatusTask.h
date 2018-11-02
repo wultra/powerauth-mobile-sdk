@@ -23,7 +23,7 @@
 
 /**
  The `PA2GetActivationStatusTask` class implements getting activation status from the server
- and the protocol migration. The migration is started automatically, depending on the
+ and the protocol upgrade. The upgrade is started automatically, depending on the
  local and server's state of the activation.
  */
 @interface PA2GetActivationStatusTask : NSObject<PA2OperationTask>
@@ -45,9 +45,9 @@
 			   completion:(void(^)(PA2GetActivationStatusTask*, PA2ActivationStatus*, NSDictionary*, NSError*))completion;
 
 /**
- Set to YES after task is constructed, to disable protocol migration
+ Set to YES after task is constructed, to disable protocol upgrade
  */
-@property (nonatomic, assign) BOOL disableMigration;
+@property (nonatomic, assign) BOOL disableUpgrade;
 
 /**
  Adds new child task to this object.

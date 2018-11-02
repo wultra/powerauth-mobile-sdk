@@ -31,8 +31,8 @@
  */
 @property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
 /**
- Contains YES if migration to a newer activation version is available.
+ Contains YES if upgrade to a newer protocol version is available.
  */
-@property (nonatomic, assign, readonly) BOOL isMigrationAvailable;
+@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
 
 @end

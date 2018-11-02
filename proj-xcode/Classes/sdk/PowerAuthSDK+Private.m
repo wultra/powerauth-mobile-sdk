@@ -34,7 +34,7 @@
 											authentication:(PowerAuthAuthentication*)authentication
 													 error:(NSError**)error
 {
-	if (self.hasPendingActivationMigration) {
+	if (self.hasPendingProtocolUpgrade) {
 		if (!endpoint.isAvailableInProtocolUpgrade) {
 			if (error) {
 				*error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Request is temporarily unavailable, due to pending protocol upgrade.");

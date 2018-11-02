@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BF20075E215A5DEF001F3614 /* PA2MigrationData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2MigrationData.mm */; };
+		BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
 		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
@@ -123,8 +123,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		BF20075C215A5DEF001F3614 /* PA2MigrationData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2MigrationData.h; sourceTree = "<group>"; };
-		BF20075D215A5DEF001F3614 /* PA2MigrationData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2MigrationData.mm; sourceTree = "<group>"; };
+		BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ProtocolUpgradeData.h; sourceTree = "<group>"; };
+		BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2ProtocolUpgradeData.mm; sourceTree = "<group>"; };
 		BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3ACC962073DF5F00B8107E /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
 		BF3ACC992073DF5F00B8107E /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
@@ -493,8 +493,8 @@
 				BFB47D2F20753359008A6A52 /* PA2Types.h */,
 				BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */,
 				BFB47D2920753359008A6A52 /* PA2Types.mm */,
-				BF20075C215A5DEF001F3614 /* PA2MigrationData.h */,
-				BF20075D215A5DEF001F3614 /* PA2MigrationData.mm */,
+				BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */,
+				BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */,
 				BFB47D2A20753359008A6A52 /* PA2Macros.h */,
 				BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */,
 				BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */,
@@ -656,7 +656,7 @@
 				BF99D90A2073E15100735ED2 /* PKCS7Padding.cpp in Sources */,
 				BF99D90D2073E15100735ED2 /* AES.cpp in Sources */,
 				BF99D9072073E14700735ED2 /* Constants.cpp in Sources */,
-				BF20075E215A5DEF001F3614 /* PA2MigrationData.mm in Sources */,
+				BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */,
 				BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */,
 				BFB47D382075335A008A6A52 /* PA2PrivateImpl.mm in Sources */,
 				BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */,

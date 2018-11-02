@@ -57,27 +57,27 @@
 
 #pragma mark - Protocol upgrade
 
-+ (instancetype) migrationStartV3
++ (instancetype) upgradeStartV3
 {
-	// Migration start requires serialization due to fact, that we don't want to start upgrade
+	// Upgrade start requires serialization due to fact, that we don't want to start upgrade
 	// concurrently with another signed request. The request is also allowed during the upgrade.
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/upgrade/start"
 											request:nil
-										   response:[PA2MigrationStartV3Response class]
-										  encryptor:PA2EncryptorId_MigrationStart
+										   response:[PA2UpgradeStartV3Response class]
+										  encryptor:PA2EncryptorId_UpgradeStart
 										  authUriId:nil
 											  flags:FL_SERIALIZED | FL_ALLOWED_IN_UPGRADE];
 }
 
-+ (instancetype) migrationCommitV3
++ (instancetype) upgradeCommitV3
 {
-	// Migration commit requires signature, so it's serialized and also must be allowed
+	// Upgrade commit requires signature, so it's serialized and also must be allowed
 	// during the upgrade :)
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/upgrade/commit"
 											request:nil
 										   response:nil
 										  encryptor:PA2EncryptorId_None
-										  authUriId:@"/pa/migration/commit"
+										  authUriId:@"/pa/upgrade/commit"
 											  flags:FL_SERIALIZED | FL_ALLOWED_IN_UPGRADE];
 }
 

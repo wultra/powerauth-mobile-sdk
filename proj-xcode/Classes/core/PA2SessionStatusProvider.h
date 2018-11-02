@@ -47,10 +47,10 @@
 - (BOOL) hasValidActivation;
 
 /**
- Checks if there is a pending activation migration.
+ Checks if there is a pending protocol upgrade.
 
- @return YES if session has a pending migration.
+ @return YES if session has a pending upgrade.
  */
-- (BOOL) hasPendingActivationMigration;
+- (BOOL) hasPendingProtocolUpgrade;
 
 @end

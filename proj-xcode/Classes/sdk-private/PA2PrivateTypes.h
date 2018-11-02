@@ -58,10 +58,10 @@ typedef NS_ENUM(int, PA2EncryptorId) {
 	 */
 	PA2EncryptorId_ActivationPayload,
 	/**
-	 Constructs a new encryptor for the activation migration purposes. The content encrypted
+	 Constructs a new encryptor for the protocol upgrade purposes. The content encrypted
 	 with this object can be decrypted only by the PowerAuth server.
 	 */
-	PA2EncryptorId_MigrationStart,
+	PA2EncryptorId_UpgradeStart,
 	/**
 	 Constructs a new encryptor for the vault unlock request purposes. The content encrypted
 	 with this object can be decrypted only by the PowerAuth server.

@@ -22,7 +22,7 @@
 
 #import "PA2PrivateMacros.h"
 #import "PA2Types.h"
-#import "PA2MigrationData.h"
+#import "PA2ProtocolUpgradeData.h"
 #import "PA2Password.h"
 #import "PA2ECIESEncryptor.h"
 #import "PA2CoreLog.h"
@@ -54,7 +54,7 @@
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
 @end
 
-@protocol PA2MigrationDataPrivate <PA2MigrationData>
+@protocol PA2ProtocolUpgradeDataPrivate <PA2ProtocolUpgradeData>
 - (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref;
 @end
 

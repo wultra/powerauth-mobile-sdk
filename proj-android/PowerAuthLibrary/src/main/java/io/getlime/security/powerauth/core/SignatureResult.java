@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.NonNull;
+
 /**
  Result from signature calculation.
  */
@@ -42,5 +44,22 @@ public class SignatureResult {
         this.errorCode = 0;
         this.authHeaderValue = null;
         this.signatureCode = null;
+    }
+
+
+    /**
+     * @return Always non-null authorization header value. If the error code is not Ok,
+     *         then the empty string is returned.
+     */
+    public @NonNull String getAuthHeaderValue() {
+        return authHeaderValue != null ? authHeaderValue : "";
+    }
+
+    /**
+     * @return Always non-null signature code.  If the error code is not Ok,
+     *         then the empty string is returned.
+     */
+    public @NonNull String getSignatureCode() {
+        return signatureCode != null ? signatureCode : "";
     }
 }

@@ -31,7 +31,8 @@ public interface IPrivateCryptoHelper {
      * Constructs a new {@link ECIESEncryptor} object created for given identifier.
      *
      * @param identifier encryptor's identifier
-     * @return new instance of {@link ECIESEncryptor} or null in case of error.
+     * @return new instance of {@link ECIESEncryptor} or null if empty encryptor is requested.
+     * @throws PowerAuthErrorException if encryptor cannot be created
      */
     @Nullable
     ECIESEncryptor getEciesEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException;
@@ -45,6 +46,7 @@ public interface IPrivateCryptoHelper {
      * @param uriIdentifier URI identifier, required for PowerAuth signature
      * @param authentication object with credentials
      * @return Authorization header object or null, in case of error.
+     * @throws PowerAuthErrorException is signature cannot be calculated
      */
     @NonNull
     PowerAuthAuthorizationHttpHeader getAuthorizationHeader(
@@ -52,7 +54,7 @@ public interface IPrivateCryptoHelper {
             @NonNull final byte[] body,
             @NonNull final String method,
             @NonNull final String uriIdentifier,
-            @NonNull final PowerAuthAuthentication authentication);
+            @NonNull final PowerAuthAuthentication authentication) throws PowerAuthErrorException;
 
 
     /**

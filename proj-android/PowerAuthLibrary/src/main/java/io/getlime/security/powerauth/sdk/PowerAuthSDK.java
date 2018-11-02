@@ -86,6 +86,7 @@ import io.getlime.security.powerauth.networking.response.IValidatePasswordListen
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
+import io.getlime.security.powerauth.system.PA2Log;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
 
@@ -198,12 +199,16 @@ public class PowerAuthSDK {
 
             @NonNull
             @Override
-            public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(boolean availableInProtocolUpgrade, @NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) {
-                if (mSession.hasPendingProtocolUpgrade() && !availableInProtocolUpgrade) {
-                    // Session is in upgrade and endpoint is not available
-                    return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade);
+            public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(boolean availableInProtocolUpgrade, @NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) throws PowerAuthErrorException {
+                if (context == null) {
+                    // This is mostly internal error. We should not call this crypto helper's method, when the context is not available.
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Context object is not set.");
                 }
-                return requestSignatureWithAuthentication(context, authentication, method, uriIdentifier, body);
+                // Prepare request
+                final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null);
+                // And calculate signature
+                final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, availableInProtocolUpgrade);
+                return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
             }
 
             @Nullable
@@ -1045,7 +1050,7 @@ public class PowerAuthSDK {
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
+    public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
         byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
         return requestSignatureWithAuthentication(context, authentication, "GET", uriId, body);
     }
@@ -1063,38 +1068,17 @@ public class PowerAuthSDK {
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
+    public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
 
         checkForValidSetup();
 
-        // Check if there is an activation present
-        if (!mSession.hasValidActivation()) {
-            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
-        }
+        try {
+            final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null);
+            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
+            return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
 
-        // Determine authentication factor type
-        final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
-        if (signatureFactor == 0) {
-            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter);
-        }
-
-        // Generate signature key encryption keys
-        SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
-        if (keys == null) {
-            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData);
-        }
-
-        // Compute authorization header for provided values and return result.
-        SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null);
-        SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
-
-        // Update state after each successful calculation
-        saveSerializedState();
-
-        if (signatureResult.errorCode == ErrorCode.OK) {
-            return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.authHeaderValue);
-        } else {
-            return PowerAuthAuthorizationHttpHeader.createError(PowerAuthErrorCodes.PA2ErrorCodeSignatureError);
+        } catch (PowerAuthErrorException e) {
+            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
         }
     }
 
@@ -1111,45 +1095,81 @@ public class PowerAuthSDK {
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
+    public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
 
         checkForValidSetup();
 
+        if (nonce == null) {
+            PA2Log.e("offlineSignatureWithAuthentication: 'nonce' parameter is required.");
+            return null;
+        }
+
+        try {
+            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce);
+            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
+            // In case of success, just return the signature code.
+            return signatureResult.signatureCode;
+
+        } catch (PowerAuthErrorException e) {
+            PA2Log.e("offlineSignatureWithAuthentication: Failed at: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Compute PowerAuth signature for given signature request object and authentication.
+     * <p>
+     * This private method checks most of the session states (except invalid setup) and then performs
+     * the signature calculation. The {@link SignatureRequest} object has to be properly configured,
+     * before the operation. Method always returns a {@link SignatureResult} object or throws
+     * an exception in case of failure.
+     *
+     * @param context android context object
+     * @param signatureRequest data for signature calculation
+     * @param authentication authentication object
+     * @param allowInUpgrade if true, then the signature calculation can be performed during the protocol upgrade.
+     * @return {@link SignatureResult}
+     * @throws PowerAuthErrorException if calculation fails.
+     */
+    private @NonNull SignatureResult calculatePowerAuthSignature(@NonNull Context context, @NonNull SignatureRequest signatureRequest, @NonNull PowerAuthAuthentication authentication, boolean allowInUpgrade) throws PowerAuthErrorException {
+
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
-            return null;
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation, "Missing activation.");
         }
 
-        // Generate signature key encryption keys
-        SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
-        if (keys == null) {
-            return null;
-        }
-
-        // nonce is mandatory for this operation
-        if (nonce == null) {
-            return null;
+        // Check protocol upgrade
+        if (mSession.hasPendingProtocolUpgrade() && !allowInUpgrade) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade, "Data signing is temporarily unavailable, due to pending protocol upgrade.");
         }
 
         // Determine authentication factor type
         final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
-            // Wrong parameter
-            return null;
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid combination of signature factors.");
         }
 
-        // Compute authorization header for provided values and return result.
-        SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce);
-        SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
+        // Generate signature key encryption keys
+        final SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
+
+        // Calculate signature
+        final SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
+        if (signatureResult == null) {
+            // Should never happen, except that Session was just recently destroyed.
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Session is no longer valid.");
+        }
 
         // Update state after each successful calculation
         saveSerializedState();
 
-        if (signatureResult.errorCode == ErrorCode.OK) {
-            return signatureResult.signatureCode;
+        // Check the result
+        if (signatureResult.errorCode != ErrorCode.OK) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeSignatureError, "Signature calculation failed on error " +  signatureResult.errorCode);
         }
-        return null;
+
+        return signatureResult;
     }
+
 
     /***
      * Validates whether the data has been signed with master server private key, or personalized server's private key.

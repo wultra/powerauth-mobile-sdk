@@ -36,22 +36,22 @@ public class PowerAuthConfiguration {
     private String instanceId;
 
     /**
-     * Base URL to the PowerAuth 2.0 Standard RESTful API (the URL part before "/pa/...").
+     * Base URL to the PowerAuth Standard REST API (the URL part before "/pa/...").
      */
     private String baseEndpointUrl;
 
     /**
-     * APPLICATION_KEY as defined in PowerAuth 2.0 specification - a key identifying an application version.
+     * APPLICATION_KEY as defined in PowerAuth specification - a key identifying an application version.
      */
     private String appKey;
 
     /**
-     * APPLICATION_SECRET as defined in PowerAuth 2.0 specification - a secret associated with an application version.
+     * APPLICATION_SECRET as defined in PowerAuth specification - a secret associated with an application version.
      */
     private String appSecret;
 
     /**
-     * KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth 2.0 specification - a master server public key.
+     * KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth specification - a master server public key.
      */
     private String masterServerPublicKey;
 

@@ -836,7 +836,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Remove current activation by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/remove'.
+     * Remove current activation by calling a PowerAuth REST API endpoint.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1133,7 +1133,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Change the password, validate old password by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock'.
+     * Validate old password by calling a PowerAuth REST API and if it's correct, then change the password to new one.
      *
      * @param context     Context.
      * @param oldPassword Old password, currently set to store the data.
@@ -1190,7 +1190,7 @@ public class PowerAuthSDK {
     /**
      * Regenerate a biometry related factor key.
      * <p>
-     * This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
@@ -1254,7 +1254,7 @@ public class PowerAuthSDK {
     /**
      * Regenerate a biometry related factor key.
      * <p>
-     * This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
@@ -1322,7 +1322,7 @@ public class PowerAuthSDK {
     /**
      * Generate an derived encryption key with given index.
      * <p>
-     * This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for subsequent key derivation using given index.
+     * This method calls PowerAuth Standard REST API endpoint to obtain the vault encryption key used for subsequent key derivation using given index.
      *
      * @param context        Context.
      * @param authentication Authentication used for vault unlocking call.
@@ -1356,9 +1356,8 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Validate a user password.
-     * <p>
-     * This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to validate the signature value.
+     * Validate a user password. This method calls PowerAuth REST API endpoint to validate the password on the server.
+     *
      * @param context  Context.
      * @param password Password to be verified.
      * @param listener The callback method with error associated with the password validation.

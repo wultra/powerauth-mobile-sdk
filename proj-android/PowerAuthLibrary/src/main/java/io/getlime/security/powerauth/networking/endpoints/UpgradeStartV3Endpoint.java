@@ -21,11 +21,11 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.rest.api.model.response.v3.UpgradeResponsePayload;
 
-public class UpgradeStartV3Endpoint implements IEndpointDefinition {
+public class UpgradeStartV3Endpoint implements IEndpointDefinition<UpgradeResponsePayload> {
     @NonNull
     @Override
     public String getRelativePath() {
@@ -46,8 +46,8 @@ public class UpgradeStartV3Endpoint implements IEndpointDefinition {
 
     @NonNull
     @Override
-    public ECIESEncryptorId getEncryptorId() {
-        return ECIESEncryptorId.UpgradeStart;
+    public EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.UPGRADE_START;
     }
 
     @Nullable

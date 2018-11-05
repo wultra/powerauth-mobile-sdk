@@ -663,9 +663,9 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 // ----------------------------------------------------------------------------
 
 //
-// public native ECIESEncryptor getEciesEncryptor(ECIESEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
+// public native EciesEncryptor getEciesEncryptor(EciesEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
 //
-CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jobject scope, jobject unlockKeys, jbyteArray sharedInfo1)
+CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jint scope, jobject unlockKeys, jbyteArray sharedInfo1)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session) {
@@ -673,8 +673,7 @@ CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jobject scope, jobject unlockK
 		return NULL;
 	}
 	// Load parameters into C++ objects
-	jclass scopeClazz = CC7_JNI_MODULE_FIND_CLASS("ECIESEncryptorScope");
-	auto cppScope = (ECIESEncryptorScope) CC7_JNI_GET_FIELD_INT(scope, scopeClazz, "numericValue");
+	auto cppScope = (ECIESEncryptorScope) scope;
 	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
 	SignatureUnlockKeys cppUnlockKeys;
 	if (cppScope == ECIES_ActivationScope) {

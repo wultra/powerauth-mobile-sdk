@@ -22,13 +22,13 @@ package io.getlime.security.powerauth.core;
 public class ActivationStep1Result {
 
     /**
-     Error code returned from the C++ code. The value can be compared
-     to constants from ErrorCode class.
+     * Error code returned from the C++ code. The value can be compared
+     * to constants from ErrorCode class.
      */
     public final int errorCode;
     
     /**
-     Device's public key, in Base64 format
+     * Device's public key, in Base64 format
      */
     public final String devicePublicKey;
     

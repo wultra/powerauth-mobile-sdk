@@ -19,8 +19,8 @@ package io.getlime.security.powerauth.sdk.impl;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import io.getlime.security.powerauth.core.ECIESEncryptor;
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
@@ -28,14 +28,14 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
 public interface IPrivateCryptoHelper {
 
     /**
-     * Constructs a new {@link ECIESEncryptor} object created for given identifier.
+     * Constructs a new {@link EciesEncryptor} object created for given identifier.
      *
      * @param identifier encryptor's identifier
-     * @return new instance of {@link ECIESEncryptor} or null if empty encryptor is requested.
+     * @return new instance of {@link EciesEncryptor} or null if empty encryptor is requested.
      * @throws PowerAuthErrorException if encryptor cannot be created
      */
     @Nullable
-    ECIESEncryptor getEciesEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException;
+    EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException;
 
     /**
      * Calculates PowerAuth signature for given data.

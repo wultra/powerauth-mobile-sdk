@@ -19,12 +19,12 @@ package io.getlime.security.powerauth.ecies;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-public class ECIESMetaData {
+public class EciesMetadata {
 
     private final @NonNull String applicationKey;
     private final @Nullable String activationIdentifier;
 
-    public ECIESMetaData(@NonNull String applicationKey, @Nullable String activationIdentifier) {
+    public EciesMetadata(@NonNull String applicationKey, @Nullable String activationIdentifier) {
         this.applicationKey = applicationKey;
         this.activationIdentifier = activationIdentifier;
     }

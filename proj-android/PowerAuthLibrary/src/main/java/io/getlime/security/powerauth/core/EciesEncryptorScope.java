@@ -17,28 +17,23 @@
 package io.getlime.security.powerauth.core;
 
 /**
- * The <code>ECIESEncryptorScope</code> enumeration defines how {@link ECIESEncryptor} encryptor
- * is configured in {@link Session#getEciesEncryptor(ECIESEncryptorScope, SignatureUnlockKeys, byte[]) Session.getEciesEncryptor} method.
+ * The <code>EciesEncryptorScope</code> defines how {@link EciesEncryptor} encryptor
+ * is configured in {@link Session#getEciesEncryptor(int, SignatureUnlockKeys, byte[]) Session.getEciesEncryptor} method.
  */
-public enum ECIESEncryptorScope {
+public class EciesEncryptorScope {
     /**
      * An application scope means that encryptor can be constructed also when
      * the session has no valid activation.
      */
-    Application(0),
+    public static final int APPLICATION = 0;
 
     /**
      * An activation scope means that the encryptor can be constructed only when
      * the session has a valid activation.
      */
-    Activation(1);
+    public static final int ACTIVATION = 1;
 
-    /**
-     * The value associated to the enumeration.
-     */
-    public final int numericValue;
-
-    ECIESEncryptorScope(int numericValue) {
-        this.numericValue = numericValue;
+    private EciesEncryptorScope() {
+        // Prevent class instantiation
     }
 }

@@ -17,20 +17,20 @@
 package io.getlime.security.powerauth.core;
 
 /**
- Parameters for second step of device activation.
+ * Parameters for second step of device activation.
  */
 public class ActivationStep2Param {
     
     /**
-     Real Activation ID received from server.
+     * Real Activation ID received from server.
      */
     public final String activationId;
     /**
-     Server's public key, in Base64 format.
+     * Server's public key, in Base64 format.
      */
     public final String serverPublicKey;
     /**
-     Initial value for hash-based counter.
+     * Initial value for hash-based counter.
      */
     public final String ctrData;
 

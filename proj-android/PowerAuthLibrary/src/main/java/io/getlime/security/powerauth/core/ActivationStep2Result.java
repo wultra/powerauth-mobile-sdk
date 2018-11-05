@@ -17,21 +17,21 @@
 package io.getlime.security.powerauth.core;
 
 /**
- Result from 2nd step of activation.
+ * Result from 2nd step of activation.
  */
 public class ActivationStep2Result {
 
     /**
-     Error code returned from the C++ code. The value can be compared
-     to constants from ErrorCode class.
+     * Error code returned from the C++ code. The value can be compared
+     * to constants from {@link ErrorCode} class.
      */
     public final int errorCode;
 
     /**
-     Short, human readable string, calculated from device's public key.
-     You can display this code to the UI and user can confirm visually
-     if the code is the same on both, server &amp; client sides. This feature
-     must be supported on the server's side of the activation flow.
+     * Short, human readable string, calculated from device's public key.
+     * You can display this code to the UI and user can confirm visually
+     * if the code is the same on both, server &amp; client sides. This feature
+     * must be supported on the server's side of the activation flow.
      */
     public final String activationFingerprint;
 

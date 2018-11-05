@@ -34,7 +34,7 @@ import io.getlime.security.powerauth.core.ActivationStep1Param;
 import io.getlime.security.powerauth.core.ActivationStep1Result;
 import io.getlime.security.powerauth.core.ActivationStep2Param;
 import io.getlime.security.powerauth.core.ActivationStep2Result;
-import io.getlime.security.powerauth.core.ECIESEncryptor;
+import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.Session;
@@ -44,8 +44,8 @@ import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
 import io.getlime.security.powerauth.core.SignedData;
-import io.getlime.security.powerauth.ecies.ECIESEncryptorFactory;
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorFactory;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.exception.PowerAuthMissingConfigException;
@@ -57,7 +57,6 @@ import io.getlime.security.powerauth.keychain.fingerprint.IFingerprintActionHand
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
@@ -71,11 +70,9 @@ import io.getlime.security.powerauth.networking.response.ICreateActivationListen
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
-import io.getlime.security.powerauth.rest.api.model.request.v2.ActivationStatusRequest;
 import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer1Request;
 import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer2Request;
 import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
-import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
@@ -191,9 +188,9 @@ public class PowerAuthSDK {
         return new IPrivateCryptoHelper() {
             @Nullable
             @Override
-            public ECIESEncryptor getEciesEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException {
+            public EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
                 final byte[] deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
-                ECIESEncryptorFactory factory = new ECIESEncryptorFactory(mSession, deviceRelatedKey);
+                EciesEncryptorFactory factory = new EciesEncryptorFactory(mSession, deviceRelatedKey);
                 return factory.getEncryptor(identifier);
             }
 
@@ -375,10 +372,12 @@ public class PowerAuthSDK {
     /**
      * Reference to the low-level Session class.
      * <p>
-     * WARNING: This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and managed activation state.
+     * <b>WARNING:</b> This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and managed activation state.
      * For example, you can call a direct password change method without prior check of the password correctness in cooperation with the server API. Be extremely careful when
      * calling any methods of this instance directly. There are very few protective mechanisms for keeping the session state actually consistent in the functional (not low level)
      * sense. As a result, you may break your activation state (for example, by changing password from incorrect value to some other value).
+     *
+     * @return low level {@link Session} object
      */
     public Session getSession() {
         return mSession;
@@ -601,11 +600,11 @@ public class PowerAuthSDK {
 
         final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
         final JsonSerialization serialization = new JsonSerialization();
-        final ECIESEncryptor encryptor;
+        final EciesEncryptor encryptor;
 
         try {
             // Prepare cryptographic helper & Layer2 ECIES encryptor
-            encryptor = cryptoHelper.getEciesEncryptor(ECIESEncryptorId.ActivationPayload);
+            encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
             if (encryptor == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState);
             }
@@ -762,6 +761,7 @@ public class PowerAuthSDK {
     /**
      * Commit activation that was created and store related data using provided authentication instance.
      *
+     * @param context android context object
      * @param authentication An authentication instance specifying what factors should be stored.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
@@ -1288,6 +1288,7 @@ public class PowerAuthSDK {
     /**
      * Check if the current PowerAuth instance has biometry factor in place.
      *
+     * @param context Android context object
      * @return True in case biometry factor is present, false otherwise.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -1313,6 +1314,9 @@ public class PowerAuthSDK {
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
+     * @param fragmentManager Android {@link FragmentManager}
+     * @param title Title for the biometry alert
+     * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the encrypted key.
      * @return {@link ICancelable} object associated with the running HTTP request.

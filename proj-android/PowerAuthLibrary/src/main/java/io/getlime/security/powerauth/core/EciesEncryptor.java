@@ -18,14 +18,14 @@ package io.getlime.security.powerauth.core;
 
 import android.util.Pair;
 
-import io.getlime.security.powerauth.ecies.ECIESMetaData;
+import io.getlime.security.powerauth.ecies.EciesMetadata;
 
 /**
- *  The <code>ECIESEncryptor</code> class implements a request encryption and response decryption for
+ *  The <code>EciesEncryptor</code> class implements a request encryption and response decryption for
  *  our custom ECIES scheme. For more details about our ECIES implementation, please check documentation
  *  available at the beginning of <code>&lt;PowerAuth/ECIES.h&gt;</code> C++ header.
  */
-public class ECIESEncryptor {
+public class EciesEncryptor {
 
     //
     // Init & Destroy
@@ -46,13 +46,13 @@ public class ECIESEncryptor {
      * @param sharedInfo1 An optional shared info 1 data
      * @param sharedInfo2 An optional shared info 2 data
      */
-    public ECIESEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2) {
+    public EciesEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2) {
         this.handle = init(publicKey, sharedInfo1, sharedInfo2);
     }
 
 
     /**
-     * Returns a new instance of <code>ECIESEncryptor</code>, suitable only for data decryption or null
+     * Returns a new instance of {@code EciesEncryptor}, suitable only for data decryption or null
      * if current encryptor is not able to decrypt response (this happens typically if you did not
      * call `encryptRequest` or instance contains invalid keys).
      *
@@ -69,13 +69,13 @@ public class ECIESEncryptor {
      * The <code>encryptRequestSynchronized</code> method is an one example of safe approach, but
      * you can implement your own processing, if the thread safety is not a problem.
      *
-     * @return New instance of ECIESEncryptor suitable for data decryption or null in case of error
+     * @return New instance of {@code EciesEncryptor} suitable for data decryption or null in case of error
      *         or if this encryptor can't decrypt data.
      */
-    public ECIESEncryptor copyForDecryption() {
+    public EciesEncryptor copyForDecryption() {
         long handleCopy = this.copyHandleForDecryption();
         if (handleCopy != 0) {
-            return new ECIESEncryptor(handleCopy);
+            return new EciesEncryptor(handleCopy);
         }
         return null;
     }
@@ -86,7 +86,7 @@ public class ECIESEncryptor {
      *
      * @param handle A handle representing underlying native C++ object
      */
-    private ECIESEncryptor(long handle) {
+    private EciesEncryptor(long handle) {
         this.handle = handle;
     }
 
@@ -170,7 +170,7 @@ public class ECIESEncryptor {
 
 
     /**
-     * Encrypts an input request data into <code>ECIESCryptogram</code> object or null in case of
+     * Encrypts an input request data into <code>EciesCryptogram</code> object or null in case of
      * failure.
      *
      * <h2>Discussion</h2>
@@ -186,7 +186,7 @@ public class ECIESEncryptor {
      * @param requestData data to be encrypted
      * @return cryptogram object or null in case of failure
      */
-    public native ECIESCryptogram encryptRequest(byte[] requestData);
+    public native EciesCryptogram encryptRequest(byte[] requestData);
 
 
     /**
@@ -206,12 +206,12 @@ public class ECIESEncryptor {
      * @param requestData data to be encrypted
      * @return pair with decryptor and cryptogram, or null in case of failure.
      */
-    public synchronized Pair<ECIESEncryptor, ECIESCryptogram> encryptRequestSynchronized(byte[] requestData) {
-        ECIESCryptogram cryptogram = this.encryptRequest(requestData);
+    public synchronized Pair<EciesEncryptor, EciesCryptogram> encryptRequestSynchronized(byte[] requestData) {
+        EciesCryptogram cryptogram = this.encryptRequest(requestData);
         if (cryptogram != null) {
-            ECIESEncryptor decryptor = this.copyForDecryption();
+            EciesEncryptor decryptor = this.copyForDecryption();
             if (decryptor != null) {
-                decryptor.setMetaData(this.metaData);
+                decryptor.setMetadata(this.metadata);
                 return new Pair<>(decryptor, cryptogram);
             }
         }
@@ -225,7 +225,7 @@ public class ECIESEncryptor {
      * @param cryptogram cryptogram received from the server
      * @return decrypted bytes or null in case of error
      */
-    public native byte[] decryptResponse(ECIESCryptogram cryptogram);
+    public native byte[] decryptResponse(EciesCryptogram cryptogram);
 
 
     //
@@ -233,26 +233,26 @@ public class ECIESEncryptor {
     //
 
     /**
-     *  Data associated to this encryptor.
+     * Data associated to this encryptor.
      */
-    private ECIESMetaData metaData;
+    private EciesMetadata metadata;
 
     /**
      * Sets metadata object to this encryptor. Note that the metadata object is not required
      * for data encryption or decryption, but it's typically useful for request &amp; response
      * processing.
      *
-     * @param metaData object associated with this encryptor
+     * @param metadata object associated with this encryptor
      */
-    public void setMetaData(ECIESMetaData metaData) {
-        this.metaData = metaData;
+    public void setMetadata(EciesMetadata metadata) {
+        this.metadata = metadata;
     }
 
 
     /**
      * @return metadata object associated to this encryptor.
      */
-    public ECIESMetaData getMetaData() {
-        return metaData;
+    public EciesMetadata getMetadata() {
+        return metadata;
     }
 }

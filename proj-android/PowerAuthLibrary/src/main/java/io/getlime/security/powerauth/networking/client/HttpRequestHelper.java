@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.getlime.core.rest.model.base.entity.Error;
-import io.getlime.security.powerauth.core.ECIESEncryptor;
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
-import io.getlime.security.powerauth.ecies.ECIESMetaData;
+import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesMetadata;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
@@ -74,7 +74,7 @@ class HttpRequestHelper<TRequest, TResponse> {
     /**
      * ECIES encryptor. If null, then the response doesn't need to be decrypted.
      */
-    private ECIESEncryptor encryptor;
+    private EciesEncryptor encryptor;
 
     /**
      * @param requestObject optional request object, to be sent in POST request
@@ -149,7 +149,7 @@ class HttpRequestHelper<TRequest, TResponse> {
 
         // Sanity checks
         final boolean needsSignature = endpoint.getAuthorizationUriId() != null;
-        final boolean needsEncryption = endpoint.getEncryptorId() != ECIESEncryptorId.None;
+        final boolean needsEncryption = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
 
         if (needsSignature && authentication == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Authentication object is missing.");
@@ -182,7 +182,7 @@ class HttpRequestHelper<TRequest, TResponse> {
             // for that is fact, that signature header already contains values required for
             // decryption on the server.
             if (!needsSignature) {
-                final ECIESMetaData metadata = encryptor.getMetaData();
+                final EciesMetadata metadata = encryptor.getMetadata();
                 requestHeaders.put(metadata.getHttpHeaderKey(), metadata.getHttpHeaderValue());
             }
         }

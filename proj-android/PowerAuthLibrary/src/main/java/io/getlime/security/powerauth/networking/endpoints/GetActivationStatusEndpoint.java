@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
 
@@ -47,8 +47,8 @@ public class GetActivationStatusEndpoint implements IEndpointDefinition<Activati
 
     @NonNull
     @Override
-    public ECIESEncryptorId getEncryptorId() {
-        return ECIESEncryptorId.None;
+    public EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.NONE;
     }
 
     @Nullable

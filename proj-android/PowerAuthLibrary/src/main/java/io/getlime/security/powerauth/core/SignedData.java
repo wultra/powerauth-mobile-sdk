@@ -17,24 +17,30 @@
 package io.getlime.security.powerauth.core;
 
 /**
- The SignedData object contains data and signature calculated from data.
+ * The SignedData object contains data and signature calculated from data.
  */
 public class SignedData {
 
     /**
-     A data protected with signature
+     * A data protected with signature
      */
     public final byte[] data;
     /**
-     A signature calculated for data
+     * A signature calculated for data
      */
     public final byte[] signature;
     /**
-     If true, then master server's public key is used for validation, otherwise
-     personalized server's public key.
+     * If true, then the master server's public key is used for validation, otherwise
+     * the personalized server's public key is used.
      */
     public final boolean useMasterKey;
 
+    /**
+     * @param data data protected with signature
+     * @param signature signature calculated for data
+     * @param useMasterKey If true, then the master server's public key is used for validation, otherwise
+     *                     the personalized server's public key is used.
+     */
     public SignedData(byte[] data, byte[] signature, boolean useMasterKey) {
         this.data = data;
         this.signature = signature;

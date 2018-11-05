@@ -22,7 +22,7 @@ package io.getlime.security.powerauth.networking.interfaces;
 public interface INetworkResponseListener<TResponse> {
     /**
      * Called when HTTP request successfully ended and the response object is available.
-     * @param response
+     * @param response response object returned from the server
      */
     void onNetworkResponse(TResponse response);
 

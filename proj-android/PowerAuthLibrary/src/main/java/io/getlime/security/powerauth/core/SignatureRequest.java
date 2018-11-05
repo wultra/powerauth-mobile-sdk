@@ -17,30 +17,36 @@
 package io.getlime.security.powerauth.core;
 
 /**
- Parameters for HTTP signature calculation.
+ * Parameters for HTTP signature calculation.
  */
 public class SignatureRequest {
 
     /**
-     A whole POST body or data blob prepared in 'Session.prepareKeyValueDictionaryForDataSigning'
-     method. You can also calculate signature for an empty request with no body or without
-     any GET parameters. In this case the member may be null.
+     * A whole POST body or data blob prepared in 'Session.prepareKeyValueDictionaryForDataSigning'
+     * method. You can also calculate signature for an empty request with no body or without
+     * any GET parameters. In this case the member may be null.
      */
     public final byte[] body;
     /**
-     HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
+     * HTTP method ("POST", "GET", "HEAD", "PUT", "DELETE" value is expected)
      */
     public final String method;
     /**
-     Relative URI of the request.
+     * Cryptographic constant for signature calculation. It's recommended to use relative HTTP path.
      */
     public final String uri;
     /**
-     Optional, contains NONCE generated externally. The value should be used for offline data
-     signing purposes only. The Base64 string is expected.
+     * Optional, contains NONCE generated externally. The value should be used for offline data
+     * signing purposes only. The Base64 string is expected.
      */
     public final String nonce;
 
+    /**
+     * @param body bytes with HTTP request's body, or normalized bytes for GET requests
+     * @param method HTTP method
+     * @param uri Cryptographic constant representing relative HTTP path
+     * @param nonce Optional nonce, required for offline signatures.
+     */
     public SignatureRequest(byte[] body, String method, String uri, String nonce) {
         this.body = body;
         this.method = method;

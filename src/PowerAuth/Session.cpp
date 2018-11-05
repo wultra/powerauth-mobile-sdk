@@ -1002,7 +1002,7 @@ namespace powerAuth
 			sharedInfo2 = crypto::SHA256(cc7::MakeRange(_setup.applicationSecret));
 			ecPublicKey = cc7::FromBase64String(_setup.masterServerPublicKey);
 			//
-		} else {
+		} else if (scope == ECIES_ActivationScope) {
 			// For the "activation" scope, we need to at first validate whether there's
 			// some activation.
 			if (!hasValidActivation()) {
@@ -1021,6 +1021,10 @@ namespace powerAuth
 			sharedInfo2 = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain_keys.transportKey);
 			ecPublicKey = _pd->serverPublicKey;
 			//
+		} else {
+			// Scope is not known
+			CC7_LOG("Session %p, %d: ECIES: Unsupported scope.", this, sessionIdentifier());
+			return EC_WrongParam;
 		}
 		// Now construct the encryptor with prepared setup.
 		out_encryptor = ECIESEncryptor(ecPublicKey, sharedInfo1, sharedInfo2);

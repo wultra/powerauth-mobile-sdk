@@ -17,19 +17,19 @@
 package io.getlime.security.powerauth.core;
 
 /**
- Parameters for first step of device activation.
+ * Parameters for first step of device activation.
  */
 public class ActivationStep1Param {
 
     /**
-     Short activation ID
+     * Short activation ID
      */
     public final String activationCode;
 
     /**
-     Signature calculated from activationCode.
-     The value is optional in cases, when the user re-typed codes
-     manually. If the value is available, then the Base64 string is expected.
+     * Signature calculated from activationCode.
+     * The value is optional in cases, when the user re-typed codes
+     * manually. If the value is available, then the Base64 string is expected.
      */
     public final String activationSignature;
 

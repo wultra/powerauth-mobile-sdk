@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 
 public class RemoveTokenEndpoint implements IEndpointDefinition<Void> {
@@ -46,8 +46,8 @@ public class RemoveTokenEndpoint implements IEndpointDefinition<Void> {
 
     @NonNull
     @Override
-    public ECIESEncryptorId getEncryptorId() {
-        return ECIESEncryptorId.None;
+    public EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.NONE;
     }
 
     @Nullable

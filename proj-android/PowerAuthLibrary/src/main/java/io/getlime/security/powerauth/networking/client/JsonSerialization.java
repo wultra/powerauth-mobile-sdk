@@ -30,8 +30,8 @@ import com.google.gson.reflect.TypeToken;
 import java.nio.charset.Charset;
 
 import io.getlime.core.rest.model.base.request.ObjectRequest;
-import io.getlime.security.powerauth.core.ECIESCryptogram;
-import io.getlime.security.powerauth.core.ECIESEncryptor;
+import io.getlime.security.powerauth.core.EciesCryptogram;
+import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest;
@@ -161,7 +161,7 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException if encryption fails
      */
     @NonNull
-    public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull ECIESEncryptor encryptor) throws PowerAuthErrorException {
+    public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
         final EciesEncryptedRequest request = encryptObjectToRequest(object, encryptor);
         return serializeObject(request);
     }
@@ -176,11 +176,11 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException if decryption fails.
      */
     @NonNull
-    public byte[] decryptData(@Nullable byte[] data, @NonNull ECIESEncryptor decryptor) throws PowerAuthErrorException {
+    public byte[] decryptData(@Nullable byte[] data, @NonNull EciesEncryptor decryptor) throws PowerAuthErrorException {
         // 1. Deserialize bytes into response object
         final EciesEncryptedResponse response = deserializeObject(data, TypeToken.get(EciesEncryptedResponse.class));
         // 2. Construct cryptogam with data & mac (response doesn't contain ephemeral key)
-        final ECIESCryptogram cryptogram = new ECIESCryptogram(response.getEncryptedData(), response.getMac());
+        final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac());
         // 3. Decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {
@@ -201,7 +201,7 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException in case of decryption error
      */
     @Nullable
-    public <TResponse> TResponse decryptObject(@Nullable byte[] data, @NonNull ECIESEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
+    public <TResponse> TResponse decryptObject(@Nullable byte[] data, @NonNull EciesEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
         // 1. Decrypt data
         final byte[] plainData = decryptData(data, decryptor);
         // 2. If type token is present, then deserialize JSON
@@ -221,11 +221,11 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException if encryption fails
      */
     @NonNull
-    public <TRequest> EciesEncryptedRequest encryptObjectToRequest(@Nullable TRequest object, @NonNull ECIESEncryptor encryptor) throws PowerAuthErrorException {
+    public <TRequest> EciesEncryptedRequest encryptObjectToRequest(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
         // 1. Serialize object into JSON
         final byte[] plainData = serializeObject(object);
         // 2. Encrypt serialized JSON data
-        final ECIESCryptogram cryptogram = encryptor.encryptRequest(plainData);
+        final EciesCryptogram cryptogram = encryptor.encryptRequest(plainData);
         if (cryptogram == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt object data.");
         }
@@ -249,9 +249,9 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException in case of decryption error
      */
     @NonNull
-    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull ECIESEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
+    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull EciesEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
         // 1. Convert response into cryptogram object
-        final ECIESCryptogram cryptogram = new ECIESCryptogram(response.getEncryptedData(), response.getMac());
+        final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac());
         // 2. Try to decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {

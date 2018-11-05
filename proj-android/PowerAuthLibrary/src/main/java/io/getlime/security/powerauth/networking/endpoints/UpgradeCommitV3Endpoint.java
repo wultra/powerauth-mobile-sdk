@@ -21,10 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 
-public class UpgradeCommitV3Endpoint implements IEndpointDefinition {
+public class UpgradeCommitV3Endpoint implements IEndpointDefinition<Void> {
     @NonNull
     @Override
     public String getRelativePath() {
@@ -45,13 +45,13 @@ public class UpgradeCommitV3Endpoint implements IEndpointDefinition {
 
     @NonNull
     @Override
-    public ECIESEncryptorId getEncryptorId() {
-        return null;
+    public EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.NONE;
     }
 
     @Nullable
     @Override
-    public TypeToken getResponseType() {
+    public TypeToken<Void> getResponseType() {
         return null;
     }
 

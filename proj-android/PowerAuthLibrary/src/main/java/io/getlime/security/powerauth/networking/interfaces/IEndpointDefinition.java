@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 
 /**
  * Interface defines endpoint for communicating with PowerAuth REST API.
@@ -45,10 +45,11 @@ public interface IEndpointDefinition<TResponse> {
     @Nullable String getAuthorizationUriId();
 
     /**
-     * @return Type of encryptor if request uses ECIES encryption, or {@link ECIESEncryptorId#None}
+     * @return Type of encryptor if request uses ECIES encryption, or {@link EciesEncryptorId#NONE}
      *         for endpoints with no encryption.
      */
-    @NonNull ECIESEncryptorId getEncryptorId();
+    @NonNull
+    EciesEncryptorId getEncryptorId();
 
     /**
      * @return Type of response object.

@@ -30,6 +30,6 @@ CC7_EXTERN_C jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const io::g
 CC7_EXTERN_C void LoadCppCryptogramFromJavaObject(JNIEnv * env, jobject cryptogram, io::getlime::powerAuth::ECIESCryptogram & cppCryptogram);
 
 /**
- Creates a new ECIESEncryptor java object from given C++ encryptor object.
+ Creates a new EciesEncryptor java object from given C++ encryptor object.
  */
 CC7_EXTERN_C jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const io::getlime::powerAuth::ECIESEncryptor & encryptor);

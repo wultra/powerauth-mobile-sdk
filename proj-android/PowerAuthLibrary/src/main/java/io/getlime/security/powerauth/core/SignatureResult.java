@@ -19,27 +19,30 @@ package io.getlime.security.powerauth.core;
 import android.support.annotation.NonNull;
 
 /**
- Result from signature calculation.
+ * Result from signature calculation.
  */
 public class SignatureResult {
 
     /**
-     Error code returned from the C++ code. The value can be compared
-     to constants from ErrorCode class.
+     * Error code returned from the C++ code. The value can be compared
+     * to constants from {@link ErrorCode} class.
      */
     public final int errorCode;
 
     /**
-     Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
+     * Contains a complete value for "X-PowerAuth-Authorization" HTTP header.
      */
     public final String authHeaderValue;
 
     /**
-     Calculated signature. Unlike `authHeaderValue`, this property contains just
-     a numeric authentication code.
+     * Calculated signature. Unlike `authHeaderValue`, this property contains just
+     * a numeric authentication code.
      */
     public final String signatureCode;
 
+    /**
+     * Constructor used from JNI code.
+     */
     public SignatureResult() {
         this.errorCode = 0;
         this.authHeaderValue = null;

@@ -21,18 +21,18 @@ import android.support.annotation.Nullable;
 
 import java.nio.charset.Charset;
 
-import io.getlime.security.powerauth.core.ECIESEncryptor;
-import io.getlime.security.powerauth.core.ECIESEncryptorScope;
+import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.core.EciesEncryptorScope;
 import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.core.SignatureUnlockKeys;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
- * The <code>ECIESEncryptorFactory</code> class helps with constructing {@link ECIESEncryptor}
+ * The <code>EciesEncryptorFactory</code> class helps with constructing {@link EciesEncryptor}
  * instances designated for various SDK's or application's tasks.
  */
-public class ECIESEncryptorFactory {
+public class EciesEncryptorFactory {
 
     private final Session mSession;
     private final byte[] mPossessionUnlockKey;
@@ -45,7 +45,7 @@ public class ECIESEncryptorFactory {
      * @param possessionUnlockKey key for decrypting the possession factor, stored in the {@link Session}.
      *                            If not provided, then activation scoped encryptors cannot be constructed.
      */
-    public ECIESEncryptorFactory(@NonNull Session session, @Nullable byte[] possessionUnlockKey) {
+    public EciesEncryptorFactory(@NonNull Session session, @Nullable byte[] possessionUnlockKey) {
         this.mSession = session;
         this.mPossessionUnlockKey = possessionUnlockKey;
     }
@@ -56,28 +56,29 @@ public class ECIESEncryptorFactory {
      * an activation scope, then the internal {@link Session} must have a valid activation.
      *
      * @param identifier type of encryptor to be constructed
-     * @return {@link ECIESEncryptor} object or null, if encryptor cannot be constructed.
+     * @return {@link EciesEncryptor} object or null, if encryptor cannot be constructed.
+     * @throws PowerAuthErrorException if factory doesn't have {@link #mPossessionUnlockKey} but is required.
      */
-    public @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorId identifier) throws PowerAuthErrorException {
-        if (identifier != ECIESEncryptorId.None) {
+    public @Nullable EciesEncryptor getEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
+        if (identifier != EciesEncryptorId.NONE) {
             return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
         }
         return null;
     }
 
     /**
-     * Private function for constructing {@link ECIESEncryptor} objects.
+     * Private function for constructing {@link EciesEncryptor} objects.
      *
      * @param scope defines scope of encryptor (application or activation)
      * @param sharedInfo1 optional ECIES parameter
-     * @param addMetaData if true, then {@link ECIESMetaData} will be assigned to the returned encryptor
+     * @param addMetaData if true, then {@link EciesMetadata} will be assigned to the returned encryptor
      * @return encryptor object or null in case of error.
      */
-    private @Nullable ECIESEncryptor getEncryptor(@NonNull ECIESEncryptorScope scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
+    private @Nullable EciesEncryptor getEncryptor(@NonNull int scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
         final byte[] sharedInfo1Bytes = sharedInfo1 != null ? sharedInfo1.getBytes(Charset.defaultCharset()) : null;
         final SignatureUnlockKeys unlockKeys;
         final String activationId;
-        if (scope == ECIESEncryptorScope.Activation) {
+        if (scope == EciesEncryptorScope.ACTIVATION) {
             if (mPossessionUnlockKey == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Device related key is missing for activation scoped encryptor.");
             }
@@ -87,9 +88,9 @@ public class ECIESEncryptorFactory {
             activationId = null;
             unlockKeys = null;
         }
-        ECIESEncryptor encryptor = mSession.getEciesEncryptor(scope, unlockKeys, sharedInfo1Bytes);
+        EciesEncryptor encryptor = mSession.getEciesEncryptor(scope, unlockKeys, sharedInfo1Bytes);
         if (encryptor != null && addMetaData) {
-            encryptor.setMetaData(new ECIESMetaData(mSession.getSessionSetup().applicationKey, activationId));
+            encryptor.setMetadata(new EciesMetadata(mSession.getSessionSetup().applicationKey, activationId));
         }
         return encryptor;
     }

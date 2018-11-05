@@ -17,8 +17,8 @@
 package io.getlime.security.powerauth.core;
 
 /**
- The CryptoUtils class provides a several general cryptographic primitives
- required in our other open source libraries.
+ * The CryptoUtils class provides a several general cryptographic primitives
+ * required in our other open source libraries.
  */
 public class CryptoUtils {
 

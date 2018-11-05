@@ -51,6 +51,8 @@ public class HttpClient {
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
      * @param listener response listener
+     * @param <TRequest> request type
+     * @param <TResponse> response type
      * @return {@link ICancelable} object which allows application cancel the pending operation
      */
     @NonNull

@@ -19,9 +19,9 @@ package io.getlime.security.powerauth.core;
 import android.util.Base64;
 
 /**
- * The <code>ECIESCryptogram</code> object represents cryptogram transmitted over the network.
+ * The <code>EciesCryptogram</code> object represents cryptogram transmitted over the network.
  */
-public class ECIESCryptogram {
+public class EciesCryptogram {
 
     /**
      * An encrypted data
@@ -73,7 +73,7 @@ public class ECIESCryptogram {
      * Constructs an empty cryptogram. This constructor is used in the JNI code for internal
      * object initialization.
      */
-    public ECIESCryptogram() {
+    public EciesCryptogram() {
         this.body = null;
         this.mac = null;
         this.key = null;
@@ -86,7 +86,7 @@ public class ECIESCryptogram {
      * @param mac MAC computed for encrypted data
      * @param key An optional ephemeral key
      */
-    public ECIESCryptogram(byte[] body, byte[] mac, byte[] key) {
+    public EciesCryptogram(byte[] body, byte[] mac, byte[] key) {
         this.body = body;
         this.mac = mac;
         this.key = key;
@@ -99,7 +99,7 @@ public class ECIESCryptogram {
      * @param macBase64 MAC computed for encrypted data in Base64 format
      * @param keyBase64 An optional ephemeral key in Base64 format
      */
-    public ECIESCryptogram(String bodyBase64, String macBase64, String keyBase64) {
+    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64) {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.NO_WRAP) : null;
@@ -110,7 +110,7 @@ public class ECIESCryptogram {
      * @param bodyBase64 encrypted data in Base64 format
      * @param macBase64 MAC computed for encrypted data in Base64 format
      */
-    public ECIESCryptogram(String bodyBase64, String macBase64) {
+    public EciesCryptogram(String bodyBase64, String macBase64) {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = null;

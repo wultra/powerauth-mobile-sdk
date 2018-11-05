@@ -21,7 +21,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.ECIESEncryptorId;
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
 
@@ -47,8 +47,8 @@ public class CreateTokenEndpoint implements IEndpointDefinition<TokenResponsePay
 
     @NonNull
     @Override
-    public ECIESEncryptorId getEncryptorId() {
-        return ECIESEncryptorId.TokenCreate;
+    public EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.TOKEN_CREATE;
     }
 
     @Nullable

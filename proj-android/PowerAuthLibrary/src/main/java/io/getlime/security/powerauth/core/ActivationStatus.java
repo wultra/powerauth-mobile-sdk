@@ -20,42 +20,42 @@ import java.util.Map;
 
 public class ActivationStatus {
     /**
-     The activation is just created.
+     * The activation is just created.
      */
     public static final int State_Created  = 1;
     /**
-     The OTP was already used.
+     * The OTP was already used.
      */
     public static final int State_OTP_Used = 2;
     /**
-     The shared secure context is valid and active.
+     * The shared secure context is valid and active.
      */
     public static final int State_Active   = 3;
     /**
-     The activation is blocked.
+     * The activation is blocked.
      */
     public static final int State_Blocked  = 4;
     /**
-     The activation doesn't exist anymore.
+     * The activation doesn't exist anymore.
      */
     public static final int State_Removed  = 5;
     
     
     /**
-     Error code returned from the C++ code. The value can be compared
-     to constants from ErrorCode class.
+     * Error code returned from the C++ code. The value can be compared
+     * to constants from ErrorCode class.
      */
     public final int errorCode;
     /**
-     State of the activation. You can compare this value to State_XXX constants.
+     * State of the activation. You can compare this value to State_XXX constants.
      */
     public final int state;
     /**
-     Number of failed authentication attempts in a row.
+     * Number of failed authentication attempts in a row.
      */
     public final int failCount;
     /**
-     Maximum number of allowed failed authentication attempts in a row.
+     * Maximum number of allowed failed authentication attempts in a row.
      */
     public final int maxFailCount;
 
@@ -74,23 +74,23 @@ public class ActivationStatus {
     // Activation version
 
     /**
-     The activation version currently stored on the server.
+     * The activation version currently stored on the server.
      */
     public final ProtocolVersion currentVersion;
     /**
-     Defines version of data supported on the server. If the value is different than {@link #currentVersion},
-     then the activation migration is available.
+     * Defines version of data supported on the server. If the value is different than {@link #currentVersion},
+     * then the activation migration is available.
      */
     public final ProtocolVersion upgradeVersion;
 
     /**
-     Contains true, if protocol upgrade to newer activation data is available.
+     * Contains true, if protocol upgrade to newer activation data is available.
      */
     public final boolean isUpgradeAvailable;
 
     /**
-     Contains custom object received from the server together with the status. The value is optional
-     and the server's implementation must support it.
+     * Contains custom object received from the server together with the status. The value is optional
+     * and the server's implementation must support it.
      */
     private Map<String, Object> customObject;
 

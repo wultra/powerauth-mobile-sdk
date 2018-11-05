@@ -40,6 +40,7 @@ public class OtpUtil {
      * returns Otp object filled with valid data. The method doesn't perform an auto-correction,
      * so the provided code must be valid.
      *
+     * @param activationCode string with an activation code.
      * @return Otp object if code is valid, or null
      * */
     public native static Otp parseFromActivationCode(String activationCode);
@@ -47,6 +48,9 @@ public class OtpUtil {
     /**
      *  Returns true if |utfCodepoint| is a valid character allowed in the activation code.
      *  The method strictly checks whether the character is from [A-Z2-7] characters range.
+     *
+     * @param utfCodepoint unicode code point to be validated.
+     * @return true if provided character is allowed in the activation code.
      */
     public native static boolean validateTypedCharacter(int utfCodepoint);
 
@@ -61,6 +65,9 @@ public class OtpUtil {
      * <li>'0' is corrected to 'O' (zero to capital O)</li>
      * <li>'1' is corrected to 'I' (one to capital I)</li>
      * </ul>
+     *
+     * @param utfCodepoint unicode code point to be validated.
+     * @return 0 if character is not allowed, or non-null value with the same, or auto-corrected characted.
      */
     public native static int validateAndCorrectTypedCharacter(int utfCodepoint);
 
@@ -71,6 +78,9 @@ public class OtpUtil {
      *
      *  Note that since protocol version V3, the activation code is protected with checksum, so the
      *  code with right characters and right length can still be an invalid.
+     *
+     * @param activationCode activation code without the signature part
+     * @return true if code is valid
      */
     public native static boolean validateActivationCode(String activationCode);
 

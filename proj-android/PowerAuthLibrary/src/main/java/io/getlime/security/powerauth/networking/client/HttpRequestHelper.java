@@ -159,7 +159,7 @@ class HttpRequestHelper<TRequest, TResponse> {
 
         final URL requestUrl = new URL(baseUrl + endpoint.getRelativePath());
         final String requestMethod = endpoint.getHttpMethod();
-        final HashMap<String, String> requestHeaders = new HashMap<String, String>();
+        final HashMap<String, String> requestHeaders = new HashMap<>();
         final byte[] requestData;
 
         // Encrypt the request data if the endpoint has encryptor specified
@@ -171,14 +171,11 @@ class HttpRequestHelper<TRequest, TResponse> {
             // Acquire the encryptor from the helper and keep it locally.
             // We will use it later for the response decryption.
             encryptor = helper.getEciesEncryptor(endpoint.getEncryptorId());
-            if (encryptor == null) {
-                // This typically happens when
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Encryptor creation failed.");
-            }
+            // Then encrypt the request object.
             requestData = serialization.encryptObject(requestObject, encryptor);
 
             // Set encryption HTTP header, only if this doesn't collide with the signature.
-            // We don't sent the encryption header together with the signature header. The reason
+            // We don't send the encryption header together with the signature header. The reason
             // for that is fact, that signature header already contains values required for
             // decryption on the server.
             if (!needsSignature) {

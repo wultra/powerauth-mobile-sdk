@@ -44,17 +44,17 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedRe
 public class JsonSerialization {
 
     /**
-    Private instance of {@link Gson} object.
-    */
+     * Private instance of {@link Gson} object.
+     */
     private Gson gson;
 
     /**
-     Private instance of {@link JsonParser}.
+     * Private instance of {@link JsonParser}.
      */
     private JsonParser parser;
 
     /**
-     Constant representing an empty object, serialized to JSON (e.g. empty curly brackets, {@code {}})
+     * Constant representing an empty object, serialized to JSON (e.g. empty curly brackets, {@code {}})
      */
     private static final byte[] EMPTY_OBJECT_BYTES = { 0x7B, 0x7D };
 
@@ -99,7 +99,7 @@ public class JsonSerialization {
                 return object;
             }
         }
-        final String message = data == null ? "Empty response received." : "Failed to deserialize object.";
+        final String message = (data == null) ? "Empty response received." : "Failed to deserialize object.";
         throw new JsonParseException(message);
     }
 
@@ -249,7 +249,11 @@ public class JsonSerialization {
      * @throws PowerAuthErrorException in case of decryption error
      */
     @NonNull
-    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull EciesEncryptor decryptor, @Nullable TypeToken<TResponse> type) throws PowerAuthErrorException {
+    public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull EciesEncryptor decryptor, @NonNull TypeToken<TResponse> type) throws PowerAuthErrorException {
+        // Sanity checks
+        if (response == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Empty response cannot be decrypted.");
+        }
         // 1. Convert response into cryptogram object
         final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac());
         // 2. Try to decrypt the response

@@ -56,14 +56,15 @@ public class EciesEncryptorFactory {
      * an activation scope, then the internal {@link Session} must have a valid activation.
      *
      * @param identifier type of encryptor to be constructed
-     * @return {@link EciesEncryptor} object or null, if encryptor cannot be constructed.
-     * @throws PowerAuthErrorException if factory doesn't have {@link #mPossessionUnlockKey} but is required.
+     * @return new instance of {@link EciesEncryptor} object.
+     * @throws PowerAuthErrorException if factory doesn't have {@link #mPossessionUnlockKey} but is required,
+     *                                 or if low level encryptor creation fails
      */
-    public @Nullable EciesEncryptor getEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
-        if (identifier != EciesEncryptorId.NONE) {
-            return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
+    public @NonNull EciesEncryptor getEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
+        if (identifier == EciesEncryptorId.NONE) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "'NONE' encryptor cannot be created.");
         }
-        return null;
+        return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
     }
 
     /**
@@ -72,9 +73,11 @@ public class EciesEncryptorFactory {
      * @param scope defines scope of encryptor (application or activation)
      * @param sharedInfo1 optional ECIES parameter
      * @param addMetaData if true, then {@link EciesMetadata} will be assigned to the returned encryptor
-     * @return encryptor object or null in case of error.
+     * @return new instance of {@link EciesEncryptor} object.
+     * @throws PowerAuthErrorException if factory doesn't have {@link #mPossessionUnlockKey} but is required,
+     *                                 or if low level encryptor creation fails
      */
-    private @Nullable EciesEncryptor getEncryptor(@NonNull int scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
+    private @NonNull EciesEncryptor getEncryptor(@NonNull int scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
         final byte[] sharedInfo1Bytes = sharedInfo1 != null ? sharedInfo1.getBytes(Charset.defaultCharset()) : null;
         final SignatureUnlockKeys unlockKeys;
         final String activationId;
@@ -89,7 +92,10 @@ public class EciesEncryptorFactory {
             unlockKeys = null;
         }
         EciesEncryptor encryptor = mSession.getEciesEncryptor(scope, unlockKeys, sharedInfo1Bytes);
-        if (encryptor != null && addMetaData) {
+        if (encryptor == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to create ECIES encryptor.");
+        }
+        if (addMetaData) {
             encryptor.setMetadata(new EciesMetadata(mSession.getSessionSetup().applicationKey, activationId));
         }
         return encryptor;

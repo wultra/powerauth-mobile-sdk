@@ -31,10 +31,10 @@ public interface IPrivateCryptoHelper {
      * Constructs a new {@link EciesEncryptor} object created for given identifier.
      *
      * @param identifier encryptor's identifier
-     * @return new instance of {@link EciesEncryptor} or null if empty encryptor is requested.
+     * @return new instance of {@link EciesEncryptor}
      * @throws PowerAuthErrorException if encryptor cannot be created
      */
-    @Nullable
+    @NonNull
     EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException;
 
     /**

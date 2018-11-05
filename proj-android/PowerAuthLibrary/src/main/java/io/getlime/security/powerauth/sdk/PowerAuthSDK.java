@@ -186,7 +186,7 @@ public class PowerAuthSDK {
      */
     @NonNull IPrivateCryptoHelper getCryptoHelper(@Nullable final Context context) {
         return new IPrivateCryptoHelper() {
-            @Nullable
+            @NonNull
             @Override
             public EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
                 final byte[] deviceRelatedKey = context == null ? null : deviceRelatedKey(context);

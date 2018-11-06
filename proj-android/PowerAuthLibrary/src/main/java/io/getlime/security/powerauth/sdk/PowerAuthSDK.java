@@ -547,6 +547,7 @@ public class PowerAuthSDK {
         });
     }
 
+    // Deprecated
     public @Nullable ICancelable createActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @NonNull String customSecret, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull String url, @Nullable Map<String, String> httpHeaders, @NonNull final ICreateActivationListener listener) {
 
         // Check if activation may be started
@@ -659,6 +660,7 @@ public class PowerAuthSDK {
         });
     }
 
+    // Deprecated
     public ICancelable createActivation(String name, Map<String, String> identityAttributes, String url, final ICreateActivationListener listener) {
         return this.createActivation(name, identityAttributes, "00000-00000", null, null, url, null, listener);
     }
@@ -808,6 +810,7 @@ public class PowerAuthSDK {
                 final ActivationStatus activationStatus = mSession.decodeActivationStatus(activationStatusResponse.getEncryptedStatusBlob(), keys);
                 if (activationStatus != null) {
                     // Everything was OK
+                    activationStatus.setCustomObject(activationStatusResponse.getCustomObject());
                     listener.onActivationStatusSucceed(activationStatus);
                 } else {
                     // Error occurred when decoding status
@@ -963,6 +966,7 @@ public class PowerAuthSDK {
      * Compute the HTTP signature header with vault unlock flag for given HTTP method, URI identifier and HTTP request body using provided authentication information.
      * <p>
      * This method may block a main thread - make sure to dispatch it asynchronously.
+     * <b>WARNING:</b> the method is deprecated due to "vaultUnlock" parameter. The method will not be available in upcoming SDK version 1.0.0
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -973,6 +977,7 @@ public class PowerAuthSDK {
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
+    @Deprecated
     public PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, boolean vaultUnlock, String method, String uriId, byte[] body) {
 
         checkForValidSetup();

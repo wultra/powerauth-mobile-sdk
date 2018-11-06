@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+import java.util.Map;
+
 public class ActivationStatus {
     /**
      The activation is just created.
@@ -75,6 +77,12 @@ public class ActivationStatus {
      to the debug console.
      */
     public final long counter;
+
+    /**
+     * Contains custom object received from the server together with the status. The value is optional
+     * and the server's implementation must support it.
+     */
+    private Map<String, Object> customObject;
     
 
     public ActivationStatus() {
@@ -83,5 +91,20 @@ public class ActivationStatus {
         this.failCount = 0;
         this.maxFailCount = 0;
         this.counter = 0;
+        this.customObject = null;
+    }
+
+    /**
+     * @param customObject custom object to set
+     */
+    public void setCustomObject(Map<String, Object> customObject) {
+        this.customObject = customObject;
+    }
+
+    /**
+     * @return custom dictionary received from the server together with the status.
+     */
+    public Map<String, Object> getCustomObject() {
+        return customObject;
     }
 }

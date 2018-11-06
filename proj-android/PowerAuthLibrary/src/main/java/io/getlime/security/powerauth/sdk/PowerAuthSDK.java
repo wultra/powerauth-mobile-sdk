@@ -772,6 +772,20 @@ public class PowerAuthSDK {
         }
     }
 
+    private ActivationStatus mLastFetchedActivationStatus = null;
+
+    /**
+     * Return {@link ActivationStatus} recently received from the server. You need to call
+     * {@link #fetchActivationStatusWithCallback(Context, IActivationStatusListener)} method to
+     * update result from this method.
+     *
+     * @return {@link ActivationStatus} object recently received from the server or null, if
+     *         there's no activation, or status was not received yet.
+     */
+    public @Nullable ActivationStatus getLastFetchedActivationStatus(){
+        return mLastFetchedActivationStatus;
+    }
+
     /**
      * Fetch the activation status for current activation.
      * <p>
@@ -811,6 +825,7 @@ public class PowerAuthSDK {
                 if (activationStatus != null) {
                     // Everything was OK
                     activationStatus.setCustomObject(activationStatusResponse.getCustomObject());
+                    mLastFetchedActivationStatus = activationStatus;
                     listener.onActivationStatusSucceed(activationStatus);
                 } else {
                     // Error occurred when decoding status
@@ -926,6 +941,8 @@ public class PowerAuthSDK {
         mSession.resetSession();
         // Serialize will notify state listener
         saveSerializedState();
+        // Clear last fetched status
+        mLastFetchedActivationStatus = null;
     }
 
     /**

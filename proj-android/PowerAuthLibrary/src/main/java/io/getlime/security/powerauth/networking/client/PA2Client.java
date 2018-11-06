@@ -59,6 +59,7 @@ import io.getlime.security.powerauth.networking.endpoints.PA2RemoveTokenEndpoint
 import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
@@ -104,7 +105,7 @@ public class PA2Client {
         return mConfiguration;
     }
 
-    private class RestExecutor<TRequest, TResponse> extends AsyncTask<TRequest, Void, Void> {
+    private class RestExecutor<TRequest, TResponse> extends AsyncTask<TRequest, Void, Void> implements ICancelable {
 
         private static final String CONTENT_TYPE_JSON = "application/json";
 
@@ -242,6 +243,33 @@ public class PA2Client {
             }
             return null;
         }
+
+        private <TResponse> void callOnResponseUi(final TResponse response, final INetworkResponseListener<TResponse> responseListener) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isCancelled()) {
+                        responseListener.onNetworkResponse(response);
+                    }
+                }
+            });
+        }
+
+        private <TResponse> void callOnErrorUi(final Throwable t, final INetworkResponseListener<TResponse> responseListener) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isCancelled()) {
+                        responseListener.onNetworkError(t);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void cancel() {
+            this.cancel(true);
+        }
     }
 
     /**
@@ -267,32 +295,15 @@ public class PA2Client {
         return result.toString(encoding);
     }
 
-    private <TResponse> void callOnResponseUi(final TResponse response, final INetworkResponseListener<TResponse> responseListener) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                responseListener.onNetworkResponse(response);
-            }
-        });
-    }
-
-    private <TResponse> void callOnErrorUi(final Throwable t, final INetworkResponseListener<TResponse> responseListener) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                responseListener.onNetworkError(t);
-            }
-        });
-    }
-
     @SuppressWarnings("unchecked")
-    private <TRequest, TResponse> AsyncTask execute(
+    private <TRequest, TResponse> ICancelable execute(
             @NonNull IEndpointDefinition<TResponse> requestDefinition,
             @Nullable TRequest requestBody,
             @Nullable Map<String, String> headers,
             @NonNull INetworkResponseListener<TResponse> responseListener) {
         final RestExecutor restExecutor = new RestExecutor(headers, requestDefinition, responseListener);
-        return restExecutor.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, requestBody, null, null);
+        restExecutor.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, requestBody, null, null);
+        return restExecutor;
     }
 
     private static final String EMPTY_OBJECT_STRING = "{}";
@@ -319,7 +330,7 @@ public class PA2Client {
     }
 
     @CheckResult
-    public AsyncTask sendNonPersonalizedEncryptedObjectToUrl(
+    public ICancelable sendNonPersonalizedEncryptedObjectToUrl(
             @NonNull NonPersonalizedEncryptedPayloadModel request,
             @NonNull String url,
             @NonNull Map<String, String> headers,
@@ -329,28 +340,28 @@ public class PA2Client {
     }
 
     @CheckResult
-    public AsyncTask createActivation(
+    public ICancelable createActivation(
             @NonNull ActivationCreateRequest request,
             @NonNull INetworkResponseListener<ActivationCreateResponse> listener) {
         return execute(new PA2CreateActivationEndpoint(mConfiguration.getBaseEndpointUrl()), request, null, listener);
     }
 
     @CheckResult
-    public AsyncTask getActivationStatus(
+    public ICancelable getActivationStatus(
             @NonNull ActivationStatusRequest request,
             @NonNull INetworkResponseListener<ActivationStatusResponse> listener) {
         return execute(new PA2ActivationStatusEndpoint(mConfiguration.getBaseEndpointUrl()), request, null, listener);
     }
 
     @CheckResult
-    public AsyncTask removeActivation(
+    public ICancelable removeActivation(
             @NonNull Map<String, String> headers,
             @NonNull INetworkResponseListener<Void> listener) {
         return execute(new PA2RemoveActivationEndpoint(mConfiguration.getBaseEndpointUrl()), null, headers, listener);
     }
 
     @CheckResult
-    public AsyncTask vaultUnlock(
+    public ICancelable vaultUnlock(
             @NonNull Map<String, String> headers,
             @NonNull VaultUnlockRequest request,
             @NonNull INetworkResponseListener<VaultUnlockResponse> listener) {
@@ -358,7 +369,7 @@ public class PA2Client {
     }
 
     @CheckResult
-    public AsyncTask createToken(
+    public ICancelable createToken(
             @NonNull Map<String, String> headers,
             @NonNull TokenCreateRequest request,
             @NonNull INetworkResponseListener<TokenCreateResponse> listener) {
@@ -366,7 +377,7 @@ public class PA2Client {
     }
 
     @CheckResult
-    public AsyncTask removeToken(
+    public ICancelable removeToken(
             @NonNull Map<String, String> headers,
             @NonNull TokenRemoveRequest request,
             @NonNull INetworkResponseListener<TokenRemoveResponse> listener) {

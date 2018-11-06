@@ -56,16 +56,28 @@ public class PowerAuthClientConfiguration {
      */
     private PA2ClientValidationStrategy clientValidationStrategy;
 
+    /**
+     * @return connection timeout in milliseconds
+     */
     public int getConnectionTimeout() {
         return connectionTimeout;
     }
 
+    /**
+     * @return read timeout in milliseconds
+     */
     public int getReadTimeout() {
         return readTimeout;
     }
 
+    /**
+     * @return true if unsecured connections are allowed
+     */
     public boolean isUnsecuredConnectionAllowed() { return allowUnsecuredConnection; }
 
+    /**
+     * @return Validation strategy
+     */
     public PA2ClientValidationStrategy getClientValidationStrategy() {
         return clientValidationStrategy;
     }
@@ -79,12 +91,25 @@ public class PowerAuthClientConfiguration {
         public Builder() {
         }
 
+        /**
+         * Sets timeouts to the future configuration.
+         *
+         * @param connectionTimeout connection timeout in milliseconds
+         * @param readTimeout read timeout in milliseconds
+         * @return The same {@link Builder} object instance
+         */
         public Builder timeouts(int connectionTimeout, int readTimeout) {
             this.connectionTimeout = connectionTimeout;
             this.readTimeout = readTimeout;
             return this;
         }
 
+        /**
+         * Enables or disables connection to unsecured servers.
+         *
+         * @param allow true if unsecured connection should be allowed.
+         * @return The same {@link Builder} object instance
+         */
         public Builder allowUnsecuredConnection(boolean allow) {
             this.allowUnsecuredConnection = allow;
             if (allow) {
@@ -93,11 +118,22 @@ public class PowerAuthClientConfiguration {
             return this;
         }
 
+        /**
+         * Sets TLS client validation strategy to the future configuration.
+         *
+         * @param clientValidationStrategy strategy to be set
+         * @return The same {@link Builder} object instance
+         */
         public Builder clientValidationStrategy(PA2ClientValidationStrategy clientValidationStrategy) {
             this.clientValidationStrategy = clientValidationStrategy;
             return this;
         }
 
+        /**
+         * Build a final configuration.
+         *
+         * @return Final {@link PowerAuthClientConfiguration} instance.
+         */
         public PowerAuthClientConfiguration build() {
             final PowerAuthClientConfiguration powerAuthClientConfiguration = new PowerAuthClientConfiguration();
             powerAuthClientConfiguration.connectionTimeout = connectionTimeout;

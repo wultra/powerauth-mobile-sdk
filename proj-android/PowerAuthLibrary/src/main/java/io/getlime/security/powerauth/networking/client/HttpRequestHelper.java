@@ -45,7 +45,7 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 
 /**
  * The {@code HttpRequestHelper} class implements request serialization and response deserialization.
- *
+ * The class is package-private.
  */
 class HttpRequestHelper<TRequest, TResponse> {
 
@@ -81,7 +81,7 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @param endpoint required endpoint definition
      * @param authentication optional authentication object, required for objects
      */
-    public HttpRequestHelper(
+    HttpRequestHelper(
             @Nullable TRequest requestObject,
             @NonNull IEndpointDefinition<TResponse> endpoint,
             @Nullable PowerAuthAuthentication authentication) {
@@ -97,23 +97,23 @@ class HttpRequestHelper<TRequest, TResponse> {
      * The {@code RequestData} nested class contains all information required for HTTP request
      * execution.
      */
-    public static class RequestData {
+    static class RequestData {
         /**
          * Full URL
          */
-        public final @NonNull URL url;
+        final @NonNull URL url;
         /**
          * HTTP method
          */
-        public final @NonNull String method;
+        final @NonNull String method;
         /**
          * Dictionary with all HTTP headers
          */
-        public final @NonNull Map<String, String> httpHeaders;
+        final @NonNull Map<String, String> httpHeaders;
         /**
          * HTTP request body. May contain an empty array of bytes.
          */
-        public final @NonNull byte[] body;
+        final @Nullable byte[] body;
 
         /**
          * @param url full URL
@@ -121,7 +121,7 @@ class HttpRequestHelper<TRequest, TResponse> {
          * @param httpHeaders HTTP headers
          * @param body HTTP request body
          */
-        public RequestData(
+        RequestData(
                 @NonNull URL url,
                 @NonNull String method,
                 @NonNull Map<String, String> httpHeaders,
@@ -145,7 +145,7 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @throws MalformedURLException if cannot construct full request URL
      */
     @NonNull
-    public RequestData buildRequest(@NonNull String baseUrl, @NonNull IPrivateCryptoHelper helper) throws PowerAuthErrorException, MalformedURLException {
+    RequestData buildRequest(@NonNull String baseUrl, @NonNull IPrivateCryptoHelper helper) throws PowerAuthErrorException, MalformedURLException {
 
         // Sanity checks
         final boolean needsSignature = endpoint.getAuthorizationUriId() != null;
@@ -217,9 +217,9 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @throws Throwable if a deserialization, or decryption error occured.
      */
     @Nullable
-    public TResponse buildResponse(int responseCode, @Nullable byte[] responseData) throws Throwable {
+    TResponse buildResponse(int responseCode, @Nullable byte[] responseData) throws Throwable {
 
-        if (responseCode / 100 != 2) {
+        if (responseCode != 200) {
             // Non-200 response, throw an error
             throw buildResponseException(responseCode, responseData, null, null);
         }
@@ -320,7 +320,7 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @return {@link Throwable} object with an appropriate exception.
      */
     @NonNull
-    public Throwable buildResponseException(int responseCode, @Nullable byte[] responseData, @Nullable JsonObject jsonRoot, @Nullable Throwable exception) {
+    private Throwable buildResponseException(int responseCode, @Nullable byte[] responseData, @Nullable JsonObject jsonRoot, @Nullable Throwable exception) {
 
         // Convert bytes into String
         final String responseString;

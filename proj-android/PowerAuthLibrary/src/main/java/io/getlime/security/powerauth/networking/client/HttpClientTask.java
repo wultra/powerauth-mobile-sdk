@@ -60,7 +60,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
      * @param cryptoHelper cryptographic helper
      * @param listener response listener
      */
-    public HttpClientTask(
+    HttpClientTask(
             @NonNull HttpRequestHelper<TRequest, TResponse> httpRequestHelper,
             @NonNull String baseUrl,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
@@ -140,7 +140,9 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             }
 
             // Connect to endpoint
-            urlConnection.getOutputStream().write(requestData.body);
+            if (requestData.body != null) {
+                urlConnection.getOutputStream().write(requestData.body);
+            }
             urlConnection.connect();
 
             if (isCancelled()) {
@@ -149,7 +151,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
 
             // Get response code & try to get response body
             final int responseCode = urlConnection.getResponseCode();
-            final boolean responseOk = responseCode / 100 == 2;
+            final boolean responseOk = (responseCode == 200);
 
             if (isCancelled()) {
                 return null;
@@ -164,8 +166,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             }
 
             // Try to deserialize response
-            TResponse response = httpRequestHelper.buildResponse(responseCode, responseData);
-            return response;
+            return httpRequestHelper.buildResponse(responseCode, responseData);
 
         } catch (Throwable e) {
             error = e;

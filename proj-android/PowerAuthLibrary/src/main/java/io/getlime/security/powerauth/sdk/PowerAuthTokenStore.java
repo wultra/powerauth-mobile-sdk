@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -35,6 +34,7 @@ import io.getlime.security.powerauth.keychain.PA2Keychain;
 import io.getlime.security.powerauth.networking.client.PA2Client;
 import io.getlime.security.powerauth.networking.endpoints.PA2CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.PA2RemoveTokenEndpoint;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
@@ -122,9 +122,10 @@ public class PowerAuthTokenStore {
      * @param tokenName Name of requested token.
      * @param authentication An authentication instance specifying what factors should be used for token creation.
      * @param listener Listener with callbacks to receive a token.
-     * @return {@code AsyncTask} associated with the running server request or null if request has been processed synchronously.
+     * @return {@code ICancelable} associated with the running server request or null if request has been processed synchronously.
      */
-    public @Nullable AsyncTask requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
+    public @Nullable
+    ICancelable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
 
         Throwable error = null;
         PowerAuthPrivateTokenData tokenData = null;
@@ -228,9 +229,9 @@ public class PowerAuthTokenStore {
      * @param context Context
      * @param tokenName Name of token to be removed
      * @param listener Listener with callbacks.
-     * @return {@code AsyncTask} associated with the running server request or null in case of error.
+     * @return {@code ICancelable} associated with the running server request or null in case of error.
      */
-    public @Nullable AsyncTask removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
+    public @Nullable ICancelable removeAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull final IRemoveTokenListener listener) {
 
         Throwable error = null;
         PowerAuthPrivateTokenData tokenData;

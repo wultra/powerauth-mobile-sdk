@@ -773,8 +773,8 @@ static PowerAuthSDK * s_inst;
 		}
 		// Update last received objects
 		if (!error && status && updateObjects) {
-			_lastReceivedActivationStatus = status;
-			_lastReceivedCustomObject = customObject;
+			_lastFetchedActivationStatus = status;
+			_lastFetchedCustomObject = customObject;
 		}
 	}
 	[_lock unlock];
@@ -791,8 +791,8 @@ static PowerAuthSDK * s_inst;
 	{
 		[_getStatusTask cancel];
 		_getStatusTask = nil;
-		_lastReceivedActivationStatus = nil;
-		_lastReceivedCustomObject = nil;
+		_lastFetchedActivationStatus = nil;
+		_lastFetchedCustomObject = nil;
 	}
 	[_lock unlock];
 }

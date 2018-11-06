@@ -794,6 +794,8 @@ static PowerAuthSDK * s_inst;
 			
 			// Everything was OK
 			if (status) {
+				_lastFetchedActivationStatus = status;
+				_lastFetchedCustomObject = response.customObject;
 				callback(status, response.customObject, nil);
 			}
 			// Error occurred when decoding status
@@ -881,6 +883,9 @@ static PowerAuthSDK * s_inst;
 	}
 	[_tokenStore removeAllLocalTokens];
 	[_session resetSession];
+	// Reset activation status
+	_lastFetchedActivationStatus = nil;
+	_lastFetchedCustomObject = nil;
 }
 
 

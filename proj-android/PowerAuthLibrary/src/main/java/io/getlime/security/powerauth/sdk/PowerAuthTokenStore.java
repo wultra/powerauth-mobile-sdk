@@ -342,13 +342,16 @@ public class PowerAuthTokenStore {
 
     /**
      * Converts token name into token's local identifier.
+     *
+     * @param tokenName symbolic name of token
+     * @return Unique local identifier for the token
      */
     private @NonNull String getLocalIdentifier(@NonNull String tokenName) {
         return keychainKeyPrefix + Base64.encodeToString(tokenName.getBytes(), Base64.NO_WRAP);
     }
 
     /**
-     * Returns true if provided identifier is a valid key for this instance of store.
+     * @return true if provided identifier is a valid key for this instance of store.
      */
     private boolean isValidLocalIdentifier(@NonNull String identifier) {
         return identifier.startsWith(keychainKeyPrefix);
@@ -362,14 +365,17 @@ public class PowerAuthTokenStore {
     //
 
     /**
-     * Returns key to keychain for store tokens index.
+     * @return String with key to keychain for store tokens index.
      */
-    private final String getIndexKey() {
+    private String getIndexKey() {
         return keychainKeyPrefix + TOKENS_INDEX_ENTRY;
     }
 
     /**
-     * Saves index into keychain.
+     * Saves index into the keychain.
+     *
+     * @param context Android Context object
+     * @param index full index for tokens
      */
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
@@ -378,7 +384,9 @@ public class PowerAuthTokenStore {
     }
 
     /**
-     * Returns set of strings, loaded from index, stored in keychain.
+     * Loads tokens index from the keychain.
+     *
+     * @return set of strings, loaded from index, stored in keychain.
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
@@ -397,6 +405,8 @@ public class PowerAuthTokenStore {
 
     /**
      * Removes all tokens from keychain, including token index data.
+     *
+     * @param context Android Context object
      */
     private void clearTokensIndex(@NonNull final Context context) {
         HashSet<String> identifiers = loadTokensIndex(context);

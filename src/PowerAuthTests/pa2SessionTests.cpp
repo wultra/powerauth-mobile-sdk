@@ -298,7 +298,10 @@ namespace powerAuthTests
 					param2.serverPublicKey          = serverPublicKey.base64String();
 					
 					// calculate hkKEY_DEVICE_PUBLIC on dummy server's side
-					cc7::ByteArray hash = crypto::SHA256(crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey));
+					auto fingerprint_data = crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey);
+					fingerprint_data.append(cc7::MakeRange(_activation_id));
+					fingerprint_data.append(crypto::ECC_ExportPublicKeyToNormalizedForm(crypto::ECC_ImportPublicKey(nullptr, serverPublicKey)));
+					cc7::ByteArray hash = crypto::SHA256(fingerprint_data);
 					size_t off    = hash.size() - 4;
 					uint32_t v = ((hash[off] & 0x7f) << 24) | (hash[off+1] << 16) | (hash[off+2] << 8) | hash[off+3];
 					v = v % 100000000;

@@ -214,16 +214,10 @@ namespace powerAuth
 		LOCK_GUARD();
 		std::string result;
 		if (hasValidActivation()) {
-			crypto::BNContext ctx;
-			EC_KEY * public_key = crypto::ECC_ImportPublicKey(nullptr, _pd->devicePublicKey, ctx);
-			auto coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(public_key, ctx);
-			if (!coord_x.empty()) {
-				result = protocol::CalculateDecimalizedSignature(crypto::SHA256(coord_x));
-				if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
-					result.clear();
-				}
+			result = protocol::CalculateActivationFingerprint(_pd->devicePublicKey, _pd->serverPublicKey, _pd->activationId, _pd->protocolVersion());
+			if (result.empty()) {
+				CC7_LOG("Session %p, %d: ActivationFingerprint: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 			}
-			EC_KEY_free(public_key);
 		}
 		return result;
 	}
@@ -272,8 +266,7 @@ namespace powerAuth
 				break;
 			}
 			ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey, ctx);
-			ad->devicePublicKeyCoordX = crypto::ECC_ExportPublicKeyToNormalizedForm(ad->devicePrivateKey, ctx);
-			if (ad->devicePublicKeyData.empty() || ad->devicePublicKeyCoordX.empty()) {
+			if (ad->devicePublicKeyData.empty()) {
 				CC7_LOG("Session %p, %d: Step 1: Unable to export public key.", this, sessionIdentifier());
 				break;
 			}
@@ -315,8 +308,6 @@ namespace powerAuth
 		
 		auto error_code = EC_Encryption;
 		do {
-			crypto::BNContext ctx;
-			
 			// Validate CTR_DATA
 			if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
 				// Note that we treat all B64 decode failures as an encryption error.
@@ -339,9 +330,9 @@ namespace powerAuth
 				break;
 			}
 			// So far so good, the last step is decimalization of device's public key
-			result.activationFingerprint = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyCoordX));
-			if (result.activationFingerprint.length() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
-				CC7_LOG("Session %p, %d: Step 2: Unable to calculate decimalized signature.", this, sessionIdentifier());
+			result.activationFingerprint = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, param.activationId, Version_V3);
+			if (result.activationFingerprint.empty()) {
+				CC7_LOG("Session %p, %d: Step 2: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 				break;
 			}
 			

@@ -502,7 +502,57 @@ namespace protocol
 		return _ValToNormString(dbc % 100000000);
 	}
 
-
+	std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key, const cc7::ByteRange & server_pub_key, const std::string activation_id, Version v)
+	{
+		std::string result;
+		
+		crypto::BNContext ctx;
+		
+		EC_KEY * device_public_key = nullptr;
+		EC_KEY * server_public_key = nullptr;
+		do {
+			crypto::BNContext ctx;
+			
+			// Import device's public key
+			device_public_key = crypto::ECC_ImportPublicKey(nullptr, device_pub_key, ctx);
+			auto device_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(device_public_key, ctx);
+			if (device_coord_x.empty()) {
+				break;
+			}
+			cc7::ByteArray data;
+			if (v == Version_V2) {
+				// Stiil at V2 activation
+				data.reserve(device_coord_x.size());
+				// data = device_coord_x
+				data.assign(device_coord_x);
+			} else {
+				// V3 activation
+				// Import server's public key
+				server_public_key = crypto::ECC_ImportPublicKey(nullptr, server_pub_key, ctx);
+				auto server_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(server_public_key, ctx);
+				if (server_coord_x.empty()) {
+					break;
+				}
+				// data = device_coord_x + activation_id + server_coord_x
+				data.reserve(device_coord_x.size() + activation_id.size() + server_coord_x.size());
+				data.assign(device_coord_x);
+				data.append(cc7::MakeRange(activation_id));
+				data.append(server_coord_x);
+			}
+			// Now calculate decimalized signature
+			result = protocol::CalculateDecimalizedSignature(crypto::SHA256(data));
+			if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
+				result.clear();
+			}
+			
+		} while (false);
+		
+		// Release OpenSSL objects
+		EC_KEY_free(device_public_key);
+		EC_KEY_free(server_public_key);
+		
+		return result;
+	}
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

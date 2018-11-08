@@ -82,7 +82,6 @@ namespace protocol
 		
 		cc7::ByteArray	serverPublicKeyData;	// Server's public key
 		cc7::ByteArray	devicePublicKeyData;	// Our public key
-		cc7::ByteArray	devicePublicKeyCoordX;	// Public key in form of affine CoordX
 		
 		cc7::ByteArray	masterSharedSecret;		// The result of ECDH. This value is VERY sensitive!
 		cc7::ByteArray	ctrData;				// Initial value for hash-based counter

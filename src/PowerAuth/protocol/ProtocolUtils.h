@@ -127,6 +127,16 @@ namespace protocol
 	 */
 	std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature);
 	
+	/**
+	 Calculates activation fingerprint from given data. The algorithm depends
+	 on the activation version. For V2, only "device_pub_key" is used. For V3 and
+	 later, all parameters are involved into the fingerprint calculation.
+	 */
+	std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key,
+											   const cc7::ByteRange & server_pub_key,
+											   const std::string activation_id,
+											   Version v);
+	
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

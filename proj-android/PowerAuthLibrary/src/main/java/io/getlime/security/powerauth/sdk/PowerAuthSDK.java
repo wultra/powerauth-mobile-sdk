@@ -148,7 +148,7 @@ public class PowerAuthSDK {
             } else {
                 instance.mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
-            instance.mClient = new PA2Client(mConfiguration, mClientConfiguration);
+            instance.mClient = new PA2Client(instance.mConfiguration, instance.mClientConfiguration);
 
             instance.mStatusKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainStatusId());
             instance.mBiometryKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainBiometryId());
@@ -160,11 +160,11 @@ public class PowerAuthSDK {
             }
 
             final SessionSetup sessionSetup = new SessionSetup(
-                    mConfiguration.getAppKey(),
-                    mConfiguration.getAppSecret(),
-                    mConfiguration.getMasterServerPublicKey(),
+                    instance.mConfiguration.getAppKey(),
+                    instance.mConfiguration.getAppSecret(),
+                    instance.mConfiguration.getMasterServerPublicKey(),
                     0,
-                    mConfiguration.getExternalEncryptionKey()
+                    instance.mConfiguration.getExternalEncryptionKey()
             );
 
             instance.mSession = new Session(sessionSetup);

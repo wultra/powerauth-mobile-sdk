@@ -34,23 +34,23 @@ public class SignatureRequest {
     /**
      * Cryptographic constant for signature calculation. It's recommended to use relative HTTP path.
      */
-    public final String uri;
+    public final String uriIdentifier;
     /**
      * Optional, contains NONCE generated externally. The value should be used for offline data
      * signing purposes only. The Base64 string is expected.
      */
-    public final String nonce;
+    public final String offlineNonce;
 
     /**
      * @param body bytes with HTTP request's body, or normalized bytes for GET requests
      * @param method HTTP method
-     * @param uri Cryptographic constant representing relative HTTP path
-     * @param nonce Optional nonce, required for offline signatures.
+     * @param uriIdentifier Cryptographic constant representing relative HTTP path
+     * @param offlineNonce Optional nonce, required for offline signatures.
      */
-    public SignatureRequest(byte[] body, String method, String uri, String nonce) {
+    public SignatureRequest(byte[] body, String method, String uriIdentifier, String offlineNonce) {
         this.body = body;
         this.method = method;
-        this.uri = uri;
-        this.nonce = nonce;
+        this.uriIdentifier = uriIdentifier;
+        this.offlineNonce = offlineNonce;
     }
 }

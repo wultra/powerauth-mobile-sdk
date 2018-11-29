@@ -414,8 +414,8 @@ CC7_JNI_METHOD_PARAMS(jobject, signHTTPRequest, jobject request, jobject unlockK
 	jclass requestClazz		= CC7_JNI_MODULE_FIND_CLASS("SignatureRequest");
 	cppRequest.body			= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(request, requestClazz, "body"));
 	cppRequest.method		= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "method"));
-	cppRequest.uri			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "uri"));
-	cppRequest.offlineNonce	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "nonce"));
+	cppRequest.uri			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "uriIdentifier"));
+	cppRequest.offlineNonce	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "offlineNonce"));
 	SignatureFactor cppSignatureFactor = (SignatureFactor)signatureFactor;
 	SignatureUnlockKeys cppUnlockKeys;
 	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {

@@ -45,11 +45,20 @@ android {
         compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
         compile "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
         compile 'com.google.code.gson:gson:2.8.5'
+
+        testImplementation 'junit:junit:4.12'
+        testImplementation 'org.robolectric:robolectric:4.0.2'
     }
 
     externalNativeBuild {
         ndkBuild {
             path 'jni/Android.mk'
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
         }
     }
 }

@@ -97,6 +97,8 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
 
     @Override
     protected TResponse doInBackground(TRequest... tRequests) {
+        InputStream inputStream = null;
+        HttpURLConnection urlConnection = null;
         try {
             if (isCancelled()) {
                 return null;
@@ -106,7 +108,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             HttpRequestHelper.RequestData requestData = httpRequestHelper.buildRequest(baseUrl, cryptoHelper);
 
             // Create an URL connection
-            final HttpURLConnection urlConnection = (HttpURLConnection) requestData.url.openConnection();
+            urlConnection = (HttpURLConnection) requestData.url.openConnection();
             final boolean securedUrlConnection = urlConnection instanceof HttpsURLConnection;
 
             // Setup the connection
@@ -158,7 +160,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             }
 
             // Get response bytes from input stream
-            final InputStream inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
+            inputStream = responseOk ? urlConnection.getInputStream() : urlConnection.getErrorStream();
             final byte[] responseData = loadBytesFromInputStream(inputStream);
 
             if (isCancelled()) {
@@ -169,7 +171,19 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             return httpRequestHelper.buildResponse(responseCode, responseData);
 
         } catch (Throwable e) {
+            // Keep an exception for later reporting.
             error = e;
+        } finally {
+            // Close input stream and disconnect the URL connection
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                }
+            }
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
         }
         return null;
     }

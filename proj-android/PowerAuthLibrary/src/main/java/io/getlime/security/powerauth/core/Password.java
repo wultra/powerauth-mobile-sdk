@@ -155,7 +155,7 @@ public class Password {
     
     /**
      * @return If password is immutable, then returns length of password in bytes.
-	 *         If password is mutable, then returns a number of characters stored in the object.
+     *         If password is mutable, then returns a number of characters stored in the object.
      */
     public native int length();
     
@@ -174,48 +174,48 @@ public class Password {
     //
     
     /**
-	 * Clears internally stored passphrase.
+     * Clears internally stored passphrase.
      *
      * @return false if the object was initialized as immutable.
-	 */
+     */
     public native boolean clear();
-	
-	/**
-	 * Adds one unicode code point at the end of the passphrase.
+
+    /**
+     * Adds one unicode code point at the end of the passphrase.
      *
      * @param utfCodepoint unicode code point to add
      *
-	 * @return true if operation succeeded or false if object is not
-	 *         mutable, or code the point is invalid.
-	 */
+     * @return true if operation succeeded or false if object is not
+     *         mutable, or code the point is invalid.
+     */
     public native boolean addCharacter(int utfCodepoint);
-	
-	/**
-	 * Inserts unicode code point at the desired index.
+
+    /**
+     * Inserts unicode code point at the desired index.
      *
      * @param utfCodepoint unicode code point to add
      * @param index where the character has be inserted
      *
-	 * @return true if operation succeeded or false if object is not
-	 *         mutable, or code point is invalid, or index is out of the range.
-	 */
+     * @return true if operation succeeded or false if object is not
+     *         mutable, or code point is invalid, or index is out of the range.
+     */
     public native boolean insertCharacter(int utfCodepoint, int index);
-	
-	/**
-	 * Removes last unicode code point from the passphrase.
-	 *
+
+    /**
+     * Removes last unicode code point from the passphrase.
+     *
      * @return Returns true if operation succeeded or false if object is not
-	 *         mutable, or passphrase is already empty.
-	 */
+     *         mutable, or passphrase is already empty.
+     */
     public native boolean removeLastCharacter();
-	
-	/**
-	 * Removes character from desired index.
+
+    /**
+     * Removes character from desired index.
      *
      * @param index index of character to be removed
      *
-	 * @return true if operation succeeded or false if object is not
-	 *         mutable, or index is out of the range.
-	 */
+     * @return true if operation succeeded or false if object is not
+     *         mutable, or index is out of the range.
+     */
     public native boolean removeCharacter(int index);
 }

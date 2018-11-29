@@ -66,10 +66,10 @@ public class PowerAuthConfiguration {
     private IFetchKeysStrategy fetchKeysStrategy;
 
     /**
-     If set to true, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
-     This option should be used only for the testing purposes.
-
-     Default and recommended value is false.
+     * If set to true, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+     * This option should be used only for the testing purposes.
+     *
+     * Default and recommended value is false.
      */
     private boolean disableAutomaticProtocolUpgrade;
 

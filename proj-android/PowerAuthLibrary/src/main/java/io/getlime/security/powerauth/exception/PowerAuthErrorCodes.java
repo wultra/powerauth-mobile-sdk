@@ -43,14 +43,14 @@ public class PowerAuthErrorCodes {
     public static final int PA2ErrorCodeWrongParameter = 15;
 
     /**
-     Error code for protocol upgrade failure.
-     The recommended action is to retry the status fetch operation, or remove the activation.
+     * Error code for protocol upgrade failure.
+     * The recommended action is to retry the status fetch operation, or remove the activation.
      */
     public static final int PA2ErrorCodeProtocolUpgrade = 16;
 
     /**
-     The requested function is not available during the protocol upgrade. You can retry the operation,
-     after the upgrade is finished.
+     * The requested function is not available during the protocol upgrade. You can retry the operation,
+     * after the upgrade is finished.
      */
     public static final int PA2ErrorCodePendingProtocolUpgrade = 17;
 }

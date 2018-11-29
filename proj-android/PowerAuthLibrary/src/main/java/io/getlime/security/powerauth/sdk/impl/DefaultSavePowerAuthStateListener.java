@@ -38,12 +38,12 @@ public class DefaultSavePowerAuthStateListener implements ISavePowerAuthStateLis
     }
 
     @Override
-    public byte[] serializedState(String instanceId) {
+    public @Nullable byte[] serializedState(@NonNull String instanceId) {
         return keychain.dataForKey(context, instanceId);
     }
 
     @Override
-    public void onPowerAuthStateChanged(@Nullable String instanceId, byte[] serializedState) {
+    public void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState) {
         keychain.putDataForKey(context, serializedState, instanceId);
     }
 

@@ -78,7 +78,7 @@ public class PowerAuthConfiguration {
      */
     public static final String DEFAULT_INSTANCE_ID = "defaultPowerAuthInstance";
 
-    public String getInstanceId() {
+    public @NonNull String getInstanceId() {
         if (instanceId != null) {
             return instanceId;
         }

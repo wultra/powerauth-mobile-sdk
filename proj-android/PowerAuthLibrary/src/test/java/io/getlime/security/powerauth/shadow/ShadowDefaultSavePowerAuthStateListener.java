@@ -1,10 +1,11 @@
 package io.getlime.security.powerauth.shadow;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import org.robolectric.annotation.Implements;
 
-import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 
 /**
@@ -16,12 +17,12 @@ import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 public class ShadowDefaultSavePowerAuthStateListener implements ISavePowerAuthStateListener {
 
     @Override
-    public byte[] serializedState(String instanceId) {
+    public @Nullable byte[] serializedState(@NonNull String instanceId) {
         return new byte[0];
     }
 
     @Override
-    public void onPowerAuthStateChanged(@Nullable String instanceId, byte[] serializedState) {
+    public void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState) {
 
     }
 }

@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 /**
@@ -25,7 +26,22 @@ import android.support.annotation.Nullable;
  */
 public interface ISavePowerAuthStateListener {
 
-    byte[] serializedState(String instanceId);
+    /**
+     * Returns previously saved state of {@code PowerAuthSDK} object.
+     *
+     * @param instanceId {@code PowerAuthSDK} instance identifier
+     * @return bytes with serialized object state or {@code null} if state was
+     *         not previously serialized.
+     */
+    @Nullable byte[] serializedState(@NonNull String instanceId);
 
-    void onPowerAuthStateChanged(@Nullable String instanceId, byte[] serializedState);
+
+    /**
+     * Notifies listener about change in the state of {@code PowerAuthSDK} instance. The listener
+     * should save that state to the persistent storage.
+     *
+     * @param instanceId {@code PowerAuthSDK} instance identifier
+     * @param serializedState serialized state
+     */
+    void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState);
 }

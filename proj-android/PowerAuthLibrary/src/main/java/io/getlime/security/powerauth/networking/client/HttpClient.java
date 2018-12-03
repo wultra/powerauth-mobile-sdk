@@ -35,6 +35,11 @@ public class HttpClient {
     private final String baseUrl;
     private final IExecutorProvider executorProvider;
 
+    /**
+     * @param configuration HTTP client configuration
+     * @param baseUrl String with base URL to PowerAuth Server REST API
+     * @param executorProvider object providing serial or concurrent thread executors
+     */
     public HttpClient(
             @NonNull PowerAuthClientConfiguration configuration,
             @NonNull String baseUrl,
@@ -42,6 +47,20 @@ public class HttpClient {
         this.configuration = configuration;
         this.baseUrl = baseUrl;
         this.executorProvider = executorProvider;
+    }
+
+    /**
+     * @return HTTP client configuration assigned to this object
+     */
+    public PowerAuthClientConfiguration getClientConfiguration() {
+        return configuration;
+    }
+
+    /**
+     * @return String with base URL to PowerAuth Server REST API
+     */
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     /**
@@ -91,6 +110,4 @@ public class HttpClient {
         task.executeOnExecutor(executor, null, null);
         return task;
     }
-
-
 }

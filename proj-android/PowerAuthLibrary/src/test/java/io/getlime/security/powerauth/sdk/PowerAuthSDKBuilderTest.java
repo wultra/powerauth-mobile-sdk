@@ -9,7 +9,7 @@ import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
 
-import io.getlime.security.powerauth.networking.client.PA2Client;
+import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.shadow.ShadowDefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.shadow.ShadowSession;
 
@@ -57,10 +57,10 @@ public class PowerAuthSDKBuilderTest {
 
         Field pa2ClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         pa2ClientField.setAccessible(true);
-        PA2Client pa2Client = (PA2Client) pa2ClientField.get(powerAuthSDK);
-        assertNotNull(pa2Client);
+        HttpClient httpClient = (HttpClient) pa2ClientField.get(powerAuthSDK);
+        assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = pa2Client.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
 
         assertEquals(powerAuthClientConfiguration, powerAuthClientConfigurationInClient);
@@ -84,12 +84,12 @@ public class PowerAuthSDKBuilderTest {
         assertNotNull(powerAuthClientConfiguration);
         assertEquals(srcClientConfiguration, powerAuthClientConfiguration);
 
-        Field pa2ClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
-        pa2ClientField.setAccessible(true);
-        PA2Client pa2Client = (PA2Client) pa2ClientField.get(powerAuthSDK);
-        assertNotNull(pa2Client);
+        Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
+        httpClientField.setAccessible(true);
+        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        assertNotNull(httpClient);
 
-        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = pa2Client.getClientConfiguration();
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
         assertEquals(srcClientConfiguration, powerAuthClientConfigurationInClient);
 

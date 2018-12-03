@@ -45,31 +45,13 @@ namespace powerAuthTests
 			auto&& data = root.arrayAtPath("data");
 			for (const JSONValue & item : data) {
 				// Load data
-				cc7::ByteArray publicKeyData  = item.dataFromBase64StringAtPath("input.publicKey");
-				cc7::ByteArray expectedCoordX = item.dataFromBase64StringAtPath("output.publicKeyCoordX");
+				cc7::ByteArray devicePublicKeyData  = item.dataFromBase64StringAtPath("input.devicePublicKey");
+				cc7::ByteArray serverPublicKeyData  = item.dataFromBase64StringAtPath("input.serverPublicKey");
+				std::string activationId = item.stringAtPath("output.activationId");
 				std::string expectedFingerprint = item.stringAtPath("output.fingerprint");
-				// Do the test
-				EC_KEY * publicKey = crypto::ECC_ImportPublicKey(nullptr, publicKeyData);
-				if (nullptr == publicKey) {
-					ccstFailure("Invalid public key in test dat file");
-					break;
-				}
-				cc7::ByteArray coordX = crypto::ECC_ExportPublicKeyToNormalizedForm(publicKey);
-				if (coordX != expectedCoordX) {
-					ccstMessage("CoordX doesn't match");
-					ccstMessage("  expected : %s", expectedCoordX.hexString().c_str());
-					ccstMessage("  ours     : %s", coordX.hexString().c_str());
-					ccstFailure();
-					break;
-				}
-				EC_KEY_free(publicKey);
-				std::string fingerprint = protocol::CalculateDecimalizedSignature(crypto::SHA256(coordX));
+				std::string fingerprint = protocol::CalculateActivationFingerprint(devicePublicKeyData, serverPublicKeyData, activationId, Version_V3);
 				if (fingerprint != expectedFingerprint) {
-					ccstMessage("Doesn't match: Expected %s vs %s", expectedFingerprint.c_str(), fingerprint.c_str());
-					ccstMessage("  Key   : %s", publicKeyData.base64String().c_str());
-					ccstMessage("  exp X : %s", expectedCoordX.hexString().c_str());
-					ccstMessage("  our X : %s", coordX.hexString().c_str());
-					ccstFailure();
+					ccstFailure("Doesn't match: Expected %s vs %s", expectedFingerprint.c_str(), fingerprint.c_str());
 					break;
 				}
 			}

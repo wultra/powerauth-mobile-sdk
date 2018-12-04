@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -30,6 +31,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
+import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
@@ -138,6 +140,14 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             } else {
                 if (!clientConfiguration.isUnsecuredConnectionAllowed()) {
                     throw new SSLException("Connection to non-TLS endpoint is not allowed.");
+                }
+            }
+
+            // Apply request interceptors
+            final List<HttpRequestInterceptor> requestInterceptors = clientConfiguration.getRequestInterceptors();
+            if (requestInterceptors != null) {
+                for (HttpRequestInterceptor interceptor: requestInterceptors) {
+                    interceptor.processRequestConnection(urlConnection);
                 }
             }
 

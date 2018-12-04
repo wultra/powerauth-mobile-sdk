@@ -15,20 +15,30 @@
  */
 
 #import "PA2ClientSslValidationStrategy.h"
+#import "PA2HttpRequestInterceptor.h"
 
-/** Class that is used to provide default (shared) RESTful API client configuration.
+/**
+ Class that is used to provide default (shared) RESTful API client configuration.
  */
 @interface PA2ClientConfiguration : NSObject<NSCopying>
 
-/** Property that specifies the default HTTP client request timeout. The default value is 20.0 (seconds).
+/**
+ Property that specifies the default HTTP client request timeout. The default value is 20.0 (seconds).
  */
 @property (nonatomic, assign) NSTimeInterval defaultRequestTimeout;
 
-/** Property that specifies the SSL validation strategy applied by the client. The default value is the default NSURLSession behavior.
+/**
+ Property that specifies the SSL validation strategy applied by the client. The default value is the default NSURLSession behavior.
  */
 @property (nonatomic, strong, nullable) id<PA2ClientSslValidationStrategy> sslValidationStrategy;
 
-/** Return the shared in stance of a client configuration object.
+/**
+ Property that specifies the list of request interceptors used by the client before the request is executed. The default value is nil.
+ */
+@property (nonatomic, strong, nullable) NSArray<id<PA2HttpRequestInterceptor>>* requestInterceptors;
+
+/**
+ Return the shared in stance of a client configuration object.
  
  @return Shared instance of a client configuration.
  */

@@ -33,6 +33,7 @@
 	if (c) {
 		c->_defaultRequestTimeout = _defaultRequestTimeout;
 		c->_sslValidationStrategy = _sslValidationStrategy;
+		c->_requestInterceptors = [_requestInterceptors copyWithZone:zone];
 	}
 	return c;
 }

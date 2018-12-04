@@ -116,6 +116,10 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 			[op completeWithResult:nil error:error];
 			return nil;
 		}
+		// Process all request interceptors
+		[_configuration.requestInterceptors enumerateObjectsUsingBlock:^(id<PA2HttpRequestInterceptor> interceptor, NSUInteger idx, BOOL * stop) {
+			[interceptor processRequest:urlRequest];
+		}];
 		// Construct & return data task.
 		NSURLSessionDataTask * task = [_session dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * response, NSError * error) {
 			// DataTask completion

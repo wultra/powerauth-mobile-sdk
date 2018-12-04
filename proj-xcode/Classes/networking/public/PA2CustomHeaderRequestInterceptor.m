@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-#import "PA2ApiKeyRequestInterceptor.h"
+#import "PA2CustomHeaderRequestInterceptor.h"
 
-@implementation PA2ApiKeyRequestInterceptor
+@implementation PA2CustomHeaderRequestInterceptor
 
-- (instancetype) initWithApiKey:(NSString *)apiKey value:(NSString *)value
+- (instancetype) initWithHeaderKey:(nonnull NSString*)headerKey value:(nonnull NSString*)value
 {
 	self = [super init];
 	if (self) {
-		_apiKey = apiKey;
-		_value = value;
+		_headerKey = headerKey;
+		_headerValue = value;
 	}
 	return self;
 }
 
 - (void) processRequest:(nonnull NSMutableURLRequest *)request
 {
-	[request addValue:_value forHTTPHeaderField:_apiKey];
+	[request addValue:_headerValue forHTTPHeaderField:_headerKey];
 }
 
 @end

@@ -19,7 +19,7 @@
 @implementation PA2BasicHttpAuthenticationRequestInterceptor
 
 /**
- Private function calculates Basic HTTP Authorization header value for given username and password.
+ Private function calculates Basic HTTP Authorization header's value for given username and password.
 
  @param username String with user name
  @param password String with password
@@ -33,16 +33,7 @@ static NSString * _Nonnull _BasicHttpHeaderValue(NSString *  _Nonnull username, 
 
 - (instancetype) initWithUsername:(nonnull NSString*)username password:(nonnull NSString*)password
 {
-	self = [super init];
-	if (self) {
-		_authorizationHeaderValue = _BasicHttpHeaderValue(username, password);
-	}
-	return self;
-}
-
-- (void) processRequest:(nonnull NSMutableURLRequest *)request
-{
-	[request setValue:_authorizationHeaderValue forHTTPHeaderField:@"Authorization"];
+	return [super initWithHeaderKey:@"Authorization" value:_BasicHttpHeaderValue(username, password)];
 }
 
 @end

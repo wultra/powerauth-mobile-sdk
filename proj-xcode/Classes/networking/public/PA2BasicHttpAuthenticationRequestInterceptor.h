@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#import "PA2HttpRequestInterceptor.h"
+#import "PA2CustomHeaderRequestInterceptor.h"
 
 /**
- The `PA2BasicHttpAuthenticationInterceptor` class implements Basic HTTP Authentication on the server.
+ The `PA2BasicHttpAuthenticationInterceptor` class implements Basic HTTP Authentication.
  You can construct this object with username and password and assign it to the array of interceptors
  available in `PA2ClientConfiguration` class.
  */
-@interface PA2BasicHttpAuthenticationRequestInterceptor : NSObject<PA2HttpRequestInterceptor>
+@interface PA2BasicHttpAuthenticationRequestInterceptor : PA2CustomHeaderRequestInterceptor
 
 /**
  Initializes interceptor with username and password, to authorize on the server.
@@ -31,11 +31,6 @@
  @return Initialized instance of interceptor.
  */
 - (instancetype) initWithUsername:(nonnull NSString*)username password:(nonnull NSString*)password;
-
-/**
- Contains value for Basic HTTP Authorization header.
- */
-@property (nonnull, nonatomic, strong, readonly) NSString * authorizationHeaderValue;
 
 @end
 

@@ -17,13 +17,14 @@
 #import <Foundation/Foundation.h>
 
 /**
- The `PA2RequestInterceptor` protocol defines interface for modifying HTTP requests
+ The `PA2HttpRequestInterceptor` protocol defines interface for modifying HTTP requests
  before their execution.
  */
 @protocol PA2HttpRequestInterceptor <NSObject>
 
 /**
  Method is called by the PA2HttpClient, before the request is executed.
+ The implementation must count with that method is called from other than UI thread.
 
  @param request URL request to be modified.
  */

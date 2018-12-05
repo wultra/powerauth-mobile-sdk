@@ -37,8 +37,7 @@ public class ProtocolUpgradeData {
      * @param ctrData initial value for hash-based counter. Base64 string is expected.
      * @return migration data constructed for migration to V3 protocol version
      */
-    public static @NonNull
-    ProtocolUpgradeData version3(@NonNull String ctrData) {
+    public static @NonNull ProtocolUpgradeData version3(@NonNull String ctrData) {
         return new ProtocolUpgradeData(ProtocolVersion.V3, ctrData);
     }
 

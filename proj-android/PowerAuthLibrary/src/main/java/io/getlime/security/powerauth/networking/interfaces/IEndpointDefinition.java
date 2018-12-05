@@ -48,8 +48,7 @@ public interface IEndpointDefinition<TResponse> {
      * @return Type of encryptor if request uses ECIES encryption, or {@link EciesEncryptorId#NONE}
      *         for endpoints with no encryption.
      */
-    @NonNull
-    EciesEncryptorId getEncryptorId();
+    @NonNull EciesEncryptorId getEncryptorId();
 
     /**
      * @return Type of response object.

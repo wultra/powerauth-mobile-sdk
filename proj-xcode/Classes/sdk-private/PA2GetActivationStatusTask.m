@@ -232,7 +232,7 @@
 			if (pendingUpgradeVersion == PA2ProtocolVersion_V3) {
 				// Looks like we need to just finish the upgrade. Server and our local session
 				// are already on V3, but pending flag indicates, that we're still in upgrade.
-				[self finisUpgradeToV3];
+				[self finishUpgradeToV3];
 				return;
 				
 			} else if (pendingUpgradeVersion == PA2ProtocolVersion_NA) {
@@ -297,7 +297,7 @@
 									 // HTTP request completion
 									 if (status == PA2RestResponseStatus_OK) {
 										 // Everything looks fine, just finish the upgrade.
-										 [self finisUpgradeToV3];
+										 [self finishUpgradeToV3];
 									 } else {
 										 // Upgrade start failed. This might be a temporary problem with the network,
 										 // so try to repeat everything.
@@ -306,7 +306,7 @@
 								 }];
 }
 
-- (void) finisUpgradeToV3
+- (void) finishUpgradeToV3
 {
 	if ([_session finishProtocolUpgrade]) {
 		PA2Log(@"Upgrade: Activation was successfully upgraded to protocol V3.");

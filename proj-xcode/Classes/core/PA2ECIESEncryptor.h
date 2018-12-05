@@ -174,7 +174,7 @@
 #pragma mark - ECIES metadata -
 
 /**
- The `PA2ECIESMetaData` object represents additional data associated
+ The `PA2ECIESMetaData` object represents an additional data associated
  to the ECIES encryptor. The content stored in this object is typically
  required for the correct HTTP request & response processing, but is not
  involved in the actual data encryption.

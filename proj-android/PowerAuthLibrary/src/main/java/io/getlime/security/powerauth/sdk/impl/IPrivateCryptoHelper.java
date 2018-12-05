@@ -25,6 +25,11 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
 
+/**
+ * The {@code IPrivateCryptoHelper} provides a minimal interface for a several cryptographic tasks
+ * required internally in the SDK, but provided by the PowerAuthSDK instance. The main purpose of
+ * this separation is that we don't want to have direct dependency on {@code PowerAuthSDK}.
+ */
 public interface IPrivateCryptoHelper {
 
     /**
@@ -34,8 +39,7 @@ public interface IPrivateCryptoHelper {
      * @return new instance of {@link EciesEncryptor}
      * @throws PowerAuthErrorException if encryptor cannot be created
      */
-    @NonNull
-    EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException;
+    @NonNull EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException;
 
     /**
      * Calculates PowerAuth signature for given data.
@@ -48,8 +52,7 @@ public interface IPrivateCryptoHelper {
      * @return Authorization header object or null, in case of error.
      * @throws PowerAuthErrorException is signature cannot be calculated
      */
-    @NonNull
-    PowerAuthAuthorizationHttpHeader getAuthorizationHeader(
+    @NonNull PowerAuthAuthorizationHttpHeader getAuthorizationHeader(
             boolean availableInProtocolUpgrade,
             @NonNull final byte[] body,
             @NonNull final String method,
@@ -62,6 +65,5 @@ public interface IPrivateCryptoHelper {
      *         Function may return null if the key cannot be computed (typically, when Android
      *         {@link android.content.Context} object is not available for the crypto helper.
      */
-    @Nullable
-    byte[] getDeviceRelatedKey();
+    @Nullable byte[] getDeviceRelatedKey();
 }

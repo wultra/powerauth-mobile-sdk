@@ -29,6 +29,14 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 
+/**
+ * The {@code HttpClient} class provides a high level networking functionality, including
+ * encryption &amp; data signing for the mobile SDK. The class is internal and cannot be used
+ * by the application.
+ *
+ * Note that there's always only one instance of this client per {@link io.getlime.security.powerauth.sdk.PowerAuthSDK}
+ * object instance.
+ */
 public class HttpClient {
 
     private final PowerAuthClientConfiguration configuration;

@@ -579,7 +579,7 @@ public class PowerAuthSDK {
      * Create an arbitrary activation. This method is an actual implementation for the activation creation.
      *
      * @param name          Activation name, for example "John's iPhone".
-     * @param request       Activation request. The type & identity attributes must be set in the object.
+     * @param request       Activation request. The type &amp; identity attributes must be set in the object.
      * @param otp           Otp object, which is valid only for standard activations
      * @param extras        Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
      * @param listener      A callback listener called when the process finishes

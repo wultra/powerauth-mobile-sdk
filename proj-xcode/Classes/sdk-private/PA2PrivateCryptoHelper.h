@@ -23,7 +23,7 @@
 
 /**
  The `PA2PrivateCryptoHelper` protocol provides a minimal interface for
- several cryptographic tasks required internally in the SDK, but provided
+ a several cryptographic tasks required internally in the SDK, but provided
  by the PowerAuthSDK instance. The main purpose of this separation is to
  do not import public `"PowerAuthSDK.h"` header from SDK internals.
  */

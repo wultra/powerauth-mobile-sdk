@@ -77,9 +77,10 @@ public class ActivationStatus {
      * The activation version currently stored on the server.
      */
     public final ProtocolVersion currentVersion;
+
     /**
-     * Defines version of data supported on the server. If the value is different than {@link #currentVersion},
-     * then the activation migration is available.
+     * Defines version of data supported on the server. If the value is higher than {@link #currentVersion},
+     * then the activation upgrade is available.
      */
     public final ProtocolVersion upgradeVersion;
 

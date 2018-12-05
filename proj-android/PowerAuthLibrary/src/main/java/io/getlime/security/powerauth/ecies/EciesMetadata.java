@@ -19,11 +19,20 @@ package io.getlime.security.powerauth.ecies;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+/**
+ * The {@code EciesMetadata} object represents an additional data associated to the ECIES encryptor.
+ * The content stored in this object is typically required for the correct HTTP request &amp;
+ * response processing, but is not involved in the actual data encryption.
+ */
 public class EciesMetadata {
 
     private final @NonNull String applicationKey;
     private final @Nullable String activationIdentifier;
 
+    /**
+     * @param applicationKey Base64 string with an application key cryptographic constant
+     * @param activationIdentifier String with an activation identifier
+     */
     public EciesMetadata(@NonNull String applicationKey, @Nullable String activationIdentifier) {
         this.applicationKey = applicationKey;
         this.activationIdentifier = activationIdentifier;
@@ -31,20 +40,32 @@ public class EciesMetadata {
 
     // Getters
 
+    /**
+     * @return Base64 string with an application key cryptographic constant
+     */
     public @NonNull String getActivationKey() {
         return applicationKey;
     }
 
+    /**
+     * @return Base64 String with an activation identifier
+     */
     public @Nullable String getActivationIdentifier() {
         return activationIdentifier;
     }
 
     // HTTP header
 
+    /**
+     * @return String with HTTP request header's key.
+     */
     public @NonNull String getHttpHeaderKey() {
         return "X-PowerAuth-Encryption";
     }
 
+    /**
+     * @return String with HTTP request header's value.
+     */
     public @NonNull String getHttpHeaderValue() {
         final String result = "PowerAuth version=\"3.0\" application_key=\"" + applicationKey + "\"";
         if (activationIdentifier != null) {

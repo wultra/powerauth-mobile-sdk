@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#import "PowerAuthTestServerConfig.h"
 #import "CXMLElement.h"
 #import "CXMLNode_XPathExtensions.h"
 
@@ -37,7 +38,7 @@
  The |url| defines endpoint, where the server listens for messages.
  */
 - (id) initWithBundle:(NSBundle*)bundle
-				  url:(NSURL*)url;
+			   config:(PowerAuthTestServerConfig*)config;
 
 /**
  Sends synchronous HTTP request to SOAP endpoint. The |reqiestName| and |params| parameters are
@@ -53,5 +54,21 @@
 		  response:(NSString*)responseNodeName
 		 transform:(id (^)(CXMLNode * responseObject, NSDictionary * xmlNamespaceMapping))transformBlock;
 
+
+@end
+
+
+/**
+ Internal helper object, defining mapping for each SOAP call to template file and its XML namespace.
+ */
+@interface SoapHelperMapping : NSObject
+/// XML Namespace for request & response object
+@property (nonatomic, strong, readonly) NSString * xmlns;
+/// Relative path to XML template file
+@property (nonatomic, strong, readonly) NSString * envelopePath;
+
+/// Initializes object with mapping array. The mapping array must contain values for xmlns and envelopePath,
+/// in that exact order.
++ (id) map:(NSArray*)mapArray;
 
 @end

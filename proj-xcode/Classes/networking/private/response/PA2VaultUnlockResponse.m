@@ -28,16 +28,4 @@
     return self;
 }
 
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if (_activationId) {
-        [dictionary setObject:_activationId forKey:@"activationId"];
-    }
-    if (_encryptedVaultEncryptionKey) {
-        [dictionary setObject:_encryptedVaultEncryptionKey forKey:@"encryptedVaultEncryptionKey"];
-    }
-    return dictionary;
-}
-
-
 @end

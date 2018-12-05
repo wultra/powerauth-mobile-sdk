@@ -15,6 +15,7 @@
  */
 
 #import "PA2Password.h"
+#import "PA2OtpUtil.h"
 
 #pragma mark - Session setup & Error -
 
@@ -108,6 +109,31 @@ typedef NS_ENUM(int, PA2CoreErrorCode) {
 };
 
 
+/**
+ The PA2ProtocolVersion enum defines PowerAuth protocol version. The main difference
+ between V2 & V3 is that V3 is using hash-based counter instead of linear one,
+ and all E2EE tasks are now implemented by ECIES.
+ 
+ This version of SDK is supporting V2 protol in very limited scope, where only
+ the V2 signature calculations are supported. Basically, you cannot connect
+ to V2 servers with V3 SDK.
+ */
+typedef NS_ENUM(int, PA2ProtocolVersion) {
+	/**
+	 Protocol version is not specified, or cannot be determined.
+	 */
+	PA2ProtocolVersion_NA = 0,
+	/**
+	 Protocol version 2
+	 */
+	PA2ProtocolVersion_V2 = 2,
+	/**
+	 Protocol version 3
+	 */
+	PA2ProtocolVersion_V3 = 3,
+};
+
+
 #pragma mark - Signatures -
 
 /**
@@ -140,11 +166,6 @@ extern const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry;
  3FA, with using all supported factors.
  */
 extern const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry;
-/**
- You can combine any signature factor with this flag and prepare for vault unlock.
- */
-extern const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock;
-
 
 /**
  The PA2SignatureUnlockKeys object contains all keys, required for signature computation.
@@ -326,19 +347,10 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
 @interface PA2ActivationStep1Param : NSObject
 
 /**
- Short activation ID
+ Full, parsed activation code. The parameter is optional and may be nil
+ in case of custom activation.
  */
-@property (nonatomic, strong, nonnull) NSString * activationIdShort;
-/**
- Activation OTP (one time password)
- */
-@property (nonatomic, strong, nonnull) NSString * activationOtp;
-/**
- Signature calculated from activationIdShort and activationOtp.
- The value is optional in cases, when the user re-typed codes
- manually. If the value is available, then the Base64 string is expected.
- */
-@property (nonatomic, strong, nullable) NSString * activationSignature;
+@property (nonatomic, strong, nullable) PA2Otp * activationCode;
 
 @end
 
@@ -350,25 +362,9 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
 @interface PA2ActivationStep1Result : NSObject
 
 /**
- Activation nonce, in Base64 format
+ Device's public key, in Base64 format
  */
-@property (nonatomic, strong, nonnull) NSString * activationNonce;
-/**
- Encrypted device's public key, in Base64 format
- */
-@property (nonatomic, strong, nonnull) NSString * cDevicePublicKey;
-
-/**
- Application signature proving that activation was completed
- with correct application.
- */
-@property (nonatomic, strong, nonnull) NSString * applicationSignature;
-
-/**
- Ephemeral public key used for ad-hoc encryption used to protect
- cDevicePublicKey.
- */
-@property (nonatomic, strong, nonnull) NSString * ephemeralPublicKey;
+@property (nonatomic, strong, nonnull) NSString * devicePublicKey;
 
 @end
 
@@ -384,22 +380,13 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
  */
 @property (nonatomic, strong, nonnull) NSString * activationId;
 /**
- Ephemeral nonce, generated on the server, in Base64 format.
+ Server's public key, in Base64 format.
  */
-@property (nonatomic, strong, nonnull) NSString * ephemeralNonce;
+@property (nonatomic, strong, nonnull) NSString * serverPublicKey;
 /**
- Server's part for ephemeral key in Base64 format.
+ Initial value for hash-based counter.
  */
-@property (nonatomic, strong, nonnull) NSString * ephemeralPublicKey;
-/**
- Encrypted server public key, in Base64 format.
- */
-@property (nonatomic, strong, nonnull) NSString * encryptedServerPublicKey;
-/**
- Siganture, calculated from activationId & encryptedServerPublicKey,
- in Base64 format.
- */
-@property (nonatomic, strong, nonnull) NSString * serverDataSignature;
+@property (nonatomic, strong, nonnull) NSString * ctrData;
 
 @end
 
@@ -476,85 +463,26 @@ typedef NS_ENUM(int, PA2ActivationState) {
  */
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
 
-/**
- Counter on the server's side. The value is only informational and may
- be used for debugging purposes. You can compare it with the value stored
- in the module's persistent data and deduce whether the server's counter
- is ahead or not.
- 
- You should NOT dumpt this value into the debug console.
- */
-@property (nonatomic, assign, readonly) UInt64 counter;
-
 @end
 
 #pragma mark - End to End Encryption -
 
-/**
- The PA2EncryptedMessage object represents an encrypted data transmitted
- between the client and the server. The object is mostly used as a parameter in
- interface, provided by PA2Encryptor class.
- 
- The message is used in both ways, for the request encryption and also for
- response decryption. Note that some members of the structure are optional
- or depends on the mode of E2EE or the direction of communication.
- 
- For more details check the online documentation about End-To-End Encryption.
- */
-@interface PA2EncryptedMessage : NSObject
+// Forward declaration for ECIES encryptor
+@class PA2ECIESEncryptor;
 
 /**
- Contains applicationKey copied from the PA2Session which constructed the PA2Encryptor
- object. The value is valid only for non-personalized encryption and is
- validated in responses, received from the server.
+ The `PA2ECIESEncryptorScope` enumeration defines how `PA2ECIESEncryptor` encryptor is configured
+ in `PA2Session.getEciesEncryptor()` method.
  */
-@property (nonatomic, strong, nullable) NSString * applicationKey;
-/**
- Contains activationId copied  from the PA2Session which constructed the PA2Encryptor
- object. The value is valid only for personalized encryption and is validated
- in responses, received from the server.
- */
-@property (nonatomic, strong, nullable) NSString * activationId;
-/**
- Data encrypted in the PA2Encryptor or decrypted by the class when received
- a response from the server.
- */
-@property (nonatomic, strong, nonnull) NSString * encryptedData;
-/**
- Encrypted data signature.
- */
-@property (nonatomic, strong, nonnull) NSString * mac;
-/**
- Key index specific for one particular PA2Encryptor. The value is validated for
- responses received from the server.
- 
- Note that the term "session" is different than the PA2Session used in this PA2
- implementation. The "sessionIndex" in this case is a constant representing
- an estabilished session between client and the server. It's up to application
- to acquire and manage the value. Check the PA2 online documentation for details.
- */
-@property (nonatomic, strong, nonnull) NSString * sessionIndex;
-/**
- Key index used for one request or response. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * adHocIndex;
-/**
- Key index used for one request or response. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * macIndex;
-/**
- Nonce value used as IV for encryption. The value is calculated by
- the PA2Encryptor during the encryption and required in decryption operation.
- */
-@property (nonatomic, strong, nonnull) NSString * nonce;
-/**
- A key used for deriving temporary secret. The value is provided by
- the PA2Encryptor class during the encryption operation, but only if the
- nonpersonalized mode is in use.
- */
-@property (nonatomic, strong, nullable) NSString * ephemeralPublicKey;
-
-@end
-
+typedef NS_ENUM(int, PA2ECIESEncryptorScope) {
+	/**
+	 An application scope means that encryptor can be constructed also when
+	 the session has no valid activation.
+	 */
+	PA2ECIESEncryptorScope_Application  = 0,
+	/**
+	 An activation scope means that the encryptor can be constructed only when
+	 the session has a valid activation.
+	 */
+	PA2ECIESEncryptorScope_Activation  = 1,
+};

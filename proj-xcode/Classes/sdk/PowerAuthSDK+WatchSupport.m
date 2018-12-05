@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-#import "PowerAuthSDK.h"
+#import "PowerAuthSDK+Private.h"
 #import "PA2WCSessionManager+Private.h"
 #import "PA2WCSessionPacket_ActivationStatus.h"
 #import "PA2WCSessionPacket_TokenData.h"
 #import "PA2WCSessionPacket_Success.h"
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
-
-@interface PowerAuthSDK (PrivateGetters)
-
-@property (nonatomic, strong, readonly) NSString * privateInstanceId;
-
-@end
 
 #pragma mark - WatchSupport implementation -
 
@@ -98,9 +92,6 @@
 
 @interface PowerAuthToken (WatchSupportPrivate)
 - (PA2WCSessionPacket*) prepareTokenDataPacketForWatch;
-@end
-
-@interface PowerAuthSDK (WatchSupportPrivate) <PA2WCSessionDataHandler>
 @end
 
 @implementation PowerAuthSDK (WatchSupportPrivate)

@@ -15,7 +15,8 @@
  */
 
 #include <PowerAuth/Session.h>
-#include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ECIES.h>
+#include <PowerAuth/OtpUtil.h>
 
 #include <cc7/Base64.h>
 #include "protocol/ProtocolUtils.h"
@@ -114,7 +115,7 @@ namespace powerAuth
 	bool Session::hasValidActivation() const
 	{
 		LOCK_GUARD();
-		if (_state == SS_Activated && hasValidSetup()) {
+		if (_state == SS_Activated) {
 			if (CC7_CHECK(_pd != nullptr && _ad == nullptr, "Internal error. Only PD & setup should be valid when activated.")) {
 				return true;
 			}
@@ -122,7 +123,23 @@ namespace powerAuth
 		return false;
 	}
 	
+	bool Session::hasPendingActivationMigration() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->flags.pendingMigration != Version_NA;
+		}
+		return false;
+	}
 	
+	Version Session::protocolVersion() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->protocolVersion();
+		}
+		return Version_Latest;
+	}
 	
 	// MARK: - Serialization -
 	
@@ -197,16 +214,10 @@ namespace powerAuth
 		LOCK_GUARD();
 		std::string result;
 		if (hasValidActivation()) {
-			crypto::BNContext ctx;
-			EC_KEY * public_key = crypto::ECC_ImportPublicKey(nullptr, _pd->devicePublicKey, ctx);
-			auto coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(public_key, ctx);
-			if (!coord_x.empty()) {
-				result = protocol::CalculateDecimalizedSignature(crypto::SHA256(coord_x));
-				if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
-					result.clear();
-				}
+			result = protocol::CalculateActivationFingerprint(_pd->devicePublicKey, _pd->serverPublicKey, _pd->activationId, _pd->protocolVersion());
+			if (result.empty()) {
+				CC7_LOG("Session %p, %d: ActivationFingerprint: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 			}
-			EC_KEY_free(public_key);
 		}
 		return result;
 	}
@@ -223,9 +234,12 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Step 1: Called in wrong state.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (param.activationOtp.empty() || param.activationIdShort.empty()) {
-			CC7_LOG("Session %p, %d: Step 1: Wrong parameters.", this, sessionIdentifier());
-			return EC_WrongParam;
+		if (!param.activationCode.empty()) {
+			// If activation code is present, then check whether CRC16 checksum is OK
+			if (!OtpUtil::validateActivationCode(param.activationCode)) {
+				CC7_LOG("Session %p, %d: Step 1: Wrong activation code.", this, sessionIdentifier());
+				return EC_WrongParam;
+			}
 		}
 		
 		auto error_code = EC_Encryption;
@@ -240,47 +254,26 @@ namespace powerAuth
 				CC7_LOG("Session %p, %d: Step 1: Master server public key is invalid.", this, sessionIdentifier());
 				break;
 			}
-			if (!protocol::ValidateShortIdAndOtpSignature(param.activationIdShort, param.activationOtp, param.activationSignature, ad->masterServerPublicKey)) {
+			if (!protocol::ValidateActivationCodeSignature(param.activationCode, param.activationSignature, ad->masterServerPublicKey)) {
 				CC7_LOG("Session %p, %d: Step 1: Invalid OTP+ShortID signature.", this, sessionIdentifier());
 				break;
 			}
 			
-			// Generate device private & public key
+			// Generate device's private & public key pair
 			ad->devicePrivateKey = crypto::ECC_GenerateKeyPair();
 			if (nullptr == ad->devicePrivateKey) {
 				CC7_LOG("Session %p, %d: Step 1: Private key pair generator failed.", this, sessionIdentifier());
 				break;
 			}
 			ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey, ctx);
-			ad->devicePublicKeyCoordX = crypto::ECC_ExportPublicKeyToNormalizedForm(ad->devicePrivateKey, ctx);
-			if (ad->devicePublicKeyData.empty() || ad->devicePublicKeyCoordX.empty()) {
+			if (ad->devicePublicKeyData.empty()) {
 				CC7_LOG("Session %p, %d: Step 1: Unable to export public key.", this, sessionIdentifier());
 				break;
 			}
 			
-			// Encrypt device public key with expanded OTP and ephemeral secret. The 'EncryptDevicePublicKey'
-            // calculates expanded OTP key internally, ephemeral secret is calculated using server public key and
-            // ephemeral private key
-			ad->activationNonce = crypto::GetRandomData(protocol::ACTIVATION_NONCE_SIZE, true);
-            ad->ephemeralDeviceKey = crypto::ECC_GenerateKeyPair();
-			cc7::ByteArray c_device_public_key = protocol::EncryptDevicePublicKey(*ad, param.activationIdShort, param.activationOtp);
-			if (c_device_public_key.empty()) {
-				CC7_LOG("Session %p, %d: Step 1: Unable to encrypt device public key.", this, sessionIdentifier());
-				break;
-			}
-			
-			// Store output values in result structure, in Base64 format
-            result.ephemeralPublicKey = crypto::ECC_ExportPublicKeyToB64(ad->ephemeralDeviceKey);
-			result.activationNonce  = cc7::ToBase64String(ad->activationNonce);
-			result.cDevicePublicKey = cc7::ToBase64String(c_device_public_key);
-			
-			// Last step, calculate signature of this application
-			result.applicationSignature = protocol::CalculateApplicationSignature(param.activationIdShort, result.activationNonce, result.cDevicePublicKey,
-																				  _setup.applicationKey, _setup.applicationSecret);
-			if (result.applicationSignature.empty()) {
-				CC7_LOG("Session %p, %d: Step 1: Unable to calculate application signature.", this, sessionIdentifier());
-				break;
-			}
+			// V3 activation is much simpler than V2. We need to just store device's public key
+			// in Base64 format. The data encryption & protection is achieved by the ECIES.
+			result.devicePublicKey = ad->devicePublicKeyData.base64String();
 			
 			// Finally, everything is OK
 			error_code = EC_Ok;
@@ -307,43 +300,28 @@ namespace powerAuth
 			return EC_WrongState;
 		}
 		if (param.activationId.empty() ||
-			param.ephemeralNonce.empty() ||
-			param.ephemeralPublicKey.empty() ||
-			param.encryptedServerPublicKey.empty() ||
-			param.serverDataSignature.empty()) {
+			param.serverPublicKey.empty() ||
+			param.ctrData.empty()) {
 			CC7_LOG("Session %p, %d: Step 2: Missing input parameter.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
 		
 		auto error_code = EC_Encryption;
 		do {
-			crypto::BNContext ctx;
-			
-			cc7::ByteArray ephemeral_nonce, ephemeral_public_key;
-			cc7::ByteArray c_server_public_key;
-			cc7::ByteArray server_data_signature;
-			
-			// Try to import all B64 encoded input parameters.
-			bool b_result;
-			b_result = ephemeral_nonce.readFromBase64String(param.ephemeralNonce);
-			b_result = b_result && ephemeral_public_key.readFromBase64String(param.ephemeralPublicKey);
-			b_result = b_result && c_server_public_key.readFromBase64String(param.encryptedServerPublicKey);
-			b_result = b_result && server_data_signature.readFromBase64String(param.serverDataSignature);
-			if (!b_result) {
+			// Validate CTR_DATA
+			if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
 				// Note that we treat all B64 decode failures as an encryption error.
-				CC7_LOG("Session %p, %d: Step 2: Base64 decode failed.", this, sessionIdentifier());
+				CC7_LOG("Session %p, %d: Step 2: CTR_DATA is invalid.", this, sessionIdentifier());
 				break;
 			}
-			// Validate provided data
-			if (!protocol::ValidateActivationDataSignature(param.activationId, param.encryptedServerPublicKey, server_data_signature, _ad->masterServerPublicKey)) {
-				CC7_LOG("Session %p, %d: Step 2: Invalid signature.", this, sessionIdentifier());
+			// Now try to import server's public key
+			_ad->serverPublicKeyData.readFromBase64String(param.serverPublicKey);
+			_ad->serverPublicKey = crypto::ECC_ImportPublicKey(nullptr, _ad->serverPublicKeyData);
+			if (!_ad->serverPublicKey) {
+				CC7_LOG("Session %p, %d: Step 2: Server's public key is not valid.", this, sessionIdentifier());
 				break;
 			}
-			// Decrypt server key
-			if (!protocol::DecryptServerPublicKey(*_ad, ephemeral_public_key, c_server_public_key, ephemeral_nonce)) {
-				CC7_LOG("Session %p, %d: Step 2: Unable to decrypt server public key.", this, sessionIdentifier());
-				break;
-			}
+
 			// Now we have all required information and can calculate ECDH shared secret
 			_ad->masterSharedSecret = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(_ad->serverPublicKey, _ad->devicePrivateKey));
 			if (_ad->masterSharedSecret.size() != protocol::SIGNATURE_KEY_SIZE) {
@@ -352,14 +330,15 @@ namespace powerAuth
 				break;
 			}
 			// So far so good, the last step is decimalization of device's public key
-			result.activationFingerprint = protocol::CalculateDecimalizedSignature(crypto::SHA256(_ad->devicePublicKeyCoordX));
-			if (result.activationFingerprint.length() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
-				CC7_LOG("Session %p, %d: Step 2: Unable to calculate decimalized signature.", this, sessionIdentifier());
+			result.activationFingerprint = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, param.activationId, Version_V3);
+			if (result.activationFingerprint.empty()) {
+				CC7_LOG("Session %p, %d: Step 2: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 				break;
 			}
 			
-			// Everything is OK, keep activation identifier
+			// Everything is OK, keep other data for later
 			_ad->activationId = param.activationId;
+			
 			error_code = EC_Ok;
 			
 		} while (false);
@@ -390,13 +369,14 @@ namespace powerAuth
 		auto pd = new protocol::PersistentData();
 		do {
 			// Keep all required information in the PD
-			pd->signatureCounter	= 0;
-			pd->activationId		= _ad->activationId;
-			pd->passwordIterations	= protocol::PBKDF2_PASS_ITERATIONS;
-			pd->passwordSalt		= crypto::GetRandomData(protocol::PBKDF2_SALT_SIZE, true);
-			pd->devicePublicKey		= _ad->devicePublicKeyData;
-			pd->serverPublicKey		= _ad->serverPublicKeyData;
-			pd->flagsU32			= 0;
+			pd->signatureCounter		= 0;
+			pd->signatureCounterData	= _ad->ctrData;
+			pd->activationId			= _ad->activationId;
+			pd->passwordIterations		= protocol::PBKDF2_PASS_ITERATIONS;
+			pd->passwordSalt			= crypto::GetRandomData(protocol::PBKDF2_SALT_SIZE, true);
+			pd->devicePublicKey			= _ad->devicePublicKeyData;
+			pd->serverPublicKey			= _ad->serverPublicKeyData;
+			pd->flagsU32				= 0;
 			// Keep information about external key usage in the flags
 			pd->flags.usesExternalKey = eek() ? 1 : 0;
 			
@@ -473,25 +453,34 @@ namespace powerAuth
 		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, protocol::ZERO_IV, encrypted_status_blob));
 		cc7::ByteRange hdr;
 		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
-		cc7::U64 counter = 0;
+		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
+	
 		result = reader.readMemoryRange(hdr, 4) &&
 				 reader.readByte(state) &&
-				 reader.readU64(counter) &&
+				 reader.readByte(curr_ver) &&
+				 reader.readByte(upgrade_ver) &&
+				 reader.skipBytes(6) &&
 				 reader.readByte(fail_ctr) &&
 				 reader.readByte(max_fail_ctr);
 		if (!result) {
 			return EC_Encryption;
 		}
-		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || hdr[3] != 0xD1) {
+		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || (hdr[3] & 0xF0) != 0xD0) {
+			return EC_Encryption;
+		}
+		// HDR[3] can be 0xDx, but at least 0xD1.
+		// We can use this byte to identify the status blob versions in future protocol versions.
+		if (!((hdr[3] & 0x0F) >= 1)) {
 			return EC_Encryption;
 		}
 		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
 			return EC_Encryption;
 		}
-		status.state        = static_cast<ActivationStatus::State>(state);
-		status.failCount    = fail_ctr;
-		status.maxFailCount = max_fail_ctr;
-		status.counter      = counter;
+		status.state        	= static_cast<ActivationStatus::State>(state);
+		status.failCount    	= fail_ctr;
+		status.maxFailCount 	= max_fail_ctr;
+		status.currentVersion	= curr_ver;
+		status.upgradeVersion	= upgrade_ver;
 		
 		return EC_Ok;
 	}
@@ -549,10 +538,9 @@ namespace powerAuth
 			return EC_WrongParam;
 		}
 		// Check combination of offlineNonce & vaultUnlock.
-		bool vault_unlock = (signature_factor & SF_PrepareForVaultUnlock) != 0;
-		if (vault_unlock && !request.offlineNonce.empty()) {
-			CC7_LOG("Session %p, %d: Sign: Vault unlock should not be combined with offlineNonce.", this, sessionIdentifier());
-			return EC_WrongParam;
+		if (request.isOfflineRequest() && hasPendingActivationMigration()) {
+			CC7_LOG("Session %p, %d: Sign: Offline signature is not available during the pending migration.", this, sessionIdentifier());
+			return EC_WrongState;
 		}
 		
 		// Re-seed OpenSSL's PRNG.
@@ -582,30 +570,18 @@ namespace powerAuth
 		// Normalize data and calculate signature
 		const std::string & app_secret = request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationSecret;
 		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
-		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, _pd->signatureCounter, data);
+		cc7::ByteArray ctr_data = _pd->isV3() ? _pd->signatureCounterData : protocol::SignatureCounterToData(_pd->signatureCounter);
+		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data);
 		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
 			return EC_Encryption;
 		}
 		
-		// Increase signing counter
-		_pd->signatureCounter += 1;
-		// Handle "Prepare for vault unlock"
-		if (_pd->flags.waitingForVaultUnlock) {
-			// This is just a warning. Your client probably did not receive response from a previous vault unlock HTTP request.
-			CC7_LOG("Session %p, %d: Sign: Session is already waiting for a vault unlocking.");
-		}
-		if (vault_unlock) {
-			// If we're signing vault unlock request then the counter must be increased for one more time
-			_pd->signatureCounter += 1;
-			_pd->flags.waitingForVaultUnlock = 1;
-		} else {
-			// Clear waiting flag.
-			_pd->flags.waitingForVaultUnlock = 0;
-		}
+		// Move counter forward
+		protocol::CalculateNextCounterValue(*_pd);
 		
 		// Fill the rest of values to out structure
-		out.version			= protocol::PA_VERSION;
+		out.version			= _pd->isV3() ? protocol::PA_VERSION_V3 : protocol::PA_VERSION_V2;
 		out.activationId	= _pd->activationId;
 		out.applicationKey	= request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationKey;
 		
@@ -788,7 +764,6 @@ namespace powerAuth
 
 		// Clear encrypted biometry key and reset waiting for vault flag.
 		_pd->sk.biometryKey.clear();
-		_pd->flags.waitingForVaultUnlock = 0;
 		return EC_Ok;
 	}
 	
@@ -855,13 +830,7 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Vault: There's no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (!_pd->flags.waitingForVaultUnlock) {
-			CC7_LOG("Session %p, %d: Vault: The module is not waiting for a vault unlock.", this, sessionIdentifier());
-			return EC_WrongState;
-		}
-		// Clear waiting flag
-		_pd->flags.waitingForVaultUnlock = 0;
-		
+
 		// Check if there's encrypted vault key and if yes, try to decode from B64
 		if (c_vault_key.empty()) {
 			CC7_LOG("Session %p, %d: Vault: Missing encrypted vault key.", this, sessionIdentifier());
@@ -881,19 +850,8 @@ namespace powerAuth
 			CC7_LOG("Session %p, %d: Vault: You have to provide possession key.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
-		
-		// Calculates KEY_ENCRYPTION_VAULT_TRANSPORT.
-		//
-		// The counter is already incremented, because we had to use SF_PrepareForVaultUnlock
-		// flag for the HTTP request signing. The current counter's value is equal to
-		// value AFTER the whole operation and therefore we don't need to increment it.
-		
-		cc7::ByteArray vault_transport_key = protocol::DeriveSecretKey(plain.transportKey, _pd->signatureCounter - 1);
-		if (vault_transport_key.empty()) {
-			return EC_Encryption;
-		}
-		// Finally, decrypt received vault key
-		out_key = crypto::AES_CBC_Decrypt_Padding(vault_transport_key, protocol::ZERO_IV, encrypted_vault_key);
+		// V3: Vault key is now simply encrypted with KEY_TRANSPORT
+		out_key = crypto::AES_CBC_Decrypt_Padding(plain.transportKey, protocol::ZERO_IV, encrypted_vault_key);
 		if (out_key.size() != protocol::VAULT_KEY_SIZE) {
 			return EC_Encryption;
 		}
@@ -1014,111 +972,141 @@ namespace powerAuth
 		}
 		return nullptr;
 	}
-
 	
+	// MARK: - ECIES Factory -
 	
-	// MARK: - End-To-End Encryption
-	
-	std::tuple<ErrorCode, Encryptor*> Session::createNonpersonalizedEncryptor(const cc7::ByteRange & session_index)
+	ErrorCode Session::getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys, const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const
 	{
 		LOCK_GUARD();
-		// Validate state & parameters
 		if (!hasValidSetup()) {
-			CC7_LOG("Session %p, %d: E2EE-NP: There's no valid setup.", this, sessionIdentifier());
-			return { EC_WrongState, nullptr };
+			CC7_LOG("Session %p, %d: ECIES: Session has no valid setup.", this, sessionIdentifier());
+			return EC_WrongState;
 		}
-		if (session_index.size() != protocol::SIGNATURE_KEY_SIZE || session_index == protocol::ZERO_IV) {
-			CC7_LOG("Session %p, %d: E2EE-NP: Session index has wrong size or contains only zero bytes.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
-		}
-		
+		// Other parameters for ECIES encryptor
+		cc7::ByteArray ecPublicKey;
+		cc7::ByteArray sharedInfo2;
 		//
-		// Encryptor in nonpersonalized mode is slightly more complex than the personalized one.
-		// The next big sequence of code is creating an ephemeral key for ECDH. The shared secrted,
-		// created from the ECDH is then reduced to 16B and used as a transport key for the encryptor.
-		//
-		bool error = true;
-		EC_KEY * master_public_key = nullptr;
-		EC_KEY * ephemeral_key     = nullptr;
-		cc7::ByteArray transport_key;
-		std::string ephemeral_public_key;
-		do {
-			crypto::BNContext ctx;
-			
-			// Import master server public key & try to validate OTP+ShortID signature
-			master_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
-			if (nullptr == master_public_key) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Master server public key is invalid.", this, sessionIdentifier());
-				break;
+		if (scope == ECIES_ApplicationScope) {
+			// For "application" scope, the setup is quite simple.
+			// We have to just compute hash from APP_SECRET (as is) and use
+			// the master server public key.
+			sharedInfo2 = crypto::SHA256(cc7::MakeRange(_setup.applicationSecret));
+			ecPublicKey = cc7::FromBase64String(_setup.masterServerPublicKey);
+			//
+		} else if (scope == ECIES_ActivationScope) {
+			// For the "activation" scope, we need to at first validate whether there's
+			// some activation.
+			if (!hasValidActivation()) {
+				CC7_LOG("Session %p, %d: ECIES: Session has no valid activation.", this, sessionIdentifier());
+				return EC_WrongState;
 			}
-			ephemeral_key = crypto::ECC_GenerateKeyPair();
-			if (nullptr == ephemeral_key) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Can't generate ephemeral key.", this, sessionIdentifier());
-				break;
+			// Acquire the transport key
+			protocol::SignatureKeys plain_keys;
+			protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
+			if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
+				CC7_LOG("Session %p, %d: ECIES: You have to provide valid possession key.", this, sessionIdentifier());
+				return EC_Encryption;
 			}
-			transport_key = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(master_public_key, ephemeral_key));
-			if (transport_key.empty()) {
-				CC7_LOG("Session %p, %d: E2EE-NP: Can't calculate shared secret from ephemeral key.", this, sessionIdentifier());
-				break;
-			}
-			// Export public par for ephemeral key to B64 format.
-			ephemeral_public_key = crypto::ECC_ExportPublicKeyToB64(ephemeral_key);
-			// So far, so good.
-			error = false;
-			
-		} while (false);
-		
-		// Free allocated OpenSSL resources
-		EC_KEY_free(master_public_key);
-		EC_KEY_free(ephemeral_key);
-		
-		Encryptor * enc = nullptr;
-		if (!error) {
-			enc = new Encryptor(Encryptor::Nonpersonalized, session_index, transport_key);
-			enc->setNonpersonalizedParams(ephemeral_public_key, _setup.applicationKey);
-			error = !enc->validateConfiguration();
-			if (error) {
-				delete enc;
-				enc = nullptr;
-			}
+			// The sharedInfo2 is defined as HMAC_SHA256(key: KEY_TRANSPORT, data: APP_SECRET)
+			// We need to also use the server's public key as EC public key.
+			sharedInfo2 = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain_keys.transportKey);
+			ecPublicKey = _pd->serverPublicKey;
+			//
+		} else {
+			// Scope is not known
+			CC7_LOG("Session %p, %d: ECIES: Unsupported scope.", this, sessionIdentifier());
+			return EC_WrongParam;
 		}
-		return { enc == nullptr ? EC_Encryption : EC_Ok, enc };
+		// Now construct the encryptor with prepared setup.
+		out_encryptor = ECIESEncryptor(ecPublicKey, sharedInfo1, sharedInfo2);
+		return EC_Ok;
 	}
 	
-	std::tuple<ErrorCode, Encryptor*> Session::createPersonalizedEncryptor(const cc7::ByteRange & session_index, const SignatureUnlockKeys & keys)
+	// MARK: - Protocol migration -
+	
+	ErrorCode Session::startMigration()
 	{
 		LOCK_GUARD();
-		// Validate state & parameters
 		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: E2EE-P: There's no valid activation.", this, sessionIdentifier());
-			return { EC_WrongState, nullptr };
+			CC7_LOG("Session %p, %d: StartMigration: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
 		}
-		if (session_index.size() != protocol::SIGNATURE_KEY_SIZE || session_index == protocol::ZERO_IV) {
-			CC7_LOG("Session %p, %d: E2EE-P: Session index has wrong length or contains only zero bytes.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
+		switch (_pd->protocolVersion()) {
+			case Version_V2:
+				_pd->flags.pendingMigration = Version_V3;
+				return EC_Ok;
+			default:
+				break;
 		}
-		// Unlock transport key
-		protocol::SignatureKeys plain;
-		protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), nullptr, 0);
-		if (false == protocol::UnlockSignatureKeys(plain, _pd->sk, unlock_request)) {
-			CC7_LOG("Session %p, %d: E2EE-P: You have to provide possession key.", this, sessionIdentifier());
-			return { EC_WrongParam, nullptr };
-		}
-		//
-		// The personalized encryptor's implementation is way more simple than the nonpersonalized one.
-		// The transport key is already present in the SignatureKeys structure, so we need to just
-		// construct a proper Encryptor.
-		//
-		Encryptor * enc = new Encryptor(Encryptor::Personalized, session_index, plain.transportKey);
-		enc->setPersonalizedParams(activationIdentifier());
-		if (false == enc->validateConfiguration()) {
-			delete enc;
-			enc = nullptr;
-		}
-		return { enc == nullptr ? EC_Encryption : EC_Ok, enc };
+		CC7_LOG("Session %p, %d: StartMigration: Session is already in V3.", this, sessionIdentifier());
+		return EC_WrongState;
 	}
 	
 	
+	Version Session::pendingActivationMigrationVersion() const
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			return Version_NA;
+		}
+		return (Version) _pd->flags.pendingMigration;
+	}
+	
+	
+	ErrorCode Session::applyMigrationData(const MigrationData & migration_data)
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: ApplyMigrationData: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		switch (_pd->protocolVersion()) {
+			case Version_V2:
+			{
+				if (_pd->flags.pendingMigration != Version_V3) {
+					CC7_LOG("Session %p, %d: ApplyMigrationData: Migration to V3 was not properly started.", this, sessionIdentifier());
+					return EC_WrongState;
+				}
+				cc7::ByteArray ctrData;
+				if (!cc7::Base64_Decode(migration_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
+					CC7_LOG("Session %p, %d: ApplyMigrationData: Wrong V3 migration data.", this, sessionIdentifier());
+					return EC_WrongParam;
+				}
+				// Everything looks fine, we can commit new data
+				_pd->signatureCounterData = ctrData;
+				_pd->signatureCounter = 0;
+				_pd->flags.waitingForVaultUnlock = 0;
+				return EC_Ok;
+			}
+			default:
+				break;
+		}
+		CC7_LOG("Session %p, %d: ApplyMigrationData: Session is already in V3.", this, sessionIdentifier());
+		return EC_WrongState;
+	}
+	
+	
+	ErrorCode Session::finishMigration()
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: FinishMigration: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		switch (_pd->flags.pendingMigration) {
+			case Version_V3:
+				if (_pd->protocolVersion() == Version_V3) {
+					// Migration to V3 succeeded.
+					_pd->flags.pendingMigration = Version_NA;
+					return EC_Ok;
+				}
+				CC7_LOG("Session %p, %d: FinishMigration: Migration to V3 is not finished yet.", this, sessionIdentifier());
+				break;
+			default:
+				break;
+		}
+		return EC_WrongState;
+	}
 	
 	// MARK: - Private methods -
 	

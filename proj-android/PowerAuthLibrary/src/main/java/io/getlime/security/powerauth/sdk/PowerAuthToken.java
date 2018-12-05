@@ -21,7 +21,6 @@ import android.support.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.TokenCalculator;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthAuthorizationHttpHeader;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**
@@ -41,6 +40,10 @@ public class PowerAuthToken {
      */
     private final PowerAuthPrivateTokenData tokenData;
 
+    /**
+     * @param store {@link PowerAuthTokenStore} object who creates this token
+     * @param tokenData private token data
+     */
     public PowerAuthToken(@NonNull PowerAuthTokenStore store, @NonNull PowerAuthPrivateTokenData tokenData) {
         this.tokenStore = store;
         this.tokenData = tokenData;
@@ -51,12 +54,13 @@ public class PowerAuthToken {
      * @return true if token has valid data.
      */
     public boolean isValid() {
-        return tokenData != null && tokenStore != null && tokenData.hasValidData();
+        return tokenData.hasValidData();
     }
 
 
     /**
      * Compares this token to the specified object.
+     *
      * @param anObject object to compare
      * @return true if objects are equal.
      */
@@ -78,17 +82,17 @@ public class PowerAuthToken {
      * @return symbolic name of token or null if token contains an invalid data.
      */
     public @Nullable String getTokenName() {
-        return tokenData != null ? tokenData.name : null;
+        return tokenData.name;
     }
 
     /**
      * Return token's unique identifier. You normally don't need this value, but it may help
      * with application's debugging. The value identifies this token on PowerAuth server.
      *
-     * @return token's unique identifier or null if token conains an invalid data.
+     * @return token's unique identifier or null if token contains an invalid data.
      */
     public @Nullable String getTokenIdentifier() {
-        return tokenData != null ? tokenData.identifier : null;
+        return tokenData.identifier;
     }
 
 
@@ -96,7 +100,7 @@ public class PowerAuthToken {
      * @return true if token can generate a new header
      */
     public boolean canGenerateHeader() {
-        return tokenStore != null && tokenStore.canRequestForAccessToken();
+        return tokenStore.canRequestForAccessToken();
     }
 
     /**

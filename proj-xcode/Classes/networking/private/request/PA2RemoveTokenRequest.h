@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
-@interface PA2RemoveTokenRequest : NSObject <PA2NetworkObject>
+@interface PA2RemoveTokenRequest : NSObject <PA2Encodable>
 
 @property (nonnull, nonatomic, strong) NSString* tokenId;
 

@@ -14,19 +14,40 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
-/** Request for '/pa/activation/create' endpoint.
+@class PA2EncryptedRequest;
+
+/**
+ Request for '/pa/activation/create' endpoint.
  */
-@interface PA2CreateActivationRequest : NSObject <PA2NetworkObject>
+@interface PA2CreateActivationRequest : NSObject <PA2Encodable>
 
-@property (nonatomic, strong) NSString *activationIdShort;
-@property (nonatomic, strong) NSString *applicationKey;
-@property (nonatomic, strong) NSString *activationNonce;
-@property (nonatomic, strong) NSString *ephemeralPublicKey;
-@property (nonatomic, strong) NSString *activationName;
-@property (nonatomic, strong) NSString *applicationSignature;
-@property (nonatomic, strong) NSString *encryptedDevicePublicKey;
-@property (nonatomic, strong) NSString *extras;
+/**
+ Contains type of activation. Currenty, only "CODE" and "CUSTOM" is expected.
+ */
+@property (nonatomic, strong, readonly) NSString * activationType;
+/**
+ Identity attributes, may contain activation code, or complete custom,
+ application specific attributes.
+ */
+@property (nonatomic, strong, readonly) NSDictionary<NSString*, NSString*>* identityAttributes;
+/**
+ Property contains encrypted, private data, required for activation creation.
+ The encrypted `PA2CreateActivationRequestData` object is expected.
+ */
+@property (nonatomic, strong) PA2EncryptedRequest * activationData;
+
+/**
+ Returns a new instnace of object, prepared for standard activation. The `activationData`
+ property has to be set to the object.
+ */
++ (instancetype) standardActivationWithCode:(NSString*)activationCode;
+/**
+ Returns a new instance of object, prepared for a custom activation. The `activationData`
+ property has to be set to the object.
+ */
++ (instancetype) customActivationWithIdentityAttributes:(NSDictionary<NSString*, NSString*>*)attributes;
 
 @end
+

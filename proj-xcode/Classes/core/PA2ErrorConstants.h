@@ -76,3 +76,14 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidToken;
 
 /** Error code for a general error related to WatchConnectivity */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeWatchConnectivity;
+
+/**
+ Error code for protocol upgrade failure.
+ The recommended action is to retry the status fetch operation, or remove the activation.
+ */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeProtocolUpgrade;
+/**
+ The requested function is not available during the protocol upgrade. You can retry the operation,
+ after the upgrade is finished.
+ */
+PA2_EXTERN_C NSInteger const PA2ErrorCodePendingProtocolUpgrade;

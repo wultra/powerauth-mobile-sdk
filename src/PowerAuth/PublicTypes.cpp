@@ -101,6 +101,20 @@ namespace powerAuth
 		
 		return out;
 	}
+
+	
+	//
+	// MARK: - ActivationStatus -
+	//
+	
+	bool ActivationStatus::isMigrationAvailable() const
+	{
+		if (currentVersion < upgradeVersion) {
+			return upgradeVersion <= MaxSupported;
+		}
+		return false;
+	}
+	
 	
 } // io::getlime::powerAuth
 } // io::getlime

@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
-@interface PA2EncryptedResponse: NSObject<PA2NetworkObject>
+@class PA2ECIESCryptogram;
+
+@interface PA2EncryptedResponse: NSObject<PA2Decodable>
 
 @property (nonatomic, strong) NSString * encryptedData;
 @property (nonatomic, strong) NSString * mac;
+
+- (PA2ECIESCryptogram*) cryptogram;
 
 @end

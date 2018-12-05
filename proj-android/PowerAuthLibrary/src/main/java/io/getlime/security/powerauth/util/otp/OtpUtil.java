@@ -17,7 +17,17 @@
 package io.getlime.security.powerauth.util.otp;
 
 /**
- * Class for parsing and validation the OTP code.
+ * Class for parsing and validation the activation code.
+ *
+ * Current format of code:
+ * <pre>
+ * code without signature:  CCCCC-CCCCC-CCCCC-CCCCC
+ * code with signature:     CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
+ * </pre>
+ *
+ * Where the 'C' is Base32 sequence of characters, fully decodable into the sequence of bytes.
+ * The validator then compares CRC-16 checksum calculated for the first 10 bytes and compares
+ * it to last two bytes (in big endian order).
  */
 public class OtpUtil {
 
@@ -27,9 +37,10 @@ public class OtpUtil {
 
     /**
      * Parses an input |activationCode| (which may or may not contain an optional signature) and
-     * returns Otp object filled with valid data. The method doesn't perform an autocorrection,
+     * returns Otp object filled with valid data. The method doesn't perform an auto-correction,
      * so the provided code must be valid.
      *
+     * @param activationCode string with an activation code.
      * @return Otp object if code is valid, or null
      * */
     public native static Otp parseFromActivationCode(String activationCode);
@@ -37,20 +48,26 @@ public class OtpUtil {
     /**
      *  Returns true if |utfCodepoint| is a valid character allowed in the activation code.
      *  The method strictly checks whether the character is from [A-Z2-7] characters range.
+     *
+     * @param utfCodepoint unicode code point to be validated.
+     * @return true if provided character is allowed in the activation code.
      */
     public native static boolean validateTypedCharacter(int utfCodepoint);
 
     /**
      * Validates an input |utfCodepoint| and returns 0 if it's not valid or cannot be corrected.
      * The non-zero returned value contains the same input character, or the corrected
-     * one. You can use this method for validation &amp; autocorrection of just typed characters.
+     * one. You can use this method for validation &amp; auto-correction of just typed characters.
      * <p>
-     * The function performs following autocorrections:
+     * The function performs following auto-corrections:
      * <ul>
      * <li>lowercase characters are corrected to uppercase (e.g. 'a' will be corrected to 'A')</li>
      * <li>'0' is corrected to 'O' (zero to capital O)</li>
      * <li>'1' is corrected to 'I' (one to capital I)</li>
      * </ul>
+     *
+     * @param utfCodepoint unicode code point to be validated.
+     * @return 0 if character is not allowed, or non-null value with the same, or auto-corrected characted.
      */
     public native static int validateAndCorrectTypedCharacter(int utfCodepoint);
 
@@ -58,6 +75,12 @@ public class OtpUtil {
      *  Returns true if |activationCode| is a valid activation code. The input code must not contain
      *  a signature part. You can use this method to validate a whole user-typed activation code
      *  at once.
+     *
+     *  Note that since protocol version V3, the activation code is protected with checksum, so the
+     *  code with right characters and right length can still be an invalid.
+     *
+     * @param activationCode activation code without the signature part
+     * @return true if code is valid
      */
     public native static boolean validateActivationCode(String activationCode);
 

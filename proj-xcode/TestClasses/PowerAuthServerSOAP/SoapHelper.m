@@ -18,27 +18,31 @@
 #import "AsyncHelper.h"
 #import "CXMLDocument.h"
 
+
 @implementation SoapHelper
 {
 	NSBundle * _bundle;
 	NSURL * _url;
 	NSMutableDictionary * _cache;
-	NSDictionary * _xmlNamespaceMapping;
+	PowerAuthTestServerVersion _version;
+	NSDictionary<NSString*, SoapHelperMapping*>* _templateMapping;
 }
 
-- (id) initWithBundle:(NSBundle *)bundle
-				  url:(NSURL*)url
+- (id) initWithBundle:(NSBundle*)bundle
+			   config:(PowerAuthTestServerConfig*)config
 {
 	self = [super init];
 	if (self) {
 		_bundle = bundle;
-		_url = url;
+		_url = [NSURL URLWithString:config.soapApiUrl];
+		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
-		_xmlNamespaceMapping = @{
-			@"soap" : @"http://schemas.xmlsoap.org/soap/envelope/",
-			@"pa"   : @"http://getlime.io/security/powerauth"
-		 };
 		_session = [NSURLSession sharedSession];
+		if (_version == PATS_V3) {
+			_templateMapping = [SoapHelper mappingForV3];
+		} else {
+			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 server is not supported." userInfo:nil];
+		}
 	}
 	return self;
 }
@@ -48,11 +52,21 @@
 			response:(NSString*)responseNodeName
 		   transform:(id (^)(CXMLNode * soapBody, NSDictionary * xmlNamespaceMapping))transformBlock
 {
-	NSString * envelopeData = [self formatEnvelope:requestName params:params];
-	
+	SoapHelperMapping * mapping = _templateMapping[requestName];
+	if (!mapping) {
+		@throw [NSException exceptionWithName:@"SoapError" reason:@"Unknown mapping for SOAP envelope." userInfo:nil];
+	}
+	NSString * envelopeData = [self formatEnvelope:requestName mapping:mapping params:params];
 	if (!envelopeData) {
 		@throw [NSException exceptionWithName:@"SoapError" reason:@"Unable to format SOAP envelope." userInfo:nil];
 	}
+	
+	// Prepare xml namespaces
+	NSDictionary * xmlNamespaceMapping =
+  	@{
+		@"soap" : @"http://schemas.xmlsoap.org/soap/envelope/",
+		@"pa"   : mapping.xmlns
+	};
 	
 	// Make things synchronous
 	__block id responseObject = nil;
@@ -71,10 +85,10 @@
 			if (data && !error) {
 				CXMLDocument * document = [[CXMLDocument alloc] initWithData:data options:0 error:&error];
 				if (!error && document) {
-					CXMLNode * bodyNode = [self lookForSoapBodyNode:document responseNode:responseNodeName error:&error];
+					CXMLNode * bodyNode = [self lookForSoapBodyNode:document xmlNamespaceMapping:xmlNamespaceMapping responseNode:responseNodeName error:&error];
 					if (!error && bodyNode) {
 						// Report SOAP body node
-						responseObject = transformBlock(bodyNode, _xmlNamespaceMapping);
+						responseObject = transformBlock(bodyNode, xmlNamespaceMapping);
 						if (responseObject) {
 							[waiting reportCompletion:nil];
 							return;
@@ -105,21 +119,22 @@
  NSError object to |error| pointer. The body node's name must be equal to |responseNode| string.
  */
 - (CXMLNode*) lookForSoapBodyNode:(CXMLDocument*)xmlDocument
+			  xmlNamespaceMapping:(NSDictionary*)xmlNamespaceMapping
 					 responseNode:(NSString*)responseNode
 							error:(NSError**)error
 {
 	NSError * localError = nil;
 	CXMLElement * root = xmlDocument.rootElement;
-	CXMLNode * fault = [root nodeForXPath:@"/soap:Envelope/soap:Body/soap:Fault" namespaceMappings:_xmlNamespaceMapping error:&localError];
+	CXMLNode * fault = [root nodeForXPath:@"/soap:Envelope/soap:Body/soap:Fault" namespaceMappings:xmlNamespaceMapping error:&localError];
 	if (fault) {
-		NSString * faultMessage = [fault nodeForXPath:@"faultstring" namespaceMappings:_xmlNamespaceMapping error:&localError].stringValue;
+		NSString * faultMessage = [fault nodeForXPath:@"faultstring" namespaceMappings:xmlNamespaceMapping error:&localError].stringValue;
 		if (!faultMessage) {
 			faultMessage = @"Unknown failure received from server. XML is valid, but there's no string value for error";
 		}
 		localError = [NSError errorWithDomain:@"SoapError" code:1 userInfo:@{NSLocalizedDescriptionKey:faultMessage}];
 	}
 	if (!localError) {
-		CXMLNode * responseBody = [[root nodesForXPath:@"/soap:Envelope/soap:Body" namespaceMappings:_xmlNamespaceMapping error:&localError] firstObject];
+		CXMLNode * responseBody = [[root nodesForXPath:@"/soap:Envelope/soap:Body" namespaceMappings:xmlNamespaceMapping error:&localError] firstObject];
 		CXMLNode * responseObject = [responseBody.children firstObject];
 		if (responseObject) {
 			if ([responseObject.localName isEqualToString:responseNode]) {
@@ -142,13 +157,15 @@
 /*
  Returns a SOAP envelope (the whole XML string with HTTP POST request payload)
  */
-- (NSString*) formatEnvelope:(NSString*)templateName params:(NSArray*)params
+- (NSString*) formatEnvelope:(NSString*)templateName
+					 mapping:(SoapHelperMapping*)mapping
+					  params:(NSArray*)params
 {
 	// 1) Look for template string
 	NSString * templateString = [_cache objectForKey:templateName];
 	if (!templateString) {
 		// Load XML template from bundle
-		NSString * path = [_bundle pathForResource:templateName ofType:@"xml"];
+		NSString * path = [_bundle pathForResource:mapping.envelopePath ofType:@"xml"];
 		if (!path) {
 			NSLog(@"Requested SOAP template doesn't exist");
 			return nil;
@@ -156,13 +173,16 @@
 		NSData * templateData = [[NSData alloc] initWithContentsOfFile:path];
 		templateString = [[NSString alloc] initWithData:templateData encoding:NSUTF8StringEncoding];
 		if (!templateData || !templateString) {
-			NSLog(@"Can't load data for SOAP template");
+			NSLog(@"Can't load data for SOAP template: %@", path);
 			return nil;
 		}
 		// Store to cache
 		[_cache setObject:templateString forKey:templateName];
 	}
-	// 2) Remplace all $X placeholders with values from params array
+	// 2) Remplace $XMLNS with xmlns value
+	templateString = [templateString stringByReplacingOccurrencesOfString:@"$XMLNS" withString:mapping.xmlns];
+	
+	// 3) Replace all $X placeholders with values from params array
 	for (NSUInteger index = 0; index < params.count; index++) {
 		id pobj = params[index];
 		NSString * pstr;
@@ -184,5 +204,54 @@
 	return templateString;
 }
 
+#pragma mark - Mappings for various server methods
+
+#define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV3
+{
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"),
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v3/VerifySignature"),	// Default signature validation (without specified version)
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"_v3/VerifySignature"),	// The same template, but with additional "signatureVersion" param
+			 };
+}
+
+#undef MAP
+
+@end
+
+
+@implementation SoapHelperMapping
+
++ (id) map:(NSArray *)mapArray
+{
+	SoapHelperMapping * obj = [[SoapHelperMapping alloc] init];
+	if (obj) {
+		obj->_xmlns = mapArray[0];
+		obj->_envelopePath = mapArray[1];
+	}
+	return obj;
+}
 
 @end

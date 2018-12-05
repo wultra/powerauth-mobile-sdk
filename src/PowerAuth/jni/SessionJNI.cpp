@@ -15,7 +15,8 @@
  */
 
 #include "PasswordJNI.h"
-#include "EncryptorJNI.h"
+#include "ECIESEncryptorJNI.h"
+#include "ProtocolVersionJNI.h"
 #include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
 #include <map>
@@ -150,6 +151,14 @@ CC7_JNI_METHOD(jboolean, hasValidSetup)
 	return session ? session->hasValidSetup() : false;
 }
 
+//
+// public native ProtocolVersion getProtocolVersion()
+//
+CC7_JNI_METHOD(jobject, getProtocolVersion)
+{
+	auto session = CC7_THIS_OBJ();
+	return CreateJavaProtocolVersion(env, session ? session->protocolVersion() : Version_Latest);
+}
 
 // ----------------------------------------------------------------------------
 // Serialization
@@ -243,15 +252,14 @@ CC7_JNI_METHOD(jstring, getActivationFingerprint)
 CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
 {
 	auto session = CC7_THIS_OBJ();
-	if (!session || !param) {
-		CC7_ASSERT(false, "Missing param or internal handle.");
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
 		return NULL;
 	}
 	// Copy params to C++ struct
 	ActivationStep1Param cppParam;
 	jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep1Param");
-	cppParam.activationIdShort		= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationIdShort"));
-	cppParam.activationOtp			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationOtp"));
+	cppParam.activationCode		    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationCode"));
 	cppParam.activationSignature	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationSignature"));
 	// Call session
 	ActivationStep1Result cppResult;
@@ -261,10 +269,7 @@ CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStep1Result"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationNonce",  	cc7::jni::CopyToJavaString(env, cppResult.activationNonce));
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "cDevicePublicKey", 	cc7::jni::CopyToJavaString(env, cppResult.cDevicePublicKey));
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "applicationSignature",	cc7::jni::CopyToJavaString(env, cppResult.applicationSignature));
-		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "ephemeralPublicKey",	cc7::jni::CopyToJavaString(env, cppResult.ephemeralPublicKey));
+		CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "devicePublicKey",  	cc7::jni::CopyToJavaString(env, cppResult.devicePublicKey));
 	}
 	return resultObject;
 }
@@ -283,10 +288,8 @@ CC7_JNI_METHOD_PARAMS(jobject, validateActivationResponse, jobject param)
 	ActivationStep2Param cppParam;	
 	jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep2Param");
 	cppParam.activationId				= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationId"));
-	cppParam.ephemeralNonce				= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "ephemeralNonce"));
-	cppParam.ephemeralPublicKey			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "ephemeralPublicKey"));
-	cppParam.encryptedServerPublicKey	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "encryptedServerPublicKey"));
-	cppParam.serverDataSignature		= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "serverDataSignature"));
+	cppParam.serverPublicKey			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "serverPublicKey"));
+	cppParam.ctrData			        = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "ctrData"));
 	// Call C++ session
 	ActivationStep2Result cppResult;
 	ErrorCode code = session->validateActivationResponse(cppParam, cppResult);
@@ -349,10 +352,15 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStatus"), "()V");
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 	cppStatus.state);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "failCount", 	cppStatus.failCount);
-		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",	cppStatus.maxFailCount);
-		CC7_JNI_SET_FIELD_LONG	(resultObject, resultClazz, "counter",	 	cppStatus.counter);
+		const char * versionSig = CC7_JNI_MODULE_CLASS_SIGNATURE("ProtocolVersion");
+		jobject currentVersionObject = CreateJavaProtocolVersion(env, cppStatus.currentVersion);
+		jobject upgradeVersionObject = CreateJavaProtocolVersion(env, cppStatus.upgradeVersion);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 			cppStatus.state);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "failCount", 			cppStatus.failCount);
+		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
+		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
+		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isMigrationAvailable());
 	}
 	return resultObject;
 }
@@ -406,8 +414,8 @@ CC7_JNI_METHOD_PARAMS(jobject, signHTTPRequest, jobject request, jobject unlockK
 	jclass requestClazz		= CC7_JNI_MODULE_FIND_CLASS("SignatureRequest");
 	cppRequest.body			= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(request, requestClazz, "body"));
 	cppRequest.method		= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "method"));
-	cppRequest.uri			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "uri"));
-	cppRequest.offlineNonce	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "nonce"));
+	cppRequest.uri			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "uriIdentifier"));
+	cppRequest.offlineNonce	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(request, requestClazz, "offlineNonce"));
 	SignatureFactor cppSignatureFactor = (SignatureFactor)signatureFactor;
 	SignatureUnlockKeys cppUnlockKeys;
 	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
@@ -651,41 +659,41 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 }
 
 // ----------------------------------------------------------------------------
-// E2EE
+// ECIES
 // ----------------------------------------------------------------------------
 
 //
-// public native Encryptor createNonpersonalizedEncryptor(byte[] sessionIndex);
+// public native EciesEncryptor getEciesEncryptor(EciesEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
 //
-CC7_JNI_METHOD_PARAMS(jobject, createNonpersonalizedEncryptor, jbyteArray sessionIndex)
+CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jint scope, jobject unlockKeys, jbyteArray sharedInfo1)
 {
 	auto session = CC7_THIS_OBJ();
-	ErrorCode code = EC_WrongParam;
-	Encryptor * encryptor = NULL;
-	if (CC7_CHECK(session != NULL, "Missing internal handle.")) {
-		auto cpp_sessionIndex = cc7::jni::CopyFromJavaByteArray(env, sessionIndex);
-		std::tie(code, encryptor) = session->createNonpersonalizedEncryptor(cpp_sessionIndex);		
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return NULL;
 	}
-	return CreateJavaEncryptorForCppClass(env, encryptor, code);
+	// Load parameters into C++ objects
+	auto cppScope = (ECIESEncryptorScope) scope;
+	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
+	SignatureUnlockKeys cppUnlockKeys;
+	if (cppScope == ECIES_ActivationScope) {
+		// Convert unlock keys only when activation scope is requested.
+		if (!LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+			return NULL;
+		}
+	}
+
+	// Call Session
+	ECIESEncryptor cppEncryptor;
+	auto result = session->getEciesEncryptor(cppScope, cppUnlockKeys, cppSharedInfo1, cppEncryptor);
+	if (EC_Ok != result) {
+		CC7_ASSERT(false, "getEciesEncryptor failed with error %d", result);
+		return NULL;
+	}
+	// Convert CPP object to java object
+	return CreateJavaEncryptorFromCppObject(env, cppEncryptor);
 }
 
-//
-// public native Encryptor createPersonalizedEncryptor(byte[] sessionIndex, SignatureUnlockKeys unlockKeys);
-//
-CC7_JNI_METHOD_PARAMS(jobject, createPersonalizedEncryptor, jbyteArray sessionIndex, jobject unlockKeys)
-{
-	auto session = CC7_THIS_OBJ();
-	ErrorCode code = EC_WrongParam;
-	Encryptor * encryptor = NULL;
-	if (CC7_CHECK(session != NULL, "Missing internal handle.")) {
-		auto cpp_sessionIndex = cc7::jni::CopyFromJavaByteArray(env, sessionIndex);
-		SignatureUnlockKeys cpp_unlockKeys;
-		if (LoadSignatureUnlockKeys(cpp_unlockKeys, env, unlockKeys)) {
-			std::tie(code, encryptor) = session->createPersonalizedEncryptor(cpp_sessionIndex, cpp_unlockKeys);
-		}		
-	}
-	return CreateJavaEncryptorForCppClass(env, encryptor, code);
-}
 
 // ----------------------------------------------------------------------------
 // Utilities
@@ -706,6 +714,89 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, normalizeSignatureUnlockKeyFromData, jbyteArra
 CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
 {
 	return cc7::jni::CopyToJavaByteArray(env, Session::generateSignatureUnlockKey());
+}
+
+
+
+// ----------------------------------------------------------------------------
+// Protocol migration
+// ----------------------------------------------------------------------------
+
+//
+// public native boolean hasPendingProtocolUpgrade();
+//
+CC7_JNI_METHOD(jboolean, hasPendingProtocolUpgrade)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return false;
+	}
+	return (jboolean) session->hasPendingActivationMigration();
+}
+
+//
+// public native ProtocolVersion getPendingProtocolUpgradeVersion();
+//
+CC7_JNI_METHOD(jobject, getPendingProtocolUpgradeVersion)
+{
+	auto session = CC7_THIS_OBJ();
+	Version v;
+	if (session) {
+		v = session->pendingActivationMigrationVersion();
+	} else {
+		v = Version_NA;
+	}
+	return CreateJavaProtocolVersion(env, v);
+}
+
+//
+// public native int startProtocolUpgrade();
+//
+CC7_JNI_METHOD(jint, startProtocolUpgrade)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return EC_WrongParam;
+	}
+	return (jint) session->startMigration();
+}
+
+//
+// public native int applyProtocolUpgradeData(ProtocolUpgradeData protocolUpgradeData);
+//
+CC7_JNI_METHOD_PARAMS(jint, applyProtocolUpgradeData, jobject md)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return EC_WrongParam;
+	}
+	// Load parameters into C++ struct
+
+	jclass mdClazz = CC7_JNI_MODULE_FIND_CLASS("ProtocolUpgradeData");
+	auto cpp_version = (Version) CC7_JNI_GET_FIELD_INT(md, mdClazz, "toVersion");
+
+	MigrationData cpp_md;
+	if (cpp_version == Version_V3) {
+		// Load V3 fields...
+		cpp_md.toV3.ctrData = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(md, mdClazz, "v3CtrData"));
+	}
+	return (jint) session->applyMigrationData(cpp_md);
+}
+
+//
+// public native int finishProtocolUpgrade();
+//
+CC7_JNI_METHOD(jint, finishProtocolUpgrade)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return EC_WrongParam;
+	}
+	return (jint) session->finishMigration();
 }
 
 CC7_JNI_MODULE_CLASS_END()

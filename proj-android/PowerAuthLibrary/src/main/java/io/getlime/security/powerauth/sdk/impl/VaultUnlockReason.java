@@ -22,8 +22,6 @@ package io.getlime.security.powerauth.sdk.impl;
  */
 public class VaultUnlockReason {
 
-    public static final String PASSWORD_VALIDATE = "PASSWORD_VALIDATE";
-    public static final String PASSWORD_CHANGE = "PASSWORD_CHANGE";
     public static final String ADD_BIOMETRY = "ADD_BIOMETRY";
     public static final String FETCH_ENCRYPTION_KEY = "FETCH_ENCRYPTION_KEY";
     public static final String SIGN_WITH_DEVICE_PRIVATE_KEY = "SIGN_WITH_DEVICE_PRIVATE_KEY";

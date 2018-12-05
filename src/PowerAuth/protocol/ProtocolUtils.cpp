@@ -32,83 +32,23 @@ namespace protocol
 	// MARK: - Helpers and utilities related to PA2 -
 	//
 	
-	bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk)
+	bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk)
 	{
 		CC7_ASSERT(mk, "mk is required parametr");
-		CC7_ASSERT(!sid.empty(), "sid is required parameter");
-		CC7_ASSERT(!otp.empty(), "otp is required parameter");
-		if (sig.empty()) {
-			// Signature is optional, we can return true
+		if (code.empty() && sig.empty()) {
+			// For custom activations, there's no activation code & signature.
 			return true;
 		}
-		bool result;
+		if (!code.empty() && sig.empty()) {
+			// Code is present, but no signature. That's also valid state.
+			return true;
+		}
 		cc7::ByteArray signature;
-		result = signature.readFromBase64String(sig);
+		bool result = signature.readFromBase64String(sig);
 		if (!result || signature.empty()) {
 			return false;
 		}
-		// Prepare data for signature validation
-		std::string signed_data = sid;
-		signed_data.append(DASH);
-		signed_data.append(otp);
-		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(signed_data), signature, mk);
-	}
-	
-	
-	bool ValidateActivationDataSignature(const std::string & activationId, const std::string & cServerPublicKeyB64, const cc7::ByteRange & sig, EC_KEY * mk)
-	{
-		std::string signed_data;
-		signed_data.append(cc7::ToBase64String(cc7::MakeRange(activationId)));
-		signed_data.append(AMP);
-		signed_data.append(cServerPublicKeyB64);
-		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(signed_data), sig, mk);
-	}
-
-	
-	cc7::ByteArray ExpandOTPKey(const std::string & activationIdShort, const std::string & otp)
-	{
-		return crypto::PBKDF2_HMAC_SHA1(cc7::MakeRange(otp), cc7::MakeRange(activationIdShort), PBKDF2_OTP_EXPAND_ITERATIONS, SIGNATURE_KEY_SIZE);
-	}
-
-	
-	cc7::ByteArray EncryptDevicePublicKey(ActivationData & ad, const std::string & activationIdShort, const std::string & otp)
-	{
-		if (ad.devicePublicKeyData.empty() || (ad.activationNonce.size() != ACTIVATION_NONCE_SIZE) || (ad.activationNonce == ZERO_IV) || ad.ephemeralDeviceKey == nullptr) {
-			CC7_ASSERT(false, "The required parameter is missing.");
-			return cc7::ByteArray();
-		}
-        // Calculate and import ephemeral shared secret
-        cc7::ByteArray ephemeral_shared_secret = ReduceSharedSecret(crypto::ECDH_SharedSecret(ad.masterServerPublicKey, ad.ephemeralDeviceKey));
-        if (ephemeral_shared_secret.empty()) {
-            CC7_ASSERT(false, "Ephemeral shared key calculation failed.");
-            return cc7::ByteArray();
-        }
-		ad.expandedOtp = ExpandOTPKey(activationIdShort, otp);
-        cc7::ByteArray tmp_data = crypto::AES_CBC_Encrypt_Padding(ad.expandedOtp, ad.activationNonce, ad.devicePublicKeyData);
-        cc7::ByteArray result = crypto::AES_CBC_Encrypt_Padding(ephemeral_shared_secret, ad.activationNonce, tmp_data);
-        return result;
-	}
-
-	
-	bool DecryptServerPublicKey(ActivationData & ad, const cc7::ByteRange & ephemeral, const cc7::ByteRange & encryptedPk, const cc7::ByteRange & nonce)
-	{
-		crypto::BNContext ctx;
-		// Import ephemeral server key
-		ad.ephemeralServerKey = crypto::ECC_ImportPublicKey(nullptr, ephemeral, ctx);
-		if (!ad.ephemeralServerKey) {
-			return false;
-		}
-		// Calculate ephemeral shared secret
-		cc7::ByteArray ephemeral_shared_secret = ReduceSharedSecret(crypto::ECDH_SharedSecret(ad.ephemeralServerKey, ad.devicePrivateKey));
-		if (ephemeral_shared_secret.empty()) {
-			CC7_ASSERT(false, "Ephemeral shared key calculation failed.");
-			return false;
-		}
-		// Decrypt server's public key with double AES decryption
-		cc7::ByteArray tmp_data	= crypto::AES_CBC_Decrypt_Padding(ephemeral_shared_secret, nonce, encryptedPk);
-		ad.serverPublicKeyData	= crypto::AES_CBC_Decrypt_Padding(ad.expandedOtp, nonce, tmp_data);
-		ad.serverPublicKey		= crypto::ECC_ImportPublicKey(nullptr, ad.serverPublicKeyData, ctx);
-		return ad.serverPublicKey != nullptr;
+		return crypto::ECDSA_ValidateSignature(cc7::MakeRange(code), signature, mk);
 	}
 	
 	
@@ -171,7 +111,7 @@ namespace protocol
 	{
 		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() == SIGNATURE_KEY_SIZE) {
 			// Calculate HMAC SHA256 without cropping the result
-			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index, 0);
+			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index);
 			if (result.size() == 32) {
 				// Everything looks fine, just xor the final array.
 				for (size_t i = 0; i < 16; i++) {
@@ -410,7 +350,26 @@ namespace protocol
 	}
 
 	
-	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, cc7::U64 ctr, const cc7::ByteRange & data)
+	cc7::ByteArray SignatureCounterToData(cc7::U64 counter)
+	{
+		return _U64ToData(counter);
+	}
+	
+	
+	void CalculateNextCounterValue(PersistentData & pd)
+	{
+		if (pd.isV3()) {
+			// Move hash-based counter forward. Vault unlock is ignored in V3
+			pd.signatureCounterData = ReduceSharedSecret(crypto::SHA256(pd.signatureCounterData));
+			//
+		} else {
+			// Move old counter forward
+			pd.signatureCounter += 1;
+		}
+	}
+	
+	
+	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data)
 	{
 		// Prepare keys into one linear vector
 		std::vector<const cc7::ByteArray*> keys;
@@ -425,27 +384,26 @@ namespace protocol
 		}
 		
 		// Prepare data with counter; [ 0x0 * 8 + BigEndian(ctr) ]
-		auto counter = _U64ToData(ctr);
 		std::string result;
 		for (size_t i = 0; i < keys.size(); i++) {
 			// Outer loop, for over key in the vector.
 			const cc7::ByteArray & signature_key = *keys[i];
-			auto derived_key = crypto::HMAC_SHA256(counter, signature_key, 0);
+			auto derived_key = crypto::HMAC_SHA256(ctr_data, signature_key);
 			if (derived_key.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
 			for (size_t j = 0; j < i; j++) {
 				const cc7::ByteArray & signature_key_inner = *keys[j + 1];
-				auto derived_key_inner = crypto::HMAC_SHA256(counter, signature_key_inner, 0);
-				derived_key = crypto::HMAC_SHA256(derived_key, derived_key_inner, 0);
+				auto derived_key_inner = crypto::HMAC_SHA256(ctr_data, signature_key_inner);
+				derived_key = crypto::HMAC_SHA256(derived_key, derived_key_inner);
 				if (derived_key.size() == 0) {
 					CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 					return std::string();
 				}
 			}
 			// Calculate HMAC for given data
-			auto signature_long = crypto::HMAC_SHA256(data, derived_key, 0);
+			auto signature_long = crypto::HMAC_SHA256(data, derived_key);
 			if (signature_long.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
@@ -509,32 +467,7 @@ namespace protocol
 				return std::string();
 		}
 	}
-	
-	
-	std::string CalculateApplicationSignature(const std::string & activationIdShort,
-											  const std::string & activationNonce,
-											  const std::string & cDevicePublicKey,
-											  const std::string & applicationKey,
-											  const std::string & applicationSecret)
-	{
-		cc7::ByteArray app_secret;
-		bool b_result = app_secret.readFromBase64String(applicationSecret);
-		if (b_result == false || app_secret.empty()) {
-			return std::string();
-		}
-		
-		std::string data_for_signature;
-		data_for_signature.append(activationIdShort);
-		data_for_signature.append(AMP);
-		data_for_signature.append(activationNonce);
-		data_for_signature.append(AMP);
-		data_for_signature.append(cDevicePublicKey);
-		data_for_signature.append(AMP);
-		data_for_signature.append(applicationKey);
-		
-		auto signature = crypto::HMAC_SHA256(cc7::MakeRange(data_for_signature), app_secret, 0);
-		return cc7::ToBase64String(signature);
-	}
+
 
 	/**
 	 Convers |val| to normalized string. Zero characters are used for the indentation padding
@@ -569,7 +502,57 @@ namespace protocol
 		return _ValToNormString(dbc % 100000000);
 	}
 
-
+	std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key, const cc7::ByteRange & server_pub_key, const std::string activation_id, Version v)
+	{
+		std::string result;
+		
+		crypto::BNContext ctx;
+		
+		EC_KEY * device_public_key = nullptr;
+		EC_KEY * server_public_key = nullptr;
+		do {
+			crypto::BNContext ctx;
+			
+			// Import device's public key
+			device_public_key = crypto::ECC_ImportPublicKey(nullptr, device_pub_key, ctx);
+			auto device_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(device_public_key, ctx);
+			if (device_coord_x.empty()) {
+				break;
+			}
+			cc7::ByteArray data;
+			if (v == Version_V2) {
+				// Stiil at V2 activation
+				data.reserve(device_coord_x.size());
+				// data = device_coord_x
+				data.assign(device_coord_x);
+			} else {
+				// V3 activation
+				// Import server's public key
+				server_public_key = crypto::ECC_ImportPublicKey(nullptr, server_pub_key, ctx);
+				auto server_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(server_public_key, ctx);
+				if (server_coord_x.empty()) {
+					break;
+				}
+				// data = device_coord_x + activation_id + server_coord_x
+				data.reserve(device_coord_x.size() + activation_id.size() + server_coord_x.size());
+				data.assign(device_coord_x);
+				data.append(cc7::MakeRange(activation_id));
+				data.append(server_coord_x);
+			}
+			// Now calculate decimalized signature
+			result = protocol::CalculateDecimalizedSignature(crypto::SHA256(data));
+			if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
+				result.clear();
+			}
+			
+		} while (false);
+		
+		// Release OpenSSL objects
+		EC_KEY_free(device_public_key);
+		EC_KEY_free(server_public_key);
+		
+		return result;
+	}
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

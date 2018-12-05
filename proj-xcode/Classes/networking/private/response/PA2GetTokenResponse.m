@@ -29,16 +29,4 @@
 	return self;
 }
 
-- (NSDictionary *)toDictionary
-{
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionaryWithCapacity:3];
-	if (_tokenId) {
-		dictionary[@"tokenId"] = _tokenId;
-	}
-	if (_tokenSecret) {
-		dictionary[@"tokenSecret"] = _tokenSecret;
-	}
-	return dictionary;
-}
-
 @end

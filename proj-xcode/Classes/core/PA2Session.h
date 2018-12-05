@@ -15,7 +15,7 @@
  */
 
 #import "PA2Types.h"
-#import "PA2Encryptor.h"
+#import "PA2ProtocolUpgradeData.h"
 #import "PA2SessionStatusProvider.h"
 
 @interface PA2Session : NSObject<PA2SessionStatusProvider>
@@ -78,6 +78,16 @@
  the server has been estabilished. You can sign data in this state.
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
+/**
+ Contains YES if the session has pending upgrade to newer protocol version.
+ Some operations may be temporarily blocked during the upgrade process.
+ */
+@property (nonatomic, assign, readonly) BOOL hasPendingProtocolUpgrade;
+/**
+ Contains version of protocol in which the session currently operates. If session has no activation,
+ then the most up to date version is returned.
+ */
+@property (nonatomic, assign, readonly) PA2ProtocolVersion protocolVersion;
 
 
 #pragma mark - Serialization
@@ -221,11 +231,6 @@
  
  The result returned string contains a full value for X-PowerAuth-Authorization header.
  
- If you're going to sign request for a vault key retrieving, then you have to specifiy signature
- factor combined with 'PA2SignatureFactor_PrepareForVaultUnlock' flag. Otherwise the subsequent vault unlock
- operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
- not be able to complete the operation.
- 
  WARNING
  
  You have to save session's state after the successful operation, due to internal counter change.
@@ -298,24 +303,11 @@
  new biometryUnlockKey, which will be used for a protection of the newly created biometry signature key. 
  You should always save session's state after this operation, whether it ends with error or not.
  
- Discussion
- 
- The adding a new key for biometry factor is a quite complex task. At first, you need to ask server
- for a vault key and sign this HTTP request with using PA2SignatureFactor_PrepareForVaultUnlock flag 
- in combination with other required factors. The flag guarantees that the internal counter will be correctly raised
- and next subsequent operation for vault key decryption will finish correctly.
- 
- If you don't receive response from the server then it's OK to leave the session as is. The session's
- counter is probably at the same value as server's or slightly ahead and therefore everything should
- later work correctly. The session then only display a warning to the debug console about the previous
- pending vault unlock operation.
- 
  Returns YES if operation succeeds or NO in case of failure. The lastErrorCode is updated
  to following values:
 	 EC_Ok,         if operation succeeded
 	 EC_Encryption, if general encryption error occurs
-	 EC_WrongState, if the session has no valid activation or
-					if you did not sign previous HTTP request with PA2SignatureFactor_PrepareForVaultUnlock flag
+	 EC_WrongState, if the session has no valid activation
 	 EC_WrongParam, if some required parameter is missing
  */
 - (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
@@ -353,15 +345,11 @@
  or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
  course, keep the key in the volatile memory, if the application needs use the key for a longer period.
  
- Note that just like the "addBiometryFactor", you have to properly sign HTTP request with using
- PA2SignatureFactor_PrepareForVaultUnlock flag, otherwise the operation will fail.
- 
  Retuns NSData object with a derived cryptographic key or nil in case of failure. The lastErrorCode is 
  updated to the following values:
 	EC_Ok,			if operation succeeded
 	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation or
-					if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
  */
 - (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
@@ -374,15 +362,13 @@
  Discussion
  
  The session's state contains device private key but it is encrypted with vault key, which is normally not
- available on the device. Just like other vault related operations, you have to properly sign HTTP request
- with using PA2SignatureFactor_PrepareForVaultUnlock flag, otherwise the operation will fail.
+ available on the device.
  
  Retuns NSData object with calculated signature or nil in case of failure. The lastErrorCode is
  updated to the following values:
 	EC_Ok,			if operation succeeded
 	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation or
-					if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
  */
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
@@ -445,50 +431,16 @@
  */
 - (BOOL) removeExternalEncryptionKey;
 
-#pragma mark - E2EE
+#pragma mark - ECIES
 
 /**
- Creates a new instace of PA2Encryptor class initialized for nonpersonalized End-To-End Encryption.
- The nonpersonalized mode of E2EE is available after the correct PA2Session object initialization,
- so you can basically use the method anytime during the object's lifetime. The |sessionIndex|
- object must contain a 16 bytes long sequence of bytes. If your application doesn't have mechanism
- for session index creation, then you can use +generateSignatureUnlockKey method for this purpose.
- 
- Note that the method doesn't change persistent state of the PA2Session, so you don't need to
- serialize its state after the call.
- 
- Returns an PA2Encryptor object if succeeded or nil in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok		  if operation succeeded. The returned pointer is valid.
-	EC_WrongState if session has no valid setup.
-	EC_WrongParam if session_index has wrong size, or
-				  if session_index is filled with zeros, or
-	EC_Encryption if internal cryptographic operation failed.
+ Constructs the `PA2ECIESEncryptor` object for the required `scope` and for optional `sharedInfo1`.
+ The `keys` parameter must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
+ For "application" scope, the `keys` object may be nil.
  */
-- (nullable PA2Encryptor*) nonpersonalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex;
-
-/**
- Creates a new instace of PA2Encryptor class initialized for personalized End-To-End Encryption.
- The personalized mode of E2EE is available only when the session contains valid activation.
- The |sessionIndex| object must contain a 16 bytes long sequence of bytes. If your application doesn't
- have mechanism for session index creation, then you can use +generateSignatureUnlockKey method for
- this purpose.
- The provided |unlockKeys| object must contain valid unlock key for a possession factor.
- 
- Note that the method doesn't change persistent state of the PA2Session, so you don't need to
- serialize its state after the call.
- 
- Returns an PA2Encryptor object if succeeded or nil in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok			if operation succeeded.
-	EC_WrongState	if session has no valid activation.
-	EC_WrongParam	if session_index has wrong size, or
-					if session_index is filled with zeros, or
-					if possession unlock key is missing.
-	EC_Encryption	if internal cryptographic operation failed.
- */
-- (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
+- (nullable PA2ECIESEncryptor*) eciesEncryptorForScope:(PA2ECIESEncryptorScope)scope
+												  keys:(nullable PA2SignatureUnlockKeys*)unlockKeys
+										   sharedInfo1:(nullable NSData*)sharedInfo1;
 
 #pragma mark - Utilities for generic keys
 
@@ -518,5 +470,45 @@
  for all other situations, when the generated random key is required.
  */
 + (nonnull NSData*) generateSignatureUnlockKey;
+
+
+#pragma mark - Protocol upgrade
+
+/**
+ Formally starts the protocol upgrade to a newer version. The function only sets flag
+ indicating that upgrade is in progress. You should serialize an activation status
+ after this call.
+ 
+ Returns YES if upgrade has been started.
+ */
+- (BOOL) startProtocolUpgrade;
+
+/**
+ Determines which version of the protocol is the session being upgraded to.
+ 
+ Retuns protocol version or `PA2ProtocolVersion_NA` if there's no upgrade, or session
+ has no activation.
+ */
+@property (nonatomic, assign, readonly) PA2ProtocolVersion pendingProtocolUpgradeVersion;
+
+/**
+ Applies upgrade data to the session. The version of data is determined by the
+ object you provide. Currently, only `PA2ProtocolUpgradeDataV3` is supported.
+ 
+ Returns YES if session has been successfully upgraded.
+ */
+- (BOOL) applyProtocolUpgradeData:(nonnull id<PA2ProtocolUpgradeData>)upgradeData;
+
+
+/**
+ Formally ends the protocol upgrade. The function resets flag indicating that upgrade
+ to the next protocol version is in progress. The reset is possible only if the upgrade
+ was successful (e.g. when migrating to V3, the protocol version is now V3)
+ 
+ You should serialize an activation status ater this call.
+ 
+ Returns YES if upgrade has been finished successfully.
+ */
+- (BOOL) finishProtocolUpgrade;
 
 @end

@@ -72,3 +72,30 @@
 #endif
 
 @end
+
+
+@implementation PowerAuthAuthentication (EasyAccessors)
+
++ (PowerAuthAuthentication*) possession
+{
+	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
+	auth.usePossession = YES;
+	return auth;
+}
+
++ (PowerAuthAuthentication*) possessionWithBiometry
+{
+	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
+	auth.usePossession = YES;
+	auth.useBiometry = YES;
+	return auth;
+}
+
++ (PowerAuthAuthentication*) possessionWithPassword:(NSString *)password
+{
+	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
+	auth.usePossession = YES;
+	auth.usePassword = password;
+	return auth;
+}
+@end

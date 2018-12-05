@@ -151,18 +151,16 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 {
 	if (!name || !completion) {
 		if (completion) {
-			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
+			completion(nil, PA2MakeError(PA2ErrorCodeWrongParameter, @"Missing required parameter."));
 		}
 		return nil;
 	}
 	if (!authentication && [_remoteTokenProvider authenticationIsRequired]) {
-		if (completion) {
-			completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
-		}
+		completion(nil, PA2MakeError(PA2ErrorCodeWrongParameter, @"Authentication object is missing."));
 		return nil;
 	}
 	if (!_statusProvider.hasValidActivation) {
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
+		completion(nil, PA2MakeError(PA2ErrorCodeMissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
 	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
@@ -175,8 +173,8 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PA2Log(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
-		completion(nil, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
+		// Looks like parent SDK object is already destroyed.
+		completion(nil, PA2MakeError(PA2ErrorCodeInvalidToken, @"Object is no longer operational."));
 		return nil;
 	}
 	
@@ -200,24 +198,24 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 {
 	if (!name || !completion) {
 		if (completion) {
-			completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeWrongParameter userInfo:nil]);
+			completion(NO, PA2MakeError(PA2ErrorCodeWrongParameter, @"Missing required parameter."));
 		}
 		return nil;
 	}
 	if (!_statusProvider.hasValidActivation) {
-		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeMissingActivation userInfo:nil]);
+		completion(NO, PA2MakeError(PA2ErrorCodeMissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
 	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
 	if (!tokenData) {
-		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
+		completion(NO, PA2MakeError(PA2ErrorCodeInvalidToken, @"Token not found."));
 		return nil;
 	}
-	
+
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
-		PA2Log(@"KeychainTokenStore: ERROR: The store has no remote token provider. Returning invalid token error.");
-		completion(NO, [NSError errorWithDomain:PA2ErrorDomain code:PA2ErrorCodeInvalidToken userInfo:nil]);
+		// Looks like parent SDK object is already destroyed.
+		completion(NO, PA2MakeError(PA2ErrorCodeInvalidToken, @"Object is no longer operational."));
 		return nil;
 	}
 	

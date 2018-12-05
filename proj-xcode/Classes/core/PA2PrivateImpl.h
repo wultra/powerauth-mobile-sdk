@@ -16,32 +16,26 @@
 
 #include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
-#include <PowerAuth/Encryptor.h>
 #include <PowerAuth/ECIES.h>
 
 #include <cc7/objc/ObjcHelper.h>
 
 #import "PA2PrivateMacros.h"
 #import "PA2Types.h"
+#import "PA2ProtocolUpgradeData.h"
 #import "PA2Password.h"
-#import "PA2Encryptor.h"
 #import "PA2ECIESEncryptor.h"
 #import "PA2CoreLog.h"
 
 /*
  This header contains various private interfaces, internally used
- in the PA2's Objective-C wrappper.
+ in the PA2's Objective-C wrappper. This header contains C++ types,
+ so it's not available for Objective-C or Swift codes.
  */
 
 @interface PA2Password (Private)
 - (io::getlime::powerAuth::Password &) passObjRef;
 @end
-
-
-@interface PA2Encryptor (Private)
-- (id) initWithEncryptorPtr:(io::getlime::powerAuth::Encryptor*)encryptor;
-@end
-
 
 @interface PA2HTTPRequestDataSignature (Private)
 - (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;
@@ -55,10 +49,13 @@
 - (io::getlime::powerAuth::ECIESCryptogram &) cryptogramRef;
 @end
 
-
 @interface PA2ECIESEncryptor (Private)
 - (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef;
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
+@end
+
+@protocol PA2ProtocolUpgradeDataPrivate <PA2ProtocolUpgradeData>
+- (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref;
 @end
 
 /**
@@ -101,16 +98,6 @@ CC7_EXTERN_C void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, 
  Returns new instance of PA2ActivationStep2Result object, with content copied from ActivationStep2Result C++ structure.
  */
 CC7_EXTERN_C PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
-
-/**
- Converts PA2EncryptedMessage object into EncryptedMessage C++ structure.
- */
-CC7_EXTERN_C void PA2EncryptedMessageToStruct(PA2EncryptedMessage * msg, io::getlime::powerAuth::EncryptedMessage& cpp_msg);
-/**
- Returns new instance of PA2EncryptedMessage object, with content copied from EncryptedMessage C++ structure.
- */
-CC7_EXTERN_C PA2EncryptedMessage * PA2EncryptedMessageToObject(const io::getlime::powerAuth::EncryptedMessage& cpp_msg);
-
 
 #pragma mark - Debug functions
 

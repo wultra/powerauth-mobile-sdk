@@ -21,10 +21,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import io.getlime.security.powerauth.keychain.PA2Keychain;
-import io.getlime.security.powerauth.networking.response.ISavePowerAuthStateListener;
 
 /**
- * Default implementation of PowerAuth 2.0 state listener.
+ * Default implementation of PowerAuth state listener.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -39,12 +38,12 @@ public class DefaultSavePowerAuthStateListener implements ISavePowerAuthStateLis
     }
 
     @Override
-    public byte[] serializedState(String instanceId) {
+    public @Nullable byte[] serializedState(@NonNull String instanceId) {
         return keychain.dataForKey(context, instanceId);
     }
 
     @Override
-    public void onPowerAuthStateChanged(@Nullable String instanceId, byte[] serializedState) {
+    public void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState) {
         keychain.putDataForKey(context, serializedState, instanceId);
     }
 

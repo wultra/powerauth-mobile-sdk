@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017 Lime - HighTech Solutions s.r.o.
+# Copyright 2018 Wultra s.r.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ LOCAL_SRC_FILES := \
 	PowerAuth/Session.cpp \
 	PowerAuth/PublicTypes.cpp \
 	PowerAuth/Password.cpp \
-	PowerAuth/Encryptor.cpp \
 	PowerAuth/Debug.cpp \
 	PowerAuth/OtpUtil.cpp \
 	PowerAuth/ECIES.cpp \
@@ -57,7 +56,8 @@ LOCAL_SRC_FILES := \
 	PowerAuth/protocol/ProtocolUtils.cpp \
 	PowerAuth/utils/DataReader.cpp \
 	PowerAuth/utils/DataWriter.cpp \
-	PowerAuth/utils/URLEncoding.cpp
+	PowerAuth/utils/URLEncoding.cpp \
+	PowerAuth/utils/CRC16.cpp
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -86,8 +86,6 @@ LOCAL_C_INCLUDES := \
 # Multiplatform sources
 LOCAL_SRC_FILES := \
 	PowerAuthTests/PowerAuthTestsList.cpp \
-	PowerAuthTests/pa2ActivationOTPExpandingTests.cpp \
-	PowerAuthTests/pa2ActivationSignatureValidationTest.cpp \
 	PowerAuthTests/pa2CryptoAESTests.cpp \
 	PowerAuthTests/pa2CryptoHMACTests.cpp \
 	PowerAuthTests/pa2CryptoPKCS7PaddingTests.cpp \
@@ -96,8 +94,6 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \
 	PowerAuthTests/pa2PasswordTests.cpp \
 	PowerAuthTests/pa2ProtocolUtilsTests.cpp \
-	PowerAuthTests/pa2ServerPublicKeyDecryption.cpp \
-	PowerAuthTests/pa2ServerPublicKeyVerification.cpp \
 	PowerAuthTests/pa2SessionTests.cpp \
 	PowerAuthTests/pa2SignatureCalculationTests.cpp \
 	PowerAuthTests/pa2SignatureKeysDerivationTest.cpp \
@@ -105,6 +101,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2URLEncodingTests.cpp \
 	PowerAuthTests/pa2OtpUtilTests.cpp \
 	PowerAuthTests/pa2ECIESTests.cpp \
+	PowerAuthTests/pa2CRC16Tests.cpp \
 	PowerAuthTests/TestData/pa2.generated/g_pa2Files.cpp
 
 include $(BUILD_STATIC_LIBRARY)
@@ -140,11 +137,11 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
 	PowerAuth/jni/SessionJNI.cpp \
 	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/EncryptorJNI.cpp \
 	PowerAuth/jni/OtpUtilJNI.cpp \
 	PowerAuth/jni/ECIESEncryptorJNI.cpp \
 	PowerAuth/jni/TokenCalculatorJNI.cpp \
-	PowerAuth/jni/CryptoUtilsJNI.cpp
+	PowerAuth/jni/CryptoUtilsJNI.cpp \
+	PowerAuth/jni/ProtocolVersionJNI.cpp
 
 include $(BUILD_SHARED_LIBRARY)
 

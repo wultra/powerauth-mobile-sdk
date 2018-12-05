@@ -46,6 +46,9 @@ public class ErrorResponseApiException extends Exception {
      * Constructs a new exception with error received from server.
      *
      * @param errorResponse error received from server
+     * @param responseBody string with a HTTP response body. May be null if it's not available
+     * @param responseJson {@link JsonObject} with JSON root, received from the server. May be null if response
+     *                                        is not in JSON format.
      */
     public ErrorResponseApiException(Error errorResponse, String responseBody, JsonObject responseJson) {
         this.errorResponse = errorResponse;

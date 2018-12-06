@@ -1604,24 +1604,21 @@ public class PowerAuthSDK {
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
      * The returned encryptor is cryptographically bounded to the PowerAuth configuration, so it can be used
-     * with or without the valid activation.
+     * with or without a valid activation.
      *
-     * @return New instance of {@link EciesEncryptor} object or {@code null} if {@link PowerAuthConfiguration}
-     *         contains an invalid data.
+     * @return New instance of {@link EciesEncryptor} object.
+     * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration.
+     *         You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
+     *         detailed information about the failure.
      */
-    public @Nullable EciesEncryptor getEciesEncryptorForApplicationScope() {
-        try {
-            final IPrivateCryptoHelper helper = getCryptoHelper(null);
-            return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_APPLICATION_SCOPE);
-        } catch (PowerAuthErrorException e) {
-            PA2Log.e("Failed to create application scoped ECIES encryptor: " + e.getMessage());
-            return null;
-        }
+    public @Nullable EciesEncryptor getEciesEncryptorForApplicationScope() throws PowerAuthErrorException {
+        final IPrivateCryptoHelper helper = getCryptoHelper(null);
+        return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_APPLICATION_SCOPE);
     }
 
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
-     * The returned encryptor is cryptographically bounded to the device's activation, so it can be used only
+     * The returned encryptor is cryptographically bounded to a device's activation, so it can be used only
      * when this instance has a valid activation.
      * <p>
      * Note that the created encryptor has no reference to this instance of {@link PowerAuthSDK}. This means
@@ -1630,15 +1627,13 @@ public class PowerAuthSDK {
      * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
      *
      * @param context Android {@link Context} object
-     * @return New instance of {@link EciesEncryptor} object or {@code null} if there's no valid activation.
+     * @return New instance of {@link EciesEncryptor} object.
+     * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration or there's
+     *         no activation. You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
+     *         detailed information about the failure.
      */
-    public @Nullable EciesEncryptor getEciesEncryptorForActivationScope(@NonNull final Context context) {
-        try {
-            final IPrivateCryptoHelper helper = getCryptoHelper(context);
-            return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);
-        } catch (PowerAuthErrorException e) {
-            PA2Log.e("Failed to create activation scoped ECIES encryptor: " + e.getMessage());
-            return null;
-        }
+    public @Nullable EciesEncryptor getEciesEncryptorForActivationScope(@NonNull final Context context) throws PowerAuthErrorException {
+        final IPrivateCryptoHelper helper = getCryptoHelper(context);
+        return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);
     }
 }

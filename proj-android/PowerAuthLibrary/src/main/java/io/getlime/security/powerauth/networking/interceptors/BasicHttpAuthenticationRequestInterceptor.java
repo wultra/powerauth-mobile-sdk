@@ -48,6 +48,6 @@ public class BasicHttpAuthenticationRequestInterceptor extends CustomHeaderReque
      */
     private static @NonNull String buildHeaderValue(@NonNull String username, @NonNull String password) {
         final byte[] payload = (username + ":" + password).getBytes(Charset.defaultCharset());
-        return "Basic " + Base64.encodeToString(payload, Base64.NO_PADDING);
+        return "Basic " + Base64.encodeToString(payload, Base64.NO_WRAP);
     }
 }

@@ -24,7 +24,7 @@ import java.net.HttpURLConnection;
  * The {@code HttpRequestInterceptor} defines interface for modifying HTTP requests
  * before their execution.
  * <p>
- * <b>WARNING:</b> This protocol allows you to tweak the requests created in the PowerAuthSDK, but
+ * <b>WARNING:</b> This interface allows you to tweak the requests created in the PowerAuthSDK, but
  * also gives you an opportunity to break the things. So, rather than create your own interceptor,
  * try to contact us and describe what's your problem with the networking in the PowerAuth SDK.
  * <p>

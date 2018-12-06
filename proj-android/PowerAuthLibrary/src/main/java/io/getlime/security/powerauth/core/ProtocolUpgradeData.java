@@ -32,10 +32,10 @@ public class ProtocolUpgradeData {
     public final String v3CtrData;
 
     /**
-     * Constructs data for migration to V3 protocol.
+     * Constructs data for upgrade to V3 protocol.
      *
      * @param ctrData initial value for hash-based counter. Base64 string is expected.
-     * @return migration data constructed for migration to V3 protocol version
+     * @return data constructed for upgrade to V3 protocol version
      */
     public static @NonNull ProtocolUpgradeData version3(@NonNull String ctrData) {
         return new ProtocolUpgradeData(ProtocolVersion.V3, ctrData);
@@ -44,7 +44,7 @@ public class ProtocolUpgradeData {
     /**
      * Private constructor
      *
-     * @param toVersion specifies version of data for migration
+     * @param toVersion specifies version of data for upgrade
      * @param v3CtrData initial value for hash-based counter
      */
     private ProtocolUpgradeData(ProtocolVersion toVersion, @Nullable String v3CtrData) {

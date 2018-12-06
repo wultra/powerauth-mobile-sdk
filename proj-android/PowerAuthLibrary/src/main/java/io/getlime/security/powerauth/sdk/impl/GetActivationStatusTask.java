@@ -124,7 +124,7 @@ public class GetActivationStatusTask implements ICancelable {
         }
         isStarted = true;
         lastFetchedStatus = null;
-        migrationAttempts = 3;
+        protocolUpgradeAttempts = 3;
         fetchActivationStatusAndTestUpgrade();
     }
 
@@ -227,7 +227,7 @@ public class GetActivationStatusTask implements ICancelable {
      * Contains number of attempts available for the upgrade. The upgrade procedure is will try
      * to finish the job in case that some partial operation fails.
      */
-    private int migrationAttempts;
+    private int protocolUpgradeAttempts;
 
 
     /**
@@ -243,7 +243,7 @@ public class GetActivationStatusTask implements ICancelable {
         lastFetchedStatus = status;
 
         // Check whether we reached maximum attempts for upgrade
-        if (migrationAttempts-- > 0) {
+        if (protocolUpgradeAttempts-- > 0) {
             // Simply continue to V3 upgrade
             continueWithUpgradeToV3(status);
         } else {
@@ -269,12 +269,12 @@ public class GetActivationStatusTask implements ICancelable {
         if (serverVersion == ProtocolVersion.V2) {
 
             // Server is still on V2 version, so we need to determine how to continue.
-            // At first, we should check whether the migration was started, because this
-            // continue method must handle all possible migration states.
+            // At first, we should check whether the upgrade was started, because this
+            // continue method must handle all possible upgrade states.
 
             if (session.getPendingProtocolUpgradeVersion() == ProtocolVersion.NA) {
                 // Upgrade has not been started yet
-                PA2Log.d("ProtocolUpgrade: Starting activation migration to protocol V3");
+                PA2Log.d("ProtocolUpgrade: Starting activation upgrade to protocol V3");
                 if (session.startProtocolUpgrade() != ErrorCode.OK) {
                     completeTaskWithUpgradeError("Protocol upgrade start failed.");
                     return;
@@ -284,7 +284,7 @@ public class GetActivationStatusTask implements ICancelable {
 
             // Now lets test the current local protocol version
             if (localVersion == ProtocolVersion.V2) {
-                // Looks like we didn't start migration on the server, or the request
+                // Looks like we didn't start upgrade on the server, or the request
                 // didn't finish. In other words, we still don't have the CTR_DATA locally.
                 startUpgradeToV3();
                 return;
@@ -297,8 +297,8 @@ public class GetActivationStatusTask implements ICancelable {
             }
 
             // Current local version is unknown. This should never happen, unless there's
-            // a new protocol version and migration routine is not updated.
-            // This branch will report "Internal migration error"
+            // a new protocol version and upgrade routine is not updated.
+            // This branch will report "Internal upgrade error"
 
         } else if (serverVersion == ProtocolVersion.V3) {
 
@@ -321,7 +321,7 @@ public class GetActivationStatusTask implements ICancelable {
                     return;
 
                 } else if (pendingUpgradeVersion == ProtocolVersion.NA) {
-                    // Server's in V3, client's in V3, no pending migration.
+                    // Server's in V3, client's in V3, no pending upgrade.
                     // This is weird, but we can just report the result.
                     completeTask(lastFetchedStatus, null);
                     return;
@@ -329,8 +329,8 @@ public class GetActivationStatusTask implements ICancelable {
             }
 
             // Current local version is unknown. This should never happen, unless there's
-            // a new protocol version and migration routine is not updated.
-            // This branch will also report "Internal migration error"
+            // a new protocol version and upgrade routine is not updated.
+            // This branch will also report "Internal upgrade error"
 
         } else {
 
@@ -345,7 +345,7 @@ public class GetActivationStatusTask implements ICancelable {
 
 
     /**
-     * Starts migration to V3 on the server.
+     * Starts upgrade to V3 on the server.
      */
     private void startUpgradeToV3() {
         pendingOperation = httpClient.post(
@@ -386,7 +386,7 @@ public class GetActivationStatusTask implements ICancelable {
     }
 
     /**
-     * Commits migration to V3 on the server.
+     * Commits upgrade to V3 on the server.
      */
     private void commitUpgradeToV3() {
         // Prepare auth object with possession factor.
@@ -422,12 +422,12 @@ public class GetActivationStatusTask implements ICancelable {
     }
 
     /**
-     * Completes the whole migration process locally.
+     * Completes the whole upgrade process locally.
      */
     private void finishUpgradeToV3() {
         // Try to complete the process
         if (session.finishProtocolUpgrade() == ErrorCode.OK) {
-            PA2Log.d("ProtocolUpgrade: Activation was successfully migrated to protocol V3.");
+            PA2Log.d("ProtocolUpgrade: Activation was successfully upgraded to protocol V3.");
             // Everything looks fine, we can report previously cached status
             serializeSessionState();
             completeTask(lastFetchedStatus, null);

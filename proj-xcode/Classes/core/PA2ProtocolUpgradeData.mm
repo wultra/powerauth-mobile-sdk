@@ -26,7 +26,7 @@
 
 @implementation PA2ProtocolUpgradeDataV3 (Private)
 
-- (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref
+- (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref
 {
 	ref.toV3.ctrData = cc7::objc::CopyFromNSString(_ctrData);
 }

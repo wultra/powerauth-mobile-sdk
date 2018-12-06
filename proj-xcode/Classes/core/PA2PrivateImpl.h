@@ -55,7 +55,7 @@
 @end
 
 @protocol PA2ProtocolUpgradeDataPrivate <PA2ProtocolUpgradeData>
-- (void) setupStructure:(io::getlime::powerAuth::MigrationData &)ref;
+- (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;
 @end
 
 /**

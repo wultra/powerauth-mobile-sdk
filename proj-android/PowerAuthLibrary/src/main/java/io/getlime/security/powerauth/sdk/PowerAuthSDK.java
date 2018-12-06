@@ -1604,9 +1604,10 @@ public class PowerAuthSDK {
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
      * The returned encryptor is cryptographically bounded to the PowerAuth configuration, so it can be used
-     * with or without a valid activation.
+     * with or without a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
      *
-     * @return New instance of {@link EciesEncryptor} object.
+     * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration.
      *         You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.
@@ -1619,7 +1620,8 @@ public class PowerAuthSDK {
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
      * The returned encryptor is cryptographically bounded to a device's activation, so it can be used only
-     * when this instance has a valid activation.
+     * when this instance has a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
      * <p>
      * Note that the created encryptor has no reference to this instance of {@link PowerAuthSDK}. This means
      * that if the instance will loose its activation in the future, then the encryptor will still be capable
@@ -1627,7 +1629,7 @@ public class PowerAuthSDK {
      * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
      *
      * @param context Android {@link Context} object
-     * @return New instance of {@link EciesEncryptor} object.
+     * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration or there's
      *         no activation. You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.

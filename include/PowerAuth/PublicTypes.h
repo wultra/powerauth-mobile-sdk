@@ -516,7 +516,7 @@ namespace powerAuth
 		 */
 		cc7::byte currentVersion;
 		/**
-		 If different than `currentVersion`, then activation migration is available.
+		 If greater than `currentVersion`, then activation upgrade is available.
 		 */
 		cc7::byte upgradeVersion;
 		
@@ -533,9 +533,9 @@ namespace powerAuth
 		}
 		
 		/**
-		 Returns true if migration to a new activation data is possible.
+		 Returns true if upgrade to a new activation data is possible.
 		 */
-		bool isMigrationAvailable() const;
+		bool isProtocolUpgradeAvailable() const;
 	};
 	
 	
@@ -565,10 +565,10 @@ namespace powerAuth
 	
 	
 	//
-	// MARK: - Migration -
+	// MARK: - Protocol upgrade -
 	//
 	
-	struct MigrationData
+	struct ProtocolUpgradeData
 	{
 		struct V3
 		{

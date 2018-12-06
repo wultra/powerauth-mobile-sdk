@@ -107,7 +107,7 @@ namespace powerAuth
 	// MARK: - ActivationStatus -
 	//
 	
-	bool ActivationStatus::isMigrationAvailable() const
+	bool ActivationStatus::isProtocolUpgradeAvailable() const
 	{
 		if (currentVersion < upgradeVersion) {
 			return upgradeVersion <= MaxSupported;

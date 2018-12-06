@@ -51,7 +51,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testActivationWithEEKUsingSetter);
 			CC7_REGISTER_TEST_METHOD(testServerSignedData);
 			CC7_REGISTER_TEST_METHOD(testOldDataMigration);
-			CC7_REGISTER_TEST_METHOD(testPersistentDataMigrationToV3);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeToV3);
 		}
 		
 		EC_KEY *	_masterServerPrivateKey;
@@ -1032,7 +1032,7 @@ namespace powerAuthTests
 			}
 		}
 		
-		void testPersistentDataMigrationToV3()
+		void testPersistentDataUpgradeToV3()
 		{
 			// constants
 			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
@@ -1059,25 +1059,25 @@ namespace powerAuthTests
 			ccstAssertFalse(s1.hasPendingActivation());
 			ccstAssertFalse(s1.hasExternalEncryptionKey());
 			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
-			ccstAssertEqual(Version_NA, s1.pendingActivationMigrationVersion());
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
 
-			ec = s1.startMigration();
+			ec = s1.startProtocolUpgrade();
 			ccstAssertEqual(ec, EC_Ok);
-			ccstAssertEqual(Version_V3, s1.pendingActivationMigrationVersion());
+			ccstAssertEqual(Version_V3, s1.pendingProtocolUpgradeVersion());
 			
-			// Apply migration data
-			MigrationData migration_data;
-			migration_data.toV3.ctrData = crypto::GetRandomData(16).base64String();
-			ec = s1.applyMigrationData(migration_data);
+			// Apply protocol upgrade data
+			ProtocolUpgradeData upgrade_data;
+			upgrade_data.toV3.ctrData = crypto::GetRandomData(16).base64String();
+			ec = s1.applyProtocolUpgradeData(upgrade_data);
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
-			ccstAssertEqual(Version_V3, s1.pendingActivationMigrationVersion());
+			ccstAssertEqual(Version_V3, s1.pendingProtocolUpgradeVersion());
 			
-			// Now finish the migration
-			ec = s1.finishMigration();
+			// Now finish the upgrade
+			ec = s1.finishProtocolUpgrade();
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
-			ccstAssertEqual(Version_NA, s1.pendingActivationMigrationVersion());
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
 			
 			// Try to save, reset & reload data
 			cc7::ByteArray v3_data = s1.saveSessionState();

@@ -503,7 +503,7 @@
 /**
  Formally ends the protocol upgrade. The function resets flag indicating that upgrade
  to the next protocol version is in progress. The reset is possible only if the upgrade
- was successful (e.g. when migrating to V3, the protocol version is now V3)
+ was successful (e.g. when upgrading to V3, the protocol version is now V3)
  
  You should serialize an activation status ater this call.
  

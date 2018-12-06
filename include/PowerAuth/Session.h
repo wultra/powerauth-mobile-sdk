@@ -115,9 +115,9 @@ namespace powerAuth
 		bool hasValidActivation() const;
 		
 		/**
-		 Returns true if the session has a pending protocol migration to a newer version.
+		 Returns true if the session has a pending protocol upgrade to a newer version.
 		 */
-		bool hasPendingActivationMigration() const;
+		bool hasPendingProtocolUpgrade() const;
 		
 		/**
 		 Returns version of protocol in which the session currently operates. The version is determined by the
@@ -507,63 +507,63 @@ namespace powerAuth
 		
 	public:
 		
-		// MARK: - Protocol migration -
+		// MARK: - Protocol upgrade -
 
 		
 		/**
-		 Formally starts the protocol migration to a newer version. The function only sets flag
-		 indicating that migration to the next protocol version is in progress. You should serialize
-		 an activation status after this call. The version to which the migration has been started can be
-		 determined by calling `pendingActivationMigrationVersion()`.
+		 Formally starts the protocol upgrade to a newer version. The function only sets flag
+		 indicating that upgrade to the next protocol version is in progress. You should serialize
+		 an activation status after this call. The version to which the upgrade has been started can be
+		 determined by calling `pendingActivationUpgradeVersion()`.
 		 
-		 Note that some tasks provided by the session may be temporarily disabled durng
-		 the migration.
+		 Note that some tasks provided by the session may be temporarily disabled during
+		 the protocol upgrade.
 		 
 		 Returns EC_Ok			if operation succeeded.
 		 		 EC_WrongState	if called in wrong session state
 		 */
-		ErrorCode startMigration();
+		ErrorCode startProtocolUpgrade();
 		
 		/**
-		 Determines which version of the protocol is the session being migrated to.
+		 Determines which version of the protocol is the session being upgraded to.
 		 
 		 Returns Version_NA		if there's no valid activation, or
-		 						if there's no pending migration
-		 		 Version_Vx		if there's pending migration to protocol version.
+		 						if there's no pending protocol ugprade
+		 		 Version_Vx		if there's pending upgrade to protocol version.
 		 */
-		Version pendingActivationMigrationVersion() const;
+		Version pendingProtocolUpgradeVersion() const;
 		
 		/**
-		 Applies |migration_data| to the session. The |migration_data| structure must contain
-		 all required information for migration _from_ current state to a new one. For example,
-		 if session is in V2 protocol version, then the structure must contain data for migration
+		 Applies |upgrade_data| to the session. The |upgrade_data| structure must contain
+		 all required information for upgrade _from_ current state to a new one. For example,
+		 if session is in V2 protocol version, then the structure must contain data for upgrade
 		 from V2 to V3 (typically named as `toV3`).
 		 
-		 Note that this method doesn't clear pending migration status. You need to call |finishMigration|
-		 to clear that pending flag, or repeat migration data applying, if session needs to be migrated
+		 Note that this method doesn't clear pending upgrade status. You need to call |finishProtocolUpgrade|
+		 to clear that pending flag, or repeat upgrade data applying, if session needs to be upgraded
 		 over the various versions.
 		 
 		 Returns EC_Ok			if operation succeeded and session has been successfully
-		 						migrated to new protocol version.
-		 		 EC_WrongState	if migration is not required, or
-		 						if migration to appropriate version was not started, or
+		 						upgraded to new protocol version.
+		 		 EC_WrongState	if upgrade is not required, or
+		 						if upgrade to appropriate version was not started, or
 		 						if session has no valid activation.
-		 		 EC_WrongParam	if migration data contains invalid data.
+		 		 EC_WrongParam	if upgrade data contains invalid data.
 		 */
-		ErrorCode applyMigrationData(const MigrationData & migration_data);
+		ErrorCode applyProtocolUpgradeData(const ProtocolUpgradeData & upgrade_data);
 
 		/**
-		 Formally ends the protocol migration. The function resets flag indicating that migration
-		 to the next protocol version is in progress. The reset is possible only if the migration
-		 was successful (e.g. when migrating to V3, the protocol version is now V3)
+		 Formally ends the protocol upgrade procedure. The function resets flag indicating that ugprade
+		 to the next protocol version is in progress. The reset is possible only if the upgrade
+		 was successful (e.g. when upgrading to V3, the protocol version is now V3)
 		 
 		 You should serialize an activation status ater this call.
 		 
 		 Returns EC_Ok			if operation succeeded.
 		 		 EC_WrongState	if called in wrong session state, or
-		 						if migration was not completed properly.
+		 						if upgrade was not completed properly.
 		 */
-		ErrorCode finishMigration();
+		ErrorCode finishProtocolUpgrade();
 		
 	public:
 		

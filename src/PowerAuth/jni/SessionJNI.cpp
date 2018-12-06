@@ -360,7 +360,7 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
-		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isMigrationAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isProtocolUpgradeAvailable());
 	}
 	return resultObject;
 }
@@ -719,7 +719,7 @@ CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
 
 
 // ----------------------------------------------------------------------------
-// Protocol migration
+// Protocol upgrade
 // ----------------------------------------------------------------------------
 
 //
@@ -732,7 +732,7 @@ CC7_JNI_METHOD(jboolean, hasPendingProtocolUpgrade)
 		CC7_ASSERT(false, "Missing internal handle.");
 		return false;
 	}
-	return (jboolean) session->hasPendingActivationMigration();
+	return (jboolean) session->hasPendingProtocolUpgrade();
 }
 
 //
@@ -743,7 +743,7 @@ CC7_JNI_METHOD(jobject, getPendingProtocolUpgradeVersion)
 	auto session = CC7_THIS_OBJ();
 	Version v;
 	if (session) {
-		v = session->pendingActivationMigrationVersion();
+		v = session->pendingProtocolUpgradeVersion();
 	} else {
 		v = Version_NA;
 	}
@@ -760,7 +760,7 @@ CC7_JNI_METHOD(jint, startProtocolUpgrade)
 		CC7_ASSERT(false, "Missing internal handle.");
 		return EC_WrongParam;
 	}
-	return (jint) session->startMigration();
+	return (jint) session->startProtocolUpgrade();
 }
 
 //
@@ -778,12 +778,12 @@ CC7_JNI_METHOD_PARAMS(jint, applyProtocolUpgradeData, jobject md)
 	jclass mdClazz = CC7_JNI_MODULE_FIND_CLASS("ProtocolUpgradeData");
 	auto cpp_version = (Version) CC7_JNI_GET_FIELD_INT(md, mdClazz, "toVersion");
 
-	MigrationData cpp_md;
+	ProtocolUpgradeData cpp_upd;
 	if (cpp_version == Version_V3) {
 		// Load V3 fields...
-		cpp_md.toV3.ctrData = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(md, mdClazz, "v3CtrData"));
+		cpp_upd.toV3.ctrData = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(md, mdClazz, "v3CtrData"));
 	}
-	return (jint) session->applyMigrationData(cpp_md);
+	return (jint) session->applyProtocolUpgradeData(cpp_upd);
 }
 
 //
@@ -796,7 +796,7 @@ CC7_JNI_METHOD(jint, finishProtocolUpgrade)
 		CC7_ASSERT(false, "Missing internal handle.");
 		return EC_WrongParam;
 	}
-	return (jint) session->finishMigration();
+	return (jint) session->finishProtocolUpgrade();
 }
 
 CC7_JNI_MODULE_CLASS_END()

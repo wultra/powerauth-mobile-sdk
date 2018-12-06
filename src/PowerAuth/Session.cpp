@@ -123,11 +123,11 @@ namespace powerAuth
 		return false;
 	}
 	
-	bool Session::hasPendingActivationMigration() const
+	bool Session::hasPendingProtocolUpgrade() const
 	{
 		LOCK_GUARD();
 		if (hasValidActivation()) {
-			return _pd->flags.pendingMigration != Version_NA;
+			return _pd->flags.pendingUpgradeVersion != Version_NA;
 		}
 		return false;
 	}
@@ -538,8 +538,8 @@ namespace powerAuth
 			return EC_WrongParam;
 		}
 		// Check combination of offlineNonce & vaultUnlock.
-		if (request.isOfflineRequest() && hasPendingActivationMigration()) {
-			CC7_LOG("Session %p, %d: Sign: Offline signature is not available during the pending migration.", this, sessionIdentifier());
+		if (request.isOfflineRequest() && hasPendingProtocolUpgrade()) {
+			CC7_LOG("Session %p, %d: Sign: Offline signature is not available during the pending protocol upgrade.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
 		
@@ -1022,54 +1022,54 @@ namespace powerAuth
 		return EC_Ok;
 	}
 	
-	// MARK: - Protocol migration -
+	// MARK: - Protocol upgrade -
 	
-	ErrorCode Session::startMigration()
+	ErrorCode Session::startProtocolUpgrade()
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: StartMigration: Session has no valid activation.", this, sessionIdentifier());
+			CC7_LOG("Session %p, %d: StartUpgrade: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
 		switch (_pd->protocolVersion()) {
 			case Version_V2:
-				_pd->flags.pendingMigration = Version_V3;
+				_pd->flags.pendingUpgradeVersion = Version_V3;
 				return EC_Ok;
 			default:
 				break;
 		}
-		CC7_LOG("Session %p, %d: StartMigration: Session is already in V3.", this, sessionIdentifier());
+		CC7_LOG("Session %p, %d: StartUpgrade: Session is already in V3.", this, sessionIdentifier());
 		return EC_WrongState;
 	}
 	
 	
-	Version Session::pendingActivationMigrationVersion() const
+	Version Session::pendingProtocolUpgradeVersion() const
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			return Version_NA;
 		}
-		return (Version) _pd->flags.pendingMigration;
+		return (Version) _pd->flags.pendingUpgradeVersion;
 	}
 	
 	
-	ErrorCode Session::applyMigrationData(const MigrationData & migration_data)
+	ErrorCode Session::applyProtocolUpgradeData(const ProtocolUpgradeData & upgrade_data)
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: ApplyMigrationData: Session has no valid activation.", this, sessionIdentifier());
+			CC7_LOG("Session %p, %d: ApplyUpgradeData: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
 		switch (_pd->protocolVersion()) {
 			case Version_V2:
 			{
-				if (_pd->flags.pendingMigration != Version_V3) {
-					CC7_LOG("Session %p, %d: ApplyMigrationData: Migration to V3 was not properly started.", this, sessionIdentifier());
+				if (_pd->flags.pendingUpgradeVersion != Version_V3) {
+					CC7_LOG("Session %p, %d: ApplyUpgradeData: Upgrade to V3 was not properly started.", this, sessionIdentifier());
 					return EC_WrongState;
 				}
 				cc7::ByteArray ctrData;
-				if (!cc7::Base64_Decode(migration_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
-					CC7_LOG("Session %p, %d: ApplyMigrationData: Wrong V3 migration data.", this, sessionIdentifier());
+				if (!cc7::Base64_Decode(upgrade_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
+					CC7_LOG("Session %p, %d: ApplyUpgradeData: Wrong V3 upgrade data.", this, sessionIdentifier());
 					return EC_WrongParam;
 				}
 				// Everything looks fine, we can commit new data
@@ -1081,26 +1081,26 @@ namespace powerAuth
 			default:
 				break;
 		}
-		CC7_LOG("Session %p, %d: ApplyMigrationData: Session is already in V3.", this, sessionIdentifier());
+		CC7_LOG("Session %p, %d: ApplyUpgradeData: Session is already in V3.", this, sessionIdentifier());
 		return EC_WrongState;
 	}
 	
 	
-	ErrorCode Session::finishMigration()
+	ErrorCode Session::finishProtocolUpgrade()
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
-			CC7_LOG("Session %p, %d: FinishMigration: Session has no valid activation.", this, sessionIdentifier());
+			CC7_LOG("Session %p, %d: FinishUpgrade: Session has no valid activation.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		switch (_pd->flags.pendingMigration) {
+		switch (_pd->flags.pendingUpgradeVersion) {
 			case Version_V3:
 				if (_pd->protocolVersion() == Version_V3) {
-					// Migration to V3 succeeded.
-					_pd->flags.pendingMigration = Version_NA;
+					// Upgrade to V3 succeeded.
+					_pd->flags.pendingUpgradeVersion = Version_NA;
 					return EC_Ok;
 				}
-				CC7_LOG("Session %p, %d: FinishMigration: Migration to V3 is not finished yet.", this, sessionIdentifier());
+				CC7_LOG("Session %p, %d: FinishUpgrade: Upgrade to V3 is not finished yet.", this, sessionIdentifier());
 				break;
 			default:
 				break;

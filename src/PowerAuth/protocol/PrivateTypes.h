@@ -181,9 +181,9 @@ namespace protocol
 			 */
 			cc7::U32	usesExternalKey			: 1;
 			/**
-			 Bits reserved for current pending migration
+			 Bits reserved for current pending protocol upgrade
 			 */
-			cc7::U32	pendingMigration		: 8;
+			cc7::U32	pendingUpgradeVersion		: 8;
 		};
 		union {
 			_Flags		flags;

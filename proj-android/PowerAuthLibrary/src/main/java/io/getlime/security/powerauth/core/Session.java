@@ -562,8 +562,8 @@ public class Session {
     public native int startProtocolUpgrade();
 
     /**
-     * Applies migration data to the session. You need to construct migration data object
-     * to match the migration from current protocol version, to the upgraded one.
+     * Applies protocol upgrade data to the session. You need to construct upgrade data object
+     * to match the upgrade from current protocol version, to the upgraded one.
      *
      * Returns integer comparable to constants from ErrorCode class. If ErrorCode.OK is returned
      * then the operation succeeded.

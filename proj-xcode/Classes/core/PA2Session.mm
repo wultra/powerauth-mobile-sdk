@@ -111,7 +111,7 @@ using namespace io::getlime::powerAuth;
 
 - (BOOL) hasPendingProtocolUpgrade
 {
-	return _session->hasPendingActivationMigration();
+	return _session->hasPendingProtocolUpgrade();
 }
 
 - (PA2ProtocolVersion) protocolVersion
@@ -409,14 +409,14 @@ using namespace io::getlime::powerAuth;
 
 - (BOOL) startProtocolUpgrade
 {
-	ErrorCode error = _session->startMigration();
+	ErrorCode error = _session->startProtocolUpgrade();
 	PA2Objc_DebugDumpError(self, @"StartProtocolUpgrade", error);
 	return error == EC_Ok;
 }
 
 - (PA2ProtocolVersion) pendingProtocolUpgradeVersion
 {
-	return (PA2ProtocolVersion) _session->pendingActivationMigrationVersion();
+	return (PA2ProtocolVersion) _session->pendingProtocolUpgradeVersion();
 }
 
 - (BOOL) applyProtocolUpgradeData:(nonnull id<PA2ProtocolUpgradeData>)upgradeData
@@ -425,9 +425,9 @@ using namespace io::getlime::powerAuth;
 	if ([upgradeData conformsToProtocol:@protocol(PA2ProtocolUpgradeDataPrivate)]) {
 		id<PA2ProtocolUpgradeDataPrivate> upgradeDataObject = (id<PA2ProtocolUpgradeDataPrivate>)upgradeData;
 		// Convert data to C++ & commit to underlying session
-		MigrationData cpp_migration_data;
-		[upgradeDataObject setupStructure:cpp_migration_data];
-		error = _session->applyMigrationData(cpp_migration_data);
+		ProtocolUpgradeData cpp_upgrade_data;
+		[upgradeDataObject setupStructure:cpp_upgrade_data];
+		error = _session->applyProtocolUpgradeData(cpp_upgrade_data);
 	} else {
 		error = EC_WrongParam;
 	}
@@ -437,7 +437,7 @@ using namespace io::getlime::powerAuth;
 
 - (BOOL) finishProtocolUpgrade
 {
-	ErrorCode error = _session->finishMigration();
+	ErrorCode error = _session->finishProtocolUpgrade();
 	PA2Objc_DebugDumpError(self, @"FinishProtocolUpgrade", error);
 	return error == EC_Ok;
 }

@@ -228,7 +228,7 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 			status_str = @"<<unknown>>"; break;
 			
 	}
-	bool upgrade = _status.isMigrationAvailable();
+	bool upgrade = _status.isProtocolUpgradeAvailable();
 	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@%@>", status_str, @(_status.failCount), @(_status.maxFailCount), upgrade ? @", upgrade" : @""];
 }
 #endif
@@ -247,7 +247,7 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 
 - (BOOL) isProtocolUpgradeAvailable
 {
-	return _status.isMigrationAvailable();
+	return _status.isProtocolUpgradeAvailable();
 }
 
 @end

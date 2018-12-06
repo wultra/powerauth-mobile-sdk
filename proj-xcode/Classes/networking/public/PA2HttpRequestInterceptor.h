@@ -19,13 +19,22 @@
 /**
  The `PA2HttpRequestInterceptor` protocol defines interface for modifying HTTP requests
  before their execution.
+ 
+ WARNING
+ 
+ This protocol allows you to tweak the requests created in the PowerAuthSDK, but
+ also gives you an opportunity to break the things. So, rather than create your own interceptor,
+ try to contact us and describe what's your problem with the networking in the PowerAuth SDK.
+ 
+ Also note, that this interface may change in the future. We can guarantee the API stability of
+ public classes implementing this interface, but not the stability of interface itself.
  */
 @protocol PA2HttpRequestInterceptor <NSObject>
 
 /**
  Method is called by the PA2HttpClient, before the request is executed.
  The implementation must count with that method is called from other than UI thread.
-
+ 
  @param request URL request to be modified.
  */
 - (void) processRequest:(nonnull NSMutableURLRequest*)request;

@@ -1127,3 +1127,25 @@ static PowerAuthSDK * s_inst;
 }
 
 @end
+
+
+@implementation PowerAuthSDK (E2EE)
+
+- (PA2ECIESEncryptor*) eciesEncryptorForApplicationScope
+{
+	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:nil];
+	return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope];
+}
+
+- (PA2ECIESEncryptor*) eciesEncryptorForActivationScope
+{
+	if (![self hasValidActivation]) {
+		PA2Log(@"eciesEncryptorForActivation: There's no activation.");
+		return nil;
+	}
+	NSData * deviceKey = [self deviceRelatedKey];
+	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:deviceKey];
+	return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+}
+
+@end

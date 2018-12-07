@@ -17,22 +17,35 @@
 package io.getlime.security.powerauth.exception;
 
 /**
- * Created by miroslavmichalec on 20/10/2016.
+ * Will be thrown, or will be returned to listener, in case that requested operation fails
+ * on an error.
  */
-
 public class PowerAuthErrorException extends Exception {
 
+    /**
+     * Integer constant from {@link PowerAuthErrorCodes} class.
+     */
     private int powerAuthErrorCode;
 
+    /**
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
+     */
     public PowerAuthErrorException(int powerAuthErrorCode) {
         this.powerAuthErrorCode = powerAuthErrorCode;
     }
 
+    /**
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
+     * @param message String with detailed error description.
+     */
     public PowerAuthErrorException(int powerAuthErrorCode, String message) {
         super(message);
         this.powerAuthErrorCode = powerAuthErrorCode;
     }
 
+    /**
+     * @return Integer constant from {@link PowerAuthErrorCodes}, describing the reason of failure.
+     */
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
     }

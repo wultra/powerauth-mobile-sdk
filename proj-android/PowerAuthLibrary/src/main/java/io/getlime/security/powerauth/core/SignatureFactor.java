@@ -16,41 +16,47 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static io.getlime.security.powerauth.core.SignatureFactor.Biometry;
+import static io.getlime.security.powerauth.core.SignatureFactor.Knowledge;
+import static io.getlime.security.powerauth.core.SignatureFactor.Possession;
+
 /**
  * The SignatureFactor constants defines factors involved in the signature
  * computation. The factor types are tightly coupled with SignatureUnlockKeys
  * class.
  */
-public class SignatureFactor
-{
+@Retention(RetentionPolicy.SOURCE)
+@IntDef(flag = true,
+        value = {Possession, Knowledge, Biometry})
+public @interface SignatureFactor {
     /**
      * The possession factor, you have to provide possessionUnlocKey.
      */
-    public static final int Possession = 0x0001;
+    int Possession = 0x0001;
     /**
      * The knowledge factor, you have to provide userPassword
      */
-    public static final int Knowledge  = 0x0010;
+    int Knowledge = 0x0010;
     /**
      * The biometry factor, you have to provide biometryUnlockKey.
      */
-    public static final int Biometry   = 0x0100;
+    int Biometry = 0x0100;
 
     /**
      * 2FA, with using possession and knowledge factors.
      */
-    public static final int Possession_Knowledge            = 0x0011;
+    int Possession_Knowledge = 0x0011;
     /**
      * 2FA, with using possession and biometric factors.
      */
-    public static final int Possession_Biometry             = 0x0101;
+    int Possession_Biometry = 0x0101;
     /**
      * 3FA, with using all supported factors.
      */
-    public static final int Possession_Knowledge_Biometry   = 0x0111;
-
-    /**
-     * Prevents class instantiation.
-     */
-    private SignatureFactor() { }
+    int Possession_Knowledge_Biometry = 0x0111;
 }

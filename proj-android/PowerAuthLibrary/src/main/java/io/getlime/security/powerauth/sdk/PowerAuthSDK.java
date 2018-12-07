@@ -280,8 +280,9 @@ public class PowerAuthSDK {
      * @param authentication {@link PowerAuthAuthentication} object with signature factors set.
      * @return Integer with an appropriate bits set. Each bit represents one signature factor.
      */
+    @SignatureFactor
     private int determineSignatureFactorForAuthentication(@NonNull PowerAuthAuthentication authentication) {
-        int factor = 0;
+        @SignatureFactor int factor = 0;
         if (authentication.usePossession) {
             factor |= SignatureFactor.Possession;
         }
@@ -324,7 +325,7 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object with asynchronous operation.
      */
     private @Nullable
-    ICancelable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
+    ICancelable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull @VaultUnlockReason final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
         // Input validations
         checkForValidSetup();
         if (!mSession.hasValidActivation()) {
@@ -1145,7 +1146,7 @@ public class PowerAuthSDK {
         }
 
         // Determine authentication factor type
-        final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
+        @SignatureFactor final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid combination of signature factors.");
         }

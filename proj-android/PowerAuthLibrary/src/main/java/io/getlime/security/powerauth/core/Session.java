@@ -133,6 +133,7 @@ public class Session {
      * @param state byte array containing previously serialized state
      * @return integer value, which can be compared to the constants from an {@link ErrorCode} class.
      */
+    @ErrorCode
     public native int deserializeState(byte[] state);
 
     //
@@ -226,6 +227,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int completeActivation(SignatureUnlockKeys lockKeys);
 
 
@@ -308,7 +310,7 @@ public class Session {
      * @return {@link SignatureResult} with signature calculation result. You need to check {@link SignatureResult#errorCode}
      *         whether the operation failed or not.
      */
-    public native SignatureResult signHTTPRequest(SignatureRequest request, SignatureUnlockKeys unlockKeys, int signatureFactor);
+    public native SignatureResult signHTTPRequest(SignatureRequest request, SignatureUnlockKeys unlockKeys, @SignatureFactor int signatureFactor);
 
     /**
      * @return name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
@@ -322,6 +324,7 @@ public class Session {
      * @param signedData {@link SignedData} object with parameters required for signature validation
      * @return integer comparable to constants available at {@link ErrorCode} class.
      */
+    @ErrorCode
     public native int verifyServerSignedData(SignedData signedData);
 
     //
@@ -353,6 +356,7 @@ public class Session {
      * @param newPassword new password
      * @return integer comparable to constants available at {@link ErrorCode} class.
      */
+    @ErrorCode
     public native int changeUserPassword(Password oldPassword, Password newPassword);
 
     /**
@@ -373,6 +377,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int addBiometryFactor(String cVaultKey, SignatureUnlockKeys unlockKeys);
 
     /**
@@ -389,6 +394,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int removeBiometryFactor();
 
     //
@@ -457,6 +463,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int setExternalEncryptionKey(byte[] externalEncryptionKey);
     
     /**
@@ -471,6 +478,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int addExternalEncryptionKey(byte[] externalEncryptionKey);
     
     /**
@@ -483,6 +491,7 @@ public class Session {
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
+    @ErrorCode
     public native int removeExternalEncryptionKey();
 
     //
@@ -559,6 +568,7 @@ public class Session {
      *
      * @return {@link ErrorCode#OK} if upgrade has been started, or other error constants if not.
      */
+    @ErrorCode
     public native int startProtocolUpgrade();
 
     /**
@@ -573,6 +583,7 @@ public class Session {
      * @param protocolUpgradeData data required for protocol upgrade
      * @return {@link ErrorCode#OK} if data has been applied, or other error constants if not.
      */
+    @ErrorCode
     public native int applyProtocolUpgradeData(ProtocolUpgradeData protocolUpgradeData);
 
     /**
@@ -580,5 +591,6 @@ public class Session {
      *
      * @return {@link ErrorCode#OK} if upgrade has been finished, or other error constants if not.
      */
+    @ErrorCode
     public native int finishProtocolUpgrade();
 }

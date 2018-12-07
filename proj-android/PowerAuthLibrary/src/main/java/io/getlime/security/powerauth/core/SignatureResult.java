@@ -27,6 +27,7 @@ public class SignatureResult {
      * Error code returned from the C++ code. The value can be compared
      * to constants from {@link ErrorCode} class.
      */
+    @ErrorCode
     public final int errorCode;
 
     /**

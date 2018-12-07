@@ -16,6 +16,16 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static io.getlime.security.powerauth.core.ErrorCode.Encryption;
+import static io.getlime.security.powerauth.core.ErrorCode.OK;
+import static io.getlime.security.powerauth.core.ErrorCode.WrongParam;
+import static io.getlime.security.powerauth.core.ErrorCode.WrongState;
+
 /**
  * The {@code ErrorCode} constants defines all possible error codes
  * produced by Session class. You normally need to check only
@@ -25,12 +35,14 @@ package io.getlime.security.powerauth.core;
  * For example, if the operation fails at WrongState or WrongParam,
  * then it's usually your fault and you're using Session in wrong way.
  */
-public class ErrorCode
+@Retention(RetentionPolicy.SOURCE)
+@IntDef({OK, Encryption, WrongState, WrongParam})
+public @interface ErrorCode
 {
     /**
      * Everything is OK.
      */
-    public static final int OK          = 0;
+    int OK          = 0;
     /**
      * The method failed on encryption. Whatever that means it's
      * usually very wrong and the UI response depends on what
@@ -42,14 +54,14 @@ public class ErrorCode
      * is in wrong format, then this is considered as an attack
      * attempt.
      */
-    public static final int Encryption  = 1;
+    int Encryption  = 1;
     /**
      * You have called method in wrong Session's state. Usually that
      * means that you're using Session in a wrong way. This kind
      * of error should not be propagated to the UI. It's your
      * responsibility to handle Session states correctly.
      */
-    public static final int WrongState  = 2;
+    int WrongState  = 2;
     /**
      * You have called method with wrong or missing parameters.
      * Usually this error code means that you're using Session
@@ -59,10 +71,5 @@ public class ErrorCode
      * and validate all responses from server before you
      * ask Session for processing.
      */
-    public static final int WrongParam  = 3;
-    
-    /**
-     * Private constructor to prevent class instantiation.
-     */
-    private ErrorCode() { }
+    int WrongParam  = 3;
 }

@@ -39,9 +39,9 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
  */
 public class HttpClient {
 
-    private final PowerAuthClientConfiguration configuration;
-    private final String baseUrl;
-    private final IExecutorProvider executorProvider;
+    private final @NonNull PowerAuthClientConfiguration configuration;
+    private final @NonNull String baseUrl;
+    private final @NonNull IExecutorProvider executorProvider;
 
     /**
      * @param configuration HTTP client configuration
@@ -60,15 +60,23 @@ public class HttpClient {
     /**
      * @return HTTP client configuration assigned to this object
      */
-    public PowerAuthClientConfiguration getClientConfiguration() {
+    public @NonNull PowerAuthClientConfiguration getClientConfiguration() {
         return configuration;
     }
 
     /**
      * @return String with base URL to PowerAuth Server REST API
      */
-    public String getBaseUrl() {
+    public @NonNull String getBaseUrl() {
         return baseUrl;
+    }
+
+
+    /**
+     * @return {@link IExecutorProvider} object assigned during the client initialization.
+     */
+    public @NonNull IExecutorProvider getExecutorProvider() {
+        return executorProvider;
     }
 
     /**

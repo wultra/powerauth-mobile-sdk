@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.sdk;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.CheckResult;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -305,6 +306,7 @@ public class PowerAuthSDK {
          *
          * @param encryptedEncryptionKey encrypted vault key
          */
+        @MainThread
         void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey);
 
         /**

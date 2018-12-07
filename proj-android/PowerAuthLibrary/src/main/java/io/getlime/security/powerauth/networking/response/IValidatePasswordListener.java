@@ -16,11 +16,15 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
+
 /**
  * Created by miroslavmichalec on 03/11/2016.
  */
 
 public interface IValidatePasswordListener {
+    @MainThread
     void onPasswordValid();
+    @MainThread
     void onPasswordValidationFailed(Throwable t);
 }

@@ -16,10 +16,13 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
+
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
 public interface IDataSignatureListener {
+    @MainThread
     void onDataSignedSucceed(byte[] signature);
     void onDataSignedFailed(Throwable t);
 }

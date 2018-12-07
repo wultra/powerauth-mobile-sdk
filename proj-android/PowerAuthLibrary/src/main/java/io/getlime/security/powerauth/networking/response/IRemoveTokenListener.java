@@ -16,12 +16,14 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
 public interface IRemoveTokenListener {
     /**
      * Called when removing token succeeded and token is no longer valid on the server.
      */
+    @MainThread
     void onRemoveTokenSucceeded();
 
     /**

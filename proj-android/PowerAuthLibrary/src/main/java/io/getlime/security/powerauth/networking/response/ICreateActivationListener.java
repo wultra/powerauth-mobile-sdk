@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -33,6 +34,7 @@ public interface ICreateActivationListener {
      *                                   may be null in case that there are no custom attributes
      *                                   available.
      */
+    @MainThread
     void onActivationCreateSucceed(@NonNull String activationFingerprint,
                                    @Nullable Map<String, Object> customActivationAttributes);
 

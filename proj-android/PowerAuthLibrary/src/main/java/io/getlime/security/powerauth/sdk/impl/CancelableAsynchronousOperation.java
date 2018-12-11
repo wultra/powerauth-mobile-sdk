@@ -45,7 +45,7 @@ public class CancelableAsynchronousOperation implements Runnable, ICancelable {
     }
 
     @Override
-    public void cancel() {
+    public synchronized void cancel() {
         // Release semaphore only for a first call
         final boolean releaseSemaphore = !cancelled;
         cancelled = true;

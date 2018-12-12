@@ -29,6 +29,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
@@ -61,7 +62,6 @@ import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoi
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
-import io.getlime.security.powerauth.networking.interfaces.IAsyncOperation;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
@@ -79,7 +79,6 @@ import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockReques
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
-import io.getlime.security.powerauth.sdk.impl.CancelableAsynchronousOperation;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
@@ -1645,40 +1644,9 @@ public class PowerAuthSDK {
     // Request synchronization
 
     /**
-     * Executes provided {@link IAsyncOperation} on an internal, serialized thread executor. This gives application an opportunity to serialize
-     * its own signed HTTP requests, with requests created in the SDK internally.
-     *
-     * <h3>Why this matters</h3>
-     *
-     * The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
-     * at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
-     * to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
-     * them with the SDK.
-     *
-     * <h3>Recommended practices</h3>
-     * <ul>
-     *     <li>You should calculate PowerAuth signature from the {@link IAsyncOperation#onExecution(ICancelable)} method.
-     *     <li>You have to always call {@code cancel()} on provided {@link ICancelable} object once the operation is finished,
-     *         otherwise the thread will be blocked indefinitely.
-     *     <li>It doesn't matter whether the actual HTTP request is performed directly in {@code onExecution()} method, or you'll use
-     *         your own thread. What's matter is to call {@code cancel()} once the operation is done.
-     * </ul>
-     *
-     * Check the documentation for {@link IAsyncOperation} for more details.
-     *
-     * @param asynchronousOperation {@link IAsyncOperation} to be executed on a serialized thread executor.
-     * @return {@link ICancelable} object, allowing the external cancellation.
-     * @throws PowerAuthErrorException if there's not a valid activation.
-     */
-    public @NonNull ICancelable executeOnSerialExecutor(@NonNull final IAsyncOperation asynchronousOperation) throws PowerAuthErrorException {
-        final CancelableAsynchronousOperation operation = new CancelableAsynchronousOperation(asynchronousOperation);
-        executeOnSerialExecutor(operation);
-        return operation;
-    }
-
-    /**
-     * Executes provided {@link Runnable} object on the internal, serialized thread executor. This gives application an opportunity to serialize
-     * its own signed HTTP requests, with requests created in the SDK internally.
+     * Method returns internal serial {@link Executor} allowing only one background {@link Runnable}
+     * task to be executed at the same time. An application can use this executor to synchronize its
+     * own signed HTTP requests, with requests created internally in the PowerAuth SDK.
      *
      * <h3>Why this matters</h3>
      *
@@ -1691,20 +1659,16 @@ public class PowerAuthSDK {
      * <ul>
      *     <li>You should calculate PowerAuth signature from the {@link Runnable#run()} method.
      *     <li>{@link Runnable#run()} should return from its execution after the HTTP request is fully processed, or at least after
-     *         the response headers are received (e.g. you know that server already did process the request)
+     *         the response headers are received (e.g. you know that the server already did process the request)
      * </ul>
      *
-     * Unlike the {@link #executeOnSerialExecutor(IAsyncOperation)} method, this variant is more generic. You can, for example, execute
-     * your own networking {@link AsyncTask} directly, but be aware that the PowerAuth signature should be calculated in {@link AsyncTask#doInBackground(Object[])}
-     * method.
-     *
-     * @param runnable {@link Runnable} operation to be executed on a serialized thread executor.
+     * @return {@link Executor} allowing only one operation to be executed at the same time.
      * @throws PowerAuthErrorException if there's not a valid activation.
      */
-    public void executeOnSerialExecutor(@NonNull final Runnable runnable) throws PowerAuthErrorException {
+    public @NonNull Executor getSerialExecutor() throws PowerAuthErrorException {
         if (!hasValidActivation()) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Missing activation");
         }
-        mClient.getExecutorProvider().getSerialExecutor().execute(runnable);
+        return mClient.getExecutorProvider().getSerialExecutor();
     }
 }

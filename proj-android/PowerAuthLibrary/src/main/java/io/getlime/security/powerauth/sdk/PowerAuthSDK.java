@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.CheckResult;
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
@@ -105,6 +107,7 @@ public class PowerAuthSDK {
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
     private PowerAuthTokenStore mTokenStore;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     /**
      * Helper class for building new instances.
@@ -314,6 +317,7 @@ public class PowerAuthSDK {
          *
          * @param throwable Cause of the failure
          */
+        @MainThread
         void onFetchEncryptedVaultUnlockKeyFailed(Throwable throwable);
     }
 
@@ -331,7 +335,12 @@ public class PowerAuthSDK {
         // Input validations
         checkForValidSetup();
         if (!mSession.hasValidActivation()) {
-            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+            executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                }
+            });
             return null;
         }
         // Execute HTTP request
@@ -537,7 +546,12 @@ public class PowerAuthSDK {
         // Validate the code first
         final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
         if (otp == null) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+            executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+                }
+            });
             return null;
         }
 
@@ -598,7 +612,12 @@ public class PowerAuthSDK {
 
         // Check if activation may be started
         if (!canStartActivation()) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+            executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                }
+            });
             return null;
         }
 
@@ -628,7 +647,12 @@ public class PowerAuthSDK {
                 final int errorCode = step1Result.errorCode == ErrorCode.Encryption
                         ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
                         : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-                listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                executeOnMainThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                    }
+                });
                 return null;
             }
 
@@ -641,9 +665,14 @@ public class PowerAuthSDK {
             // Complete Layer1 request data
             request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
 
-        } catch (PowerAuthErrorException e) {
+        } catch (final PowerAuthErrorException e) {
             mSession.resetSession();
-            listener.onActivationCreateFailed(e);
+            executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(e);
+                }
+            });
             return null;
         }
 
@@ -956,7 +985,12 @@ public class PowerAuthSDK {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
-            listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+            executeOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                }
+            });
             return null;
         }
 
@@ -1672,5 +1706,14 @@ public class PowerAuthSDK {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Missing activation");
         }
         return mClient.getExecutorProvider().getSerialExecutor();
+    }
+
+    void executeOnMainThread(Runnable runnable) {
+        if (Looper.getMainLooper() == Looper.myLooper()) {
+            // we are on the main thread
+            runnable.run();
+        } else {
+            mHandler.post(runnable);
+        }
     }
 }

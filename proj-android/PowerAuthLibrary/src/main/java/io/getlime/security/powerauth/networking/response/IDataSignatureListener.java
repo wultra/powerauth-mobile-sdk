@@ -24,5 +24,6 @@ import android.support.annotation.MainThread;
 public interface IDataSignatureListener {
     @MainThread
     void onDataSignedSucceed(byte[] signature);
+    @MainThread
     void onDataSignedFailed(Throwable t);
 }

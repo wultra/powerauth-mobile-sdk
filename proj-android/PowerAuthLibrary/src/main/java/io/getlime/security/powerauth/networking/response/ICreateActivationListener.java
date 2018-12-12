@@ -42,5 +42,6 @@ public interface ICreateActivationListener {
      * Called when activation fails with an error.
      * @param t error occurred during the activation
      */
+    @MainThread
     void onActivationCreateFailed(@NonNull Throwable t);
 }

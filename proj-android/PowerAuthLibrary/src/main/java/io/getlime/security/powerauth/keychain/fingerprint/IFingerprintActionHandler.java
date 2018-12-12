@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.keychain.fingerprint;
 
 import android.support.annotation.Nullable;
+import android.support.annotation.UiThread;
 
 /**
  * Interface used as a callback for fingerprint authentication.
@@ -32,6 +33,7 @@ public interface IFingerprintActionHandler {
      * Fingerprint authentication succeeded.
      * @param biometricKeyEncrypted Biometric key encrypted with fingerprint protected key from Keystore - use this key as a value for biometric authentication.
      */
+    @UiThread
     void onFingerprintDialogSuccess(@Nullable byte[] biometricKeyEncrypted);
 
     /**

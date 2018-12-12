@@ -25,5 +25,7 @@ public interface IActivationRemoveListener {
 
     @MainThread
     void onActivationRemoveSucceed();
+
+    @MainThread
     void onActivationRemoveFailed(Throwable t);
 }

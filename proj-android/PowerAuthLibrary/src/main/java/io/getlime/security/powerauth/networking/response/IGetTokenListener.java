@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 
 import io.getlime.security.powerauth.sdk.PowerAuthToken;
@@ -25,11 +26,13 @@ public interface IGetTokenListener {
      * Callen when getting token succeeds with a valid token.
      * @param token valid token object
      */
+    @MainThread
     void onGetTokenSucceeded(@NonNull PowerAuthToken token);
 
     /**
      * Called when getting token fails with an error.
      * @param t error occurred during the operation
      */
+    @MainThread
     void onGetTokenFailed(@NonNull Throwable t);
 }

@@ -30,5 +30,6 @@ public interface IRemoveTokenListener {
      * Called when removing token fails with an error.
      * @param t error occurred during the operation
      */
+    @MainThread
     void onRemoveTokenFailed(@NonNull Throwable t);
 }

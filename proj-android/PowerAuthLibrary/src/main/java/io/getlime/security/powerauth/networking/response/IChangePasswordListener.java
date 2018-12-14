@@ -19,12 +19,21 @@ package io.getlime.security.powerauth.networking.response;
 import android.support.annotation.MainThread;
 
 /**
- * Created by miroslavmichalec on 03/11/2016.
+ * Listener for password change.
  */
-
 public interface IChangePasswordListener {
+
+    /**
+     * Called when password change succeeds.
+     */
     @MainThread
     void onPasswordChangeSucceed();
+
+    /**
+     * Called when password change fails.
+     *
+     * @param t error that occurred during the password change.
+     */
     @MainThread
     void onPasswordChangeFailed(Throwable t);
 }

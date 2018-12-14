@@ -21,9 +21,14 @@ import android.support.annotation.NonNull;
 
 import io.getlime.security.powerauth.sdk.PowerAuthToken;
 
+/**
+ * Listener for getting access token.
+ */
 public interface IGetTokenListener {
+
     /**
-     * Callen when getting token succeeds with a valid token.
+     * Callen when access token retrieval succeeds with a valid token.
+     *
      * @param token valid token object
      */
     @MainThread
@@ -31,6 +36,7 @@ public interface IGetTokenListener {
 
     /**
      * Called when getting token fails with an error.
+     *
      * @param t error occurred during the operation
      */
     @MainThread

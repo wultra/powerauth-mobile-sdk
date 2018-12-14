@@ -130,7 +130,7 @@ public class PowerAuthTokenStore {
         // If there's private data or error available, then report that immediately to the listener.
         if (error != null) {
             final Throwable err = error;
-            sdk.executeOnMainThread(new Runnable() {
+            sdk.dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
                     listener.onGetTokenFailed(err);
@@ -139,7 +139,7 @@ public class PowerAuthTokenStore {
             return null;
         } else if (tokenData != null) {
             final PowerAuthToken token = new PowerAuthToken(this, tokenData);
-            sdk.executeOnMainThread(new Runnable() {
+            sdk.dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
                     listener.onGetTokenSucceeded(token);
@@ -209,7 +209,7 @@ public class PowerAuthTokenStore {
 
         if (error != null) {
             final Throwable err = error;
-            sdk.executeOnMainThread(new Runnable() {
+            sdk.dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
                     listener.onRemoveTokenFailed(err);

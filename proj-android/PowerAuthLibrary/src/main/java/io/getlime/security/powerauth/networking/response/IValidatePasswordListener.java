@@ -19,12 +19,21 @@ package io.getlime.security.powerauth.networking.response;
 import android.support.annotation.MainThread;
 
 /**
- * Created by miroslavmichalec on 03/11/2016.
+ * Listener for password validation.
  */
-
 public interface IValidatePasswordListener {
+
+    /**
+     * Called when validation succeeds.
+     */
     @MainThread
     void onPasswordValid();
+
+    /**
+     * Called when validation fails.
+     *
+     * @param t error that occurred during the validation.
+     */
     @MainThread
     void onPasswordValidationFailed(Throwable t);
 }

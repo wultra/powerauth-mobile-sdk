@@ -27,8 +27,10 @@ import java.util.Map;
  * the operation.
  */
 public interface ICreateActivationListener {
+
     /**
      * Called when activation succeeds.
+     *
      * @param activationFingerprint      decimalized fingerprint calculated from device's public key
      * @param customActivationAttributes custom attributes received from the server. The value
      *                                   may be null in case that there are no custom attributes
@@ -40,7 +42,8 @@ public interface ICreateActivationListener {
 
     /**
      * Called when activation fails with an error.
-     * @param t error occurred during the activation
+     *
+     * @param t error that occurred during the activation.
      */
     @MainThread
     void onActivationCreateFailed(@NonNull Throwable t);

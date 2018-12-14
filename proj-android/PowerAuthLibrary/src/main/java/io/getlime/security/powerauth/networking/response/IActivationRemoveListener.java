@@ -19,13 +19,21 @@ package io.getlime.security.powerauth.networking.response;
 import android.support.annotation.MainThread;
 
 /**
- * Created by miroslavmichalec on 03/11/2016.
+ * Listener for activation removal.
  */
 public interface IActivationRemoveListener {
 
+    /**
+     * Called when activation is successfully removed.
+     */
     @MainThread
     void onActivationRemoveSucceed();
 
+    /**
+     * Called when activation removal fails.
+     *
+     * @param t error that occurred during the activation removal.
+     */
     @MainThread
     void onActivationRemoveFailed(Throwable t);
 }

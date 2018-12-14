@@ -1128,6 +1128,7 @@ static PowerAuthSDK * s_inst;
 
 @end
 
+#pragma mark - End-2-End Encryption
 
 @implementation PowerAuthSDK (E2EE)
 
@@ -1146,6 +1147,33 @@ static PowerAuthSDK * s_inst;
 	NSData * deviceKey = [self deviceRelatedKey];
 	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:deviceKey];
 	return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+}
+
+@end
+
+
+#pragma mark - Request synchronization
+
+@implementation PowerAuthSDK (RequestSync)
+
+- (nullable id<PA2OperationTask>) executeBlockOnSerialQueue:(void(^ _Nonnull)(id<PA2OperationTask> _Nonnull task))execute
+{
+	PA2AsyncOperation * operation = [[PA2AsyncOperation alloc] initWithReportQueue:dispatch_get_main_queue()];
+	operation.executionBlock = ^id(PA2AsyncOperation *op) {
+		execute(op);
+		return nil;
+	};
+	return [self executeOperationOnSerialQueue:operation] ? operation : nil;
+}
+
+- (BOOL) executeOperationOnSerialQueue:(nonnull NSOperation *)operation
+{
+	if (![self hasValidActivation]) {
+		PA2Log(@"executeOperationOnSerialQueue: There's no activation.");
+		return NO;
+	}
+	[_client.serialQueue addOperation:operation];
+	return YES;
 }
 
 @end

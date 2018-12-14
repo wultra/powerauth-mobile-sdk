@@ -454,3 +454,55 @@
 
 @end
 
+
+#pragma mark - Request synchronization
+
+@interface PowerAuthSDK (RequestSync)
+
+/**
+ Executes provided block on an internal, serialized operation queue. This gives application an opportunity to serialize
+ its own signed HTTP requests, with requests created in the SDK internally.
+ 
+ @b Why this matters
+ 
+ The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
+ at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+ to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
+ them with the SDK.
+ 
+ @b Recommended practices
+ 
+ 1)  You should calculate PowerAuth signature from the execute block method.
+ 
+ 2)  You have to always call `task.cancel()` on provided `PA2OperationTask` object once the operation is finished,
+     otherwise the seriali queue will be blocked indefinitely.
+
+ @param execute Block to be executed in the serialized queue.
+ @return Cancelable operation task, or nil if there's no activation.
+ */
+- (nullable id<PA2OperationTask>) executeBlockOnSerialQueue:(void(^ _Nonnull)(id<PA2OperationTask> _Nonnull task))execute;
+
+/**
+ Executes provided operation on an internal, serialized operation queue. This gives application an opportunity to serialize
+ its own signed HTTP requests, with requests created in the SDK internally.
+ 
+ @b Why this matters
+ 
+ The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
+ at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+ to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
+ them with the SDK.
+ 
+ @b Recommended practices
+ 
+ You should calculate PowerAuth signature after the operation is started. If you calculate the signature before and after that you add
+ that operation to the queue, the logical counter may not be synchronized properly.
+ 
+ 
+
+ @param operation Operation to be executed in the serialized queue
+ @return YES if operation was added to the queue, or NO if there's no activation.
+ */
+- (BOOL) executeOperationOnSerialQueue:(nonnull NSOperation *)operation;
+
+@end

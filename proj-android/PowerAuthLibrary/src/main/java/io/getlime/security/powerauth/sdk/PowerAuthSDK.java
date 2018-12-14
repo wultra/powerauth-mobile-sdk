@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
@@ -69,6 +70,7 @@ import io.getlime.security.powerauth.networking.response.IChangePasswordListener
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
+import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer1Request;
 import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer2Request;
@@ -79,7 +81,6 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockRespo
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
-import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
@@ -1637,5 +1638,36 @@ public class PowerAuthSDK {
     public @Nullable EciesEncryptor getEciesEncryptorForActivationScope(@NonNull final Context context) throws PowerAuthErrorException {
         final IPrivateCryptoHelper helper = getCryptoHelper(context);
         return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);
+    }
+
+    // Request synchronization
+
+    /**
+     * Method returns internal serial {@link Executor} allowing only one background {@link Runnable}
+     * task to be executed at the same time. An application can use this executor to synchronize its
+     * own signed HTTP requests, with requests created internally in the PowerAuth SDK.
+     *
+     * <h3>Why this matters</h3>
+     *
+     * The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
+     * at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+     * to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
+     * them with the SDK.
+     *
+     * <h3>Recommended practices</h3>
+     * <ul>
+     *     <li>You should calculate PowerAuth signature from the {@link Runnable#run()} method.
+     *     <li>{@link Runnable#run()} should return from its execution after the HTTP request is fully processed, or at least after
+     *         the response headers are received (e.g. you know that the server already did process the request)
+     * </ul>
+     *
+     * @return {@link Executor} allowing only one operation to be executed at the same time.
+     * @throws PowerAuthErrorException if there's not a valid activation.
+     */
+    public @NonNull Executor getSerialExecutor() throws PowerAuthErrorException {
+        if (!hasValidActivation()) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Missing activation");
+        }
+        return mClient.getExecutorProvider().getSerialExecutor();
     }
 }

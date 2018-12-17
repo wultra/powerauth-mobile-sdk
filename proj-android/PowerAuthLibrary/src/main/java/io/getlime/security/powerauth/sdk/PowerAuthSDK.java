@@ -1086,8 +1086,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the HTTP signature header for given GET request, URI identifier and query parameters using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatchCallback it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1103,8 +1101,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the HTTP signature header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatchCallback it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1130,8 +1126,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatchCallback it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.

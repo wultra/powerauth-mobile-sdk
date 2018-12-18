@@ -320,7 +320,7 @@ namespace powerAuth
 	struct HTTPRequestDataSignature
 	{
 		/**
-		 Version of PowerAuth protocol. Current value is "2.0"
+		 Version of PowerAuth protocol.
 		 */
 		std::string version;
 		/**

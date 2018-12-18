@@ -23,14 +23,14 @@
 @interface PA2AuthorizationHttpHeader : NSObject
 
 /**
- Property representing PowerAuth 2.0 HTTP Authorization Header. The current implementation
+ Property representing PowerAuth HTTP Authorization Header. The current implementation
  contains value "X-PowerAuth-Authorization" for standard authorization and "X-PowerAuth-Token" for
  token-based authorization.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString *key;
 
 /**
- Computed value of the PowerAuth 2.0 HTTP Authorization Header, to be used in HTTP requests "as is".
+ Computed value of the PowerAuth HTTP Authorization Header, to be used in HTTP requests "as is".
  */
 @property (nonatomic, strong, readonly, nonnull) NSString *value;
 

@@ -267,7 +267,7 @@ extern const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry
 @interface PA2HTTPRequestDataSignature : NSObject
 
 /**
- Version of PowerAuth protocol. Current value is "2.0"
+ Version of PowerAuth protocol.
  */
 @property (nonatomic, strong, nonnull, readonly) NSString * version;
 /**

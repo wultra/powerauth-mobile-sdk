@@ -17,7 +17,7 @@
 #import "PA2Error+Decodable.h"
 #import "PA2RestResponseStatus.h"
 
-/** Class representing a generic PowerAuth 2.0 Standard API response.
+/** Class representing a generic PowerAuth Standard API response.
  
  Client classes are supposed to create a new object using 'initWithDictionary:responseObjectType:'
  method and serialize response objects using 'toDictionary' method.
@@ -38,7 +38,7 @@
 @property (nonatomic, strong) PA2Error * responseError;
 
 /**
- Initializes a new response from given dictionary (as it is received from PowerAuth 2.0 Standard RESTful API)
+ Initializes a new response from given dictionary (as it is received from PowerAuth Standard RESTful API)
  using a given response object type.
  
  @param dictionary A dictionary with response object information.

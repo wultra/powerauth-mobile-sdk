@@ -18,7 +18,7 @@
 #import "PA2Error.h"
 
 /**
- Class representing an error PowerAuth 2.0 Standard API response.
+ Class representing an error reponse received from PowerAuth Standard RESTful API.
  */
 @interface PA2ErrorResponse : NSObject
 

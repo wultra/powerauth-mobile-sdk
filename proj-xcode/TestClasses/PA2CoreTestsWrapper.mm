@@ -87,7 +87,7 @@ using namespace cc7;
  */
 - (void) testRunPA2Tests
 {
-	BOOL result = [self runTestWithFilter:"pa2" excluded:"" testName:"PowerAuth2.0"];
+	BOOL result = [self runTestWithFilter:"pa2" excluded:"" testName:"PowerAuth"];
 	XCTAssertTrue(result);
 }
 

@@ -24,19 +24,19 @@
  */
 @property (nonatomic, strong, nonnull) NSString	*instanceId;
 
-/** Base URL to the PowerAuth 2.0 Standard RESTful API (the URL part before "/pa/...").
+/** Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
  */
 @property (nonatomic, strong, nonnull) NSString	*baseEndpointUrl;
 
-/** APPLICATION_KEY as defined in PowerAuth 2.0 specification - a key identifying an application version.
+/** APPLICATION_KEY as defined in PowerAuth specification - a key identifying an application version.
  */
 @property (nonatomic, strong, nonnull) NSString	*appKey;
 
-/** APPLICATION_SECRET as defined in PowerAuth 2.0 specification - a secret associated with an application version.
+/** APPLICATION_SECRET as defined in PowerAuth specification - a secret associated with an application version.
  */
 @property (nonatomic, strong, nonnull) NSString	*appSecret;
 
-/** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth 2.0 specification - a master server public key.
+/** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth specification - a master server public key.
  */
 @property (nonatomic, strong, nonnull) NSString	*masterServerPublicKey;
 

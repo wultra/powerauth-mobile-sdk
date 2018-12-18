@@ -23,13 +23,21 @@
 // Exposing several private interfaces
 @interface PowerAuthSDK (Private)
 
-/// Contains instance identifier
+/**
+ Contains instance identifier
+ */
 @property (nonatomic, strong, readonly) NSString * privateInstanceId;
 
-/// Returns key required for unlok the possesion factor.
+/**
+ Returns key required for unlok the possesion factor.
+ */
 - (NSData*) deviceRelatedKey;
 
-/// Low level signature calculation. This method doesn't check protocol upgrade.
+/**
+ Low level signature calculation. Unlike the high level interface, this method doesn't check
+ the protocol upgrade flag. This is useful for situations, where the flag is validated elsewhere, or
+ when the request can be signed during the pending protocol upgrade.
+ */
 - (PA2HTTPRequestDataSignature*) signHttpRequestData:(PA2HTTPRequestData*)requestData
 									  authentication:(PowerAuthAuthentication*)authentication
 											   error:(NSError**)error;

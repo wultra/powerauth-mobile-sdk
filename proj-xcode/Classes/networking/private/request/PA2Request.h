@@ -17,7 +17,7 @@
 #import "PA2Codable.h"
 
 /**
- Class representing a generic PowerAuth 2.0 Standard API requests.
+ Class representing a generic PowerAuth Standard API requests.
  
  Client classes are supposed to create a new object using 'initWithDictionary:requestObjectType:'
  method and serialize request objects using 'toDictionary' method.
@@ -33,7 +33,7 @@
 
 /**
  Serialize request object to the dictionary that is ready to be serialized to the correct
- JSON representation for the use in PowerAuth 2.0 Standard API.
+ JSON representation for the use in PowerAuth Standard API.
  
  @return Dictionary representing the request object.
  */

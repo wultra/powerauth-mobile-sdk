@@ -219,7 +219,7 @@
 @property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* lastFetchedCustomObject;
 
 
-/** Remove current activation by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/activation/remove'.
+/** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request.
  @param callback A callback with activation removal result - in case of an error, an error instance is not 'nil'.
@@ -314,7 +314,7 @@
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
 							   to:(nonnull NSString*)newPassword;
 
-/** Change the password, validate old password by calling a PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock'.
+/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/vault/unlock'.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
@@ -328,7 +328,7 @@
 
 /** Regenerate a biometry related factor key.
  
- This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
  
  @param password Password used for authentication during vault unlocking call.
  @param callback The callback method with the biometry key adding operation result.
@@ -359,7 +359,7 @@
 
 /** Generate an derived encryption key with given index.
  
- This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for subsequent key derivation using given index.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for subsequent key derivation using given index.
  
  @param authentication Authentication used for vault unlocking call.
  @param index Index of the derived key using KDF.
@@ -372,7 +372,7 @@
 
 /** Sign given data with the original device private key (asymetric signature).
  
- This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private key decryption. Data is then signed using ECDSA algorithm with this key and can be validated on the server side.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private key decryption. Data is then signed using ECDSA algorithm with this key and can be validated on the server side.
  
  @param authentication Authentication used for vault unlocking call.
  @param data Data to be signed with the private key.
@@ -385,7 +385,7 @@
 
 /** Validate a user password.
  
- This method calls PowerAuth 2.0 Standard RESTful API endpoint '/pa/vault/unlock' to validate the signature value.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to validate the signature value.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.

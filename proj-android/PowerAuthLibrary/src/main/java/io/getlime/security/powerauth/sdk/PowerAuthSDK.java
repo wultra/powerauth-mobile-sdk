@@ -882,7 +882,7 @@ public class PowerAuthSDK {
             final int errorCode = mSession.hasPendingActivation()
                                     ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
                                     : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
-            mCallbackDispatcher.dispatchCallback(new Runnable() {
+            dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
                     listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));

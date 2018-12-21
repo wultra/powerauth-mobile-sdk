@@ -77,7 +77,7 @@ public class EciesEncryptorFactory {
      * @throws PowerAuthErrorException if factory doesn't have {@link #mPossessionUnlockKey} but is required,
      *                                 or if low level encryptor creation fails
      */
-    private @NonNull EciesEncryptor getEncryptor(@NonNull int scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
+    private @NonNull EciesEncryptor getEncryptor(@NonNull @EciesEncryptorScope int scope, @Nullable String sharedInfo1, boolean addMetaData) throws PowerAuthErrorException {
         final byte[] sharedInfo1Bytes = sharedInfo1 != null ? sharedInfo1.getBytes(Charset.defaultCharset()) : null;
         final SignatureUnlockKeys unlockKeys;
         final String activationId;

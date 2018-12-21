@@ -85,6 +85,7 @@ public enum EciesEncryptorId {
     /**
      * Defines scope in which encryptor encrypts the data.
      */
+    @EciesEncryptorScope
     public final int scope;
 
     /**
@@ -99,7 +100,7 @@ public enum EciesEncryptorId {
     public final boolean hasMetadata;
 
 
-    EciesEncryptorId(int scope, String sharedInfo1, boolean hasMetadata) {
+    EciesEncryptorId(@EciesEncryptorScope int scope, String sharedInfo1, boolean hasMetadata) {
         this.scope = scope;
         this.sharedInfo1 = sharedInfo1;
         this.hasMetadata = hasMetadata;

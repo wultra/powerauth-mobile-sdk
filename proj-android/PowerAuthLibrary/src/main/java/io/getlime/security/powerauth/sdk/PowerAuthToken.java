@@ -110,7 +110,7 @@ public class PowerAuthToken {
      *         about error, so check its <code>isValid()</code> method afterwards.
      */
     public @NonNull PowerAuthAuthorizationHttpHeader generateHeader() {
-        int errorCode;
+        @PowerAuthErrorCodes int errorCode;
         if (this.isValid()) {
             if (tokenStore.canRequestForAccessToken()) {
                 String headerValue = TokenCalculator.calculateTokenValue(tokenData);

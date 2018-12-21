@@ -25,6 +25,7 @@ public class PowerAuthErrorException extends Exception {
     /**
      * Integer constant from {@link PowerAuthErrorCodes} class.
      */
+    @PowerAuthErrorCodes
     private int powerAuthErrorCode;
 
     /**
@@ -38,7 +39,7 @@ public class PowerAuthErrorException extends Exception {
      * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
      * @param message String with detailed error description.
      */
-    public PowerAuthErrorException(int powerAuthErrorCode, String message) {
+    public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode, String message) {
         super(message);
         this.powerAuthErrorCode = powerAuthErrorCode;
     }
@@ -46,6 +47,7 @@ public class PowerAuthErrorException extends Exception {
     /**
      * @return Integer constant from {@link PowerAuthErrorCodes}, describing the reason of failure.
      */
+    @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
     }

@@ -16,11 +16,24 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-/**
- * Created by miroslavmichalec on 03/11/2016.
- */
+import android.support.annotation.MainThread;
 
+/**
+ * Listener for adding biometry factor.
+ */
 public interface IAddBiometryFactorListener {
+
+    /**
+     * Called when biometry factor is successfully added.
+     */
+    @MainThread
     void onAddBiometryFactorSucceed();
+
+    /**
+     * Called when biometry factor addition fails.
+     *
+     * @param t error that occurred during the biometry factor addition.
+     */
+    @MainThread
     void onAddBiometryFactorFailed(Throwable t);
 }

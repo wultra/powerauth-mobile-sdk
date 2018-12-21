@@ -16,24 +16,31 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static io.getlime.security.powerauth.core.EciesEncryptorScope.ACTIVATION;
+import static io.getlime.security.powerauth.core.EciesEncryptorScope.APPLICATION;
+
 /**
  * The <code>EciesEncryptorScope</code> defines how {@link EciesEncryptor} encryptor
  * is configured in {@link Session#getEciesEncryptor(int, SignatureUnlockKeys, byte[]) Session.getEciesEncryptor} method.
  */
-public class EciesEncryptorScope {
+@Retention(RetentionPolicy.SOURCE)
+@IntDef({APPLICATION, ACTIVATION})
+public @interface EciesEncryptorScope {
+
     /**
      * An application scope means that encryptor can be constructed also when
      * the session has no valid activation.
      */
-    public static final int APPLICATION = 0;
+    int APPLICATION = 0;
 
     /**
      * An activation scope means that the encryptor can be constructed only when
      * the session has a valid activation.
      */
-    public static final int ACTIVATION = 1;
-
-    private EciesEncryptorScope() {
-        // Prevent class instantiation
-    }
+    int ACTIVATION = 1;
 }

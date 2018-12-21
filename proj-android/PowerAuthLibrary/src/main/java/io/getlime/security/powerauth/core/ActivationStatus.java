@@ -16,9 +16,18 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.IntDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 
 public class ActivationStatus {
+
+    @Retention(RetentionPolicy.SOURCE)
+    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed})
+    public @interface ActivationState {}
+
     /**
      * The activation is just created.
      */
@@ -45,10 +54,12 @@ public class ActivationStatus {
      * Error code returned from the C++ code. The value can be compared
      * to constants from ErrorCode class.
      */
+    @ErrorCode
     public final int errorCode;
     /**
      * State of the activation. You can compare this value to State_XXX constants.
      */
+    @ActivationState
     public final int state;
     /**
      * Number of failed authentication attempts in a row.

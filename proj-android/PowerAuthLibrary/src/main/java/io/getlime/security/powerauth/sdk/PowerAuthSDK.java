@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.sdk;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.CheckResult;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -78,6 +79,8 @@ import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockReques
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.sdk.impl.ICallbackDispacher;
+import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
@@ -104,6 +107,7 @@ public class PowerAuthSDK {
     private PA2Keychain mStatusKeychain;
     private PA2Keychain mBiometryKeychain;
     private PowerAuthTokenStore mTokenStore;
+    private ICallbackDispacher mCallbackDispatcher;
 
     /**
      * Helper class for building new instances.
@@ -170,6 +174,8 @@ public class PowerAuthSDK {
             instance.mSession = new Session(sessionSetup);
 
             boolean b = instance.restoreState(instance.mStateListener.serializedState(instance.mConfiguration.getInstanceId()));
+
+            instance.mCallbackDispatcher = new DefaultCallbackDispatcher();
 
             return instance;
         }
@@ -280,8 +286,9 @@ public class PowerAuthSDK {
      * @param authentication {@link PowerAuthAuthentication} object with signature factors set.
      * @return Integer with an appropriate bits set. Each bit represents one signature factor.
      */
+    @SignatureFactor
     private int determineSignatureFactorForAuthentication(@NonNull PowerAuthAuthentication authentication) {
-        int factor = 0;
+        @SignatureFactor int factor = 0;
         if (authentication.usePossession) {
             factor |= SignatureFactor.Possession;
         }
@@ -304,6 +311,7 @@ public class PowerAuthSDK {
          *
          * @param encryptedEncryptionKey encrypted vault key
          */
+        @MainThread
         void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey);
 
         /**
@@ -311,6 +319,7 @@ public class PowerAuthSDK {
          *
          * @param throwable Cause of the failure
          */
+        @MainThread
         void onFetchEncryptedVaultUnlockKeyFailed(Throwable throwable);
     }
 
@@ -324,11 +333,16 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object with asynchronous operation.
      */
     private @Nullable
-    ICancelable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
+    ICancelable fetchEncryptedVaultUnlockKey(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull @VaultUnlockReason final String reason, @NonNull final IFetchEncryptedVaultUnlockKeyListener listener) {
         // Input validations
         checkForValidSetup();
         if (!mSession.hasValidActivation()) {
-            listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                }
+            });
             return null;
         }
         // Execute HTTP request
@@ -534,7 +548,12 @@ public class PowerAuthSDK {
         // Validate the code first
         final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
         if (otp == null) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+                }
+            });
             return null;
         }
 
@@ -595,7 +614,12 @@ public class PowerAuthSDK {
 
         // Check if activation may be started
         if (!canStartActivation()) {
-            listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                }
+            });
             return null;
         }
 
@@ -625,7 +649,12 @@ public class PowerAuthSDK {
                 final int errorCode = step1Result.errorCode == ErrorCode.Encryption
                         ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
                         : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-                listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                dispatchCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                    }
+                });
                 return null;
             }
 
@@ -638,9 +667,14 @@ public class PowerAuthSDK {
             // Complete Layer1 request data
             request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
 
-        } catch (PowerAuthErrorException e) {
+        } catch (final PowerAuthErrorException e) {
             mSession.resetSession();
-            listener.onActivationCreateFailed(e);
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(e);
+                }
+            });
             return null;
         }
 
@@ -848,7 +882,12 @@ public class PowerAuthSDK {
             final int errorCode = mSession.hasPendingActivation()
                                     ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
                                     : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
-            listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationStatusFailed(new PowerAuthErrorException(errorCode));
+                }
+            });
             return null;
         }
 
@@ -866,7 +905,8 @@ public class PowerAuthSDK {
             }
             if (mGetActivationStatusTask == null) {
                 // Create a new GetActivationStatusTask() object
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession, new GetActivationStatusTask.ICompletionListener() {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession,
+                        mCallbackDispatcher, new GetActivationStatusTask.ICompletionListener() {
                     @Override
                     public void onSessionStateChange() {
                         saveSerializedState();
@@ -953,7 +993,12 @@ public class PowerAuthSDK {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
-            listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                }
+            });
             return null;
         }
 
@@ -1041,8 +1086,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the HTTP signature header for given GET request, URI identifier and query parameters using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatch it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1058,8 +1101,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the HTTP signature header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatch it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1085,8 +1126,6 @@ public class PowerAuthSDK {
 
     /**
      * Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
-     * <p>
-     * This method may block a main thread - make sure to dispatch it asynchronously.
      *
      * @param context        Context.
      * @param authentication An authentication instance specifying what factors should be used to sign the request.
@@ -1145,7 +1184,7 @@ public class PowerAuthSDK {
         }
 
         // Determine authentication factor type
-        final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
+        @SignatureFactor final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid combination of signature factors.");
         }
@@ -1342,7 +1381,12 @@ public class PowerAuthSDK {
                     authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IFingerprintActionHandler() {
                         @Override
                         public void onFingerprintDialogCancelled() {
-                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                            dispatchCallback(new Runnable() {
+                                @Override
+                                public void run() {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                                }
+                            });
                         }
 
                         @Override
@@ -1354,15 +1398,30 @@ public class PowerAuthSDK {
                                 // Update state after each successful calculations
                                 saveSerializedState();
 
-                                listener.onAddBiometryFactorSucceed();
+                                dispatchCallback(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        listener.onAddBiometryFactorSucceed();
+                                    }
+                                });
                             } else {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                                dispatchCallback(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                                    }
+                                });
                             }
                         }
 
                         @Override
                         public void onFingerprintInfoDialogClosed() {
-                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                            dispatchCallback(new Runnable() {
+                                @Override
+                                public void run() {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                                }
+                            });
                         }
                     });
                 } else {
@@ -1669,5 +1728,14 @@ public class PowerAuthSDK {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Missing activation");
         }
         return mClient.getExecutorProvider().getSerialExecutor();
+    }
+
+    /**
+     * Dispatch callback via {@link ICallbackDispacher}.
+     *
+     * @param runnable Runnable wrapping a callback that's supposed to be dispatched.
+     */
+    void dispatchCallback(Runnable runnable) {
+        mCallbackDispatcher.dispatchCallback(runnable);
     }
 }

@@ -16,10 +16,28 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
+
 /**
+ * Listener for data signature.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public interface IDataSignatureListener {
+
+    /**
+     * Called when data signature succeeds.
+     *
+     * @param signature the data signature.
+     */
+    @MainThread
     void onDataSignedSucceed(byte[] signature);
+
+    /**
+     * Called when data signature fails.
+     *
+     * @param t error that occurred during the data signature.
+     */
+    @MainThread
     void onDataSignedFailed(Throwable t);
 }

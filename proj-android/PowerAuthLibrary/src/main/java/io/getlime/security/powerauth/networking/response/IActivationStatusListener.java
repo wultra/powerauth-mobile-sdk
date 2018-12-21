@@ -16,13 +16,28 @@
 
 package io.getlime.security.powerauth.networking.response;
 
+import android.support.annotation.MainThread;
+
 import io.getlime.security.powerauth.core.ActivationStatus;
 
 /**
- * Created by miroslavmichalec on 03/11/2016.
+ * Listener for activation status retrieval.
  */
-
 public interface IActivationStatusListener {
+
+    /**
+     * Called when activation status retrieval succeeds.
+     *
+     * @param status retrieved activation status.
+     */
+    @MainThread
     void onActivationStatusSucceed(ActivationStatus status);
+
+    /**
+     * Called when activation status fails.
+     *
+     * @param t error that occurred during the activation status retrieval.
+     */
+    @MainThread
     void onActivationStatusFailed(Throwable t);
 }

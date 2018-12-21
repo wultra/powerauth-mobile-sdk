@@ -34,6 +34,7 @@ public class PowerAuthAuthorizationHttpHeader {
     /**
      * Contains an error code from <code>PowerAuthErrorCodes</code> set of codes.
      */
+    @PowerAuthErrorCodes
     public final int powerAuthErrorCode;
 
     /**
@@ -62,7 +63,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @param powerAuthErrorCode error to report
      * @return a new instance of header object created with error
      */
-    public static @NonNull PowerAuthAuthorizationHttpHeader createError(int powerAuthErrorCode) {
+    public static @NonNull PowerAuthAuthorizationHttpHeader createError(@PowerAuthErrorCodes int powerAuthErrorCode) {
         return new PowerAuthAuthorizationHttpHeader(null, null, powerAuthErrorCode);
     }
 
@@ -83,7 +84,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @param value value for HTTP header. May be null for error headers.
      * @param powerAuthErrorCode an error code from <code>PowerAuthErrorCodes</code> set of codes.
      */
-    private PowerAuthAuthorizationHttpHeader(@Nullable String key, @Nullable String value, int powerAuthErrorCode) {
+    private PowerAuthAuthorizationHttpHeader(@Nullable String key, @Nullable String value, @PowerAuthErrorCodes int powerAuthErrorCode) {
         this.key = key;
         this.value = value;
         this.powerAuthErrorCode = powerAuthErrorCode;
@@ -94,6 +95,7 @@ public class PowerAuthAuthorizationHttpHeader {
     // final public properties to access the elements.
     //
 
+    @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
     }

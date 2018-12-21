@@ -16,11 +16,26 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-/**
- * Created by miroslavmichalec on 03/11/2016.
- */
+import android.support.annotation.MainThread;
 
+/**
+ * Listener for encryption key retrieval.
+ */
 public interface IFetchEncryptionKeyListener {
+
+    /**
+     * Called when encryption key is successfully retrieved.
+     *
+     * @param encryptedEncryptionKey the retrieved encryption key.
+     */
+    @MainThread
     void onFetchEncryptionKeySucceed(byte[] encryptedEncryptionKey);
+
+    /**
+     * Called when encryption key retrieval fails.
+     *
+     * @param t error that occurred during the encryption key retrieval.
+     */
+    @MainThread
     void onFetchEncryptionKeyFailed(Throwable t);
 }

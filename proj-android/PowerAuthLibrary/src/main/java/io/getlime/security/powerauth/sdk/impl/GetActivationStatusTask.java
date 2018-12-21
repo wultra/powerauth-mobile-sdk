@@ -60,6 +60,7 @@ public class GetActivationStatusTask implements ICancelable {
     private final Session session;
     private final IPrivateCryptoHelper cryptoHelper;
     private final ICompletionListener completionListener;
+    private final ICallbackDispacher callbackDispacher;
 
     private final AtomicBoolean isExiting = new AtomicBoolean();
     private final AtomicBoolean isCanceled = new AtomicBoolean();
@@ -81,10 +82,12 @@ public class GetActivationStatusTask implements ICancelable {
             @NonNull HttpClient httpClient,
             @NonNull IPrivateCryptoHelper cryptoHelper,
             @NonNull Session session,
+            @NonNull ICallbackDispacher callbackDispacher,
             @NonNull ICompletionListener completionListener) {
         this.httpClient = httpClient;
         this.session = session;
         this.cryptoHelper = cryptoHelper;
+        this.callbackDispacher = callbackDispacher;
         this.completionListener = completionListener;
         this.pendingOperation = null;
     }
@@ -582,13 +585,18 @@ public class GetActivationStatusTask implements ICancelable {
          * @param status if not null, then the {@link IActivationStatusListener#onActivationStatusSucceed(ActivationStatus)} will be called
          * @param throwable if not null, then the {@link IActivationStatusListener#onActivationStatusFailed(Throwable)} will be called
          */
-        public void complete(@Nullable ActivationStatus status, @Nullable Throwable throwable) {
+        public void complete(final @Nullable ActivationStatus status, final @Nullable Throwable throwable) {
             if (!isCanceled.getAndSet(true)) {
-                if (status != null) {
-                    listener.onActivationStatusSucceed(status);
-                } else {
-                    listener.onActivationStatusFailed(throwable);
-                }
+                callbackDispacher.dispatchCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (status != null) {
+                            listener.onActivationStatusSucceed(status);
+                        } else {
+                            listener.onActivationStatusFailed(throwable);
+                        }
+                    }
+                });
             }
         }
     }

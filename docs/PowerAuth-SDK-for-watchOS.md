@@ -364,5 +364,3 @@ In case that `pod update` fails on various errors, try following workarounds:
   ```
 
 - Try to run `pod update` for twice. The cocoapods tool is mystery and sometimes just doesn't work as you would expect.
-
-- You can switch to [Carthage](https://github.com/Carthage/Carthage) for dependency management. It's simpler, [better & faster](https://www.youtube.com/watch?v=0fllyJTBsRU) :)

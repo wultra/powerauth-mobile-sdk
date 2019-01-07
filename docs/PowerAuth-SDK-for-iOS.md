@@ -115,7 +115,7 @@ When the `Enable Bitcode` option is set to `YES`, your application is build to L
 
 To disable Bitcode, go to your project `Build Settings`, search for `Enable Bitcode` option and set value to `NO`.
 
-![Disable Bitcode in Xcode](https://github.com/wultra/powerauth-mobile-sdk/wiki/images/ios_manual_04_bitcode.png)
+![Disable Bitcode in Xcode](images/ios_manual_04_bitcode.png)
 
 ### Include PowerAuth SDK in your sources
 
@@ -143,7 +143,7 @@ In order to be able to configure your `PowerAuthSDK` instance, you need followin
 
 Also, you need to specify your instance ID (by default, this can be for example an app bundle ID). This is because one application may use more than one custom instances of `PowerAuthSDK` and identifier is the way to distinguish these instances while working with Keychain data.
 
-Finally, you need to know the location of your [PowerAuth 2.0 Standard RESTful API](https://github.com/wultra/powerauth-crypto/wiki/Standard-RESTful-API) endpoints. Tha path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
+Finally, you need to know the location of your [PowerAuth 2.0 Standard RESTful API](https://github.com/wultra/powerauth-crypto/wiki/Standard-RESTful-API) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
 
 To sum it up, in order to configure `PowerAuthSDK` default instance, add following code to your application delegate:
 

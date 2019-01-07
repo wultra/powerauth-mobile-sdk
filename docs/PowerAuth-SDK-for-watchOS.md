@@ -22,8 +22,8 @@ title: PowerAuth Mobile SDK for Apple Watch
 
 Related documents:
 
-- [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS) / or go directly to [Apple Watch section](PowerAuth-SDK-for-iOS.html#apple-watch-support)
-- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions)
+- [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md) / or go directly to [Apple Watch section](./PowerAuth-SDK-for-iOS.md#apple-watch-support)
+- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions.md)
 
 
 ## Installation
@@ -161,7 +161,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 }
 ```
 
-*Note that the code above is very similar to its [iOS counterpart](PowerAuth-SDK-for-iOS.html#prepare-watch-connectivity)*
+*Note that the code above is very similar to its [iOS counterpart](./PowerAuth-SDK-for-iOS.md#prepare-watch-connectivity)*
 
 The example above is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. You also have to implement a very similar class for your IOS application. The important is, that at some point, your both iOS and watchOS applications has to call `SessionManager.shared.activateSession()` to make transfers possible. Once you activate your session on the device, you can use all APIs related to the communication.
 
@@ -241,7 +241,7 @@ The asynchronous `updateActivationStatus` method can be used only if `WCSession`
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS#token-based-authentication).
+WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
 
 The basic principles for working with tokens on watchOS are the same as for iOS applications, so the interface is practically identical to what you know from PowerAuth SDK for iOS. The main difference is that watchOS application cannot ask PowerAuth server to create a new token, but as a replacement, it can ask for token already stored on the iPhone. In fact, from point of watchOS application's view, the iOS application is just a kind of "remote server" providing tokens.
 
@@ -337,7 +337,7 @@ This section of document contains a various workarounds and tips for Watch SDK u
 
 ### WCSession activation sequence on iOS
 
-You should check recommendations about [WCSession's activation sequence on IOS](PowerAuth-SDK-for-iOS#wcsession-activation-sequence).
+You should check recommendations about [WCSession's activation sequence on IOS](./PowerAuth-SDK-for-iOS.md#wcsession-activation-sequence).
 
 ### Cocoapods integration fails
 

@@ -21,8 +21,8 @@ title: PowerAuth Mobile SDK for iOS Extensions
 
 Related documents:
 
-- [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS)
-- [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS)
+- [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md)
+- [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
 
 
 ## Installation
@@ -192,7 +192,7 @@ if this.powerAuthExt.hasValidActivation() {
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](PowerAuth-SDK-for-iOS#token-based-authentication)
+WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication)
 
 
 ### Getting token
@@ -205,7 +205,7 @@ if let token = this.powerAuthExt.tokenStore.localToken(withName: "MyToken") {
 }
 ```
 
-Note that token store also provides `requestAccessToken()` method, but that always returns `PA2ErrorCodeInvalidToken` error. Unlike the iOS SDK API, you cannot get a token from the server from app extension. Only main application can do that and once the token is available, then it's also available for the app extension. Check PowerAuth SDK for iOS [documentation for more details](PowerAuth-SDK-for-iOS.html#getting-token).
+Note that token store also provides `requestAccessToken()` method, but that always returns `PA2ErrorCodeInvalidToken` error. Unlike the iOS SDK API, you cannot get a token from the server from app extension. Only main application can do that and once the token is available, then it's also available for the app extension. Check PowerAuth SDK for iOS [documentation for more details](./PowerAuth-SDK-for-iOS.md#getting-token).
 
 ### Generating authorization header
 

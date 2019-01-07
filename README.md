@@ -4,10 +4,10 @@ In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile
 
 ## Integration Tutorials
 
-- [PowerAuth SDK for iOS Apps](docs/PowerAuth-SDK-for-iOS.md)
-- [PowerAuth SDK for iOS Extensions](docs/PowerAuth-SDK-for-iOS-Extensions.md)
-- [PowerAuth SDK for watchOS](docs/PowerAuth-SDK-for-watchOS.md)
-- [PowerAuth SDK for Android Apps](docs/PowerAuth-SDK-for-Android.md)
+- [PowerAuth SDK for iOS Apps](./docs/PowerAuth-SDK-for-iOS.md)
+- [PowerAuth SDK for iOS Extensions](./docs/PowerAuth-SDK-for-iOS-Extensions.md)
+- [PowerAuth SDK for watchOS](./docs/PowerAuth-SDK-for-watchOS.md)
+- [PowerAuth SDK for Android Apps](./docs/PowerAuth-SDK-for-Android.md)
 
 ## License
 

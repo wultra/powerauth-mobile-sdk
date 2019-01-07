@@ -37,8 +37,8 @@ title: PowerAuth Mobile SDK for iOS Apps
 
 Related documents:
 
-- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions)
-- [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS)
+- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions.md)
+- [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
 
 
 ## Installation
@@ -878,7 +878,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 }
 ```
 
-*Note that the code above is very similar to its [watchOS counterpart](PowerAuth-SDK-for-watchOS.html#prepare-watch-connectivity)*
+*Note that the code above is very similar to its [watchOS counterpart](./PowerAuth-SDK-for-watchOS.md#prepare-watch-connectivity)*
 
 The example is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. The important is, that at some point, your both (iOS & watchOS) applications has to call `SessionManager.shared.activateSession()` to make transfers possible. Once you activate your session on the device, then you can use all APIs related to the communication.
 

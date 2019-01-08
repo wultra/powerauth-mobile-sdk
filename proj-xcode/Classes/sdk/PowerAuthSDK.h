@@ -445,7 +445,7 @@
 
 /**
  The WatchSupport category provides simple interface for sending activation status to paired Apple Watch.
- Please read our integration guide (https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
+ Please read our integration guide (https://github.com/wultra/powerauth-mobile-sdk/docs/PowerAuth-SDK-for-watchOS.md)
  before you start using this interface in your application.
  */
 @interface PowerAuthSDK (WatchSupport)

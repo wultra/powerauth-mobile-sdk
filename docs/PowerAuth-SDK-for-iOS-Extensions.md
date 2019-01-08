@@ -1,7 +1,4 @@
----
-layout: page
-title: PowerAuth Mobile SDK for iOS Extensions
----
+# PowerAuth Mobile SDK for iOS Extensions
 
 ## Table of Contents
 

@@ -1,7 +1,4 @@
----
-layout: page
-title: PowerAuth Mobile SDK
----
+# PowerAuth Mobile SDK
 
 In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile applications need to perform the required network and cryptographic processes, as described in the PowerAuth 2.0 documentation. To simplify implementation of these processes, developers can use iOS and Android libraries from this repository.
 

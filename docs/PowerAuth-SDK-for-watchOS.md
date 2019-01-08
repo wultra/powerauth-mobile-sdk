@@ -1,7 +1,4 @@
----
-layout: page
-title: PowerAuth Mobile SDK for Apple Watch
----
+# PowerAuth Mobile SDK for Apple Watch
 
 ## Table of Contents
 

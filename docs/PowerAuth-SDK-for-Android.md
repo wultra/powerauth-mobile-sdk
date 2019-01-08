@@ -1,7 +1,4 @@
----
-layout: page
-title: PowerAuth Mobile SDK for Android
----
+# PowerAuth Mobile SDK for Android
 
 ## Table of Contents
 

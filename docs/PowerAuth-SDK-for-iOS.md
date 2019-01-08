@@ -1,7 +1,4 @@
----
-layout: page
-title: PowerAuth Mobile SDK for iOS Apps
----
+# PowerAuth Mobile SDK for iOS Apps
 
 ## Table of Contents
 

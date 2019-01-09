@@ -121,6 +121,7 @@
 	}];
 	
 	[postDataTask resume];
+	[session finishTasksAndInvalidate];
 	
 	return postDataTask;
 }

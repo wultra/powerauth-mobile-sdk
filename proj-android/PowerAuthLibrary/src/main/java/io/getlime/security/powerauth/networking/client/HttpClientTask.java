@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.client;
 
+import android.net.TrafficStats;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 
@@ -43,6 +44,8 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
  * {@link AsyncTask} infrastructure.
  */
 class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TResponse> implements ICancelable {
+
+    private static final int THREAD_STATS_TAG = 0x3456;
 
     private final HttpRequestHelper<TRequest, TResponse> httpRequestHelper;
     private final String baseUrl;
@@ -99,6 +102,8 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
 
     @Override
     protected TResponse doInBackground(TRequest... tRequests) {
+        setThreadStatsTag();
+
         InputStream inputStream = null;
         HttpURLConnection urlConnection = null;
         try {
@@ -217,5 +222,16 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
     @Override
     public void cancel() {
         this.cancel(true);
+    }
+
+    /**
+     * This method is here to mitigate
+     * {@link android.os.StrictMode.VmPolicy.Builder#detectUntaggedSockets()}
+     * detection problem.
+     */
+    private void setThreadStatsTag() {
+        if (TrafficStats.getThreadStatsTag() == -1) {
+            TrafficStats.setThreadStatsTag(THREAD_STATS_TAG);
+        }
     }
 }

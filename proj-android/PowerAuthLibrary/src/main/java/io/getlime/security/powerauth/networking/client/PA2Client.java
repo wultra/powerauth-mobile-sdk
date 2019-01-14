@@ -223,7 +223,7 @@ public class PA2Client {
                             } else {
                                 // Status is not "OK", try to create ErrorModel object
                                 final Error error = mGson.fromJson(responseElement, TypeToken.get(Error.class).getType());
-                                callOnErrorUi(new ErrorResponseApiException(error, responseBody, responseJson), responseListener);
+                                callOnErrorUi(new ErrorResponseApiException(error, responseCode, responseBody, responseJson), responseListener);
                             }
                             // Return now, because for all other cases, we will report an error...
                             return null;

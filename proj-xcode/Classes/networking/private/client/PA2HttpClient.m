@@ -76,6 +76,11 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 	return self;
 }
 
+- (void) dealloc
+{
+	[_session finishTasksAndInvalidate];
+}
+
 - (NSOperationQueue*) concurrentQueue
 {
 	return _GetSharedConcurrentQueue();

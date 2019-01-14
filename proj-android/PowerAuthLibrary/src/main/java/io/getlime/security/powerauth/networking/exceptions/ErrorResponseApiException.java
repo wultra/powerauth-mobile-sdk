@@ -24,7 +24,7 @@ import io.getlime.core.rest.model.base.entity.Error;
  * Signals that a REST connection failed with a known error. You can check
  * the reason of failure in the attached ErrorModel object.
  */
-public class ErrorResponseApiException extends Exception {
+public class ErrorResponseApiException extends FailedApiException {
 
     /**
      * Error response received from the server
@@ -32,49 +32,23 @@ public class ErrorResponseApiException extends Exception {
     private Error errorResponse;
 
     /**
-     * Full response body received from the server
-     */
-    private String responseBody;
-
-    /**
-     * JSON parsed from response body or null if received content is not JSON
-     */
-    private JsonObject responseJson;
-
-
-    /**
-     * Constructs a new exception with error received from server.
+     * Constructs an exception with {@link Error} model object, response code and response body.
      *
      * @param errorResponse error received from server
-     * @param responseBody string with a HTTP response body. May be null if it's not available
+     * @param responseCode HTTP response code
+     * @param responseBody HTTP response body, may be null if it's not available.
      * @param responseJson {@link JsonObject} with JSON root, received from the server. May be null if response
-     *                                        is not in JSON format.
+     *                     is not in JSON format.
      */
-    public ErrorResponseApiException(Error errorResponse, String responseBody, JsonObject responseJson) {
+    public ErrorResponseApiException(Error errorResponse, int responseCode, String responseBody, JsonObject responseJson) {
+        super(responseCode, responseBody, responseJson);
         this.errorResponse = errorResponse;
-        this.responseBody = responseBody;
-        this.responseJson = responseJson;
     }
 
     /**
-     * @return ErrorModel with failure reason
+     * @return {@link Error} model object with failure reason
      */
     public Error getErrorResponse() {
         return errorResponse;
-    }
-
-    /**
-     * @return Full response body received from the server
-     */
-    public String getResponseBody() {
-        return responseBody;
-    }
-
-
-    /**
-     * @return JsonObject parsed from response body or null if received content is not JSON
-     */
-    public JsonObject getResponseJson() {
-        return responseJson;
     }
 }

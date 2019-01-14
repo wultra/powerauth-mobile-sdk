@@ -227,7 +227,7 @@ class HttpRequestHelper<TRequest, TResponse> {
             // 2xx response, try to build an object from response data
             return buildResponseObject(responseCode, responseData);
 
-        } catch (FailedApiException | ErrorResponseApiException | PowerAuthErrorException e) {
+        } catch (FailedApiException | PowerAuthErrorException e) {
             // Known exceptions, just re-throw
             throw e;
         } catch (Throwable e) {
@@ -344,7 +344,7 @@ class HttpRequestHelper<TRequest, TResponse> {
                 final JsonElement responseObjectElement = jsonRoot.get("responseObject");
                 if (responseObjectElement != null && responseObjectElement.isJsonObject()) {
                     final Error errorResponse = serialization.getGson().fromJson(responseObjectElement, TypeToken.get(Error.class).getType());
-                    return new ErrorResponseApiException(errorResponse, responseString, jsonRoot);
+                    return new ErrorResponseApiException(errorResponse, responseCode, responseString, jsonRoot);
                 }
             } catch (JsonParseException e) {
                 exception = e;

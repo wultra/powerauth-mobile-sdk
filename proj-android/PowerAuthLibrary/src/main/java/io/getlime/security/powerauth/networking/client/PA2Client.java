@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.client;
 
+import android.net.TrafficStats;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -107,6 +108,7 @@ public class PA2Client {
 
     private class RestExecutor<TRequest, TResponse> extends AsyncTask<TRequest, Void, Void> implements ICancelable {
 
+        private static final int THREAD_STATS_TAG = 0x3456;
         private static final String CONTENT_TYPE_JSON = "application/json";
 
         private IEndpointDefinition<TRequest> requestDefinition;
@@ -124,6 +126,9 @@ public class PA2Client {
 
         @Override
         protected Void doInBackground(TRequest... params) {
+
+            setThreadStatsTag();
+
             URL url;
             try {
                 url = new URL(requestDefinition.getEndpoint());
@@ -269,6 +274,17 @@ public class PA2Client {
         @Override
         public void cancel() {
             this.cancel(true);
+        }
+
+        /**
+         * This method is here to mitigate
+         * {@link android.os.StrictMode.VmPolicy.Builder#detectUntaggedSockets()}
+         * detection problem.
+         */
+        private void setThreadStatsTag() {
+            if (TrafficStats.getThreadStatsTag() == -1) {
+                TrafficStats.setThreadStatsTag(THREAD_STATS_TAG);
+            }
         }
     }
 

@@ -24,40 +24,89 @@ import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.*;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
- * Created by miroslavmichalec on 20/10/2016.
+ * The {@code PowerAuthErrorCodes} interface defines various error constants described
+ *
  */
 @Retention(SOURCE)
 @IntDef({PA2Succeed, PA2ErrorCodeNetworkError, PA2ErrorCodeSignatureError, PA2ErrorCodeInvalidActivationState,
-        PA2ErrorCodeInvalidActivationData, PA2ErrorCodeMissingActivation, PA2ErrorCodeAuthenticationFailed,
-        PA2ErrorCodeActivationPending, PA2ErrorCodeKeychain, PA2ErrorCodeTouchIDNotAvailable, PA2ErrorCodeTouchIDCancel,
-        PA2ErrorCodeOperationCancelled, PA2ErrorCodeInvalidActivationCode, PA2ErrorCodeInvalidToken,
-        PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter, PA2ErrorCodeProtocolUpgrade,
-        PA2ErrorCodePendingProtocolUpgrade})
+        PA2ErrorCodeInvalidActivationData, PA2ErrorCodeMissingActivation, PA2ErrorCodeActivationPending,
+        PA2ErrorCodeBiometryCancel, PA2ErrorCodeOperationCancelled, PA2ErrorCodeInvalidActivationCode,
+        PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
+        PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade})
 public @interface PowerAuthErrorCodes {
 
     /**
-     * Error code for error with network connectivity or download
+     * Code returned, or reported, when operation succeeds.
      */
     int PA2Succeed = 0;
+    
+    /**
+     * Error code for error with network connectivity or download.
+     */
     int PA2ErrorCodeNetworkError = 1;
+
+    /**
+     * Error code for error in signature calculation.
+     */
     int PA2ErrorCodeSignatureError = 2;
+
+    /**
+     * Error code for error that occurs when activation state is invalid.
+     */
     int PA2ErrorCodeInvalidActivationState = 3;
+
+    /**
+     * Error code for error that occurs when activation data is invalid.
+     */
     int PA2ErrorCodeInvalidActivationData = 4;
+
+    /**
+     * Error code for error that occurs when activation is required but missing.
+     */
     int PA2ErrorCodeMissingActivation = 5;
-    int PA2ErrorCodeAuthenticationFailed = 6;
+
+    /**
+     * Error code for error that occurs when pending activation is present and work with completed
+     * activation is required.
+     */
     int PA2ErrorCodeActivationPending = 7;
-    int PA2ErrorCodeKeychain = 8;
-    int PA2ErrorCodeTouchIDNotAvailable = 9;
-    int PA2ErrorCodeTouchIDCancel = 10;
+
+    /**
+     * Error code for situation when biometric prompt is canceled by the user.
+     */
+    int PA2ErrorCodeBiometryCancel = 10;
+
+    /**
+     * Error code for canceled operation. This kind of error may occur in situations, when SDK
+     * needs to cancel an asynchronous operation, but the cancel is not initiated by the application
+     * itself. For example, if you reset the state of {@code PowerAuthSDK} during the pending
+     * fetch for activation status, then the application gets an exception, with this error code.
+     */
     int PA2ErrorCodeOperationCancelled = 11;
+
+    /**
+     * Error code for error that occurs when invalid activation code is provided.
+     */
     int PA2ErrorCodeInvalidActivationCode = 12;
+
+    /**
+     * Error code for accessing an unknown token.
+     */
     int PA2ErrorCodeInvalidToken = 13;
+
+    /**
+     * Error code for errors related to end-to-end encryption.
+     */
     int PA2ErrorCodeEncryptionError = 14;
+
+    /**
+     * Error code for a general API misuse.
+     */
     int PA2ErrorCodeWrongParameter = 15;
 
     /**
      * Error code for protocol upgrade failure.
-     * The recommended action is to retry the status fetch operation, or remove the activation.
+     * The recommended action is to retry the status fetch operation, or locally remove the activation.
      */
     int PA2ErrorCodeProtocolUpgrade = 16;
 

@@ -1384,7 +1384,7 @@ public class PowerAuthSDK {
                             dispatchCallback(new Runnable() {
                                 @Override
                                 public void run() {
-                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
                                 }
                             });
                         }
@@ -1419,7 +1419,7 @@ public class PowerAuthSDK {
                             dispatchCallback(new Runnable() {
                                 @Override
                                 public void run() {
-                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
                                 }
                             });
                         }

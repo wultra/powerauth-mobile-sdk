@@ -48,13 +48,13 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidActivationData;
 PA2_EXTERN_C NSInteger const PA2ErrorCodeMissingActivation;
 
 /** Error code for error that occurs when authentication using PowerAuth signature fails */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeAuthenticationFailed;
+PA2_EXTERN_C NSInteger const PA2ErrorCodeAuthenticationFailed PA2_DEPRECATED(0.20.0);
 
 /** Error code for error that occurs when pending activation is present and work with completed activation is required */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeActivationPending;
 
 /** Error code for keychanin related errors */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeKeychain;
+PA2_EXTERN_C NSInteger const PA2ErrorCodeKeychain PA2_DEPRECATED(0.20.0);
 
 /** Error code for TouchID or FaceID not available error */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryNotAvailable;

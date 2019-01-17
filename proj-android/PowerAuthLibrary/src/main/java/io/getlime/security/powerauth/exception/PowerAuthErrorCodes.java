@@ -31,11 +31,12 @@ public class PowerAuthErrorCodes {
     public static final int PA2ErrorCodeInvalidActivationState = 3;
     public static final int PA2ErrorCodeInvalidActivationData = 4;
     public static final int PA2ErrorCodeMissingActivation = 5;
-    public static final int PA2ErrorCodeAuthenticationFailed = 6;
+    public static final @Deprecated int PA2ErrorCodeAuthenticationFailed = 6;   // Never returned from SDK
     public static final int PA2ErrorCodeActivationPending = 7;
-    public static final int PA2ErrorCodeKeychain = 8;
-    public static final int PA2ErrorCodeTouchIDNotAvailable = 9;
-    public static final int PA2ErrorCodeTouchIDCancel = 10;
+    public static final @Deprecated int PA2ErrorCodeKeychain = 8;               // Never returned from SDK
+    public static final @Deprecated int PA2ErrorCodeTouchIDNotAvailable = 9;    // Never returned from SDK
+    public static final @Deprecated int PA2ErrorCodeTouchIDCancel = 10;         // Please use "PA2ErrorCodeBiometryCancel"
+    public static final int PA2ErrorCodeBiometryCancel = 10;                    // Replacement for "PA2ErrorCodeTouchIDCancel"
     public static final int PA2ErrorCodeOperationCancelled = 11;
     public static final int PA2ErrorCodeInvalidActivationCode = 12;
     public static final int PA2ErrorCodeInvalidToken = 13;

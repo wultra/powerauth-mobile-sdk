@@ -1252,7 +1252,7 @@ public class PowerAuthSDK {
                     authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IFingerprintActionHandler() {
                         @Override
                         public void onFingerprintDialogCancelled() {
-                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
                         }
 
                         @Override
@@ -1272,7 +1272,7 @@ public class PowerAuthSDK {
 
                         @Override
                         public void onFingerprintInfoDialogClosed() {
-                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeTouchIDCancel));
+                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
                         }
                     });
                 } else {

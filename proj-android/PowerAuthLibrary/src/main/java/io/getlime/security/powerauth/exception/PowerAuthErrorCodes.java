@@ -24,7 +24,7 @@ import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.*;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
- * The {@code PowerAuthErrorCodes} interface defines various error constants described
+ * The {@code PowerAuthErrorCodes} interface defines various error constants reported from PowerAuth SDK.
  *
  */
 @Retention(SOURCE)
@@ -39,7 +39,7 @@ public @interface PowerAuthErrorCodes {
      * Code returned, or reported, when operation succeeds.
      */
     int PA2Succeed = 0;
-    
+
     /**
      * Error code for error with network connectivity or download.
      */

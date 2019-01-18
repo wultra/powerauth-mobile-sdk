@@ -21,12 +21,9 @@ package io.getlime.security.powerauth.exception;
  */
 
 public class PowerAuthErrorCodes {
-
-    /**
-     * Error code for error with network connectivity or download
-     */
+    
     public static final int PA2Succeed = 0;
-    public static final int PA2ErrorCodeNetworkError = 1;
+    public static final int PA2ErrorCodeNetworkError = 1;                       // Future SDK compatibility
     public static final int PA2ErrorCodeSignatureError = 2;
     public static final int PA2ErrorCodeInvalidActivationState = 3;
     public static final int PA2ErrorCodeInvalidActivationData = 4;
@@ -37,9 +34,11 @@ public class PowerAuthErrorCodes {
     public static final @Deprecated int PA2ErrorCodeTouchIDNotAvailable = 9;    // Never returned from SDK
     public static final @Deprecated int PA2ErrorCodeTouchIDCancel = 10;         // Please use "PA2ErrorCodeBiometryCancel"
     public static final int PA2ErrorCodeBiometryCancel = 10;                    // Replacement for "PA2ErrorCodeTouchIDCancel"
-    public static final int PA2ErrorCodeOperationCancelled = 11;
+    public static final int PA2ErrorCodeOperationCancelled = 11;                // Future SDK compatibility
     public static final int PA2ErrorCodeInvalidActivationCode = 12;
     public static final int PA2ErrorCodeInvalidToken = 13;
     public static final int PA2ErrorCodeEncryptionError = 14;
     public static final int PA2ErrorCodeWrongParameter = 15;
+    public static final int PA2ErrorCodeProtocolUpgrade = 16;                   // Future SDK compatibility
+    public static final int PA2ErrorCodePendingProtocolUpgrade = 17;            // Future SDK compatibility
 }

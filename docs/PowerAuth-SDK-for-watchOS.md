@@ -238,7 +238,7 @@ The asynchronous `updateActivationStatus` method can be used only if `WCSession`
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
+WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
 
 The basic principles for working with tokens on watchOS are the same as for iOS applications, so the interface is practically identical to what you know from PowerAuth SDK for iOS. The main difference is that watchOS application cannot ask PowerAuth server to create a new token, but as a replacement, it can ask for token already stored on the iPhone. In fact, from point of watchOS application's view, the iOS application is just a kind of "remote server" providing tokens.
 

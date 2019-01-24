@@ -132,7 +132,7 @@ From now on, you can use `PowerAuthSDK` and other classes in your project.
 
 ## Configuration
 
-In order to be able to configure your `PowerAuthSDK` instance, you need following values from the PowerAuth 2.0 Server:
+In order to be able to configure your `PowerAuthSDK` instance, you need following values from the PowerAuth Server:
 
 - `APP_KEY` - Application key, that binds activation with specific application.
 - `APP_SECRET` - Application secret, that binds activation with specific application.
@@ -140,7 +140,7 @@ In order to be able to configure your `PowerAuthSDK` instance, you need followin
 
 Also, you need to specify your instance ID (by default, this can be for example an app bundle ID). This is because one application may use more than one custom instances of `PowerAuthSDK` and identifier is the way to distinguish these instances while working with Keychain data.
 
-Finally, you need to know the location of your [PowerAuth 2.0 Standard RESTful API](https://github.com/wultra/powerauth-crypto/wiki/Standard-RESTful-API) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
+Finally, you need to know the location of your [PowerAuth Standard RESTful API](https://github.com/wultra/powerauth-crypto/wiki/Standard-RESTful-API) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
 
 To sum it up, in order to configure `PowerAuthSDK` default instance, add following code to your application delegate:
 
@@ -168,23 +168,20 @@ After you configure the SDK instance, you are ready to make your first activatio
 
 ### Activation via Activation Code
 
-The original activation method uses a one-time activation code generated in PowerAuth 2.0 Server. To create an activation using this method, some external application (Internet banking, ATM application, branch / kiosk application) must generate an activation code for you and display it (as a text or in a QR code).
+The original activation method uses a one-time activation code generated in PowerAuth Server. To create an activation using this method, some external application (Internet banking, ATM application, branch / kiosk application) must generate an activation code for you and display it (as a text or in a QR code).
 
 Use following code to create an activation once you have an activation code:
 
 ```swift
-// Call reset to clear any pending activation data from previous attempts
-PowerAuthSDK.sharedInstance().reset()
-
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
-let activationCode = "12345-67890-12345-67890" // let user type or QR-scan this value
+let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create a new activation with given device name and activation code
-PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, activationCode: activationCode) { (fingerprint, error) in
+PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, activationCode: activationCode) { (result, error) in
 
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
-        // The 'fingerprint' value represents the device public key - it may be used as visual confirmation
+        // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
     } else {
         // Error occurred, report it to the user
     }    
@@ -194,26 +191,22 @@ PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, activationC
 
 ### Activation via Custom Credentials
 
-You may also create an activation using any custom login data - it can be anything that server can use to obtain user ID to associate with a new activation. Since the credentials are custom, the endpoint that handles the custom activation must be set (standard RESTful API cannot be used).
+You may also create an activation using any custom login data - it can be anything that server can use to obtain user ID to associate with a new activation. Since the credentials are custom, the server's implementation must be able to process such request. Unlike the previous versions of SDK, the custom activation no longer requires a custom activation endpoint.
 
 Use following code to create an activation using custom credentials:
 
 ```swift
-// Call reset to clear any pending activation data from previous attempts
-PowerAuthSDK.sharedInstance().reset()
-
 // Create a new activation with given device name and custom login credentials
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let credentials = [
     "username": "john.doe@example.com",
     "password": "YBzBEM"
 ]
-let url = URL(string: "https://localhost:8080/demo-server/session/login")
 
-PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, identityAttributes: credentials, url: url!) { (fingerprint, error) in
+PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, identityAttributes: credentials, extras: nil) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
-        // The 'fingerprint' value represents the device public key - it may be used as visual confirmation
+        // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
     } else {
         // Error occurred, report it to the user
     }
@@ -285,9 +278,12 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
 }
 ```
 
+Note that the status fetch may fail at an unrecoverable error `PA2ErrorCodeProtocolUpgrade`, meaning that it's not possible to upgrade PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
+
+
 ## Data Signing
 
-The main feature of PowerAuth 2.0 protocol is data signing. PowerAuth 2.0 has three types of signatures:
+The main feature of PowerAuth protocol is data signing. PowerAuth has three types of signatures:
 
 - **Symmetric Multi-Factor Signature**: Suitable for most operations, such as login, new payment or confirming changes in settings.
 - **Asymmetric Private Key Signarture**: Suitable for documents, where strong one sided signature is desired.
@@ -321,7 +317,7 @@ do {
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
-    // In case of invalid configuration, invalid activation state or currupted state data
+    // In case of invalid configuration, invalid activation state or corrupted state data
 }
 ```
 
@@ -345,15 +341,15 @@ do {
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
-    // In case of invalid configuration, invalid activation state or currupted state data
+    // In case of invalid configuration, invalid activation state or corrupted state data
 }
 ```
 
 ### Asymmetric Private Key Signature
 
-Asymmetric Private Key Signature uses a private key stored in the PowerAuth 2.0 secure vault. In order to unlock the secure vault and retrieve the private key, user has to be first authenticated using a symmetric multi-factor signature with at least two factors. This mechanism protects the private key on the device - server plays a role of a "doorkeeper" and holds the vault unlock key.
+Asymmetric Private Key Signature uses a private key stored in the PowerAuth secure vault. In order to unlock the secure vault and retrieve the private key, user has to be first authenticated using a symmetric multi-factor signature with at least two factors. This mechanism protects the private key on the device - server plays a role of a "doorkeeper" and holds the vault unlock key.
 
-This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN, Touch ID scan) and use following code:
+This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN) and use following code:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -425,7 +421,7 @@ PowerAuthSDK.sharedInstance().changePassword(from: "oldPassword", to: "newPasswo
 }
 ```
 
-This method calls `/pa/vault/unlock` under the hood with a 2FA signature with provided original password to verify the password correctness.
+This method calls `/pa/v3/signature/validate` under the hood with a 2FA signature with provided original password to verify the password correctness.
 
 However, using this method does not usually fit to the typical UI workflow of a password change. The method may be used in cases where old password and new password are on a single screen, and therefore are both available at the same time. In most mobile apps, however, user first visits a screen to enter an old password and then (if the password is OK), the user proceeds to the two-screen flow of a new password setup (select password, confirm password). In other words, the workflow works like this:
 
@@ -577,7 +573,7 @@ self.httpClient.post(null, "/custom/activation/remove") { (error) in
 
 ### Removal via Signed Request
 
-PowerAuth 2.0 Standard RESTful API has a default endpoint `/pa/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for iOS and PowerAuth 2.0 Standard RESTful API - nothing has to be programmed. Also, user does not have to be logged in to use it. However, user has to authenticate using 2FA with either password or biometry.
+PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for iOS and PowerAuth Standard RESTful API - nothing has to be programmed. Also, user does not have to be logged in to use it. However, user has to authenticate using 2FA with either password or biometry.
 
 Use following code for an activation removal using signed request:
 
@@ -600,70 +596,82 @@ PowerAuthSDK.sharedInstance().removeActivation(with: auth) { (error) in
 
 ## End-To-End Encryption
 
-Currently, PowerAuth SDK for iOS has support for non-personalized (application key specific) encryption. You can use it to send encrypted data payload to server. Server has to be able to handle encrypted payload (decrypt request, encrypt response).
+Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on ECIES scheme:
 
-Encryption is technically carried out using an `PA2Encryptor` subclasses. Encryptors for given purpose are build using an `PA2EncryptorFactory` instance. You can easily obtain an encryptor factory right from the `PowerAuthSDK` shared instance, like so:
+- In "application" scope, the encryptor can be acquired and used during the whole lifetime of the application. We used to call this mode as "non-personalized encryption" in the previous versions of SDK.
+- In "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bounded to the parameters, agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), in "sign-then-encrypt" mode. 
 
-```swift
-// Obtain the default encryptor factory
-let encryptorFactory = PowerAuthSDK.sharedInstance().encryptorFactory
-```
 
-### Non-Personalized E2EE
+For both scenarios, you need to acquire `PA2ECIESEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently supports only low level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 
-To use non-personalized (application public key specific) encryption in your request / response cycle, build an appropriate encryptor and encrypt your data using following code:
+Following steps are typically required for a full E2EE request and response processing:
 
-```swift
-do {
-    // Obtain a correct encryptor
-    let encryptor = encryptorFactory.buildRequestResponseNonPersonalizedEncryptor()
+1. Acquire the right encryptor from `PowerAuthSDK` instance. For example:
+   ```swift
+   // Encryptor for "application" scope.
+   guard let encryptor = powerAuthSDK.eciesEncryptorForApplicationScope() else { ...failure... }
+   // ...or similar, for an "activation" scope.
+   guard let encryptor = powerAuthSDK.eciesEncryptorForActivationScope() else { ...failure... }
+   ```
 
-    // Prepare original request data
-    let requestDictionary = ["requestKey": "requestVaue"]
-    let requestData = try JSONSerialization.data(withJSONObject: requestDictionary)
+2. Serialize your request payload, if needed, into sequence of bytes. This step typically means that you need to serialize your model object into JSON formatted sequence of bytes.
 
-    // Encrypt data using provided encryptor
-    if let encryptedRequestData = try encryptor?.encryptRequest(requestData) {
+3. Encrypt your payload:
+   ```swift
+   guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
+   ```
 
-        // Send encrypted request to your server endpoint
-        self.httpClient.post(encryptedRequestData, "/custom/api/encrypted") { (httpResponse, error) in
+4. Construct a JSON from provided cryptogram object. The dictionary with following keys is expected:
+   - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
+   - `encryptedData` property fill with `cryptogram.bodyBase64`
+   - `mac` property fill with `cryptogram.macBase64`
+   
+   So, the final request JSON should looks like:
+   ```json
+   {
+      "ephemeralPublicKey" : "BASE64-DATA-BLOB",
+      "encryptedData": "BASE64-DATA-BLOB",
+      "mac" : "BASE64-DATA-BLOB"
+   }
+   ```
+   
+5. Add following HTTP header (for signed requests, see note below):
+   ```swift
+   // Acquire a "metadata" object, which contains an additional information for the request construction
+   guard let metadata = encryptor.associatedMetaData else { ...should never happen... }
+   let httpHeaderName = metadata.httpHeaderKey
+   let httpHeaderValue = metadata.httpHeaderValue
+   ```
+   *Note, that if "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.* 
+   
+6. Fire your HTTP request and wait for a response
+   - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response, defined in our protocol. So, you can expect JSON object with `"error"` and `"message"` properties in the response.
 
-            // Check if the communication with server succeed
-            if error == nil {
-                do {
+7. Decrypt the response. The received JSON typically looks like:
+   ```json
+   {
+      "encryptedData": "BASE64-DATA-BLOB",
+      "mac" : "BASE64-DATA-BLOB"
+   }
+   ```
+   So, you need to create yet another "cryptogram" object, but with only two properties set:
+   ```swift
+   let responseCryptogram = PA2ECIESCryptogram()
+   responseCryptogram.bodyBase64 = response.getEncryptedData()
+   responseCryptogram.macBase64 = response.getMac()
+   
+   guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
+   ```
 
-                    // Decrypt response and obtain original response data
-                    if let encryptedResponse = httpResponse as? PA2Response<PA2EncryptedObject> {
-                        if let responseData = try encryptor?.decryptResponse(encryptedResponse) {
+8. And finally, you can process your received response.
 
-                            // Serialize response object
-                            let responseDictionary = try JSONSerialization.jsonObject(with: responseData)
-
-                            // DONE: Process the response dictionary
-                            // ...
-
-                        }
-                    }
-                } catch _ {
-                    // in case response decryption (or JSON deserialization) fails
-                }
-            } else {
-                // Report HTTP client error
-            }
-        }
-    }
-} catch {
-    // in case request decryption (or JSON serialization) fails
-}
-```
-
-Be careful here - you have to use the same instance of `PA2RequestResponseNonPersonalizedEncryptor` for both request and response. If you build one encryptor for request and another for response, encryption will not work - encryptor keeps an istance of ephemeral private key and this private key must be used for response decryption.
+As you can see, the E2EE is quite non-trivial task. We recommend you to contact us before you even consider to use an application-specific E2EE. We can provide you more support on per-scenario basis, especially if we understand first, what you need to achieve with end-to-end encryption in your application.
 
 ## Secure Vault
 
 PowerAuth SDK for iOS has a basic support for an encrypted secure vault. At this moment, the only supported method allows application to establish an encryption / decryption key with given index. Index represents a "key number" - your identifier for given key. Different business logic purposes should have encryption keys with different index value.
 
-On a server side, all secure vault related work is concentrated in a `/pa/vault/unlock` endpoint of PowerAuth 2.0 Standard RESTful API. In order to receive data from this response, call must be authenticated with at least 2FA (either password, or biometry).
+On a server side, all secure vault related work is concentrated in a `/pa/v3/vault/unlock` endpoint of PowerAuth Standard RESTful API. In order to receive data from this response, call must be authenticated with at least 2FA (using password or PIN).
 
 ### Obtaining Encryption Key
 
@@ -1031,10 +1039,10 @@ if error == nil {
                 print("Error code for error in signature calculation")
 
             case PA2ErrorCodeInvalidActivationState:
-                print("Error code for error that occurs when activation state is ivalid")
+                print("Error code for error that occurs when activation state is invalid")
 
             case PA2ErrorCodeInvalidActivationData:
-                print("Error code for error that occurs when activation data is ivalid")
+                print("Error code for error that occurs when activation data is invalid")
 
             case PA2ErrorCodeMissingActivation:
                 print("Error code for error that occurs when activation is required but missing")
@@ -1065,6 +1073,12 @@ if error == nil {
 
             case PA2ErrorCodeWatchConnectivity:
                 print("Error code for errors related to synchronization between ios and watchos.")
+            
+            case PA2ErrorCodeProtocolUpgrade:
+                print("Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
+                
+            case PA2ErrorCodePendingProtocolUpgrade:
+                print("The operation is temporarily unavaiable, due to pending protocol upgrade.")
 
             default:
                 print("Unknown error")
@@ -1073,6 +1087,14 @@ if error == nil {
     }
 }
 ```
+
+Note that you typically don't need to handle all error codes reported in `Error` object, or report all that situations to the user. Most of the codes are informational and helps the developers properly integrate SDK to the application. The good example is `PA2ErrorCodeInvalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way. 
+
+Here's the list of an important error codes, which should be properly handled by the application:
+
+- `PA2ErrorCodeBiometryCancel` is reported when user cancels biometric authentication dialog
+- `PA2ErrorCodeProtocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting to the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
+- `PA2ErrorCodePendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations, when SDK is performing protocol upgrade on the background (as a part of activation status fetch) and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 
 ### Working with Invalid SSL Certificates
 
@@ -1131,10 +1153,7 @@ The DEBUG build is usually helpful during the application development, but on ot
 #if YOUR_APPSTORE_BUILD_FLAG
     // Final vs Debug library trap
     if PA2System.isInDebug() {
-        while true {
-            print("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
-            Thread.sleep(forTimeInterval: 1)
-        }
+        fatalError("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
     }
 #endif
 ```

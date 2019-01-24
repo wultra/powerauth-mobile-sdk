@@ -33,7 +33,7 @@ dependencies {
     compile 'io.getlime.security.powerauth:powerauth-android-sdk:1.0.0'
 }
 ```
-Note that this documentation is using version `1.0.0` as an example. You can find the latest version in our [List of Releases](https://github.com/wultra/powerauth-crypto/wiki/Releases). The Android Studio IDE can also find and offer updates for your application's dependencies.
+Note that this documentation is using version `1.0.0` as an example. You can find the latest version in our [List of Releases](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Releases.md). The Android Studio IDE can also find and offer updates for your application's dependencies.
 
 From now on, you can use `PowerAuthSDK` class in your project.
 
@@ -73,7 +73,7 @@ In order to be able to configure your `PowerAuthSDK` instance, you need followin
 
 Also, you need to specify your instance ID (by default, this can be for example an app package name). This is because one application may use more than one custom instances of `PowerAuthSDK` and identifier is the way to distinguish these instances while working with Keychain data.
 
-Finally, you need to know the location of your [PowerAuth Standard RESTful API](https://github.com/wultra/powerauth-crypto/wiki/Standard-RESTful-API) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
+Finally, you need to know the location of your [PowerAuth Standard RESTful API](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Standard-RESTful-API.md) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
 
 To sum it up, in order to configure `PowerAuthSDK` default instance, add following code to your application main activity `onCreate()` method:
 
@@ -601,10 +601,10 @@ powerAuthSDK.removeActivationWithAuthentication(context, authentication, new IAc
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on ECIES scheme:
 
 - In "application" scope, the encryptor can be acquired and used during the whole lifetime of the application. We used to call this mode as "non-personalized encryption" in the previous versions of SDK.
-- In "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bounded to the parameters, agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), in "sign-then-encrypt" mode. 
+- In "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters, agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), in "sign-then-encrypt" mode. 
 
 
-For both scenarios, you need to acquire `EciesEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently supports only low level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
+For both scenarios, you need to acquire `EciesEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently provides only low level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 
 Following steps are typically required for a full E2EE request and response processing:
 
@@ -709,7 +709,7 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, new IFetchEncryp
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/wiki/MAC-Token-Based-Authentication) for more information about this feature.
+WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature.
 
 The tokens are simple, locally cached objects, producing timestamp-based authorization headers. Be aware that tokens are NOT a replacement for general PowerAuth signatures, but are helpful in situations, when the signatures are too heavy or too complicated for implementation. Each token has following properties:
 

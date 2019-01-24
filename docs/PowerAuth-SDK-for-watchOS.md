@@ -320,8 +320,7 @@ The DEBUG build is usually helpful during the application development, but on ot
 #if YOUR_APPSTORE_BUILD_FLAG
     // Final vs Debug library trap
     if PA2ExtensionLibrary.isInDebug() {
-        print("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
-        exit(-8003)
+        fatalError("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
     }
 #endif
 ```

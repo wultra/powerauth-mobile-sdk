@@ -182,6 +182,11 @@ powerAuthSDK.commitActivation(context, fragmentManager, "Enable Fingerprint Auth
     public void onFingerprintDialogSuccess() {
         // success, activation has been committed
     }
+    
+    @Override
+    public void onFingerprintDialogFailed(PowerAuthErrorException error) {
+        // failure, typically as a result of API misuse.
+    }
 });
 ```
 

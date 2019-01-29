@@ -761,8 +761,12 @@ public class PowerAuthSDK {
 
             @Override
             public void onFingerprintDialogSuccess(@Nullable byte[] biometricKeyEncrypted) {
-                int b = commitActivationWithPassword(context, password, biometricKeyEncrypted);
-                callback.onFingerprintDialogSuccess(b);
+                final int errorCode = commitActivationWithPassword(context, password, biometricKeyEncrypted);
+                if (errorCode == PowerAuthErrorCodes.PA2Succeed) {
+                    callback.onFingerprintDialogSuccess();
+                } else {
+                    callback.onFingerprintDialogFailed(new PowerAuthErrorException(errorCode));
+                }
             }
 
             @Override
@@ -785,6 +789,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @CheckResult
+    @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.useBiometry = encryptedBiometryKey;
@@ -802,6 +807,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     @CheckResult
+    @PowerAuthErrorCodes
     public int commitActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
 
         // Input validations

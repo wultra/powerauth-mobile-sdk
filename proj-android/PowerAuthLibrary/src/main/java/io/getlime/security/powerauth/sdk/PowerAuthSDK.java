@@ -702,8 +702,12 @@ public class PowerAuthSDK {
 
             @Override
             public void onFingerprintDialogSuccess(@Nullable byte[] biometricKeyEncrypted) {
-                int b = commitActivationWithPassword(context, password, biometricKeyEncrypted);
-                callback.onFingerprintDialogSuccess(b);
+                final int errorCode = commitActivationWithPassword(context, password, biometricKeyEncrypted);
+                if (errorCode == PowerAuthErrorCodes.PA2Succeed) {
+                    callback.onFingerprintDialogSuccess();
+                } else {
+                    callback.onFingerprintDialogFailed(new PowerAuthErrorException(errorCode));
+                }
             }
 
             @Override

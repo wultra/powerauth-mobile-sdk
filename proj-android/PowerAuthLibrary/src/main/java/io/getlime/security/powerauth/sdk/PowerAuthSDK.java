@@ -733,6 +733,7 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     @CheckResult
+    @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password) {
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.useBiometry = null;

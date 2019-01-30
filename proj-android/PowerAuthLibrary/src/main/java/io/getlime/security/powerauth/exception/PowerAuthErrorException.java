@@ -31,7 +31,7 @@ public class PowerAuthErrorException extends Exception {
     /**
      * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
      */
-    public PowerAuthErrorException(int powerAuthErrorCode) {
+    public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode) {
         this.powerAuthErrorCode = powerAuthErrorCode;
     }
 

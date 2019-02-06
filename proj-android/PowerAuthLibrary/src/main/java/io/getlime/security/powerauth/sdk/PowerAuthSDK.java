@@ -63,6 +63,7 @@ import io.getlime.security.powerauth.networking.endpoints.PA2RemoveActivationEnd
 import io.getlime.security.powerauth.networking.endpoints.PA2VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
@@ -530,7 +531,7 @@ public class PowerAuthSDK {
                 final ActivationStep2Result resultStep2 = mSession.validateActivationResponse(paramStep2);
                 if (resultStep2.errorCode == ErrorCode.OK) {
                     // Everything was OK
-                    listener.onActivationCreateSucceed(resultStep2.activationFingerprint, response.getCustomAttributes());
+                    listener.onActivationCreateSucceed(new CreateActivationResult(resultStep2.activationFingerprint, response.getCustomAttributes()));
                 } else {
                     // Error occurred
                     mSession.resetSession();
@@ -640,7 +641,7 @@ public class PowerAuthSDK {
                     ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
 
                     if (step2Result != null && step2Result.errorCode == ErrorCode.OK) {
-                        listener.onActivationCreateSucceed(step2Result.activationFingerprint, activationCreateResponse.getCustomAttributes());
+                        listener.onActivationCreateSucceed(new CreateActivationResult(step2Result.activationFingerprint, activationCreateResponse.getCustomAttributes()));
                     } else {
                         mSession.resetSession();
                         listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));

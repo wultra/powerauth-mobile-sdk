@@ -76,6 +76,7 @@ public class GetActivationStatusTask implements ICancelable {
      * @param httpClient HTTP client
      * @param cryptoHelper cryptographic helper
      * @param session low level {@link Session} object
+     * @param callbackDispacher callback dispatcher from parent SDK object
      * @param completionListener final completion listener.
      */
     public GetActivationStatusTask(

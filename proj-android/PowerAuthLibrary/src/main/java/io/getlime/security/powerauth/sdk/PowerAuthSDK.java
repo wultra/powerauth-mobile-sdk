@@ -64,6 +64,7 @@ import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpo
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
@@ -696,7 +697,8 @@ public class PowerAuthSDK {
                             final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
                             //
                             if (step2Result.errorCode == ErrorCode.OK) {
-                                listener.onActivationCreateSucceed(step2Result.activationFingerprint, response.getCustomAttributes());
+                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes());
+                                listener.onActivationCreateSucceed(result);
                                 return;
                             }
                             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Invalid activation data received from the server.");

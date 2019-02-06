@@ -31,14 +31,11 @@ public interface ICreateActivationListener {
     /**
      * Called when activation succeeds.
      *
-     * @param activationFingerprint      decimalized fingerprint calculated from device's public key
-     * @param customActivationAttributes custom attributes received from the server. The value
-     *                                   may be null in case that there are no custom attributes
-     *                                   available.
+     * @param result {@link CreateActivationResult} object representing a successful result of
+     *               the activation process.
      */
     @MainThread
-    void onActivationCreateSucceed(@NonNull String activationFingerprint,
-                                   @Nullable Map<String, Object> customActivationAttributes);
+    void onActivationCreateSucceed(@NonNull CreateActivationResult result);
 
     /**
      * Called when activation fails with an error.

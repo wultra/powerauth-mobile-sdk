@@ -115,9 +115,10 @@ String activationCode = "VVVVV-VVVVV-VVVVV-VTFVA"; // let user type or QR-scan t
 // Create a new activation with given device name and activation code
 powerAuthSDK.createActivation(deviceName, activationCode, new ICreateActivationListener() {
     @Override
-    public void onActivationCreateSucceed(String fingerprint, Map<String, Object> attributes) {
+    public void onActivationCreateSucceed(CreateActivationResult result) {
+        final String fingerprint = result.getActivationFingerprint();
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
-        // The 'fingerprint' value represents the device public key - it may be used as visual confirmation
+        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
     }
 
     @Override
@@ -142,9 +143,10 @@ credentials.put("password", "YBzBEM");
 
 powerAuthSDK.createActivation(deviceName, credentials, null, null, new ICreateActivationListener() {
     @Override
-    public void onActivationCreateSucceed(String fingerprint, Map<String, Object> attributes) {
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable Fingerprint Authentication switch, ...) and commit
-        // The 'fingerprint' value represents the device public key - it may be used as visual confirmation
+    public void onActivationCreateSucceed(CreateActivationResult result) {
+        final String fingerprint = result.getActivationFingerprint();
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
     }
 
     @Override

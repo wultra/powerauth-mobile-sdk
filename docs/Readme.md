@@ -9,6 +9,13 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 - [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](./PowerAuth-SDK-for-Android.md)
 
+## Migration guides
+
+If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
+
+- [Migration from version `0.20.x` to `1.0.0`](./Migration-from-0.20-to-1.0.md)
+- [Migration from version `0.19.x` to `0.20.0`](./Migration-from-0.19-to-0.20.md)
+
 ## License
 
 All sources are licensed using Apache 2.0 license, you can use them with no restriction. If you are using PowerAuth 2.0, please let us know. We will be happy to share and promote your project.

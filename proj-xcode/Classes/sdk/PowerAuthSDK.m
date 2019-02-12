@@ -323,12 +323,15 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		
 		// Compute authorization header based on constants from the specification.
 		NSError *error = nil;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 		PA2AuthorizationHttpHeader *httpHeader = [self requestSignatureWithAuthentication:authentication
 																			  vaultUnlock:YES
 																				   method:@"POST"
 																					uriId:@"/pa/vault/unlock"
 																					 body:requestData
 																					error:&error];
+#pragma clang diagnostic pop
 		if (error) {
 			callback(nil, error);
 			return;
@@ -908,12 +911,15 @@ static PowerAuthSDK * s_inst;
 															 uriId:(NSString*)uriId
 															  body:(NSData*)body
 															 error:(NSError**)error {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 	return [self requestSignatureWithAuthentication:authentication
 										vaultUnlock:NO
 											 method:method
 											  uriId:uriId
 											   body:body
 											  error:error];
+#pragma clang diagnostic pop
 }
 
 - (PA2AuthorizationHttpHeader*) requestSignatureWithAuthentication:(PowerAuthAuthentication*)authentication

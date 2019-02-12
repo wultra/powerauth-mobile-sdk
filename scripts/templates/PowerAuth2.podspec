@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
 	s.summary           = 'PowerAuth Mobile SDK for iOS'
 	s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/wultra'
-	s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/docs/PowerAuth-SDK-for-iOS.md'
+	s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/blob/develop/docs/PowerAuth-SDK-for-iOS.md'
 	s.author            = { 
 	  'Wultra s.r.o.' => 'support@wultra.com'
 	}

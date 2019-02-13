@@ -21,7 +21,7 @@
  information about PowerAuth session.
  */
 @protocol PA2SessionStatusProvider <NSObject>
-
+@required
 /**
  Check if it is possible to start an activation process
  
@@ -45,5 +45,12 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) hasValidActivation;
+
+/**
+ Checks if there is a pending protocol upgrade.
+
+ @return YES if session has a pending upgrade.
+ */
+- (BOOL) hasPendingProtocolUpgrade;
 
 @end

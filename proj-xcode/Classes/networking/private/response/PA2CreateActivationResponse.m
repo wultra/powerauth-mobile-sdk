@@ -19,40 +19,15 @@
 
 @implementation PA2CreateActivationResponse
 
-- (instancetype)initWithDictionary:(NSDictionary *)dictionary {
+- (instancetype) initWithDictionary:(NSDictionary *)dictionary
+{
     self = [super init];
     if (self) {
-        _activationId						= PA2ObjectAs(dictionary[@"activationId"], NSString);
-        _activationNonce					= PA2ObjectAs(dictionary[@"activationNonce"], NSString);
-        _ephemeralPublicKey					= PA2ObjectAs(dictionary[@"ephemeralPublicKey"], NSString);
-        _encryptedServerPublicKey			= PA2ObjectAs(dictionary[@"encryptedServerPublicKey"], NSString);
-        _encryptedServerPublicKeySignature	= PA2ObjectAs(dictionary[@"encryptedServerPublicKeySignature"], NSString);
-		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
+		NSDictionary * activationDataDict	= PA2ObjectAs(dictionary[@"activationData"], NSDictionary);
+		_activationData = [[PA2EncryptedResponse alloc] initWithDictionary:activationDataDict];
+ 		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
     }
     return self;
-}
-
-- (NSDictionary *)toDictionary {
-    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if (_activationId) {
-        [dictionary setObject:_activationId forKey:@"activationId"];
-    }
-    if (_activationNonce) {
-        [dictionary setObject:_activationNonce forKey:@"activationNonce"];
-    }
-    if (_ephemeralPublicKey) {
-        [dictionary setObject:_ephemeralPublicKey forKey:@"ephemeralPublicKey"];
-    }
-    if (_encryptedServerPublicKey) {
-        [dictionary setObject:_encryptedServerPublicKey forKey:@"encryptedServerPublicKey"];
-    }
-    if (_encryptedServerPublicKeySignature) {
-        [dictionary setObject:_encryptedServerPublicKeySignature forKey:@"encryptedServerPublicKeySignature"];
-    }
-	if (_customAttributes) {
-		[dictionary setObject:_customAttributes forKey:@"customAttributes"];
-	}
-    return dictionary;
 }
 
 @end

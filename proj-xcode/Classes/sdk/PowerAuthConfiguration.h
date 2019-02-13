@@ -24,19 +24,19 @@
  */
 @property (nonatomic, strong, nonnull) NSString	*instanceId;
 
-/** Base URL to the PowerAuth 2.0 Standard RESTful API (the URL part before "/pa/...").
+/** Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
  */
 @property (nonatomic, strong, nonnull) NSString	*baseEndpointUrl;
 
-/** APPLICATION_KEY as defined in PowerAuth 2.0 specification - a key identifying an application version.
+/** APPLICATION_KEY as defined in PowerAuth specification - a key identifying an application version.
  */
 @property (nonatomic, strong, nonnull) NSString	*appKey;
 
-/** APPLICATION_SECRET as defined in PowerAuth 2.0 specification - a secret associated with an application version.
+/** APPLICATION_SECRET as defined in PowerAuth specification - a secret associated with an application version.
  */
 @property (nonatomic, strong, nonnull) NSString	*appSecret;
 
-/** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth 2.0 specification - a master server public key.
+/** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth specification - a master server public key.
  */
 @property (nonatomic, strong, nonnull) NSString	*masterServerPublicKey;
 
@@ -47,6 +47,14 @@
 /** Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
  */
 @property (nonatomic, strong, nullable) NSData	*externalEncryptionKey;
+
+/**
+ If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
+ This option should be used only for the testing purposes.
+ 
+ Default and recommended value is `NO`.
+ */
+@property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
 
 /** Validate that the configuration is properly set (all required values were filled in).
  */

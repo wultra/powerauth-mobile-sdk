@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
-@interface PA2GetTokenResponse : NSObject<PA2NetworkObject>
+@interface PA2GetTokenResponse : NSObject<PA2Decodable>
 
 @property (nonatomic, strong) NSString * tokenId;
 @property (nonatomic, strong) NSString * tokenSecret;

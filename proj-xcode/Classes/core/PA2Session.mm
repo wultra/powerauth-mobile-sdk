@@ -109,7 +109,15 @@ using namespace io::getlime::powerAuth;
 	return _session->hasValidActivation();
 }
 
+- (BOOL) hasPendingProtocolUpgrade
+{
+	return _session->hasPendingProtocolUpgrade();
+}
 
+- (PA2ProtocolVersion) protocolVersion
+{
+	return (PA2ProtocolVersion) _session->protocolVersion();
+}
 
 #pragma mark - Serialization
 
@@ -337,38 +345,6 @@ using namespace io::getlime::powerAuth;
 }
 
 
-#pragma mark - E2EE
-
-- (nullable PA2Encryptor*) nonpersonalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-{
-	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-	Encryptor * cpp_encryptor = nullptr;
-	ErrorCode error = EC_Ok;
-	std::tie(error, cpp_encryptor) = _session->createNonpersonalizedEncryptor(cpp_session_index);
-	if (error == EC_Ok) {
-		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-	}
-	PA2Objc_DebugDumpError(self, @"NonpersonalizedEncryptorForSessionIndex", error);
-	return nil;
-}
-
-- (nullable PA2Encryptor*) personalizedEncryptorForSessionIndex:(nonnull NSData*)sessionIndex
-														   keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
-{
-	cc7::ByteArray cpp_session_index = cc7::objc::CopyFromNSData(sessionIndex);
-	SignatureUnlockKeys cpp_keys;
-	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-	Encryptor * cpp_encryptor = nullptr;
-	ErrorCode error = EC_Ok;
-	std::tie(error, cpp_encryptor) = _session->createPersonalizedEncryptor(cpp_session_index, cpp_keys);
-	if (error == EC_Ok) {
-		return [[PA2Encryptor alloc] initWithEncryptorPtr:cpp_encryptor];
-	}
-	PA2Objc_DebugDumpError(self, @"PersonalizedEncryptorForSessionIndex", error);
-	return nil;
-}
-
-
 #pragma mark - External encryption key
 
 - (BOOL) hasExternalEncryptionKey
@@ -398,6 +374,23 @@ using namespace io::getlime::powerAuth;
 }
 
 
+#pragma mark - ECIES
+
+- (nullable PA2ECIESEncryptor*) eciesEncryptorForScope:(PA2ECIESEncryptorScope)scope
+												  keys:(nullable PA2SignatureUnlockKeys*)unlockKeys
+										   sharedInfo1:(nullable NSData*)sharedInfo1
+{
+	ECIESEncryptorScope cpp_scope   = (ECIESEncryptorScope)scope;
+	cc7::ByteArray cpp_shared_info1 = cc7::objc::CopyFromNSData(sharedInfo1);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	
+	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] init];
+	auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, encryptor.encryptorRef);
+	PA2Objc_DebugDumpError(self, @"GetEciesEncryptor", error);
+	return error == EC_Ok ? encryptor : nil;
+}
+
 #pragma mark - Utilities for generic keys
 
 + (nonnull NSData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data
@@ -411,5 +404,42 @@ using namespace io::getlime::powerAuth;
 	return cc7::objc::CopyToNSData(Session::generateSignatureUnlockKey());
 }
 
+
+#pragma mark - Protocol upgrade
+
+- (BOOL) startProtocolUpgrade
+{
+	ErrorCode error = _session->startProtocolUpgrade();
+	PA2Objc_DebugDumpError(self, @"StartProtocolUpgrade", error);
+	return error == EC_Ok;
+}
+
+- (PA2ProtocolVersion) pendingProtocolUpgradeVersion
+{
+	return (PA2ProtocolVersion) _session->pendingProtocolUpgradeVersion();
+}
+
+- (BOOL) applyProtocolUpgradeData:(nonnull id<PA2ProtocolUpgradeData>)upgradeData
+{
+	ErrorCode error;
+	if ([upgradeData conformsToProtocol:@protocol(PA2ProtocolUpgradeDataPrivate)]) {
+		id<PA2ProtocolUpgradeDataPrivate> upgradeDataObject = (id<PA2ProtocolUpgradeDataPrivate>)upgradeData;
+		// Convert data to C++ & commit to underlying session
+		ProtocolUpgradeData cpp_upgrade_data;
+		[upgradeDataObject setupStructure:cpp_upgrade_data];
+		error = _session->applyProtocolUpgradeData(cpp_upgrade_data);
+	} else {
+		error = EC_WrongParam;
+	}
+	PA2Objc_DebugDumpError(self, @"ApplyProtocolUpgradeData", error);
+	return error == EC_Ok;
+}
+
+- (BOOL) finishProtocolUpgrade
+{
+	ErrorCode error = _session->finishProtocolUpgrade();
+	PA2Objc_DebugDumpError(self, @"FinishProtocolUpgrade", error);
+	return error == EC_Ok;
+}
 
 @end

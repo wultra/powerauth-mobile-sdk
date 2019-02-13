@@ -17,19 +17,21 @@
 package io.getlime.security.powerauth.sdk.impl;
 
 
+import android.support.annotation.StringDef;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static io.getlime.security.powerauth.sdk.impl.VaultUnlockReason.*;
+
 /**
  * Constants for Vault Unlock reasons.
  */
-public class VaultUnlockReason {
+@Retention(RetentionPolicy.SOURCE)
+@StringDef({ADD_BIOMETRY, FETCH_ENCRYPTION_KEY, SIGN_WITH_DEVICE_PRIVATE_KEY})
+public @interface VaultUnlockReason {
 
-    public static final String PASSWORD_VALIDATE = "PASSWORD_VALIDATE";
-    public static final String PASSWORD_CHANGE = "PASSWORD_CHANGE";
-    public static final String ADD_BIOMETRY = "ADD_BIOMETRY";
-    public static final String FETCH_ENCRYPTION_KEY = "FETCH_ENCRYPTION_KEY";
-    public static final String SIGN_WITH_DEVICE_PRIVATE_KEY = "SIGN_WITH_DEVICE_PRIVATE_KEY";
-
-    /**
-     Prevents class instantiation.
-     */
-    private VaultUnlockReason() { }
+    String ADD_BIOMETRY = "ADD_BIOMETRY";
+    String FETCH_ENCRYPTION_KEY = "FETCH_ENCRYPTION_KEY";
+    String SIGN_WITH_DEVICE_PRIVATE_KEY = "SIGN_WITH_DEVICE_PRIVATE_KEY";
 }

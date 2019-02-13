@@ -32,7 +32,7 @@ namespace powerAuth
 namespace crypto
 {
 	// HMAC with SHA256
-	cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes);
+	cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes = 0);
 	
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth

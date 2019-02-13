@@ -35,14 +35,9 @@ using namespace io::getlime::powerAuth;
 	return self;
 }
 
-- (NSString*) activationIdShort
+- (NSString*) activationCode
 {
-	return cc7::objc::CopyToNullableNSString(_components.activationIdShort);
-}
-
-- (NSString*) activationOtp
-{
-	return cc7::objc::CopyToNullableNSString(_components.activationOtp);
+	return cc7::objc::CopyToNSString(_components.activationCode);
 }
 
 - (NSString*) activationSignature

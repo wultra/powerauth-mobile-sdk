@@ -132,6 +132,28 @@ namespace powerAuth
 		EC_WrongParam,
 	};
 	
+	/**
+	 The Version enum defines PowerAuth protocol version. The main difference
+	 between V2 & V3 is that V3 is using hash-based counter instead of linear one,
+	 and all E2EE tasks are now implemented by ECIES.
+	 
+	 This version of SDK is supporting V2 protol in very limited scope, where only
+	 the V2 signature calculations are supported.
+	 */
+	enum Version
+	{
+		/// Constant defining that version is not available. The enumeration
+		/// has meaning in several APIs, where unknown or "no version"
+		/// state can be returned as a regular result.
+		Version_NA = 0,
+		/// Constant defining Protocol Version 2.
+		Version_V2 = 2,
+		/// Constant defining Protocol Version 3.
+		Version_V3 = 3,
+		
+		// Special constant for "latest" version
+		Version_Latest = Version_V3
+	};
 	
 	//
 	// MARK: - Signatures -
@@ -167,12 +189,6 @@ namespace powerAuth
 	 3FA, with using all supported factors.
 	 */
 	const SignatureFactor SF_Possession_Knowledge_Biometry	= SF_Possession | SF_Knowledge | SF_Biometry;
-	
-	/**
-	 You can combine any signature factor with this flag and prepare for vault unlock.
-	 */
-	const SignatureFactor SF_PrepareForVaultUnlock	= 0x1000;
-	
 	
 	/**
 	 The SignatureUnlockKeys object contains all keys, required for signature computation.
@@ -304,7 +320,7 @@ namespace powerAuth
 	struct HTTPRequestDataSignature
 	{
 		/**
-		 Version of PowerAuth protocol. Current value is "2.0"
+		 Version of PowerAuth protocol.
 		 */
 		std::string version;
 		/**
@@ -384,15 +400,11 @@ namespace powerAuth
 	struct ActivationStep1Param
 	{
 		/**
-		 Short activation ID
+		 Full activation code. The value is optional for custom activations.
 		 */
-		std::string activationIdShort;
+		std::string activationCode;
 		/**
-		 Activation OTP (one time password)
-		 */
-		std::string activationOtp;
-		/**
-		 Signature calculated from activationIdShort and activationOtp.
+		 Signature calculated from activationCode.
 		 The value is optional in cases, when the user re-typed codes
 		 manually. If the value is available, then the Base64 string is expected.
 		 */
@@ -405,23 +417,9 @@ namespace powerAuth
 	struct ActivationStep1Result
 	{
 		/**
-		 Activation nonce, in Base64 format.
+		 Device's public key, in Base64 format.
 		 */
-		std::string	activationNonce;
-		/**
-		 Encrypted device's public key, in Base64 format.
-		 */
-		std::string	cDevicePublicKey;
-		/**
-		 Application signature proving that activation was completed
-		 with correct application, in Base64 format.
-		 */
-		std::string	applicationSignature;
-        /**
-         An ephemeral public key used to deduce ad-hoc encryption
-         secret for cDevicePublicKey, in Base64 format.
-         */
-        std::string ephemeralPublicKey;
+		std::string	devicePublicKey;
 	};
 	
 	/**
@@ -434,22 +432,13 @@ namespace powerAuth
 		 */
 		std::string	activationId;
 		/**
-		 Ephemeral nonce, generated on the server, in Base64 format.
+		 Server's public key, in Base64 format.
 		 */
-		std::string	ephemeralNonce;
+		std::string	serverPublicKey;
 		/**
-		 Server's part for ephemeral key in Base64 format.
+		 Initial value for hash-based counter.
 		 */
-		std::string	ephemeralPublicKey;
-		/**
-		 Encrypted server public key, in Base64 format.
-		 */
-		std::string	encryptedServerPublicKey;
-		/**
-		 Siganture, calculated from activationId & encryptedServerPublicKey,
-		 in Base64 format.
-		 */
-		std::string	serverDataSignature;
+		std::string	ctrData;
 	};
 	
 	/**
@@ -501,6 +490,16 @@ namespace powerAuth
 		};
 		
 		/**
+		 The Version enumeration defines version of activation data, stored on the server.
+		 */
+		enum Version
+		{
+			V2 = 2,				// PowerAuth Crypto V2
+			V3 = 3,				// PowerAuth Crypto V3
+			MaxSupported = V3,	// Max supported version defined by this SDK
+		};
+		
+		/**
 		 State of the activation
 		 */
 		State state;
@@ -513,10 +512,13 @@ namespace powerAuth
 		 */
 		cc7::U32 maxFailCount;
 		/**
-		 Counter on the server's side. The session should not synchronize
-		 itself with this counter.
+		 Current activation version stored on the server
 		 */
-		cc7::U64 counter;
+		cc7::byte currentVersion;
+		/**
+		 If greater than `currentVersion`, then activation upgrade is available.
+		 */
+		cc7::byte upgradeVersion;
 		
 		/**
 		 Constructs a new empty activation status structure.
@@ -525,9 +527,15 @@ namespace powerAuth
 			state(Created),
 			failCount(0),
 			maxFailCount(0),
-			counter(0)
+			currentVersion(0),
+			upgradeVersion(0)
 		{
 		}
+		
+		/**
+		 Returns true if upgrade to a new activation data is possible.
+		 */
+		bool isProtocolUpgradeAvailable() const;
 	};
 	
 	
@@ -535,73 +543,43 @@ namespace powerAuth
 	//
 	// MARK: - End-To-End Encryption -
 	//
-	
-	
+
 	/**
-	 The EncryptedMessage structure represents an encrypted data transmitted 
-	 between the client and the server. The object is mostly used as a parameter in
-	 interface, provided by Encryptor class.
-	 
-	 The message is used in both ways, for the request encryption and also for 
-	 response decryption. Note that some members of the structure are optional
-	 or depends on the mode of E2EE or the direction of communication.
-	 
-	 For more details check the online documentation about End-To-End Encryption.
+	 The ECIESEncryptorScope enumeration defines how ECIES encryptor is configured
+	 in Session.getEciesEncryptor() method.
 	 */
-	struct EncryptedMessage
+	enum ECIESEncryptorScope
 	{
 		/**
-		 Contains applicationKey copied from the Session which constructed the Encryptor
-		 object. The value is valid only for non-personalized encryption and is
-		 validated in responses, received from the server.
+		 An application scope means that encryptor can be constructed also when
+		 the session has no valid activation.
 		 */
-		std::string applicationKey;
+		ECIES_ApplicationScope = 0,
 		/**
-		 Contains activationId copied  from the Session which constructed the Encryptor
-		 object. The value is valid only for personalized encryption and is validated
-		 in responses, received from the server.
+		 An activation scope means that the encryptor can be constructed only when
+		 the session has a valid activation.
 		 */
-		std::string activationId;
-		/**
-		 Data encrypted in the Encryptor or decrypted by the class when received
-		 a response from the server.
-		 */
-		std::string encryptedData;
-		/**
-		 Encrypted data signature.
-		 */
-		std::string mac;
-		/**
-		 Key index specific for one particular Encryptor. The value is validated for
-		 responses received from the server.
-		 
-		 Note that the term "session" is different than the Session used in this PA2 
-		 implementation. The "sessionIndex" in this case is a constant representing
-		 an estabilished session between client and the server. It's up to application
-		 to acquire and manage the value. Check the PA2 online documentation for details.
-		 */
-		std::string sessionIndex;
-		/**
-		 Key index used for one request or response. The value is calculated by
-		 the Encryptor during the encryption and required in decryption operation.
-		 */
-		std::string adHocIndex;
-		/**
-		 Key index used for one request or response. The value is calculated by
-		 the Encryptor during the encryption and required in decryption operation.
-		 */
-		std::string macIndex;
-		/**
-		 Nonce value used as IV for encryption. The value is calculated by
-		 the Encryptor during the encryption and required in decryption operation.
-		 */
-		std::string nonce;
-		/**
-		 A key used for deriving temporary secret. The value is provided by 
-		 the Encryptor class during the encryption operation, but only if the 
-		 nonpersonalized mode is in use.
-		 */
-		std::string ephemeralPublicKey;		
+		ECIES_ActivationScope  = 1
+	};
+
+	
+	
+	//
+	// MARK: - Protocol upgrade -
+	//
+	
+	struct ProtocolUpgradeData
+	{
+		struct V3
+		{
+			/**
+			 Data for new hash based counter. The Base64 string with 16 bytes
+			 of encoded data is expected.
+			 */
+			std::string ctrData;
+		};
+		
+		V3 toV3;
 	};
 	
 } // io::getlime::powerAuth

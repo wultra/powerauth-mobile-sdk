@@ -30,6 +30,14 @@ namespace getlime
 {
 namespace powerAuthTests
 {
+
+#define PRINT_TLOG 0
+#if PRINT_TLOG == 1
+	#define TLOG ccstMessage
+#else
+	#define TLOG(fmt, ...)
+#endif
+	
 	extern TestDirectory g_pa2Files;
 	
 	class pa2ECIESTests : public UnitTest
@@ -41,9 +49,6 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testInvalidCurve)
 		}
 		
-//#define TLOG	CC7_LOG
-#define TLOG(fmt, ...)
-
 		void testEncryptorDecryptor()
 		{
 			ErrorCode ec;
@@ -51,28 +56,30 @@ namespace powerAuthTests
 			static const struct Data {
 				const char * requestData;
 				const char * responseData;
+				const char * sharedInfo1;
 				const char * sharedInfo2;
 			} s_test_data[] = {
 				{
-					"hello world!", "hey there!", ""
+					"hello world!", "hey there!", "", ""
 				},
 				{
-					"All your base are belong to us!", "NOPE!", "very secret information"
+					"All your base are belong to us!", "NOPE!", "very secret information", "not-so-secret"
 				},
 				{
 					"It's over Johny! It's over.",
 					"Nothing is over! Nothing! You just don't turn it off! It wasn't my war!"
 					" You asked me, I didn't ask you! And I did what I had to do to win!",
-					"0123456789abcdef"
+					"0123456789abcdef",
+					"John Tramonta"
 				},
 				{
-					"", "", "12345-56789"
+					"", "", "12345-56789", "ZX128"
 				},
 				{
-					"", "", ""
+					"{}", "{}", "", ""
 				},
 				{
-					"", "", ""
+					"{}", "", "", ""
 				},
 				{ nullptr, nullptr }
 			};
@@ -82,7 +89,14 @@ namespace powerAuthTests
 			cc7::ByteArray master_private_key = crypto::ECC_ExportPrivateKey(master_keypair);
 			EC_KEY_free(master_keypair);
 			master_keypair = nullptr;
-
+			// Make the private key compatible with Java. We need to force the big number as always positive,
+			// because Java's using signed bytes. So, If the sequence of bytes in big number begins with
+			// value greater than 127, then the whole big number is treated as negative.
+			// Fortunately, we have to do this trick only for the testing purposes, because normally,
+			// we don't exchange the private keys :)
+			if (master_private_key[0] > 0x7F) {
+				master_private_key.insert(master_private_key.begin(), 0x00);
+			}
 			TLOG("{");
 			TLOG("   \"keys\": {");
 			TLOG("       \"serverPrivateKey\": \"%s\",", master_private_key.base64String().c_str());
@@ -90,18 +104,20 @@ namespace powerAuthTests
 			TLOG("   },");
 			TLOG("   \"data\": [");
 			
-			auto client_encryptor = ECIESEncryptor(master_public_key, cc7::ByteRange());
-			auto server_decryptor = ECIESDecryptor(master_private_key, cc7::ByteRange());
+			auto client_encryptor = ECIESEncryptor(master_public_key, cc7::ByteRange(), cc7::ByteRange());
+			auto server_decryptor = ECIESDecryptor(master_private_key, cc7::ByteRange(), cc7::ByteRange());
 			
 			const Data * p_data = s_test_data;
 			while (p_data->requestData != nullptr) {
 				//
+				auto shared_info1 = cc7::MakeRange(p_data->sharedInfo1);
 				auto shared_info2 = cc7::MakeRange(p_data->sharedInfo2);
 				auto request_data = cc7::MakeRange(p_data->requestData);
 				auto response_data = cc7::MakeRange(p_data->responseData);
 				p_data++;
 				//
 				ECIESCryptogram request;
+				client_encryptor.setSharedInfo1(shared_info1);
 				client_encryptor.setSharedInfo2(shared_info2);
 				ec = client_encryptor.encryptRequest(request_data, request);
 				ccstAssertEqual(ec, EC_Ok);
@@ -110,6 +126,7 @@ namespace powerAuthTests
 				ccstAssertFalse(request.key.empty());
 				//
 				cc7::ByteArray server_received_data;
+				server_decryptor.setSharedInfo1(shared_info1);
 				server_decryptor.setSharedInfo2(shared_info2);
 				ec = server_decryptor.decryptRequest(request, server_received_data);
 				ccstAssertEqual(ec, EC_Ok);
@@ -133,6 +150,7 @@ namespace powerAuthTests
 				TLOG("         \"input\": {");
 				TLOG("            \"request.plainText\" : \"%s\",", request_data.base64String().c_str());
 				TLOG("            \"response.plainText\" : \"%s\",", response_data.base64String().c_str());
+				TLOG("            \"sharedInfo1\" : \"%s\",", shared_info1.base64String().c_str());
 				TLOG("            \"sharedInfo2\" : \"%s\"", shared_info2.base64String().c_str());
 				TLOG("         },");
 				TLOG("         \"output\": {");
@@ -159,7 +177,7 @@ namespace powerAuthTests
 		void testInvalidCurve()
 		{
 			auto invalid_public_key = cc7::FromHexString("02B70BF043C144935756F8F4578C369CF960EE510A5A0F90E93A373A21F0D1397F");
-			auto encryptor = ECIESEncryptor(invalid_public_key, cc7::ByteRange());		
+			auto encryptor = ECIESEncryptor(invalid_public_key, cc7::ByteRange(), cc7::ByteRange());		
 			ECIESCryptogram cryptogram;
 			auto code = encryptor.encryptRequest(cc7::MakeRange("should not be encrypted"), cryptogram);
 			ccstAssertTrue(code == EC_Encryption);

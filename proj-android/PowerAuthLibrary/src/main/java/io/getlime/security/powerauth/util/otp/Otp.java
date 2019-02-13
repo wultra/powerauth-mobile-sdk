@@ -22,13 +22,9 @@ package io.getlime.security.powerauth.util.otp;
 public class Otp {
 
     /**
-     * Short activation ID
+     * Activation code, without signature part.
      */
-    public final String activationIdShort;
-    /**
-     * Activation OTP (one time password)
-     */
-    public final String activationOtp;
+    public final String activationCode;
     /**
      * Signature calculated from activationIdShort and activationOtp.
      * The value is typically optional for cases, when the user re-typed activation code
@@ -40,21 +36,15 @@ public class Otp {
      * Dummy constructor. The object is initialized in the JNI code.
      */
     public Otp() {
-        this.activationIdShort = null;
-        this.activationOtp = null;
+        this.activationCode = null;
         this.activationSignature = null;
     }
 
     //
     // Getters for compatibility with older codes
     //
-
-    public String getActivationIdShort() {
-        return activationIdShort;
-    }
-
-    public String getActivationOtp() {
-        return activationOtp;
+    public String getActivationCode() {
+        return activationCode;
     }
 
     public String getActivationSignature() {

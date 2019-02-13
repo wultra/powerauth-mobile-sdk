@@ -16,6 +16,14 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
 import io.getlime.security.powerauth.system.PA2Log;
 
@@ -56,18 +64,42 @@ public class PowerAuthClientConfiguration {
      */
     private PA2ClientValidationStrategy clientValidationStrategy;
 
+    /**
+     * Property that specifies the list of request interceptors used by the client before the request is executed.
+     */
+    private List<HttpRequestInterceptor> requestInterceptors;
+
+    /**
+     * @return connection timeout in milliseconds
+     */
     public int getConnectionTimeout() {
         return connectionTimeout;
     }
 
+    /**
+     * @return read timeout in milliseconds
+     */
     public int getReadTimeout() {
         return readTimeout;
     }
 
+    /**
+     * @return true if unsecured connections are allowed
+     */
     public boolean isUnsecuredConnectionAllowed() { return allowUnsecuredConnection; }
 
+    /**
+     * @return Validation strategy
+     */
     public PA2ClientValidationStrategy getClientValidationStrategy() {
         return clientValidationStrategy;
+    }
+
+    /**
+     * @return immutable list of request interceptors or null if there's no interceptor assigned.
+     */
+    public @Nullable List<HttpRequestInterceptor> getRequestInterceptors() {
+        return requestInterceptors;
     }
 
     public static class Builder {
@@ -75,16 +107,30 @@ public class PowerAuthClientConfiguration {
         private int readTimeout = DEF_READ_TIMEOUT;
         private boolean allowUnsecuredConnection = DEF_ALLOW_UNSECURED_CONNECTION;
         private PA2ClientValidationStrategy clientValidationStrategy;
+        private ArrayList<HttpRequestInterceptor> requestInterceptors;
 
         public Builder() {
         }
 
+        /**
+         * Sets timeouts to the future configuration.
+         *
+         * @param connectionTimeout connection timeout in milliseconds
+         * @param readTimeout read timeout in milliseconds
+         * @return The same {@link Builder} object instance
+         */
         public Builder timeouts(int connectionTimeout, int readTimeout) {
             this.connectionTimeout = connectionTimeout;
             this.readTimeout = readTimeout;
             return this;
         }
 
+        /**
+         * Enables or disables connection to unsecured servers.
+         *
+         * @param allow true if unsecured connection should be allowed.
+         * @return The same {@link Builder} object instance
+         */
         public Builder allowUnsecuredConnection(boolean allow) {
             this.allowUnsecuredConnection = allow;
             if (allow) {
@@ -93,17 +139,45 @@ public class PowerAuthClientConfiguration {
             return this;
         }
 
+        /**
+         * Sets TLS client validation strategy to the future configuration.
+         *
+         * @param clientValidationStrategy strategy to be set
+         * @return The same {@link Builder} object instance
+         */
         public Builder clientValidationStrategy(PA2ClientValidationStrategy clientValidationStrategy) {
             this.clientValidationStrategy = clientValidationStrategy;
             return this;
         }
 
+        /**
+         * Adds request interceptor to the future configuration.
+         *
+         * @param interceptor interceptor to be added
+         * @return The same {@link Builder} object instance
+         */
+        public Builder requestInterceptor(@NonNull HttpRequestInterceptor interceptor) {
+            if (requestInterceptors == null) {
+                requestInterceptors = new ArrayList<>();
+            }
+            requestInterceptors.add(interceptor);
+            return this;
+        }
+
+        /**
+         * Build a final configuration.
+         *
+         * @return Final {@link PowerAuthClientConfiguration} instance.
+         */
         public PowerAuthClientConfiguration build() {
             final PowerAuthClientConfiguration powerAuthClientConfiguration = new PowerAuthClientConfiguration();
             powerAuthClientConfiguration.connectionTimeout = connectionTimeout;
             powerAuthClientConfiguration.readTimeout = readTimeout;
             powerAuthClientConfiguration.allowUnsecuredConnection = allowUnsecuredConnection;
             powerAuthClientConfiguration.clientValidationStrategy = clientValidationStrategy;
+            if (requestInterceptors != null) {
+                powerAuthClientConfiguration.requestInterceptors = Collections.unmodifiableList(requestInterceptors);
+            }
             return powerAuthClientConfiguration;
         }
     }

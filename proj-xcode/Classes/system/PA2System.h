@@ -16,7 +16,8 @@
 
 #import <Foundation/Foundation.h>
 
-/** Checks if the device is jailbroken.
+/**
+ Checks if the device is jailbroken.
  
  @return YES if the device is jailbroken, NO otherwise.
  */
@@ -24,13 +25,15 @@ extern BOOL pa_isJailbroken(void);
 
 @interface PA2System : NSObject
 
-/** Detects if the PowerAuth 2.0 is compiled with debug features.
+/**
+ Detects if the PowerAuth SDK is compiled with debug features.
  
  @return YES if library uses debug features, NO otherwise.
  */
 + (BOOL) isInDebug;
 
-/** Checks if the device is jailbroken.
+/**
+ Checks if the device is jailbroken.
  
  Please not that this method is exposed as an Objective-C method and as such, it can be very easily detected and bypassed.
  As a result, this method is very good for basic checks for example for educational purpose (to tell users that jailbreaking

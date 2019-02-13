@@ -16,12 +16,29 @@
 
 package io.getlime.security.powerauth.networking.interfaces;
 
+import android.support.annotation.MainThread;
+
 /**
- * Created by miroslavmichalec on 10/10/2016.
+ * The {@code INetworkResponseListener} defines callback interface from HTTP client
  */
-
 public interface INetworkResponseListener<TResponse> {
-
+    /**
+     * Called when HTTP request successfully ended and the response object is available.
+     * @param response response object returned from the server
+     */
+    @MainThread
     void onNetworkResponse(TResponse response);
-    void onNetworkError(Throwable t);
+
+    /**
+     * Called when HTTP request failed with an error.
+     * @param throwable exception with an error
+     */
+    @MainThread
+    void onNetworkError(Throwable throwable);
+
+    /**
+     * Called when HTTP request was cancelled.
+     */
+    @MainThread
+    void onCancel();
 }

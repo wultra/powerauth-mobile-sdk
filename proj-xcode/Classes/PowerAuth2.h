@@ -24,11 +24,21 @@ FOUNDATION_EXPORT const unsigned char PowerAuth2VersionString[];
 
 #import "PowerAuthSDK.h"
 
-#import "PA2Client.h"
 #import "PA2Log.h"
 #import "PA2Macros.h"
 #import "PA2System.h"
 #import "PA2Keychain.h"
+
+#import "PA2OperationTask.h"
+#import "PA2RestResponseStatus.h"
+#import "PA2ErrorResponse.h"
+#import "PA2ActivationResult.h"
+#import "PA2ClientConfiguration.h"
+#import "PA2ClientSslValidationStrategy.h"
+#import "PA2ClientSslNoValidationStrategy.h"
+#import "PA2HttpRequestInterceptor.h"
+#import "PA2BasicHttpAuthenticationRequestInterceptor.h"
+#import "PA2CustomHeaderRequestInterceptor.h"
 
 #import "PA2ErrorConstants.h"
 #import "PA2PasswordUtil.h"

@@ -1,13 +1,20 @@
 # PowerAuth SDK for Mobile Apps
 
-In order to connect to the [PowerAuth 2.0](http://powerauth.com) service, mobile applications need to perform the required network and cryptographic processes, as described in the PowerAuth 2.0 documentation. To simplify implementation of these processes, developers can use iOS and Android libraries from this repository.
+In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-mobile-security-suite) service, mobile applications need to perform the required network and cryptographic processes, as described in the PowerAuth documentation. To simplify implementation of these processes, developers can use iOS and Android libraries from this repository.
 
 ## Integration Tutorials
 
-- [PowerAuth SDK for iOS Apps](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS)
-- [PowerAuth SDK for iOS Extensions](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-iOS-Extensions)
-- [PowerAuth SDK for watchOS](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-watchOS)
-- [PowerAuth SDK for Android Apps](https://github.com/wultra/powerauth-mobile-sdk/wiki/PowerAuth-SDK-for-Android)
+- [PowerAuth SDK for iOS Apps](./docs/PowerAuth-SDK-for-iOS.md)
+- [PowerAuth SDK for iOS Extensions](./docs/PowerAuth-SDK-for-iOS-Extensions.md)
+- [PowerAuth SDK for watchOS](./docs/PowerAuth-SDK-for-watchOS.md)
+- [PowerAuth SDK for Android Apps](./docs/PowerAuth-SDK-for-Android.md)
+
+## Migration guides
+
+If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
+
+- [Migration from version `0.20.x` to `1.0.0`](./docs/Migration-from-0.20-to-1.0.md)
+- [Migration from version `0.19.x` to `0.20.0`](./docs/Migration-from-0.19-to-0.20.md)
 
 ## License
 

@@ -45,14 +45,13 @@ namespace powerAuthTests
 		CC7_ADD_UNIT_TEST(pa2ProtocolUtilsTests, list);
 		CC7_ADD_UNIT_TEST(pa2URLEncodingTests, list);
 		CC7_ADD_UNIT_TEST(pa2SignatureKeysDerivationTest, list);
-		CC7_ADD_UNIT_TEST(pa2ActivationSignatureValidationTest, list);
-		CC7_ADD_UNIT_TEST(pa2ActivationOTPExpandingTests, list);
-		CC7_ADD_UNIT_TEST(pa2ServerPublicKeyVerification, list);
-		CC7_ADD_UNIT_TEST(pa2ServerPublicKeyDecryption, list);
 		CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);
 		CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
 		CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
 		
+		// Misc
+		CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
+
 		return list;
 	}
 	

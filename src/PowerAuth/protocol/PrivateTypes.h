@@ -71,37 +71,26 @@ namespace protocol
 		
 		EC_KEY *		masterServerPublicKey;
 		EC_KEY *		devicePrivateKey;
-		EC_KEY *		ephemeralServerKey;
-        EC_KEY *		ephemeralDeviceKey;
 		EC_KEY *		serverPublicKey;
 		
 		// Information gathered during the activation
 		
-		std::string		activationIdShort;		// Step1: short activation ID
-		std::string		activationOtp;			// Step1: OTP
+		std::string		activationCode;			// Step1: short activation ID
 		std::string		activationId;			// Step2: Full activation ID
 		
 		// Information generated or received during the activation
 		
 		cc7::ByteArray	serverPublicKeyData;	// Server's public key
 		cc7::ByteArray	devicePublicKeyData;	// Our public key
-		cc7::ByteArray	devicePublicKeyCoordX;	// Public key in form of affine CoordX
-		
-		cc7::ByteArray	activationNonce;		// Activation nonce, generated in 1st step of activation
-												// Nonce is also used for data injection, during the tests
-		
-		cc7::ByteArray	expandedOtp;			// Real OTP, calculated as PBKDF2(idshort + otp). It is time consuming
-												// to get this value and therefore we need to keep it during the activation.
 		
 		cc7::ByteArray	masterSharedSecret;		// The result of ECDH. This value is VERY sensitive!
+		cc7::ByteArray	ctrData;				// Initial value for hash-based counter
 		
 		// Construction, destruction
 		
 		ActivationData() :
 			masterServerPublicKey(nullptr),
 			devicePrivateKey(nullptr),
-			ephemeralServerKey(nullptr),
-            ephemeralDeviceKey(nullptr),
 			serverPublicKey(nullptr)
 		{
 		}
@@ -110,8 +99,6 @@ namespace protocol
 		{
 			EC_KEY_free(masterServerPublicKey);
 			EC_KEY_free(devicePrivateKey);
-			EC_KEY_free(ephemeralServerKey);
-            EC_KEY_free(ephemeralDeviceKey);
 			EC_KEY_free(serverPublicKey);
 		}
 	};
@@ -145,9 +132,13 @@ namespace protocol
 	struct PersistentData
 	{
 		/**
-		 Counter for signature calculations
+		 V2: Counter for signature calculations
 		 */
 		cc7::U64		signatureCounter;
+		/**
+		 V3: Data for hash-based counter for signature calculations
+		 */
+		cc7::ByteArray	signatureCounterData;
 		/**
 		 ActivationId, that's our identity known on the server
 		 */
@@ -180,7 +171,8 @@ namespace protocol
 
 		struct _Flags {
 			/**
-			 True if the session is waiting for vault key unlock
+			 True if the session is waiting for vault key unlock.
+			 The flag is deprecated sice protocol V3, and should not be used.
 			 */
 			cc7::U32	waitingForVaultUnlock	: 1;
 			/**
@@ -188,17 +180,38 @@ namespace protocol
 			 external key.
 			 */
 			cc7::U32	usesExternalKey			: 1;
+			/**
+			 Bits reserved for current pending protocol upgrade
+			 */
+			cc7::U32	pendingUpgradeVersion		: 8;
 		};
 		union {
 			_Flags		flags;
 			cc7::U32	flagsU32;
 		};
 		
+		static_assert(sizeof(_Flags) <= sizeof(cc7::U32), "Flags structure is too big");
+		
 		PersistentData() :
 			signatureCounter(0),
 			passwordIterations(0),
 			flagsU32(0)
 		{
+		}
+		
+		/**
+		 Returns version of protocol, depending on data stored in the structure.
+		 */
+		inline Version protocolVersion() const
+		{
+			return signatureCounterData.empty() ? Version_V2 : Version_V3;
+		}
+		
+		/**
+		 Returns true if data stored in structure matches V3 protocol.
+		 */
+		inline bool isV3() const {
+			return protocolVersion() == Version_V3;
 		}
 	};
 	

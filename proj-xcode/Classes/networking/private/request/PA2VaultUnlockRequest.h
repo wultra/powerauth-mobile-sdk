@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-#import "PA2NetworkObject.h"
+#import "PA2Codable.h"
 
 typedef NS_ENUM(int, PA2VaultUnlockReason) {
 	// If occured, then it's internal SDK error. Don't use as parameter to fetch function
 	PA2VaultUnlockReason_Unknown = 0,
 	
-	PA2VaultUnlockReason_PASSWORD_VALIDATE,
-	PA2VaultUnlockReason_PASSWORD_CHANGE,
 	PA2VaultUnlockReason_ADD_BIOMETRY,
 	PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY,
 	PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY
 };
 
-@interface PA2VaultUnlockRequest : NSObject <PA2NetworkObject>
+@interface PA2VaultUnlockRequest : NSObject <PA2Encodable>
 
 - (id) initWithReason:(PA2VaultUnlockReason)reason;
 

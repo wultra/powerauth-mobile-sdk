@@ -38,23 +38,17 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeNetworkError;
 /** Error code for error in signature calculation */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeSignatureError;
 
-/** Error code for error that occurs when activation state is ivalid */
+/** Error code for error that occurs when activation state is invalid */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidActivationState;
 
-/** Error code for error that occurs when activation data is ivalid */
+/** Error code for error that occurs when activation data is invalid */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidActivationData;
 
 /** Error code for error that occurs when activation is required but missing */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeMissingActivation;
 
-/** Error code for error that occurs when authentication using PowerAuth signature fails */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeAuthenticationFailed;
-
 /** Error code for error that occurs when pending activation is present and work with completed activation is required */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeActivationPending;
-
-/** Error code for keychanin related errors */
-PA2_EXTERN_C NSInteger const PA2ErrorCodeKeychain;
 
 /** Error code for TouchID or FaceID not available error */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryNotAvailable;
@@ -62,7 +56,12 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryNotAvailable;
 /** Error code for TouchID or FaceID action cancel error */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryCancel;
 
-/** Error code for cancelled operations */
+/**
+ Error code for canceled operation. This kind of error may occur in situations, when SDK
+ needs to cancel an asynchronous operation, but the cancel is not initiated by the application
+ itself. For example, if you reset the state of `PowerAuthSDK` during the pending
+ fetch for activation status, then the application gets an exception, with this error code.
+ */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeOperationCancelled;
 
 /** Error code for errors related to end-to-end encryption */
@@ -76,3 +75,14 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeInvalidToken;
 
 /** Error code for a general error related to WatchConnectivity */
 PA2_EXTERN_C NSInteger const PA2ErrorCodeWatchConnectivity;
+
+/**
+ Error code for protocol upgrade failure.
+ The recommended action is to retry the status fetch operation, or locally remove the activation.
+ */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeProtocolUpgrade;
+/**
+ The requested function is not available during the protocol upgrade. You can retry the operation,
+ after the upgrade is finished.
+ */
+PA2_EXTERN_C NSInteger const PA2ErrorCodePendingProtocolUpgrade;

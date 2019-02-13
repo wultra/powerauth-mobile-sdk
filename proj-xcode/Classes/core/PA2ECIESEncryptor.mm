@@ -42,9 +42,12 @@ using namespace io::getlime::powerAuth;
 	return self;
 }
 
-- (id) initWithPublicKey:(NSData*)publicKey sharedInfo2:(NSData*)sharedInfo
+- (id) initWithPublicKey:(NSData*)publicKey
+			 sharedInfo1:(NSData*)sharedInfo1
+			 sharedInfo2:(NSData*)sharedInfo2
 {
-	return [self initWithObject: ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo))];
+	auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
+	return [self initWithObject: encryptor];
 }
 
 - (id) initWithEnvelopeKey:(NSData*)envelopeKey sharedInfo2:(NSData*)sharedInfo
@@ -56,7 +59,11 @@ using namespace io::getlime::powerAuth;
 - (nullable PA2ECIESEncryptor*) copyForDecryption
 {
 	if (_encryptor.canDecryptResponse()) {
-		return [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+		PA2ECIESEncryptor * decryptor = [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+		if (decryptor) {
+			decryptor->_associatedMetaData = _associatedMetaData;
+		}
+		return decryptor;
 	}
 	return nil;
 }
@@ -112,7 +119,7 @@ using namespace io::getlime::powerAuth;
 }
 
 - (BOOL) encryptRequest:(NSData *)data
-			 completion:(void (^)(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor))completion
+			 completion:(void (NS_NOESCAPE ^)(PA2ECIESCryptogram * cryptogram, PA2ECIESEncryptor * decryptor))completion
 {
 	PA2ECIESEncryptor * decryptor;
 	PA2ECIESCryptogram * cryptogram;
@@ -203,4 +210,41 @@ using namespace io::getlime::powerAuth;
 }
 
 @end
+
+
+#pragma mark - ECIES metadata -
+
+@implementation PA2ECIESMetaData
+
+- (instancetype) initWithApplicationKey:(NSString*)applicationKey
+				   activationIdentifier:(NSString*)activationIdentifier
+{
+	self = [super init];
+	if (self) {
+		_applicationKey = applicationKey;
+		_activationIdentifier = activationIdentifier;
+	}
+	return self;
+}
+
+- (NSString*) httpHeaderKey
+{
+	return @"X-PowerAuth-Encryption";
+}
+
+- (NSString*) httpHeaderValue
+{
+	NSString * value = [[@"PowerAuth version=\"3.0\", application_key=\""
+						 stringByAppendingString:_applicationKey]
+						stringByAppendingString:@"\""];
+	if (_activationIdentifier) {
+		return [[[value stringByAppendingString:@", activation_id=\""]
+				 stringByAppendingString:_activationIdentifier]
+				stringByAppendingString:@"\""];
+	}
+	return value;
+}
+
+@end
+
 

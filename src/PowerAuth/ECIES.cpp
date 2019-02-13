@@ -57,7 +57,7 @@ namespace powerAuth
 		return cc7::ByteRange();
 	}
 	
-	ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::ByteRange & public_key, cc7::ByteArray & out_ephemeral_key)
+	ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key)
 	{
 		crypto::BNContext ctx;
 		EC_KEY *pubk = nullptr, *ephemeral = nullptr;
@@ -79,7 +79,13 @@ namespace powerAuth
 			if (out_ephemeral_key.empty()) {
 				break;
 			}
-			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, out_ephemeral_key, EnvelopeKeySize);
+			// Concat shared_info1 + ephemeral key.
+			cc7::ByteArray info1_data;
+			info1_data.reserve(shared_info1.size() + out_ephemeral_key.size());
+			info1_data.assign(shared_info1);
+			info1_data.append(out_ephemeral_key);
+			// Derive shared secret
+			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
 			
 		} while (false);
 		
@@ -90,7 +96,7 @@ namespace powerAuth
 		return ek;
 	}
 	
-	ECIESEnvelopeKey ECIESEnvelopeKey::fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key)
+	ECIESEnvelopeKey ECIESEnvelopeKey::fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1)
 	{
 		crypto::BNContext ctx;
 		EC_KEY *privk = nullptr, *ephemeral = nullptr;
@@ -109,7 +115,13 @@ namespace powerAuth
 			if (sharedSecret.empty()) {
 				break;
 			}
-			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, ephemeral_key, EnvelopeKeySize);
+			// Concat shared_info1 + ephemeral key.
+			cc7::ByteArray info1_data;
+			info1_data.reserve(shared_info1.size() + ephemeral_key.size());
+			info1_data.assign(shared_info1);
+			info1_data.append(ephemeral_key);
+			// Derive shared secret
+			ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
 			
 		} while (false);
 		
@@ -134,7 +146,7 @@ namespace powerAuth
 		const size_t encryptedDataSize = out_cryptogram.body.size();
 		// mac = MAC(body || S2)
 		out_cryptogram.body.append(info2);
-		out_cryptogram.mac = crypto::HMAC_SHA256(out_cryptogram.body, ek.macKey(), 0);
+		out_cryptogram.mac = crypto::HMAC_SHA256(out_cryptogram.body, ek.macKey());
 		if (out_cryptogram.mac.empty()) {
 			return EC_Encryption;
 		}
@@ -148,7 +160,7 @@ namespace powerAuth
 		// Prepare data for HMAC calculation
 		auto data_for_mac = cryptogram.body;
 		data_for_mac.append(info2);
-		auto mac = crypto::HMAC_SHA256(data_for_mac, ek.macKey(), 0);
+		auto mac = crypto::HMAC_SHA256(data_for_mac, ek.macKey());
 		// Verify calculated mac
 		if (mac.empty() || mac != cryptogram.mac) {
 			return EC_Encryption;
@@ -163,8 +175,9 @@ namespace powerAuth
 	// MARK: - Encryptor class -
 	//
 	
-	ECIESEncryptor::ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info2) :
+	ECIESEncryptor::ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
 		_public_key(public_key),
+		_shared_info1(shared_info1),
 		_shared_info2(shared_info2)
 	{
 	}
@@ -185,6 +198,16 @@ namespace powerAuth
 	const ECIESEnvelopeKey & ECIESEncryptor::envelopeKey() const
 	{
 		return _envelope_key;
+	}
+
+	const cc7::ByteArray & ECIESEncryptor::sharedInfo1() const
+	{
+		return _shared_info1;
+	}
+	
+	void ECIESEncryptor::setSharedInfo1(const cc7::ByteRange & shared_info1)
+	{
+		_shared_info1 = shared_info1;
 	}
 	
 	const cc7::ByteArray & ECIESEncryptor::sharedInfo2() const
@@ -213,7 +236,7 @@ namespace powerAuth
 	ErrorCode ECIESEncryptor::encryptRequest(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram)
 	{
 		if (canEncryptRequest()) {
-			_envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, out_cryptogram.key);
+			_envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, out_cryptogram.key);
 			if (_envelope_key.isValid()) {
 				return _Encrypt(_envelope_key, _shared_info2, data, out_cryptogram);
 			}
@@ -235,8 +258,9 @@ namespace powerAuth
 	// MARK: - Decryptor class -
 	//
 	
-	ECIESDecryptor::ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info2) :
+	ECIESDecryptor::ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
 		_private_key(private_key),
+		_shared_info1(shared_info1),
 		_shared_info2(shared_info2)
 	{
 	}
@@ -257,6 +281,16 @@ namespace powerAuth
 	const ECIESEnvelopeKey & ECIESDecryptor::envelopeKey() const
 	{
 		return _envelope_key;
+	}
+
+	const cc7::ByteArray & ECIESDecryptor::sharedInfo1() const
+	{
+		return _shared_info1;
+	}
+	
+	void ECIESDecryptor::setSharedInfo1(const cc7::ByteRange & shared_info1)
+	{
+		_shared_info1 = shared_info1;
 	}
 	
 	const cc7::ByteArray & ECIESDecryptor::sharedInfo2() const
@@ -285,7 +319,7 @@ namespace powerAuth
 	ErrorCode ECIESDecryptor::decryptRequest(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data)
 	{
 		if (canDecryptRequest()) {
-			_envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key);
+			_envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key, _shared_info1);
 			if (_envelope_key.isValid()) {
 				return _Decrypt(_envelope_key, _shared_info2, cryptogram, out_data);
 			}

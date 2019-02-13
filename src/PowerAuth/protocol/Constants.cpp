@@ -25,9 +25,8 @@ namespace powerAuth
 namespace protocol
 {
 	// Power Auth version string
-	#define PA_VERSION_STR	"2.1"
-	
-	const std::string	PA_VERSION(PA_VERSION_STR);
+	const std::string	PA_VERSION_V2("2.1");
+	const std::string	PA_VERSION_V3("3.0");
 	
 	// PA HTTP Auth header.
 	const std::string	PA_AUTH_HEADER_NAME					("X-PowerAuth-Authorization");

@@ -20,7 +20,7 @@
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH	    	"io/getlime/security/powerauth/core"
 #define CC7_JNI_CLASS_PACKAGE	    io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS  		ECIESEncryptor
+#define CC7_JNI_JAVA_CLASS  		EciesEncryptor
 #define CC7_JNI_CPP_CLASS		    ECIESEncryptor
 #include <cc7/jni/JniModule.inl>
 
@@ -32,15 +32,15 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 // Helper functions
 // ----------------------------------------------------------------------------
 
-jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, ECIESCryptogram & cryptogram)
+jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & cryptogram)
 {
 	if (!env) {
 		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
 		return NULL;
 	}
-	// Create Encryptor java class instance
-	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("ECIESCryptogram");
-	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ECIESCryptogram"), "()V");
+	// Create EciesCryptogram java class instance
+	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("EciesCryptogram");
+	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesCryptogram"), "()V");
 	if (!resultObject) {
 		return NULL;
 	}
@@ -53,12 +53,28 @@ jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, ECIESCryptogram & crypto
 
 void LoadCppCryptogramFromJavaObject(JNIEnv * env, jobject cryptogram, ECIESCryptogram & cppCryptogram)
 {
-	jclass clazz  = CC7_JNI_MODULE_FIND_CLASS("ECIESCryptogram");
+	jclass clazz  = CC7_JNI_MODULE_FIND_CLASS("EciesCryptogram");
 	cppCryptogram.body	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "body"));
 	cppCryptogram.mac	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "mac"));
 	cppCryptogram.key	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "key"));
 }
 
+jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & encryptor)
+{
+	if (!env) {
+		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
+		return NULL;
+	}
+	// Create ECIESEncryptor java class instance
+	ECIESEncryptor * encryptor_copy = new ECIESEncryptor(encryptor);
+	jlong encryptor_copy_long = reinterpret_cast<jlong>(encryptor_copy);
+	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesEncryptor"), "(J)V", encryptor_copy_long);
+	if (NULL == resultObject) {
+		// If java object was not constructed then we delete the encryptor's copy.
+		delete encryptor_copy;
+	}
+	return resultObject;
+}
 
 // ----------------------------------------------------------------------------
 // Init & Destroy
@@ -78,13 +94,14 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 }
 
 //
-// private native long init(String publicKey, byte[] sharedInfo2)
+// private native long init(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2)
 //
-CC7_JNI_METHOD_PARAMS(jlong, init, jstring publicKey, jbyteArray sharedInfo2)
+CC7_JNI_METHOD_PARAMS(jlong, init, jstring publicKey, jbyteArray sharedInfo1, jbyteArray sharedInfo2)
 {
 	auto cppPublicKey = cc7::FromBase64String(cc7::jni::CopyFromJavaString(env, publicKey));
+	auto cppSharedInfo1 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo1);
 	auto cppSharedInfo2 = cc7::jni::CopyFromJavaByteArray(env, sharedInfo2);
-	auto encryptor = new ECIESEncryptor(cppPublicKey, cppSharedInfo2);
+	auto encryptor = new ECIESEncryptor(cppPublicKey, cppSharedInfo1, cppSharedInfo2);
 	return reinterpret_cast<jlong>(encryptor);
 }
 
@@ -123,6 +140,19 @@ CC7_JNI_METHOD(jstring, getPublicKey)
 	}
 	auto publicKey = encryptor->publicKey().base64String();
 	return cc7::jni::CopyToNullableJavaString(env, publicKey);
+}
+
+//
+// public native byte[] getSharedInfo1();
+//
+CC7_JNI_METHOD(jbyteArray, getSharedInfo1)
+{
+	auto encryptor = CC7_THIS_OBJ();
+	if (!encryptor) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return NULL;
+	}
+	return cc7::jni::CopyToNullableJavaByteArray(env, encryptor->sharedInfo1());
 }
 
 //

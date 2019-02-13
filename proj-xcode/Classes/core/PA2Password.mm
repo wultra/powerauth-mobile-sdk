@@ -59,7 +59,7 @@
 	return _password.isEqualToPassword(password->_password);
 }
 
-- (BOOL) validatePasswordComplexity:(BOOL (^)(const UInt8* passphrase, NSUInteger length))validationBlock
+- (BOOL) validatePasswordComplexity:(BOOL (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
 {
 	BOOL result = NO;
 	const cc7::byte * plaintext_bytes = _password.passwordData().data();

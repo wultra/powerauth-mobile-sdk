@@ -16,6 +16,7 @@
 
 #import "PA2EncryptedResponse.h"
 #import "PA2PrivateMacros.h"
+#import "PA2ECIESEncryptor.h"
 
 @implementation PA2EncryptedResponse
 
@@ -29,16 +30,12 @@
 	return self;
 }
 
-- (NSDictionary*) toDictionary
+- (PA2ECIESCryptogram*) cryptogram
 {
-	NSMutableDictionary * dict = [NSMutableDictionary dictionaryWithCapacity:2];
-	if (_encryptedData) {
-		dict[@"encryptedData"] = _encryptedData;
-	}
-	if (_mac) {
-		dict[@"mac"] = _mac;
-	}
-	return dict;
+	PA2ECIESCryptogram * cryptogram = [[PA2ECIESCryptogram alloc] init];
+	cryptogram.bodyBase64 = _encryptedData;
+	cryptogram.macBase64 = _mac;
+	return cryptogram;
 }
 
 @end

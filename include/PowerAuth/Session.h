@@ -18,7 +18,6 @@
 
 #include <PowerAuth/PublicTypes.h>
 #include <map>
-#include <tuple>
 #include <mutex>
 
 namespace io
@@ -28,6 +27,11 @@ namespace getlime
 namespace powerAuth
 {
 	/*
+	 Forward declaration for public objects
+	 */
+	class ECIESEncryptor;
+	
+	/*
 	 Forward declaration for private objects
 	 */
 	namespace protocol
@@ -35,11 +39,6 @@ namespace powerAuth
 		struct PersistentData;
 		struct ActivationData;
 	}
-	
-	/*
-	 Forward declaration for public objects.
-	 */
-	class Encryptor;
 	
 	/**
 	 The Session class provides all cryptographic operations defined in PowerAuth2
@@ -114,6 +113,17 @@ namespace powerAuth
 		 the server has been estabilished. You can sign data in this state.
 		 */
 		bool hasValidActivation() const;
+		
+		/**
+		 Returns true if the session has a pending protocol upgrade to a newer version.
+		 */
+		bool hasPendingProtocolUpgrade() const;
+		
+		/**
+		 Returns version of protocol in which the session currently operates. The version is determined by the
+		 session's state. If session has no activation, then the most up to date version is returned.
+		 */
+		Version protocolVersion() const;
 		
 		
 		// MARK: - Serialization -
@@ -247,11 +257,6 @@ namespace powerAuth
 		 The result is stored to the |out_signature| structure and can be converted to a full value for
 		 X-PowerAuth-Authorization header.
 		 
-		 If you're going to sign request for a vault key retrieving, then you have to specifiy signature
-		 factor combined with SF_PrepareForVaultUnlock flag. Otherwise the subsequent vault unlock
-		 operation will calculate wrong transport key (KEY_ENCRYPTION_VAULT_TRANSPORT) and you'll
-		 not be able to complete the operation.
-		 
 		 WARNING
 		 
 		 You have to save session's state after the successful operation, due to internal counter change.
@@ -322,22 +327,9 @@ namespace powerAuth
 		 biometry signature key. You should always save session's state after this operation, whether
 		 it ends with error or not.
 		 
-		 Discussion
-		 
-		 The adding a new key for biometry factor is a quite complex task. At first, you need to ask server
-		 for a vault key and sign this HTTP request with using SF_PrepareForVaultUnlock flag in combination
-		 with other required factors. The flag guarantees that the internal counter will be correctly raised
-		 and next subsequent operation for vault key decryption will finish correctly.
-		 
-		 If you don't receive response from the server then it's OK to leave the session as is. The session's
-		 counter is probably at the same value as server's or slightly ahead and therefore everything should
-		 later work correctly. The session then only display a warning to the debug console about the previous
-		 pending vault unlock operation.
-		 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 
 		 */
@@ -378,15 +370,10 @@ namespace powerAuth
 		 You should NOT store the produced key to the permanent storage. If you store the key to the filesystem
 		 or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
 		 course, keep the key in the volatile memory, if the application needs use the key for longer period.
-		 
-		 Note that just like the "addBiometryFactor", you have to properly sign HTTP request with using
-		 SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
-
 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 
 		 */
@@ -400,13 +387,11 @@ namespace powerAuth
 		 Discussion
 		 
 		 The session's state contains device private key but is encrypted with vault key, which is normally not
-		 available on the device. Just like other vault related operations, you have to properly sign HTTP request
-		 with using SF_PrepareForVaultUnlock flag, otherwise the operation will fail.
+		 available on the device.
 
 		 Returns EC_Ok,         if operation succeeded
 				 EC_Encryption, if general encryption error occurs
-				 EC_WrongState, if the session has no valid activation or
-								if you did not sign previous http request with SF_PrepareForVaultUnlock flag
+				 EC_WrongState, if the session has no valid activation
 				 EC_WrongParam, if some required parameter is missing
 		 */
 		ErrorCode signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
@@ -473,59 +458,24 @@ namespace powerAuth
 		 */
 		ErrorCode removeExternalEncryptionKey();
 		
+	public:
 		
-		// MARK: - End-To-End Encryption -
-		
-		/**
-		 Creates a new instace of Encryptor class initialized for nonpersonalized End-To-End Encryption.
-		 The nonpersonalized mode of E2EE is available after the correct Session object initialization,
-		 so you can basically use the method anytime during the object's lifetime. The |session_index|
-		 range must point to 16 bytes long sequence of bytes. If your application doesn't have mechanism
-		 for session index creation, then you can use generateSignatureUnlockKey() for this purpose.
-		 
-		 Note that the method doesn't change persistent state of the Session, so you don't need to
-		 serialize its state after the call.
-		 
-		 Returns a tuple containing error code and newly created instance of Encryptor. The returned
-		 pointer is valid only when the operation succeeds.
-		 
-		 ErrorCode value is:
-					EC_Ok		  if operation succeeded. The returned pointer is valid.
-					EC_WrongState if session has no valid setup. The returned pointer is nullptr.
-					EC_WrongParam if session_index has wrong size, or
-								  if session_index is filled with zeros, or
-								  The returned pointer is nullptr.
-					EC_Encryption if internal cryptographic operation failed. The returned pointer is nullptr.
-		 */
-		std::tuple<ErrorCode, Encryptor*> createNonpersonalizedEncryptor(const cc7::ByteRange & session_index);
+		// MARK: - ECIES Factory -
 		
 		/**
-		 Creates a new instace of Encryptor class initialized for personalized End-To-End Encryption.
-		 The personalized mode of E2EE is available only when the session contains valid activation.
-		 The |session_index| range has to be 16 bytes long sequence of bytes. If your application doesn't
-		 have mechanism for session index creation, then you can use generateSignatureUnlockKey() for
-		 this purpose.
-		 The provided |keys| structure must contain valid unlock key for a possession factor.
+		 Constructs an ECIES encryptor for the required |scope| and for optional |sharedInfo1|.
+		 The resulting encryptor object is stored to the |out_encryptor| reference. The |keys| parameter
+		 must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
+		 For "application" scope, the |keys| reference may point to the empty structure.
 		 
-		 Note that the method doesn't change persistent state of the Session, so you don't need to
-		 serialize its state after the call.
-		 
-		 Returns a tuple containing error code and newly created instance of Encryptor. The returned
-		 pointer is valid only when the operation succeeds.
-		 
-		 ErrorCode value is:
-					EC_Ok			if operation succeeded. The returned pointer is valid.
-					EC_WrongState	if session has no valid activation. The returned pointer is nullptr.
-					EC_WrongParam	if session_index has wrong size, or
-									if session_index is filled with zeros, or
-									if possession unlock key is missing.
-									The returned pointer is nullptr.
-					EC_Encryption	if internal cryptographic operation failed. The returned pointer is nullptr.
+		 Returns EC_Ok			if operation succeeded and |out_encryptor| contains proper encryptor.
+		 		 EC_WrongState	if activation scope is requested and session has no valid activation, or
+		 						if session object has no valid setup
+		 		 EC_Encryption	if the possession key is missing in keys structure
 		 */
-		std::tuple<ErrorCode, Encryptor*> createPersonalizedEncryptor(const cc7::ByteRange & session_index,
-																	  const SignatureUnlockKeys & keys);
-		
-		
+		ErrorCode getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys,
+								   	const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const;
+
 		// MARK: - Utilities for generic keys -
 		
 		/**
@@ -554,7 +504,66 @@ namespace powerAuth
 		 for all other situations, when the generated random key is required.
 		 */
 		static cc7::ByteArray generateSignatureUnlockKey();
+		
+	public:
+		
+		// MARK: - Protocol upgrade -
 
+		
+		/**
+		 Formally starts the protocol upgrade to a newer version. The function only sets flag
+		 indicating that upgrade to the next protocol version is in progress. You should serialize
+		 an activation status after this call. The version to which the upgrade has been started can be
+		 determined by calling `pendingActivationUpgradeVersion()`.
+		 
+		 Note that some tasks provided by the session may be temporarily disabled during
+		 the protocol upgrade.
+		 
+		 Returns EC_Ok			if operation succeeded.
+		 		 EC_WrongState	if called in wrong session state
+		 */
+		ErrorCode startProtocolUpgrade();
+		
+		/**
+		 Determines which version of the protocol is the session being upgraded to.
+		 
+		 Returns Version_NA		if there's no valid activation, or
+		 						if there's no pending protocol ugprade
+		 		 Version_Vx		if there's pending upgrade to protocol version.
+		 */
+		Version pendingProtocolUpgradeVersion() const;
+		
+		/**
+		 Applies |upgrade_data| to the session. The |upgrade_data| structure must contain
+		 all required information for upgrade _from_ current state to a new one. For example,
+		 if session is in V2 protocol version, then the structure must contain data for upgrade
+		 from V2 to V3 (typically named as `toV3`).
+		 
+		 Note that this method doesn't clear pending upgrade status. You need to call |finishProtocolUpgrade|
+		 to clear that pending flag, or repeat upgrade data applying, if session needs to be upgraded
+		 over the various versions.
+		 
+		 Returns EC_Ok			if operation succeeded and session has been successfully
+		 						upgraded to new protocol version.
+		 		 EC_WrongState	if upgrade is not required, or
+		 						if upgrade to appropriate version was not started, or
+		 						if session has no valid activation.
+		 		 EC_WrongParam	if upgrade data contains invalid data.
+		 */
+		ErrorCode applyProtocolUpgradeData(const ProtocolUpgradeData & upgrade_data);
+
+		/**
+		 Formally ends the protocol upgrade procedure. The function resets flag indicating that ugprade
+		 to the next protocol version is in progress. The reset is possible only if the upgrade
+		 was successful (e.g. when upgrading to V3, the protocol version is now V3)
+		 
+		 You should serialize an activation status ater this call.
+		 
+		 Returns EC_Ok			if operation succeeded.
+		 		 EC_WrongState	if called in wrong session state, or
+		 						if upgrade was not completed properly.
+		 */
+		ErrorCode finishProtocolUpgrade();
 		
 	public:
 		

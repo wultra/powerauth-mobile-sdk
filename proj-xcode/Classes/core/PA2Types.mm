@@ -21,13 +21,12 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Constants
 
-const PA2SignatureFactor PA2SignatureFactor_Possession						= 0x0001;
-const PA2SignatureFactor PA2SignatureFactor_Knowledge						= 0x0010;
-const PA2SignatureFactor PA2SignatureFactor_Biometry						= 0x0100;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge			= 0x0011;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry				= 0x0101;
-const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= 0x0111;
-const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
+const PA2SignatureFactor PA2SignatureFactor_Possession						= SF_Possession;
+const PA2SignatureFactor PA2SignatureFactor_Knowledge						= SF_Knowledge;
+const PA2SignatureFactor PA2SignatureFactor_Biometry						= SF_Biometry;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge			= SF_Possession_Knowledge;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Biometry				= SF_Possession_Biometry;
+const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_Possession_Knowledge_Biometry;
 
 #pragma mark - Public types implementation
 
@@ -195,11 +194,6 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 	return static_cast<PA2ActivationState>(_status.state);
 }
 
-- (UInt64) counter
-{
-	return _status.counter;
-}
-
 - (UInt32) failCount
 {
 	return _status.failCount;
@@ -234,13 +228,28 @@ const PA2SignatureFactor PA2SignatureFactor_PrepareForVaultUnlock			= 0x1000;
 			status_str = @"<<unknown>>"; break;
 			
 	}
-	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@, ctr %@>", status_str, @(_status.failCount), @(_status.maxFailCount), @(_status.counter)];
+	bool upgrade = _status.isProtocolUpgradeAvailable();
+	return [NSString stringWithFormat:@"<PA2ActivationStatus %@, fails %@/%@%@>", status_str, @(_status.failCount), @(_status.maxFailCount), upgrade ? @", upgrade" : @""];
 }
 #endif
 
-@end
+// Private
 
-@implementation PA2EncryptedMessage
+- (UInt8) currentActivationVersion
+{
+	return _status.currentVersion;
+}
+
+- (UInt8) upgradeActivationVersion
+{
+	return _status.upgradeVersion;
+}
+
+- (BOOL) isProtocolUpgradeAvailable
+{
+	return _status.isProtocolUpgradeAvailable();
+}
+
 @end
 
 
@@ -292,61 +301,27 @@ PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::
 
 void PA2ActivationStep1ParamToStruct(PA2ActivationStep1Param * p1, io::getlime::powerAuth::ActivationStep1Param & cpp_p1)
 {
-	cpp_p1.activationIdShort		= cc7::objc::CopyFromNSString(p1.activationIdShort);
-	cpp_p1.activationOtp			= cc7::objc::CopyFromNSString(p1.activationOtp);
-	cpp_p1.activationSignature		= cc7::objc::CopyFromNSString(p1.activationSignature);
+	cpp_p1.activationCode			= cc7::objc::CopyFromNSString(p1.activationCode.activationCode);
+	cpp_p1.activationSignature		= cc7::objc::CopyFromNSString(p1.activationCode.activationSignature);
 }
 
 PA2ActivationStep1Result * PA2ActivationStep1ResultToObject(const io::getlime::powerAuth::ActivationStep1Result& cpp_r1)
 {
 	PA2ActivationStep1Result * res = [[PA2ActivationStep1Result alloc] init];
-	res.activationNonce				= cc7::objc::CopyToNSString(cpp_r1.activationNonce);
-	res.cDevicePublicKey			= cc7::objc::CopyToNSString(cpp_r1.cDevicePublicKey);
-	res.applicationSignature		= cc7::objc::CopyToNSString(cpp_r1.applicationSignature);
-    res.ephemeralPublicKey          = cc7::objc::CopyToNSString(cpp_r1.ephemeralPublicKey);
+	res.devicePublicKey				= cc7::objc::CopyToNSString(cpp_r1.devicePublicKey);
 	return res;
 }
 
 void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, io::getlime::powerAuth::ActivationStep2Param & cpp_p2)
 {
 	cpp_p2.activationId				= cc7::objc::CopyFromNSString(p2.activationId);
-	cpp_p2.ephemeralNonce			= cc7::objc::CopyFromNSString(p2.ephemeralNonce);
-	cpp_p2.ephemeralPublicKey		= cc7::objc::CopyFromNSString(p2.ephemeralPublicKey);
-	cpp_p2.encryptedServerPublicKey	= cc7::objc::CopyFromNSString(p2.encryptedServerPublicKey);
-	cpp_p2.serverDataSignature		= cc7::objc::CopyFromNSString(p2.serverDataSignature);
+	cpp_p2.serverPublicKey			= cc7::objc::CopyFromNSString(p2.serverPublicKey);
+	cpp_p2.ctrData					= cc7::objc::CopyFromNSString(p2.ctrData);
 }
 
 PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2)
 {
 	PA2ActivationStep2Result * res = [[PA2ActivationStep2Result alloc] init];
 	res.activationFingerprint		= cc7::objc::CopyToNSString(cpp_r2.activationFingerprint);
-	return res;
-}
-
-void PA2EncryptedMessageToStruct(PA2EncryptedMessage * msg, io::getlime::powerAuth::EncryptedMessage& cpp_msg)
-{
-	cpp_msg.applicationKey			= cc7::objc::CopyFromNSString(msg.applicationKey);
-	cpp_msg.activationId			= cc7::objc::CopyFromNSString(msg.activationId);
-	cpp_msg.encryptedData			= cc7::objc::CopyFromNSString(msg.encryptedData);
-	cpp_msg.mac						= cc7::objc::CopyFromNSString(msg.mac);
-	cpp_msg.sessionIndex			= cc7::objc::CopyFromNSString(msg.sessionIndex);
-	cpp_msg.adHocIndex				= cc7::objc::CopyFromNSString(msg.adHocIndex);
-	cpp_msg.macIndex				= cc7::objc::CopyFromNSString(msg.macIndex);
-	cpp_msg.nonce					= cc7::objc::CopyFromNSString(msg.nonce);
-	cpp_msg.ephemeralPublicKey		= cc7::objc::CopyFromNSString(msg.ephemeralPublicKey);
-}
-
-PA2EncryptedMessage * PA2EncryptedMessageToObject(const io::getlime::powerAuth::EncryptedMessage& cpp_msg)
-{
-	PA2EncryptedMessage * res = [[PA2EncryptedMessage alloc] init];
-	res.applicationKey				= cc7::objc::CopyToNullableNSString(cpp_msg.applicationKey);
-	res.activationId				= cc7::objc::CopyToNullableNSString(cpp_msg.activationId);
-	res.encryptedData				= cc7::objc::CopyToNSString(cpp_msg.encryptedData);
-	res.mac							= cc7::objc::CopyToNSString(cpp_msg.mac);
-	res.sessionIndex				= cc7::objc::CopyToNSString(cpp_msg.sessionIndex);
-	res.adHocIndex					= cc7::objc::CopyToNSString(cpp_msg.adHocIndex);
-	res.macIndex					= cc7::objc::CopyToNSString(cpp_msg.macIndex);
-	res.nonce						= cc7::objc::CopyToNSString(cpp_msg.nonce);
-	res.ephemeralPublicKey			= cc7::objc::CopyToNullableNSString(cpp_msg.ephemeralPublicKey);
 	return res;
 }

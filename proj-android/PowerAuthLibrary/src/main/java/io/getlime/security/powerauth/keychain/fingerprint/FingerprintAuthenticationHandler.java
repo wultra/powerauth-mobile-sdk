@@ -206,7 +206,7 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
 
     /**
      * Initialize a crypto object associated with fingerprint authentication.
-     * @return
+     * @return {@link FingerprintStage} enumeration
      */
     public FingerprintStage initCrypto() {
 

@@ -73,7 +73,7 @@
 
 /**
  The PowerAuthTokenStoreTask is an abstract type for token store task. The object type
- returned from store may vary between store implementations.
+ returned from store may vary between the store implementations.
  */
 typedef id PowerAuthTokenStoreTask;
 

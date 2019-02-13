@@ -87,6 +87,11 @@
 	return self.activationId != nil;
 }
 
+- (BOOL) hasPendingActivationMigration
+{
+	return NO;
+}
+
 @end
 
 

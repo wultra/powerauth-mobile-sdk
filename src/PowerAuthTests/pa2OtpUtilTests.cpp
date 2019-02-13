@@ -17,6 +17,11 @@
 #include <cc7tests/CC7Tests.h>
 #include <PowerAuth/OtpUtil.h>
 
+// Required by "nice code generator"
+#include <cc7/Base32.h>
+#include <cc7/Endian.h>
+#include "../PowerAuth/utils/CRC16.h"
+
 using namespace cc7;
 using namespace cc7::tests;
 using namespace io::getlime::powerAuth;
@@ -37,6 +42,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testCharValidation)
 			CC7_REGISTER_TEST_METHOD(testCharAutocorrection)
 			CC7_REGISTER_TEST_METHOD(testParser)
+			CC7_REGISTER_TEST_METHOD(niceCodeGenerator)
 		}
 		
 		
@@ -45,9 +51,23 @@ namespace powerAuthTests
 		void testCodeValidation()
 		{
 			const char * valid_codes[] = {
-				"ABCDE-FGHIJ-KLMNO-PQRST",
-				"KLMNO-PQRST-UVWXY-Z2345",
-				"67AAA-BBBCC-DDEEF-GGHHI",
+				// nice codes
+				"AAAAA-AAAAA-AAAAA-AAAAA",
+				"MMMMM-MMMMM-MMMMM-MUTOA",
+				"VVVVV-VVVVV-VVVVV-VTFVA",
+				"55555-55555-55555-55YMA",
+				// random codes
+				"W65WE-3T7VI-7FBS2-A4OYA",
+				"DD7P5-SY4RW-XHSNB-GO52A",
+				"X3TS3-TI35Z-JZDNT-TRPFA",
+				"HCPJX-U4QC4-7UISL-NJYMA",
+				"XHGSM-KYQDT-URE34-UZGWQ",
+				"45AWJ-BVACS-SBWHS-ABANA",
+				"BUSES-ETYN2-5HTFE-NOV2Q",
+				"ATQAZ-WJ7ZG-FWA7J-QFAJQ",
+				"MXSYF-LLQJ7-PS6LF-E2FMQ",
+				"ZKMVN-4IMFK-FLSYX-ARRGA",
+				"NQHGX-LNM2S-EQ4NT-G3NAA",
 				NULL
 			};
 			const char ** p = valid_codes;
@@ -139,31 +159,27 @@ namespace powerAuthTests
 			bool result;
 			
 			// valid sequences
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST", components);
+			result = OtpUtil::parseActivationCode("BBBBB-BBBBB-BBBBB-BTA6Q", components);
 			ccstAssertTrue(result);
-			ccstAssertEqual(components.activationOtp, "KLMNO-PQRST");
-			ccstAssertEqual(components.activationIdShort, "ABCDE-FGHIJ");
+			ccstAssertEqual(components.activationCode, "BBBBB-BBBBB-BBBBB-BTA6Q");
 			ccstAssertEqual(components.activationSignature, "");
 			ccstAssertFalse(components.hasSignature());
 			
-			result = OtpUtil::parseActivationCode("67AAA-BBBCC-DDEEF-GGHHI#ABCD", components);
+			result = OtpUtil::parseActivationCode("CCCCC-CCCCC-CCCCC-CNUUQ#ABCD", components);
 			ccstAssertTrue(result);
-			ccstAssertEqual(components.activationOtp, "DDEEF-GGHHI");
-			ccstAssertEqual(components.activationIdShort, "67AAA-BBBCC");
+			ccstAssertEqual(components.activationCode, "CCCCC-CCCCC-CCCCC-CNUUQ");
 			ccstAssertEqual(components.activationSignature, "ABCD");
 			ccstAssertTrue(components.hasSignature());
 			
-			result = OtpUtil::parseActivationCode("67AAA-BBBCC-DDEEF-GGHHI#ABC=", components);
+			result = OtpUtil::parseActivationCode("DDDDD-DDDDD-DDDDD-D6UKA#ABC=", components);
 			ccstAssertTrue(result);
-			ccstAssertEqual(components.activationOtp, "DDEEF-GGHHI");
-			ccstAssertEqual(components.activationIdShort, "67AAA-BBBCC");
+			ccstAssertEqual(components.activationCode, "DDDDD-DDDDD-DDDDD-D6UKA");
 			ccstAssertEqual(components.activationSignature, "ABC=");
 			ccstAssertTrue(components.hasSignature());
 
-			result = OtpUtil::parseActivationCode("67AAA-BBBCC-DDEEF-GGHHI#AB==", components);
+			result = OtpUtil::parseActivationCode("EEEEE-EEEEE-EEEEE-E2OXA#AB==", components);
 			ccstAssertTrue(result);
-			ccstAssertEqual(components.activationOtp, "DDEEF-GGHHI");
-			ccstAssertEqual(components.activationIdShort, "67AAA-BBBCC");
+			ccstAssertEqual(components.activationCode, "EEEEE-EEEEE-EEEEE-E2OXA");
 			ccstAssertEqual(components.activationSignature, "AB==");
 			ccstAssertTrue(components.hasSignature());
 
@@ -177,20 +193,34 @@ namespace powerAuthTests
 			ccstAssertFalse(result);
 			result = OtpUtil::parseActivationCode("KLMNO-PQRST", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#", components);
+			result = OtpUtil::parseActivationCode("EEEEE-EEEEE-EEEEE-E2OXA#", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#", components);
+			result = OtpUtil::parseActivationCode("OOOOO-OOOOO-OOOOO-OZH2Q#", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#AB", components);
+			result = OtpUtil::parseActivationCode("SSSSS-SSSSS-SSSSS-SX7IA#AB", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#AB#", components);
+			result = OtpUtil::parseActivationCode("UUUUU-UUUUU-UUUUU-UAFLQ#AB#", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#ABA=#", components);
+			result = OtpUtil::parseActivationCode("WWWWW-WWWWW-WWWWW-WNR7A#ABA=#", components);
 			ccstAssertFalse(result);
-			result = OtpUtil::parseActivationCode("ABCDE-FGHIJ-KLMNO-PQRST#ABA-=", components);
+			result = OtpUtil::parseActivationCode("XXXXX-XXXXX-XXXXX-X6RBQ#ABA-=", components);
 			ccstAssertFalse(result);
 		}
 
+		void niceCodeGenerator()
+		{
+			std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+			for (char c: chars) {
+				std::string nice_base(16, c);
+				ByteArray nice_bytes = cc7::FromBase32String(nice_base, false);
+				auto check_sum = cc7::ToBigEndian(utils::CRC16_Calculate(nice_bytes));
+				nice_bytes.append(cc7::MakeRange(check_sum));
+				auto nice_code = cc7::ToBase32String(nice_bytes, false);
+				auto nice_final_code = nice_code.substr(0, 5) + "-" + nice_code.substr(5, 5) + "-" +
+									   nice_code.substr(10, 5) + "-" + nice_code.substr(15, 5);
+				ccstMessage("Nice code: %s", nice_final_code.c_str());
+			}
+		}
 	};
 	
 	CC7_CREATE_UNIT_TEST(pa2OtpUtilTests, "pa2")

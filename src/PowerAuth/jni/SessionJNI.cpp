@@ -258,9 +258,11 @@ CC7_JNI_METHOD_PARAMS(jobject, startActivation, jobject param)
 	}
 	// Copy params to C++ struct
 	ActivationStep1Param cppParam;
-	jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep1Param");
-	cppParam.activationCode		    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationCode"));
-	cppParam.activationSignature	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationSignature"));
+	if (param != NULL) {
+		jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep1Param");
+		cppParam.activationCode		    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationCode"));
+		cppParam.activationSignature    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationSignature"));
+	}
 	// Call session
 	ActivationStep1Result cppResult;
 	ErrorCode code = session->startActivation(cppParam, cppResult);

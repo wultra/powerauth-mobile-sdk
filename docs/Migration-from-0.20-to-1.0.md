@@ -40,6 +40,8 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
   - Check [Error handling](./PowerAuth-SDK-for-Android.md#error-handling) for more details
+  
+- Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 
 
 ## iOS
 
@@ -68,3 +70,5 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
   - Check [Error handling](./PowerAuth-SDK-for-iOS.md#error-handling) for more details
+
+- Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `PA2OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 

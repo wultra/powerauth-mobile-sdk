@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
 		BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
 		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
@@ -123,6 +124,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2RecoveryCodeTests.cpp; sourceTree = "<group>"; };
 		BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ProtocolUpgradeData.h; sourceTree = "<group>"; };
 		BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2ProtocolUpgradeData.mm; sourceTree = "<group>"; };
 		BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -317,6 +319,7 @@
 			isa = PBXGroup;
 			children = (
 				BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */,
+				BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */,
 				BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */,
 				BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */,
 				BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */,
@@ -686,6 +689,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */,
 				BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */,
 				BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */,
 				BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */,

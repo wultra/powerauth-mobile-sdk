@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,11 +303,16 @@ namespace powerAuth
 			param.serverPublicKey.empty() ||
 			param.ctrData.empty()) {
 			CC7_LOG("Session %p, %d: Step 2: Missing input parameter.", this, sessionIdentifier());
-			return EC_WrongState;
+			return EC_WrongParam;
 		}
 		
 		auto error_code = EC_Encryption;
 		do {
+			// Validate (optional) recovery data
+			if (!protocol::ValidateRecoveryData(param.activationRecovery)) {
+				CC7_LOG("Session %p, %d: Step 2: Invalid recovery data.", this, sessionIdentifier());
+				return EC_WrongParam;
+			}
 			// Validate CTR_DATA
 			if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
 				// Note that we treat all B64 decode failures as an encryption error.
@@ -338,6 +343,7 @@ namespace powerAuth
 			
 			// Everything is OK, keep other data for later
 			_ad->activationId = param.activationId;
+			_ad->recoveryData = param.activationRecovery;
 			
 			error_code = EC_Ok;
 			
@@ -399,6 +405,14 @@ namespace powerAuth
 				break;
 			}
 			pd->cDevicePrivateKey = crypto::AES_CBC_Encrypt_Padding(vault_key, protocol::ZERO_IV, device_private_key_data);
+			if (pd->cDevicePrivateKey.empty()) {
+				CC7_LOG("Session %p, %d: Step 3: Unable to encrypt device private key.", this, sessionIdentifier());
+				break;
+			}
+			if (!protocol::SerializeRecoveryData(_ad->recoveryData, vault_key, pd->cRecoveryData)) {
+				CC7_LOG("Session %p, %d: Step 3: Unable to encrypt recovery data.", this, sessionIdentifier());
+				break;
+			}
 			
 			// Final step is PD validation. If this step fails, then there's an internal problem.
 			if (!protocol::ValidatePersistentData(*pd)) {
@@ -1106,6 +1120,37 @@ namespace powerAuth
 				break;
 		}
 		return EC_WrongState;
+	}
+	
+	// MARK: - Recovery code -
+	
+	bool Session::hasActivationRecoveryData() const
+	{
+		LOCK_GUARD();
+		return hasValidActivation() && !_pd->cRecoveryData.empty();
+	}
+	
+	
+	ErrorCode Session::getActivationRecoveryData(const std::string & c_vault_key, const SignatureUnlockKeys & keys, RecoveryData & out_recovery_data)
+	{
+		LOCK_GUARD();
+		if (!hasValidActivation()) {
+			CC7_LOG("Session %p, %d: RecoveryData: Session has no valid activation.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		if (_pd->cRecoveryData.empty()) {
+			CC7_LOG("Session %p, %d: RecoveryData: Session has no recovery data available.", this, sessionIdentifier());
+			return EC_WrongState;
+		}
+		cc7::ByteArray vault_key;
+		auto ec = decryptVaultKey(c_vault_key, keys, vault_key);
+		if (ec == EC_Ok) {
+			if (!protocol::DeserializeRecoveryData(_pd->cRecoveryData, vault_key, out_recovery_data)) {
+				CC7_LOG("Session %p, %d: RecoveryData: Cannot decrypt or deserialize recovery data.", this, sessionIdentifier());
+				ec = EC_Encryption;
+			}
+		}
+		return ec;
 	}
 	
 	// MARK: - Private methods -

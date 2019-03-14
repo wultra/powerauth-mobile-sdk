@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,16 @@ namespace powerAuth
 		return out;
 	}
 
+	
+	//
+	// MARK: - RecoveryData -
+	//
+	
+	bool RecoveryData::isEmpty() const
+	{
+		return recoveryCode.empty() && puk.empty();
+	}
+	
 	
 	//
 	// MARK: - ActivationStatus -

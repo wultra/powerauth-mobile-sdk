@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,7 @@ namespace protocol
 		
 		cc7::ByteArray	masterSharedSecret;		// The result of ECDH. This value is VERY sensitive!
 		cc7::ByteArray	ctrData;				// Initial value for hash-based counter
+		RecoveryData	recoveryData;			// Received recovery data
 		
 		// Construction, destruction
 		
@@ -168,6 +169,10 @@ namespace protocol
 		 Encrypted device's private key.
 		 */
 		cc7::ByteArray	cDevicePrivateKey;
+		/**
+		 Encrypted recovery data.
+		 */
+		cc7::ByteArray	cRecoveryData;
 
 		struct _Flags {
 			/**
@@ -183,7 +188,7 @@ namespace protocol
 			/**
 			 Bits reserved for current pending protocol upgrade
 			 */
-			cc7::U32	pendingUpgradeVersion		: 8;
+			cc7::U32	pendingUpgradeVersion	: 8;
 		};
 		union {
 			_Flags		flags;
@@ -310,6 +315,33 @@ namespace protocol
 	 Returns false if the byte stream contains invalid old data format.
 	 */
 	bool TryDeserializeOldPersistentData(PersistentData & pd, utils::DataReader & reader); // DATA_MIGRATION_TAG
+	
+	
+	//
+	// MARK: - Recovery codes -
+	//
+	
+	/**
+	 Validates |data| in provided structure and returns true if structure contains valid data. The true is returned also
+	 in case that RecoveryData structure is empty.
+	 */
+	bool ValidateRecoveryData(const RecoveryData & data);
+	
+	/**
+	 Serializes provided |data| structure into sequence of bytes and then encrypts that sequence with using |vaultKey|.
+	 The resulted sequence of bytes is stored to the |out_data| array. If |data| structure is empty, then result is
+	 an empty sequence of bytes.
+	 
+	 Returns false in case of encryption failure.
+	 */
+	bool SerializeRecoveryData(const RecoveryData & data, const cc7::ByteRange vault_key, cc7::ByteArray & out_data);
+	
+	/**
+	 Decrypts provided |serialized| data with using vault key and then deserializes decrypted sequence into |out_data|
+	 structure. Returns true in case that both steps succeeded.
+	 */
+	bool DeserializeRecoveryData(const cc7::ByteRange & serialized, const cc7::ByteRange vault_key, RecoveryData & out_data);
+	
 		
 } // io::getlime::powerAuth::detail
 } // io::getlime::powerAuth

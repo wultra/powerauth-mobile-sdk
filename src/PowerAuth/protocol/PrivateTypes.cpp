@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 #include "PrivateTypes.h"
 #include "Constants.h"
 #include "../crypto/ECC.h"
+#include "../crypto/AES.h"
 #include "../utils/DataReader.h"
 #include "../utils/DataWriter.h"
 
+#include <PowerAuth/OtpUtil.h>
 #include <cc7/Base64.h>
 
 using namespace cc7;
@@ -158,13 +160,14 @@ namespace protocol
 	
 	const cc7::byte PD_TAG     = 'P';
 	const cc7::byte PD_VERSION_V2 = '3';	// data version is one step ahead
-	const cc7::byte PD_VERSION_V3 = '4';
+	const cc7::byte PD_VERSION_V3 = '4';	// + protocol V3
+	const cc7::byte PD_VERSION_V4 = '5';	// + recovery codes
 	
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer)
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V3 : PD_VERSION_V2);
+		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V4 : PD_VERSION_V2);
 		
 		// Serialize hash data or counter, depending on data version
 		if (pd.isV3()) {
@@ -187,6 +190,9 @@ namespace protocol
 		writer.writeData	(pd.cDevicePrivateKey);
 		// flags
 		writer.writeU32		(pd.flagsU32);
+
+		// encrypted recovery data (PD v4)
+		writer.writeData	(pd.cRecoveryData);
 		
 		writer.closeVersion();
 		return true;
@@ -194,11 +200,11 @@ namespace protocol
 	
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader)
 	{
-		// Open version with V2, which automatically allows deserialization of both variants.
+		// Open version with V2, which automatically allows deserialization of future variants.
 		bool result = reader.openVersion(PD_TAG, PD_VERSION_V2);
 		
 		// Deserialize hash data or counter, depending on version stored in the header.
-		if (reader.currentVersion() == PD_VERSION_V3) {
+		if (reader.currentVersion() >= PD_VERSION_V3) {
 			result = result && reader.readData	(pd.signatureCounterData, SIGNATURE_KEY_SIZE);
 			pd.signatureCounter = 0;
 		} else {
@@ -224,12 +230,98 @@ namespace protocol
 		// Copy external key flag to the SignatureKeys structure
 		pd.sk.usesExternalKey = pd.flags.usesExternalKey;
 		
+		// encrypted recovery data (PD v4)
+		if (reader.currentVersion() >= PD_VERSION_V4) {
+			result = result && reader.readData	(pd.cRecoveryData);
+		} else {
+			pd.cRecoveryData.clear();
+		}
+		
 		// close versioned section & validate data
 		result = result && reader.closeVersion();
 		result = result && ValidatePersistentData(pd);
 		
 		return result;
 	}
+	
+	
+	//
+	// MARK: - Recovery codes -
+	//
+	
+	const cc7::byte RD_TAG     	  = 'R';
+	const cc7::byte RD_VERSION_V1 = '1';	// recovery data version
+	
+	bool ValidateRecoveryData(const RecoveryData & data)
+	{
+		if (data.isEmpty()) {
+			return true;
+		}
+		// Validate recovery code. We can use activation code validation for that purpose
+		OtpComponents foo;
+		if (!OtpUtil::parseActivationCode(data.recoveryCode, foo)) {
+			return false;
+		}
+		// Validate PUK. It has to be 10 digits long
+		if (data.puk.length() != 10) {
+			return false;
+		}
+		for (auto c: data.puk) {
+			if (c < '0' || c > '9') {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	bool SerializeRecoveryData(const RecoveryData & data, const cc7::ByteRange vault_key, cc7::ByteArray & out_data)
+	{
+		CC7_ASSERT(ValidateRecoveryData(data), "Invalid recovery data");
+		
+		if (data.isEmpty()) {
+			out_data.clear();
+			return true;
+		}
+		// Serialize structure to sequence of bytes
+		utils::DataWriter writer;
+		writer.openVersion(RD_TAG, RD_VERSION_V1);
+		writer.writeString(data.recoveryCode);
+		writer.writeString(data.puk);
+		writer.closeVersion();
+		
+		// Encrypt sequence of bytes
+		out_data = crypto::AES_CBC_Encrypt_Padding(vault_key, ZERO_IV, writer.serializedData());
+		return !out_data.empty();
+	}
+	
+	bool DeserializeRecoveryData(const cc7::ByteRange & serialized, const cc7::ByteRange vault_key, RecoveryData & out_data)
+	{
+		// Should not be called with an empty data. Unlike in serialization routine, we consider this as an error.
+		if (serialized.empty()) {
+			CC7_ASSERT(false, "Should not be called when recovery data is not available");
+			return false;
+		}
+		
+		// Decrypt serialized sequence of bytes.
+		bool error = false;
+		auto decrypted = crypto::AES_CBC_Decrypt_Padding(vault_key, ZERO_IV, serialized, &error);
+		if (error) {
+			return false;
+		}
+		
+		utils::DataReader reader(decrypted);
+
+		// Open version with V1, which automatically allows deserialization of future variants.
+		bool result = reader.openVersion(RD_TAG, RD_VERSION_V1);
+		result = result && reader.readString(out_data.recoveryCode);
+		result = result && reader.readString(out_data.puk);
+		result = result && reader.closeVersion();
+		
+		result = result && ValidateRecoveryData(out_data);
+		
+		return result;
+	}
+	
 	
 	// MARK: - Support for old data format -
 	

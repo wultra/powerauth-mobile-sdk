@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -564,6 +564,27 @@ namespace powerAuth
 		 						if upgrade was not completed properly.
 		 */
 		ErrorCode finishProtocolUpgrade();
+		
+	public:
+		
+		// MARK: - Recovery code -
+		
+		/**
+		 Returns true, if session contains an activation recovery data.
+		 */
+		bool hasActivationRecoveryData() const;
+		
+		/**
+		 Gets an activation recovery data. You have to provide encrypted vault key |c_vault_key| and
+		 |keys| structure where the valid possessionUnlockKey is set.
+		 
+		 Returns EC_Ok,         if operation succeeded
+		 		 EC_Encryption, if general encryption error occurs
+		 		 EC_WrongState, if the session has no valid activation, or
+		 						if no activation recovery data is available.
+		 		 EC_WrongParam, if some required parameter is missing
+		 */
+		ErrorCode getActivationRecoveryData(const std::string & c_vault_key, const SignatureUnlockKeys & keys, RecoveryData & out_recovery_data);
 		
 	public:
 		

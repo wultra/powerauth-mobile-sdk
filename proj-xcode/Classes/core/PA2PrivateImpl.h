@@ -99,6 +99,15 @@ CC7_EXTERN_C void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, 
  */
 CC7_EXTERN_C PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
 
+/**
+ Converts PA2RecoveryData object into RecoveryData C++ structure
+ */
+CC7_EXTERN_C void PA2RecoveryDataToStruct(PA2RecoveryData * rd, io::getlime::powerAuth::RecoveryData& cpp_rd);
+/**
+ Returns new instance of PA2RecoveryData object, with content copied from RecoveryData C++ structure
+ */
+CC7_EXTERN_C PA2RecoveryData * PA2RecoveryDataToObject(const io::getlime::powerAuth::RecoveryData& cpp_rd);
+
 #pragma mark - Debug functions
 
 #if defined(DEBUG)

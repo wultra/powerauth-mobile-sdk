@@ -105,8 +105,8 @@
  Loads state of session from previously saved sequence of bytes. If the serialized state is
  invalid then the session ends in empty, unitialized state.
  
- Returns YES if operation succeeds. In case of faulure, the lastErrorCode is set
- to appropriate value.
+ Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
+ DEBUG log.
  */
 - (BOOL) deserializeState:(nonnull NSData *)state;
 
@@ -133,8 +133,7 @@
  The result of the operation returned in the PA2ActivationStep1Result object. If the
  returned value is nil, then the error occured.
  
- The lastErrorCode is updated with following values:
-	EC_Ok,         if operation succeeded
+ You can determine the failure reason from DEBUG log:
 	EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
 	EC_WrongState, if called in wrong session's state
 	EC_WrongParam, if some required parameter is missing
@@ -159,9 +158,8 @@
  then the server will keep its part of shared secret but nobody will be able to use that
  estabilished context.
  
- If the returned value is nil, then the error occured. The lastErrorCode is updated with 
- following values:
-	EC_Ok,         if operation succeeded
+ If the returned value is nil, then the error occured. You can determine the failure reason from
+ DEBUG log:
 	EC_Encryption, if provided data, signature or keys are invalid.
 				   If this error occurs then the session resets its state.
 	EC_WrongState, if called in wrong session's state
@@ -180,9 +178,8 @@
  
  WARNING: You have to save session's staate when the activation is completed!
  
- Returns YES if operation succeeds. In case of faulure, the lastErrorCode is set
- to appropriate value:
-	EC_Ok,          if operation succeeded
+ Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
+ DEBUG log:
 	EC_Encryption,  if some internal encryption failed
 					if this error occurs, then the session resets its state
 	EC_WrongState,  if called in wrong session's state
@@ -198,8 +195,8 @@
  activation and obtain information about pairing between the client and server. You have to provide valid
  possessionUnlockKey in the unlockKeys object.
  
- If the returned object is nil then the error occured and the lastErrorCode contains reason
- of the failure.
+ If the returned object is nil then the error occured and you can determine the failure reason from
+ DEBUG log.
  */
 - (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull NSString *)statusBlob
 													keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
@@ -237,9 +234,8 @@
  If you don't save the state then you'll sooner or later loose synchronization with the server
  and your client will not be able to sign data anymore.
  
- Returns string with autorization header or nil if opeartion failed. The lastErrorCode is updated
- to following values:
-	EC_Ok,         if operation succeeded
+ Returns string with autorization header or nil if opeartion failed. You can determine the failure reason from
+ DEBUG log:
 	EC_Encryption, if some cryptographic operation failed
 	EC_WrongState, if the session has no valid activation
 	EC_WrongParam, if some required parameter is missing
@@ -255,9 +251,8 @@
 
 /**
  Validates whether the data has been signed with master server private key.
- Returns YES if signature is valid. The lastErrorCode is updated
- to following values:
-	 EC_Ok,			if operation succeeded and signature is valid
+ Returns YES if signature is valid. In case of error, you can determine the failure reason from
+ DEBUG log:
 	 EC_Encryption	if signature is not valid or some cryptographic operation failed
 	 EC_WrongState	if session contains invalid setup
 	 EC_WrongParam	if signedData object doesn't contain signature
@@ -288,9 +283,8 @@
  All this, is just a preliminary proposal functionality and is not covered by PA2 specification.
  The behavior or a whole flow of password changing may be a subject of change in the future.
  
- Returns YES if operation succeeds or NO in case of failure. The lastErrorCode is updated
- to following values:
-	EC_Ok,          if operation succeeded
+ Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
+ DEBUG log:
 	EC_Encryption,  if underlying cryptograhic operation did fail or
 					if you provided too short passwords.
 	EC_WrongState,  if the session has no valid activation
@@ -303,9 +297,8 @@
  new biometryUnlockKey, which will be used for a protection of the newly created biometry signature key. 
  You should always save session's state after this operation, whether it ends with error or not.
  
- Returns YES if operation succeeds or NO in case of failure. The lastErrorCode is updated
- to following values:
-	 EC_Ok,         if operation succeeded
+ Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
+ DEBUG log:
 	 EC_Encryption, if general encryption error occurs
 	 EC_WrongState, if the session has no valid activation
 	 EC_WrongParam, if some required parameter is missing
@@ -321,9 +314,8 @@
 
 /**
  Removes existing key for biometric signatures from the session. You have to save state of the session
- after the operation. Returns YES if operation succeeds or NO in case of failure. The lastErrorCode is updated
- to following values:
-	EC_Ok,         if operation succeeded
+ after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
+ the failure reason from DEBUG log:
 	EC_WrongState, if the session has no valid activation
  */
 - (BOOL) removeBiometryFactor;
@@ -345,9 +337,8 @@
  or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
  course, keep the key in the volatile memory, if the application needs use the key for a longer period.
  
- Retuns NSData object with a derived cryptographic key or nil in case of failure. The lastErrorCode is 
- updated to the following values:
-	EC_Ok,			if operation succeeded
+ Retuns NSData object with a derived cryptographic key or nil in case of failure. You can determine
+ the failure reason from DEBUG log:
 	EC_Encryption,	if general encryption error occurs
 	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
@@ -364,9 +355,8 @@
  The session's state contains device private key but it is encrypted with vault key, which is normally not
  available on the device.
  
- Retuns NSData object with calculated signature or nil in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok,			if operation succeeded
+ Retuns NSData object with calculated signature or nil in case of failure. You can determine the failure
+ reason from DEBUG log:
 	EC_Encryption,	if general encryption error occurs
 	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
@@ -389,9 +379,8 @@
  decode. The data signing will also work correctly, but only for a knowledge factor, which
  is by design not protected with EEK.
  
- Returns YES if operation succeeded or NO in case of failure. The lastErrorCode is
- updated to the following values:
-	 EC_Ok			if operation succeeded.
+ Returns YES if operation succeeded or NO in case of failure. You can determine the failure
+ reason from DEBUG log:
 	 EC_WrongParam	if key is already set and new EEK is different, or
 					if provided key has invalid length.
 	 EC_WrongState	if you're setting key to activated session which doesn't use EEK
@@ -405,9 +394,8 @@
  
  You have to save state of the session after the operation.
  
- Returns YES if operation succeeded or NO in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok			if operation succeeded and session is using EEK for all future operations
+ Returns YES if operation succeeded or NO in case of failure. You can determine the failure
+ reason from DEBUG log:
 	EC_WrongParam	if the EEK has wrong size
 	EC_WrongState	if session has no valid activation, or
 					if the EEK is already set.
@@ -422,9 +410,8 @@
 	
  You have to save state of the session after the operation.
  
- Returns YES if operation succeeded or NO in case of failure. The lastErrorCode is
- updated to the following values:
-	EC_Ok			if operation succeeded and session doesn't use EEK anymore
+ Returns YES if operation succeeded or NO in case of failure. You can determine the failure
+ reason from DEBUG log:
 	EC_WrongState	if session has no valid activation, or
 					if session has no EEK set
 	EC_Encryption	if internal cryptographic operation failed
@@ -510,5 +497,20 @@
  Returns YES if upgrade has been finished successfully.
  */
 - (BOOL) finishProtocolUpgrade;
+
+
+#pragma mark - Recovery codes
+
+/**
+ Returns YES, if session contains an activation recovery data.
+ */
+@property (nonatomic, assign, readonly) BOOL hasActivationRecoveryData;
+
+/**
+ Returns an activation recovery data. You have to provide encrypted vault key |c_vault_key| and
+ |keys| structure where the valid possessionUnlockKey is set.
+ */
+- (nullable PA2RecoveryData*) activationRecoveryData:(nonnull NSString*)cVaultKey
+												keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
 
 @end

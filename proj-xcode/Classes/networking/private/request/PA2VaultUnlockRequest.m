@@ -23,6 +23,7 @@ static NSString * _ReasonToString(PA2VaultUnlockReason reason)
 		case PA2VaultUnlockReason_ADD_BIOMETRY: 				return @"ADD_BIOMETRY";
 		case PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY:			return @"FETCH_ENCRYPTION_KEY";
 		case PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY:	return @"SIGN_WITH_DEVICE_PRIVATE_KEY";
+		case PA2VaultUnlockReason_RECOVERY_CODE:				return @"RECOVERY_CODE";
 		default:
 			break;
 	}

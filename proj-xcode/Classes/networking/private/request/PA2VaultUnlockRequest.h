@@ -22,7 +22,8 @@ typedef NS_ENUM(int, PA2VaultUnlockReason) {
 	
 	PA2VaultUnlockReason_ADD_BIOMETRY,
 	PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY,
-	PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY
+	PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY,
+	PA2VaultUnlockReason_RECOVERY_CODE
 };
 
 @interface PA2VaultUnlockRequest : NSObject <PA2Encodable>

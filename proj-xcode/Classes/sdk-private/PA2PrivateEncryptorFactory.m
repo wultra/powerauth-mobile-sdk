@@ -53,6 +53,8 @@
 			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES];
 		case PA2EncryptorId_TokenCreate:
 			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES];
+		case PA2EncryptorId_ConfirmRecoveryCode:
+			return [self encryptorForScope:PA2ECIESEncryptorScope_Activation sh1:@"/pa/recovery/confirm" meta:YES];
 		default:
 			return nil;
 	}

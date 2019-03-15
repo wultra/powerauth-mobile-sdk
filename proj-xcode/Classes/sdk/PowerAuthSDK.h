@@ -506,3 +506,45 @@
 - (BOOL) executeOperationOnSerialQueue:(nonnull NSOperation *)operation;
 
 @end
+
+
+#pragma mark - Recovery code
+
+@interface PowerAuthSDK (RecoveryCode)
+
+/**
+ Returns YES if underlying session contains an activation recovery data.
+ */
+- (BOOL) hasActivationRecoveryData;
+
+/**
+ Get an activation recovery data.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private recovery data decryption.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param callback The callback method with an activation recovery information.
+ @return PA2OperationTask associated with the running request.
+ */
+- (nullable id<PA2OperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
+												callback:(nonnull void(^)(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback;
+
+/**
+ Confirm given recovery code on the server.
+ 
+ The method is useful for situations when user receives a recovery information via OOB channel (for example via postcard). Such
+ recovery codes cannot be used without a proper confirmation on the server. To confirm codes, user has to authenticate himself
+ with a knowledge factor.
+ 
+ Note that the provided recovery code can contain a `"R:"` prefix, if it's scanned from QR code.
+ 
+ @param recoveryCode Recovery code to confirm
+ @param authentication Authentication used for recovery code confirmation
+ @param callback The callback method with activation recovery information.
+ @return PA2OperationTask associated with the running request.
+ */
+- (nullable id<PA2OperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
+									   authentication:(nonnull PowerAuthAuthentication*)authentication
+											 callback:(nonnull void(^)(NSError * _Nullable error))callback;
+
+@end

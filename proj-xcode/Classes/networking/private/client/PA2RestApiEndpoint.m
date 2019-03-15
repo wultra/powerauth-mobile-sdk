@@ -121,6 +121,15 @@
 										  authUriId:@"/pa/vault/unlock"];
 }
 
++ (instancetype) confirmRecoveryCode
+{
+	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/recovery/confirm"
+											request:[PA2ConfirmRecoveryCodeRequest class]
+										   response:nil
+										  encryptor:PA2EncryptorId_ConfirmRecoveryCode
+										  authUriId:@"/pa/recovery/confirm"];
+}
+
 #pragma mark - Public getters
 
 - (BOOL) isEncrypted

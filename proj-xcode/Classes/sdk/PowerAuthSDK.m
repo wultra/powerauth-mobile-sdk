@@ -662,12 +662,21 @@ static PowerAuthSDK * s_inst;
 		paramStep2.activationId = responseData.activationId;
 		paramStep2.serverPublicKey = responseData.serverPublicKey;
 		paramStep2.ctrData = responseData.ctrData;
+		PA2ActivationRecoveryData * activationRecoveryData = nil;
+		if (responseData.activationRecovery) {
+			PA2RecoveryData * recoveryData = [[PA2RecoveryData alloc] init];
+			recoveryData.recoveryCode = responseData.activationRecovery.recoveryCode;
+			recoveryData.puk = responseData.activationRecovery.puk;
+			paramStep2.activationRecovery = recoveryData;
+			activationRecoveryData = [[PA2ActivationRecoveryData alloc] initWithRecoveryData:recoveryData];
+		}
 		PA2ActivationStep2Result * resultStep2 = [_session validateActivationResponse:paramStep2];
 		if (resultStep2) {
 			// Everything looks OK, we can construct result object.
 			result = [[PA2ActivationResult alloc] init];
 			result.activationFingerprint = resultStep2.activationFingerprint;
 			result.customAttributes = response.customAttributes;
+			result.activationRecovery = activationRecoveryData;
 		} else {
 			localError = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
 		}
@@ -1175,5 +1184,75 @@ static PowerAuthSDK * s_inst;
 	[_client.serialQueue addOperation:operation];
 	return YES;
 }
+
+@end
+
+
+
+#pragma mark - Recovery codes
+
+@implementation PowerAuthSDK (RecoveryCode)
+
+- (BOOL) hasActivationRecoveryData
+{
+	return _session.hasActivationRecoveryData;
+}
+
+- (nullable id<PA2OperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
+												callback:(nonnull void(^)(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback
+{
+	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_RECOVERY_CODE callback:^(NSString *encryptedEncryptionKey, NSError *error) {
+		PA2ActivationRecoveryData * activationRecovery = nil;
+		if (!error) {
+			// Let's sign the data
+			PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
+			keys.possessionUnlockKey = [self deviceRelatedKey];
+			PA2RecoveryData * recoveryData = [_session activationRecoveryData:encryptedEncryptionKey keys:keys];
+			// Propagate error
+			if (recoveryData) {
+				activationRecovery = [[PA2ActivationRecoveryData alloc] initWithRecoveryData:recoveryData];
+			} else {
+				error = PA2MakeError(PA2ErrorCodeEncryption, nil);
+			}
+		}
+		// Call back to application
+		callback(activationRecovery, error);
+	}];
+}
+
+- (nullable id<PA2OperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
+									   authentication:(nonnull PowerAuthAuthentication*)authentication
+											 callback:(nonnull void(^)(NSError * _Nullable error))callback
+{
+	[self checkForValidSetup];
+	
+	// Check if there is an activation present
+	if (!_session.hasValidActivation) {
+		callback(PA2MakeError(PA2ErrorCodeMissingActivation, nil));
+		return nil;
+	}
+	
+	// Validate recovery code
+	if ([recoveryCode hasPrefix:@"R:"]) {
+		// Strip "R:" prefix
+		recoveryCode = [recoveryCode substringFromIndex:2];
+	}
+	PA2Otp * otp = [PA2OtpUtil parseFromActivationCode:recoveryCode];
+	if (!otp || otp.activationSignature != nil) {
+		callback(PA2MakeError(PA2ErrorCodeWrongParameter, @"Invalid recovery code."));
+		return nil;
+	}
+	
+	// Construct and post request
+	PA2ConfirmRecoveryCodeRequest * request = [[PA2ConfirmRecoveryCodeRequest alloc] init];
+	request.recoveryCode = recoveryCode;
+	return [_client postObject:request
+							to:[PA2RestApiEndpoint confirmRecoveryCode]
+						  auth:authentication
+					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
+						callback(error);
+					}];
+}
+
 
 @end

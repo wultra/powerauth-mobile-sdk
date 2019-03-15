@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2ActivationRecoveryData.h"
 
 /**
  The PA2ActivationResult object represents successfull result from the activation
@@ -26,6 +26,13 @@
  Decimalized fingerprint calculated from device's public key.
  */
 @property (nonatomic, strong, nonnull) NSString * activationFingerprint;
+
+/**
+ If supported and enabled on the server, then the object contains "Recovery Code" and PUK,
+ created for this particular activation. Your application should display that values to the user
+ and forget the values immediately. You should NEVER store values from the object persistently on the device.
+ */
+@property (nonatomic, strong, nullable) PA2ActivationRecoveryData * activationRecovery;
 
 /**
  Custom attributes received from the server. The value may be nil in case that there 

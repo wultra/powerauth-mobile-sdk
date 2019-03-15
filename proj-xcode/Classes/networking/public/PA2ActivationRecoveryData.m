@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,37 @@
  * limitations under the License.
  */
 
-#import "PA2ActivationResult.h"
+#import "PA2ActivationRecoveryData.h"
+#import "PA2Types.h"
 
-@implementation PA2ActivationResult
+@implementation PA2ActivationRecoveryData
+{
+	PA2RecoveryData * _recoveryData;
+}
+
+- (instancetype) initWithRecoveryData:(PA2RecoveryData*)recoveryData
+{
+	self = [super init];
+	if (self) {
+		_recoveryData = recoveryData;
+	}
+	return self;
+}
+
+- (NSString*) recoveryCode
+{
+	return _recoveryData.recoveryCode;
+}
+
+- (NSString*) puk
+{
+	return _recoveryData.puk;
+}
 
 #ifdef DEBUG
 - (NSString*) description
 {
-	NSString * fingerprint = _activationFingerprint ? _activationFingerprint : @"<null>";
-	NSString * rc = _activationRecovery ? [@", recovery=" stringByAppendingString:[_activationRecovery description]] : @"";
-	NSString * attrs = _customAttributes ? [@", attributes=" stringByAppendingString:[_customAttributes description]] : @"";
-	return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@%@%@>", fingerprint, rc,attrs];
+	return [NSString stringWithFormat:@"<PA2ActivationRecoveryData code=%@, puk=%@>", self.recoveryCode, self.puk];
 }
 #endif
 

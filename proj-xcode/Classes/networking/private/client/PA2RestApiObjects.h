@@ -20,11 +20,13 @@
 #import "PA2GetActivationStatusRequest.h"
 #import "PA2VaultUnlockRequest.h"
 #import "PA2RemoveTokenRequest.h"
+#import "PA2ConfirmRecoveryCodeRequest.h"
 #import "PA2EncryptedRequest.h"
 
 // Response objects
 #import "PA2CreateActivationResponse.h"
 #import "PA2CreateActivationResponseData.h"
+#import "PA2CreateActivationRecoveryData.h"
 #import "PA2GetActivationStatusResponse.h"
 #import "PA2VaultUnlockResponse.h"
 #import "PA2GetTokenResponse.h"

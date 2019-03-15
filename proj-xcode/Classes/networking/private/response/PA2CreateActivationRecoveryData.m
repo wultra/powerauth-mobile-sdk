@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-#import "PA2Codable.h"
+#import "PA2CreateActivationRecoveryData.h"
+#import "PA2PrivateMacros.h"
 
-@class PA2CreateActivationRecoveryData;
+@implementation PA2CreateActivationRecoveryData
 
-@interface PA2CreateActivationResponseData : NSObject<PA2Decodable>
-
-@property (nonatomic, strong) NSString * activationId;
-@property (nonatomic, strong) NSString * serverPublicKey;
-@property (nonatomic, strong) NSString * ctrData;
-
-@property (nonatomic, strong) PA2CreateActivationRecoveryData * activationRecovery;
+- (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
+{
+	self = [super init];
+	if (self) {
+		_recoveryCode	= PA2ObjectAs(dictionary[@"recoveryCode"], NSString);
+		_puk		 	= PA2ObjectAs(dictionary[@"puk"], NSString);
+	}
+	return self;
+}
 
 @end

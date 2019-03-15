@@ -71,5 +71,10 @@ typedef NS_ENUM(int, PA2EncryptorId) {
 	 Constructs a new encryptor for the create token request purposes. The content encrypted
 	 with this object can be decrypted only by the PowerAuth server.
 	 */
-	PA2EncryptorId_TokenCreate
+	PA2EncryptorId_TokenCreate,
+	/**
+	 Constructs a new encryptor for the recovery code confirmation request. The content encrypted
+	 with this object can be decrypted only by the PowerAuth server.
+	 */
+	PA2EncryptorId_ConfirmRecoveryCode
 };

@@ -442,4 +442,26 @@ using namespace io::getlime::powerAuth;
 	return error == EC_Ok;
 }
 
+#pragma mark - Recovery codes
+
+- (BOOL) hasActivationRecoveryData
+{
+	return _session->hasActivationRecoveryData();
+}
+
+- (PA2RecoveryData*) activationRecoveryData:(NSString *)cVaultKey keys:(PA2SignatureUnlockKeys *)unlockKeys
+{
+	std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
+	SignatureUnlockKeys cpp_keys;
+	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+	
+	RecoveryData cpp_recovery_data;
+	ErrorCode error = _session->getActivationRecoveryData(cpp_c_vault_key, cpp_keys, cpp_recovery_data);
+	if (error != EC_Ok) {
+		PA2Objc_DebugDumpError(self, @"ActivationRecoveryData", error);
+		return nil;
+	}
+	return PA2RecoveryDataToObject(cpp_recovery_data);
+}
+
 @end

@@ -75,7 +75,7 @@ namespace powerAuthTests
 				RecoveryData rd;
 				rd.recoveryCode = td->recovery_code;
 				rd.puk = td->puk;
-				
+				ccstAssertFalse(protocol::ValidateRecoveryData(rd));
 				td++;
 			}
 		}

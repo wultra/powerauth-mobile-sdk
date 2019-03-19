@@ -164,6 +164,23 @@
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
+ Create a new recovery activation with given name, recovery code, puk and additional extras information.
+ 
+ @param name Activation name, for example "John's iPhone".
+ @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+ @param pu PUK obtainde by manual entry.
+ @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
+ @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
+ @return PA2OperationTask associated with the running request.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+											  recoveryCode:(nonnull NSString*)activationCode
+													   puk:(nonnull NSString*)puk
+													extras:(nullable NSString*)extras
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+
+/**
  Commit activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
@@ -540,11 +557,11 @@
  
  @param recoveryCode Recovery code to confirm
  @param authentication Authentication used for recovery code confirmation
- @param callback The callback method with activation recovery information.
+ @param callback The callback method with activation recovery information. 
  @return PA2OperationTask associated with the running request.
  */
 - (nullable id<PA2OperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
 									   authentication:(nonnull PowerAuthAuthentication*)authentication
-											 callback:(nonnull void(^)(NSError * _Nullable error))callback;
+											 callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback;
 
 @end

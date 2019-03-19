@@ -451,6 +451,28 @@ static PowerAuthSDK * s_inst;
 								 callback:callback];
 }
 
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+											  recoveryCode:(nonnull NSString*)recoveryCode
+													   puk:(nonnull NSString*)puk
+													extras:(nullable NSString*)extras
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback
+{
+	// Validate recovery code & PUK
+	BOOL validPUK = [PA2OtpUtil validateRecoveryPuk:puk];
+	PA2Otp * otp = [PA2OtpUtil parseFromRecoveryCode:recoveryCode];
+	if (!otp || !validPUK) {
+		// Invalid input data
+		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationData, nil));
+		return nil;
+	}
+	// Now create an activation creation request
+	PA2CreateActivationRequest * request = [PA2CreateActivationRequest recoveryActivationWithCode:otp.activationCode puk:puk];
+	return [self createActivationWithName:name
+								  request:request
+									  otp:nil
+								   extras:extras
+								 callback:callback];
+}
 
 #pragma mark Commit
 
@@ -1222,35 +1244,37 @@ static PowerAuthSDK * s_inst;
 
 - (nullable id<PA2OperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
 									   authentication:(nonnull PowerAuthAuthentication*)authentication
-											 callback:(nonnull void(^)(NSError * _Nullable error))callback
+											 callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback
 {
 	[self checkForValidSetup];
 	
 	// Check if there is an activation present
 	if (!_session.hasValidActivation) {
-		callback(PA2MakeError(PA2ErrorCodeMissingActivation, nil));
+		callback(NO, PA2MakeError(PA2ErrorCodeMissingActivation, nil));
 		return nil;
 	}
 	
 	// Validate recovery code
-	if ([recoveryCode hasPrefix:@"R:"]) {
-		// Strip "R:" prefix
-		recoveryCode = [recoveryCode substringFromIndex:2];
-	}
-	PA2Otp * otp = [PA2OtpUtil parseFromActivationCode:recoveryCode];
-	if (!otp || otp.activationSignature != nil) {
-		callback(PA2MakeError(PA2ErrorCodeWrongParameter, @"Invalid recovery code."));
+	PA2Otp * otp = [PA2OtpUtil parseFromRecoveryCode:recoveryCode];
+	if (!otp) {
+		callback(NO, PA2MakeError(PA2ErrorCodeWrongParameter, @"Invalid recovery code."));
 		return nil;
 	}
 	
 	// Construct and post request
 	PA2ConfirmRecoveryCodeRequest * request = [[PA2ConfirmRecoveryCodeRequest alloc] init];
-	request.recoveryCode = recoveryCode;
+	request.recoveryCode = otp.activationCode;
 	return [_client postObject:request
 							to:[PA2RestApiEndpoint confirmRecoveryCode]
 						  auth:authentication
 					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-						callback(error);
+						BOOL alreadyConfirmed;
+						if (status == PA2RestResponseStatus_OK) {
+							alreadyConfirmed = ((PA2ConfirmRecoveryCodeResponse*)response).alreadyConfirmed;
+						} else {
+							alreadyConfirmed = NO;
+						}
+						callback(alreadyConfirmed, error);
 					}];
 }
 

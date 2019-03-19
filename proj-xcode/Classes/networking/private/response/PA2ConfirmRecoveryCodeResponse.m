@@ -14,40 +14,19 @@
  * limitations under the License.
  */
 
-#import "PA2ActivationRecoveryData.h"
-#import "PA2Types.h"
 
-@implementation PA2ActivationRecoveryData
-{
-	PA2RecoveryData * _recoveryData;
-}
+#import "PA2ConfirmRecoveryCodeResponse.h"
+#import "PA2PrivateMacros.h"
 
-- (instancetype) initWithRecoveryData:(PA2RecoveryData*)recoveryData
+@implementation PA2ConfirmRecoveryCodeResponse
+
+- (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
 	self = [super init];
 	if (self) {
-		_recoveryData = recoveryData;
+		_alreadyConfirmed = [PA2ObjectAs(dictionary[@"alreadyConfirmed"], NSNumber) boolValue];
 	}
 	return self;
 }
-
-- (NSString*) recoveryCode
-{
-	return _recoveryData.recoveryCode;
-}
-
-- (NSString*) puk
-{
-	return _recoveryData.puk;
-}
-
-#ifdef DEBUG
-- (NSString*) description
-{
-	NSString * rc = _recoveryData.recoveryCode ? _recoveryData.recoveryCode : @"<null>";
-	NSString * puk = _recoveryData.puk ? _recoveryData.puk : @"<null>";
-	return [NSString stringWithFormat:@"<PA2ActivationRecoveryData code=%@, puk=%@>", rc, puk];
-}
-#endif
 
 @end

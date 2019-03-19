@@ -239,7 +239,7 @@
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
 	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
-	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
+	NSArray * preliminaryResult = nil;
 	
 	__block NSString * activationFingerprint = nil;
 	

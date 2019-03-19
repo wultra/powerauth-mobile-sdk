@@ -74,6 +74,15 @@ namespace powerAuth
 		 */
 		static bool parseActivationCode(const std::string & activation_code, OtpComponents & out_components);
 		
+		/**
+		 Parses an input |recovery_code| (which may or may not contain an optional "R:" prefix) and stores
+		 the result into the |out_components| structure. The method doesn't perform an autocorrection,
+		 so the provided code must be valid.
+		 
+		 Returns true if the code is valid and |out_components| contains a valid data.
+		 */
+		static bool parseRecoveryCode(const std::string & recovery_code, OtpComponents & out_components);
+		
 		
 		// Validations
 		
@@ -106,6 +115,19 @@ namespace powerAuth
 		 */
 		static bool validateSignature(const std::string & signature);
 
+		/**
+		 Returns true if |recovery_code| is a valid recovery code. You can use this method to validate
+		 a whole user-typed recovery code at once. The input code may contain "R:" prefix, if code is
+		 scanned from QR code.
+		 */
+		static bool validateRecoveryCode(const std::string & recovery_code);
+		
+		/**
+		 Returns true if |recovery_puk| appears to be valid. You can use this method to validate
+		 a whole user-typed recovery PUK at once. In current version, only 10 digits long string is considered
+		 as a valid PUK.
+		 */
+		static bool validateRecoveryPuk(const std::string & recovery_puk);
 	};
 	
 } // io::getlime::powerAuth

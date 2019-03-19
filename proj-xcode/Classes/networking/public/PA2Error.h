@@ -29,4 +29,22 @@
  */
 @property (nonatomic, strong) NSString *message;
 
+/**
+ Contains additional information received together with error.
+ */
+@property (nonatomic, strong) NSDictionary *additionalInfo;
+
+@end
+
+
+@interface PA2Error (RecoveryCode)
+
+/**
+ Contains an index of valid PUK in case that recovery activation did fail and
+ there's still recovery PUK is available.
+ 
+ The property contains -1 if the information is not available in the error sresponse.
+ */
+@property (nonatomic, readonly, assign) NSInteger currentRecoveryPukIndex;
+
 @end

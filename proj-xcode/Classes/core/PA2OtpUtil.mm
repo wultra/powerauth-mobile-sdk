@@ -66,11 +66,31 @@ using namespace io::getlime::powerAuth;
 	return OtpUtil::validateActivationCode(cc7::objc::CopyFromNSString(activationCode));
 }
 
++ (BOOL) validateRecoveryCode:(nonnull NSString*)recoveryCode
+{
+	return OtpUtil::validateRecoveryCode(cc7::objc::CopyFromNSString(recoveryCode));
+}
+
++ (BOOL) validateRecoveryPuk:(nonnull NSString*)recoveryPuk
+{
+	return OtpUtil::validateRecoveryPuk(cc7::objc::CopyFromNSString(recoveryPuk));
+}
+
 + (PA2Otp*) parseFromActivationCode:(NSString*)activationCode
 {
 	auto cppActivationCode = cc7::objc::CopyFromNSString(activationCode);
 	OtpComponents cppComponents;
 	if (OtpUtil::parseActivationCode(cppActivationCode, cppComponents)) {
+		return [[PA2Otp alloc] initWithOtpComponents:cppComponents];
+	}
+	return nil;
+}
+
++ (PA2Otp*) parseFromRecoveryCode:(NSString *)recoveryCode
+{
+	auto cppRecoveryCode = cc7::objc::CopyFromNSString(recoveryCode);
+	OtpComponents cppComponents;
+	if (OtpUtil::parseRecoveryCode(cppRecoveryCode, cppComponents)) {
 		return [[PA2Otp alloc] initWithOtpComponents:cppComponents];
 	}
 	return nil;

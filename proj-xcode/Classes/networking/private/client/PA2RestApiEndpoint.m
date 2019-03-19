@@ -125,7 +125,7 @@
 {
 	return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/recovery/confirm"
 											request:[PA2ConfirmRecoveryCodeRequest class]
-										   response:nil
+										   response:[PA2ConfirmRecoveryCodeResponse class]
 										  encryptor:PA2EncryptorId_ConfirmRecoveryCode
 										  authUriId:@"/pa/recovery/confirm"];
 }

@@ -22,7 +22,10 @@
 #ifdef DEBUG
 - (NSString*) description
 {
-	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@>", _code ? _code : @"<null>", _message ? _message : @"<null>"];
+	NSString * info = _additionalInfo ? [@", info=" stringByAppendingString:[_additionalInfo description]] : @"";
+	NSString * code = _code ? _code : @"<null>";
+	NSString * message = _message ? _message : @"<null>";
+	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@%@>", code, message, info];
 }
 #endif
 
@@ -36,8 +39,21 @@
 	if (self) {
 		_code		= PA2ObjectAs(dictionary[@"code"], NSString);
 		_message    = PA2ObjectAs(dictionary[@"message"], NSString);
+		NSMutableDictionary * info = [dictionary mutableCopy];
+		[info removeObjectsForKeys:@[@"code", @"message"]];
+		_additionalInfo = info;
 	}
 	return self;
+}
+
+@end
+
+@implementation PA2Error (RecoveryCode)
+
+- (NSInteger) currentRecoveryPukIndex
+{
+	NSNumber * value = PA2ObjectAs(_additionalInfo[@"currentRecoveryPukIndex"], NSNumber);
+	return value ? [value integerValue] : -1;
 }
 
 @end

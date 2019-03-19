@@ -56,4 +56,14 @@
 	return obj;
 }
 
++ (instancetype) recoveryActivationWithCode:(NSString*)recoveryCode puk:(NSString*)puk
+{
+	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
+	if (obj) {
+		obj->_activationType = @"RECOVERY";
+		obj->_identityAttributes = @{ @"recoveryCode" : recoveryCode, @"puk" : puk };
+	}
+	return obj;
+}
+
 @end

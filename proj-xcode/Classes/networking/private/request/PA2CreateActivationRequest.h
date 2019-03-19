@@ -48,6 +48,11 @@
  property has to be set to the object.
  */
 + (instancetype) customActivationWithIdentityAttributes:(NSDictionary<NSString*, NSString*>*)attributes;
+/**
+ Returns a new instance of object, prepared for a recovery activation. The `activationData`
+ property has to be set to the object.
+ */
++ (instancetype) recoveryActivationWithCode:(NSString*)recoveryCode puk:(NSString*)puk;
 
 @end
 

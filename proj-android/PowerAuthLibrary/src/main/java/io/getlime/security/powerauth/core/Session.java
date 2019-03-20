@@ -593,4 +593,24 @@ public class Session {
      */
     @ErrorCode
     public native int finishProtocolUpgrade();
+
+    //
+    // Recovery codes
+    //
+
+    /**
+     * @return true if session contains an activation recovery data.
+     */
+    public native boolean hasActivationRecoveryData();
+
+    /**
+     * Get an activation recovery data. This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock'
+     * to obtain the vault encryption key used for private recovery data decryption.
+     *
+     * @param cVaultKey encrypted vault key
+     * @param unlockKeys unlock keys object with required possession factor
+     * @return {@link RecoveryData} object or null in case of error
+     */
+    public native RecoveryData getActivationRecoveryData(String cVaultKey, SignatureUnlockKeys unlockKeys);
+
 }

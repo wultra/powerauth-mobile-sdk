@@ -289,9 +289,16 @@ CC7_JNI_METHOD_PARAMS(jobject, validateActivationResponse, jobject param)
 	// Copy data from param jobject into cppParam.
 	ActivationStep2Param cppParam;	
 	jclass paramClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStep2Param");
-	cppParam.activationId				= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationId"));
-	cppParam.serverPublicKey			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "serverPublicKey"));
-	cppParam.ctrData			        = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "ctrData"));
+	cppParam.activationId       = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "activationId"));
+	cppParam.serverPublicKey	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "serverPublicKey"));
+	cppParam.ctrData			= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(param, paramClazz, "ctrData"));
+	// Copy optional recovery data
+	jobject recoveryData        = CC7_JNI_GET_FIELD_OBJECT(param, paramClazz, "activationRecovery", CC7_JNI_MODULE_CLASS_SIGNATURE("RecoveryData"));
+	if (recoveryData != NULL) {
+		jclass recoveryDataClazz = CC7_JNI_MODULE_FIND_CLASS("RecoveryData");
+		cppParam.activationRecovery.recoveryCode    = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(recoveryData, recoveryDataClazz, "recoveryCode"));
+		cppParam.activationRecovery.puk             = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(recoveryData, recoveryDataClazz, "puk"));
+	}
 	// Call C++ session
 	ActivationStep2Result cppResult;
 	ErrorCode code = session->validateActivationResponse(cppParam, cppResult);
@@ -655,7 +662,7 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 	auto session = CC7_THIS_OBJ();
 	if (!session) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return false;
+		return EC_WrongParam;
 	}
 	return session->removeExternalEncryptionKey();
 }
@@ -799,6 +806,53 @@ CC7_JNI_METHOD(jint, finishProtocolUpgrade)
 		return EC_WrongParam;
 	}
 	return (jint) session->finishProtocolUpgrade();
+}
+
+// ----------------------------------------------------------------------------
+// Recovery codes
+// ----------------------------------------------------------------------------
+
+//
+// public native boolean hasActivationRecoveryData()
+//
+CC7_JNI_METHOD(jboolean, hasActivationRecoveryData)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return false;
+	}
+	return (jboolean) session->hasActivationRecoveryData();
+}
+
+//
+// public native RecoveryData getActivationRecoveryData(String cVaultKey, SignatureUnlockKeys unlockKeys)
+//
+CC7_JNI_METHOD_PARAMS(jobject , getActivationRecoveryData, jstring cVaultKey, jobject unlockKeys)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return NULL;
+	}
+	// Load parameters into C++ objects
+	std::string cppCVaultKey = cc7::jni::CopyFromJavaString(env, cVaultKey);
+	SignatureUnlockKeys cppUnlockKeys;
+	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+		return NULL;
+	}
+	RecoveryData cppRecoveryData;
+	auto result = session->getActivationRecoveryData(cppCVaultKey, cppUnlockKeys, cppRecoveryData);
+	if (EC_Ok != result) {
+		CC7_ASSERT(false, "getActivationRecoveryData failed with error %d", result);
+		return NULL;
+	}
+	// Copy cppResult into java result object
+	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("RecoveryData");
+	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("RecoveryData"), "()V");
+	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "recoveryCode", cc7::jni::CopyToJavaString(env, cppRecoveryData.recoveryCode));
+	CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "puk",			cc7::jni::CopyToJavaString(env, cppRecoveryData.puk));
+	return resultObject;
 }
 
 CC7_JNI_MODULE_CLASS_END()

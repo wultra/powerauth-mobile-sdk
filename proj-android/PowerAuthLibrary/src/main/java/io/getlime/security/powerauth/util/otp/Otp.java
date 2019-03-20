@@ -17,18 +17,21 @@
 package io.getlime.security.powerauth.util.otp;
 
 /**
- * Class representing the activation code.
+ * The {@code Otp} class contains parsed components from user-provided activation, or recovery
+ * code. You can use methods from {@link OtpUtil} class to fill this object with a valid data.
  */
 public class Otp {
 
     /**
-     * Activation code, without signature part.
+     * If object is constructed from an activation code, then property contains just a code, without a signature part.
+     * If object is constructed from a recovery code, then property contains just a code, without an optional "R:" prefix.
      */
     public final String activationCode;
     /**
-     * Signature calculated from activationIdShort and activationOtp.
-     * The value is typically optional for cases, when the user re-typed activation code
-     * manually.
+     * Signature calculated from {@link #activationCode}. The value is typically optional for cases,
+     * when the user re-typed activation code manually.
+     *
+     * If object is constructed from a recovery code, then the activation signature part is always empty.
      */
     public final String activationSignature;
 

@@ -692,7 +692,8 @@ public class PowerAuthSDK {
                             // Try to decrypt Layer2 object from response
                             final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
                             // Prepare Step2 param for low level session
-                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData());
+                            // TODO: Add deserialized activation recovery data here...
+                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), null);
                             // Validate the response
                             final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
                             //

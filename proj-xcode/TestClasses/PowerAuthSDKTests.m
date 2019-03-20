@@ -976,6 +976,7 @@ static NSString * PA_Ver = @"3.0";
 	PA2ActivationRecoveryData * recoveryData = activationResult.activationRecovery;
 	
 	if (!recoveryData) {
+		XCTAssertFalse([_sdk hasActivationRecoveryData]);
 		// Cleanup
 		NSLog(@"WARNING: Server doesn't support recovery codes.");
 		[self removeLastActivation:activationData];
@@ -983,6 +984,8 @@ static NSString * PA_Ver = @"3.0";
 	}
 	
 	// 1. now try to confirm received recovery code
+	
+	XCTAssertTrue([_sdk hasActivationRecoveryData]);
 	
 	__block BOOL alreadyConfirmed = NO;
 	__block NSError * resultError = nil;
@@ -999,10 +1002,28 @@ static NSString * PA_Ver = @"3.0";
 	XCTAssertTrue(result);
 	XCTAssertTrue(alreadyConfirmed);
 	
-	// 2. Now remove a local activation. This simulates that user loose the device.
+	// 2. Get recovery codes
+	
+	__block PA2ActivationRecoveryData * decryptedRecoveryData = nil;
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		id<PA2OperationTask> task = [_sdk activationRecoveryData:auth callback:^(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error) {
+			decryptedRecoveryData = recoveryData;
+			resultError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertNotNil(task);
+	}] boolValue];
+	
+	XCTAssertTrue(result);
+	XCTAssertEqual(recoveryData.recoveryCode, decryptedRecoveryData.recoveryCode);
+	XCTAssertEqual(recoveryData.puk, decryptedRecoveryData.puk);
+	
+	// 3. Now remove a local activation. This simulates that user loose the device.
+	
 	[_sdk removeActivationLocal];
 	
-	// 3. Try to create a new activation with recovery code and PUK.
+	// 4. Try to create a new activation with recovery code and PUK.
+	
 	__block PA2ActivationResult * newActivation = nil;
 	__block NSError * newActivationError = nil;
 	
@@ -1019,18 +1040,20 @@ static NSString * PA_Ver = @"3.0";
 	
 	XCTAssertTrue(result);
 	
-	// 4. At this point, old activation should be in "REMOVED" state
+	// 5. At this point, old activation should be in "REMOVED" state
+	
 	PATSActivationStatus * serverOldActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
 	XCTAssertNotNil(serverOldActivationStatus);
 	XCTAssertTrue([serverOldActivationStatus.activationStatus isEqualToString:@"REMOVED"]);
 
 	
-	// 5. Create a new authentication and commit it to the SDK.
+	// 6. Create a new authentication and commit it to the SDK.
+	
 	auth = [self createAuthentication];
 	result = [_sdk commitActivationWithAuthentication:auth error:&operationError];
 	XCTAssertTrue(result);
 	
-	// 6. Cleanup - remove activation on the server.
+	// 7. Cleanup - remove activation on the server.
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		id<PA2OperationTask> task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * _Nullable error) {
 			[waiting reportCompletion:@(error == nil)];

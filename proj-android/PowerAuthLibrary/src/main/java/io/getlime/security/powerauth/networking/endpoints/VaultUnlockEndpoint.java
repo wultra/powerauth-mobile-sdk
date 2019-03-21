@@ -23,7 +23,7 @@ import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.networking.model.response.VaultUnlockResponsePayload;
 
 public class VaultUnlockEndpoint implements IEndpointDefinition<VaultUnlockResponsePayload> {
 

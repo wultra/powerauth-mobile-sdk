@@ -34,8 +34,8 @@ import io.getlime.security.powerauth.core.EciesCryptogram;
 import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.networking.model.request.EciesEncryptedRequest;
+import io.getlime.security.powerauth.networking.model.response.EciesEncryptedResponse;
 
 /**
  * The {@code JsonSerialization} class is helping with object to JSON serialization and

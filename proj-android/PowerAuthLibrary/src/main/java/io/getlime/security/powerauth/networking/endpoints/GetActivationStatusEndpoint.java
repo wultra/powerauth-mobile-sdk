@@ -23,7 +23,7 @@ import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
-import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
+import io.getlime.security.powerauth.networking.model.response.ActivationStatusResponse;
 
 public class GetActivationStatusEndpoint implements IEndpointDefinition<ActivationStatusResponse> {
 

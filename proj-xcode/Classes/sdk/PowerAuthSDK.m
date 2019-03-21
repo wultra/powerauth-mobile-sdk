@@ -1223,6 +1223,10 @@ static PowerAuthSDK * s_inst;
 - (nullable id<PA2OperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
 												callback:(nonnull void(^)(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback
 {
+	if (!_session.hasActivationRecoveryData) {
+		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationState, @"Session has no recovery data available."));
+		return nil;
+	}
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_RECOVERY_CODE callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		PA2ActivationRecoveryData * activationRecovery = nil;
 		if (!error) {

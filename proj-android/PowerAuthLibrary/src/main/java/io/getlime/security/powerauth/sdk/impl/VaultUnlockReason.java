@@ -28,10 +28,11 @@ import static io.getlime.security.powerauth.sdk.impl.VaultUnlockReason.*;
  * Constants for Vault Unlock reasons.
  */
 @Retention(RetentionPolicy.SOURCE)
-@StringDef({ADD_BIOMETRY, FETCH_ENCRYPTION_KEY, SIGN_WITH_DEVICE_PRIVATE_KEY})
+@StringDef({ADD_BIOMETRY, FETCH_ENCRYPTION_KEY, SIGN_WITH_DEVICE_PRIVATE_KEY, RECOVERY_CODE})
 public @interface VaultUnlockReason {
 
     String ADD_BIOMETRY = "ADD_BIOMETRY";
     String FETCH_ENCRYPTION_KEY = "FETCH_ENCRYPTION_KEY";
     String SIGN_WITH_DEVICE_PRIVATE_KEY = "SIGN_WITH_DEVICE_PRIVATE_KEY";
+    String RECOVERY_CODE = "RECOVERY_CODE";
 }

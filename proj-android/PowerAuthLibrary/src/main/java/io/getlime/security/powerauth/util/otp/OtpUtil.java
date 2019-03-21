@@ -51,7 +51,7 @@ public class OtpUtil {
     }
 
     /**
-     * Parses an input recovery code (which may or may not contain an optional signature) and
+     * Parses an input activation code (which may or may not contain an optional signature) and
      * returns {@link Otp} object filled with valid data. The method doesn't perform an auto-correction,
      * so the provided code must be valid.
      *

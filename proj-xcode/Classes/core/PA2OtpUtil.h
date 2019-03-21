@@ -24,13 +24,12 @@
 
 /**
  If object is constructed from an activation code, then property contains just a code, without a signature part.
- If object is constructed from a recovery code, then property contains just a code, without an optiona "R:" prefix.
+ If object is constructed from a recovery code, then property contains just a code, without an optional "R:" prefix.
  */
 @property (nonnull, nonatomic, strong, readonly) NSString * activationCode;
 /**
- Signature calculated from activationIdShort and activationOtp. The value is typically optional for cases,
- when the user re-typed activation code
- manually.
+ Signature calculated from activationCode. The value is typically optional for cases,
+ when the user re-typed activation code manually.
  
  If object is constructed from a recovery code, then the activation signature part is always empty.
  */

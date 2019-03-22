@@ -5,6 +5,10 @@
 - [SDK Installation](#installation)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
+   - [Activation via Activation Code](#activation-via-activation-code)
+   - [Activation via Custom Credentials](#activation-via-custom-credentials)
+   - [Committing Activation Data](#committing-activation-data)
+   - [Validating user inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
@@ -207,6 +211,84 @@ if (result != PowerAuthErrorCodes.PA2Succeed) {
 ```
 
 Note that you currently need to obtain the encrypted biometry key yourself - you have to use `FingerprintManager.CryptoObject` or integration with Android `KeyStore` to do so.
+
+
+
+### Validating user inputs
+
+The mobile SDK is providing a couple of functions in `OtpUtil` class, helping with user input validation. You can:
+
+- Parse activation code when it's scanned from QR code
+- Validate a whole code at once
+- Auto-correct characters typed on the fly
+
+#### Validating scanned QR code
+
+To validate an activation code scanned from QR code, you can use `OtpUtil.parseFromActivationCode()` function. You have to provide the code, with or without the signature part. For example:
+
+```java
+final String scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8.....gd29ybGQ=";
+final Otp otp = OtpUtil.parseFromActivationCode(scannedCode);
+if (otp == null || otp.activationCode == null) {
+    // Invalid code, QR code should contain a signature
+    return;
+}
+```
+
+Note that the signature is only formally validated in the function above. The actual signature verification is done in the activation process, or you can do it on your own:
+
+```java
+let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
+final Otp otp = OtpUtil.parseFromActivationCode(scannedCode)
+if (otp == null || otp.activationCode == null) { 
+    return; 
+}
+final byte[] codeBytes = otp.activationCode.getBytes(Charset.defaultCharset());
+final byte[] signatureBytes = Base64.decode(otp.activationSignature, Base64.NO_WRAP);
+if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
+    // Invalid signature
+}
+```
+
+#### Validating entered activation code
+
+To validate an activation code at once, you can call `OtpUtil.validateActivationCode()` function. You have to provide the code, without the signature part. For example:
+
+```java
+boolean isValid   = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA")
+boolean isInvalid = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=")
+```
+
+If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contains a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
+
+#### Auto-correcting typed characters
+
+You can implement auto-correcting of typed characters with using `OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user suppose to enter an activation code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
+
+Here's an example how to iterate over the string and validate it character by character:
+
+```java
+/// Returns corrected character or null in case of error.
+@Nullable String validateTypedCharacters(@NonNull String input) {
+    final int length = input.length();
+    final StringBuilder output = new StringBuilder(length);
+    for (int offset = 0; offset < length; ) {
+        final int codepoint = input.codePointAt(offset);
+        offset += Character.charCount(codepoint);
+        final int corrected = OtpUtil.validateAndCorrectTypedCharacter(codepoint);
+        if (corrected == 0) {
+            return null;
+        }
+        // Character.isBmpCodePoint(corrected) is always true
+        output.append((char)corrected);
+    }
+    return output.toString();
+}
+
+// validateTypedCharacter("v1") == "VI"
+// validateTypedCharacter("9") == null
+```
+
 
 ## Requesting Activation Status
 

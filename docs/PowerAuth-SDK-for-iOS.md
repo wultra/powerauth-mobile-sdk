@@ -11,6 +11,10 @@
    - [Include PowerAuth SDK in your sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
+    - [Activation via Activation Code](#activation-via-activation-code)
+    - [Activation via Custom Credentials](#activation-via-custom-credentials)
+    - [Committing Activation Data](#committing-activation-data)
+    - [Validating user inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
    - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
@@ -213,7 +217,7 @@ PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, identityAtt
 }
 ```
 
-Note that by using weak identity attributes to create an activation, the resulting activation is confirming a "blurry identity". This may greately limit the legal weight and usability of a signature. We recommend using a strong identity verification before an activation can actually be created.
+Note that by using weak identity attributes to create an activation, the resulting activation is confirming a "blurry identity". This may greatly limit the legal weight and usability of a signature. We recommend using a strong identity verification before an activation can actually be created.
 
 ### Committing Activation Data
 
@@ -223,7 +227,7 @@ After you create an activation using one of the methods mentioned above, you nee
 do {
     try PowerAuthSDK.sharedInstance().commitActivation(withPassword: "1234")
 } catch _ {
-    // happens only in case SDK was not configured or activation is not in state to be commited
+    // happens only in case SDK was not configured or activation is not in state to be committed
 }
 ```
 
@@ -238,9 +242,84 @@ do {
 
     try PowerAuthSDK.sharedInstance().commitActivation(with: auth)
 } catch _ {
-    // happens only in case SDK was not configured or activation is not in state to be commited
+    // happens only in case SDK was not configured or activation is not in state to be committed
 }
 ```
+
+
+### Validating user inputs
+
+The mobile SDK is providing a couple of functions in `PA2OtpUtil` interface, helping with user input validation. You can:
+
+- Parse activation code when it's scanned from QR code
+- Validate a whole code at once
+- Auto-correct characters typed on the fly
+
+#### Validating scanned QR code
+
+To validate an activation code scanned from QR code, you can use `PA2OtpUtil.parse(fromActivationCode:)` function. You have to provide the code, with or without the signature part. For example:
+
+```swift
+let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
+guard let otp = PA2OtpUtil.parse(fromActivationCode: scannedCode) else {
+    // Invalid code
+    return
+}
+guard let signature = otp.activationSignature else {
+    // QR code should contain a signature
+    return
+}
+```
+
+Note that the signature is only formally validated in the function above. The actual signature verification is performed in the activation process, or you can do it on your own:
+
+```swift
+let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
+guard let otp = PA2OtpUtil.parse(fromActivationCode: scannedCode) else { return }
+guard let signature = otp.activationSignature else { return }
+if !PowerAuthSDK.sharedInstance().verifyServerSignedData(otp.activationCode.data(using: .utf8)!, signature: signature, masterKey: true) {
+    // Invalid signature
+}
+```
+
+#### Validating entered activation code
+
+To validate an activation code at once, you can call `PA2OtpUtil.validateActivationCode()` function. You have to provide the code, without the signature part. For example:
+
+```swift
+let isValid   = PA2OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA")
+let isInvalid = PA2OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=")
+```
+
+If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contains a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
+
+#### Auto-correcting typed characters
+
+You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user suppose to enter an activation code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
+
+Here's an example how to iterate over the string and validate it character by character:
+
+```swift
+/// Returns corrected character or nil in case of error.
+func validateAndCorrectCharacters(_ string: String) -> String? {
+    var result : String = ""
+    for codepoint in string.unicodeScalars {
+        let newCodepoint = PA2OtpUtil.validateAndCorrectTypedCharacter(codepoint.value)
+        if newCodepoint != 0 {
+            // Valid, or corrected character
+            result.append(Character(UnicodeScalar(newCodepoint)!))
+        } else {
+            return nil
+        }
+    }
+    return result
+}
+```
+
+You can also check our [LimeAuth](https://github.com/wultra/swift-lime-auth) library, where we have a complete view controller showing this auto-correction technique. Check [EnterActivationCodeViewController.swift](https://github.com/wultra/swift-lime-auth/blob/develop/Source/UI/Activation/Scenes/EnterCode/EnterActivationCodeViewController.swift#L187) file for more details.
+
+
+
 
 ## Requesting Activation Status
 

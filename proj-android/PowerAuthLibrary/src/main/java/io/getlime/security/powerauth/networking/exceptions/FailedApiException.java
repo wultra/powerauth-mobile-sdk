@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.exceptions;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -83,9 +84,24 @@ public class FailedApiException extends Exception {
     }
 
     /**
-     * @return JsonObject parsed from response body or null if received content is not JSON
+     * @return {@link JsonObject} parsed from response body or null if received content is not JSON
      */
     public JsonObject getResponseJson() {
         return responseJson;
+    }
+
+    /**
+     * @return If response contains valid JSON object, then returns {@link JsonObject} available
+     *         at "responseObject" path. Returns null if response content is not JSON, or if there's
+     *         no {@link JsonObject} type available at required path.
+     */
+    public JsonObject getResponseObjectFromResponseJson() {
+        if (responseJson != null) {
+            final JsonElement element = responseJson.get("responseObject");
+            if (element != null && element.isJsonObject()) {
+                return element.getAsJsonObject();
+            }
+        }
+        return null;
     }
 }

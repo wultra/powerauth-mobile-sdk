@@ -147,12 +147,12 @@ namespace powerAuth
 	}
 	
 	
-	bool OtpUtil::validateRecoveryCode(const std::string &recovery_code)
+	bool OtpUtil::validateRecoveryCode(const std::string &recovery_code, bool allow_r_prefix)
 	{
 		if (recovery_code.find(RECOVERY_QR_MARKER) == std::string::npos) {
 			return validateActivationCode(recovery_code);
 		}
-		return validateActivationCode(recovery_code.substr(2));
+		return allow_r_prefix && validateActivationCode(recovery_code.substr(2));
 	}
 	
 	

@@ -257,21 +257,10 @@ namespace protocol
 		if (data.isEmpty()) {
 			return true;
 		}
-		// Validate recovery code. We can use activation code validation for that purpose
+		// Validate recovery code and PUK. Recovery code should not contain "R:" prefix.
 		OtpComponents foo;
-		if (!OtpUtil::parseActivationCode(data.recoveryCode, foo)) {
-			return false;
-		}
-		// Validate PUK. It has to be 10 digits long
-		if (data.puk.length() != 10) {
-			return false;
-		}
-		for (auto c: data.puk) {
-			if (c < '0' || c > '9') {
-				return false;
-			}
-		}
-		return true;
+		return OtpUtil::validateRecoveryCode(data.recoveryCode, false) &&
+			   OtpUtil::validateRecoveryPuk(data.puk);
 	}
 	
 	bool SerializeRecoveryData(const RecoveryData & data, const cc7::ByteRange vault_key, cc7::ByteArray & out_data)

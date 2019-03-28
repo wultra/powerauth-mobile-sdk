@@ -118,9 +118,9 @@ namespace powerAuth
 		/**
 		 Returns true if |recovery_code| is a valid recovery code. You can use this method to validate
 		 a whole user-typed recovery code at once. The input code may contain "R:" prefix, if code is
-		 scanned from QR code.
+		 scanned from QR code and |allow_r_prefix| is true.
 		 */
-		static bool validateRecoveryCode(const std::string & recovery_code);
+		static bool validateRecoveryCode(const std::string & recovery_code, bool allow_r_prefix = true);
 		
 		/**
 		 Returns true if |recovery_puk| appears to be valid. You can use this method to validate

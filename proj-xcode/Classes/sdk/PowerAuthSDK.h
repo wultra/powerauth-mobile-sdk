@@ -168,7 +168,7 @@
  
  @param name Activation name, for example "John's iPhone".
  @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
- @param pu PUK obtainde by manual entry.
+ @param puk PUK obtained by manual entry.
  @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
  @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
  @return PA2OperationTask associated with the running request.

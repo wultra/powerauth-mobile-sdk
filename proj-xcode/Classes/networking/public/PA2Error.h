@@ -41,9 +41,9 @@
 
 /**
  Contains an index of valid PUK in case that recovery activation did fail and
- there's still recovery PUK is available.
+ there's still some recovery PUK available.
  
- The property contains -1 if the information is not available in the error sresponse.
+ The property contains -1 if the information is not available in the error response.
  */
 @property (nonatomic, readonly, assign) NSInteger currentRecoveryPukIndex;
 

@@ -277,6 +277,8 @@ namespace powerAuthTests
 				ccstAssertFalse(result, "Code '%s' should not pass the test", code);
 			}
 			
+			ccstAssertTrue(OtpUtil::validateRecoveryCode("NQHGX-LNM2S-EQ4NT-G3NAA", false));
+			ccstAssertFalse(OtpUtil::validateRecoveryCode("R:NQHGX-LNM2S-EQ4NT-G3NAA", false));
 		}
 		
 		void testRecoveryPukValidation()

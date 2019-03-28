@@ -258,7 +258,6 @@ namespace protocol
 			return true;
 		}
 		// Validate recovery code and PUK. Recovery code should not contain "R:" prefix.
-		OtpComponents foo;
 		return OtpUtil::validateRecoveryCode(data.recoveryCode, false) &&
 			   OtpUtil::validateRecoveryPuk(data.puk);
 	}

@@ -29,7 +29,7 @@
  @param value String with corresponding header's value.
  @return Initialized instance of interceptor,
  */
-- (instancetype) initWithHeaderKey:(nonnull NSString*)headerKey value:(nonnull NSString*)value;
+- (nonnull instancetype) initWithHeaderKey:(nonnull NSString*)headerKey value:(nonnull NSString*)value;
 
 /**
  Contains HTTP header's key provided in object's initialization.

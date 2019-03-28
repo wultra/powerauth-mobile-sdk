@@ -339,6 +339,7 @@ void PA2RecoveryDataToStruct(PA2RecoveryData * rd, io::getlime::powerAuth::Recov
 PA2RecoveryData * PA2RecoveryDataToObject(const io::getlime::powerAuth::RecoveryData& cpp_rd)
 {
 	if (cpp_rd.isEmpty()) {
+		CC7_ASSERT(false, "Empty structure should be handled before the conversion.");
 		return nil;
 	}
 	PA2RecoveryData * res = [[PA2RecoveryData alloc] init];

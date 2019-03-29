@@ -1251,8 +1251,8 @@ The `PA2ClientConfiguration` can contain a multiple request interceptor objects,
 For example: 
 
 ```swift
-let basicAuth = PA2BasicHttpAuthenticationRequestInterceptor(username: "gateway-use", password: "gateway-password")
-let customHeader = PA2CustomHeaderRequestInterceptor(headerKey: "gateway-user", value: "gateway-password")
+let basicAuth = PA2BasicHttpAuthenticationRequestInterceptor(username: "gateway-user", password: "gateway-password")
+let customHeader = PA2CustomHeaderRequestInterceptor(headerKey: "X-CustomHeader", value: "123456")
 let clientConfig = PA2ClientConfiguration()
 clientConfig.requestInterceptors = [ basicAuth, customHeader ]
 ```

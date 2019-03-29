@@ -35,6 +35,10 @@
    - [Removing Token from Watch](#removing-token-from-watch)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
+   - [Root Detection](#root-detection)
+   - [Password Strength Indicator](#password-strength-indicator)
+   - [Debug Build Detection](#debug-build-detection)
+   - [Request Interceptors](#request-interceptors)   
 
 Related documents:
 
@@ -1188,7 +1192,7 @@ PA2ClientConfiguration.sharedInstance().sslValidationStrategy = PA2ClientSslNoVa
 
 ## Additional Features
 
-PowerAuth SDK for iOS contains multiple additional security features that are useful for mobile apps.
+PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
 
 ### Root Detection
 
@@ -1236,3 +1240,26 @@ The DEBUG build is usually helpful during the application development, but on ot
     }
 #endif
 ```
+
+### Request Interceptors
+
+The `PA2ClientConfiguration` can contain a multiple request interceptor objects, allowing you to adjust all HTTP requests created by SDK, before execution. Currently, you can use following two classes:
+
+- `PA2BasicHttpAuthenticationRequestInterceptor` to add basic HTTP authentication header to all requests
+- `PA2CustomHeaderRequestInterceptor` to add a custom HTTP header to all requests
+
+For example: 
+
+```swift
+let basicAuth = PA2BasicHttpAuthenticationRequestInterceptor(username: "gateway-use", password: "gateway-password")
+let customHeader = PA2CustomHeaderRequestInterceptor(headerKey: "gateway-user", value: "gateway-password")
+let clientConfig = PA2ClientConfiguration()
+clientConfig.requestInterceptors = [ basicAuth, customHeader ]
+```
+
+We don't recommend you to implement `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests 
+created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor,
+try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also keep in mind, that the interface 
+may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability
+of interface itself.
+

@@ -23,7 +23,11 @@
 - [Token Based Authentication](#token-based-authentication)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-
+  - [Password Strength Indicator](#password-strength-indicator)
+  - [Debug Build Detection](#debug-build-detection)
+  - [Request Interceptors](#request-interceptors)
+  
+    
 ## Installation
 
 To get PowerAuth SDK for Android up and running in your app, add following dependency in your `gradle.build` file:
@@ -974,7 +978,7 @@ powerAuthSDK.initializeWithConfiguration(context, configuration, clientConfigura
 
 ## Additional Features
 
-PowerAuth SDK for Android contains multiple additional security features that are useful for mobile apps.
+PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.
 
 ### Password Strength Indicator
 
@@ -988,3 +992,38 @@ PasswordStrength strength = PasswordUtil.evaluateStrength("1234", PasswordType.P
 Passwords that are `INVALID` should block the progress. You should translate `WEAK` passwords to UI warnings (not blocking progress), `NORMAL` passwords to OK state, and `STRONG` passwords to rewarding UI message (so that we appreciate user selected strong password, without pushing the user to selecting strong password too hard).
 
 Of course, you may apply any additional measures for the password validity and strength on top of the logics we provide.
+
+### Debug build detection
+
+It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration, to get more logs from the library. The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PowerAuthSDK.hasDebugFeatures()` method provides an information, whether the PowerAuth JNI library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG PowerAuth:
+
+```java
+if (!BuildConfig.DEBUG) {
+    // You can also check your production build configuration
+    if (powerAuthSDK.hasDebugFeatures()) {
+        throw new RuntimeException("Production app with DEBUG PowerAuth");
+    }
+}
+```
+
+### Request Interceptors
+
+The `PowerAuthClientConfiguration` can contain a multiple request interceptor objects, allowing you to adjust all HTTP requests created by SDK, before execution. Currently, you can use following two classes:
+
+- `BasicHttpAuthenticationRequestInterceptor` to add basic HTTP authentication header to all requests
+- `CustomHeaderRequestInterceptor` to add a custom HTTP header to all requests
+
+For example: 
+
+```java
+final PowerAuthClientConfiguration clientConfiguration = new PowerAuthClientConfiguration.Builder()
+            .requestInterceptor(new BasicHttpAuthenticationRequestInterceptor("gateway-user", "gateway-password"))
+            .requestInterceptor(new CustomHeaderRequestInterceptor("X-CustomHeader", "123456"))
+            .build();
+```
+
+We don't recommend you to implement `HttpRequestInterceptor` interface on your own. The interface allows you to tweak the requests 
+created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor,
+try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also keep in mind, that the interface 
+may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability
+of interface itself.

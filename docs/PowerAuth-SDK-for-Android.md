@@ -360,7 +360,7 @@ authentication.usePassword = "1234";
 authentication.useBiometry = null;
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
-PowerAuthAuthorizationHttpHeader header = this.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes);
+PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes);
 if (header.isValid()) {
     String httpHeaderKey = header.getKey();
     String httpHeaderValue = header.getValue();
@@ -383,7 +383,7 @@ Map<String, String> params = new HashMap<>();
 params.put("param1", "value1");
 params.put("param2", "value2");
 
-PowerAuthAuthorizationHttpHeader header = this.requestGetSignatureWithAuthentication(context, authentication, "/payment/create", params);
+PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestGetSignatureWithAuthentication(context, authentication, "/payment/create", params);
 if (header.isValid()) {
     String httpHeaderKey = header.getKey();
     String httpHeaderValue = header.getValue();
@@ -410,6 +410,23 @@ builder.header(header.getKey(), header.getValue());
 
 // Build the request, send it and process response...
 // ...
+```
+
+#### Request Synchronization
+
+It is recommended that your application executes only one signed request at the time. The reason for that is that our signature scheme is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more that one signed request at the same time, then the order is not guaranteed and therefore one from the requests may fail. On top of that, Mobile SDK itself is using this type of signatures for its own purposes. For example, if you ask for token, then the SDK is using signed request to obtain the token's data. To deal with this problem, Mobile SDK is providing a custom serial `Executor`, which can be used for signed requests execution: 
+
+```java
+final Executor serialExecutor = powerAuthSDK.getSerialExecutor();
+serialExecutor.execute(new Runnable() {
+    @Override
+    public void run() {
+        // Recommended practice:
+        // 1. You have to calculate PowerAuth signature here.
+        // 2. In case that you start yet another asynchronous operation from run(),
+        //    then you have to wait for that operation's execution.
+    }
+});
 ```
 
 ### Asymmetric Private Key Signature

@@ -404,7 +404,7 @@ do {
 }
 ```
 
-When signing `GET` requests, use the same code as above with normalized request data as described in specification, or (preferrably) use the following helper method:
+When signing `GET` requests, use the same code as above with normalized request data as described in specification, or (preferably) use the following helper method:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -426,6 +426,34 @@ do {
 } catch _ {
     // In case of invalid configuration, invalid activation state or corrupted state data
 }
+```
+
+#### Request Synchronization
+
+It is recommended that your application executes only one signed request at the time. The reason for that is that our signature scheme is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more that one signed request at the same time, then the order is not guaranteed and therefore one from the requests may fail. On top of that, Mobile SDK itself is using this type of signatures for its own purposes. For example, if you ask for token, then the SDK is using signed request to obtain the token's data. To deal with this problem, Mobile SDK is providing a few methods which helps with the signed requests synchronization. 
+
+If your networking is based on `OperationQueue`, then you can add your own `Operation` objects directly to the internal queue. Be aware that PowerAuth signature, must be calculated as a part of operation's execution. For example:
+
+```swift
+let httpOperation: Operation = YourHttpOperation(...)
+guard PowerAuthSDK.sharedInstance().executeOperation(onSerialQueue: httpOperation) else {
+    fatalError("There's no activation")
+}
+```
+
+In case of custom networking, you can use method to execute any block on the serial queue. In this case, PowerAuth signature must be calculated as a part of block's execution. For example:
+```swift
+PowerAuthSDK.sharedInstance().executeBlock(onSerialQueue: { internalTask in
+    yourNetworking.post(yourRequest, completionHandler: { (data, response, error) in
+        // Your response processing...
+        // No matter what happens, you have to call task.cancel() at the end
+        internalTask.cancel()
+    }, cancelationHandler: {
+        // In case that your networking cancels the request, the given task
+        // must be also canceled
+        internalTask.cancel()
+    })
+})
 ```
 
 ### Asymmetric Private Key Signature

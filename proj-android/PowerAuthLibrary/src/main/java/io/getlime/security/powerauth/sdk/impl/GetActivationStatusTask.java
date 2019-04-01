@@ -36,10 +36,10 @@ import io.getlime.security.powerauth.networking.endpoints.UpgradeCommitV3Endpoin
 import io.getlime.security.powerauth.networking.endpoints.UpgradeStartV3Endpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.model.request.ActivationStatusRequest;
 import io.getlime.security.powerauth.networking.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.networking.model.response.UpgradeResponsePayload;
+import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.system.PA2Log;
 

@@ -5,8 +5,8 @@ import android.support.annotation.Nullable;
 
 import org.robolectric.annotation.Implements;
 
-import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 
 /**
  * Shadow class (Robolectric mock) of {@link DefaultSavePowerAuthStateListener}.

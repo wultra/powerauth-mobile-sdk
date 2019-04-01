@@ -16,12 +16,14 @@
 -keepattributes *Annotation*
 
 -keep class io.getlime.security.powerauth.core.* {
+    <init>(...);
     <fields>;
 }
 -keep class io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData {
     <fields>;
 }
 -keep class io.getlime.security.powerauth.util.otp.Otp {
+    <init>(...);
     <fields>;
 }
 -keepclassmembers class io.getlime.core.rest.model.** {

@@ -987,11 +987,11 @@ static NSString * PA_Ver = @"3.0";
 	
 	XCTAssertTrue([_sdk hasActivationRecoveryData]);
 	
-	__block BOOL alreadyConfirmed = NO;
+	__block BOOL isAlreadyConfirmed = NO;
 	__block NSError * resultError = nil;
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		id<PA2OperationTask> task = [_sdk confirmRecoveryCode:recoveryData.recoveryCode authentication:auth callback:^(BOOL alreadyConfirmed, NSError * _Nullable error) {
-			alreadyConfirmed = alreadyConfirmed;
+			isAlreadyConfirmed = alreadyConfirmed;
 			resultError = error;
 			[waiting reportCompletion:@(error == nil)];
 		}];
@@ -1000,7 +1000,7 @@ static NSString * PA_Ver = @"3.0";
 	}] boolValue];
 	
 	XCTAssertTrue(result);
-	XCTAssertTrue(alreadyConfirmed);
+	XCTAssertTrue(isAlreadyConfirmed);
 	
 	// 2. Get recovery codes
 	
@@ -1015,8 +1015,8 @@ static NSString * PA_Ver = @"3.0";
 	}] boolValue];
 	
 	XCTAssertTrue(result);
-	XCTAssertEqual(recoveryData.recoveryCode, decryptedRecoveryData.recoveryCode);
-	XCTAssertEqual(recoveryData.puk, decryptedRecoveryData.puk);
+	XCTAssertTrue([recoveryData.recoveryCode isEqualToString:decryptedRecoveryData.recoveryCode]);
+	XCTAssertTrue([recoveryData.puk isEqualToString:decryptedRecoveryData.puk]);
 	
 	// 3. Now remove a local activation. This simulates that user loose the device.
 	

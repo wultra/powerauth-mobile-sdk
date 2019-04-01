@@ -33,10 +33,10 @@ import io.getlime.security.powerauth.networking.endpoints.CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveTokenEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.response.IGetTokenListener;
-import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.networking.model.entity.TokenResponsePayload;
 import io.getlime.security.powerauth.networking.model.request.TokenRemoveRequest;
+import io.getlime.security.powerauth.networking.response.IGetTokenListener;
+import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**

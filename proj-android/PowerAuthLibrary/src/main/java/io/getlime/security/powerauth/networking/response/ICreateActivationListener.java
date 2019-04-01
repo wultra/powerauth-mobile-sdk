@@ -18,9 +18,6 @@ package io.getlime.security.powerauth.networking.response;
 
 import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
-import java.util.Map;
 
 /**
  * Interface used to allow the initiator of power auth activation to get the result from

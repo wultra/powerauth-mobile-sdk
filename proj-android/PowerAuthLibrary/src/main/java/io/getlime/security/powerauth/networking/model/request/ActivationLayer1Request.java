@@ -15,9 +15,9 @@
  */
 package io.getlime.security.powerauth.networking.model.request;
 
-import io.getlime.security.powerauth.networking.model.entity.ActivationType;
-
 import java.util.Map;
+
+import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 
 /**
  * Request object for activation layer 1.

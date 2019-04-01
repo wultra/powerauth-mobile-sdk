@@ -16,6 +16,14 @@
 
 package io.getlime.security.powerauth.system;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
+import android.support.annotation.WorkerThread;
+import android.text.TextUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -25,14 +33,6 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
-import android.support.annotation.WorkerThread;
-import android.text.TextUtils;
 
 /**
  * Class that provides detections and information about system and runtime.

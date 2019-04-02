@@ -894,13 +894,13 @@ To recovery an activation, the user has to re-type two separate values:
 PowerAuth currently supports two basic types of recovery codes:
 
 1. Recovery Code bound to a previous PowerAuth activation.
-  - This type of code can be obtained only in an already activated application.
-  - This type of code has only one PUK available, so only one recovery operation is possible.
-  - The activation associated with the code is removed once the recovery operation succeeds.
+   - This type of code can be obtained only in an already activated application.
+   - This type of code has only one PUK available, so only one recovery operation is possible.
+   - The activation associated with the code is removed once the recovery operation succeeds.
   
 2. Recovery Code delivered via OOB channel, typically in form of securely printed postcard, delivered by a post service.
-  - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times
-  - User has to keep that postcard at safe and secure place and mark already used PUKs.
+   - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times
+   - User has to keep that postcard at safe and secure place and mark already used PUKs.
 
 The feature is not automatically available, but must be enabled and configured on PowerAuth Server. If it's so, then your mobile application can use several methods related to this feature.
 

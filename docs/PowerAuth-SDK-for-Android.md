@@ -901,6 +901,7 @@ PowerAuth currently supports two basic types of recovery codes:
 2. Recovery Code delivered via OOB channel, typically in form of securely printed postcard, delivered by a post service.
    - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times
    - User has to keep that postcard at safe and secure place and mark already used PUKs.
+   - The code delivery must be confirmed by the user, before it can be used for a recovery operation.
 
 The feature is not automatically available, but must be enabled and configured on PowerAuth Server. If it's so, then your mobile application can use several methods related to this feature.
 
@@ -938,9 +939,9 @@ powerAuthSDK.getActivationRecoveryData(context, authentication, new IGetRecovery
 WARNING: The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
 
 - You should never store `recoveryCode` or `puk` on the device
-- You should never print that values to debug log
+- You should never print that values to the debug log
 - You should never send that values over the network
-- You should never copy that values to clipboard
+- You should never copy that values to the clipboard
 - Do not cache that values in RAM. 
 - Your UI logic should require PIN every time the vales are going to display on the screen.
 - Your application should not allow taking screenshots when values are displayed on the screen.
@@ -980,6 +981,7 @@ powerAuthSDK.confirmRecoveryCode(context, authentication, recoveryCode, new ICon
 });
 ```
 
+The `alreadyConfirmed` boolean indicates that code was already confirmed in past. You can choose a different "success" screen, describing that user has already confirmed such code. Also note that codes bound to the activations are already confirmed.
 
 ## Token Based Authentication
 

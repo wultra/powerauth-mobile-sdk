@@ -7,6 +7,7 @@
 - [Device Activation](#activation)
    - [Activation via Activation Code](#activation-via-activation-code)
    - [Activation via Custom Credentials](#activation-via-custom-credentials)
+   - [Activation via Recovery Code](#activation-via-recovery-code)
    - [Committing Activation Data](#committing-activation-data)
    - [Validating user inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
@@ -20,6 +21,9 @@
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
+- [Recovery Codes](#recovery-codes)
+   - [Getting Recovery Data](#getting-recovery-data)
+   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token Based Authentication](#token-based-authentication)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
@@ -117,7 +121,7 @@ In case you would like to use QR code scanning to enter an activation code, you 
 Use following code to create an activation once you have an activation code:
 
 ```java
-String deviceName = "Petr's iPhone 7"; // or UIDevice.current.name
+String deviceName = "Petr's Leagoo T5C";
 String activationCode = "VVVVV-VVVVV-VVVVV-VTFVA"; // let user type or QR-scan this value
 
 // Create a new activation with given device name and activation code
@@ -125,8 +129,10 @@ powerAuthSDK.createActivation(deviceName, activationCode, new ICreateActivationL
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
+        final RecoveryData activationRecovery = result.getRecoveryData();
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
+        // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     @Override
@@ -144,7 +150,7 @@ Use following code to create an activation using custom credentials:
 
 ```java
 // Create a new activation with given device name and login credentials
-String deviceName = "Petr's iPhone 7"; // or UIDevice.current.name
+String deviceName = "Juraj's JiaYu S3";
 Map<String, String> credentials = new HashMap<>();
 credentials.put("username", "john.doe@example.com");
 credentials.put("password", "YBzBEM");
@@ -153,8 +159,10 @@ powerAuthSDK.createActivation(deviceName, credentials, null, null, new ICreateAc
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
+        final RecoveryData activationRecovery = result.getRecoveryData();
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
+        // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     @Override
@@ -165,6 +173,45 @@ powerAuthSDK.createActivation(deviceName, credentials, null, null, new ICreateAc
 ```
 
 Note that by using weak identity attributes to create an activation, the resulting activation is confirming a "blurry identity". This may greately limit the legal weight and usability of a signature. We recommend using a strong identity verification before an activation can actually be created.
+
+
+### Activation via Recovery Code
+
+If PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then also you can create an activation via the recovery code and PUK. 
+
+Use following code to create an activation using recovery code:
+
+```java
+final String deviceName = "John Tramonta"
+final String recoveryCode = "55555-55555-55555-55YMA" // User's input
+final String puk = "0123456789" // User's input. You should validate RC & PUK with using OtpUtil 
+
+powerAuthSDK.createRecoveryActivation(deviceName, recoveryCode, puk, null, null, new ICreateActivationListener() {
+    @Override
+    public void onActivationCreateSucceed(CreateActivationResult result) {
+        final String fingerprint = result.getActivationFingerprint();
+        final RecoveryData activationRecovery = result.getRecoveryData();
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
+        // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
+    }
+
+    @Override
+    public void onActivationCreateFailed(Throwable t) {
+        // Error occurred, report it to the user
+        // On top of a regular error processing, you should handle a special situation, when server gives an additional information
+        // about which PUK must be used for the recovery. The information is valid only when recovery code from a postcard is applied.
+        if (t instanceof ErrorResponseApiException) {
+            ErrorResponseApiException exception = (ErrorResponseApiException) t;
+            Error errorResponse = exception.getErrorResponse();
+            int currentRecoveryPukIndex = errorResponse.getCurrentRecoveryPukIndex();
+            if (currentRecoveryPukIndex > 0) {
+                // The PUK index is known, you should inform user that it has to rewrite PUK from a specific position. 
+            }
+        }
+    }
+});
+```
 
 ### Committing Activation Data
 
@@ -224,6 +271,7 @@ The mobile SDK is providing a couple of functions in `OtpUtil` class, helping wi
 
 - Parse activation code when it's scanned from QR code
 - Validate a whole code at once
+- Validate recovery code or PUK
 - Auto-correct characters typed on the fly
 
 #### Validating scanned QR code
@@ -242,8 +290,8 @@ if (otp == null || otp.activationCode == null) {
 Note that the signature is only formally validated in the function above. The actual signature verification is done in the activation process, or you can do it on your own:
 
 ```java
-let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
-final Otp otp = OtpUtil.parseFromActivationCode(scannedCode)
+final String scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ=";
+final Otp otp = OtpUtil.parseFromActivationCode(scannedCode);
 if (otp == null || otp.activationCode == null) { 
     return; 
 }
@@ -259,15 +307,30 @@ if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
 To validate an activation code at once, you can call `OtpUtil.validateActivationCode()` function. You have to provide the code, without the signature part. For example:
 
 ```java
-boolean isValid   = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA")
-boolean isInvalid = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=")
+boolean isValid   = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA");
+boolean isInvalid = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=");
 ```
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contains a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
+#### Validating recovery code and PUK
+
+To validate a recovery code at once, you can call `OtpUtil.validateRecoveryCode()` function. You can provide the whole code, which may, or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
+
+```java
+boolean isValid1 = OtpUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA");
+boolean isValid2 = OtpUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA");
+```
+
+To validate PUK at once, you can call `OtpUtil.validateRecoveryPuk()` function:
+
+```java
+boolean isValid   = OtpUtil.validateRecoveryPuk("0123456789");
+```
+
 #### Auto-correcting typed characters
 
-You can implement auto-correcting of typed characters with using `OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user suppose to enter an activation code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
+You can implement auto-correcting of typed characters with using `OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user suppose to enter an activation, or recovery code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -817,6 +880,87 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, new IFetchEncryp
 })
 ```
 
+## Recovery Codes
+
+If PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then your application can use several methods related to recovery codes.
+
+### Getting Recovery Data
+
+To check existence of recovery data and get that information, use following code:
+
+```java
+if (!powerAuthSDK.hasActivationRecoveryData()) {
+    // Recovery information is not available
+    return;
+}
+
+// 2FA signature, uses device related key and user PIN code
+PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+authentication.usePossession = true;
+authentication.usePassword = "1234";
+authentication.useBiometry = null;
+
+powerAuthSDK.getActivationRecoveryData(context, authentication, new IGetRecoveryDataListener() {
+    @Override
+    public void onGetRecoveryDataSucceeded(RecoveryData recoveryData) {
+        final String recoveryCode = recoveryData.recoveryCode;
+        final String puk = recoveryData.puk;
+        // Show values on the screen...
+    }
+    
+    @Override
+    public void onGetRecoveryDataFailed(Throwable t) {
+        // Report error
+    }
+});
+```
+
+The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
+
+- You should never store `recoveryCode` or `puk` on the device
+- You should never print that values to debug log
+- You should never send that values over the network
+- You should never copy that values to clipboard
+- Do not cache that values in RAM. 
+- Your UI logic should require PIN every time the vales are going to display on the screen.
+- Your application should not allow taking screenshots when values are displayed on the screen.
+
+You should inform user that:
+
+- Making screenshot when values are displayed on the screen is dangerous (in case that you did not disable taking screenshots)
+- User should write down that values on paper and keep it as much safe as possible for future use.
+
+
+### Confirm Recovery Postcard
+
+The recovery postcard can contain the recovery code and multiple PUK values at one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before user confirms its delivery. To confirm such recovery code, use following code:
+
+```java
+// 2FA signature with possession factor is required
+PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+authentication.usePossession = true;
+authentication.usePassword = "1234";
+authentication.useBiometry = null;
+
+final String recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
+powerAuthSDK.confirmRecoveryCode(context, authentication, recoveryCode, new IConfirmRecoveryCodeListener{
+    @Override
+    public void onRecoveryCodeConfirmed(boolean alreadyConfirmed) {
+        if (alreadyConfirmed) {
+            android.util.Log.d(TAG, "Recovery code has been already confirmed. This is not an error, just information.");
+        } else {
+            android.util.Log.d(TAG, "Recovery code has been successfully confirmed.");
+        }
+    }
+
+    @Override
+    public void onRecoveryCodeConfirmFailed(Throwable t) {
+        // Report error
+    }
+});
+```
+
+
 ## Token Based Authentication
 
 WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature.
@@ -895,7 +1039,7 @@ tokenStore.removeAccessToken(context, "MyToken", new IRemoveTokenListener() {
 
 To remove token locally, you can simply use following code:
 
-```swift
+```java
 final PowerAuthTokenStore tokenStore = powerAuthSDK.getTokenStore();
 // Remove just one token
 tokenStore.removeLocalToken(context, "MyToken");

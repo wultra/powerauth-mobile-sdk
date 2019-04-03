@@ -202,7 +202,7 @@ PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, activationC
 }
 ```
 
-If the received activation result also contains a recovery data, then you should display that values to the user. To do that, please read [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
+If the received activation result also contains recovery data, then you should display that values to the user. To do that, please read [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
 ### Activation via Custom Credentials
 
@@ -355,7 +355,7 @@ let isValid   = PA2OtpUtil.validateRecoveryPuk("0123456789")
 
 #### Auto-correcting typed characters
 
-You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user suppose to enter an activation, or recovery code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
+You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user is suppose to enter an activation or recovery code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -860,9 +860,9 @@ PowerAuthSDK.sharedInstance().fetchEncryptionKey(auth, index: index) { (encrypti
 
 ## Recovery Codes
 
-The recovery codes allows your users to recovery their activation in case that mobile device is lost or stolen. Before you start, please read [Activation Recovery](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) document, available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+The recovery codes allows your users to recover their activation in case that mobile device is lost or stolen. Before you start, please read [Activation Recovery](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) document, available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
-To recovery an activation, the user has to re-type two separate values:
+To recover an activation, the user has to re-type two separate values:
 
 1. Recovery Code itself, which is very similar to an activation code. So you can detect typing errors before you submit such code to the server. 
 1. PUK, which is an additional numeric value and acts as an one time password in the scheme.
@@ -875,7 +875,7 @@ PowerAuth currently supports two basic types of recovery codes:
    - The activation associated with the code is removed once the recovery operation succeeds.
   
 2. Recovery Code delivered via OOB channel, typically in form of securely printed postcard, delivered by a post service.
-   - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times
+   - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times.
    - User has to keep that postcard at safe and secure place and mark already used PUKs.
    - The code delivery must be confirmed by the user, before it can be used for a recovery operation.
 
@@ -908,11 +908,11 @@ powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in
 
 WARNING: The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
 
-- You should never store `recoveryCode` or `puk` on the device
-- You should never print that values to the debug log
-- You should never send that values over the network
-- You should never copy that values to the clipboard
-- Do not cache that values in RAM. 
+- You should never store `recoveryCode` or `puk` on the device.
+- You should never print that values to the debug log.
+- You should never send that values over the network.
+- You should never copy that values to the clipboard.
+- Do not cache that values in RAM.
 - Your UI logic should require PIN every time the vales are going to display on the screen.
 - You should catch a takin screenshot event when values are displayed on the screen and warn user, that such practice is not recommended.
 
@@ -924,7 +924,7 @@ You should inform user that:
 
 ### Confirm Recovery Postcard
 
-The recovery postcard can contain the recovery code and multiple PUK values at one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before user confirms its physical delivery. To confirm such recovery code, use following code:
+The recovery postcard can contain the recovery code and multiple PUK values on one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before user confirms its physical delivery. To confirm such recovery code, use following code:
 
 ```swift
 // 2FA signature with possession factor is required

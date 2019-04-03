@@ -119,8 +119,10 @@ namespace powerAuth
 	
 	bool ActivationStatus::isProtocolUpgradeAvailable() const
 	{
-		if (currentVersion < upgradeVersion) {
-			return upgradeVersion <= MaxSupported;
+		if (state == Active) {
+			if (currentVersion < upgradeVersion) {
+				return upgradeVersion <= MaxSupported;
+			}
 		}
 		return false;
 	}

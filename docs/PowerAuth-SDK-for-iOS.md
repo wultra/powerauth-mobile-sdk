@@ -1423,9 +1423,5 @@ let clientConfig = PA2ClientConfiguration()
 clientConfig.requestInterceptors = [ basicAuth, customHeader ]
 ```
 
-We don't recommend you to implement `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests 
-created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor,
-try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also keep in mind, that the interface 
-may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability
-of interface itself.
+We don't recommend you to implement `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor, try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also keep in mind, that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of interface itself.
 

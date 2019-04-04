@@ -238,7 +238,7 @@ function __COMMON_FUNCTIONS_SELF_UPDATE
 {
 	local self=$0
 	local backup=$self.backup
-	local remote="https://raw.githubusercontent.com/wultra/swift-library-deploy/master/common-functions.sh"
+	local remote="https://raw.githubusercontent.com/wultra/library-deploy/master/common-functions.sh"
 	LOG_LINE
 	LOG "This script is going to update itself:"
 	LOG "  source : $remote"

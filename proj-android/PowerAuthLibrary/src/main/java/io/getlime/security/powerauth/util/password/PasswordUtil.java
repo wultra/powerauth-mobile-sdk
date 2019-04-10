@@ -52,10 +52,14 @@ public class PasswordUtil {
 
     /**
      * Evaluate provided password strength using logic that depends on a password type.
+     * @deprecated {@code PasswordUtil} class will be removed in some future version of SDK. You can migrate
+     *             your code to <a href="https://github.com/wultra/passphrase-meter">Wultra Passphrase Meter</a>
+     *             library, which provides a better PIN or password strength evaluation.
      * @param password Password to be evaluated.
      * @param type Type of the password (for example, numeric PIN code).
      * @return Estimated password strength.
      */
+    @Deprecated
     public static PasswordStrength evaluateStrength(String password, PasswordType type) {
         if (!PasswordUtil.isValid(password, type)) {
             return PasswordStrength.INVALID;

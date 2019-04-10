@@ -1389,6 +1389,9 @@ Passwords that are `INVALID` should block the progress. You should translate `WE
 
 Of course, you may apply any additional measures for the password validity and strength on top of the logics we provide.
 
+> **WARNING:**
+> The `PA2PasswordUtil` class is deprecated and will be removed in some future version of PowerAuth Mobile SDK. You can migrate your code to [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library, which provides a better PIN or password strength evaluation.
+
 ### Debug build detection
 
 It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration, to get more logs from the library:

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Macros.h"
 
 /** Indicator of a password strength.
  */
@@ -33,6 +33,10 @@ typedef NS_ENUM(int, PasswordType) {
 };
 
 /** Class used for validating passwords.
+ 
+ This class will be removed in some future version of SDK. You can migrate your code to
+ Wultra Passphrase Meter - https://github.com/wultra/passphrase-meter library, which
+ provides a better PIN and password strength evaluation.
  */
 @interface PA2PasswordUtil : NSObject
 
@@ -42,6 +46,6 @@ typedef NS_ENUM(int, PasswordType) {
  @param type Type of the password (for example, numeric PIN code).
  @return Estimated password strength.
  */
-+ (PasswordStrength) evaluateStrength:(NSString*)password passwordType:(PasswordType)type;
++ (PasswordStrength) evaluateStrength:(NSString*)password passwordType:(PasswordType)type PA2_DEPRECATED(1.1.0);
 
 @end

@@ -175,7 +175,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-											  recoveryCode:(nonnull NSString*)activationCode
+											  recoveryCode:(nonnull NSString*)recoveryCode
 													   puk:(nonnull NSString*)puk
 													extras:(nullable NSString*)extras
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;

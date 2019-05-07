@@ -16,10 +16,14 @@
 
 #import "PA2Codable.h"
 
+@class PA2CreateActivationRecoveryData;
+
 @interface PA2CreateActivationResponseData : NSObject<PA2Decodable>
 
 @property (nonatomic, strong) NSString * activationId;
 @property (nonatomic, strong) NSString * serverPublicKey;
 @property (nonatomic, strong) NSString * ctrData;
+
+@property (nonatomic, strong) PA2CreateActivationRecoveryData * activationRecovery;
 
 @end

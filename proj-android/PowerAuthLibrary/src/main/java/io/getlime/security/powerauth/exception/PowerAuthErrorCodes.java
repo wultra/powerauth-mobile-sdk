@@ -20,7 +20,21 @@ import android.support.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.*;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeActivationPending;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeEncryptionError;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidToken;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeNetworkError;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeOperationCancelled;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeProtocolUpgrade;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeSignatureError;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeWrongParameter;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2Succeed;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**

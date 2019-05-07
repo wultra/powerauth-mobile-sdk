@@ -125,7 +125,8 @@
 
 
 /**
- Performs
+ Fetch activation status from the server. This is the low level operation, which simply
+ receives the status from the server and does no additional processing.
  */
 - (void) fetchActivationStatus:(void(^)(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error))callback
 {
@@ -161,6 +162,10 @@
 
 #pragma mark - Protocol upgrade
 
+/**
+ Continue task with the protocol upgrade. This is the "main" function, which handles all possible
+ combination of upgrade states, so it's safe to call it when the status is known.
+ */
 - (void) continueUpgradeWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
 {
 	// Keep status objects for delayed processing.
@@ -176,6 +181,9 @@
 	}
 }
 
+/**
+ Continue task with the protocol V3 upgrade.
+ */
 - (void) continueUpgradeToV3:(PA2ActivationStatus*)status
 {
 	PA2ProtocolVersion serverVersion = status.currentActivationVersion;
@@ -258,6 +266,9 @@
 	[self reportCompletionWithStatus:nil customObject:nil error:error];
 }
 
+/**
+ Starts upgrade to V3 on the server.
+ */
 - (void) startUpgradeToV3
 {
 	_currentOperation = [_client postObject:nil
@@ -288,6 +299,9 @@
 								 }];
 }
 
+/**
+ Commits upgrade to V3 on the server.
+ */
 - (void) commitUpgradeToV3
 {
 	_currentOperation = [_client postObject:nil
@@ -306,6 +320,9 @@
 								 }];
 }
 
+/**
+ Completes the whole upgrade process locally.
+ */
 - (void) finishUpgradeToV3
 {
 	if ([_session finishProtocolUpgrade]) {

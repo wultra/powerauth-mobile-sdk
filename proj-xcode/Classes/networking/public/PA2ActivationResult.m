@@ -22,13 +22,10 @@
 - (NSString*) description
 {
 	NSString * fingerprint = _activationFingerprint ? _activationFingerprint : @"<null>";
-	if (_customAttributes) {
-		return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@, attributes=%@>", fingerprint, [_customAttributes description]];
-	} else {
-		return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@>", fingerprint];
-	}
+	NSString * rc = _activationRecovery ? [@", recovery=" stringByAppendingString:[_activationRecovery description]] : @"";
+	NSString * attrs = _customAttributes ? [@", attributes=" stringByAppendingString:[_customAttributes description]] : @"";
+	return [NSString stringWithFormat:@"<PA2ActivationResult fingerprint=%@%@%@>", fingerprint, rc,attrs];
 }
 #endif
-
 
 @end

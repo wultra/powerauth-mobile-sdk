@@ -52,3 +52,9 @@
 // Declaration required by watchSDK integration (see PowerAuthSDK+WatchSupport.m)
 @interface PowerAuthSDK (WatchSupportPrivate) <PA2WCSessionDataHandler>
 @end
+
+
+// Reveal private init in PA2ActivationRecoveryData object
+@interface PA2ActivationRecoveryData (Private)
+- (instancetype) initWithRecoveryData:(PA2RecoveryData*)recoveryData;
+@end

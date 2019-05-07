@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -391,6 +391,32 @@ namespace powerAuth
 	
 	
 	//
+	// MARK: - Recovery Codes -
+	//
+	
+	/**
+	 RecoveryData structure contains information about recovery code and PUK, created
+	 during the activation process.
+	 */
+	struct RecoveryData
+	{
+		/**
+		 Contains recovery code.
+		 */
+		std::string recoveryCode;
+		/**
+		 Contains PUK, valid with recovery code.
+		 */
+		std::string puk;
+		
+		/**
+		 Returns true if structure is empty (e.g. contains no recovery data)
+		 */
+		bool isEmpty() const;
+	};
+	
+	
+	//
 	// MARK: - Session activation steps -
 	//
 	
@@ -439,6 +465,11 @@ namespace powerAuth
 		 Initial value for hash-based counter.
 		 */
 		std::string	ctrData;
+		/**
+		 Data for activation recovery. May contain empty strings, in case
+		 that there's no recovery available.
+		 */
+		RecoveryData activationRecovery;
 	};
 	
 	/**

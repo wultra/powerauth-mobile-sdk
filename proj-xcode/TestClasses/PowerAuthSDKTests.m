@@ -400,7 +400,7 @@ static NSString * PA_Ver = @"3.0";
 #pragma mark - Activation
 
 /**
- Returns @[PATSInitActivationResponse, PowerAuthAuthentication, @(BOOL)] with activation data, authentication object, 
+ Returns @[PATSInitActivationResponse, PowerAuthAuthentication, PA2ActivationResult, @(BOOL)] with activation data, authentication object,
  and result of activation. You can configure whether the activation can use optional signature during the activation
  and whether the activation should be removed automatically after the creation.
  */
@@ -421,16 +421,16 @@ static NSString * PA_Ver = @"3.0";
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
 	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
-	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
+	NSArray * preliminaryResult = nil;
 	
-	__block NSString * activationFingerprint = nil;
+	__block PA2ActivationResult * activationResult = nil;
 	
 	// 2) CLIENT: Start activation on client's side
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
 		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
-			activationFingerprint = result.activationFingerprint;
+			activationResult = result;
 			[waiting reportCompletion:@(error == nil)];
 		}];
 		// Returned task should not be cancelled
@@ -488,7 +488,7 @@ static NSString * PA_Ver = @"3.0";
 	CHECK_RESULT_RET(preliminaryResult);
 	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
 	// Test whether the device's public key fingerprint is equal on server and client.
-	XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
+	XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationResult.activationFingerprint]);
 	
 	// This is just a cleanup. If remove will fail, then we don't report an error
 	if (removeAfter || !result) {
@@ -497,8 +497,7 @@ static NSString * PA_Ver = @"3.0";
 		}
 		[self removeLastActivation:activationData];
 	}
-	
-	return @[activationData, auth, @YES ];
+	return @[activationData, auth, activationResult, @YES];
 }
 
 /**
@@ -950,6 +949,120 @@ static NSString * PA_Ver = @"3.0";
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
+}
+
+- (void) testRecoveryCodes
+{
+	CHECK_TEST_CONFIG()
+	
+	//
+	// This test validates whether the recovery code received in activation can be confirmed.
+	// If server supports recovery codes, then such code can be confirmed, but it's already confirmed.
+	// Also we can create a new activation with using recovery code and PUK. That operation must remove
+	// original activation.
+	//
+	
+	BOOL result;
+	NSError * operationError = nil;
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	PA2ActivationResult * activationResult = activation[2];
+	PA2ActivationRecoveryData * recoveryData = activationResult.activationRecovery;
+	
+	if (!recoveryData) {
+		XCTAssertFalse([_sdk hasActivationRecoveryData]);
+		// Cleanup
+		NSLog(@"WARNING: Server doesn't support recovery codes.");
+		[self removeLastActivation:activationData];
+		return;
+	}
+	
+	// 1. now try to confirm received recovery code
+	
+	XCTAssertTrue([_sdk hasActivationRecoveryData]);
+	
+	__block BOOL isAlreadyConfirmed = NO;
+	__block NSError * resultError = nil;
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		id<PA2OperationTask> task = [_sdk confirmRecoveryCode:recoveryData.recoveryCode authentication:auth callback:^(BOOL alreadyConfirmed, NSError * _Nullable error) {
+			isAlreadyConfirmed = alreadyConfirmed;
+			resultError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should be valid
+		XCTAssertNotNil(task);
+	}] boolValue];
+	
+	XCTAssertTrue(result);
+	XCTAssertTrue(isAlreadyConfirmed);
+	
+	// 2. Get recovery codes
+	
+	__block PA2ActivationRecoveryData * decryptedRecoveryData = nil;
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		id<PA2OperationTask> task = [_sdk activationRecoveryData:auth callback:^(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error) {
+			decryptedRecoveryData = recoveryData;
+			resultError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		XCTAssertNotNil(task);
+	}] boolValue];
+	
+	XCTAssertTrue(result);
+	XCTAssertTrue([recoveryData.recoveryCode isEqualToString:decryptedRecoveryData.recoveryCode]);
+	XCTAssertTrue([recoveryData.puk isEqualToString:decryptedRecoveryData.puk]);
+	
+	// 3. Now remove a local activation. This simulates that user loose the device.
+	
+	[_sdk removeActivationLocal];
+	
+	// 4. Try to create a new activation with recovery code and PUK.
+	
+	__block PA2ActivationResult * newActivation = nil;
+	__block NSError * newActivationError = nil;
+	
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		NSString * activationName = _testServerConfig.userActivationName;
+		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName recoveryCode:recoveryData.recoveryCode puk:recoveryData.puk extras:nil callback:^(PA2ActivationResult * _Nullable result, NSError * _Nullable error) {
+			newActivation = result;
+			newActivationError = error;
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should be valid
+		XCTAssertNotNil(task);
+	}] boolValue];
+	
+	XCTAssertTrue(result);
+	
+	// 5. At this point, old activation should be in "REMOVED" state
+	
+	PATSActivationStatus * serverOldActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
+	XCTAssertNotNil(serverOldActivationStatus);
+	XCTAssertTrue([serverOldActivationStatus.activationStatus isEqualToString:@"REMOVED"]);
+
+	
+	// 6. Create a new authentication and commit it to the SDK.
+	
+	auth = [self createAuthentication];
+	result = [_sdk commitActivationWithAuthentication:auth error:&operationError];
+	XCTAssertTrue(result);
+	
+	// 7. Cleanup - remove activation on the server.
+	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		id<PA2OperationTask> task = [_sdk removeActivationWithAuthentication:auth callback:^(NSError * _Nullable error) {
+			[waiting reportCompletion:@(error == nil)];
+		}];
+		// Returned task should be valid
+		XCTAssertNotNil(task);
+	}] boolValue];
+	
+	XCTAssertTrue(result);
 }
 
 /*

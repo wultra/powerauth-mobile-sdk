@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Wultra s.r.o.
+ * Copyright 2016-2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testServerSignedData);
 			CC7_REGISTER_TEST_METHOD(testOldDataMigration);
 			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeToV3);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeToV4);
 		}
 		
 		EC_KEY *	_masterServerPrivateKey;
@@ -61,6 +62,9 @@ namespace powerAuthTests
 		
 		std::string	_activation_code;
 		std::string _activation_id;
+		
+		std::string _recovery_code;
+		std::string _recovery_puk;
 
 		const std::string PA_VER = "3.0";
 		
@@ -76,8 +80,11 @@ namespace powerAuthTests
 			_setup.sessionIdentifier		= 99;
 
 			// prepare some other constants
-			_activation_code	 = "VVVVV-VVVVV-VVVVV-VTFVA";
-			_activation_id		 = "ED7BA470-8E54-465E-825C-99712043E01C";
+			_activation_code	= "VVVVV-VVVVV-VVVVV-VTFVA";
+			_activation_id		= "ED7BA470-8E54-465E-825C-99712043E01C";
+			
+			_recovery_code		= "55555-55555-55555-55YMA";
+			_recovery_puk		= "0123456789";
 		}
 		
 		void tearDown() override
@@ -218,7 +225,7 @@ namespace powerAuthTests
 			//	1 - we'll break activation after the startActivation() is called
 			//	0 - means that the whole sequence will be executed
 			
-			for (int break_in_step = 0; break_in_step <= 3; break_in_step++)
+			for (int break_in_step = 0; break_in_step <= 4; break_in_step++)
 			{
 				const char * eek_msg = eek ? "With EEK" : "Wout EEK";
 				if (break_in_step > 0) {
@@ -226,6 +233,8 @@ namespace powerAuthTests
 				} else {
 					ccstMessage("%s || Let's don't break the activation", eek_msg);
 				}
+				
+				const bool USE_RECOVERY_CODE = break_in_step == 4;
 			
 				EC_KEY * serverPrivateKey = nullptr;
 				EC_KEY * devicePublicKey  = nullptr;
@@ -296,6 +305,11 @@ namespace powerAuthTests
 					param2.activationId				= _activation_id;
 					param2.ctrData					= CTR_DATA.base64String();
 					param2.serverPublicKey          = serverPublicKey.base64String();
+					if (USE_RECOVERY_CODE) {
+						// Store recovery code
+						param2.activationRecovery.recoveryCode = _recovery_code;
+						param2.activationRecovery.puk = _recovery_puk;
+					}
 					
 					// calculate hkKEY_DEVICE_PUBLIC on dummy server's side
 					auto fingerprint_data = crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey);
@@ -425,6 +439,8 @@ namespace powerAuthTests
 					ccstAssertTrue(s1.hasValidActivation());
 					// Compare whether the fingerprint is still correct
 					ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
+					// Validate existence of recovery data
+					ccstAssertTrue(s1.hasActivationRecoveryData() == USE_RECOVERY_CODE);
 				}
 				// Signature test #1
 				{
@@ -906,6 +922,26 @@ namespace powerAuthTests
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertEqual(request_data, cc7::MakeRange("Plan9!"));
 				}
+				// Recovery codes
+				if (USE_RECOVERY_CODE) {
+					// Recovery data is available
+					SignatureUnlockKeys keys;
+					keys.possessionUnlockKey = possessionUnlock;
+					RecoveryData recovery_data;
+					ec = s1.getActivationRecoveryData(cVaultKey, keys, recovery_data);
+					ccstAssertEqual(ec, EC_Ok);
+					ccstAssertFalse(recovery_data.isEmpty());
+					ccstAssertEqual(recovery_data.recoveryCode, _recovery_code);
+					ccstAssertEqual(recovery_data.puk, _recovery_puk);
+				} else {
+					// Recovery data is not available
+					SignatureUnlockKeys keys;
+					keys.possessionUnlockKey = possessionUnlock;
+					RecoveryData recovery_data;
+					ec = s1.getActivationRecoveryData(cVaultKey, keys, recovery_data);
+					ccstAssertEqual(ec, EC_WrongState);
+					ccstAssertTrue(recovery_data.isEmpty());
+				}
 				
 				// release keys, just for sure
 				EC_KEY_free(serverPrivateKey);
@@ -1060,6 +1096,7 @@ namespace powerAuthTests
 			ccstAssertFalse(s1.hasExternalEncryptionKey());
 			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
 			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+			ccstAssertFalse(s1.hasActivationRecoveryData());
 
 			ec = s1.startProtocolUpgrade();
 			ccstAssertEqual(ec, EC_Ok);
@@ -1086,6 +1123,51 @@ namespace powerAuthTests
 			ec = s1.loadSessionState(v3_data);
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+		}
+		
+		void testPersistentDataUpgradeToV4()
+		{
+			// constants
+			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
+			
+			SessionSetup oldSetup;
+			oldSetup.applicationKey		= "MDEyMzQ1Njc4OUFCQ0RFRg==";
+			oldSetup.applicationSecret	= "QUJDREVGMDEyMzQ1Njc4OQ==";
+			oldSetup.masterServerPublicKey = master_server_public_key;
+			
+			Session s1(oldSetup);
+			
+			auto v3_data = cc7::FromBase64String("UEECUDQQcXKzF7KLEfVzcb6F7dQ2jhtGVUxMLUJVVC1GQUtFLUFDVElWQVRJT04tSUQAACcQEFx"
+												 "D134A7jgrfXqjmzRSNEoQ+WilNdYscLQ/pbrYJqh9bhDqVVY8lLy2ZvMAtpwZwGrtEGAsKs9Rh8"
+												 "mZL1u+aQ3kdsgQKe2HE5aMUP+3mc0Zgzo1XSEC+N8Q8lTW59BH/5x6H+eahxi9n7A4ajzLgtaC3"
+												 "tTJhD8AMA3jUBawHBE2zowK9ThJL4kCPJPfzZVEcZhh6v1+IrQybj5WeD2HhFLwEJr1nHvmSQAA"
+												 "AAA=");
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			auto ec = s1.loadSessionState(v3_data);
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertFalse(s1.canStartActivation());
+			ccstAssertTrue(s1.hasValidActivation());
+			ccstAssertFalse(s1.hasPendingActivation());
+			ccstAssertFalse(s1.hasExternalEncryptionKey());
+			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+			ccstAssertFalse(s1.hasActivationRecoveryData());
+			
+			auto v4_data = s1.saveSessionState();
+			s1.resetSession();
+			ec = s1.loadSessionState(v4_data);
+			//ccstMessage("V4_data: %s", s1.saveSessionState().base64String().c_str());
+			
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertFalse(s1.canStartActivation());
+			ccstAssertTrue(s1.hasValidActivation());
+			ccstAssertFalse(s1.hasPendingActivation());
+			ccstAssertFalse(s1.hasExternalEncryptionKey());
+			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+			ccstAssertFalse(s1.hasActivationRecoveryData());
 		}
 		
 		

@@ -164,6 +164,23 @@
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
+ Create a new recovery activation with given name, recovery code, puk and additional extras information.
+ 
+ @param name Activation name, for example "John's iPhone".
+ @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+ @param puk PUK obtained by manual entry.
+ @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system).
+ @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
+ @return PA2OperationTask associated with the running request.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
+											  recoveryCode:(nonnull NSString*)recoveryCode
+													   puk:(nonnull NSString*)puk
+													extras:(nullable NSString*)extras
+												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
+
+/**
  Commit activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
@@ -504,5 +521,47 @@
  @return YES if operation was added to the queue, or NO if there's no activation.
  */
 - (BOOL) executeOperationOnSerialQueue:(nonnull NSOperation *)operation;
+
+@end
+
+
+#pragma mark - Recovery code
+
+@interface PowerAuthSDK (RecoveryCode)
+
+/**
+ Returns YES if underlying session contains an activation recovery data.
+ */
+- (BOOL) hasActivationRecoveryData;
+
+/**
+ Get an activation recovery data.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private recovery data decryption.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param callback The callback method with an activation recovery information.
+ @return PA2OperationTask associated with the running request.
+ */
+- (nullable id<PA2OperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
+												callback:(nonnull void(^)(PA2ActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback;
+
+/**
+ Confirm given recovery code on the server.
+ 
+ The method is useful for situations when user receives a recovery information via OOB channel (for example via postcard). Such
+ recovery codes cannot be used without a proper confirmation on the server. To confirm codes, user has to authenticate himself
+ with a knowledge factor.
+ 
+ Note that the provided recovery code can contain a `"R:"` prefix, if it's scanned from QR code.
+ 
+ @param recoveryCode Recovery code to confirm
+ @param authentication Authentication used for recovery code confirmation
+ @param callback The callback method with activation recovery information. 
+ @return PA2OperationTask associated with the running request.
+ */
+- (nullable id<PA2OperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
+									   authentication:(nonnull PowerAuthAuthentication*)authentication
+											 callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback;
 
 @end

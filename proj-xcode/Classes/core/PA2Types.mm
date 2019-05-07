@@ -162,6 +162,9 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 @implementation PA2SignatureUnlockKeys
 @end
 
+@implementation PA2RecoveryData
+@end
+
 @implementation PA2ActivationStep1Param
 @end
 
@@ -317,11 +320,30 @@ void PA2ActivationStep2ParamToStruct(PA2ActivationStep2Param * p2, io::getlime::
 	cpp_p2.activationId				= cc7::objc::CopyFromNSString(p2.activationId);
 	cpp_p2.serverPublicKey			= cc7::objc::CopyFromNSString(p2.serverPublicKey);
 	cpp_p2.ctrData					= cc7::objc::CopyFromNSString(p2.ctrData);
+	PA2RecoveryDataToStruct(p2.activationRecovery, cpp_p2.activationRecovery);
 }
 
 PA2ActivationStep2Result * PA2ActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2)
 {
 	PA2ActivationStep2Result * res = [[PA2ActivationStep2Result alloc] init];
 	res.activationFingerprint		= cc7::objc::CopyToNSString(cpp_r2.activationFingerprint);
+	return res;
+}
+
+void PA2RecoveryDataToStruct(PA2RecoveryData * rd, io::getlime::powerAuth::RecoveryData& cpp_rd)
+{
+	cpp_rd.recoveryCode	= cc7::objc::CopyFromNSString(rd.recoveryCode);
+	cpp_rd.puk			= cc7::objc::CopyFromNSString(rd.puk);
+}
+
+PA2RecoveryData * PA2RecoveryDataToObject(const io::getlime::powerAuth::RecoveryData& cpp_rd)
+{
+	if (cpp_rd.isEmpty()) {
+		CC7_ASSERT(false, "Empty structure should be handled before the conversion.");
+		return nil;
+	}
+	PA2RecoveryData * res = [[PA2RecoveryData alloc] init];
+	res.recoveryCode	= cc7::objc::CopyToNSString(cpp_rd.recoveryCode);
+	res.puk				= cc7::objc::CopyToNSString(cpp_rd.puk);
 	return res;
 }

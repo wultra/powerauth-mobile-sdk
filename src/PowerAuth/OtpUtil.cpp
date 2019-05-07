@@ -60,6 +60,26 @@ namespace powerAuth
 		return validateActivationCode(out_components.activationCode);
 	}
 	
+	static const std::string RECOVERY_QR_MARKER("R:");
+	
+	bool OtpUtil::parseRecoveryCode(const std::string &recovery_code, OtpComponents &out_components)
+	{
+		std::string code_to_test;
+		auto recovery_marker_pos = recovery_code.find(RECOVERY_QR_MARKER);
+		if (recovery_marker_pos != std::string::npos) {
+			if (recovery_marker_pos != 0) {
+				return false;	// "R:" is not at the beginning of string
+			}
+			code_to_test = recovery_code.substr(2);
+		} else {
+			code_to_test = recovery_code;
+		}
+		if (!parseActivationCode(code_to_test, out_components)) {
+			return false;
+		}
+		return out_components.hasSignature() == false;
+	}
+	
 	
 	// Validations
 
@@ -127,6 +147,28 @@ namespace powerAuth
 	}
 	
 	
+	bool OtpUtil::validateRecoveryCode(const std::string &recovery_code, bool allow_r_prefix)
+	{
+		if (recovery_code.find(RECOVERY_QR_MARKER) == std::string::npos) {
+			return validateActivationCode(recovery_code);
+		}
+		return allow_r_prefix && validateActivationCode(recovery_code.substr(2));
+	}
+	
+	
+	bool OtpUtil::validateRecoveryPuk(const std::string &recovery_puk)
+	{
+		if (recovery_puk.length() != 10) {
+			return false;
+		}
+		for (size_t i = 0; i < recovery_puk.length(); i++) {
+			auto c = recovery_puk[i];
+			if (c < '0' || c > '9') {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 } // io::getlime::powerAuth
 } // io::getlime

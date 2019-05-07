@@ -1,5 +1,5 @@
 #
-# Copyright 2018 Wultra s.r.o.
+# Copyright 2018-2019 Wultra s.r.o.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,6 +94,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \
 	PowerAuthTests/pa2PasswordTests.cpp \
 	PowerAuthTests/pa2ProtocolUtilsTests.cpp \
+	PowerAuthTests/pa2RecoveryCodeTests.cpp \
 	PowerAuthTests/pa2SessionTests.cpp \
 	PowerAuthTests/pa2SignatureCalculationTests.cpp \
 	PowerAuthTests/pa2SignatureKeysDerivationTest.cpp \
@@ -123,9 +124,9 @@ LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES 	:= PowerAuth2
 LOCAL_LDLIBS            := -llog
 ifeq ($(NDK_DEBUG),1)
-	LOCAL_LDFLAGS       := -Wl,--exclude-libs,ALL
+	LOCAL_LDFLAGS       := -Wl,--hash-style=both,--exclude-libs,ALL
 else
-	LOCAL_LDFLAGS       := -Wl,-s,--exclude-libs,ALL
+	LOCAL_LDFLAGS       := -Wl,--hash-style=both,-s,--exclude-libs,ALL
 endif
 
 LOCAL_C_INCLUDES := \

@@ -70,4 +70,6 @@
 + (instancetype) getToken;
 + (instancetype) removeToken;
 
++ (instancetype) confirmRecoveryCode;
+
 @end

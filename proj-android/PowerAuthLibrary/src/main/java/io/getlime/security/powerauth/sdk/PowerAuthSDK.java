@@ -39,6 +39,7 @@ import io.getlime.security.powerauth.core.ActivationStep2Result;
 import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.Password;
+import io.getlime.security.powerauth.core.RecoveryData;
 import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.core.SessionSetup;
 import io.getlime.security.powerauth.core.SignatureFactor;
@@ -58,35 +59,41 @@ import io.getlime.security.powerauth.keychain.fingerprint.ICommitActivationWithF
 import io.getlime.security.powerauth.keychain.fingerprint.IFingerprintActionHandler;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
+import io.getlime.security.powerauth.networking.endpoints.ConfirmRecoveryCodeEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
+import io.getlime.security.powerauth.networking.model.entity.ActivationRecovery;
+import io.getlime.security.powerauth.networking.model.entity.ActivationType;
+import io.getlime.security.powerauth.networking.model.request.ActivationLayer1Request;
+import io.getlime.security.powerauth.networking.model.request.ActivationLayer2Request;
+import io.getlime.security.powerauth.networking.model.request.ConfirmRecoveryRequestPayload;
+import io.getlime.security.powerauth.networking.model.request.VaultUnlockRequestPayload;
+import io.getlime.security.powerauth.networking.model.response.ActivationLayer1Response;
+import io.getlime.security.powerauth.networking.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.networking.model.response.ConfirmRecoveryResponsePayload;
+import io.getlime.security.powerauth.networking.model.response.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
+import io.getlime.security.powerauth.networking.response.IConfirmRecoveryCodeListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
+import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
-import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
-import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer1Request;
-import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer2Request;
-import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispacher;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
-import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
-import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
+import io.getlime.security.powerauth.sdk.impl.ICallbackDispacher;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
+import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.system.PA2Log;
 import io.getlime.security.powerauth.util.otp.Otp;
@@ -597,6 +604,48 @@ public class PowerAuthSDK {
 
 
     /**
+     * Create a new recovery activation with given name, recovery code and puk, by calling a PowerAuth Standard RESTful API.
+     *
+     * @param name Activation name, for example "John's iPhone".
+     * @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+     * @param puk Recovery PUK, obtained by manual entry
+     * @param extras Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
+     * @param customAttributes Extra attributes of the activation, used for application specific purposes. Unlike the {code extras} parameter, this dictionary is visible for the Application Server.
+     * @param listener A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable
+    ICancelable createRecoveryActivation(@Nullable String name, @NonNull String recoveryCode, @NonNull String puk, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
+
+        // Validate code and puk first
+        final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
+        final boolean validPuk = OtpUtil.validateRecoveryPuk(puk);
+        if (otp == null || !validPuk) {
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+                }
+            });
+            return null;
+        }
+        // Prepare identity attributes for "recovery" based activation
+        final HashMap<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("recoveryCode", otp.activationCode);
+        identityAttributes.put("puk", puk);
+
+        // Prepare request for a recovery activation
+        final ActivationLayer1Request request = new ActivationLayer1Request();
+        request.setType(ActivationType.RECOVERY);
+        request.setIdentityAttributes(identityAttributes);
+        request.setCustomAttributes(customAttributes);
+
+        return createActivationImpl(name, request, null, extras, listener);
+    }
+
+
+    /**
      * Create an arbitrary activation. This method is an actual implementation for the activation creation.
      *
      * @param name          Activation name, for example "John's iPhone".
@@ -631,9 +680,6 @@ public class PowerAuthSDK {
         try {
             // Prepare cryptographic helper & Layer2 ECIES encryptor
             encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
-            if (encryptor == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState);
-            }
 
             // Prepare low level activation parameters
             final ActivationStep1Param step1Param;
@@ -692,12 +738,19 @@ public class PowerAuthSDK {
                             // Try to decrypt Layer2 object from response
                             final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
                             // Prepare Step2 param for low level session
-                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData());
+                            final RecoveryData recoveryData;
+                            if (layer2Response.getActivationRecovery() != null) {
+                                final ActivationRecovery rd = layer2Response.getActivationRecovery();
+                                recoveryData = new RecoveryData(rd.getRecoveryCode(), rd.getPuk());
+                            } else {
+                                recoveryData = null;
+                            }
+                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), recoveryData);
                             // Validate the response
                             final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
                             //
                             if (step2Result.errorCode == ErrorCode.OK) {
-                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes());
+                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData);
                                 listener.onActivationCreateSucceed(result);
                                 return;
                             }
@@ -1746,5 +1799,115 @@ public class PowerAuthSDK {
      */
     void dispatchCallback(Runnable runnable) {
         mCallbackDispatcher.dispatchCallback(runnable);
+    }
+
+
+    // Recovery codes
+
+    /**
+     * @return true if underlying session contains an activation recovery data.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public boolean hasActivationRecoveryData() {
+        checkForValidSetup();
+        return mSession.hasActivationRecoveryData();
+    }
+
+    /**
+     * Get an activation recovery data. This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault
+     * encryption key used for private recovery data decryption.
+     *
+     * @param context Android {@link Context} object
+     * @param authentication Authentication used for vault unlocking call.
+     * @param listener The callback called when operation succeeds or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable
+    ICancelable getActivationRecoveryData(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull final IGetRecoveryDataListener listener) {
+
+        if (!mSession.hasActivationRecoveryData()) {
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Session has no recovery data available."));
+                }
+            });
+            return null;
+        }
+
+        return fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.RECOVERY_CODE, new IFetchEncryptedVaultUnlockKeyListener() {
+            @Override
+            public void onFetchEncryptedVaultUnlockKeySucceed(String encryptedEncryptionKey) {
+                final SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
+                final RecoveryData recoveryData = mSession.getActivationRecoveryData(encryptedEncryptionKey, keys);
+                if (recoveryData != null) {
+                    listener.onGetRecoveryDataSucceeded(recoveryData);
+                } else {
+                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Cannot decrypt recovery data."));
+                }
+            }
+
+            @Override
+            public void onFetchEncryptedVaultUnlockKeyFailed(Throwable throwable) {
+                listener.onGetRecoveryDataFailed(throwable);
+            }
+        });
+    }
+
+    /**
+     * Confirm given recovery code on the server.
+     *
+     * The method is useful for situations when user receives a recovery information via OOB channel (for example via postcard). Such
+     * recovery codes cannot be used without a proper confirmation on the server. To confirm codes, user has to authenticate himself
+     * with a knowledge factor.
+     *
+     * Note that the provided recovery code can contain a `"R:"` prefix, if it's scanned from QR code.
+     *
+     * @param context Android {@link Context} object
+     * @param authentication Authentication used for recovery code confirmation. The knowledge factor is required.
+     * @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+     * @param listener The callback called when operation succeeds or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable
+    ICancelable confirmRecoveryCode(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull String recoveryCode, @NonNull final IConfirmRecoveryCodeListener listener) {
+
+        // Validate recovery code
+        final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
+        if (otp == null) {
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onRecoveryCodeConfirmFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+                }
+            });
+            return null;
+        }
+
+        // Execute HTTP request
+        final ConfirmRecoveryRequestPayload request = new ConfirmRecoveryRequestPayload();
+        request.setRecoveryCode(otp.activationCode);
+        return mClient.post(
+                request,
+                new ConfirmRecoveryCodeEndpoint(),
+                getCryptoHelper(context),
+                authentication,
+                new INetworkResponseListener<ConfirmRecoveryResponsePayload>() {
+                    @Override
+                    public void onNetworkResponse(ConfirmRecoveryResponsePayload confirmRecoveryResponsePayload) {
+                        listener.onRecoveryCodeConfirmed(confirmRecoveryResponsePayload.getAlreadyConfirmed());
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable throwable) {
+                        listener.onRecoveryCodeConfirmFailed(throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
     }
 }

@@ -30,7 +30,7 @@
  @param password String with password
  @return Initialized instance of interceptor.
  */
-- (instancetype) initWithUsername:(nonnull NSString*)username password:(nonnull NSString*)password;
+- (nonnull instancetype) initWithUsername:(nonnull NSString*)username password:(nonnull NSString*)password;
 
 @end
 

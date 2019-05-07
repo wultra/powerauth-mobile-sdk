@@ -339,6 +339,25 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
 @end
 
 
+#pragma mark - Recovery codes -
+
+/**
+ RecoveryData object contains information about recovery code and PUK, created
+ during the activation process.
+ */
+@interface PA2RecoveryData : NSObject
+/**
+ Contains recovery code.
+ */
+@property (nonatomic, strong, nonnull) NSString * recoveryCode;
+/**
+ Contains PUK, valid with recovery code.
+ */
+@property (nonatomic, strong, nonnull) NSString * puk;
+
+@end
+
+
 #pragma mark - Activation steps -
 
 /**
@@ -387,6 +406,10 @@ typedef NS_ENUM(int, PA2SigningDataKey) {
  Initial value for hash-based counter.
  */
 @property (nonatomic, strong, nonnull) NSString * ctrData;
+/**
+ If configured on the server, contains recovery data received from the server.
+ */
+@property (nonatomic, strong, nullable) PA2RecoveryData * activationRecovery;
 
 @end
 

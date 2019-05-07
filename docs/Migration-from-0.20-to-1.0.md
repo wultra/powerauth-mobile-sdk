@@ -40,6 +40,8 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
   - Check [Error handling](./PowerAuth-SDK-for-Android.md#error-handling) for more details
+  
+- Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 
 
 ## iOS
 
@@ -54,13 +56,7 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ECIESCryptogram` is now a common representation for encrypted request and response.
 
 - We have changed interface for custom activations, which is now much simpler. The custom activation is now fully supported in SDK, so you don't need to provide a custom URL, or other parameters.
-  - Use a new method:
-    ```objc
-    - (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
-                                            identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-                                                        extras:(nullable NSString*)extras
-                                                      callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
-    ```
+  - Use a new `func createActivation(withName name: String?, identityAttributes: [String : String], extras: String?, callback: @escaping (PA2ActivationResult?, Error?) -> Void) -> PA2OperationTask?`
 
 - `PA2OperationTask` is now a protocol instead of class. This change should not have an implications to your code, unless you accessed properties from previous object implementation.
 
@@ -68,3 +64,5 @@ Fortunately, we have achieved that those both versions are API compatible, as mu
   - `PA2ErrorCodeProtocolUpgrade` - unrecoverable protocol upgrade error
   - `PA2ErrorCodePendingProtocolUpgrade` - operation is temporarily unavailable due to protocol upgrade.
   - Check [Error handling](./PowerAuth-SDK-for-iOS.md#error-handling) for more details
+
+- Now it's possible to detect a typing errors in the manually entered activation code. If your application is using some form of custom validation, like test for Base32 characters, then you should replace it with a function provided by SDK: `PA2OtpUtil.validateActivationCode()`. If the length of the provided code is correct, but SDK validation returns false, then the code contains a typing error. For more information check our documentation about the [new activation code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md). 

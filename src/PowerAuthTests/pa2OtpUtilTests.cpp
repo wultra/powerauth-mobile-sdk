@@ -38,17 +38,20 @@ namespace powerAuthTests
 		
 		pa2OtpUtilTests()
 		{
-			CC7_REGISTER_TEST_METHOD(testCodeValidation)
+			CC7_REGISTER_TEST_METHOD(testActivationCodeValidation)
 			CC7_REGISTER_TEST_METHOD(testCharValidation)
 			CC7_REGISTER_TEST_METHOD(testCharAutocorrection)
-			CC7_REGISTER_TEST_METHOD(testParser)
+			CC7_REGISTER_TEST_METHOD(testActivationCodeParser)
+			CC7_REGISTER_TEST_METHOD(testRecoveryCodeValidation)
+			CC7_REGISTER_TEST_METHOD(testRecoveryPukValidation)
+			CC7_REGISTER_TEST_METHOD(testRecoveryCodeParser)
 			CC7_REGISTER_TEST_METHOD(niceCodeGenerator)
 		}
 		
 		
 		// unit tests
 
-		void testCodeValidation()
+		void testActivationCodeValidation()
 		{
 			const char * valid_codes[] = {
 				// nice codes
@@ -153,7 +156,7 @@ namespace powerAuthTests
 		}
 		
 		
-		void testParser()
+		void testActivationCodeParser()
 		{
 			OtpComponents components;
 			bool result;
@@ -207,6 +210,176 @@ namespace powerAuthTests
 			ccstAssertFalse(result);
 		}
 
+		
+		void testRecoveryCodeValidation()
+		{
+			const char * valid_codes[] = {
+				// nice codes
+				"AAAAA-AAAAA-AAAAA-AAAAA",
+				"MMMMM-MMMMM-MMMMM-MUTOA",
+				"VVVVV-VVVVV-VVVVV-VTFVA",
+				"55555-55555-55555-55YMA",
+				// random codes
+				"W65WE-3T7VI-7FBS2-A4OYA",
+				"DD7P5-SY4RW-XHSNB-GO52A",
+				"X3TS3-TI35Z-JZDNT-TRPFA",
+				"HCPJX-U4QC4-7UISL-NJYMA",
+				"XHGSM-KYQDT-URE34-UZGWQ",
+				"45AWJ-BVACS-SBWHS-ABANA",
+
+				// With R: prefix
+				"R:AAAAA-AAAAA-AAAAA-AAAAA",
+				"R:MMMMM-MMMMM-MMMMM-MUTOA",
+				"R:VVVVV-VVVVV-VVVVV-VTFVA",
+				"R:55555-55555-55555-55YMA",
+				"R:BUSES-ETYN2-5HTFE-NOV2Q",
+				"R:ATQAZ-WJ7ZG-FWA7J-QFAJQ",
+				"R:MXSYF-LLQJ7-PS6LF-E2FMQ",
+				"R:ZKMVN-4IMFK-FLSYX-ARRGA",
+				"R:NQHGX-LNM2S-EQ4NT-G3NAA",
+				NULL
+			};
+			const char ** p = valid_codes;
+			while (const char * code = *p++) {
+				bool result = OtpUtil::validateRecoveryCode(std::string(code));
+				ccstAssertTrue(result, "Code '%s' should pass the test", code);
+			}
+			
+			const char * invalid_codes[] = {
+				"",
+				" ",
+				"R",
+				"R:",
+				"X:AAAAA-AAAAA-AAAAA-AAAAA",
+				"KLMNO-PQRST",
+				"R:KLMNO-PQRST",
+				"KLMNO-PQRST-UVWXY-Z234",
+				"KLMNO-PQRST-UVWXY-Z2345 ",
+				"R:KLMNO-PQRST-UVWXY-Z2345 ",
+				"KLMNO-PQRST-UVWXY-Z2345#",
+				"NQHGX-LNM2S-EQ4NT-G3NAA#aGVsbG8td29ybGQ=",
+				"R:NQHGX-LNM2S-EQ4NT-G3NAA#aGVsbG8td29ybGQ=",
+				"67AAA-B0BCC-DDEEF-GGHHI"
+				"67AAA-BB1CC-DDEEF-GGHHI",
+				"67AAA-BBBC8-DDEEF-GGHHI",
+				"67AAA-BBBCC-DDEEF-GGHH9",
+				"67aAA-BBBCC-DDEEF-GGHHI",
+				"6-AAA-BB1CC-DDEEF-GGHHI",
+				"67AA#-BB1CC-DDEEF-GGHHI",
+				"67AABCBB1CC-DDEEF-GGHHI",
+				"67AAB-BB1CCEDDEEF-GGHHI",
+				"67AAA-BBBCC-DDEEFZGGHHI",
+				NULL
+			};
+			p = invalid_codes;
+			while (const char * code = *p++) {
+				bool result = OtpUtil::validateRecoveryCode(std::string(code));
+				ccstAssertFalse(result, "Code '%s' should not pass the test", code);
+			}
+			
+			ccstAssertTrue(OtpUtil::validateRecoveryCode("NQHGX-LNM2S-EQ4NT-G3NAA", false));
+			ccstAssertFalse(OtpUtil::validateRecoveryCode("R:NQHGX-LNM2S-EQ4NT-G3NAA", false));
+		}
+		
+		void testRecoveryPukValidation()
+		{
+			const char * valid_puks[] = {
+				"0000000000",
+				"9999999999",
+				"0123456789",
+				"9876543210",
+				"1111111111",
+				"3487628763",
+				NULL
+			};
+			const char ** p = valid_puks;
+			while (const char * puk = *p++) {
+				bool result = OtpUtil::validateRecoveryPuk(std::string(puk));
+				ccstAssertTrue(result, "PUK '%s' should pass the test", puk);
+			}
+			
+			const char * invalid_puks[] = {
+				"",
+				" ",
+				"11111111111",
+				"111111111",
+				"0",
+				"999999999A",
+				"99999999b9",
+				"9999999c99",
+				"999999d999",
+				"99999e9999",
+				"9999f99999",
+				"999g999999",
+				"99h9999999",
+				"9i99999999",
+				"A999999999",
+				"999999999 ",
+				"99999999 9",
+				"9999999 99",
+				"999999 999",
+				"99999 9999",
+				"9999 99999",
+				"999 999999",
+				"99 9999999",
+				"9 99999999",
+				" 999999999",
+				NULL
+			};
+			p = invalid_puks;
+			while (const char * puk = *p++) {
+				bool result = OtpUtil::validateRecoveryPuk(std::string(puk));
+				ccstAssertFalse(result, "PUK '%s' should not pass the test", puk);
+			}
+		}
+		
+		void testRecoveryCodeParser()
+		{
+			OtpComponents components;
+			bool result;
+			
+			// valid sequences
+			result = OtpUtil::parseRecoveryCode("BBBBB-BBBBB-BBBBB-BTA6Q", components);
+			ccstAssertTrue(result);
+			ccstAssertEqual(components.activationCode, "BBBBB-BBBBB-BBBBB-BTA6Q");
+			
+			result = OtpUtil::parseRecoveryCode("R:BBBBB-BBBBB-BBBBB-BTA6Q", components);
+			ccstAssertTrue(result);
+			ccstAssertEqual(components.activationCode, "BBBBB-BBBBB-BBBBB-BTA6Q");
+			
+			// invalid sequences
+			result = OtpUtil::parseRecoveryCode("", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("#", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("#AB==", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("KLMNO-PQRST", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("EEEEE-EEEEE-EEEEE-E2OXA#", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("OOOOO-OOOOO-OOOOO-OZH2Q#", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("SSSSS-SSSSS-SSSSS-SX7IA#AB", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("UUUUU-UUUUU-UUUUU-UAFLQ#AB#", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("WWWWW-WWWWW-WWWWW-WNR7A#ABA=#", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("XXXXX-XXXXX-XXXXX-X6RBQ#ABA-=", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("DDDDD-DDDDD-DDDDD-D6UKA#ABC=", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("EEEEE-EEEEE-EEEEE-E2OXA#AB==", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("R:DDDDD-DDDDD-DDDDD-D6UKA#ABC=", components);
+			ccstAssertFalse(result);
+			result = OtpUtil::parseRecoveryCode("R:EEEEE-EEEEE-EEEEE-E2OXA#AB==", components);
+			ccstAssertFalse(result);
+		}
+		
+		//////
+		
 		void niceCodeGenerator()
 		{
 			std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";

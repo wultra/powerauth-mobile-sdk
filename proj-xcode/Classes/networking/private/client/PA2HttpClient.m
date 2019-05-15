@@ -17,6 +17,7 @@
 #import "PA2HttpClient.h"
 #import "PA2AsyncOperation.h"
 #import "PA2PrivateMacros.h"
+#import "PA2Log.h"
 
 @implementation PA2HttpClient
 {
@@ -86,6 +87,66 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 	return _GetSharedConcurrentQueue();
 }
 
+#pragma mark - Debug Log
+
+#ifdef DEBUG
+// Functions implementing request-response logging.
+static void _LogHttpRequest(PA2RestApiEndpoint * endpoint, NSURLRequest * request)
+{
+	if (PA2LogIsEnabled()) {
+		// Warn if communication is not encrypted.
+		if ([request.URL.scheme isEqualToString:@"http"]) {
+			static BOOL s_warning = YES;
+			if (s_warning) {
+				PA2Log(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
+				s_warning = NO;
+			}
+		}
+		
+		BOOL signature = endpoint.authUriId != nil;
+		BOOL encrypted = endpoint.encryptor != PA2EncryptorId_None;
+		
+		NSString * signedEncrypted = (signature ? (encrypted ? @" (sig+enc)" : @" (sig)") : (encrypted ? @" (enc)" : @""));
+		NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
+		if (PA2LogIsVerbose()) {
+			msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
+			if (!encrypted) {
+				NSString * jsonBody = request.HTTPBody.length > 0 ? [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] : @"<empty>";
+				msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonBody];
+			}
+		}
+		PA2Log(@"%@", msg);
+	}
+}
+
+static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * response, NSData * data, NSError * error)
+{
+	if (PA2LogIsEnabled()) {
+		BOOL encrypted = endpoint.encryptor != PA2EncryptorId_None;
+		NSNumber * statusCode = @(response.statusCode);
+		NSString * msg = [NSString stringWithFormat:@"HTTP %@ reponse %@: ← %@", endpoint.method, statusCode, response.URL.absoluteString];
+		if (PA2LogIsVerbose()) {
+			msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
+			if (!encrypted) {
+				NSString * jsonData = data.length > 0 ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"<empty>";
+				msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonData];
+			}
+		}
+		if (error) {
+			msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
+		}
+		PA2Log(@"%@", msg);
+	}
+}
+#else
+// Turn-Off request-response logging
+#define _LogHttpRequest(endpoint, request)
+#define _LogHttpResponse(endpoint, response, data, error)
+#endif // DEBUG
+
+
+#pragma mark - POST
+
 - (NSOperation*) postObject:(id<PA2Encodable>)object
 						 to:(PA2RestApiEndpoint*)endpoint
 				 completion:(void(^)(PA2RestResponseStatus status, id<PA2Decodable> response, NSError * error))completion
@@ -125,15 +186,20 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 		[_configuration.requestInterceptors enumerateObjectsUsingBlock:^(id<PA2HttpRequestInterceptor> interceptor, NSUInteger idx, BOOL * stop) {
 			[interceptor processRequest:urlRequest];
 		}];
+		// Log request
+		_LogHttpRequest(endpoint, urlRequest);
 		// Construct & return data task.
-		NSURLSessionDataTask * task = [_session dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * response, NSError * error) {
+		NSURLSessionDataTask * task = [_session dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * urlResponse, NSError * error) {
 			// DataTask completion
 			id<PA2Decodable> object;
 			if (!error) {
-				object = [request buildResponseObjectFrom:data httpResponse:(NSHTTPURLResponse*)response error:&error];
+				object = [request buildResponseObjectFrom:data httpResponse:(NSHTTPURLResponse*)urlResponse error:&error];
 			} else {
 				object = nil;
 			}
+			// Log response
+			_LogHttpResponse(endpoint, (NSHTTPURLResponse*)urlResponse, data, error);
+			// Complete operation
 			[op completeWithResult:object error:error];
 		}];
 		[task resume];

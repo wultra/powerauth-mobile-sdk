@@ -1356,6 +1356,22 @@ PA2ClientConfiguration.sharedInstance().sslValidationStrategy = PA2ClientSslNoVa
 
 *Note that since SDK version `0.18.0`, changing `PA2ClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.*
 
+### Debugging
+
+The debug log is by default turned-off. To turn it on, use following code:
+```swift
+PA2LogSetEnabled(true)
+```
+
+To turn-on even more detailed log, use following code:
+```swift
+PA2LogSetVerbose(true)
+```
+
+> Note that the functions above are effective only if PowerAuth SDK is compiled in `DEBUG` build configuration.
+
+
+
 ## Additional Features
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.

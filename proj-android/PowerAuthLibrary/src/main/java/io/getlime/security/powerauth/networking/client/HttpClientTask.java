@@ -35,6 +35,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
@@ -201,7 +202,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             logResponse(urlConnection, null, e);
             // Keep an exception for later reporting.
             error = e;
-            
+
         } finally {
             // Close input stream and disconnect the URL connection
             if (inputStream != null) {
@@ -300,6 +301,18 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         // URL, method
         final String url = connection.getURL().toString();
         final String method = endpoint.getHttpMethod();
+        final String errorMessage;
+        if (error != null) {
+            if (error instanceof FailedApiException) {
+                FailedApiException exception = (FailedApiException) error;
+                if (responseData == null && exception.getResponseBody() != null) {
+                    responseData = exception.getResponseBody().getBytes();
+                }
+            }
+            errorMessage = error.getMessage() != null ? error.getMessage() : error.toString();
+        } else {
+            errorMessage = null;
+        }
         // Response code
         int responseCode;
         try {
@@ -312,18 +325,24 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             if (error == null) {
                 PA2Log.d("HTTP %s response %d: <- %s", method, responseCode, url);
             } else {
-                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, error.toString());
+                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, errorMessage);
             }
         } else {
             final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
             // Response headers
             final String responseHeaders = connection.getHeaderFields().toString();
             // Response body
-            final String responseBody = encrypted ? "<encrypted>" : (responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset()));
+            final String responseBodyTmp = responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset());
+            final String responseBody;
+            if (!encrypted || error != null) {
+                responseBody = responseBodyTmp;
+            } else {
+                responseBody = encrypted ? "<encrypted>" : responseBodyTmp;
+            }
             if (error == null) {
                 PA2Log.d("HTTP %s response %d: <- %s\n- Headers: %s\n- Data: %s", method, responseCode, url, responseHeaders, responseBody);
             } else {
-                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s\n- Headers: %s\n- Data: %s", method, responseCode, url, error.toString(), responseHeaders, responseBody);
+                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s\n- Headers: %s\n- Data: %s", method, responseCode, url, errorMessage, responseHeaders, responseBody);
             }
         }
     }

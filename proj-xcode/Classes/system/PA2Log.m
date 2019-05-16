@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_PA2_LOG
 static BOOL s_log_enabled = NO;
+static BOOL s_log_verbose = NO;
 void PA2LogImpl(NSString * format, ...)
 {
 	if (!s_log_enabled) {
@@ -46,6 +47,22 @@ BOOL PA2LogIsEnabled(void)
 {
 #ifdef ENABLE_PA2_LOG
 	return s_log_enabled;
+#else
+	return NO;
+#endif
+}
+
+void PA2LogSetVerbose(BOOL verbose)
+{
+#ifdef ENABLE_PA2_LOG
+	s_log_verbose = verbose;
+#endif
+}
+
+BOOL PA2LogIsVerbose(void)
+{
+#ifdef ENABLE_PA2_LOG
+	return s_log_verbose;
 #else
 	return NO;
 #endif

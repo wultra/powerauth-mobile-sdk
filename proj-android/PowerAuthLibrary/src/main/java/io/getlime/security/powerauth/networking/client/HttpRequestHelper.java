@@ -91,6 +91,14 @@ class HttpRequestHelper<TRequest, TResponse> {
         this.serialization = new JsonSerialization();
     }
 
+
+    /**
+     * @return Endpoint definition set to this object.
+     */
+    IEndpointDefinition<TResponse> getEndpoint() {
+        return endpoint;
+    }
+
     // Request data object
 
     /**

@@ -332,7 +332,16 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
                         if (encrypted != null) {
                             mAuthenticationCallback.onFingerprintDialogSuccess(encrypted);
                         } else {
-                            mAuthenticationCallback.onFingerprintDialogSuccess(null);
+                            // Failed to encrypt biometric key.
+                            //
+                            // Unfortunately, we don't have "failure" callback in the current listener,
+                            // so the best solution here is to call "onFingerprintInfoDialogClosed",
+                            // which is, in normal circumstances, called in case that there's something
+                            // wrong.
+                            //
+                            // This discrepancy will be fixed in SDK version 1.2.0, which introduces
+                            // a complete reworked interfaces for biometric authentication.
+                            mAuthenticationCallback.onFingerprintInfoDialogClosed();
                         }
                     } else {
                         mAuthenticationCallback.onFingerprintDialogSuccess(null);

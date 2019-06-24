@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.keychain.fingerprint;
+package io.getlime.security.powerauth.biometry;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
- * Interface used as a callback for committing the activation with fingerprint authentication.
- *
- * @author Petr Dvorak, petr@wultra.com
+ * Interface used as a callback for committing the activation with biometric authentication.
  */
-public interface ICommitActivationWithFingerprintListener {
+public interface ICommitActivationWithBiometryListener {
 
     /**
-     * Fingerprint dialog was cancelled.
+     * Biometric dialog was cancelled.
      */
-    void onFingerprintDialogCancelled();
+    void onBiometricDialogCancelled();
 
     /**
-     * Fingerprint authentication succeeded.
+     * Biometric authentication succeeded and the activation has been committed.
      */
-    void onFingerprintDialogSuccess();
+    void onBiometricDialogSuccess();
 
     /**
-     * Called when fingerprint dialog failed on error.
+     * Called when biometric dialog or the activation commit failed on error.
      *
      * @param error error that occurred during the activation commit.
      */
-    void onFingerprintDialogFailed(PowerAuthErrorException error);
+    void onBiometricDialogFailed(PowerAuthErrorException error);
 
 }

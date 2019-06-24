@@ -24,7 +24,7 @@ import android.os.Looper;
  *
  * @author Tomas Kypta, tomas.kypta@wultra.com
  */
-public class DefaultCallbackDispatcher implements ICallbackDispacher {
+public class DefaultCallbackDispatcher implements ICallbackDispatcher {
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 

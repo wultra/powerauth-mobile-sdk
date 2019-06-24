@@ -102,7 +102,7 @@ class HttpRequestHelper<TRequest, TResponse> {
     // Request data object
 
     /**
-     * The {@code RequestData} nested class contains all information required for HTTP request
+     * The {@code PrivateRequestData} nested class contains all information required for HTTP request
      * execution.
      */
     static class RequestData {
@@ -163,7 +163,7 @@ class HttpRequestHelper<TRequest, TResponse> {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Authentication object is missing.");
         }
 
-        // Prepare data for a new RequestData object
+        // Prepare data for a new PrivateRequestData object
 
         final URL requestUrl = new URL(baseUrl + endpoint.getRelativePath());
         final String requestMethod = endpoint.getHttpMethod();

@@ -88,6 +88,7 @@ import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
 import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
+import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
@@ -807,10 +808,12 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param password Password used for activation commit.
      * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void commitActivation(final @NonNull Context context, FragmentManager fragmentManager, String title, String description, @NonNull final String password, final ICommitActivationWithBiometryListener callback) {
-        authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+    @NonNull
+    public ICancelable commitActivation(final @NonNull Context context, FragmentManager fragmentManager, String title, String description, @NonNull final String password, final ICommitActivationWithBiometryListener callback) {
+        return authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 callback.onBiometricDialogCancelled();
@@ -1415,11 +1418,11 @@ public class PowerAuthSDK {
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the encrypted key.
-     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public @Nullable
-    ICancelable addBiometryFactor(@NonNull final Context context, final FragmentManager fragmentManager, final String title, final String description, String password, @NonNull final IAddBiometryFactorListener listener) {
+    @Nullable
+    public ICancelable addBiometryFactor(@NonNull final Context context, final FragmentManager fragmentManager, final String title, final String description, String password, @NonNull final IAddBiometryFactorListener listener) {
 
         // Initial authentication object, used for vault unlock call on server
         final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
@@ -1427,13 +1430,14 @@ public class PowerAuthSDK {
         authAuthentication.usePassword = password;
 
         // Fetch vault unlock key
-        return fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
+        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
+        final ICancelable httpRequest = fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
                     // Authenticate using fingerprint to generate a key
-                    authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+                    final ICancelable biometricAuthentication = authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
@@ -1458,6 +1462,7 @@ public class PowerAuthSDK {
                             listener.onAddBiometryFactorFailed(error);
                         }
                     });
+                    compositeCancelableTask.addCancelable(biometricAuthentication);
                 } else {
                     listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
                 }
@@ -1468,6 +1473,11 @@ public class PowerAuthSDK {
                 listener.onAddBiometryFactorFailed(t);
             }
         });
+        if (httpRequest != null) {
+            compositeCancelableTask.addCancelable(httpRequest);
+            return compositeCancelableTask;
+        }
+        return null;
     }
 
     /**
@@ -1620,10 +1630,12 @@ public class PowerAuthSDK {
      * @param title Dialog title.
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void authenticateUsingFingerprint(Context context, FragmentManager fragmentManager, String title, String description, final IBiometricAuthenticationCallback callback) {
-        authenticateUsingFingerprint(context, fragmentManager, title, description, false, callback);
+    @NonNull
+    public ICancelable authenticateUsingFingerprint(Context context, FragmentManager fragmentManager, String title, String description, final IBiometricAuthenticationCallback callback) {
+        return authenticateUsingFingerprint(context, fragmentManager, title, description, false, callback);
     }
 
     /**
@@ -1638,9 +1650,11 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param forceGenerateNewKey Pass true to indicate that a new key should be generated in Keystore
      * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void authenticateUsingFingerprint(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final IBiometricAuthenticationCallback callback) {
+    @NonNull
+    private ICancelable authenticateUsingFingerprint(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final IBiometricAuthenticationCallback callback) {
 
         final byte[] biometryKey;
         if (forceGenerateNewKey) { // new key has to be generated
@@ -1657,7 +1671,7 @@ public class PowerAuthSDK {
                 .setForceGenerateNewKey(forceGenerateNewKey)
                 .build();
 
-        BiometricAuthentication.authenticate(context, fragmentManager, request, new IBiometricAuthenticationCallback() {
+        return BiometricAuthentication.authenticate(context, fragmentManager, request, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 callback.onBiometricDialogCancelled(userCancel);

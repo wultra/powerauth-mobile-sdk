@@ -116,7 +116,7 @@ public class BiometricAuthentication {
             final IBiometricAuthenticator device = ctx.getAuthenticator(context);
             // Prepare essential authentication request data
             final BiometricResultDispatcher dispatcher = new BiometricResultDispatcher(callback, new DefaultCallbackDispatcher());
-            final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getFingerprintDialogResources());
+            final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
 
             // Validate request status
             @BiometricStatus int status = device.canAuthenticate();
@@ -188,7 +188,7 @@ public class BiometricAuthentication {
 
         final CancelableTask cancelableTask = requestData.getDispatcher().getCancelableTask();
 
-        final FingerprintDialogResources resources = requestData.getResources();
+        final BiometricDialogResources resources = requestData.getResources();
         final @StringRes int errorTitle;
         final @StringRes int errorDescription;
         if (status == BiometricStatus.NOT_ENROLLED) {
@@ -237,23 +237,23 @@ public class BiometricAuthentication {
 
 
     /**
-     * Sets shared {@link FingerprintDialogResources} object to this class. You can use this method
+     * Sets shared {@link BiometricDialogResources} object to this class. You can use this method
      * to override a default resources provided by this SDK.
      *
-     * @param resources New fingerprint resources to be set.
+     * @param resources New biometric dialog resources to be set.
      */
-    public static void setFingerprintDialogResources(@NonNull FingerprintDialogResources resources) {
+    public static void setBiometricDialogResources(@NonNull BiometricDialogResources resources) {
         synchronized (SharedContext.class) {
-            getContext().setFingerprintDialogResources(resources);
+            getContext().setBiometricDialogResources(resources);
         }
     }
 
     /**
-     * @return Shared instance of {@link FingerprintDialogResources} object.
+     * @return Shared instance of {@link BiometricDialogResources} object.
      */
-    public @NonNull FingerprintDialogResources getFingerprintDialogResources() {
+    public @NonNull BiometricDialogResources getBiometricDialogResources() {
         synchronized (SharedContext.class) {
-            return getContext().getFingerprintDialogResources();
+            return getContext().getBiometricDialogResources();
         }
     }
 
@@ -268,9 +268,10 @@ public class BiometricAuthentication {
         private static final SharedContext INSTANCE = new SharedContext();
 
         /**
-         * Contains shared {@link FingerprintDialogResources} object.
+         * Contains shared {@link BiometricDialogResources} object.
          */
-        private @NonNull FingerprintDialogResources fingerprintDialogResources;
+        private @NonNull
+        BiometricDialogResources biometricDialogResources;
 
         /**
          * Contains {@link IBiometricAuthenticator} in case that keeping a reference to a permanent authenticator
@@ -280,23 +281,23 @@ public class BiometricAuthentication {
         private @Nullable IBiometricAuthenticator authenticator;
 
         private SharedContext() {
-            fingerprintDialogResources = (new FingerprintDialogResources.Builder()).build();
+            biometricDialogResources = new BiometricDialogResources.Builder().build();
             authenticator = null;
         }
 
         /**
-         * @param resources Sets new {@link FingerprintDialogResources} object with resources for
+         * @param resources Sets new {@link BiometricDialogResources} object with resources for
          *                  fingerprint dialog resources.
          */
-        void setFingerprintDialogResources(@NonNull FingerprintDialogResources resources) {
-            fingerprintDialogResources = resources;
+        void setBiometricDialogResources(@NonNull BiometricDialogResources resources) {
+            biometricDialogResources = resources;
         }
 
         /**
-         * @return {@link FingerprintDialogResources} shared object with resources for fingerprint dialog.
+         * @return {@link BiometricDialogResources} shared object with resources for fingerprint dialog.
          */
-        @NonNull FingerprintDialogResources getFingerprintDialogResources() {
-            return fingerprintDialogResources;
+        @NonNull BiometricDialogResources getBiometricDialogResources() {
+            return biometricDialogResources;
         }
 
         /**

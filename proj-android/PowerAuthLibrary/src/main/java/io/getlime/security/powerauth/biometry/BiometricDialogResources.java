@@ -26,14 +26,14 @@ import android.support.annotation.StringRes;
 import io.getlime.security.powerauth.R;
 
 /**
- * The {@code FingerprintDialogResources} contains resource identifier of layout, strings, drawables
+ * The {@code BiometricDialogResources} contains resource identifier of layout, strings, drawables
  * and other information, required for the display of fallback fingerprint dialog. Such dialog is
  * currently needed on the systems API level less than 28 (Android.P).
  *
- * You can construct your own set of resources and use it in {@link BiometricAuthentication#setFingerprintDialogResources(FingerprintDialogResources)}
+ * You can construct your own set of resources and use it in {@link BiometricAuthentication#setFingerprintDialogResources(BiometricDialogResources)}
  * method, to affect all future biometric authentication requests.
  */
-public class FingerprintDialogResources {
+public class BiometricDialogResources {
 
     /**
      * Contains object with strings, required for an error handling.
@@ -56,7 +56,7 @@ public class FingerprintDialogResources {
     public final @NonNull Layout layout;
 
 
-    private FingerprintDialogResources(
+    private BiometricDialogResources(
             @NonNull Strings strings,
             @NonNull Drawables drawables,
             @NonNull Colors colors,
@@ -81,11 +81,11 @@ public class FingerprintDialogResources {
         }
 
         /**
-         * Creates {@link FingerprintDialogResources} object.
-         * @return Instance of {@link FingerprintDialogResources}.
+         * Creates {@link BiometricDialogResources} object.
+         * @return Instance of {@link BiometricDialogResources}.
          */
-        public FingerprintDialogResources build() {
-            return new FingerprintDialogResources(
+        public BiometricDialogResources build() {
+            return new BiometricDialogResources(
                     strings != null ? strings : Strings.getDefaultStrings(),
                     drawables != null ? drawables : Drawables.getDefaultDrawables(),
                     colors != null ? colors : Colors.getDefaultColors(),
@@ -513,7 +513,7 @@ public class FingerprintDialogResources {
     private static final int PACK_DATA_COUNT = PACK_LAYOUT_OFFSET + Layout.RESOURCES_COUNT;
 
     /**
-     * Method packs {@link FingerprintDialogResources} into contiguous array of integers.
+     * Method packs {@link BiometricDialogResources} into contiguous array of integers.
      * @return Array of integers with packed resources.
      */
     public @NonNull int[] packResources() {
@@ -526,20 +526,20 @@ public class FingerprintDialogResources {
     }
 
     /**
-     * Method unpacks {@link FingerprintDialogResources} from provided array of integers. The method
+     * Method unpacks {@link BiometricDialogResources} from provided array of integers. The method
      * throws an exception if array is null or has unexpected size.
      *
      * @param array Array with the packed resources.
-     * @return Unpacked {@link FingerprintDialogResources} object.
+     * @return Unpacked {@link BiometricDialogResources} object.
      */
-    public static @NonNull FingerprintDialogResources unpackResources(int[] array) {
+    public static @NonNull BiometricDialogResources unpackResources(int[] array) {
         if (array == null) {
             throw new IllegalArgumentException("array must not be null");
         }
         if (array.length != PACK_DATA_COUNT) {
             throw new IllegalArgumentException("array has unexpected size.");
         }
-        return new FingerprintDialogResources(
+        return new BiometricDialogResources(
                 Strings.unpackFrom(array, PACK_STRINGS_OFFSET),
                 Drawables.unpackFrom(array, PACK_DRAWABLES_OFFSET),
                 Colors.unpackFrom(array, PACK_COLORS_OFFSET),

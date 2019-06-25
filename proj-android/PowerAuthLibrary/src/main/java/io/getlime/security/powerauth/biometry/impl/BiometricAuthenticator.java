@@ -31,8 +31,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
+import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
-import io.getlime.security.powerauth.biometry.FingerprintDialogResources;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -131,7 +131,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Cannot create CryptoObject for biometric authentication.");
         }
 
-        final FingerprintDialogResources resources = requestData.getResources();
+        final BiometricDialogResources resources = requestData.getResources();
 
         // Build BiometricPrompt with title & description
         final BiometricPrompt.Builder builder = new BiometricPrompt.Builder(context)
@@ -306,7 +306,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             @NonNull PrivateRequestData requestData,
             @NonNull CompositeCancelableTask cancelable) {
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
-        final FingerprintDialogResources resources = requestData.getResources();
+        final BiometricDialogResources resources = requestData.getResources();
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(resources.strings.errorFingerprintDisabledTitle)
                 .setMessage(message)

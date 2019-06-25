@@ -22,7 +22,7 @@ import android.support.annotation.Nullable;
 import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
-import io.getlime.security.powerauth.biometry.FingerprintDialogResources;
+import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 
 /**
  * The {@code PrivateRequestData} class contains various temporary data required for the biometric
@@ -32,7 +32,7 @@ public class PrivateRequestData {
 
     private final @NonNull BiometricAuthenticationRequest request;
     private final @NonNull BiometricResultDispatcher dispatcher;
-    private final @NonNull FingerprintDialogResources resources;
+    private final @NonNull BiometricDialogResources resources;
     private final long creationTime;
 
     private @Nullable SecretKey secretKey;
@@ -46,7 +46,7 @@ public class PrivateRequestData {
      */
     public PrivateRequestData(@NonNull BiometricAuthenticationRequest request,
                               @NonNull BiometricResultDispatcher dispatcher,
-                              @NonNull FingerprintDialogResources resources) {
+                              @NonNull BiometricDialogResources resources) {
         this.request = request;
         this.dispatcher = dispatcher;
         this.resources = resources;
@@ -68,9 +68,9 @@ public class PrivateRequestData {
     }
 
     /**
-     * @return {@link FingerprintDialogResources} object with resources for
+     * @return {@link BiometricDialogResources} object with resources for biometric dialog.
      */
-    public @NonNull FingerprintDialogResources getResources() {
+    public @NonNull BiometricDialogResources getResources() {
         return resources;
     }
 

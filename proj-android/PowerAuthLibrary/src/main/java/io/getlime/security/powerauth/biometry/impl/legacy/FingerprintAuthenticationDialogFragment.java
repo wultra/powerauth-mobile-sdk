@@ -36,7 +36,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import io.getlime.security.powerauth.biometry.FingerprintDialogResources;
+import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 
 /**
  * Dialog fragment used for the purpose of fallback Fingerprint authentication.
@@ -58,7 +58,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     private ImageView mImgIcon;
     private TextView mTxtStatus;
     private TextView mTxtDescription;
-    private FingerprintDialogResources mResources;
+    private BiometricDialogResources mResources;
 
     /**
      * Builder class used to construct the {@link FingerprintAuthenticationDialogFragment} instance.
@@ -69,7 +69,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
         private CharSequence title;
         private CharSequence description;
-        private FingerprintDialogResources resources;
+        private BiometricDialogResources resources;
 
         public Builder(@NonNull Context context) {
             this.context = context;
@@ -117,10 +117,10 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
         /**
          * Set static dialog resources.
-         * @param resources {@link FingerprintDialogResources} object with dialog's static resources.
+         * @param resources {@link BiometricDialogResources} object with dialog's static resources.
          * @return Self-reference.
          */
-        public Builder setDialogResources(@NonNull FingerprintDialogResources resources) {
+        public Builder setDialogResources(@NonNull BiometricDialogResources resources) {
             this.resources = resources;
             return this;
         }
@@ -156,7 +156,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         // Unpack mode & resources from the dialog
         final Bundle bundle = getArguments();
         if (bundle != null) {
-            mResources = FingerprintDialogResources.unpackResources(bundle.getIntArray(ARG_RESOURCES));
+            mResources = BiometricDialogResources.unpackResources(bundle.getIntArray(ARG_RESOURCES));
         }
     }
 

@@ -131,7 +131,7 @@ public class BiometricAuthentication {
                 } catch (PowerAuthErrorException e) {
                     // Failed to authenticate. Show an error dialog and report that exception to the callback.
                     exception = e;
-                    status = BiometricStatus.NOT_SUPPORTED;
+                    status = BiometricStatus.NOT_AVAILABLE;
                 }
             }
             // Failed to use biometric authentication. At first, we should cleanup the possible stored
@@ -199,7 +199,7 @@ public class BiometricAuthentication {
             // Fingerprint scanner is not supported on the authenticator
             errorTitle       = resources.strings.errorNoFingerprintScannerTitle;
             errorDescription = resources.strings.errorNoFingerprintScannerDescription;
-        } else if (status == BiometricStatus.PERMISSION_NOT_GRANTED) {
+        } else if (status == BiometricStatus.NOT_AVAILABLE) {
             // Fingerprint scanner is disabled in the system, or permission was not granted.
             errorTitle       = resources.strings.errorFingerprintDisabledTitle;
             errorDescription = resources.strings.errorFingerprintDisabledDescription;

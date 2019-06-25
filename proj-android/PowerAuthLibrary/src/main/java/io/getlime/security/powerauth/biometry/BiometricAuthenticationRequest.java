@@ -23,9 +23,6 @@ import android.support.annotation.StringRes;
 
 import java.util.Arrays;
 
-import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
-import io.getlime.security.powerauth.system.PA2Log;
-
 /**
  * The {@code BiometricAuthenticationRequest} class contains information required for biometric authentication.
  */

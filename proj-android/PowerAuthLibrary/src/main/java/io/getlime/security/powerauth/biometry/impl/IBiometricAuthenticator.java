@@ -21,9 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
 
-import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
-import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;

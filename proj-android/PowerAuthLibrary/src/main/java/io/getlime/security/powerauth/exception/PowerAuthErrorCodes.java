@@ -24,7 +24,6 @@ import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2Err
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotGranted;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeEncryptionError;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode;
@@ -51,7 +50,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PA2ErrorCodeBiometryCancel, PA2ErrorCodeOperationCancelled, PA2ErrorCodeInvalidActivationCode,
         PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
         PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade,
-        PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotGranted, PA2ErrorCodeBiometryNotRecognized})
+        PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -140,7 +139,14 @@ public @interface PowerAuthErrorCodes {
      * a missing support from the operating system.
      */
     int PA2ErrorCodeBiometryNotSupported = 18;
+
+    /**
+     * The biometric authentication is temporarily unavailable.
+     */
     int PA2ErrorCodeBiometryNotAvailable = 19;
-    int PA2ErrorCodeBiometryNotGranted = 20;
-    int PA2ErrorCodeBiometryNotRecognized = 21;
+
+    /**
+     * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
+     */
+    int PA2ErrorCodeBiometryNotRecognized = 20;
 }

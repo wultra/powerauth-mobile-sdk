@@ -20,11 +20,10 @@ import android.support.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 
-import static io.getlime.security.powerauth.biometry.BiometricStatus.LOCKED_DOWN;
+import static io.getlime.security.powerauth.biometry.BiometricStatus.NOT_AVAILABLE;
 import static io.getlime.security.powerauth.biometry.BiometricStatus.NOT_ENROLLED;
 import static io.getlime.security.powerauth.biometry.BiometricStatus.NOT_SUPPORTED;
 import static io.getlime.security.powerauth.biometry.BiometricStatus.OK;
-import static io.getlime.security.powerauth.biometry.BiometricStatus.PERMISSION_NOT_GRANTED;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
@@ -33,7 +32,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * unless it's {@link #NOT_SUPPORTED}.
  */
 @Retention(SOURCE)
-@IntDef({OK, NOT_SUPPORTED, NOT_ENROLLED, LOCKED_DOWN, PERMISSION_NOT_GRANTED})
+@IntDef({OK, NOT_SUPPORTED, NOT_ENROLLED, NOT_AVAILABLE})
 public @interface BiometricStatus {
 
     /**
@@ -55,12 +54,7 @@ public @interface BiometricStatus {
     int NOT_ENROLLED = 2;
 
     /**
-     * The biometric authentication is locked down due to too many failed attempts to authenticate.
+     * The biometric authentication is not available at this time. You can retry the operation later.
      */
-    int LOCKED_DOWN = 3;
-
-    /**
-     * The permission to use biometry (or fingerprint) has not been granted to the application.
-     */
-    int PERMISSION_NOT_GRANTED = 4;
+    int NOT_AVAILABLE = 3;
 }

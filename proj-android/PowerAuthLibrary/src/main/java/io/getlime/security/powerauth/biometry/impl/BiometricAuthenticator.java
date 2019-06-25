@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.biometry.impl;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -39,6 +38,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
+import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
 
 /**
  * The {@code BiometricAuthenticator} implements {@link IBiometricAuthenticator} interface with using new
@@ -49,8 +49,7 @@ import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 public class BiometricAuthenticator implements IBiometricAuthenticator {
 
     private final @NonNull Context context;
-    private final @NonNull
-    IBiometricKeystore keystore;
+    private final @NonNull IBiometricKeystore keystore;
     private final @NonNull FingerprintManager legacyFingerprintManager;
     private byte[] alreadyProtectedKey;
 
@@ -100,11 +99,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     @Override
     public @BiometricStatus int canAuthenticate() {
         if (!isAvailable()) {
-            return BiometricStatus.NOT_SUPPORTED;
-        }
-        // TODO: Do we need to do this? This kind of permission is implicitly granted, right?
-        if (context.checkSelfPermission(Manifest.permission.USE_BIOMETRIC) != PackageManager.PERMISSION_GRANTED) {
-            return BiometricStatus.PERMISSION_NOT_GRANTED;
+            return BiometricStatus.NOT_AVAILABLE;
         }
         // TODO: API level 29 will fix this with `canAuthenticate()` method.
         if (!legacyFingerprintManager.hasEnrolledFingerprints()) {
@@ -128,6 +123,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricAuthenticationRequest request = requestData.getRequest();
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
         final CancelableTask cancelableTask = dispatcher.getCancelableTask();
+        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true, cancelableTask);
 
         // Now construct AES cipher with the biometric key, wrapped in the crypto object.
         final BiometricPrompt.CryptoObject cryptoObject = getCryptoObject(requestData.getSecretKey());
@@ -151,7 +147,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dispatcher.dispatchUserCancel();
-                dialog.dismiss();
             }
         });
 
@@ -170,20 +165,27 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     // a cancel to the application.
                     dispatcher.dispatchUserCancel();
                 } else {
-                    // Otherwise dispatch the error
-                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric authentication failure.");
+                    final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric authentication failure.");
+                    if (shouldDisplayErrorDialog(requestData)) {
+                        // The response from API was too quick. We should display our own UI.
+                        showBiometricErrorDialog(errString, exception, fragmentManager, requestData, compositeCancelableTask);
+                    } else {
+                        // Otherwise dispatch the error.
+                        dispatcher.dispatchError(exception);
+                    }
                 }
             }
 
             @Override
             public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
                 super.onAuthenticationHelp(helpCode, helpString);
-                // Do nothing...
+                biometricPromptIsProbablyVisible = true;
             }
 
             @Override
             public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
+                biometricPromptIsProbablyVisible = true;
                 final Cipher cipher = result.getCryptoObject().getCipher();
                 if (cipher != null) {
                     final byte[] protectedKey;
@@ -206,11 +208,11 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             @Override
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
-                // Do nothing...
+                biometricPromptIsProbablyVisible = true;
             }
         });
         // Return the cancellable
-        return cancelableTask;
+        return compositeCancelableTask;
     }
 
     /**
@@ -232,5 +234,98 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         }
         // Wrap cipher into required crypto object
         return new BiometricPrompt.CryptoObject(cipher);
+    }
+
+    /**
+     * Property is set to {@code true} in case that there's a high probability, that biometric prompt
+     * is visible on the screen.
+     */
+    private boolean biometricPromptIsProbablyVisible;
+
+    /**
+     * Minimum time in milliseconds that need BiometricPrompt to respond with the error.
+     * Check {@link #shouldDisplayErrorDialog(PrivateRequestData)} documentation for more details.
+     */
+    private static final long PROMPT_API_MIN_RESPONSE_TIME = 2000;
+
+    /**
+     * Tolerance time in milliseconds to {@link #PROMPT_API_MIN_RESPONSE_TIME}.
+     */
+    private static final long PROMPT_API_RESPONSE_TOLERANCE = 200;
+
+    /**
+     * Determine whether we need to display our own error UI. This is required due to fact, that on
+     * Android "P", we never knows whether the BiometricPrompt system UI was displayed or not.
+     * It's also impossible to determine this situation in advance, for example for lock down state.
+     *
+     * So, the only option is to use this crappy hack with elapsed time...
+     *
+     * @param requestData Request data
+     * @return {@code true} when custom error dialog should be displayed.
+     */
+    private boolean shouldDisplayErrorDialog(@NonNull PrivateRequestData requestData) {
+        if (biometricPromptIsProbablyVisible) {
+            // Looks like that some other callback was called before. That may indicate that dialog
+            // UI was really visible.
+            return false;
+        }
+        // Flipping this status guarantees that only one dialog will be displayed. This is prevention
+        // against possible two error reports in one authentication session.
+        biometricPromptIsProbablyVisible = true;
+
+        // Get elapsed time from the request data.
+        long elapsedTime = requestData.getElapsedTime();
+        if (elapsedTime < PROMPT_API_RESPONSE_TOLERANCE) {
+            // We're under 200ms, so the response was really quick. In this case, we should display
+            // our own dialog.
+            return true;
+        }
+        if (elapsedTime >= PROMPT_API_MIN_RESPONSE_TIME &&
+                elapsedTime < PROMPT_API_MIN_RESPONSE_TIME + PROMPT_API_RESPONSE_TOLERANCE) {
+            // The response time is between 2000 and 2200ms.
+            // This is required due to a bug in BiometricPrompt on Android "P", where the error is always
+            // reported after 2000ms, even if no prompt UI was visible.
+            return true;
+        }
+        // Looks like that BiometricPrompt UI was really visible.
+        return false;
+    }
+
+    /**
+     * Show {@link BiometricErrorDialogFragment} with an appropriate error message.
+     * @param message Message displayed in the dialog alert.
+     * @param exception Exception reported back to the application.
+     * @param fragmentManager Fragment manager used to show the dialog.
+     * @param requestData Object with all relevant information about the biometric authentication.
+     * @param cancelable Composite cancelable object.
+     */
+    private void showBiometricErrorDialog(
+            @NonNull CharSequence message,
+            @NonNull PowerAuthErrorException exception,
+            @NonNull FragmentManager fragmentManager,
+            @NonNull PrivateRequestData requestData,
+            @NonNull CompositeCancelableTask cancelable) {
+        final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
+        final FingerprintDialogResources resources = requestData.getResources();
+        final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
+                .setTitle(resources.strings.errorFingerprintDisabledTitle)
+                .setMessage(message)
+                .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
+                .setIcon(resources.drawables.errorIcon)
+                .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
+                    @Override
+                    public void onClose() {
+                        dispatcher.dispatchError(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric authentication failure."));
+                    }
+                })
+                .build();
+        final CancelableTask dialogCancelable = new CancelableTask(new CancelableTask.OnCancelListener() {
+            @Override
+            public void onCancel() {
+                dialogFragment.dismiss();
+            }
+        });
+        cancelable.addCancelable(dialogCancelable);
+        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 }

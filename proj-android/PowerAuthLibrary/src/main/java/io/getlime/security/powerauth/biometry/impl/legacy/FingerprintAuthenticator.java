@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.biometry.impl.legacy;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
@@ -25,7 +24,6 @@ import android.os.CancellationSignal;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.annotation.StringRes;
 import android.support.v4.app.FragmentManager;
 
 import javax.crypto.Cipher;
@@ -33,19 +31,15 @@ import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
-import io.getlime.security.powerauth.biometry.FingerprintDialogResources;
-import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
-import io.getlime.security.powerauth.biometry.impl.IBiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
-import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
 import io.getlime.security.powerauth.biometry.impl.BiometricResultDispatcher;
+import io.getlime.security.powerauth.biometry.impl.IBiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
-import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 
 /**
  * The {@code FingerprintAuthenticator} class implements {@link IBiometricAuthenticator} interface with using
@@ -67,13 +61,23 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         if (!keystore.isKeystoreReady()) {
             return null;
         }
-        if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+        // Acquire FingerprintManager (API level 23 is slightly different than later SDKs)
+        // This is inspired by the androidx.biometric fallback implementation.
+        final FingerprintManager fingerprintManager;
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
+            // Get service directly
+            fingerprintManager = context.getSystemService(FingerprintManager.class);
+        } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+            // Get service only when there's FEATURE_FINGERPRINT
+            fingerprintManager = context.getSystemService(FingerprintManager.class);
+        } else {
             return null;
         }
-        final FingerprintManager fingerprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
         if (fingerprintManager == null) {
             return null;
         }
+        // If hardware is not detected, then simply return null. The BiometricAuthentication class
+        // will then use a dummy authenticator instead.
         if (!fingerprintManager.isHardwareDetected()) {
             return null;
         }
@@ -97,10 +101,7 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
     @Override
     public @BiometricStatus int canAuthenticate() {
         if (!isAvailable()) {
-            return BiometricStatus.NOT_SUPPORTED;
-        }
-        if (context.checkSelfPermission(Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
-            return BiometricStatus.PERMISSION_NOT_GRANTED;
+            return BiometricStatus.NOT_AVAILABLE;
         }
         if (!fingerprintManager.hasEnrolledFingerprints()) {
             return BiometricStatus.NOT_ENROLLED;

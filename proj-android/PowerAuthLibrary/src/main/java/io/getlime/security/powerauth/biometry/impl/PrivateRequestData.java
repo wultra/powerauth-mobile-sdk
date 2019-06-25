@@ -33,6 +33,7 @@ public class PrivateRequestData {
     private final @NonNull BiometricAuthenticationRequest request;
     private final @NonNull BiometricResultDispatcher dispatcher;
     private final @NonNull FingerprintDialogResources resources;
+    private final long creationTime;
 
     private @Nullable SecretKey secretKey;
 
@@ -49,6 +50,7 @@ public class PrivateRequestData {
         this.request = request;
         this.dispatcher = dispatcher;
         this.resources = resources;
+        this.creationTime = System.currentTimeMillis();
     }
 
     /**
@@ -90,5 +92,12 @@ public class PrivateRequestData {
             throw new IllegalStateException("SecretKey is null.");
         }
         return secretKey;
+    }
+
+    /**
+     * @return Elapsed time in milliseconds since the request was created.
+     */
+    public long getElapsedTime() {
+        return System.currentTimeMillis() - creationTime;
     }
 }

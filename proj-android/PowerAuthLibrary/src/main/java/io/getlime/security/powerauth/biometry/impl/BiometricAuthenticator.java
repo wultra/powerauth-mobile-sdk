@@ -52,6 +52,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     private final @NonNull IBiometricKeystore keystore;
     private final @NonNull FingerprintManager legacyFingerprintManager;
     private byte[] alreadyProtectedKey;
+    private boolean authenticationFailedBefore;
 
     /**
      * Creates a new instance of {@link BiometricAuthenticator}. The authenticator object is not created when
@@ -156,16 +157,27 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             @Override
             public void onAuthenticationError(int errorCode, CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED) {
-                    // User pressed the cancel button
-                    dispatcher.dispatchUserCancel();
-                } else if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_CANCELED) {
-                    // Technically, this is not a cancel by the user, but the meaning is similar.
-                    // The device is locked out, or user has been changed, so we can report this as
-                    // a cancel to the application.
+                if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED ||
+                        errorCode == BiometricPrompt.BIOMETRIC_ERROR_CANCELED) {
+                    // User pressed the cancel button, or authentication was canceled by the system.
+                    // That may happen when user hit the power button and lock the device. We can
+                    // both situations report as an user initiated cancel.
                     dispatcher.dispatchUserCancel();
                 } else {
-                    final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric authentication failure.");
+                    final PowerAuthErrorException exception;
+                    if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT && authenticationFailedBefore) {
+                        // Too many failed attempts, we should report the "not recognized" error after all.
+                        // Note that we don't handle "BIOMETRIC_ERROR_LOCKOUT_PERMANENT", because that
+                        // means that user has to authenticate with the password on the system level.
+                        // This is also reported only when authentication failed before, to prevent
+                        // situations when user immediately wants to authenticate, while the biometry
+                        // is still locked out.
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric image was not recognized.");
+                    } else {
+                        // Other error, we can use "not available" error code, due to that other
+                        // errors are mostly about an internal failures.
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, errString.toString());
+                    }
                     if (shouldDisplayErrorDialog(requestData)) {
                         // The response from API was too quick. We should display our own UI.
                         showBiometricErrorDialog(errString, exception, fragmentManager, requestData, compositeCancelableTask);
@@ -209,6 +221,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
                 biometricPromptIsProbablyVisible = true;
+                authenticationFailedBefore = true;
             }
         });
         // Return the cancellable
@@ -301,7 +314,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
      */
     private void showBiometricErrorDialog(
             @NonNull CharSequence message,
-            @NonNull PowerAuthErrorException exception,
+            @NonNull final PowerAuthErrorException exception,
             @NonNull FragmentManager fragmentManager,
             @NonNull PrivateRequestData requestData,
             @NonNull CompositeCancelableTask cancelable) {
@@ -315,7 +328,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
                     @Override
                     public void onClose() {
-                        dispatcher.dispatchError(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric authentication failure."));
+                        dispatcher.dispatchError(exception);
                     }
                 })
                 .build();

@@ -23,6 +23,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
@@ -87,6 +88,11 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
          * Called when biometric authentication succeeded.
          */
         void onAuthenticationSuccess();
+
+        /**
+         * Called when biometric authentication is canceled by the system.
+         */
+        void onAuthenticationCancel();
     }
 
     // Parameters from constructor
@@ -103,7 +109,9 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
 
     private boolean isInProgress;
     private boolean isInExit;
+    private boolean resultIsAcquired;
     private boolean resultIsReported;
+    private boolean authenticationFailedBefore;
     private FingerprintManager.AuthenticationResult resultSuccess;
     private PowerAuthErrorException resultError;
 
@@ -156,11 +164,48 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
     @Override
     public void onAuthenticationError(final int errorCode, final CharSequence errString) {
         super.onAuthenticationError(errorCode, errString);
+
+        final boolean isCancel;
+        if (errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED ||
+                errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
+            // Canceled by system, due to user's action. This typically happens when user
+            // hit the power button and lock the device during the authentication.
+            setCancelResult();
+            isCancel = true;
+        } else {
+            // Build an error exception based on the error code.
+            final PowerAuthErrorException result;
+            if (errorCode == FingerprintManager.FINGERPRINT_ERROR_LOCKOUT && authenticationFailedBefore) {
+                // Too many failed attempts, we should report the "not recognized" error after all.
+                // Note that we don't handle "FINGERPRINT_ERROR_LOCKOUT_PERMANENT", because that
+                // means that user has to authenticate with the password on the system level.
+                // This is also reported only when authentication failed before, to prevent
+                // situations when user immediately wants to authenticate, while the biometry
+                // is still locked out.
+                result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric image was not recognized.");
+            } else {
+                // Other error, we can use "not available" error code, due to that other
+                // errors are mostly about an internal failures.
+                result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, errString.toString());
+            }
+            setFailureResult(result);
+            isCancel = false;
+        }
+
+        // Report error to the progress listener.
         progressDispatcher.dispatchCallback(new Runnable() {
             @Override
             public void run() {
                 if (progressListener != null) {
-                    progressListener.onAuthenticationError(errorCode, errString);
+                    if (isCancel) {
+                        progressListener.onAuthenticationCancel();
+                    } else {
+                        progressListener.onAuthenticationError(errorCode, errString);
+                    }
+                } else {
+                    // There's no progressListener (e.g. dialog was somehow dismissed), so just
+                    // report the result.
+                    reportResult();
                 }
             }
         });
@@ -189,6 +234,10 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
             public void run() {
                 if (progressListener != null) {
                     progressListener.onAuthenticationSuccess();
+                } else {
+                    // If progress listener is not set, then be sure that result is reported
+                    // back to the application.
+                    reportResult();
                 }
             }
         });
@@ -200,6 +249,7 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
         progressDispatcher.dispatchCallback(new Runnable() {
             @Override
             public void run() {
+                authenticationFailedBefore = true;
                 if (progressListener != null) {
                     progressListener.onAuthenticationFailed();
                 }
@@ -208,19 +258,13 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
     }
 
     /**
-     * @return {@code true} if object has already the result.
-     */
-    private boolean hasResult() {
-        return resultSuccess != null || resultError != null;
-    }
-
-    /**
      * Set success result to the handler.
      * @param result Result object
      */
     private void setSuccessResult(@NonNull FingerprintManager.AuthenticationResult result) {
         synchronized (this) {
-            if (!hasResult()) {
+            if (!resultIsAcquired) {
+                resultIsAcquired = true;
                 resultSuccess = result;
             }
             stopListening();
@@ -233,9 +277,20 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
      */
     private void setFailureResult(@NonNull PowerAuthErrorException exception) {
         synchronized (this) {
-            if (!hasResult()) {
+            if (!resultIsAcquired) {
+                resultIsAcquired = true;
                 resultError = exception;
             }
+            stopListening();
+        }
+    }
+
+    /**
+     * Set cancel result to the handler.
+     */
+    private void setCancelResult() {
+        synchronized (this) {
+            resultIsAcquired = true;
             stopListening();
         }
     }
@@ -245,26 +300,18 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
      */
     void reportResult() {
         synchronized (this) {
-            if (hasResult() && !resultIsReported) {
-                resultIsReported = true;
-                if (resultSuccess != null) {
-                    resultCallback.onAuthenticationSuccess(resultSuccess);
-                } else {
-                    resultCallback.onAuthenticationFailure(resultError);
-                }
-            }
-            stopListening();
-        }
-    }
-
-    /**
-     * Report cancel to the {@link ResultCallback}.
-     */
-    void reportCancel() {
-        synchronized (this) {
             if (!resultIsReported) {
                 resultIsReported = true;
-                resultCallback.onAuthenticationCancel(true);
+                if (resultSuccess != null) {
+                    // Report success
+                    resultCallback.onAuthenticationSuccess(resultSuccess);
+                } else if (resultError != null) {
+                    // Report failure
+                    resultCallback.onAuthenticationFailure(resultError);
+                } else {
+                    // No result, so report the cancel.
+                    resultCallback.onAuthenticationCancel(true);
+                }
             }
             stopListening();
         }

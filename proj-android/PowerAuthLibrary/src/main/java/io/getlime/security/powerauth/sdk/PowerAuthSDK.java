@@ -1663,7 +1663,7 @@ public class PowerAuthSDK {
             biometryKey = mBiometryKeychain.dataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
         }
 
-        // Build a new authentication dialog fragment instance.
+        // Build a new authentication request.
         BiometricAuthenticationRequest request = new BiometricAuthenticationRequest.Builder(context)
                 .setTitle(title)
                 .setDescription(description)
@@ -1678,7 +1678,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onBiometricDialogSuccess(@Nullable byte[] biometricKeyEncrypted) {
+            public void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted) {
                 // Store the new key, if a new key was generated
                 if (forceGenerateNewKey) {
                     mBiometryKeychain.putDataForKey(context, biometryKey, mKeychainConfiguration.getKeychainBiometryDefaultKey());
@@ -1689,7 +1689,18 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogFailure(@NonNull PowerAuthErrorException error) {
-                callback.onBiometricDialogFailure(error);
+                final @PowerAuthErrorCodes int errorCode = error.getPowerAuthErrorCode();
+                if (!forceGenerateNewKey && errorCode == PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized) {
+                    // The "PA2ErrorCodeBiometryNotRecognized" code is reported in case that biometry
+                    // failed at lockout (e.g. too many failed attempts). In this case, we should
+                    // generate a fake signature unlock key and pretend that everything's OK.
+                    // That will lead to unsuccessful authentication on the server and increased
+                    // counter of failed attempts.
+                    callback.onBiometricDialogSuccess(mSession.generateSignatureUnlockKey());
+                } else {
+                    // Otherwise just report the failure.
+                    callback.onBiometricDialogFailure(error);
+                }
             }
         });
     }

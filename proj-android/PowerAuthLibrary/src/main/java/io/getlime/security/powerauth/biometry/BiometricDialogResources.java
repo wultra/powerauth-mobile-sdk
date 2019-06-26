@@ -30,7 +30,7 @@ import io.getlime.security.powerauth.R;
  * and other information, required for the display of fallback fingerprint dialog. Such dialog is
  * currently needed on the systems API level less than 28 (Android.P).
  *
- * You can construct your own set of resources and use it in {@link BiometricAuthentication#setFingerprintDialogResources(BiometricDialogResources)}
+ * You can construct your own set of resources and use it in {@link BiometricAuthentication#setBiometricDialogResources(BiometricDialogResources)}
  * method, to affect all future biometric authentication requests.
  */
 public class BiometricDialogResources {

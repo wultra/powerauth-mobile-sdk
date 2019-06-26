@@ -51,9 +51,10 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     private static final String FINGERPRINT_DEFAULT_TAG = "FINGERPRINT_DEFAULT_TAG";
 
     static final long WRN_TIMEOUT_MILLIS = 1600;
+    static final long ERROR_DELAY_MILLIS = 2400;
     static final long SUCCESS_DELAY_MILLIS = 800;
 
-    private boolean mIsAuthenticated;
+    private boolean mHasResult;
 
     private ImageView mImgIcon;
     private TextView mTxtStatus;
@@ -302,40 +303,51 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         }
     }
 
+    /**
+     * Authentication canceled due to system reasons.
+     */
+    @Override
+    public void onAuthenticationCancel() {
+        // Dismiss the dialog
+        reportResult();
+    }
+
     // Private state handling
 
     /**
      * Report result to the {@link FingerprintAuthenticationHandler} and dismiss the dialog.
-     * The reported result depends on the state and the mode of the dialog. If dialog is
-     * in "AUTHENTICATION" mode, then the method reports "cancel", unless the fingerprint
-     * authentication already succeeded. For "SHOW_ERROR" mode, the method always reports
-     * the result, because the result is already configured in the handler itself.
      */
     private void reportResult() {
         if (mHandler != null) {
-            if (mIsAuthenticated) {
-                mHandler.reportResult();
-            } else {
-                mHandler.reportCancel();
-            }
+            mHandler.reportResult();
         }
         dismiss();
     }
 
     /**
-     * Show error message to the status text view.
+     * Show error message to the status text view and then, after some delay, report the result
+     * ti tge {@link FingerprintAuthenticationHandler}.
      *
      * @param error Error to be displayed.
      */
     private void showError(CharSequence error) {
         final Context context = getContext();
-        if (mIsAuthenticated || context == null) {
+        if (mHasResult || context == null) {
             return;
         }
+        // Mark that this dialog has already the result.
+        mHasResult = true;
+        // Configure status
         mImgIcon.setImageResource(mResources.drawables.errorIcon);
         mTxtStatus.setText(error);
         mTxtStatus.setTextColor(context.getColor(mResources.colors.failureText));
         mTxtStatus.removeCallbacks(mResetStatusTextRunnable);
+        mImgIcon.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                reportResult();
+            }
+        }, ERROR_DELAY_MILLIS);
     }
 
     /**
@@ -346,7 +358,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
      */
     private void showWarning(CharSequence warning) {
         final Context context = getContext();
-        if (mIsAuthenticated || context == null) {
+        if (mHasResult || context == null) {
             return;
         }
         mImgIcon.setImageResource(mResources.drawables.errorIcon);
@@ -361,12 +373,17 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
      * to the {@link FingerprintAuthenticationHandler}.
      */
     private void showSuccess() {
+        final Context context = getContext();
+        if (mHasResult || context == null) {
+            return;
+        }
         // Mark that this dialog has already the result.
-        mIsAuthenticated = true;
+        mHasResult = true;
         // Configure status
         mImgIcon.setImageResource(mResources.drawables.successIcon);
         mTxtStatus.setText(mResources.strings.statusSuccess);
-        mTxtStatus.setTextColor(getContext().getColor(mResources.colors.successText));
+        mTxtStatus.setTextColor(context.getColor(mResources.colors.successText));
+        mTxtStatus.removeCallbacks(mResetStatusTextRunnable);
         mImgIcon.postDelayed(new Runnable() {
             @Override
             public void run() {

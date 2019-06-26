@@ -162,6 +162,10 @@ namespace protocol
 	const cc7::byte PD_VERSION_V2 = '3';	// data version is one step ahead
 	const cc7::byte PD_VERSION_V3 = '4';	// + protocol V3
 	const cc7::byte PD_VERSION_V4 = '5';	// + recovery codes
+
+	// WARNING: If you update PD_VERSION, then please update also routine
+	//          located in PA2SessionStatusDataReader.m in iOS extensions project.
+
 	
 	bool SerializePersistentData(const PersistentData & pd, utils::DataWriter & writer)
 	{

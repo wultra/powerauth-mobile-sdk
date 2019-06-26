@@ -87,7 +87,7 @@
 	return self.activationId != nil;
 }
 
-- (BOOL) hasPendingActivationMigration
+- (BOOL) hasPendingProtocolUpgrade
 {
 	return NO;
 }

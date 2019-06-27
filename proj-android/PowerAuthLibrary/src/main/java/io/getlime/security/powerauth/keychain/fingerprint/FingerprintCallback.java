@@ -29,4 +29,6 @@ public interface FingerprintCallback {
 
     void onAuthenticationError(CharSequence errString);
 
+    void onAuthenticationCancel();
+
 }

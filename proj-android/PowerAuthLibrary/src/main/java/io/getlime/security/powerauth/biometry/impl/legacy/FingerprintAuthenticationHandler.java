@@ -165,17 +165,21 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
     public void onAuthenticationError(final int errorCode, final CharSequence errString) {
         super.onAuthenticationError(errorCode, errString);
 
-        final boolean isCancel;
-        if (errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED ||
-                errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
+        boolean isCancel = errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED;
+        boolean isLockout = errorCode == FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            isCancel |= errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED;
+            isLockout |= errorCode == FingerprintManager.FINGERPRINT_ERROR_LOCKOUT_PERMANENT;
+        }
+
+        if (isCancel) {
             // Canceled by system, due to user's action. This typically happens when user
             // hit the power button and lock the device during the authentication.
             setCancelResult();
-            isCancel = true;
         } else {
             // Build an error exception based on the error code.
             final PowerAuthErrorException result;
-            if (errorCode == FingerprintManager.FINGERPRINT_ERROR_LOCKOUT && authenticationFailedBefore) {
+            if (isLockout && authenticationFailedBefore) {
                 // Too many failed attempts, we should report the "not recognized" error after all.
                 // Note that we don't handle "FINGERPRINT_ERROR_LOCKOUT_PERMANENT", because that
                 // means that user has to authenticate with the password on the system level.
@@ -189,15 +193,15 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
                 result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, errString.toString());
             }
             setFailureResult(result);
-            isCancel = false;
         }
 
         // Report error to the progress listener.
+        final boolean doCancel = isCancel;
         progressDispatcher.dispatchCallback(new Runnable() {
             @Override
             public void run() {
                 if (progressListener != null) {
-                    if (isCancel) {
+                    if (doCancel) {
                         progressListener.onAuthenticationCancel();
                     } else {
                         progressListener.onAuthenticationError(errorCode, errString);

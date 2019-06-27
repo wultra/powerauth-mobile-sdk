@@ -155,17 +155,18 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricPrompt prompt = builder.build();
         prompt.authenticate(cryptoObject, cancelableTask.getCancellationSignal(), context.getMainExecutor(), new BiometricPrompt.AuthenticationCallback() {
             @Override
-            public void onAuthenticationError(int errorCode, CharSequence errString) {
-                super.onAuthenticationError(errorCode, errString);
-                if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED ||
-                        errorCode == BiometricPrompt.BIOMETRIC_ERROR_CANCELED) {
+            public void onAuthenticationError(int code, CharSequence errString) {
+                super.onAuthenticationError(code, errString);
+                final boolean isCancel = code == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED || code == BiometricPrompt.BIOMETRIC_ERROR_CANCELED;
+                final boolean isLockout = code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT || code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT_PERMANENT;
+                if (isCancel) {
                     // User pressed the cancel button, or authentication was canceled by the system.
                     // That may happen when user hit the power button and lock the device. We can
                     // both situations report as an user initiated cancel.
                     dispatcher.dispatchUserCancel();
                 } else {
                     final PowerAuthErrorException exception;
-                    if (errorCode == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT && authenticationFailedBefore) {
+                    if (isLockout && authenticationFailedBefore) {
                         // Too many failed attempts, we should report the "not recognized" error after all.
                         // Note that we don't handle "BIOMETRIC_ERROR_LOCKOUT_PERMANENT", because that
                         // means that user has to authenticate with the password on the system level.

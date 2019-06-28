@@ -116,7 +116,17 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
     private PowerAuthErrorException resultError;
 
 
-    public FingerprintAuthenticationHandler(
+    /**
+     * Construct handler with all required parameters.
+     *
+     * @param fingerprintManager System provided {@link FingerprintManager} that provides fingerprint authentication.
+     * @param cryptoObject Crypto object containing AES cipher, configured for encryption with the biometric key.
+     * @param cancellationSignal Object allowing to cancel the pending authentication.
+     * @param progressListener Object implementing {@link ProgressListener}. The instance of
+     *                         {@link FingerprintAuthenticationDialogFragment} is typically provided.
+     * @param resultCallback Object receiving events defined in {@link ResultCallback} interface.
+     */
+    FingerprintAuthenticationHandler(
             @NonNull FingerprintManager fingerprintManager,
             @NonNull FingerprintManager.CryptoObject cryptoObject,
             @NonNull CancellationSignal cancellationSignal,
@@ -181,8 +191,6 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
             final PowerAuthErrorException result;
             if (isLockout && authenticationFailedBefore) {
                 // Too many failed attempts, we should report the "not recognized" error after all.
-                // Note that we don't handle "FINGERPRINT_ERROR_LOCKOUT_PERMANENT", because that
-                // means that user has to authenticate with the password on the system level.
                 // This is also reported only when authentication failed before, to prevent
                 // situations when user immediately wants to authenticate, while the biometry
                 // is still locked out.

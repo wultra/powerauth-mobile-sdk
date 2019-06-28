@@ -168,8 +168,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     final PowerAuthErrorException exception;
                     if (isLockout && authenticationFailedBefore) {
                         // Too many failed attempts, we should report the "not recognized" error after all.
-                        // Note that we don't handle "BIOMETRIC_ERROR_LOCKOUT_PERMANENT", because that
-                        // means that user has to authenticate with the password on the system level.
                         // This is also reported only when authentication failed before, to prevent
                         // situations when user immediately wants to authenticate, while the biometry
                         // is still locked out.
@@ -199,23 +197,12 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 biometricPromptIsProbablyVisible = true;
-                final Cipher cipher = result.getCryptoObject().getCipher();
-                if (cipher != null) {
-                    final byte[] protectedKey;
-                    synchronized (this) {
-                        if (alreadyProtectedKey == null) {
-                            protectedKey = BiometricHelper.protectKeyWithCipher(request.getKeyToProtect(), cipher);
-                            alreadyProtectedKey = protectedKey;
-                        } else {
-                            protectedKey = alreadyProtectedKey;
-                        }
-                    }
-                    if (protectedKey != null) {
-                        dispatcher.dispatchSuccess(protectedKey);
-                        return;
-                    }
+                final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), result.getCryptoObject().getCipher());
+                if (protectedKey != null) {
+                    dispatcher.dispatchSuccess(protectedKey);
+                } else {
+                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
                 }
-                dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
             }
 
             @Override
@@ -243,11 +230,33 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         }
         // Create AES cipher with given key
         final Cipher cipher = BiometricHelper.createAesCipher(secretKey);
+        // Wrap cipher into required crypto object
+        return cipher != null ? new BiometricPrompt.CryptoObject(cipher) : null;
+    }
+
+    /**
+     * Protect key with Cipher initialized with the biometric key.
+     *
+     * @param keyToProtect Key which will be encrypted with biometric key.
+     * @param cipher Cipher initialized with the biometric key.
+     * @return Encrypted bytes or {@code null} in case that encryption fails.
+     */
+    private @Nullable byte[] protectKeyWithCipher(@NonNull byte[] keyToProtect, @Nullable Cipher cipher) {
         if (cipher == null) {
             return null;
         }
-        // Wrap cipher into required crypto object
-        return new BiometricPrompt.CryptoObject(cipher);
+        synchronized (this) {
+            if (alreadyProtectedKey == null) {
+                alreadyProtectedKey = BiometricHelper.protectKeyWithCipher(keyToProtect, cipher);
+                if (alreadyProtectedKey == null) {
+                    // Failed to encrypt provided key. Allocating array with zero bytes we indicate
+                    // that an attempt to encrypt key failed with the error.
+                    alreadyProtectedKey = new byte[0];
+                }
+            }
+            // If alreadyProtectedKey contains bytes, then return that bytes, otherwise null.
+            return alreadyProtectedKey.length > 0 ? alreadyProtectedKey : null;
+        }
     }
 
     /**

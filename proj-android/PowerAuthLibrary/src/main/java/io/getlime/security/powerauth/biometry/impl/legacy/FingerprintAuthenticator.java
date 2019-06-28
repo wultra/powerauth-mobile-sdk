@@ -57,6 +57,14 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
 
     // Device construction
 
+    /**
+     * Create instance of {@link FingerprintAuthenticator}.
+     *
+     * @param context Android {@link Context} object.
+     * @param keystore {@link IBiometricKeystore} managing biometric key.
+     * @return Instance of {@link FingerprintAuthenticator} or {@code null} in case that fingerprint
+     *         authentication is not supported on the system.
+     */
     public static @Nullable IBiometricAuthenticator createAuthenticator(@NonNull Context context, @NonNull IBiometricKeystore keystore) {
         if (!keystore.isKeystoreReady()) {
             return null;
@@ -84,6 +92,13 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         return new FingerprintAuthenticator(context, keystore, fingerprintManager);
     }
 
+    /**
+     * Private constructor for this class.
+     *
+     * @param context Android {@link Context} object.
+     * @param keystore {@link IBiometricKeystore} managing biometric key.
+     * @param manager {@link FingerprintManager} providing fingerprint authentication.
+     */
     private FingerprintAuthenticator(@NonNull Context context, @NonNull IBiometricKeystore keystore, @NonNull FingerprintManager manager) {
         this.context = context;
         this.fingerprintManager = manager;
@@ -142,23 +157,12 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         final FingerprintAuthenticationHandler handler = new FingerprintAuthenticationHandler(fingerprintManager, cryptoObject, cancellationSignal, dialogFragment, new FingerprintAuthenticationHandler.ResultCallback() {
             @Override
             public void onAuthenticationSuccess(@NonNull FingerprintManager.AuthenticationResult result) {
-                final Cipher cipher = result.getCryptoObject().getCipher();
-                if (cipher != null) {
-                    final byte[] protectedKey;
-                    synchronized (this) {
-                        if (alreadyProtectedKey == null) {
-                            protectedKey = BiometricHelper.protectKeyWithCipher(request.getKeyToProtect(), cipher);
-                            alreadyProtectedKey = protectedKey;
-                        } else {
-                            protectedKey = alreadyProtectedKey;
-                        }
-                    }
-                    if (protectedKey != null) {
-                        dispatcher.dispatchSuccess(protectedKey);
-                        return;
-                    }
+                final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), result.getCryptoObject().getCipher());
+                if (protectedKey != null) {
+                    dispatcher.dispatchSuccess(protectedKey);
+                } else {
+                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
                 }
-                dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
             }
 
             @Override
@@ -209,5 +213,30 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         }
         // Wrap cipher into required crypto object
         return new FingerprintManager.CryptoObject(cipher);
+    }
+
+    /**
+     * Protect key with Cipher, initialized with the biometric key.
+     *
+     * @param keyToProtect Key which will be encrypted with biometric key.
+     * @param cipher Cipher initialized with the biometric key.
+     * @return Encrypted bytes or {@code null} in case that encryption fails.
+     */
+    private @Nullable byte[] protectKeyWithCipher(@NonNull byte[] keyToProtect, @Nullable Cipher cipher) {
+        if (cipher == null) {
+            return null;
+        }
+        synchronized (this) {
+            if (alreadyProtectedKey == null) {
+                alreadyProtectedKey = BiometricHelper.protectKeyWithCipher(keyToProtect, cipher);
+                if (alreadyProtectedKey == null) {
+                    // Failed to encrypt provided key. Allocating array with zero bytes we indicate
+                    // that an attempt to encrypt key failed with the error.
+                    alreadyProtectedKey = new byte[0];
+                }
+            }
+            // If alreadyProtectedKey contains bytes, then return that bytes, otherwise null.
+            return alreadyProtectedKey.length > 0 ? alreadyProtectedKey : null;
+        }
     }
 }

@@ -289,9 +289,16 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
         super.onAuthenticationError(errorCode, errString);
-
+        boolean isCancel = errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            isCancel |= errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED;
+        }
         if (mCallback != null) {
-            mCallback.onAuthenticationError(errString);
+            if (isCancel) {
+                mCallback.onAuthenticationCancel();
+            } else {
+                mCallback.onAuthenticationError(errString);
+            }
         }
     }
 

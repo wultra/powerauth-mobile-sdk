@@ -230,15 +230,22 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
 
         if (initCipher()) {
             mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
-            if (mCryptoObject != null) {
-                return FingerprintStage.USE_FINGERPRINT;
-            } else {
-                return FingerprintStage.INFO_ENROLL_NEW_FINGERPRINT;
-            }
+            return FingerprintStage.USE_FINGERPRINT;
         } else {
             return FingerprintStage.INFO_FINGERPRINT_INVALIDATED;
         }
     }
+
+    /**
+     * Contains cached encrypted key. The value is calculated only for once.
+     */
+    private byte[] alreadyEncryptedKey;
+
+    /**
+     * Contains true if {@link #alreadyEncryptedKey} has been already constructed.
+     * The purpose of this flag is to prevent duplicate calls to {@code mCipher.doFinal()}.
+     */
+    private boolean hasAlreadyEncryptedKey;
 
     /**
      * Encrypt provided data using internal cipher object.
@@ -247,7 +254,13 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
      */
     public byte[] encryptedKey(byte[] biometryKey) {
         try {
-            return mCipher.doFinal(biometryKey);
+            synchronized (this) {
+                if (!hasAlreadyEncryptedKey) {
+                    hasAlreadyEncryptedKey = true;
+                    alreadyEncryptedKey = mCipher.doFinal(biometryKey);
+                }
+                return alreadyEncryptedKey;
+            }
         } catch (IllegalBlockSizeException e) {
             return null;
         } catch (BadPaddingException e) {

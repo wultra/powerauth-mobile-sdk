@@ -816,7 +816,9 @@ public class PowerAuthSDK {
         return authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
-                callback.onBiometricDialogCancelled();
+                if (userCancel) {
+                    callback.onBiometricDialogCancelled();
+                }
             }
 
             @Override
@@ -1440,7 +1442,9 @@ public class PowerAuthSDK {
                     final ICancelable biometricAuthentication = authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
-                            listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
+                            if (userCancel) {
+                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
+                            }
                         }
 
                         @Override

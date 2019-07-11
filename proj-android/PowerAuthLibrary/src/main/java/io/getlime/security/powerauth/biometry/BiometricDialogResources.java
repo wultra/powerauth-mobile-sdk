@@ -339,7 +339,7 @@ public class BiometricDialogResources {
     }
 
     /**
-     * The nestec {@code Colors} class contains colors used in the fingerprint dialog and error
+     * The nested {@code Colors} class contains colors used in the fingerprint dialog and error
      * dialogs, created by SDK.
      */
     public static class Colors {

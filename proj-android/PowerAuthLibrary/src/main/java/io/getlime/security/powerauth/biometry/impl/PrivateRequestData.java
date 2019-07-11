@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.biometry.impl;
 
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -38,7 +39,7 @@ public class PrivateRequestData {
     private @Nullable SecretKey secretKey;
 
     /**
-     * Construct private reqeust data object.
+     * Construct private request data object.
      *
      * @param request Original, application provided request object.
      * @param dispatcher Dispatcher that holds completion callback and callback dispatcher.
@@ -50,7 +51,7 @@ public class PrivateRequestData {
         this.request = request;
         this.dispatcher = dispatcher;
         this.resources = resources;
-        this.creationTime = System.currentTimeMillis();
+        this.creationTime = SystemClock.elapsedRealtime();
     }
 
     /**
@@ -98,6 +99,6 @@ public class PrivateRequestData {
      * @return Elapsed time in milliseconds since the request was created.
      */
     public long getElapsedTime() {
-        return System.currentTimeMillis() - creationTime;
+        return SystemClock.elapsedRealtime() - creationTime;
     }
 }

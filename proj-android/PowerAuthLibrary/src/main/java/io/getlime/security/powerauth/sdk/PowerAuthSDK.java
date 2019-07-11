@@ -813,7 +813,7 @@ public class PowerAuthSDK {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(final @NonNull Context context, FragmentManager fragmentManager, String title, String description, @NonNull final String password, final ICommitActivationWithBiometryListener callback) {
-        return authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+        return authenticateUsingBiometry(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 if (userCancel) {
@@ -1438,8 +1438,8 @@ public class PowerAuthSDK {
             @Override
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
-                    // Authenticate using fingerprint to generate a key
-                    final ICancelable biometricAuthentication = authenticateUsingFingerprint(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+                    // Authenticate using biometry to generate a key
+                    final ICancelable biometricAuthentication = authenticateUsingBiometry(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
@@ -1626,8 +1626,8 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using fingerprint authentication. In case of the authentication is successful and 'onFingerprintDialogSuccess' callback is called,
-     * you can use 'biometricKeyEncrypted' as a 'useBiometry' key on 'PowerAuthAuthentication' instance.
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(byte[])} callback is called,
+     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.
      * @param fragmentManager Fragment manager for the dialog.
@@ -1638,15 +1638,13 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    public ICancelable authenticateUsingFingerprint(Context context, FragmentManager fragmentManager, String title, String description, final IBiometricAuthenticationCallback callback) {
-        return authenticateUsingFingerprint(context, fragmentManager, title, description, false, callback);
+    public ICancelable authenticateUsingBiometry(Context context, FragmentManager fragmentManager, String title, String description, final IBiometricAuthenticationCallback callback) {
+        return authenticateUsingBiometry(context, fragmentManager, title, description, false, callback);
     }
 
     /**
-     * Authenticate a client using fingerprint authentication. In case of the authentication is successful and 'onFingerprintDialogSuccess' callback is called,
-     * you can use 'biometricKeyEncrypted' as a 'useBiometry' key on 'PowerAuthAuthentication' instance.
-     *
-     * Use this method in case of activation of the fingerprint scanner - pass 'true' as 'forceGenerateNewKey'.
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(byte[])} callback is called,
+     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.
      * @param fragmentManager Fragment manager for the dialog.
@@ -1658,7 +1656,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    private ICancelable authenticateUsingFingerprint(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final IBiometricAuthenticationCallback callback) {
+    private ICancelable authenticateUsingBiometry(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final IBiometricAuthenticationCallback callback) {
 
         final byte[] biometryKey;
         if (forceGenerateNewKey) { // new key has to be generated

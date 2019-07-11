@@ -40,7 +40,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * The {@code BiometricHelper} class provides helper methods for PowerAuth Mobile SDK. The class
- * is suppose to be used only by the SDK itself.
+ * is supposed to be used only by the SDK itself.
  */
 public class BiometricHelper {
     /**
@@ -57,7 +57,7 @@ public class BiometricHelper {
             case BiometricStatus.NOT_SUPPORTED:
                 return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Biometry is not supported on the device.");
             case BiometricStatus.NOT_AVAILABLE:
-                return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Biometry is not available. Try again later.");
+                return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Biometry is not available. Try again later.");
             case BiometricStatus.OK:
                 throw new IllegalArgumentException("Cannot get exception for success status.");
             default:

@@ -62,9 +62,9 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
     private FragmentManager fragmentManager;
 
-    private boolean mSelfCancelled;
+    private boolean mIsPaused;
     private boolean mCancelReportsClose;
-    private boolean mIgnoreCancel;
+    private boolean mAlreadyHasResult;
 
     /**
      * Builder class used to construct the 'FingerprintAuthenticationDialogFragment' instance.
@@ -230,7 +230,8 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
      * IFingerprintActionHandler depending on how dialog was constructed.
      */
     private void closeOrCancel() {
-        if (mIgnoreCancel != true) {
+        if (!mAlreadyHasResult) {
+            mAlreadyHasResult = true;
             if (mAuthenticationCallback != null) {
                 if (mCancelReportsClose) {
                     mAuthenticationCallback.onFingerprintInfoDialogClosed();
@@ -245,7 +246,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     @Override
     public void onResume() {
         super.onResume();
-        mSelfCancelled = false;
+        mIsPaused = false;
         if (mStage.equals(FingerprintStage.USE_FINGERPRINT)) {
             mFingerprintAuthenticationHandler.startListening();
         }
@@ -254,7 +255,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     @Override
     public void onPause() {
         super.onPause();
-        mSelfCancelled = true;
+        mIsPaused = true;
         mFingerprintAuthenticationHandler.stopListening();
         dismiss();
     }
@@ -283,10 +284,15 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
     @Override
     public void onAuthenticationError(CharSequence errString) {
         if (isAdded()) {
-            if (!mSelfCancelled) {
+            if (!mIsPaused) {
                 showError(errString);
             }
         }
+    }
+
+    @Override
+    public void onAuthenticationCancel() {
+        closeOrCancel();
     }
 
     /**
@@ -316,11 +322,16 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
      * Show a success state.
      */
     protected void showSuccess() {
+        if (mAlreadyHasResult) {
+            // already processing the result
+            return;
+        }
+        mAlreadyHasResult = true;
+
         mTxtStatus.removeCallbacks(mResetErrorTextRunnable);
         mImgIcon.setImageResource(R.drawable.ic_fingerprint_success);
         mTxtStatus.setText(getString(R.string.fingerprint_dialog_success));
         mTxtStatus.setTextColor(getContext().getColor(R.color.color_fingerprint_success_text));
-        mIgnoreCancel = true;
         mImgIcon.postDelayed(new Runnable() {
 
             @Override
@@ -332,7 +343,16 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
                         if (encrypted != null) {
                             mAuthenticationCallback.onFingerprintDialogSuccess(encrypted);
                         } else {
-                            mAuthenticationCallback.onFingerprintDialogSuccess(null);
+                            // Failed to encrypt biometric key.
+                            //
+                            // Unfortunately, we don't have "failure" callback in the current listener,
+                            // so the best solution here is to call "onFingerprintInfoDialogClosed",
+                            // which is, in normal circumstances, called in case that there's something
+                            // wrong.
+                            //
+                            // This discrepancy will be fixed in SDK version 1.2.0, which introduces
+                            // a complete reworked interfaces for biometric authentication.
+                            mAuthenticationCallback.onFingerprintInfoDialogClosed();
                         }
                     } else {
                         mAuthenticationCallback.onFingerprintDialogSuccess(null);

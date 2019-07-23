@@ -46,7 +46,6 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     private final FingerprintManager mFingerprintManager;
     private CancellationSignal mCancellationSignal;
     private FingerprintManager.CryptoObject mCryptoObject;
-    private SecretKey mSecretKey;
     private FingerprintKeystore mKeyStore;
     private Cipher mCipher;
     private boolean mForceGenerateNewKey;
@@ -175,34 +174,25 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
      * @return True in case cipher was correctly initialized, false otherwise
      */
     private boolean initCipher() {
-        mSecretKey = mKeyStore.getDefaultKey();
-        if (mSecretKey == null) {
-            return false;
-        }
-        mCipher = createAesCipher(mSecretKey);
-        return mCipher != null;
-    }
-
-    /**
-     * Create AES/CBC with PKCS7 padding cipher with given secret key.
-     * @param key Key to be used for encryption and decryption.
-     * @return {@link Cipher} object or null in case of error.
-     */
-    private Cipher createAesCipher(SecretKey key) {
         try {
-            final Cipher cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-            final byte[] zero_iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-            AlgorithmParameterSpec algorithmSpec = new IvParameterSpec(zero_iv);
-            cipher.init(Cipher.ENCRYPT_MODE, key, algorithmSpec);
-            return cipher;
+            mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/" + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            SecretKey key = mKeyStore.getDefaultKey();
+            if (key != null) {
+                final byte[] zero_iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+                AlgorithmParameterSpec algorithmSpec = new IvParameterSpec(zero_iv);
+                mCipher.init(Cipher.ENCRYPT_MODE, key, algorithmSpec);
+                return true;
+            } else {
+                return false;
+            }
         } catch (NoSuchPaddingException e) {
-            return null;
+            return false;
         } catch (InvalidAlgorithmParameterException e) {
-            return null;
+            return false;
         } catch (NoSuchAlgorithmException e) {
-            return null;
+            return false;
         } catch (InvalidKeyException e) {
-            return null;
+            return false;
         }
     }
 
@@ -247,20 +237,30 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     }
 
     /**
+     * Contains cached encrypted key. The value is calculated only for once.
+     */
+    private byte[] alreadyEncryptedKey;
+
+    /**
+     * Contains true if {@link #alreadyEncryptedKey} has been already constructed.
+     * The purpose of this flag is to prevent duplicate calls to {@code mCipher.doFinal()}.
+     */
+    private boolean hasAlreadyEncryptedKey;
+
+    /**
      * Encrypt provided data using internal cipher object.
      * @param biometryKey Data to be encrypted.
      * @return Encrypted data, or null in case exception occurs.
      */
     public byte[] encryptedKey(byte[] biometryKey) {
-        if (mSecretKey == null) {
-            return null;
-        }
-        final Cipher cipher = createAesCipher(mSecretKey);
-        if (cipher == null) {
-            return null;
-        }
         try {
-            return cipher.doFinal(biometryKey);
+            synchronized (this) {
+                if (!hasAlreadyEncryptedKey) {
+                    hasAlreadyEncryptedKey = true;
+                    alreadyEncryptedKey = mCipher.doFinal(biometryKey);
+                }
+                return alreadyEncryptedKey;
+            }
         } catch (IllegalBlockSizeException e) {
             return null;
         } catch (BadPaddingException e) {
@@ -289,9 +289,16 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     @Override
     public void onAuthenticationError(int errorCode, CharSequence errString) {
         super.onAuthenticationError(errorCode, errString);
-
+        boolean isCancel = errorCode == FingerprintManager.FINGERPRINT_ERROR_CANCELED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            isCancel |= errorCode == FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED;
+        }
         if (mCallback != null) {
-            mCallback.onAuthenticationError(errString);
+            if (isCancel) {
+                mCallback.onAuthenticationCancel();
+            } else {
+                mCallback.onAuthenticationError(errString);
+            }
         }
     }
 

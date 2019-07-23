@@ -20,7 +20,8 @@ const uint8_t TAG1 = 'P';
 const uint8_t TAG2 = 'A';
 
 const uint8_t PD_TAG = 'P';
-const uint8_t PD_VER = '3';
+const uint8_t PD_VER_MIN = '3';
+const uint8_t PD_VER_MAX = '5';
 
 static BOOL _InvestigateSerializedData(const uint8_t * bytes, NSUInteger length)
 {
@@ -38,7 +39,7 @@ static BOOL _InvestigateSerializedData(const uint8_t * bytes, NSUInteger length)
 		return NO;	// invalid active flag, or too short
 	}
 	// The new data format has another version header just after that status byte
-	if (bytes[3] != PD_TAG || bytes[4] != PD_VER) {
+	if (bytes[3] != PD_TAG || bytes[4] < PD_VER_MIN || bytes[4] > PD_VER_MAX) {
 		return NO;	// persistent data tag & ver is wrong
 	}
 	// Data has a possible valid activation

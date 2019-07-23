@@ -60,6 +60,18 @@ PA2_EXTERN_C void PA2LogSetEnabled(BOOL enabled);
 PA2_EXTERN_C BOOL PA2LogIsEnabled(void);
 
 /**
+ Function sets internal PowerAuth SDK logging to more verbose mode.
+ Note that it's effective only when library is compiled in DEBUG build configuration.
+ */
+PA2_EXTERN_C void PA2LogSetVerbose(BOOL verbose);
+
+/**
+ Function returns YES if internal PowerAuth SDK logging is more talkative than usual.
+ Note that when library is compiled in RELEASE configuration, then always returns NO.
+ */
+PA2_EXTERN_C BOOL PA2LogIsVerbose(void);
+
+/**
  PA2CriticalWarning(...) function prints a critical warning information into the debug console and
  is used internally in the PowerAuth SDK. This kind of warnings are always printed to the DEBUG
  console and cannot be supressed by configuration.

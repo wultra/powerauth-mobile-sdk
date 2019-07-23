@@ -28,6 +28,11 @@ public class PA2Log {
      */
     private static boolean logIsEnabled = false;
     /**
+     Controls whether the PowerAuth log is more verbose.
+     */
+    private static boolean logIsVerbose = false;
+
+    /**
      TAG constant for our messages
      */
     private static final String LOG_TAG = "PowerAuthLibrary";
@@ -46,6 +51,18 @@ public class PA2Log {
      * @return true if PowerAuth log is enabled
      */
     public static boolean isEnabled() { return logIsEnabled; }
+
+    /**
+     * Controls logging verbosity from PowerAuth classes
+     * @param verbose enables or disables more verbose debug logs
+     */
+    public static void setVerbose(boolean verbose) {
+        logIsVerbose = verbose;
+    }
+    /**
+     * @return true if PowerAuth log is set to more verbose mode
+     */
+    public static boolean isVerbose() { return logIsVerbose; }
 
     /**
      * Adds a formatted DEBUG log message if log is enabled.

@@ -1159,6 +1159,25 @@ PowerAuthSDK powerAuthSDK = new PowerAuthSDK();
 powerAuthSDK.initializeWithConfiguration(context, configuration, clientConfiguration);
 ```
 
+### Debugging
+
+The debug log is by default turned-off. To turn it on, use following code:
+```java
+PA2Log.setEnabled(true);
+```
+
+To turn-on even more detailed log, use following code:
+```java
+PA2Log.setVerbose(true);
+```
+
+Note that it's highly recommended to turn-on this feature only for `DEBUG` build of your application. For example:
+```java
+if (BuildConfig.DEBUG) {
+    PA2Log.setEnabled(true);
+}
+```
+
 ## Additional Features
 
 PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.

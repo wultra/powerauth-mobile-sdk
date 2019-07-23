@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -32,12 +33,16 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
+import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code ClientTask} class implements an actual HTTP request & response processing, with using
@@ -155,6 +160,8 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                     interceptor.processRequestConnection(urlConnection);
                 }
             }
+            // Log request
+            logRequest(urlConnection, requestData.body);
 
             // Connect to endpoint
             if (requestData.body != null) {
@@ -183,11 +190,18 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             }
 
             // Try to deserialize response
-            return httpRequestHelper.buildResponse(responseCode, responseData);
+            TResponse result = httpRequestHelper.buildResponse(responseCode, responseData);
+            // Log response
+            logResponse(urlConnection, responseData, null);
+            // Finally, return the result.
+            return result;
 
         } catch (Throwable e) {
+            // Log response with error
+            logResponse(urlConnection, null, e);
             // Keep an exception for later reporting.
             error = e;
+
         } finally {
             // Close input stream and disconnect the URL connection
             if (inputStream != null) {
@@ -232,6 +246,103 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
     private void setThreadStatsTag() {
         if (TrafficStats.getThreadStatsTag() == -1) {
             TrafficStats.setThreadStatsTag(THREAD_STATS_TAG);
+        }
+    }
+
+    /**
+     * Print information about HTTP request to {@link PA2Log}.
+     *
+     * @param connection prepared connection object.
+     * @param requestData (optional) byte array with request data.
+     */
+    private void logRequest(HttpURLConnection connection, byte[] requestData) {
+        if (!PA2Log.isEnabled()) {
+            return;
+        }
+        // Endpoint
+        final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
+        // URL, method
+        final String url = connection.getURL().toString();
+        final String method = endpoint.getHttpMethod();
+        // Flags
+        final boolean signature = endpoint.getAuthorizationUriId() != null;
+        final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
+        final String signedEncrypted = (signature ? (encrypted ? " (sig+enc)" : " (sig)") : (encrypted ? " (enc)" : ""));
+        if (!PA2Log.isVerbose()) {
+            // Not verbose -> put a simple log
+            PA2Log.d("HTTP %s request%s: -> %s", method, signedEncrypted, url);
+        } else {
+            // Verbose, put headers and body (if not encrypted) into the log.
+            final Map<String,List<String>> prop = connection.getRequestProperties();
+            final String propStr = prop == null ? "<empty>" : prop.toString();
+            if (encrypted) {
+                PA2Log.d("HTTP %s request%s: %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
+            } else {
+                final String bodyStr = requestData == null ? "<empty>" : new String(requestData, Charset.defaultCharset());
+                PA2Log.d("HTTP %s request%s: %s\n- Headers: %s\n- Body: %s", method, signedEncrypted, url, propStr, bodyStr);
+            }
+        }
+    }
+
+    /**
+     * Prints information about HTTP response to {@link PA2Log}.
+     *
+     * @param connection connection object.
+     * @param responseData (optional) data returned in HTTP request.
+     * @param error (optional) error produced during the request.
+     */
+    private void logResponse(HttpURLConnection connection, byte[] responseData, Throwable error) {
+        if (!PA2Log.isEnabled()) {
+            return;
+        }
+        // Endpoint
+        final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
+        // URL, method
+        final String url = connection.getURL().toString();
+        final String method = endpoint.getHttpMethod();
+        final String errorMessage;
+        if (error != null) {
+            if (error instanceof FailedApiException) {
+                FailedApiException exception = (FailedApiException) error;
+                if (responseData == null && exception.getResponseBody() != null) {
+                    responseData = exception.getResponseBody().getBytes();
+                }
+            }
+            errorMessage = error.getMessage() != null ? error.getMessage() : error.toString();
+        } else {
+            errorMessage = null;
+        }
+        // Response code
+        int responseCode;
+        try {
+            responseCode = connection.getResponseCode();
+        } catch (IOException e) {
+            responseCode = 0;
+        }
+        if (!PA2Log.isVerbose()) {
+            // Not verbose -> put a simple log
+            if (error == null) {
+                PA2Log.d("HTTP %s response %d: <- %s", method, responseCode, url);
+            } else {
+                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, errorMessage);
+            }
+        } else {
+            final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
+            // Response headers
+            final String responseHeaders = connection.getHeaderFields().toString();
+            // Response body
+            final String responseBodyTmp = responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset());
+            final String responseBody;
+            if (!encrypted || error != null) {
+                responseBody = responseBodyTmp;
+            } else {
+                responseBody = encrypted ? "<encrypted>" : responseBodyTmp;
+            }
+            if (error == null) {
+                PA2Log.d("HTTP %s response %d: <- %s\n- Headers: %s\n- Data: %s", method, responseCode, url, responseHeaders, responseBody);
+            } else {
+                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s\n- Headers: %s\n- Data: %s", method, responseCode, url, errorMessage, responseHeaders, responseBody);
+            }
         }
     }
 }

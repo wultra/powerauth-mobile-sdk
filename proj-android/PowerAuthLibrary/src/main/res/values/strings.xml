@@ -29,4 +29,6 @@
     <string name="ok">OK</string>
     <string name="close">Close</string>
     <string name="fingerprint_dialog_icon_description">Fingerprint scanner icon</string>
+    <string name="fallback_error_code_lockout">Image not recognized, please try again later.</string>
+    <string name="fallback_error_code_generic">The biometric authentication failed.</string>
 </resources>

@@ -135,7 +135,7 @@ public class BiometricDialogResources {
      */
     public static class Strings {
 
-        static final int RESOURCES_COUNT = 11;
+        static final int RESOURCES_COUNT = 13;
 
         /**
          * "OK" button.
@@ -187,6 +187,15 @@ public class BiometricDialogResources {
          */
         public final @StringRes int statusSuccess;
 
+        /**
+         * String for error code that instructs user that biometric authentication has been locked out.
+         */
+        public final @StringRes int errorCodeLockout;
+        /**
+         * String for all other error codes, reported from biometric API.
+         */
+        public final @StringRes int errorCodeGeneric;
+
         public Strings(@StringRes int ok,
                        @StringRes int close,
                        @StringRes int errorEnrollFingerprintTitle,
@@ -197,7 +206,9 @@ public class BiometricDialogResources {
                        @StringRes int errorFingerprintDisabledDescription,
                        @StringRes int statusTouchSensor,
                        @StringRes int statusFingerprintNotRecognized,
-                       @StringRes int statusSuccess) {
+                       @StringRes int statusSuccess,
+                       @StringRes int errorCodeLockout,
+                       @StringRes int errorCodeGeneric) {
             this.ok = ok;
             this.close = close;
             this.errorEnrollFingerprintTitle = errorEnrollFingerprintTitle;
@@ -209,6 +220,8 @@ public class BiometricDialogResources {
             this.statusTouchSensor = statusTouchSensor;
             this.statusFingerprintNotRecognized = statusFingerprintNotRecognized;
             this.statusSuccess = statusSuccess;
+            this.errorCodeLockout = errorCodeLockout;
+            this.errorCodeGeneric = errorCodeGeneric;
         }
 
         /**
@@ -226,7 +239,9 @@ public class BiometricDialogResources {
                     R.string.fingerprint_dialog_description_invalidated,
                     R.string.fingerprint_dialog_touch_sensor,
                     R.string.fingerprint_dialog_not_recognized,
-                    R.string.fingerprint_dialog_success
+                    R.string.fingerprint_dialog_success,
+                    R.string.fallback_error_code_lockout,
+                    R.string.fallback_error_code_generic
             );
         }
 
@@ -247,6 +262,8 @@ public class BiometricDialogResources {
             array[offset + 8]   = this.statusTouchSensor;
             array[offset + 9]   = this.statusFingerprintNotRecognized;
             array[offset + 10]  = this.statusSuccess;
+            array[offset + 11]  = this.errorCodeLockout;
+            array[offset + 12]  = this.errorCodeGeneric;
         }
 
         /**
@@ -267,7 +284,9 @@ public class BiometricDialogResources {
                     array[offset + 7],
                     array[offset + 8],
                     array[offset + 9],
-                    array[offset + 10]);
+                    array[offset + 10],
+                    array[offset + 11],
+                    array[offset + 12]);
         }
     }
 

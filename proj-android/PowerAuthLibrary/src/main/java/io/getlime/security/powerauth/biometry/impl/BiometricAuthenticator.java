@@ -157,6 +157,11 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             @Override
             public void onAuthenticationError(int code, CharSequence errString) {
                 super.onAuthenticationError(code, errString);
+                if (errString == null) {
+                    // Some Android devices simply doesn't provide error string at all. We should build our own message,
+                    // just to do not crash on null pointer later.
+                    errString = getFallbackErrorMessage(code, requestData.getResources());
+                }
                 final boolean isCancel = code == BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED || code == BiometricPrompt.BIOMETRIC_ERROR_CANCELED;
                 final boolean isLockout = code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT || code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT_PERMANENT;
                 if (isCancel) {
@@ -197,11 +202,24 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 biometricPromptIsProbablyVisible = true;
-                final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), result.getCryptoObject().getCipher());
-                if (protectedKey != null) {
-                    dispatcher.dispatchSuccess(protectedKey);
+                // Acquire cipher from the result. This is a bit over-paranoid, but lets check everything
+                // returned from the system.
+                final Cipher cipher;
+                if (result != null && result.getCryptoObject() != null) {
+                    cipher = result.getCryptoObject().getCipher();
                 } else {
-                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
+                    cipher = null;
+                }
+                if (cipher != null) {
+                    // Let's try to derive the final biometric key with using AES cipher.
+                    final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), cipher);
+                    if (protectedKey != null) {
+                        dispatcher.dispatchSuccess(protectedKey);
+                    } else {
+                        dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
+                    }
+                } else {
+                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "The device has broken biometric implementation.");
                 }
             }
 
@@ -316,6 +334,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
     /**
      * Show {@link BiometricErrorDialogFragment} with an appropriate error message.
+     *
      * @param message Message displayed in the dialog alert.
      * @param exception Exception reported back to the application.
      * @param fragmentManager Fragment manager used to show the dialog.
@@ -350,5 +369,20 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         });
         cancelable.addCancelable(dialogCancelable);
         dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+    }
+
+    /**
+     * Return fallback error message in case that implementation on device is broken and did not provide
+     * a string with failure reason. That happens for example on Samsung S8 devices.
+     *
+     * @param code Error code returned from {@link BiometricPrompt} API.
+     * @param resources Object with string resources.
+     * @return Localized fallback string appropriate for that given error code.
+     */
+    private @NonNull CharSequence getFallbackErrorMessage(int code, @NonNull BiometricDialogResources resources) {
+        if (code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT || code == BiometricPrompt.BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
+            return context.getString(resources.strings.errorCodeLockout);
+        }
+        return context.getString(resources.strings.errorCodeGeneric);
     }
 }

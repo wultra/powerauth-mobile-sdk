@@ -21,7 +21,10 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeActivationPending;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeEncryptionError;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
@@ -46,7 +49,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PA2ErrorCodeInvalidActivationData, PA2ErrorCodeMissingActivation, PA2ErrorCodeActivationPending,
         PA2ErrorCodeBiometryCancel, PA2ErrorCodeOperationCancelled, PA2ErrorCodeInvalidActivationCode,
         PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
-        PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade})
+        PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade,
+        PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -129,4 +133,20 @@ public @interface PowerAuthErrorCodes {
      * after the upgrade is finished.
      */
     int PA2ErrorCodePendingProtocolUpgrade = 17;
+
+    /**
+     * The biometric authentication cannot be processed due to lack of required hardware or due to
+     * a missing support from the operating system.
+     */
+    int PA2ErrorCodeBiometryNotSupported = 18;
+
+    /**
+     * The biometric authentication is temporarily unavailable.
+     */
+    int PA2ErrorCodeBiometryNotAvailable = 19;
+
+    /**
+     * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
+     */
+    int PA2ErrorCodeBiometryNotRecognized = 20;
 }

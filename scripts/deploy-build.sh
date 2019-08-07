@@ -236,7 +236,7 @@ function DEPLOY_ANDROID
 	####
 	LOG "----- Building android library..."
 	local SIGN_CREDENTIALS="-Psigning.keyId=${SIGN_GPG_KEY_ID} -Psigning.password=${SIGN_GPG_KEY_PASS} -Psigning.secretKeyRingFile=${SIGN_GPG_KEYRING}"
-	./gradlew ${SIGN_CREDENTIALS} clean build generateRelease
+	./gradlew ${SIGN_CREDENTIALS} clean assembleRelease generateRelease
 	####
 	POP_DIR
 	

@@ -124,7 +124,7 @@ public class BiometricResultDispatcher {
         dispatch(new Runnable() {
             @Override
             public void run() {
-                callback.onBiometricDialogFailure(exception);
+                callback.onBiometricDialogFailed(exception);
             }
         });
     }

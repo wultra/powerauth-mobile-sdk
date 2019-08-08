@@ -49,8 +49,8 @@ public interface IBiometricAuthenticationCallback {
     /**
      * Biometric authentication failed with the error.
      *
-     * @param error {@link PowerAuthErrorException} contains error occured during the authentication.
+     * @param error {@link PowerAuthErrorException} contains reason of the failure.
      */
     @UiThread
-    void onBiometricDialogFailure(@NonNull PowerAuthErrorException error);
+    void onBiometricDialogFailed(@NonNull PowerAuthErrorException error);
 }

@@ -832,7 +832,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onBiometricDialogFailure(@NonNull PowerAuthErrorException error) {
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
                 callback.onBiometricDialogFailed(error);
             }
         });
@@ -1462,7 +1462,7 @@ public class PowerAuthSDK {
                         }
 
                         @Override
-                        public void onBiometricDialogFailure(@NonNull PowerAuthErrorException error) {
+                        public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
                             listener.onAddBiometryFactorFailed(error);
                         }
                     });
@@ -1690,7 +1690,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onBiometricDialogFailure(@NonNull PowerAuthErrorException error) {
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
                 final @PowerAuthErrorCodes int errorCode = error.getPowerAuthErrorCode();
                 if (!forceGenerateNewKey && errorCode == PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized) {
                     // The "PA2ErrorCodeBiometryNotRecognized" code is reported in case that biometry
@@ -1701,7 +1701,7 @@ public class PowerAuthSDK {
                     callback.onBiometricDialogSuccess(mSession.generateSignatureUnlockKey());
                 } else {
                     // Otherwise just report the failure.
-                    callback.onBiometricDialogFailure(error);
+                    callback.onBiometricDialogFailed(error);
                 }
             }
         });

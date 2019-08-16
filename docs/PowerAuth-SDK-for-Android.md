@@ -545,7 +545,7 @@ Now the application has to show that calculated signature to the user and user h
 
 ### Verify server signed data
 
-This task is useful when you need to receive an arbitrary data from the server and you need to be sure that you need to be sure that data has has been issued by the server. The PowerAuthSDK is providing a high level method for validating data and associated signature:  
+This task is useful when you need to receive an arbitrary data from the server and you need to be sure that data has has been issued by the server. The PowerAuthSDK is providing a high level method for validating data and associated signature:  
 
 ```java
 // Validate data signed with the master server key

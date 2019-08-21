@@ -135,7 +135,7 @@ public class BiometricDialogResources {
      */
     public static class Strings {
 
-        static final int RESOURCES_COUNT = 13;
+        static final int RESOURCES_COUNT = 18;
 
         /**
          * "OK" button.
@@ -196,6 +196,27 @@ public class BiometricDialogResources {
          */
         public final @StringRes int errorCodeGeneric;
 
+        /**
+         * Accessibility description for fingerprint icon.
+         */
+        public final @StringRes int accessibilityFingerprintIcon;
+        /**
+         * Accessibility description for success icon.
+         */
+        public final @StringRes int accessibilitySuccessIcon;
+        /**
+         * Accessibility description for failure icon.
+         */
+        public final @StringRes int accessibilityFailureIcon;
+        /**
+         * Accessibility announcement text instructing user to try again with the biometric authentication.
+         */
+        public final @StringRes int accessibilityTryAgainAnnouncement;
+        /**
+         * Accessibility announcement text for the biometric authentication success.
+         */
+        public final @StringRes int accessibilitySuccessAnnouncement;
+
         public Strings(@StringRes int ok,
                        @StringRes int close,
                        @StringRes int errorEnrollFingerprintTitle,
@@ -208,7 +229,12 @@ public class BiometricDialogResources {
                        @StringRes int statusFingerprintNotRecognized,
                        @StringRes int statusSuccess,
                        @StringRes int errorCodeLockout,
-                       @StringRes int errorCodeGeneric) {
+                       @StringRes int errorCodeGeneric,
+                       @StringRes int accessibilityFingerprintIcon,
+                       @StringRes int accessibilitySuccessIcon,
+                       @StringRes int accessibilityFailureIcon,
+                       @StringRes int accessibilityTryAgainAnnouncement,
+                       @StringRes int accessibilitySuccessAnnouncement) {
             this.ok = ok;
             this.close = close;
             this.errorEnrollFingerprintTitle = errorEnrollFingerprintTitle;
@@ -222,6 +248,11 @@ public class BiometricDialogResources {
             this.statusSuccess = statusSuccess;
             this.errorCodeLockout = errorCodeLockout;
             this.errorCodeGeneric = errorCodeGeneric;
+            this.accessibilityFingerprintIcon = accessibilityFingerprintIcon;
+            this.accessibilitySuccessIcon = accessibilitySuccessIcon;
+            this.accessibilityFailureIcon = accessibilityFailureIcon;
+            this.accessibilityTryAgainAnnouncement = accessibilityTryAgainAnnouncement;
+            this.accessibilitySuccessAnnouncement = accessibilitySuccessAnnouncement;
         }
 
         /**
@@ -241,7 +272,12 @@ public class BiometricDialogResources {
                     R.string.fingerprint_dialog_not_recognized,
                     R.string.fingerprint_dialog_success,
                     R.string.fallback_error_code_lockout,
-                    R.string.fallback_error_code_generic
+                    R.string.fallback_error_code_generic,
+                    R.string.accessibility_icon_fingerprint,
+                    R.string.accessibility_icon_success,
+                    R.string.accessibility_icon_failure,
+                    R.string.accessibility_announcement_try_again,
+                    R.string.accessibility_announcement_success
             );
         }
 
@@ -264,6 +300,11 @@ public class BiometricDialogResources {
             array[offset + 10]  = this.statusSuccess;
             array[offset + 11]  = this.errorCodeLockout;
             array[offset + 12]  = this.errorCodeGeneric;
+            array[offset + 13]  = this.accessibilityFingerprintIcon;
+            array[offset + 14]  = this.accessibilitySuccessIcon;
+            array[offset + 15]  = this.accessibilityFailureIcon;
+            array[offset + 16]  = this.accessibilityTryAgainAnnouncement;
+            array[offset + 17]  = this.accessibilitySuccessAnnouncement;
         }
 
         /**
@@ -286,7 +327,12 @@ public class BiometricDialogResources {
                     array[offset + 9],
                     array[offset + 10],
                     array[offset + 11],
-                    array[offset + 12]);
+                    array[offset + 12],
+                    array[offset + 13],
+                    array[offset + 14],
+                    array[offset + 15],
+                    array[offset + 16],
+                    array[offset + 17]);
         }
     }
 

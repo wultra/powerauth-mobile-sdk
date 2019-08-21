@@ -34,7 +34,7 @@
         android:layout_below="@+id/fingerprint_description"
         android:layout_marginTop="@dimen/dialog_message_margin_bottom"
         app:srcCompat="@drawable/ic_fingerprint_default"
-        android:contentDescription="@string/fingerprint_dialog_icon_description" />
+        android:contentDescription="@string/accessibility_icon_fingerprint" />
 
     <TextView
         android:id="@+id/fingerprint_status"

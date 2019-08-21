@@ -56,6 +56,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
 
     private boolean mHasResult;
 
+    private View mView;
     private ImageView mImgIcon;
     private TextView mTxtStatus;
     private TextView mTxtDescription;
@@ -179,6 +180,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         final View view = layoutInflater.inflate(mResources.layout.dialogLayout, null);
 
         // Look for views
+        mView = view;
         mImgIcon = (ImageView) view.findViewById(mResources.layout.statusImageView);
         mTxtStatus = (TextView) view.findViewById(mResources.layout.statusTextView);
         mTxtDescription = (TextView) view.findViewById(mResources.layout.descriptionTextView);
@@ -194,6 +196,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         mTxtStatus.setTextColor(context.getColor(mResources.colors.secondaryText));
 
         mImgIcon.setImageResource(mResources.drawables.fingerprintIcon);
+        mImgIcon.setContentDescription(context.getText(mResources.strings.accessibilityFingerprintIcon));
 
         alertBuilder.setPositiveButton(mResources.strings.close, new DialogInterface.OnClickListener() {
 
@@ -339,6 +342,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         mHasResult = true;
         // Configure status
         mImgIcon.setImageResource(mResources.drawables.errorIcon);
+        mImgIcon.setContentDescription(context.getText(mResources.strings.accessibilityFailureIcon));
         mTxtStatus.setText(error);
         mTxtStatus.setTextColor(context.getColor(mResources.colors.failureText));
         mTxtStatus.removeCallbacks(mResetStatusTextRunnable);
@@ -348,6 +352,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
                 reportResult();
             }
         }, ERROR_DELAY_MILLIS);
+        announceMessageToAccessibility(error);
     }
 
     /**
@@ -362,10 +367,12 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
             return;
         }
         mImgIcon.setImageResource(mResources.drawables.errorIcon);
+        mImgIcon.setContentDescription(context.getText(mResources.strings.accessibilityFailureIcon));
         mTxtStatus.setText(warning);
         mTxtStatus.setTextColor(context.getColor(mResources.colors.failureText));
         mTxtStatus.removeCallbacks(mResetStatusTextRunnable);
         mTxtStatus.postDelayed(mResetStatusTextRunnable, WRN_TIMEOUT_MILLIS);
+        announceMessageToAccessibility(warning);
     }
 
     /**
@@ -381,6 +388,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         mHasResult = true;
         // Configure status
         mImgIcon.setImageResource(mResources.drawables.successIcon);
+        mImgIcon.setContentDescription(context.getText(mResources.strings.accessibilitySuccessIcon));
         mTxtStatus.setText(mResources.strings.statusSuccess);
         mTxtStatus.setTextColor(context.getColor(mResources.colors.successText));
         mTxtStatus.removeCallbacks(mResetStatusTextRunnable);
@@ -390,6 +398,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
                 reportResult();
             }
         }, SUCCESS_DELAY_MILLIS);
+        announceMessageToAccessibility(context.getText(mResources.strings.accessibilitySuccessAnnouncement));
     }
 
     /**
@@ -403,10 +412,34 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
             if (isAdded() && context != null) {
                 mTxtStatus.setText(mResources.strings.statusTouchSensor);
                 mImgIcon.setImageResource(mResources.drawables.fingerprintIcon);
+                mImgIcon.setContentDescription(context.getText(mResources.strings.accessibilityFingerprintIcon));
                 mTxtStatus.setTextColor(getContext().getColor(mResources.colors.secondaryText));
+                announceMessageToAccessibility(context.getText(mResources.strings.accessibilityTryAgainAnnouncement));
             }
         }
     };
+
+    /**
+     * Contains last message announced to the accessibility manager.
+     */
+    private CharSequence mLastAnnouncedMessageForAccessibility;
+
+    /**
+     * Sends message as accessibility announcement to the accessibility manager. If the message is
+     * equal to previous one, then no message is announced.
+     *
+     * @param message String message to be announced.
+     */
+    private void announceMessageToAccessibility(@NonNull CharSequence message) {
+        if (!isAdded()) {
+            return;
+        }
+        if (mLastAnnouncedMessageForAccessibility != null && mLastAnnouncedMessageForAccessibility.equals(message)) {
+            return;
+        }
+        mView.announceForAccessibility(message);
+        mLastAnnouncedMessageForAccessibility = message;
+    }
 
     /**
      * Contains reference to handler which manages fingerprint scanning process.

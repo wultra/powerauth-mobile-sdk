@@ -36,6 +36,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+import io.getlime.security.powerauth.system.PA2Log;
+
 /**
  * @author Petr Dvorak
  */
@@ -142,7 +144,15 @@ public class FingerprintAuthenticationHandler extends FingerprintManager.Authent
     public void startListening() throws SecurityException {
         if (isFingerprintAuthAvailable()) {
             mCancellationSignal = new CancellationSignal();
-            mFingerprintManager.authenticate(mCryptoObject, mCancellationSignal, 0, this, null);
+            try {
+                mFingerprintManager.authenticate(mCryptoObject, mCancellationSignal, 0, this, null);
+            } catch (NullPointerException ex) {
+                // This looks weird, but NPE really happens on some devices, when app's activity is resuming.
+                // In this case, we should catch NPE and report the cancel.
+                // Discussion: https://github.com/wultra/powerauth-mobile-sdk/issues/202
+                PA2Log.d("FingerprintManager crashed at exception: " + ex.getMessage());
+                onAuthenticationError(FingerprintManager.FINGERPRINT_ERROR_CANCELED, "Canceled due to an internal failure.");
+            }
         }
     }
 

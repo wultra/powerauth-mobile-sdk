@@ -1394,19 +1394,7 @@ let isJailbroken = pa_isJailbroken()
 
 ### Password Strength Indicator
 
-Whenever user selects a password, you may estimate the password strength using following code:
-
-```swift
-// Determine the password strength: INVALID, WEAK, NORMAL, STRONG
-let strength: PasswordStrength = PA2PasswordUtil.evaluateStrength("1234", passwordType: .PIN)
-```
-
-Passwords that are `INVALID` should block the progress. You should translate `WEAK` passwords to UI warnings (not blocking progress), `NORMAL` passwords to OK state, and `STRONG` passwords to rewarding UI message (so that we appreciate user selected strong password, without pushing the user to selecting strong password too hard).
-
-Of course, you may apply any additional measures for the password validity and strength on top of the logics we provide.
-
-> **WARNING:**
-> The `PA2PasswordUtil` class is deprecated and will be removed in some future version of PowerAuth Mobile SDK. You can migrate your code to [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library, which provides a better PIN or password strength evaluation.
+Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate strenght of the passphrase and warn the user when he tries to use such passphrase in your application.
 
 ### Debug build detection
 

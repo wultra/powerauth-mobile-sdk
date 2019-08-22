@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code FingerprintAuthenticationHandler} class implements a bridge between {@link FingerprintManager}
@@ -150,7 +151,15 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
             }
             isInProgress = true;
             // Start authentication
-            fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, this, null);
+            try {
+                fingerprintManager.authenticate(cryptoObject, cancellationSignal, 0, this, null);
+            } catch (NullPointerException ex) {
+                // This looks weird, but NPE really happens on some devices, when app's activity is resuming.
+                // In this case, we should catch NPE and report the cancel.
+                // Discussion: https://github.com/wultra/powerauth-mobile-sdk/issues/202
+                PA2Log.d("FingerprintManager crashed at exception: " + ex.getMessage());
+                onAuthenticationError(FingerprintManager.FINGERPRINT_ERROR_CANCELED, "Canceled due to an internal failure.");
+            }
         }
     }
 

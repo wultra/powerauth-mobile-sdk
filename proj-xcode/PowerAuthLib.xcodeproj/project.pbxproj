@@ -83,7 +83,6 @@
 		BF8CF4B02032EB41002A6B6E /* PA2KeychainConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5A236D1FE0030A00B78DE2 /* PA2KeychainConfiguration.m */; };
 		BF8CF4B32032EB41002A6B6E /* PA2WCSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2A1200D12420011F0A6 /* PA2WCSessionManager.m */; };
 		BF8CF4B42032EB41002A6B6E /* PA2CreateActivationResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B2EEF641D662C960039D92A /* PA2CreateActivationResponse.m */; };
-		BF8CF4B52032EB41002A6B6E /* PA2PasswordUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B6A652C1E642AB600327545 /* PA2PasswordUtil.m */; };
 		BF8CF4B72032EB41002A6B6E /* PowerAuthConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B0A239C1D6C6F9E00D24167 /* PowerAuthConfiguration.m */; };
 		BF8CF4B92032EB41002A6B6E /* PA2WCSessionPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2B0200D3CD90011F0A6 /* PA2WCSessionPacket.m */; };
 		BF8CF4BC2032EB41002A6B6E /* PA2GetActivationStatusRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 1B2EEF5D1D662C960039D92A /* PA2GetActivationStatusRequest.m */; };
@@ -132,7 +131,6 @@
 		BF8CF4FC2032EB41002A6B6E /* PA2WCSessionPacket_Success.h in Headers */ = {isa = PBXBuildFile; fileRef = BF462B6C2011007100529EFC /* PA2WCSessionPacket_Success.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF8CF4FD2032EB41002A6B6E /* PA2PrivateTokenInterfaces.h in Headers */ = {isa = PBXBuildFile; fileRef = BF79E3CF1FBDCA3C003DF179 /* PA2PrivateTokenInterfaces.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF8CF4FE2032EB41002A6B6E /* PA2AuthorizationHttpHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1B5D5A051D91D77D000995A7 /* PA2AuthorizationHttpHeader.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF8CF4FF2032EB41002A6B6E /* PA2PasswordUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = 1B6A652B1E642AB600327545 /* PA2PasswordUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF8CF5002032EB41002A6B6E /* PA2WCSessionDataHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA0E2AD200D2C2A0011F0A6 /* PA2WCSessionDataHandler.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF8CF5012032EB41002A6B6E /* PA2KeychainConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BF5A236C1FE0030A00B78DE2 /* PA2KeychainConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF8CF5022032EB41002A6B6E /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA0E2D4200FB33B0011F0A6 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -255,8 +253,6 @@
 		1B2EEF661D662C960039D92A /* PA2VaultUnlockResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2VaultUnlockResponse.m; sourceTree = "<group>"; };
 		1B5D5A051D91D77D000995A7 /* PA2AuthorizationHttpHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2AuthorizationHttpHeader.h; sourceTree = "<group>"; };
 		1B5D5A061D91D77D000995A7 /* PA2AuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2AuthorizationHttpHeader.m; sourceTree = "<group>"; };
-		1B6A652B1E642AB600327545 /* PA2PasswordUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PasswordUtil.h; sourceTree = "<group>"; };
-		1B6A652C1E642AB600327545 /* PA2PasswordUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2PasswordUtil.m; sourceTree = "<group>"; };
 		1B6F00011D6DA99C00EC1C5A /* PA2Keychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Keychain.h; sourceTree = "<group>"; wrapsLines = 1; };
 		1B6F00021D6DA99C00EC1C5A /* PA2Keychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2Keychain.m; sourceTree = "<group>"; };
 		1B6F00051D6DCDA700EC1C5A /* PA2Macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2Macros.h; sourceTree = "<group>"; };
@@ -471,7 +467,6 @@
 				1B6FFFDB1D6C781700EC1C5A /* keychain */,
 				BF79E3CE1FBDC9F6003DF179 /* token */,
 				1BFD68781D742BED00B08338 /* system */,
-				1B6A65281E642A9400327545 /* util */,
 				BFA0E29F200D12420011F0A6 /* watch */,
 				BFA58526201F87E9000DCD22 /* PowerAuth2.h */,
 				BFA58527201F87E9000DCD22 /* Info.plist */,
@@ -562,15 +557,6 @@
 				BF5344682163D4C9003C201C /* PA2ErrorResponse+Decodable.h */,
 			);
 			path = response;
-			sourceTree = "<group>";
-		};
-		1B6A65281E642A9400327545 /* util */ = {
-			isa = PBXGroup;
-			children = (
-				1B6A652B1E642AB600327545 /* PA2PasswordUtil.h */,
-				1B6A652C1E642AB600327545 /* PA2PasswordUtil.m */,
-			);
-			path = util;
 			sourceTree = "<group>";
 		};
 		1B6FFFDB1D6C781700EC1C5A /* keychain */ = {
@@ -939,7 +925,6 @@
 				BF8CF4FD2032EB41002A6B6E /* PA2PrivateTokenInterfaces.h in Headers */,
 				BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */,
 				BF8CF4FE2032EB41002A6B6E /* PA2AuthorizationHttpHeader.h in Headers */,
-				BF8CF4FF2032EB41002A6B6E /* PA2PasswordUtil.h in Headers */,
 				BF8CF5002032EB41002A6B6E /* PA2WCSessionDataHandler.h in Headers */,
 				BF8CF5012032EB41002A6B6E /* PA2KeychainConfiguration.h in Headers */,
 				BF8CF5022032EB41002A6B6E /* PA2WeakArray.h in Headers */,
@@ -1029,6 +1014,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				Base,
 			);
 			mainGroup = BF4DBB921CDF3130008F3A47;
@@ -1157,7 +1143,6 @@
 				BF8CF4B32032EB41002A6B6E /* PA2WCSessionManager.m in Sources */,
 				BF8CF4B42032EB41002A6B6E /* PA2CreateActivationResponse.m in Sources */,
 				BF9C1F7622411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m in Sources */,
-				BF8CF4B52032EB41002A6B6E /* PA2PasswordUtil.m in Sources */,
 				BFEC963B21B6932D00FB5165 /* PA2BasicHttpAuthenticationRequestInterceptor.m in Sources */,
 				BF8CF4B72032EB41002A6B6E /* PowerAuthConfiguration.m in Sources */,
 				BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */,

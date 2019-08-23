@@ -53,12 +53,15 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
 - You can use `BiometricAuthentication` class to test, whether device supports biometry and whether biometric authentication is enrolled on the system.
   - Call `BiometricAuthentication.isBiometricAuthenticationAvailable(context)` to test general support.
   - Call `BiometricAuthentication.canAuthenticate(context)` to get more detailed status (please also see [known bugs](#known-bugs) section below)
+  
+- `PowerAuthErrorException` can contain following new constants: `PA2ErrorCodeBiometryNotSupported`, `PA2ErrorCodeBiometryNotAvailable`, `PA2ErrorCodeBiometryNotRecognized`
 
 ### Behavioral changes
 
 - If legacy fingerprint dialog displays an error, then it's automatically closed after a short time. The `BiometricPrompt` does the same thing, so we wanted to simulate that behavior.
 - Our legacy fingerprint dialog now reports status changes to an accessibility manager. 
 - We're now handling biometric authentication cancelation events from the system. For example, if user locks down the device during  authentication, then our SDK report cancel back to the application. 
+- Due to bug in Android 9 `BiometricPrompt` (see [known bugs](#known-bugs)), we recommend you to DISABLE critical UI elements in your application (like button for authentication) during the time between the authenticate call and the callback from SDK. The reason for that is that you probably don't want to allow user to authenticate for more than once.
 
 ### Known bugs
 

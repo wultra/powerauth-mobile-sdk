@@ -13,9 +13,10 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
-- [Migration from version `1.0.x` to `1.1.0`](docs/Migration-from-1.0-to-1.1.md)
-- [Migration from version `0.20.x` to `1.0.0`](docs/Migration-from-0.20-to-1.0.md)
-- [Migration from version `0.19.x` to `0.20.0`](docs/Migration-from-0.19-to-0.20.md)
+- [Migration from version `1.1.x` to `1.2.x`](docs/Migration-from-1.1-to-1.2.md)
+- [Migration from version `1.0.x` to `1.1.x`](docs/Migration-from-1.0-to-1.1.md)
+- [Migration from version `0.20.x` to `1.0.x`](docs/Migration-from-0.20-to-1.0.md)
+- [Migration from version `0.19.x` to `0.20.x`](docs/Migration-from-0.19-to-0.20.md)
 
 ## License
 

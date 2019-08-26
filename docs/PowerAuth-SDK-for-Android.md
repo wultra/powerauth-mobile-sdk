@@ -641,7 +641,7 @@ boolean isBiometricAuthAvailable = BiometricAuthentication.isBiometricAuthentica
 
 // For more fine-grained control about the actual biometric authentication status,
 // you may use the following code:
-switch(BiometricAuthentication.canAuthenticate(context)) {
+switch (BiometricAuthentication.canAuthenticate(context)) {
     case BiometricStatus.OK:
         // everything's OK
     case BiometricStatus.NOT_SUPPORTED:
@@ -738,10 +738,9 @@ final BiometricDialogResources.Colors newColors = new BiometricDialogResources.C
 // If you omit some custom resources object, then the Builder will replace that with resources bundled in SDK.
 // For example, you can provide your own strings, but keep the default dialog layout.
 final BiometricDialogResources resources = new BiometricDialogResources.Builder(context)
-    .setStrings(newStrings)
-    .setColors(newColors)
-    // you can also set layout, drawables... 
-    .build();
+                                            .setStrings(newStrings)
+                                            .setColors(newColors)
+                                            .build();
     
 // Set resources to BiometricAuthentication
 BiometricAuthentication.setBiometricDialogResources(resources);

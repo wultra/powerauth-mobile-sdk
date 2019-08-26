@@ -17,7 +17,7 @@
   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
   - [Verify server signed data](#verify-server-signed-data)
 - [Password Change](#password-change)
-- [Fingerprint Authentication Setup](#fingerprint-authentication-setup)
+- [Biometric Authentication Setup](#biometric-authentication-setup)
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
@@ -162,7 +162,7 @@ powerAuthSDK.createActivation(deviceName, credentials, null, null, new ICreateAc
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
         final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -193,7 +193,7 @@ powerAuthSDK.createRecoveryActivation(deviceName, recoveryCode, puk, null, null,
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
         final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -227,24 +227,24 @@ if (result != PowerAuthErrorCodes.PA2Succeed) {
 }
 ```
 
-This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case a simple PIN code). If you would like to enable fingerprint authentication support at this moment, use following code instead of the one above:
+This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case a simple PIN code). If you would like to enable biometric authentication support at this moment, use following code instead of the one above:
 
 ```java
 // Commit activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.commitActivation(context, fragmentManager, "Enable Fingerprint Authentication", "To enable fingerprint authentication, touch the fingerprint sensor on your device.", pin, new ICommitActivationWithFingerprintListener() {
+powerAuthSDK.commitActivation(context, fragmentManager, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new ICommitActivationWithBiometryListener() {
     @Override
-    public void onFingerprintDialogCancelled() {
-        // Fingerprint enrolment cancelled by user
+    public void onBiometricDialogCancelled() {
+        // Biometric enrolment cancelled by user
     }
 
     @Override
-    public void onFingerprintDialogSuccess() {
+    public void onBiometricDialogSuccess() {
         // success, activation has been committed
     }
     
     @Override
-    public void onFingerprintDialogFailed(PowerAuthErrorException error) {
-        // failure, typically as a result of API misuse.
+    public void onBiometricDialogFailed(PowerAuthErrorException error) {
+        // failure, typically as a result of API misuse, or a biometric authentication failure
     }
 });
 ```
@@ -263,7 +263,7 @@ if (result != PowerAuthErrorCodes.PA2Succeed) {
 }
 ```
 
-Note that you currently need to obtain the encrypted biometry key yourself - you have to use `FingerprintManager.CryptoObject` or integration with Android `KeyStore` to do so.
+Note that you currently need to obtain the encrypted biometry key yourself - you have to use `BiometricPrompt.CryptoObject` or integration with Android `KeyStore` to do so.
 
 
 
@@ -404,11 +404,11 @@ The main feature of PowerAuth protocol is data signing. PowerAuth has two types 
 
 ### Symmetric Multi-Factor Signature
 
-To sign request data, you need to first obtain user credentials (password, PIN code, fingerprint scan) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication`, that holds information about used authentication factors:
+To sign request data, you need to first obtain user credentials (password, PIN code, biometric image) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication`, that holds information about used authentication factors:
 
 ```java
 // 2FA signature, uses device related key and user PIN code.
-// To use biometry, you need to fetch the encrypted biometry key value using `FingerprintManager.CryptoObject`.
+// To use biometry, you need to fetch the encrypted biometry key value using `BiometricPrompt.CryptoObject`.
 PowerAuthAuthentication authentication = new PowerAuthAuthentication();
 authentication.usePossession = true;
 authentication.usePassword = "1234";
@@ -498,7 +498,7 @@ serialExecutor.execute(new Runnable() {
 
 Asymmetric Private Key Signature uses a private key stored in the PowerAuth secure vault. In order to unlock the secure vault and retrieve the private key, user has to be first authenticated using a symmetric multi-factor signature with at least two factors. This mechanism protects the private key on the device - server plays a role of a "doorkeeper" and holds the vault unlock key.
 
-This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN, fingerprint scan) and use following code:
+This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN, biometric image) and use following code:
 
 ```java
 // Prepare the authentication object
@@ -618,31 +618,40 @@ powerAuthSDK.changePasswordUnsafe(oldPassword, newPassword);
 
 **Now, beware!** Since the device does not know the actual old password, you need to make sure that the old password is validated before you use it in `unsafeChangePassword`. In case you provide a wrong old password, it will be used to decrypt the original data and these data will be encrypted using a new password. As a result, the activation data will be broken and irreversibly lost.
 
-## Fingerprint Authentication Setup
+## Biometric Authentication Setup
 
-PowerAuth SDK for Android provides an abstraction on top of the base Fingerprint Authentication support. While the authentication / data signing itself is handled using `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other related processes require their own API.
+PowerAuth SDK for Android provides an abstraction on top of the base Biometric Authentication support. While the authentication / data signing itself is handled using `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other related processes require their own API.
 
-### Check Fingerprint Authentication Status
+### Check Biometric Authentication Status
 
-You have to check for Fingerprint Authentication on three levels:
+You have to check for Biometric Authentication on three levels:
 
-- **System Availability**: If fingerprint scanner is present on the system.
+- **System Availability**: If biometric scanner is present on the system.
 - **Activation Availability**: If biometry factor data are available for given activation.
-- **Application Availability**: If user decided to use fingerprint authentication for given app. _(optional)_
+- **Application Availability**: If user decided to use biometric authentication for given app. _(optional)_
 
 PowerAuth SDK for Android provides code for the first and second of these checks.
 
-To check if you can use fingerprint authentication on the system, use Adnroid `FingerprintManager` class directly, or our helper class:
+To check if you can use biometric authentication on the system, use Android [BiometricManager](https://developer.android.com/reference/android/hardware/biometrics/BiometricManager) class directly (available since Android 10), or our helper class:
 
 ```java
-// This method is equivalent to `hasFingerprintHardware && hasEnrolledFingerprints`.
-// Use it to check of fingerprint authentication can be used at the moment.
-boolean isFingerprintAuthAvailable = FingerprintUtilities.isFingerprintAuthAvailable(context);
+// This method is equivalent to `BiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS`.
+// Use it to check of biometric authentication can be used at the moment.
+boolean isBiometricAuthAvailable = BiometricAuthentication.isBiometricAuthenticationAvailable(context);
 
-// For more fine-grained control about the actual fingerprint authentication status,
-// you may use these two methods separately.
-boolean hasFingerprintHardware = FingerprintUtilities.hasFingerprintHardware(context);
-boolean hasEnrolledFingerprints = FingerprintUtilities.hasEnrolledFingerprints(context);
+// For more fine-grained control about the actual biometric authentication status,
+// you may use the following code:
+switch(BiometricAuthentication.canAuthenticate(context)) {
+    case BiometricStatus.OK:
+        // everything's OK
+    case BiometricStatus.NOT_SUPPORTED:
+        // device's hardware doesn't support biometry
+    case BiometricStatus.NOT_ENROLLED:
+        // there's no biometry data enrolled on the device
+    case BiometricStatus.NOT_AVAILABLE:
+        // The biometric authentication is not available at this time. 
+        // You may try to retry the operation later.
+}
 ```
 
 To check if given activation has biometry factor related data available, use following code:
@@ -652,20 +661,20 @@ To check if given activation has biometry factor related data available, use fol
 boolean hasBiometryFactor = powerAuthSDK.hasBiometryFactor(context);
 ```
 
-The last check is fully under your control. By keeping the fingerprint settings flag, for example a `BOOL` in `SharedPreferences`, you are able to show expected user fingerprint authentication status (in disabled state, though) even in the case fingerprint authentication is not enabled or when no fingers are enrolled on the device.
+The last check is fully under your control. By keeping the biometric settings flag, for example a `BOOL` in `SharedPreferences`, you are able to show user an expected biometric authentication status (in disabled state, though) even in the case biometric authentication is not enabled or when no fingers are enrolled on the device.
 
-### Enable Fingerprint Authentication
+### Enable Biometric Authentication
 
-In case an activation does not yet have biometry related factor data and you would like to enable fingerprint authentication support, device must first retrieve the original private key from the secure vault for the purpose of key derivation. As a result, you have to use successful 2FA with password to enable fingerprint authentication support.
+In case an activation does not yet have biometry related factor data and you would like to enable biometric authentication support, device must first retrieve the original private key from the secure vault for the purpose of key derivation. As a result, you have to use successful 2FA with password to enable biometric authentication support.
 
-Use following code to enable biometric authentication using fingerprint authentication:
+Use following code to enable biometric authentication using biometric authentication:
 
 ```java
 // Establish biometric data using provided password
-powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Fingerprint Authentication", "To enable fingerprint authentication, touch the fingerprint sensor on your device.", "1234", new IAddBiometryFactorListener() {
+powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", "1234", new IAddBiometryFactorListener() {
     @Override
     public void onAddBiometryFactorSucceed() {
-        // Everything went OK, fingerprint authentication is ready to be used
+        // Everything went OK, biometric authentication is ready to be used
     }
 
     @Override
@@ -675,12 +684,12 @@ powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Fingerprint Aut
 });
 ```
 
-### Disable fingerprint authentication
+### Disable biometric authentication
 
-You can remove biometry related factor data used by fingerprint authentication support by simply removing the related key locally, using this one-liner:
+You can remove biometry related factor data used by biometric authentication support by simply removing the related key locally, using this one-liner:
 
 ```java
-// Remove bimetric data
+// Remove biometric data
 powerAuthSDK.removeBiometryFactor(context);
 ```
 
@@ -689,23 +698,53 @@ powerAuthSDK.removeBiometryFactor(context);
 In order to obtain an encrypted biometry factor related key for the purpose of authentication, call following code:
 
 ```java
-// Authenticate user with fingerprint and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingFingerprint(context, fragmentManager, "Sign in", "Confirm fingerprint to continue", new IFingerprintActionHandler() {
+// Authenticate user with biometry and obtain encrypted biometry factor related key.
+powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use the biometric sensor on your device to continue", new IBiometricAuthenticationCallback() {
     @Override
-    public void onFingerprintDialogCancelled() {
+    public void onBiometricDialogCancelled() {
         // User cancelled the operation
     }
 
     @Override
-    public void onFingerprintDialogSuccess(@Nullable byte[] encryptedBiometryKey) {
+    public void onBiometricDialogSuccess(@NonNull byte[] encryptedBiometryKey) {
         // User authenticated and biometry key was returned
     }
 
     @Override
-    public void onFingerprintInfoDialogClosed() {
-        // User closed an information dialog with some fingerprint authentication related message
+    public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+        // Biometric authentication failed
     }
 });
+```
+
+### Biometric authentication details
+
+The `BiometricAuthentication` class is a high level interface that provides interfaces related to the biometric authentication for the SDK, or for the application purposes. The class hides all technical details, so it can be safely used also on the systems that doesn't provide biometric interfaces, or if the system has no biometric sensor available. The implementation under the hood select the following two authentication methods, depending on the system version:
+
+- Old, deprecated `FingerprintManager` class is used on Android 6 up to 8.1.
+  - In this case, SDK will display our custom dialog that instructs user to use its fingerprint scanner.
+- New `BiometricPrompt` class is used on Android 9 and newer.
+  - In this case, a system provided prompt will be displayed.
+  - _Note that in this case, we still need to use a `FingerprintManager` to determine whether biometry is enrolled on the system. This is due to lack of such functionality in Android 9._
+
+To customize the legacy fingerprint dialog, you can use `BiometricDialogResources` in following manner:
+
+```java
+// Prepare new strings, colors, etc...
+final BiometricDialogResources.Strings newStrings = new BiometricDialogResources.Strings(... constructor with string ids ...);
+final BiometricDialogResources.Colors newColors = new BiometricDialogResources.Colors(... constructor with color ids ...);
+
+// Build new resources object. 
+// If you omit some custom resources object, then the Builder will replace that with resources bundled in SDK.
+// For example, you can provide your own strings, but keep the default dialog layout.
+final BiometricDialogResources resources = new BiometricDialogResources.Builder(context)
+    .setStrings(newStrings)
+    .setColors(newColors)
+    // you can also set layout, drawables... 
+    .build();
+    
+// Set resources to BiometricAuthentication
+BiometricAuthentication.setBiometricDialogResources(resources);
 ```
 
 ## Activation Removal
@@ -747,7 +786,7 @@ this.httpClient.post(null, "/custom/activation/remove", new ICustomListener() {
 
 ### Removal via Signed Request
 
-PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for Android and PowerAuth Standard RESTful API - nothing has to be programmed. Also, user does not have to be logged in to use it. However, user has to authenticate using 2FA with either password or fingerprint authentication.
+PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for Android and PowerAuth Standard RESTful API - nothing has to be programmed. Also, user does not have to be logged in to use it. However, user has to authenticate using 2FA with either password or biometric authentication.
 
 Use following code for an activation removal using signed request:
 

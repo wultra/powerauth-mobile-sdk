@@ -99,12 +99,13 @@ namespace protocol
 	void CalculateNextCounterValue(PersistentData & pd);
 	
 	/**
-	 Calculates multi-factor signature from given |data|, for using |ctr_data| and |keys|.
+	 Calculates multi-factor online or offline signature from given |data|, for using |ctr_data| and |keys|.
 	 */
 	std::string CalculateSignature(const SignatureKeys & sk,
 								   SignatureFactor factor,
 								   const cc7::ByteRange & ctr_data,
-								   const cc7::ByteRange & data);
+								   const cc7::ByteRange & data,
+								   bool online);
 	
 	/**
 	 Prepares exact data for signature calculation:

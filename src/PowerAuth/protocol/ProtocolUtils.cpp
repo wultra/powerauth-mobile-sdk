@@ -369,7 +369,7 @@ namespace protocol
 	}
 	
 	
-	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data)
+	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data, bool online)
 	{
 		// Prepare keys into one linear vector
 		std::vector<const cc7::ByteArray*> keys;
@@ -383,8 +383,15 @@ namespace protocol
 			keys.push_back(&sk.biometryKey);
 		}
 		
-		// Prepare data with counter; [ 0x0 * 8 + BigEndian(ctr) ]
-		std::string result;
+		// Pepare byte array for online signature or final string for offline signature.
+		cc7::ByteArray signature_bytes;
+		std::string signature_string;
+		if (online) {
+			signature_bytes.reserve(keys.size() * 16);
+		} else {
+			signature_string.reserve(keys.size() * 8 + keys.size() - 1);
+		}
+		// Now calculate signature for all involved factors.
 		for (size_t i = 0; i < keys.size(); i++) {
 			// Outer loop, for over key in the vector.
 			const cc7::ByteArray & signature_key = *keys[i];
@@ -403,20 +410,31 @@ namespace protocol
 				}
 			}
 			// Calculate HMAC for given data
-			auto signature_long = crypto::HMAC_SHA256(data, derived_key);
-			if (signature_long.size() == 0) {
+			auto signature_factor_bytes = crypto::HMAC_SHA256(data, derived_key);
+			if (signature_factor_bytes.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
-			// Finally, calculate decimalized value from signature and append it to the
-			// output string.
-			auto signature = CalculateDecimalizedSignature(signature_long);
-			if (!result.empty()) {
-				result.append(DASH);
+			if (online) {
+				// For new online signature, just append last 16 bytes of HMAC result.
+				// We'll calculate final signature string later.
+				signature_bytes.append(signature_factor_bytes.byteRange().subRangeFrom(16));
+			} else {
+				// Offline signature is using old, decimalized format.
+				auto signature_factor = CalculateDecimalizedSignature(signature_factor_bytes);
+				if (!signature_string.empty()) {
+					signature_string.append(DASH);
+				}
+				signature_string.append(signature_factor);
 			}
-			result.append(signature);
 		}
-		return result;
+		if (online) {
+			// Now calculate a final Base64 string for online signature
+			cc7::Base64_Encode(signature_bytes, 0, signature_string);
+		}
+		// Otherwise, for offline signature, just return the result which already
+		// contains the final string.
+		return signature_string;
 	}
 	
 	

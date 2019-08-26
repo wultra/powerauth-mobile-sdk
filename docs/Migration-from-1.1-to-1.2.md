@@ -41,8 +41,12 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
   - `void onFingerprintInfoDialogClosed()` is no longer available. You have to implement new `void onBiometricDialogFailed(@NonNull PowerAuthErrorException error)`
   
 - In `PowerAuthSDK`, following biometry related interfaces were changed:
-  - Commit activation `void commitActivation(..., final ICommitActivationWithFingerprintListener callback)` is now `ICancelable commitActivation(..., final ICommitActivationWithBiometryListener callback)`
-  - Authenticate method `void authenticateUsingFingerprint(..., final IFingerprintActionHandler callback)` is now `ICancelable authenticateUsingBiometry(..., final IBiometricAuthenticationCallback callback)`
+  - Commit activation 
+    - `void commitActivation(..., final ICommitActivationWithFingerprintListener callback)` 
+    - is now `ICancelable commitActivation(..., final ICommitActivationWithBiometryListener callback)`
+  - Authenticate method 
+    - `void authenticateUsingFingerprint(..., final IFingerprintActionHandler callback)` 
+    - is now `ICancelable authenticateUsingBiometry(..., final IBiometricAuthenticationCallback callback)`
 
 - We slightly changed string resources bundled in the SDK:
   - String `fingerprint_dialog_icon_description` is now `accessibility_icon_fingerprint`

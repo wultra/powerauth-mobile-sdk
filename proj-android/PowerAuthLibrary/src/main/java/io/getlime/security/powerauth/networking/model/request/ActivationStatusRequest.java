@@ -24,6 +24,7 @@ package io.getlime.security.powerauth.networking.model.request;
 public class ActivationStatusRequest {
 
     private String activationId;
+    private String challenge;
 
     /**
      * Get activation ID
@@ -41,4 +42,19 @@ public class ActivationStatusRequest {
         this.activationId = activationId;
     }
 
+    /**
+     * Get challenge.
+     * @return Challeng
+     */
+    public String getChallenge() {
+        return challenge;
+    }
+
+    /**
+     * Set challenge.
+     * @param challenge challenge in Base64 encoded string.
+     */
+    public void setChallenge(String challenge) {
+        this.challenge = challenge;
+    }
 }

@@ -224,11 +224,11 @@ namespace powerAuth
 		// MARK: - Status -
 		
 		/**
-		 The method decodes received status blob into ActivationStatus structure. You can call this method after successful
+		 The method decodes received |encrypted_status| structure into ActivationStatus structure. You can call this method after successful
 		 activation and obtain information about pairing between the client and server. You have to provide valid
 		 possessionUnlockKey in the |keys| structure.
 		 */
-		ErrorCode decodeActivationStatus(const std::string & statusBlob, const SignatureUnlockKeys & keys, ActivationStatus & status) const;
+		ErrorCode decodeActivationStatus(const EncryptedActivationStatus & encrypted_status, const SignatureUnlockKeys & keys, ActivationStatus & status) const;
 		
 		
 		// MARK: - Data signing -

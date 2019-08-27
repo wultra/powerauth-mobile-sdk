@@ -21,8 +21,8 @@
 
 - (NSDictionary*) toDictionary
 {
-	if (_activationId) {
-		return @{ @"activationId" : _activationId };
+	if (_activationId && _challenge) {
+		return @{ @"activationId" : _activationId, @"challenge" : _challenge };
 	}
 	return @{};
 }

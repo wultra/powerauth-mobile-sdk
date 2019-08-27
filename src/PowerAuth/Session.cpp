@@ -439,15 +439,15 @@ namespace powerAuth
 	
 	// MARK: - Status -
 	
-	ErrorCode Session::decodeActivationStatus(const std::string & status_blob, const SignatureUnlockKeys & keys, ActivationStatus & status) const
+	ErrorCode Session::decodeActivationStatus(const EncryptedActivationStatus & enc_status, const SignatureUnlockKeys & keys, ActivationStatus & status) const
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Status: Called in wrong state.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (status_blob.empty()) {
-			CC7_LOG("Session %p, %d: Status: Missing status blob.", this, sessionIdentifier());
+		if (enc_status.challenge.empty() || enc_status.encryptedStatusBlob.empty() || enc_status.nonce.empty()) {
+			CC7_LOG("Session %p, %d: Status: All parameters are required in EncryptedActivationStatus.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
 		protocol::SignatureKeys signature_keys;
@@ -458,13 +458,22 @@ namespace powerAuth
 		}
 		// Decode blob from B64 string
 		cc7::ByteArray encrypted_status_blob;
-		bool result = encrypted_status_blob.readFromBase64String(status_blob);
+		cc7::ByteArray status_nonce;
+		cc7::ByteArray status_challenge;
+		bool result = encrypted_status_blob.readFromBase64String(enc_status.encryptedStatusBlob);
+		result = result && status_challenge.readFromBase64String(enc_status.challenge);
+		result = result && status_nonce.readFromBase64String(enc_status.nonce);
 		if (encrypted_status_blob.size() != protocol::STATUS_BLOB_SIZE || !result) {
 			// Considered as an attack on protocol
 			return EC_Encryption;
 		}
+		// Prepare IV for status blob decryption
+		auto status_iv = protocol::DeriveIVForStatusBlobDecryption(status_challenge, status_nonce, signature_keys.transportKey);
+		if (status_iv.empty()) {
+			return EC_Encryption;
+		}
 		// Decrypt blob and initialize reader for data parsing.
-		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, protocol::ZERO_IV, encrypted_status_blob));
+		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, status_iv, encrypted_status_blob));
 		cc7::ByteRange hdr;
 		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
 		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;

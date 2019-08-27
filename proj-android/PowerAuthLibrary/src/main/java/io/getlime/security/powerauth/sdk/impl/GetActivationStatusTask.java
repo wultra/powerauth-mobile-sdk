@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
+import io.getlime.security.powerauth.core.EncryptedActivationStatus;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.ProtocolUpgradeData;
 import io.getlime.security.powerauth.core.ProtocolVersion;
@@ -178,6 +179,7 @@ public class GetActivationStatusTask implements ICancelable {
         // Execute request
         final ActivationStatusRequest request = new ActivationStatusRequest();
         request.setActivationId(session.getActivationIdentifier());
+        request.setChallenge(session.generateActivationStatusChallenge());
 
         pendingOperation = httpClient.post(
                 request,
@@ -188,10 +190,12 @@ public class GetActivationStatusTask implements ICancelable {
                     public void onNetworkResponse(ActivationStatusResponse response) {
                         // Network communication completed correctly
                         pendingOperation = null;
+                        // Prepare object with encryped status
+                        final EncryptedActivationStatus encryptedStatus = new EncryptedActivationStatus(request.getChallenge(), response.getEncryptedStatusBlob(), response.getNonce());
                         // Prepare unlocking key (possession factor only)
                         final SignatureUnlockKeys keys = new SignatureUnlockKeys(cryptoHelper.getDeviceRelatedKey(), null, null);
                         // Attempt to decode the activation status
-                        final ActivationStatus activationStatus = session.decodeActivationStatus(response.getEncryptedStatusBlob(), keys);
+                        final ActivationStatus activationStatus = session.decodeActivationStatus(encryptedStatus, keys);
                         if (activationStatus != null) {
                             // Everything was OK, keep custom object and report that result.
                             activationStatus.setCustomObject(response.getCustomObject());

@@ -133,6 +133,7 @@
 	// Perform the server request
 	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
 	request.activationId = _session.activationIdentifier;
+	request.challenge    = [_session generateActivationStatusChallenge];
 	//
 	_currentOperation = [_client postObject:request
 										 to:[PA2RestApiEndpoint getActivationStatus]
@@ -148,7 +149,11 @@
 										 PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
 										 keys.possessionUnlockKey = _deviceRelatedKey;
 										 // Try to decode the activation status
-										 statusObject = [_session decodeActivationStatus:ro.encryptedStatusBlob keys:keys];
+										 PA2EncryptedActivationStatus * encryptedStatus = [[PA2EncryptedActivationStatus alloc] init];
+										 encryptedStatus.challenge				= request.challenge;
+										 encryptedStatus.encryptedStatusBlob	= ro.encryptedStatusBlob;
+										 encryptedStatus.nonce					= ro.nonce;
+										 statusObject = [_session decodeActivationStatus:encryptedStatus keys:keys];
 										 customObject = ro.customObject;
 										 if (!statusObject) {
 											 error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);

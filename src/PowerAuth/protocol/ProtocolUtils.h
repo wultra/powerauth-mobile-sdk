@@ -138,6 +138,17 @@ namespace protocol
 											   const std::string activation_id,
 											   Version v);
 	
+	//
+	// MARK: - Encrypted status -
+	//
+	
+	/**
+	 Derives IV (initialization vector) used for encrypted status blob decryption.
+	 */
+	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
+												   const cc7::ByteRange & nonce,
+												   const cc7::ByteRange & transport_key);
+	
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

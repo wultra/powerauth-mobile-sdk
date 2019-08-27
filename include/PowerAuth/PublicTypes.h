@@ -495,6 +495,27 @@ namespace powerAuth
 	// MARK: - Activation status -
 	//
 
+	/**
+	 The EncryptedActivationStatus structure contains encrypted status
+	 data and parameters required for the data decryption.
+	 */
+	struct EncryptedActivationStatus
+	{
+		/**
+		 The challenge value sent to the server. 16 bytes encoded to Base64 is expected.
+		 */
+		std::string challenge;
+		
+		/**
+		 Contains encrypted status data. The Base64 encoded string is expected.
+		 */
+		std::string encryptedStatusBlob;
+		
+		/**
+		 Contains nonce returned from the server. 16 bytes encoded to Base64 is expected.
+		 */
+		std::string nonce;
+	};
 	
 	/**
 	 The ActivationStatus structure represents complete status

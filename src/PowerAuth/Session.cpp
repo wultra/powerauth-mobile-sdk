@@ -475,16 +475,20 @@ namespace powerAuth
 		// Decrypt blob and initialize reader for data parsing.
 		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, status_iv, encrypted_status_blob));
 		cc7::ByteRange hdr;
+		cc7::ByteArray server_ctr_data;
 		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
 		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
-	
+		cc7::byte look_ahead = 0xdd;
+		
 		result = reader.readMemoryRange(hdr, 4) &&
 				 reader.readByte(state) &&
 				 reader.readByte(curr_ver) &&
 				 reader.readByte(upgrade_ver) &&
 				 reader.skipBytes(6) &&
 				 reader.readByte(fail_ctr) &&
-				 reader.readByte(max_fail_ctr);
+				 reader.readByte(max_fail_ctr) &&
+				 reader.readByte(look_ahead) &&
+				 reader.readMemory(server_ctr_data, 16);
 		if (!result) {
 			return EC_Encryption;
 		}
@@ -499,13 +503,53 @@ namespace powerAuth
 		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
 			return EC_Encryption;
 		}
+		if (look_ahead == 0 || look_ahead > protocol::LOOK_AHEAD_MAX) {
+			return EC_Encryption;
+		}
+		// Fill output structure
 		status.state        	= static_cast<ActivationStatus::State>(state);
 		status.failCount    	= fail_ctr;
 		status.maxFailCount 	= max_fail_ctr;
 		status.currentVersion	= curr_ver;
 		status.upgradeVersion	= upgrade_ver;
+		status.lookAheadCount	= look_ahead;
 		
+		// Try to synchronize local counter
+		status.counterState		= trySynchronizeCounter(server_ctr_data, status);
+		// If counter's state is invalid, then set state to "deadlock".
+		if (status.counterState == ActivationStatus::Counter_Invalid) {
+			status.state = ActivationStatus::Deadlock;
+		}
 		return EC_Ok;
+	}
+	
+	ActivationStatus::CounterState Session::trySynchronizeCounter(const cc7::ByteRange & server_ctr_data, const ActivationStatus & status) const
+	{
+		// If activation is still in V2 version, then we cannot determine counter's status.
+		// In this case, it's OK to set Counter_OK.
+		if (status.currentVersion == ActivationStatus::V2 || server_ctr_data == _pd->signatureCounterData) {
+			return ActivationStatus::Counter_OK;
+		}
+		const int look_ahead_window = status.lookAheadCount;
+		// Try to move local counter towards to counter received from the server.
+		int distance = protocol::CalculateHashCounterDistance(_pd->signatureCounterData, server_ctr_data, look_ahead_window);
+		if (distance > 0) {
+			// Server's counter was ahead. We can synchronize our counter with server's.
+			_pd->signatureCounterData = server_ctr_data;
+			return ActivationStatus::Counter_Updated;
+		}
+		// Now try to move server's counter towards our local.
+		distance = protocol::CalculateHashCounterDistance(server_ctr_data, _pd->signatureCounterData, look_ahead_window);
+		if (distance > 0) {
+			// Client's counter is ahead. It will be synchronized with the next signature validation.
+			// We need to only investigate how much dangerous this state is.
+			if (distance > look_ahead_window / 2) {
+				return ActivationStatus::Counter_CalculateSignature;
+			}
+			return ActivationStatus::Counter_OK;
+		}
+		// Looks like counter is out of sync.
+		return ActivationStatus::Counter_Invalid;
 	}
 	
 	

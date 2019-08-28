@@ -539,6 +539,9 @@ namespace powerAuth
 			Active   = 3,
 			Blocked  = 4,
 			Removed  = 5,
+			// Deadlock is not received from the server.
+			// The state is determined on client's side.
+			Deadlock = 128
 		};
 		
 		/**
@@ -552,9 +555,32 @@ namespace powerAuth
 		};
 		
 		/**
+		 The CounterState enumeration represents health of signature counter.
+		 */
+		enum CounterState
+		{
+			// The state is not determined yet.
+			Counter_NA = 0,
+			// Counter is healthy, no additional action is required.
+			Counter_OK,
+			// Counter was just updated, so the session's persistent
+			// data needs to be serialized.
+			Counter_Updated,
+			// The PowerAuth symmetric signature should be calculated
+			// to preved counter's de-synchronization.
+			Counter_CalculateSignature,
+			// Couner is invalid and the activation is technically blocked.
+			Counter_Invalid
+		};
+		
+		/**
 		 State of the activation
 		 */
 		State state;
+		/**
+		 Health of signature counter.
+		 */
+		CounterState counterState;
 		/**
 		 Number of failed authentication attempts in a row.
 		 */
@@ -571,16 +597,22 @@ namespace powerAuth
 		 If greater than `currentVersion`, then activation upgrade is available.
 		 */
 		cc7::byte upgradeVersion;
+		/**
+		 Look ahead window used on the server.
+		 */
+		cc7::byte lookAheadCount;		
 		
 		/**
 		 Constructs a new empty activation status structure.
 		 */
 		ActivationStatus() :
 			state(Created),
+			counterState(Counter_NA),
 			failCount(0),
 			maxFailCount(0),
 			currentVersion(0),
-			upgradeVersion(0)
+			upgradeVersion(0),
+			lookAheadCount(0)
 		{
 		}
 		
@@ -588,6 +620,16 @@ namespace powerAuth
 		 Returns true if upgrade to a new activation data is possible.
 		 */
 		bool isProtocolUpgradeAvailable() const;
+		/**
+		 Returns true if dummy signature calculation is recommended to prevent
+		 the counter's de-synchronization.
+		 */
+		bool signatureCalculationIsRecommended() const;
+		/**
+		 Returns true if session's state should be serialized after the successful
+		 activation status decryption.
+		 */
+		bool needsSerializeSessionState() const;
 	};
 	
 	

@@ -355,12 +355,19 @@ namespace protocol
 		return _U64ToData(counter);
 	}
 	
+	/**
+	 Move hash based counter forward.
+	 */
+	inline cc7::ByteArray _NextCounterValue(const cc7::ByteRange & prev)
+	{
+		return ReduceSharedSecret(crypto::SHA256(prev));
+	}
 	
 	void CalculateNextCounterValue(PersistentData & pd)
 	{
 		if (pd.isV3()) {
 			// Move hash-based counter forward. Vault unlock is ignored in V3
-			pd.signatureCounterData = ReduceSharedSecret(crypto::SHA256(pd.signatureCounterData));
+			pd.signatureCounterData = _NextCounterValue(pd.signatureCounterData);
 			//
 		} else {
 			// Move old counter forward
@@ -595,6 +602,21 @@ namespace protocol
 		}
 		// In case of failure, return empty array.
 		return cc7::ByteArray();
+	}
+	
+	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations)
+	{
+		cc7::ByteArray cnt = counter1;
+		int iteration = 0;
+		while (max_iterations > 0) {
+			if (cnt == counter2) {
+				return iteration;
+			}
+			cnt = _NextCounterValue(cnt);
+			++iteration;
+			--max_iterations;
+		}
+		return -1;
 	}
 	
 } // io::getlime::powerAuth::protocol

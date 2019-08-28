@@ -374,7 +374,9 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, 
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
-		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isProtocolUpgradeAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",					cppStatus.isProtocolUpgradeAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "signatureCalculationIsRecommended",	cppStatus.signatureCalculationIsRecommended());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "needsSerializeSessionState",			cppStatus.needsSerializeSessionState());
 	}
 	return resultObject;
 }

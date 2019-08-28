@@ -90,6 +90,11 @@ namespace protocol
 	const size_t APPLICATION_KEY_SIZE = 16;
 	const size_t APPLICATION_SECRET_SIZE = 16;
 	
+	// Default value for look ahead window
+	const size_t LOOK_AHEAD_DEFAULT = 20;
+	// Maximum supported look ahead.
+	const size_t LOOK_AHEAD_MAX = 64;
+	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth
 } // io::getlime

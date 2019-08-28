@@ -25,7 +25,7 @@ import java.util.Map;
 public class ActivationStatus {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed})
+    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock})
     public @interface ActivationState {}
 
     /**
@@ -48,6 +48,10 @@ public class ActivationStatus {
      * The activation doesn't exist anymore.
      */
     public static final int State_Removed  = 5;
+    /**
+     * The activation is technically blocked. You cannot use it anymore for the signature calculations.
+     */
+    public static final int State_Deadlock = 128;
     
     
     /**
@@ -100,6 +104,20 @@ public class ActivationStatus {
      */
     public final boolean isUpgradeAvailable;
 
+    // Other status flags
+
+    /**
+     * Returns true if dummy signature calculation is recommended to prevent
+     * the counter's de-synchronization.
+     */
+    public final boolean signatureCalculationIsRecommended;
+
+    /**
+     * Returns true if session's state should be serialized after the successful
+     * activation status decryption.
+     */
+    public final boolean needsSerializeSessionState;
+
     /**
      * Contains custom object received from the server together with the status. The value is optional
      * and the server's implementation must support it.
@@ -116,6 +134,8 @@ public class ActivationStatus {
         this.currentVersion = ProtocolVersion.NA;
         this.upgradeVersion = ProtocolVersion.NA;
         this.isUpgradeAvailable = false;
+        this.signatureCalculationIsRecommended = false;
+        this.needsSerializeSessionState = false;
         this.customObject = null;
     }
 

@@ -149,6 +149,11 @@ namespace protocol
 												   const cc7::ByteRange & nonce,
 												   const cc7::ByteRange & transport_key);
 	
+	/**
+	 Calculates distance between |counter1| and |counter2| (e.g. how many interations is required to move from counter1 to counter2).
+	 The |max_iterations| limits number of iterations to be performed. If the maximum iterations is reached, then the returned value is -1.
+	 */
+	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations);
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

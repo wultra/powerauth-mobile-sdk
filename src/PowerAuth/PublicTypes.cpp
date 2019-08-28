@@ -127,6 +127,15 @@ namespace powerAuth
 		return false;
 	}
 	
+	bool ActivationStatus::signatureCalculationIsRecommended() const
+	{
+		return counterState == Counter_CalculateSignature;
+	}
+	
+	bool ActivationStatus::needsSerializeSessionState() const
+	{
+		return counterState == Counter_Updated;
+	}
 	
 } // io::getlime::powerAuth
 } // io::getlime

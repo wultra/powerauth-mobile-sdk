@@ -229,6 +229,7 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 		case ActivationStatus::Active:		status_str = @"ACTIVE"; break;
 		case ActivationStatus::Blocked:		status_str = @"BLOCKED"; break;
 		case ActivationStatus::Removed:		status_str = @"REMOVED"; break;
+		case ActivationStatus::Deadlock:	status_str = @"DEADLOCK"; break;
 		default:
 			status_str = @"<<unknown>>"; break;
 			
@@ -253,6 +254,16 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 - (BOOL) isProtocolUpgradeAvailable
 {
 	return _status.isProtocolUpgradeAvailable();
+}
+
+- (BOOL) signatureCalculationIsRecommended
+{
+	return _status.signatureCalculationIsRecommended();
+}
+
+- (BOOL) needsSerializeSessionState
+{
+	return _status.needsSerializeSessionState();
 }
 
 @end

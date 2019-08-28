@@ -28,7 +28,7 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
 - New biometric authentication implementation now uses different system interfaces, depending on the system version:
   - `FingerprintManager` is used on Android 6.0, up to 8.1. In this case, our SDK displays a legacy fingerprint dialog (see [Behavioral Changes](#behavioral-changes))
   - `BiometricPrompt` is used on Android 9.0 and higher
-  - We guarantee, that migration from older PowerAuth Mobile SDKs works properly on Android 9.0+.
+  - On Android 9+, the fingerprint authentication configured in the previous version of SDK works properly with using new `BiometricPrompt`.
 
 - `ICommitActivationWithFingerprintListener` is now `ICommitActivationWithBiometryListener` with following changes:
   - `void onFingerprintDialogCancelled()` is now `void onBiometricDialogCancelled()`

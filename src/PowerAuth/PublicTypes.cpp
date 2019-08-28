@@ -129,7 +129,10 @@ namespace powerAuth
 	
 	bool ActivationStatus::signatureCalculationIsRecommended() const
 	{
-		return counterState == Counter_CalculateSignature;
+		if (state == Active) {
+			return counterState == Counter_CalculateSignature;
+		}
+		return false;
 	}
 	
 	bool ActivationStatus::needsSerializeSessionState() const

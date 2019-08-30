@@ -111,9 +111,11 @@
 - (void) fetchActivationStatusAndTestUpgrade
 {
 	[self fetchActivationStatus:^(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error) {
+		// Test whether we have to serialize session's persistent data.
 		if (status.needsSerializeSessionState) {
 			[self serializeSessionState];
 		}
+		// We have status. Test for protocol upgrade.
 		if (status.isProtocolUpgradeAvailable || _session.hasPendingProtocolUpgrade) {
 			if (!_disableUpgrade) {
 				// If protocol upgrade is available, then simply switch to upgrade code.
@@ -122,6 +124,7 @@
 			}
 			PA2Log(@"WARNING: Upgrade to newer protocol version is disabled.");
 		}
+		// Now test whether the counter should be synchronized on the server.
 		if (status.signatureCalculationIsRecommended) {
 			[self synchronizeCounterWith:status customObject:customObject];
 			return;

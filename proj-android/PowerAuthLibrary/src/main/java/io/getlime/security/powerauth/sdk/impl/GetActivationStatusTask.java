@@ -35,9 +35,11 @@ import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.UpgradeCommitV3Endpoint;
 import io.getlime.security.powerauth.networking.endpoints.UpgradeStartV3Endpoint;
+import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.networking.model.request.ValidateSignatureRequest;
 import io.getlime.security.powerauth.networking.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.networking.model.response.UpgradeResponsePayload;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
@@ -146,6 +148,10 @@ public class GetActivationStatusTask implements ICancelable {
         fetchActivationStatus(new IActivationStatusListener() {
             @Override
             public void onActivationStatusSucceed(ActivationStatus status) {
+                // Test whether we have to serialize session's persistent data.
+                if (status.needsSerializeSessionState) {
+                    serializeSessionState();
+                }
                 // We have status. Test for protocol upgrade.
                 if (status.isUpgradeAvailable || session.hasPendingProtocolUpgrade()) {
                     if (!isUpgradeDisabled) {
@@ -155,6 +161,11 @@ public class GetActivationStatusTask implements ICancelable {
                         return;
                     }
                     PA2Log.e("WARNING: Upgrade to newer protocol version is disabled.");
+                }
+                // Now test whether the counter should be synchronized on the server.
+                if (status.signatureCalculationIsRecommended) {
+                    synchronizeCounter(status);
+                    return;
                 }
                 // Otherwise return the result as usual
                 completeTask(status, null);
@@ -218,6 +229,55 @@ public class GetActivationStatusTask implements ICancelable {
                     }
                 });
     }
+
+    //
+    // Counter synchronization
+    //
+
+    /**
+     * Continue task with signature counter synchronization. In this case, just {@code /pa/signature/validate}
+     * endpoint is called, with simple possession-only signature. That will force server to catch up
+     * with the local counter.
+     *
+     * @param status {@link ActivationStatus} reported in case of success.
+     */
+    private void synchronizeCounter(@NonNull final ActivationStatus status) {
+
+        // Authenticate with possession factor.
+        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+        authentication.usePossession = true;
+
+        // Execute signature validation request
+        final ValidateSignatureRequest request = new ValidateSignatureRequest();
+        request.setMessage("COUNTER_SYNCHRONIZATION");
+
+        pendingOperation = httpClient.post(
+                request,
+                new ValidateSignatureEndpoint(),
+                cryptoHelper,
+                authentication,
+                new INetworkResponseListener<Void>() {
+                    @Override
+                    public void onNetworkResponse(Void aVoid) {
+                        pendingOperation = null;
+                        completeTask(status, null);
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable throwable) {
+                        pendingOperation = null;
+                        completeTask(null, throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        pendingOperation = null;
+                    }
+                }
+
+        );
+    }
+
 
     //
     // Protocol upgrade

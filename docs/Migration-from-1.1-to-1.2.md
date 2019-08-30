@@ -52,7 +52,7 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
   - String `fingerprint_dialog_icon_description` is now `accessibility_icon_fingerprint`
   - On top of that, we have added a couple of new localized strings.
 
-- You can now customize legacy fingerprint authentication dialog with using `BiometricDialogResources` class. Check [source code](https://github.com/wultra/powerauth-mobile-sdk/blob/develop/proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/biometry/BiometricDialogResources.java#L29) of that class, for more details.
+- You can now customize legacy fingerprint authentication dialog with using `BiometricDialogResources` class. Check [source code](../proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/biometry/BiometricDialogResources.java#L29) of that class, for more details.
 
 - You can use `BiometricAuthentication` class to test, whether device supports biometry and whether biometric authentication is enrolled on the system.
   - Call `BiometricAuthentication.isBiometricAuthenticationAvailable(context)` to test general support.
@@ -74,7 +74,7 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
 
 The biometric support on Android platform is kind of mess right now (August 2019). We have discovered following problems during the testing our SDK:
 
-- Android 9.0 version of `BiometricPrompt` contains a very nasty bug that delays the error callback to the application, when error is detected immediately. For example, if the biometric sensor is locked down (due to too many failed attempts), then this situation is reported after 2 seconds long delay. Unfortunately, no biometric system UI is displayed during this time period, so we recommend you to guarantee, that user cannot interact with the screen, during this period. For more details, [check our implementation](https://github.com/wultra/powerauth-mobile-sdk/blob/develop/proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/biometry/impl/BiometricAuthenticator.java#L298).
+- Android 9.0 version of `BiometricPrompt` contains a very nasty bug that delays the error callback to the application, when error is detected immediately. For example, if the biometric sensor is locked down (due to too many failed attempts), then this situation is reported after 2 seconds long delay. Unfortunately, no biometric system UI is displayed during this time period, so we recommend you to guarantee, that user cannot interact with the screen, during this period. For more details, [check our implementation](../proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/biometry/impl/BiometricAuthenticator.java#L298).
 
 - On Android 9, there's no new interface to tell your application that there's enrolled biometry on the device. This will be fixed in Android 10, which introduces [BiometricManager](https://developer.android.com/reference/android/hardware/biometrics/BiometricManager). Until then, we have to believe, that old, deprecated `FingerprintManager` works properly.
 

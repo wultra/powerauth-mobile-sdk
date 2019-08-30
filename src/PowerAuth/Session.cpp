@@ -245,6 +245,9 @@ namespace powerAuth
 				break;
 			}
 			
+			// Re-seed OpenSSL's PRNG.
+			crypto::ReseedPRNG();
+			
 			// Generate device private & public key
 			ad->devicePrivateKey = crypto::ECC_GenerateKeyPair();
 			if (nullptr == ad->devicePrivateKey) {

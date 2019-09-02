@@ -249,7 +249,7 @@ public class GetActivationStatusTask implements ICancelable {
 
         // Execute signature validation request
         final ValidateSignatureRequest request = new ValidateSignatureRequest();
-        request.setMessage("COUNTER_SYNCHRONIZATION");
+        request.setReason("COUNTER_SYNCHRONIZATION");
 
         pendingOperation = httpClient.post(
                 request,

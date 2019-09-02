@@ -1603,8 +1603,8 @@ public class PowerAuthSDK {
         authentication.usePossession = true;
         authentication.usePassword = password;
         // Prepare request object
-        ValidateSignatureRequest request = new ValidateSignatureRequest();
-        request.setMessage("VALIDATE_PASSWORD");
+        final ValidateSignatureRequest request = new ValidateSignatureRequest();
+        request.setReason("VALIDATE_PASSWORD");
 
         // Execute HTTP request
         return mClient.post(

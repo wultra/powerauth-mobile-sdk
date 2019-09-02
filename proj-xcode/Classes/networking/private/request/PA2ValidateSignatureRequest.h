@@ -29,8 +29,8 @@
 
 /**
  Returns request's instance initialized with the provided message.
- The { "message" : message } dictionary will be then serialized to the JSON payload.
+ The { "reason" : reason } dictionary will be then serialized to the JSON payload.
  */
-+ (instancetype) requestWithMessage:(NSString *)message;
++ (instancetype) requestWithReason:(NSString *)reason;
 
 @end

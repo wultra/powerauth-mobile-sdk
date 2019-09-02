@@ -21,9 +21,9 @@
 	NSDictionary<NSString*, NSObject*>* _content;
 }
 
-+ (instancetype) requestWithMessage:(NSString *)message
++ (instancetype) requestWithReason:(NSString *)reason
 {
-	return [[self alloc] initWithDictionary:@{ @"message" : message }];
+	return [[self alloc] initWithDictionary:@{ @"reason" : reason }];
 }
 
 + (instancetype) requestWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary

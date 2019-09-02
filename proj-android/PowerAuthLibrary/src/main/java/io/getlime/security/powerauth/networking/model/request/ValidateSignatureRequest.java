@@ -17,25 +17,25 @@
 package io.getlime.security.powerauth.networking.model.request;
 
 /**
- * The request object that simple data send to the signature validation endpoint.
+ * The request object that contains reason for the signature validation request.
  */
 public class ValidateSignatureRequest {
 
-    private String message;
+    private String reason;
 
     /**
-     * Get message.
-     * @return message.
+     * Get reason
+     * @return string with reason.
      */
-    public String getMessage() {
-        return message;
+    public String getReason() {
+        return reason;
     }
 
     /**
-     * Set message.
-     * @param message String with message.
+     * Set reason
+     * @param reason String with reason
      */
-    public void setMessage(String message) {
-        this.message = message;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

@@ -184,7 +184,7 @@
 - (void) synchronizeCounterWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
 {
 	PA2Log(@"GetStatus: Trying synchronize counter with server.");
-	_currentOperation = [_client postObject:[PA2ValidateSignatureRequest requestWithMessage:@"COUNTER_SYNCHRONIZATION"]
+	_currentOperation = [_client postObject:[PA2ValidateSignatureRequest requestWithReason:@"COUNTER_SYNCHRONIZATION"]
 										 to:[PA2RestApiEndpoint validateSignature]
 									   auth:[PowerAuthAuthentication possession]
 								 completion:^(PA2RestResponseStatus apiStatus, id<PA2Decodable> response, NSError *error) {

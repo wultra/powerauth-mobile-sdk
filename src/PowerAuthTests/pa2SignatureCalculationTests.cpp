@@ -111,7 +111,7 @@ namespace powerAuthTests
 		
 		void testV31Signatures()
 		{
-			// TODO: This file doesn't exist yet. Our powerauth-crypto java project has to generate it first.
+			// This is new V3.1 format, based on Base64 strings.
 			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v31.json");
 			auto&& data = root.arrayAtPath("data");
 			for (const JSONValue & item : data) {

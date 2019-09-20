@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
 		BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
 		BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
 		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
@@ -124,6 +125,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BF1B33F02334C042009BA222 /* signatures-v31.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v31.json"; sourceTree = "<group>"; };
+		BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "activation-status-blob-iv.json"; sourceTree = "<group>"; };
+		BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationStatusBlobTests.cpp; sourceTree = "<group>"; };
 		BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2RecoveryCodeTests.cpp; sourceTree = "<group>"; };
 		BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ProtocolUpgradeData.h; sourceTree = "<group>"; };
 		BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2ProtocolUpgradeData.mm; sourceTree = "<group>"; };
@@ -318,6 +322,7 @@
 		BF6AFD6D2073E4F600CE7DDE /* Protocol */ = {
 			isa = PBXGroup;
 			children = (
+				BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */,
 				BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */,
 				BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */,
 				BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */,
@@ -365,6 +370,7 @@
 		BF99D8AF2073E00D00735ED2 /* pa2 */ = {
 			isa = PBXGroup;
 			children = (
+				BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */,
 				BF99D8B62073E00D00735ED2 /* compute-derived-keys.json */,
 				BF99D8B12073E00D00735ED2 /* compute-master-secret-key.json */,
 				BF99D8B72073E00D00735ED2 /* decrypt-server-public-key.json */,
@@ -372,6 +378,7 @@
 				BF99D8B52073E00D00735ED2 /* public-key-fingerprint.json */,
 				BF99D8B32073E00D00735ED2 /* signatures-v2.json */,
 				BF8BFBD5215A8EB6001D6852 /* signatures-v3.json */,
+				BF1B33F02334C042009BA222 /* signatures-v31.json */,
 				BF99D8B42073E00D00735ED2 /* verify-activation-data-signature.json */,
 				BF99D8B02073E00D00735ED2 /* verify-encrypted-server-public-key-signature.json */,
 			);
@@ -665,6 +672,7 @@
 				BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */,
 				BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */,
 				BFB47D3B2075335A008A6A52 /* PA2PrivateMacros.m in Sources */,
+				BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */,
 				BFB47D3A2075335A008A6A52 /* PA2ECIESEncryptor.mm in Sources */,
 				BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */,
 				BF99D90E2073E15100735ED2 /* Hash.cpp in Sources */,

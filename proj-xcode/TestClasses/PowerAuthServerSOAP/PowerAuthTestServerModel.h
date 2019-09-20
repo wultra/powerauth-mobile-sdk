@@ -114,6 +114,7 @@ typedef enum _PATSActivationStatusEnum {
 @property (nonatomic, strong) NSString * timestampCreated;
 @property (nonatomic, strong) NSString * timestampLastUsed;
 @property (nonatomic, strong) NSString * encryptedStatusBlob;
+@property (nonatomic, strong) NSString * encryptedStatusBlobNonce;
 @property (nonatomic, strong) NSString * devicePublicKeyFingerprint;
 @property (nonatomic, assign) NSInteger protocolVersion;
 

@@ -353,10 +353,12 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	return PATSActivationStatus_Unknown;
 }
 
-- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId
+- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge
 {
 	[self checkForValidConnection];
-	PATSActivationStatus * response = [_helper soapRequest:@"GetActivationStatus" params:@[activationId] response:@"GetActivationStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSString * templateName = challenge == nil ? @"GetActivationStatus" : @"GetActivationStatus_Challenge";
+	NSArray * templateParams = challenge == nil ? @[activationId]  : @[activationId, challenge];
+	PATSActivationStatus * response = [_helper soapRequest:templateName params:templateParams response:@"GetActivationStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSActivationStatus * obj = [[PATSActivationStatus alloc] init];
 		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
@@ -373,6 +375,9 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
 		} else {
 			obj.protocolVersion = 0;
+		}
+		if (challenge != nil) {
+			if (!localError) obj.encryptedStatusBlobNonce = [[resp nodeForXPath:@"pa:encryptedStatusBlobNonce" namespaceMappings:ns error:&localError] stringValue];
 		}
 		return !localError ? obj : nil;
 	}];
@@ -430,9 +435,11 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 											data:(NSString*)normalizedData
 									   signature:(NSString*)signature
 								   signatureType:(NSString*)signatureType
+								signatureVersion:(NSString*)signatureVersion
 {
 	[self checkForValidConnection];
-	NSArray * params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString];
+	NSArray * params;
+	params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString, signatureVersion];
 	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifySignature" params:params response:@"VerifySignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
@@ -491,10 +498,10 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 - (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
 												   data:(NSString*)dataHash
 											  signature:(NSString*)signature
-										  signatureType:(NSString*)signatureType
+										  allowBiometry:(BOOL)allowBiometry
 {
 	[self checkForValidConnection];
-	NSArray * params = @[activationId, dataHash, signature, signatureType.uppercaseString];
+	NSArray * params = @[activationId, dataHash, signature, allowBiometry ? @"true" : @"false"];
 	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifyOfflineSignature" params:params response:@"VerifyOfflineSignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];

@@ -108,7 +108,7 @@
 /**
  Returns status of the activation.
  */
-- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId;
+- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge;
 
 /**
  Blocks activation and returns simple status after the operation. You can check whether
@@ -144,7 +144,8 @@
 - (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
 											data:(NSString*)normalizedData
 									   signature:(NSString*)signature
-								   signatureType:(NSString*)signatureType;
+								   signatureType:(NSString*)signatureType
+								signatureVersion:(NSString*)signatureVersion;
 
 /**
  Returns normalized data from given parameters.
@@ -176,7 +177,7 @@
 - (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
 												   data:(NSString*)normalizedData
 											  signature:(NSString*)signature
-										  signatureType:(NSString*)signatureType;
+										  allowBiometry:(BOOL)allowBiometry;
 
 /**
  Request for the asymmetric signature (ECDSA) validation procedure.

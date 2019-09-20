@@ -91,7 +91,7 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
 	std::string result;
 	result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp.length() + 80);
 
-	result.assign("PowerAuth version=\"3.0\", token_id=\"");
+	result.assign("PowerAuth version=\"3.1\", token_id=\"");
 	result.append(cppTokenIdentifier);
 	result.append("\", token_digest=\"");
 	result.append(digestBase64);

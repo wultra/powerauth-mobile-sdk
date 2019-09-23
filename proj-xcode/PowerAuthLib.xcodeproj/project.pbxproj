@@ -1018,11 +1018,11 @@
 			};
 			buildConfigurationList = BF4DBB961CDF3130008F3A47 /* Build configuration list for PBXProject "PowerAuthLib" */;
 			compatibilityVersion = "Xcode 6.3";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				Base,
+				en,
 			);
 			mainGroup = BF4DBB921CDF3130008F3A47;
 			productRefGroup = BF4DBB9C1CDF3130008F3A47 /* Products */;

@@ -229,7 +229,6 @@ function COPY_SOURCE_FILES
 	COPY_SRC_DIR "keychain"   	"$SRC" "$DST" 0
 	COPY_SRC_DIR "token"      	"$SRC" "$DST" 0
 	COPY_SRC_DIR "system"     	"$SRC" "$DST" 0
-	COPY_SRC_DIR "util"       	"$SRC" "$DST" 0
 	COPY_SRC_DIR "watch"      	"$SRC" "$DST" 0
 	
 	# And finally, top level header..

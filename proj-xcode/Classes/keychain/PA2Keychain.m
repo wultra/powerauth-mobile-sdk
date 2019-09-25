@@ -393,6 +393,51 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 
 #pragma mark - Private methods
 
+static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAddOperation, BOOL useBiometry)
+{
+#if TARGET_OS_SIMULATOR
+	//
+	// Workaround for bug in iOS13 simulator (Xcode 11)
+	//
+	// iOS13 simulator are not able to store the data to keychain when AC object is present in the query.
+	// In this case, we simply skip this step.
+	//
+	// Associated ticket: https://github.com/wultra/powerauth-mobile-sdk/issues/248
+	//
+	if (@available(iOS 13, *)) {
+		return YES;
+	}
+#endif
+	SecAccessControlCreateFlags flags;
+	if (isAddOperation && useBiometry) {
+		// If it's add operation and the biometry is requrested.
+		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny), or use kNilOptions
+		if (@available(iOS 9, *)) {
+			// Note that kSecAccessControlTouchIDAny is deprecated, but its value is the same as kSecAccessControlBiometryAny
+			// We can safely replace that constant to the new one, once the warning appears in the future.
+			flags = kSecAccessControlTouchIDAny;
+		} else {
+			flags = kNilOptions;
+		}
+	} else {
+		// For update operation, or if biometry is not requested, use the kNilOptions.
+		flags = kNilOptions;
+	}
+	// Create access control object
+	CFErrorRef error = NULL;
+	SecAccessControlRef sacObject = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags, &error);
+	if (sacObject == NULL || error != NULL) {
+		// make sure to release the object
+		if (sacObject != NULL) {
+			CFRelease(sacObject);
+		}
+		return NO;
+	}
+	// Add the access control constraint to the query.
+	[dictionary setValue:(__bridge_transfer id)sacObject forKey:(__bridge id)kSecAttrAccessControl];
+	return YES;
+}
+
 - (PA2KeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry
 {
 	// Return if iOS version is lower than iOS 9.0 - we cannot securely store a biometric key here.
@@ -408,29 +453,9 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	[query setValue:key		forKey:(__bridge id)kSecAttrAccount];
 	[query setValue:data	forKey:(__bridge id)kSecValueData];
 	_AddUseNoAuthenticationUI(query);
-	
-	// If the system version is iOS 9.0+, use Touch ID if requested (kSecAccessControlTouchIDAny), or use kNilOptions
-	SecAccessControlCreateFlags flags;
-	if (@available(iOS 9, *)) {
-		flags = useBiometry ? kSecAccessControlTouchIDAny : kNilOptions;
-	} else {
-		flags = kNilOptions;
-	}
-
-	// Create access control object
-	CFErrorRef error = NULL;
-	SecAccessControlRef sacObject = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags, &error);
-	
-	// Check for access errors
-	if (sacObject == NULL || error != NULL) {
-		if (sacObject != NULL) { // make sure to release the object
-			CFRelease(sacObject);
-		}
+	if (!_AddAccessControlObject(query, YES, useBiometry)) {
 		return PA2KeychainStoreItemResult_Other;
 	}
-	
-	// Add the access control constraint
-	[query setValue:(__bridge_transfer id)sacObject forKey:(__bridge id)kSecAttrAccessControl];
 	
 	// Return result of kechain item add.
 	OSStatus keychainResult = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
@@ -444,13 +469,8 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	}
 }
 
-- (PA2KeychainStoreItemResult) implUpdateValue:(NSData*)data forKey:(NSString*)key {
-	
-	// Create access control object
-	CFErrorRef error = NULL;
-	SecAccessControlCreateFlags flags = kNilOptions;
-	SecAccessControlRef sacObject = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags, &error);
-	
+- (PA2KeychainStoreItemResult) implUpdateValue:(NSData*)data forKey:(NSString*)key
+{
 	// Build default query with base data.
 	NSMutableDictionary *query = [NSMutableDictionary dictionary];
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
@@ -465,7 +485,9 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	[dictionary setValue:_identifier						forKey:(__bridge id)kSecAttrService];
 	[dictionary setValue:key								forKey:(__bridge id)kSecAttrAccount];
 	[dictionary setValue:data								forKey:(__bridge id)kSecValueData];
-	[dictionary setValue:(__bridge_transfer id)sacObject	forKey:(__bridge id)kSecAttrAccessControl];
+	if (!_AddAccessControlObject(dictionary, NO, NO)) {
+		return PA2KeychainStoreItemResult_Other;
+	}
 	
 	// Return result of keychain item update.
 	OSStatus keychainResult =  SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)dictionary);

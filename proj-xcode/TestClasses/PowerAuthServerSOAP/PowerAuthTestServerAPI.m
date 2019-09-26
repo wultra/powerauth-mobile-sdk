@@ -371,7 +371,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 		if (!localError) obj.timestampLastUsed		= [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.encryptedStatusBlob	= [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
-		if (_serverVersion == PATS_V3) {
+		if (_serverVersion != PATS_V2) {
 			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
 		} else {
 			obj.protocolVersion = 0;

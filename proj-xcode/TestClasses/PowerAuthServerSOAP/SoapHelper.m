@@ -40,8 +40,10 @@
 		_session = [NSURLSession sharedSession];
 		if (_version == PATS_V2) {
 			_templateMapping = [SoapHelper mappingForV2];
-		} else {
+		} else if (_version == PATS_V3) {
 			_templateMapping = [SoapHelper mappingForV3];
+		} else {
+			_templateMapping = [SoapHelper mappingForV31];
 		}
 	}
 	return self;
@@ -234,6 +236,7 @@
 			 @"VerifyECDSASignature"			: MAP(ns, @"VerifyECDSASignature"),
 			 @"VerifyOfflineSignature"			: MAP(ns, @"VerifyOfflineSignature"),
 			 @"VerifySignature"					: MAP(ns, @"_v2/VerifySignature"),
+			 @"VerifySignature_ForcedVer"		: MAP(ns, @"_v2/VerifySignature"),	// No forced version in V2 SOAP IFC
 			};
 }
 
@@ -268,11 +271,45 @@
 			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
 			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
 			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
-			 @"VerifySignature"					: MAP(v3, @"_v2/VerifySignature"),	// Must use V3 namespace
-			 @"VerifySignature_V3"				: MAP(v3, @"_v3/VerifySignature"),	// V3 template has an additional (optional) parameter
+			 @"VerifySignature"					: MAP(v3, @"_v2/VerifySignature"),	// Must use V3 namespace, but equal to V2
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v3/VerifySignature_ForcedVer"),
 			 };
 }
 
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV31
+{
+	// The V3.1 SOAP interface is very similar to V3. The only difference is that
+	// the call for signature calculation must contains a signature version.
+	
+	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
+			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v31/VerifySignature"),	// V3 namespace, but additional param
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v31/VerifySignature_ForcedVer"),	// V3 namespace, but additional param and forced version.
+			 };
+}
 @end
 
 

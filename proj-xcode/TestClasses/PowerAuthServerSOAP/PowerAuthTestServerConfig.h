@@ -20,8 +20,9 @@
  The `PowerAuthTestServerVersion` defines version of PowerAuth SOAP API.
  */
 typedef NS_ENUM(int, PowerAuthTestServerVersion) {
-	PATS_V2 = 2,
-	PATS_V3 = 3,
+	PATS_V2  = 0x002,
+	PATS_V3  = 0x003,
+	PATS_V31 = 0x301,
 };
 
 /**

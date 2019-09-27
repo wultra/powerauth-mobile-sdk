@@ -962,7 +962,8 @@ static NSString * PA_Ver = @"3.1";
 	CHECK_TEST_CONFIG();
 	
 	//
-	// This test validates whether
+	// This test validates whether Mobile SDK proactively synchronize counter
+	// on the server, when local counter is slightly ahead to server's.
 	//
 	
 	NSArray * activation = [self createActivation:YES removeAfter:NO];
@@ -1013,7 +1014,8 @@ static NSString * PA_Ver = @"3.1";
 	CHECK_TEST_CONFIG();
 	
 	//
-	// This test validates whether
+	// This test validates whether Mobile SDK is able to catch
+	// server's counter if server is slightly ahead.
 	//
 	
 	NSArray * activation = [self createActivation:YES removeAfter:NO];

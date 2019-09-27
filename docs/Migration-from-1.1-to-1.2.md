@@ -60,6 +60,8 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
   
 - `PowerAuthErrorException` can contain following new constants: `PA2ErrorCodeBiometryNotSupported`, `PA2ErrorCodeBiometryNotAvailable`, `PA2ErrorCodeBiometryNotRecognized`
 
+- Added a new activation state `ActivationStatus.State_Deadlock`.
+  - Note that this state cannot be achieved in this version of SDK. The constant is defined and reserved for the future version `1.3.0`. The full explanation why we introduced deadlock is explained in [issue #247](https://github.com/wultra/powerauth-mobile-sdk/issues/247).
 
 ### Behavioral changes
 
@@ -72,7 +74,7 @@ PowerAuth Mobile SDK in version `1.2.0` introduces following important changes:
 
 ### Known bugs
 
-The biometric support on Android platform is kind of mess right now (August 2019). We have discovered following problems during the testing our SDK:
+The biometric support on Android platform is kind of mess right now (August 2019). We have discovered following problems during the testing of SDK:
 
 - Android 9.0 version of `BiometricPrompt` contains a very nasty bug that delays the error callback to the application, when error is detected immediately. For example, if the biometric sensor is locked down (due to too many failed attempts), then this situation is reported after 2 seconds long delay. Unfortunately, no biometric system UI is displayed during this time period, so we recommend you to guarantee, that user cannot interact with the screen, during this period. For more details, [check our implementation](../proj-android/PowerAuthLibrary/src/main/java/io/getlime/security/powerauth/biometry/impl/BiometricAuthenticator.java#L298).
 
@@ -80,7 +82,7 @@ The biometric support on Android platform is kind of mess right now (August 2019
 
 - Face detection doesn't work on some Samsung devices. This is known issue and we cannot workaround it.
 
-- Some devices doesn't provide error message when biometric authentication fails. We're fixing this in our SDK by using a generic message.
+- Some devices doesn't provide an error message when biometric authentication fails. We're fixing this in our SDK by using a generic message.
 
 
 ## iOS
@@ -90,3 +92,6 @@ The biometric support on Android platform is kind of mess right now (August 2019
 - Removed deprecated `PA2PasswordUtil`
   - We recommend you to use our [Passphrase Meter](https://github.com/wultra/passphrase-meter) library as a replacement.
   - The removed interface is still available in [0.20.x branch](https://github.com/wultra/powerauth-mobile-sdk/tree/release/0.20.x/proj-xcode/Classes/util), so you can copy that files directly into your project.
+- Added a new activation state `PA2ActivationState_Deadlock`
+  - This may produce a swift warning that `switch must be exhaustive` and `note: add missing case: '.deadlock'`. You can ignore this warning or add a similar processing than you already have for `.removed` state.
+  - Note that this state cannot be achieved in this version of SDK. The constant is defined and reserved for the future version `1.3.0`. The full explanation why we introduced deadlock is explained in [issue #247](https://github.com/wultra/powerauth-mobile-sdk/issues/247).

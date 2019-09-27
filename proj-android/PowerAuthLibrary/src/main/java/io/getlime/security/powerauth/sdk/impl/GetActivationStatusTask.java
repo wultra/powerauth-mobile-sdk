@@ -60,7 +60,7 @@ public class GetActivationStatusTask implements ICancelable {
     private final Session session;
     private final IPrivateCryptoHelper cryptoHelper;
     private final ICompletionListener completionListener;
-    private final ICallbackDispacher callbackDispacher;
+    private final ICallbackDispatcher callbackDispacher;
 
     private final AtomicBoolean isExiting = new AtomicBoolean();
     private final AtomicBoolean isCanceled = new AtomicBoolean();
@@ -83,7 +83,7 @@ public class GetActivationStatusTask implements ICancelable {
             @NonNull HttpClient httpClient,
             @NonNull IPrivateCryptoHelper cryptoHelper,
             @NonNull Session session,
-            @NonNull ICallbackDispacher callbackDispacher,
+            @NonNull ICallbackDispatcher callbackDispacher,
             @NonNull ICompletionListener completionListener) {
         this.httpClient = httpClient;
         this.session = session;

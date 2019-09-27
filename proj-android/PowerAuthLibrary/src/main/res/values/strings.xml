@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2017 Wultra s.r.o.
+  ~ Copyright 2017-2019 Wultra s.r.o.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
   -->
 
 <resources>
+    <!-- dialog texts -->
     <string name="fingerprint_dialog_description">Fingerprint Authentication</string>
     <string name="fingerprint_dialog_touch_sensor">Touch sensor</string>
     <string name="fingerprint_dialog_title_new_fingerprint">Add New Fingerprint</string>
@@ -25,8 +26,17 @@
     <string name="fingerprint_dialog_title_invalidated">Fingerprint Disabled</string>
     <string name="fingerprint_dialog_description_invalidated">The fingerprint authentication was disabled, probably because someone modified your fingerprints in settings.</string>
     <string name="fingerprint_dialog_success">Success!</string>
-    <string name="fingerprint_dialog_not_recognized">Fingerprint not recognized</string>
+    <string name="fingerprint_dialog_not_recognized">Fingerprint not recognized.</string>
+    <!-- generic strings -->
     <string name="ok">OK</string>
     <string name="close">Close</string>
-    <string name="fingerprint_dialog_icon_description">Fingerprint scanner icon</string>
+    <!-- error codes -->
+    <string name="fallback_error_code_lockout">Image not recognized, please try again later.</string>
+    <string name="fallback_error_code_generic">The biometric authentication failed.</string>
+    <!-- accessibility -->
+    <string name="accessibility_icon_fingerprint">Fingerprint icon</string>
+    <string name="accessibility_icon_success">Success icon</string>
+    <string name="accessibility_icon_failure">Failure icon</string>
+    <string name="accessibility_announcement_try_again">Touch the sensor again.</string>
+    <string name="accessibility_announcement_success">Fingerprint authentication succeeded.</string>
 </resources>

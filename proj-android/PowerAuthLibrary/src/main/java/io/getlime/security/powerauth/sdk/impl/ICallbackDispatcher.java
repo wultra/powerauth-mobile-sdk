@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.sdk.impl;
  *
  * @author Tomas Kypta, tomas.kypta@wultra.com
  */
-public interface ICallbackDispacher {
+public interface ICallbackDispatcher {
 
     /**
      * Dispatches callback.

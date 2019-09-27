@@ -25,7 +25,7 @@ import java.util.Map;
 public class ActivationStatus {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed})
+    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock})
     public @interface ActivationState {}
 
     /**
@@ -48,7 +48,10 @@ public class ActivationStatus {
      * The activation doesn't exist anymore.
      */
     public static final int State_Removed  = 5;
-    
+    /**
+     * The activation is technically blocked. You cannot use it anymore for the signature calculations.
+     */
+    public static final int State_Deadlock = 128;
     
     /**
      * Error code returned from the C++ code. The value can be compared

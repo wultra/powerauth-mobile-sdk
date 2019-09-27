@@ -7,7 +7,8 @@
 			<pow:data>$3</pow:data>
 			<pow:signature>$4</pow:signature>
 			<pow:signatureType>$5</pow:signatureType>
-			<pow:forcedSignatureVersion>$6</pow:forcedSignatureVersion>
+			<pow:signatureVersion>$6</pow:signatureVersion>
+			<pow:forcedSignatureVersion>$7</pow:forcedSignatureVersion>
 		</pow:VerifySignatureRequest>
 	</soapenv:Body>
 </soapenv:Envelope>

@@ -673,12 +673,10 @@ static NSString * PA_Ver = @"2.1";
 							? [@"hello online world" dataUsingEncoding:NSUTF8StringEncoding]
 							: [[NSData alloc] initWithBase64EncodedString:@"zYnF8edfgfgT2TcZjupjppBHoUJGjONkk6H+eThIsi0=" options:0] ;
 		// Positive
-		if (!online_mode) {
-			// V31 server doesn't allow offline signature with only possession factor.
-			if (_testServerApi.serverVersion == PATS_V3 || _testServerApi.serverVersion == PATS_V2) {
-				result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
-				XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
-			}
+		// V31 server doesn't allow offline signature with only possession factor.
+		if (online_mode || _testServerApi.serverVersion == PATS_V3 || _testServerApi.serverVersion == PATS_V2) {
+			result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
+			XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		}
 		result = [self validateSignature:auth_possession_knowledge data:data method:online_mode ? @"GET" : @"POST" uriId:@"/hello/hacker" online:online_mode cripple:0];
 		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");

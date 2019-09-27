@@ -955,6 +955,123 @@ static NSString * PA_Ver = @"3.1";
 	[self removeLastActivation:activationData];
 }
 
+#define CTR_LOOKAHEAD 20	// Default constant on the server
+
+- (void) testCounterSync_ClientIsAhead
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	PA2ActivationStatus * status;
+	// Positive
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		// Just calculate signature on the client. This step simulates a network connection failure.
+		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+		XCTAssertNotNil(header);
+		if ((i % 4) == 0) {
+			// Every 4th signature calculation try to get the status
+			status = [self fetchActivationStatus];
+			XCTAssertNotNil(status);
+			// Everything should be OK, because getting the status fires signature validation internally.
+			XCTAssertEqual(status.state, PA2ActivationState_Active);
+		}
+	}
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	
+	// Negative
+	// Now try to calculate too many signatures that server will never catch
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		// Just calculate signature on the client. This step simulates a network connection failure.
+		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+		XCTAssertNotNil(header);
+	}
+	
+	// Now get the status. It should be a deadlocked.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Deadlock);
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testCounterSync_ServerIsAhead
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	PA2ActivationStatus * status;
+
+	// Positive
+	NSData * data_to_sign = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
+
+	// Just calculate signature on the server.
+	// This is a little bit tricky, because we need to calculate a valid signature, to move server's counter forward. To do that,
+	// we have to calculate also a local signature, but that moves also local counter forward.
+	// To trick the system, we need to keep old persistent data and restore it later.
+	NSData * previous_state = [_sdk.session serializedState];
+	for (int i = 0; i < CTR_LOOKAHEAD/2; i++) {
+		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
+		PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+		XCTAssertNotNil(response, @"Online response must be received");
+		XCTAssertTrue(response.signatureValid);
+	}
+	// Rollback counter to some previous state.
+	[_sdk.session deserializeState:previous_state];
+	// Fetch the status. This should move local counter forward, so the next calculation will succeed.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	BOOL password_result = [self checkForPassword:auth.usePassword];
+	XCTAssertTrue(password_result);
+	
+	// Negative
+	// Now try to calculate too many signatures that client will never catch the server.
+	previous_state = [_sdk.session serializedState];
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
+		PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+		XCTAssertNotNil(response, @"Online response must be received");
+		XCTAssertTrue(response.signatureValid);
+	}
+	// Rollback counter to some previous state.
+	[_sdk.session deserializeState:previous_state];
+	
+	// Now get the status. It should be a deadlocked.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Deadlock);
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
 - (void) testRecoveryCodes
 {
 	CHECK_TEST_CONFIG()

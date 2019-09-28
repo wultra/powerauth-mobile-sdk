@@ -371,7 +371,7 @@ if (powerAuthSDK.hasValidActivation()) {
     powerAuthSDK.fetchActivationStatusWithCallback(context, new IActivationStatusListener() {
         @Override
         public void onActivationStatusSucceed(ActivationStatus status) {
-            // Activation state: State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed
+            // Activation state: State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock
             int state = status.state;
 
             // Failed login attempts, remaining = max - current

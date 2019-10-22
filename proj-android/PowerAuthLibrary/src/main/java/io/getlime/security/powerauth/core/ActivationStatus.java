@@ -107,13 +107,13 @@ public class ActivationStatus {
     // Other status flags
 
     /**
-     * Returns true if dummy signature calculation is recommended to prevent
+     * Contains true if dummy signature calculation is recommended to prevent
      * the counter's de-synchronization.
      */
-    public final boolean signatureCalculationIsRecommended;
+    public final boolean isSignatureCalculationRecommended;
 
     /**
-     * Returns true if session's state should be serialized after the successful
+     * Contains true if session's state should be serialized after the successful
      * activation status decryption.
      */
     public final boolean needsSerializeSessionState;
@@ -134,7 +134,7 @@ public class ActivationStatus {
         this.currentVersion = ProtocolVersion.NA;
         this.upgradeVersion = ProtocolVersion.NA;
         this.isUpgradeAvailable = false;
-        this.signatureCalculationIsRecommended = false;
+        this.isSignatureCalculationRecommended = false;
         this.needsSerializeSessionState = false;
         this.customObject = null;
     }

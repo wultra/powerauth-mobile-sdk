@@ -587,7 +587,7 @@ namespace protocol
 												   const cc7::ByteRange & nonce,
 												   const cc7::ByteRange & transport_key)
 	{
-		if (challenge.size() == STATUS_BLOB_CHALLENGE_SIZE && nonce.size() == STATUS_BLOB_NONCE_SIZE) {
+		if (CC7_CHECK(challenge.size() == STATUS_BLOB_CHALLENGE_SIZE && nonce.size() == STATUS_BLOB_NONCE_SIZE)) {
 			// Derive base IV key from transport key
 			auto key_transport_iv = DeriveSecretKey(transport_key, 3000);
 			// KDF_INTERNAL

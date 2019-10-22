@@ -163,7 +163,7 @@ public class GetActivationStatusTask implements ICancelable {
                     PA2Log.e("WARNING: Upgrade to newer protocol version is disabled.");
                 }
                 // Now test whether the counter should be synchronized on the server.
-                if (status.signatureCalculationIsRecommended) {
+                if (status.isSignatureCalculationRecommended) {
                     synchronizeCounter(status);
                     return;
                 }

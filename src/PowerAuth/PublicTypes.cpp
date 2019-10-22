@@ -127,7 +127,7 @@ namespace powerAuth
 		return false;
 	}
 	
-	bool ActivationStatus::signatureCalculationIsRecommended() const
+	bool ActivationStatus::isSignatureCalculationRecommended() const
 	{
 		if (state == Active) {
 			return counterState == Counter_CalculateSignature;

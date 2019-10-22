@@ -125,7 +125,7 @@
 			PA2Log(@"WARNING: Upgrade to newer protocol version is disabled.");
 		}
 		// Now test whether the counter should be synchronized on the server.
-		if (status.signatureCalculationIsRecommended) {
+		if (status.isSignatureCalculationRecommended) {
 			[self synchronizeCounterWith:status customObject:customObject];
 			return;
 		}

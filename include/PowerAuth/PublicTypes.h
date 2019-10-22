@@ -569,7 +569,7 @@ namespace powerAuth
 			// The PowerAuth symmetric signature should be calculated
 			// to preved counter's de-synchronization.
 			Counter_CalculateSignature,
-			// Couner is invalid and the activation is technically blocked.
+			// Counter is invalid and the activation is technically blocked.
 			Counter_Invalid
 		};
 		
@@ -624,7 +624,7 @@ namespace powerAuth
 		 Returns true if dummy signature calculation is recommended to prevent
 		 the counter's de-synchronization.
 		 */
-		bool signatureCalculationIsRecommended() const;
+		bool isSignatureCalculationRecommended() const;
 		/**
 		 Returns true if session's state should be serialized after the successful
 		 activation status decryption.

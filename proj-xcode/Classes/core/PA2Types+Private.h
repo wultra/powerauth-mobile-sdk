@@ -38,7 +38,7 @@
  Returns true if dummy signature calculation is recommended to prevent
  the counter's de-synchronization.
  */
-@property (nonatomic, assign, readonly) BOOL signatureCalculationIsRecommended;
+@property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;
 /**
  Returns true if session's state should be serialized after the successful
  activation status decryption.

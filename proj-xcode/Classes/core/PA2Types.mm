@@ -256,9 +256,9 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 	return _status.isProtocolUpgradeAvailable();
 }
 
-- (BOOL) signatureCalculationIsRecommended
+- (BOOL) isSignatureCalculationRecommended
 {
-	return _status.signatureCalculationIsRecommended();
+	return _status.isSignatureCalculationRecommended();
 }
 
 - (BOOL) needsSerializeSessionState

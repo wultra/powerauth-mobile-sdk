@@ -28,7 +28,7 @@ public class ActivationStatusRequest {
 
     /**
      * Get activation ID
-     * @return Activation ID
+     * @return Activation ID.
      */
     public String getActivationId() {
         return activationId;
@@ -36,7 +36,7 @@ public class ActivationStatusRequest {
 
     /**
      * Set activation ID
-     * @param activationId Activation ID
+     * @param activationId Activation ID.
      */
     public void setActivationId(String activationId) {
         this.activationId = activationId;
@@ -44,7 +44,7 @@ public class ActivationStatusRequest {
 
     /**
      * Get challenge.
-     * @return Challeng
+     * @return Challenge.
      */
     public String getChallenge() {
         return challenge;

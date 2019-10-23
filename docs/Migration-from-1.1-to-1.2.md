@@ -84,6 +84,7 @@ The biometric support on Android platform is kind of mess right now (August 2019
 
 - Some devices doesn't provide an error message when biometric authentication fails. We're fixing this in our SDK by using a generic message.
 
+- Please check [Issue #251](https://github.com/wultra/powerauth-mobile-sdk/issues/251) or [list of devices with compatibility issues](https://docs.google.com/spreadsheets/d/1NYEv4z-6-r5IXV7ktG5l6QJhd6PU4FmwSkrv_503la0/edit#gid=0), for more details.
 
 ## iOS
 

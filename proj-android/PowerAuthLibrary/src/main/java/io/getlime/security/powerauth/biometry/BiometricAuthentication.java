@@ -258,6 +258,29 @@ public class BiometricAuthentication {
     }
 
     /**
+     * Set new {@code BiometricPrompt} based authentication disabled for this device and force to use
+     * the legacy {@code FingerprintManager} authenticator. This is useful for situations when device's
+     * manufacturer provides a faulty implementation of {@code BiometricPrompt} and therefore
+     * PowerAuth SDK cannot use it for biometric authentication tasks.
+     *
+     * @param disabled Set {@code true} to disable new {@code BiometricPrompt} based authentication method.
+     */
+    public static void setBiometricPromptAuthenticationDisabled(boolean disabled) {
+        synchronized (SharedContext.class) {
+            getContext().setBiometricPromptAuthenticationDisabled(disabled);
+        }
+    }
+
+    /**
+     * @return {@code true} when {@code BiometricPrompt} based authentication is disabled for this device.
+     */
+    public static boolean isBiometricPromptAuthenticationDisabled() {
+        synchronized (SharedContext.class) {
+            return getContext().isBiometricPromptAuthenticationDisabled();
+        }
+    }
+
+    /**
      * The {@code SharedContext} nested class contains shared data, required for the biometric tasks.
      */
     private static class SharedContext {
@@ -270,8 +293,7 @@ public class BiometricAuthentication {
         /**
          * Contains shared {@link BiometricDialogResources} object.
          */
-        private @NonNull
-        BiometricDialogResources biometricDialogResources;
+        private @NonNull BiometricDialogResources biometricDialogResources;
 
         /**
          * Contains {@link IBiometricAuthenticator} in case that keeping a reference to a permanent authenticator
@@ -279,6 +301,12 @@ public class BiometricAuthentication {
          * on the authenticator.
          */
         private @Nullable IBiometricAuthenticator authenticator;
+
+        /**
+         * Contains {@code true} in case that legacy biometric authentication must be used on devices
+         * supporting the new {@code BiometricPrompt}.
+         */
+        private boolean isBiometricPromptAuthenticationDisabled = false;
 
         private SharedContext() {
             biometricDialogResources = new BiometricDialogResources.Builder().build();
@@ -301,6 +329,21 @@ public class BiometricAuthentication {
         }
 
         /**
+         * @return {@code true} if new {@code BiometricPrompt} based authentication is disabled.
+         */
+        boolean isBiometricPromptAuthenticationDisabled() {
+            return isBiometricPromptAuthenticationDisabled;
+        }
+
+        /**
+         * Set new {@code BiometricPrompt} based authentication disabled.
+         * @param disabled Set {@code true} to disable {@code BiometricPrompt} based authentication.
+         */
+        void setBiometricPromptAuthenticationDisabled(boolean disabled) {
+            isBiometricPromptAuthenticationDisabled = disabled;
+        }
+
+        /**
          * Returns object implementing {@link IBiometricAuthenticator} interface. The returned implementation
          * depends on the version of Android system and on the authenticator's capabilities. If current system
          * doesn't support biometric related APIs, or if the authenticator itself has no biometric sensor
@@ -316,7 +359,7 @@ public class BiometricAuthentication {
                 return authenticator;
             }
             // If Android 9.0 "Pie" and newer, then try to build authenticator supporting BiometricPrompt.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isBiometricPromptAuthenticationDisabled) {
                 final IBiometricAuthenticator newAuthenticator = BiometricAuthenticator.createAuthenticator(context, getBiometricKeystore());
                 if (newAuthenticator != null) {
                     return newAuthenticator;

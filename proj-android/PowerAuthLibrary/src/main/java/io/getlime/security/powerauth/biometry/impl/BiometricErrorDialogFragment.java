@@ -222,13 +222,13 @@ public class BiometricErrorDialogFragment extends DialogFragment {
                 }
             }
         });
-        alertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                reportClose();
-            }
-        });
         return alertDialog;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        reportClose();
     }
 
     /**

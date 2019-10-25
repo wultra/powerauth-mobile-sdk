@@ -31,13 +31,32 @@ import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
  */
 public class BiometricResultDispatcher {
 
+    /**
+     * Interface used as a callback that the biometric request has been completed. The interface should be used
+     * only internally, to cleanup the state of {@link io.getlime.security.powerauth.biometry.BiometricAuthentication}
+     * shared instance.
+     */
+    public interface IResultCompletion {
+        /**
+         * Called on any kind of completion (e.g. on success, failure or cancel)
+         */
+        void onCompletion();
+    }
+
+    private @NonNull final IResultCompletion resultCompletion;
     private @NonNull final IBiometricAuthenticationCallback callback;
     private @NonNull final ICallbackDispatcher callbackDispatcher;
     private @NonNull final CancelableTask cancelable;
     private @Nullable CancelableTask.OnCancelListener onCancelListener;
     private boolean isDispatched = false;
 
-    public BiometricResultDispatcher(@NonNull final IBiometricAuthenticationCallback callback, @NonNull final ICallbackDispatcher callbackDispatcher) {
+    /**
+     * @param callback Callback to the application. It's always executed after the {@link #resultCompletion}.
+     * @param callbackDispatcher The dispatcher that executes completion for both {{@link IBiometricAuthenticationCallback} and {{@link IResultCompletion}} interfaces.
+     * @param completion Callback back to the {@link io.getlime.security.powerauth.biometry.BiometricAuthentication} object that notifies that request has been processed
+     */
+    public BiometricResultDispatcher(@NonNull final IBiometricAuthenticationCallback callback, @NonNull final ICallbackDispatcher callbackDispatcher, @NonNull IResultCompletion completion) {
+        this.resultCompletion = completion;
         this.callback = callback;
         this.callbackDispatcher = callbackDispatcher;
         this.cancelable = new CancelableTask(new CancelableTask.OnCancelListener() {
@@ -50,11 +69,13 @@ public class BiometricResultDispatcher {
                     public void run() {
                         if (!isDispatched) {
                             isDispatched = true;
+                            // Report request as completed.
+                            resultCompletion.onCompletion();
                             // Call additional on-cancel listener first
                             if (onCancelListener != null) {
                                 onCancelListener.onCancel();
                             }
-                            // Now call result callback
+                            // Now call back to the application.
                             callback.onBiometricDialogCancelled(false);
                         }
                     }
@@ -143,6 +164,9 @@ public class BiometricResultDispatcher {
                 // Only one result can be reported back to the application.
                 if (!cancelable.isCancelled() && !isDispatched) {
                     isDispatched = true;
+                    // Report request as completed.
+                    resultCompletion.onCompletion();
+                    // Now call back to the application.
                     runnable.run();
                 }
             }

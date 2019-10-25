@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code BiometricAuthentication} class is a high level interface that provides interfaces related
@@ -111,11 +112,25 @@ public class BiometricAuthentication {
                                                     @NonNull final BiometricAuthenticationRequest request,
                                                     @NonNull final IBiometricAuthenticationCallback callback) {
         synchronized (SharedContext.class) {
-            // Acquire authenticator from the context
+            // Check whether there's already pending authentication request.
             final SharedContext ctx = getContext();
+            if (!ctx.startBiometricAuthentication()) {
+                // There's already pending biometric authentication request.
+                return reportSimultaneousRequest(callback);
+            }
+
+            // Acquire authenticator from the shared context
             final IBiometricAuthenticator device = ctx.getAuthenticator(context);
             // Prepare essential authentication request data
-            final BiometricResultDispatcher dispatcher = new BiometricResultDispatcher(callback, new DefaultCallbackDispatcher());
+            final BiometricResultDispatcher dispatcher = new BiometricResultDispatcher(callback, new DefaultCallbackDispatcher(), new BiometricResultDispatcher.IResultCompletion() {
+                @Override
+                public void onCompletion() {
+                    // Clear the pending request flag.
+                    synchronized (SharedContext.class) {
+                        ctx.finishPendingBiometricAuthentication();
+                    }
+                }
+            });
             final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
 
             // Validate request status
@@ -235,6 +250,33 @@ public class BiometricAuthentication {
         return cancelableTask;
     }
 
+    /**
+     * Report cancel to provided callback in case that this is the simultaneous biometric authentication request.
+     * @param callback Callback to report the cancel.
+     * @return Dummy {@link ICancelable} object that does nothing.
+     */
+    private static ICancelable reportSimultaneousRequest(@NonNull final IBiometricAuthenticationCallback callback) {
+        PA2Log.e("Cannot execute multiple biometric authentication requests. This request is going to be canceled.");
+        // Report cancel to the main thread.
+        new DefaultCallbackDispatcher().dispatchCallback(new Runnable() {
+            @Override
+            public void run() {
+                // Report cancel.
+                callback.onBiometricDialogCancelled(false);
+            }
+        });
+        // Return dummy cancelable object.
+        return new ICancelable() {
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return true;
+            }
+        };
+    }
 
     /**
      * Sets shared {@link BiometricDialogResources} object to this class. You can use this method
@@ -308,6 +350,11 @@ public class BiometricAuthentication {
          */
         private boolean isBiometricPromptAuthenticationDisabled = false;
 
+        /**
+         * Contains {@code true} in case that there's already pending biometric authentication.
+         */
+        private boolean isPendingBiometricAuthentication = false;
+
         private SharedContext() {
             biometricDialogResources = new BiometricDialogResources.Builder().build();
             authenticator = null;
@@ -376,6 +423,27 @@ public class BiometricAuthentication {
             // In this case, we can cache the authenticator.
             authenticator = new DummyBiometricAuthenticator();
             return authenticator;
+        }
+
+        /**
+         * Check whether there's a pending biometric authentication request. If no, then start
+         * a new one.
+         *
+         * @return {@code false} if there's already pending biometric authentication request.
+         */
+        boolean startBiometricAuthentication() {
+            if (isPendingBiometricAuthentication) {
+                return false;
+            }
+            isPendingBiometricAuthentication = true;
+            return true;
+        }
+
+        /**
+         * Finish previously started biometric authentication request.
+         */
+        void finishPendingBiometricAuthentication() {
+            isPendingBiometricAuthentication = false;
         }
     }
 

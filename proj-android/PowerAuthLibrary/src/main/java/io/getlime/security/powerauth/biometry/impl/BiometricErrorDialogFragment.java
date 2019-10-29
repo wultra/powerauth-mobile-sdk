@@ -204,7 +204,7 @@ public class BiometricErrorDialogFragment extends DialogFragment {
         alertBuilder.setPositiveButton(arguments.getCharSequence(ARG_CLOSE_BUTTON_TEXT), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int i) {
-                dismiss();
+                dismissAllowingStateLoss();
             }
         });
         final @ColorRes int closeButtonColor = arguments.getInt(ARG_CLOSE_BUTTON_COLOR);

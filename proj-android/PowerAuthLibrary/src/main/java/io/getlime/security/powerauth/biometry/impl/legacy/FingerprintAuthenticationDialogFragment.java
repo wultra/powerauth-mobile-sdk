@@ -324,7 +324,7 @@ public class FingerprintAuthenticationDialogFragment extends DialogFragment impl
         if (mHandler != null) {
             mHandler.reportResult();
         }
-        dismiss();
+        dismissAllowingStateLoss();
     }
 
     /**

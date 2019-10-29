@@ -256,7 +256,7 @@ public class BiometricAuthentication {
      * @return Dummy {@link ICancelable} object that does nothing.
      */
     private static ICancelable reportSimultaneousRequest(@NonNull final IBiometricAuthenticationCallback callback) {
-        PA2Log.e("Cannot execute multiple biometric authentication requests. This request is going to be canceled.");
+        PA2Log.e("Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
         // Report cancel to the main thread.
         new DefaultCallbackDispatcher().dispatchCallback(new Runnable() {
             @Override

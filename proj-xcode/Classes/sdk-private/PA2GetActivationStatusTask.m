@@ -39,6 +39,7 @@
  @param error valid in case of error
  */
 - (void) completeWithStatus:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject error:(NSError*)error;
+
 @end
 
 
@@ -110,6 +111,11 @@
 - (void) fetchActivationStatusAndTestUpgrade
 {
 	[self fetchActivationStatus:^(PA2ActivationStatus *status, NSDictionary *customObject, NSError *error) {
+		// Test whether we have to serialize session's persistent data.
+		if (status.needsSerializeSessionState) {
+			[self serializeSessionState];
+		}
+		// We have status. Test for protocol upgrade.
 		if (status.isProtocolUpgradeAvailable || _session.hasPendingProtocolUpgrade) {
 			if (!_disableUpgrade) {
 				// If protocol upgrade is available, then simply switch to upgrade code.
@@ -117,6 +123,11 @@
 				return;
 			}
 			PA2Log(@"WARNING: Upgrade to newer protocol version is disabled.");
+		}
+		// Now test whether the counter should be synchronized on the server.
+		if (status.isSignatureCalculationRecommended) {
+			[self synchronizeCounterWith:status customObject:customObject];
+			return;
 		}
 		// Otherwise return the result as usual.
 		[self reportCompletionWithStatus:status customObject:customObject error:error];
@@ -133,6 +144,7 @@
 	// Perform the server request
 	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
 	request.activationId = _session.activationIdentifier;
+	request.challenge    = [_session generateActivationStatusChallenge];
 	//
 	_currentOperation = [_client postObject:request
 										 to:[PA2RestApiEndpoint getActivationStatus]
@@ -148,7 +160,11 @@
 										 PA2SignatureUnlockKeys *keys = [[PA2SignatureUnlockKeys alloc] init];
 										 keys.possessionUnlockKey = _deviceRelatedKey;
 										 // Try to decode the activation status
-										 statusObject = [_session decodeActivationStatus:ro.encryptedStatusBlob keys:keys];
+										 PA2EncryptedActivationStatus * encryptedStatus = [[PA2EncryptedActivationStatus alloc] init];
+										 encryptedStatus.challenge				= request.challenge;
+										 encryptedStatus.encryptedStatusBlob	= ro.encryptedStatusBlob;
+										 encryptedStatus.nonce					= ro.nonce;
+										 statusObject = [_session decodeActivationStatus:encryptedStatus keys:keys];
 										 customObject = ro.customObject;
 										 if (!statusObject) {
 											 error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
@@ -159,6 +175,26 @@
 								 }];
 }
 
+#pragma mark - Counter synchronization
+
+/**
+ Continue task with signature counter synchronization. In this case, just '/pa/signature/validate' endpoint is called,
+ with simple possession-only signature. That will force server to catch up with the local counter.
+ */
+- (void) synchronizeCounterWith:(PA2ActivationStatus*)status customObject:(NSDictionary*)customObject
+{
+	PA2Log(@"GetStatus: Trying synchronize counter with server.");
+	_currentOperation = [_client postObject:[PA2ValidateSignatureRequest requestWithReason:@"COUNTER_SYNCHRONIZATION"]
+										 to:[PA2RestApiEndpoint validateSignature]
+									   auth:[PowerAuthAuthentication possession]
+								 completion:^(PA2RestResponseStatus apiStatus, id<PA2Decodable> response, NSError *error) {
+									 if (!error) {
+										 [self reportCompletionWithStatus:status customObject:customObject error:nil];
+									 } else {
+										 [self reportCompletionWithStatus:nil customObject:nil error:error];
+									 }
+								 }];
+}
 
 #pragma mark - Protocol upgrade
 

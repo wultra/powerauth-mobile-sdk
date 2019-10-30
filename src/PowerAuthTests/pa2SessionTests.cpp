@@ -66,7 +66,7 @@ namespace powerAuthTests
 		std::string _recovery_code;
 		std::string _recovery_puk;
 
-		const std::string PA_VER = "3.0";
+		const std::string PA_VER = "3.1";
 		
 		void setUp() override
 		{
@@ -466,7 +466,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::ByteRange(), "POST", "/user/login", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge_Biometry, 0, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::ByteRange(), "POST", "/user/login", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge_Biometry, 0, CTR_DATA, false);
 					ccstAssertEqual(signature, our_signature);
 				}
 				
@@ -506,7 +506,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 1, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("HELLO WORLD!!"), "POST", "/user/execute/me", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 1, CTR_DATA, false);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -557,7 +557,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 2, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 2, CTR_DATA, false);
 					// Signatures must not match.
 					ccstAssertNotEqual(signature, our_signature);
 				}
@@ -582,7 +582,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, "offline", SF_Possession_Knowledge, 3, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, "offline", SF_Possession_Knowledge, 3, CTR_DATA, true);
 					// Signatures must match.
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -635,7 +635,7 @@ namespace powerAuthTests
 						ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 						std::string signature = parsedSignature["pa_signature"];
 						ccstAssertTrue(!signature.empty());
-						std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession, 3 + attempt_count, CTR_DATA);
+						std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Must work!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession, 3 + attempt_count, CTR_DATA, false);
 						// Signatures must match.
 						ccstAssertEqual(signature, our_signature);
 						// Save state for next loop or for subsequent tests...
@@ -670,7 +670,7 @@ namespace powerAuthTests
 					ccstAssertTrue(cc7::FromBase64String(nonceB64).size() == 16);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3 + 3, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("EEK must be set!"), "POST", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 3 + 3, CTR_DATA, false);
 					// Signatures must match.
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -730,7 +730,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 4, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 4, CTR_DATA, false);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 					
@@ -776,7 +776,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Biometry, 5, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("My creativity ends here!"), "DELETE", "/hack.me/if-you-can", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Biometry, 5, CTR_DATA, false);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 				}
@@ -802,7 +802,7 @@ namespace powerAuthTests
 					ccstAssertEqual(parsedSignature["pa_version"], PA_VER);
 					std::string signature = parsedSignature["pa_signature"];
 					ccstAssertTrue(!signature.empty());
-					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 6, CTR_DATA);
+					std::string our_signature = T_calculateSignatureForData(cc7::MakeRange("Getting vault key!"), "POST", "/vault/unlock", MASTER_SHARED_SECRET, nonceB64, _setup.applicationSecret, SF_Possession_Knowledge, 6, CTR_DATA, false);
 					// Must match
 					ccstAssertEqual(signature, our_signature);
 					// get encrypted vault
@@ -1048,7 +1048,7 @@ namespace powerAuthTests
 				std::string uriId  = "/vault/unlock";
 				SignatureFactor factor = SF_Possession_Knowledge;
 				//
-				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange());
+				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange(), false);
 				ccstAssertTrue(expected_signature == sig["pa_signature"]);
 				// encrypted vault key
 				cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
@@ -1228,7 +1228,8 @@ namespace powerAuthTests
 			const std::string &		app_secret,
 			const SignatureFactor	factor,
 			const cc7::U64			counter,
-		 	const cc7::ByteRange &	counter_data
+		 	const cc7::ByteRange &	counter_data,
+		 	const bool				is_offline
 		)
 		{
 			// Normalize data
@@ -1265,7 +1266,8 @@ namespace powerAuthTests
 			// Finally, calculate signature
 			cc7::ByteArray counterData = prepareCounterData(counter_data, counter);
 			
-			std::string result;
+			std::string result_string;
+			cc7::ByteArray result_bytes;
 			for (size_t i = 0; i < sigKeys.size(); i++) {
 				cc7::ByteArray signatureKey = sigKeys.at(i);
 				cc7::ByteArray derivedKey   = crypto::HMAC_SHA256(counterData, signatureKey);
@@ -1276,24 +1278,33 @@ namespace powerAuthTests
 				}
 				cc7::ByteArray signatureLong = crypto::HMAC_SHA256(cc7::MakeRange(sigData),  derivedKey);
 				ccstAssertTrue(signatureLong.size() >= 4);
-				size_t offset = signatureLong.size() - 4;
-				const cc7::byte * signatureBytes = (const cc7::byte *)signatureLong.data();
-				// "dynamic binary code" from HOTP draft
-				uint32_t dbc = (signatureBytes[offset + 0] & 0x7F) << 24 |
-								signatureBytes[offset + 1] << 16 |
-								signatureBytes[offset + 2] << 8  |
-								signatureBytes[offset + 3];
-				dbc = dbc % 100000000;
-				
-				char decimalized[32];
-				sprintf(decimalized, "%08d", dbc);
-				if (!result.empty()) {
-					result.append("-");
+				if (is_offline) {
+					// Old V2 & V3 signature version (now used only for offline signatures)
+					size_t offset = signatureLong.size() - 4;
+					const cc7::byte * signatureBytes = (const cc7::byte *)signatureLong.data();
+					// "dynamic binary code" from HOTP draft
+					uint32_t dbc = (signatureBytes[offset + 0] & 0x7F) << 24 |
+									signatureBytes[offset + 1] << 16 |
+									signatureBytes[offset + 2] << 8  |
+									signatureBytes[offset + 3];
+					dbc = dbc % 100000000;
+					
+					char decimalized[32];
+					sprintf(decimalized, "%08d", dbc);
+					if (!result_string.empty()) {
+						result_string.append("-");
+					}
+					result_string.append(decimalized);
+				} else {
+					// New V3.1 online signature version
+					result_bytes.append(signatureLong.byteRange().subRangeFrom(16));
 				}
-				result.append(decimalized);
 			}
-			
-			return result;
+			if (!is_offline) {
+				// Finalize V3.1 online signature
+				cc7::Base64_Encode(result_bytes, 0, result_string);
+			}
+			return result_string;
 		}
 		
 		std::string T_encryptedVaultKey(const cc7::ByteRange & master_shared_secret)

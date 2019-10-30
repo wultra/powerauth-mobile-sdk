@@ -26,6 +26,7 @@
 		_activationId			= PA2ObjectAs(dictionary[@"activationId"], NSString);
 		_encryptedStatusBlob	= PA2ObjectAs(dictionary[@"encryptedStatusBlob"], NSString);
 		_customObject			= PA2ObjectAs(dictionary[@"customObject"], NSDictionary);
+		_nonce					= PA2ObjectAs(dictionary[@"nonce"], NSString);
 	}
 	return self;
 }

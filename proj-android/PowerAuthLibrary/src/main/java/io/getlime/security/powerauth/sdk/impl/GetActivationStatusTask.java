@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
+import io.getlime.security.powerauth.core.EncryptedActivationStatus;
 import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.ProtocolUpgradeData;
 import io.getlime.security.powerauth.core.ProtocolVersion;
@@ -34,9 +35,11 @@ import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.UpgradeCommitV3Endpoint;
 import io.getlime.security.powerauth.networking.endpoints.UpgradeStartV3Endpoint;
+import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.networking.model.request.ValidateSignatureRequest;
 import io.getlime.security.powerauth.networking.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.networking.model.response.UpgradeResponsePayload;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
@@ -145,6 +148,10 @@ public class GetActivationStatusTask implements ICancelable {
         fetchActivationStatus(new IActivationStatusListener() {
             @Override
             public void onActivationStatusSucceed(ActivationStatus status) {
+                // Test whether we have to serialize session's persistent data.
+                if (status.needsSerializeSessionState) {
+                    serializeSessionState();
+                }
                 // We have status. Test for protocol upgrade.
                 if (status.isUpgradeAvailable || session.hasPendingProtocolUpgrade()) {
                     if (!isUpgradeDisabled) {
@@ -154,6 +161,11 @@ public class GetActivationStatusTask implements ICancelable {
                         return;
                     }
                     PA2Log.e("WARNING: Upgrade to newer protocol version is disabled.");
+                }
+                // Now test whether the counter should be synchronized on the server.
+                if (status.isSignatureCalculationRecommended) {
+                    synchronizeCounter(status);
+                    return;
                 }
                 // Otherwise return the result as usual
                 completeTask(status, null);
@@ -178,6 +190,7 @@ public class GetActivationStatusTask implements ICancelable {
         // Execute request
         final ActivationStatusRequest request = new ActivationStatusRequest();
         request.setActivationId(session.getActivationIdentifier());
+        request.setChallenge(session.generateActivationStatusChallenge());
 
         pendingOperation = httpClient.post(
                 request,
@@ -188,10 +201,12 @@ public class GetActivationStatusTask implements ICancelable {
                     public void onNetworkResponse(ActivationStatusResponse response) {
                         // Network communication completed correctly
                         pendingOperation = null;
+                        // Prepare object with encryped status
+                        final EncryptedActivationStatus encryptedStatus = new EncryptedActivationStatus(request.getChallenge(), response.getEncryptedStatusBlob(), response.getNonce());
                         // Prepare unlocking key (possession factor only)
                         final SignatureUnlockKeys keys = new SignatureUnlockKeys(cryptoHelper.getDeviceRelatedKey(), null, null);
                         // Attempt to decode the activation status
-                        final ActivationStatus activationStatus = session.decodeActivationStatus(response.getEncryptedStatusBlob(), keys);
+                        final ActivationStatus activationStatus = session.decodeActivationStatus(encryptedStatus, keys);
                         if (activationStatus != null) {
                             // Everything was OK, keep custom object and report that result.
                             activationStatus.setCustomObject(response.getCustomObject());
@@ -214,6 +229,55 @@ public class GetActivationStatusTask implements ICancelable {
                     }
                 });
     }
+
+    //
+    // Counter synchronization
+    //
+
+    /**
+     * Continue task with signature counter synchronization. In this case, just {@code /pa/signature/validate}
+     * endpoint is called, with simple possession-only signature. That will force server to catch up
+     * with the local counter.
+     *
+     * @param status {@link ActivationStatus} reported in case of success.
+     */
+    private void synchronizeCounter(@NonNull final ActivationStatus status) {
+
+        // Authenticate with possession factor.
+        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+        authentication.usePossession = true;
+
+        // Execute signature validation request
+        final ValidateSignatureRequest request = new ValidateSignatureRequest();
+        request.setReason("COUNTER_SYNCHRONIZATION");
+
+        pendingOperation = httpClient.post(
+                request,
+                new ValidateSignatureEndpoint(),
+                cryptoHelper,
+                authentication,
+                new INetworkResponseListener<Void>() {
+                    @Override
+                    public void onNetworkResponse(Void aVoid) {
+                        pendingOperation = null;
+                        completeTask(status, null);
+                    }
+
+                    @Override
+                    public void onNetworkError(Throwable throwable) {
+                        pendingOperation = null;
+                        completeTask(null, throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        pendingOperation = null;
+                    }
+                }
+
+        );
+    }
+
 
     //
     // Protocol upgrade

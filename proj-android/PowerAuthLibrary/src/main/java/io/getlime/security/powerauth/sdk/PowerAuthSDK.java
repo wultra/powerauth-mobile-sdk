@@ -72,6 +72,7 @@ import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 import io.getlime.security.powerauth.networking.model.request.ActivationLayer1Request;
 import io.getlime.security.powerauth.networking.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.networking.model.request.ConfirmRecoveryRequestPayload;
+import io.getlime.security.powerauth.networking.model.request.ValidateSignatureRequest;
 import io.getlime.security.powerauth.networking.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.networking.model.response.ActivationLayer1Response;
 import io.getlime.security.powerauth.networking.model.response.ActivationLayer2Response;
@@ -1601,10 +1602,13 @@ public class PowerAuthSDK {
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.usePossession = true;
         authentication.usePassword = password;
+        // Prepare request object
+        final ValidateSignatureRequest request = new ValidateSignatureRequest();
+        request.setReason("VALIDATE_PASSWORD");
 
         // Execute HTTP request
         return mClient.post(
-                null,
+                request,
                 new ValidateSignatureEndpoint(),
                 getCryptoHelper(context),
                 authentication,

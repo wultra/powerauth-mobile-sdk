@@ -18,6 +18,7 @@
 #import "PA2CreateActivationRequest.h"
 #import "PA2CreateActivationRequestData.h"
 #import "PA2GetActivationStatusRequest.h"
+#import "PA2ValidateSignatureRequest.h"
 #import "PA2VaultUnlockRequest.h"
 #import "PA2RemoveTokenRequest.h"
 #import "PA2ConfirmRecoveryCodeRequest.h"

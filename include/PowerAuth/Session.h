@@ -224,12 +224,26 @@ namespace powerAuth
 		// MARK: - Status -
 		
 		/**
-		 The method decodes received status blob into ActivationStatus structure. You can call this method after successful
+		 The method decodes received |encrypted_status| structure into ActivationStatus structure. You can call this method after successful
 		 activation and obtain information about pairing between the client and server. You have to provide valid
 		 possessionUnlockKey in the |keys| structure.
 		 */
-		ErrorCode decodeActivationStatus(const std::string & statusBlob, const SignatureUnlockKeys & keys, ActivationStatus & status) const;
+		ErrorCode decodeActivationStatus(const EncryptedActivationStatus & encrypted_status, const SignatureUnlockKeys & keys, ActivationStatus & status) const;
 		
+	private:
+		
+		/**
+		 The private method synchronizes, if possible, counter between client and the server. If counter can be synchronized, then
+		 updates the persistent data with the new value of counter.
+		 
+		 Returns Counter_OK,                   if no additional tasks are required.
+		 		 Counter_Updated,              if local counter in persistent data has been updated.
+				 Counter_CalculateSignature,   if counter is close to deadlock, so an online siganture calculation is recommended.
+		 		 Counter_Invalid,              if counter cannot be sychnronized and the activation is technically blocked.
+		 */
+		ActivationStatus::CounterState trySynchronizeCounter(const cc7::ByteRange & server_ctr_data, const ActivationStatus & status) const;
+		
+	public:
 		
 		// MARK: - Data signing -
 		

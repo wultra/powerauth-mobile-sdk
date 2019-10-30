@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code BiometricAuthentication} class is a high level interface that provides interfaces related
@@ -111,11 +112,25 @@ public class BiometricAuthentication {
                                                     @NonNull final BiometricAuthenticationRequest request,
                                                     @NonNull final IBiometricAuthenticationCallback callback) {
         synchronized (SharedContext.class) {
-            // Acquire authenticator from the context
+            // Check whether there's already pending authentication request.
             final SharedContext ctx = getContext();
+            if (!ctx.startBiometricAuthentication()) {
+                // There's already pending biometric authentication request.
+                return reportSimultaneousRequest(callback);
+            }
+
+            // Acquire authenticator from the shared context
             final IBiometricAuthenticator device = ctx.getAuthenticator(context);
             // Prepare essential authentication request data
-            final BiometricResultDispatcher dispatcher = new BiometricResultDispatcher(callback, new DefaultCallbackDispatcher());
+            final BiometricResultDispatcher dispatcher = new BiometricResultDispatcher(callback, new DefaultCallbackDispatcher(), new BiometricResultDispatcher.IResultCompletion() {
+                @Override
+                public void onCompletion() {
+                    // Clear the pending request flag.
+                    synchronized (SharedContext.class) {
+                        ctx.finishPendingBiometricAuthentication();
+                    }
+                }
+            });
             final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
 
             // Validate request status
@@ -235,6 +250,33 @@ public class BiometricAuthentication {
         return cancelableTask;
     }
 
+    /**
+     * Report cancel to provided callback in case that this is the simultaneous biometric authentication request.
+     * @param callback Callback to report the cancel.
+     * @return Dummy {@link ICancelable} object that does nothing.
+     */
+    private static ICancelable reportSimultaneousRequest(@NonNull final IBiometricAuthenticationCallback callback) {
+        PA2Log.e("Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
+        // Report cancel to the main thread.
+        new DefaultCallbackDispatcher().dispatchCallback(new Runnable() {
+            @Override
+            public void run() {
+                // Report cancel.
+                callback.onBiometricDialogCancelled(false);
+            }
+        });
+        // Return dummy cancelable object.
+        return new ICancelable() {
+            @Override
+            public void cancel() {
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return true;
+            }
+        };
+    }
 
     /**
      * Sets shared {@link BiometricDialogResources} object to this class. You can use this method
@@ -258,6 +300,29 @@ public class BiometricAuthentication {
     }
 
     /**
+     * Set new {@code BiometricPrompt} based authentication disabled for this device and force to use
+     * the legacy {@code FingerprintManager} authenticator. This is useful for situations when device's
+     * manufacturer provides a faulty implementation of {@code BiometricPrompt} and therefore
+     * PowerAuth SDK cannot use it for biometric authentication tasks.
+     *
+     * @param disabled Set {@code true} to disable new {@code BiometricPrompt} based authentication method.
+     */
+    public static void setBiometricPromptAuthenticationDisabled(boolean disabled) {
+        synchronized (SharedContext.class) {
+            getContext().setBiometricPromptAuthenticationDisabled(disabled);
+        }
+    }
+
+    /**
+     * @return {@code true} when {@code BiometricPrompt} based authentication is disabled for this device.
+     */
+    public static boolean isBiometricPromptAuthenticationDisabled() {
+        synchronized (SharedContext.class) {
+            return getContext().isBiometricPromptAuthenticationDisabled();
+        }
+    }
+
+    /**
      * The {@code SharedContext} nested class contains shared data, required for the biometric tasks.
      */
     private static class SharedContext {
@@ -270,8 +335,7 @@ public class BiometricAuthentication {
         /**
          * Contains shared {@link BiometricDialogResources} object.
          */
-        private @NonNull
-        BiometricDialogResources biometricDialogResources;
+        private @NonNull BiometricDialogResources biometricDialogResources;
 
         /**
          * Contains {@link IBiometricAuthenticator} in case that keeping a reference to a permanent authenticator
@@ -279,6 +343,17 @@ public class BiometricAuthentication {
          * on the authenticator.
          */
         private @Nullable IBiometricAuthenticator authenticator;
+
+        /**
+         * Contains {@code true} in case that legacy biometric authentication must be used on devices
+         * supporting the new {@code BiometricPrompt}.
+         */
+        private boolean isBiometricPromptAuthenticationDisabled = false;
+
+        /**
+         * Contains {@code true} in case that there's already pending biometric authentication.
+         */
+        private boolean isPendingBiometricAuthentication = false;
 
         private SharedContext() {
             biometricDialogResources = new BiometricDialogResources.Builder().build();
@@ -301,6 +376,21 @@ public class BiometricAuthentication {
         }
 
         /**
+         * @return {@code true} if new {@code BiometricPrompt} based authentication is disabled.
+         */
+        boolean isBiometricPromptAuthenticationDisabled() {
+            return isBiometricPromptAuthenticationDisabled;
+        }
+
+        /**
+         * Set new {@code BiometricPrompt} based authentication disabled.
+         * @param disabled Set {@code true} to disable {@code BiometricPrompt} based authentication.
+         */
+        void setBiometricPromptAuthenticationDisabled(boolean disabled) {
+            isBiometricPromptAuthenticationDisabled = disabled;
+        }
+
+        /**
          * Returns object implementing {@link IBiometricAuthenticator} interface. The returned implementation
          * depends on the version of Android system and on the authenticator's capabilities. If current system
          * doesn't support biometric related APIs, or if the authenticator itself has no biometric sensor
@@ -316,7 +406,7 @@ public class BiometricAuthentication {
                 return authenticator;
             }
             // If Android 9.0 "Pie" and newer, then try to build authenticator supporting BiometricPrompt.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isBiometricPromptAuthenticationDisabled) {
                 final IBiometricAuthenticator newAuthenticator = BiometricAuthenticator.createAuthenticator(context, getBiometricKeystore());
                 if (newAuthenticator != null) {
                     return newAuthenticator;
@@ -333,6 +423,27 @@ public class BiometricAuthentication {
             // In this case, we can cache the authenticator.
             authenticator = new DummyBiometricAuthenticator();
             return authenticator;
+        }
+
+        /**
+         * Check whether there's a pending biometric authentication request. If no, then start
+         * a new one.
+         *
+         * @return {@code false} if there's already pending biometric authentication request.
+         */
+        boolean startBiometricAuthentication() {
+            if (isPendingBiometricAuthentication) {
+                return false;
+            }
+            isPendingBiometricAuthentication = true;
+            return true;
+        }
+
+        /**
+         * Finish previously started biometric authentication request.
+         */
+        void finishPendingBiometricAuthentication() {
+            isPendingBiometricAuthentication = false;
         }
     }
 

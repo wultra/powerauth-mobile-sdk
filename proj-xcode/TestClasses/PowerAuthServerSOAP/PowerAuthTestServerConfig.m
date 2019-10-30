@@ -70,7 +70,9 @@
 + (PowerAuthTestServerVersion) soapApiVersionFromString:(NSString*)string
 {
 	string = [string lowercaseString];
-	if ([string isEqualToString:@"v3"]) {
+	if ([string isEqualToString:@"v3.1"]) {
+		return PATS_V31;
+	} else if ([string isEqualToString:@"v3"]) {
 		return PATS_V3;
 	} else if ([string isEqualToString:@"v2"]) {
 		return PATS_V2;

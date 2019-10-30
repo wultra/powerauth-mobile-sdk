@@ -38,10 +38,10 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V3) {
-			_templateMapping = [SoapHelper mappingForV3];
+		if (_version == PATS_V31) {
+			_templateMapping = [SoapHelper mappingForV31];
 		} else {
-			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 server is not supported." userInfo:nil];
+			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 or V3 server is not supported." userInfo:nil];
 		}
 	}
 	return self;
@@ -208,7 +208,7 @@
 
 #define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV3
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV31
 {
 	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
 	return @{
@@ -218,8 +218,9 @@
 			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
 			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
 			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
-			 @"CreateToken"						: MAP(v3, @"_v3/CreateToken"),
+			 @"CreateToken"						: MAP(v3, @"CreateToken"),
 			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetActivationStatus_Challenge"	: MAP(v3, @"GetActivationStatus_Challenge"),
 			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
 			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
 			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
@@ -232,11 +233,10 @@
 			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
 			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
 			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
-			 @"VerifySignature"					: MAP(v3, @"_v3/VerifySignature"),	// Default signature validation (without specified version)
-			 @"VerifySignature_ForceVer"		: MAP(v3, @"_v3/VerifySignature"),	// The same template, but with additional "signatureVersion" param
+			 @"VerifySignature"					: MAP(v3, @"VerifySignature"),
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"VerifySignature_ForceVer"),	// Forced protocol version
 			 };
 }
-
 #undef MAP
 
 @end

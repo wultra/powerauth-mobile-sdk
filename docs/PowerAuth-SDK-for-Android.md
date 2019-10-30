@@ -371,7 +371,7 @@ if (powerAuthSDK.hasValidActivation()) {
     powerAuthSDK.fetchActivationStatusWithCallback(context, new IActivationStatusListener() {
         @Override
         public void onActivationStatusSucceed(ActivationStatus status) {
-            // Activation state: State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed
+            // Activation state: State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock
             int state = status.state;
 
             // Failed login attempts, remaining = max - current
@@ -726,6 +726,12 @@ The `BiometricAuthentication` class is a high level interface that provides inte
 - New `BiometricPrompt` class is used on Android 9 and newer.
   - In this case, a system provided prompt will be displayed.
   - _Note that in this case, we still need to use a `FingerprintManager` to determine whether biometry is enrolled on the system. This is due to lack of such functionality in Android 9._
+
+In case of [compatibility issues](https://github.com/wultra/powerauth-mobile-sdk/issues/251), you can force PowerAuth SDK to use the legacy `FingerprintManager` based authentication:
+
+```java
+BiometricAuthentication.setBiometricPromptAuthenticationDisabled(true);
+```
 
 To customize the legacy fingerprint dialog, you can use `BiometricDialogResources` in following manner:
 

@@ -1033,7 +1033,7 @@ static PowerAuthSDK * s_inst;
 - (id<PA2OperationTask>) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback
 {
 	[self checkForValidSetup];
-	return [_client postObject:nil
+	return [_client postObject:[PA2ValidateSignatureRequest requestWithReason:@"VALIDATE_PASSWORD"]
 							to:[PA2RestApiEndpoint validateSignature]
 						  auth:[PowerAuthAuthentication possessionWithPassword:password]
 					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {

@@ -198,7 +198,7 @@
  If the returned object is nil then the error occured and you can determine the failure reason from
  DEBUG log.
  */
-- (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull NSString *)statusBlob
+- (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull PA2EncryptedActivationStatus *)encryptedStatus
 													keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys;
 
 #pragma mark - Data signing
@@ -457,6 +457,14 @@
  for all other situations, when the generated random key is required.
  */
 + (nonnull NSData*) generateSignatureUnlockKey;
+
+/**
+ Returns new challenge for getting activation status.
+ 
+ Internally, method only generates 16 bytes long random data encoded to Base64 and therefore
+ is also suitable for all other situations, when the generated random key is required.
+ */
+- (nonnull NSString*) generateActivationStatusChallenge;
 
 
 #pragma mark - Protocol upgrade

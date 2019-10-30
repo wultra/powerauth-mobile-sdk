@@ -22,6 +22,7 @@
 
 @property (nonatomic, strong) NSString *activationId;
 @property (nonatomic, strong) NSString *encryptedStatusBlob;
+@property (nonatomic, strong) NSString *nonce;
 @property (nonatomic, strong) NSDictionary *customObject;
 
 @end

@@ -465,6 +465,26 @@ typedef NS_ENUM(int, PA2ActivationState) {
 	PA2ActivationState_Deadlock	= 128,
 };
 
+/**
+ The PA2EncryptedActivationStatus object contains encrypted status
+ data and parameters required for the data decryption.
+ */
+@interface PA2EncryptedActivationStatus : NSObject
+
+/**
+ The challenge value sent to the server. 16 bytes encoded to Base64 is expected.
+ */
+@property (nonatomic, strong, nullable) NSString * challenge;
+/**
+ Contains encrypted status data. The Base64 encoded string is expected.
+ */
+@property (nonatomic, strong, nullable) NSString * encryptedStatusBlob;
+/**
+ Contains nonce returned from the server. 16 bytes encoded to Base64 is expected.
+ */
+@property (nonatomic, strong, nullable) NSString * nonce;
+
+@end
 
 /**
  The PA2ActivationStatus object represents complete status of the activation.

@@ -80,9 +80,20 @@ namespace protocol
 	// Length of status blob
 	const size_t STATUS_BLOB_SIZE = 32;
 	
+	// Length of status blob challenge data.
+	const size_t STATUS_BLOB_CHALLENGE_SIZE = 16;
+	
+	// Length of expected status blob nonce data.
+	const size_t STATUS_BLOB_NONCE_SIZE = STATUS_BLOB_CHALLENGE_SIZE;
+	
 	// Length of APPLICATION_KEY, APPLICATION_SECRET
 	const size_t APPLICATION_KEY_SIZE = 16;
 	const size_t APPLICATION_SECRET_SIZE = 16;
+	
+	// Default value for look ahead window
+	const size_t LOOK_AHEAD_DEFAULT = 20;
+	// Maximum supported look ahead.
+	const size_t LOOK_AHEAD_MAX = 64;
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

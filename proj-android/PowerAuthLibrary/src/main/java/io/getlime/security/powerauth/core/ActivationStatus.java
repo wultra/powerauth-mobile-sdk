@@ -53,6 +53,7 @@ public class ActivationStatus {
      */
     public static final int State_Deadlock = 128;
     
+    
     /**
      * Error code returned from the C++ code. The value can be compared
      * to constants from ErrorCode class.
@@ -103,6 +104,20 @@ public class ActivationStatus {
      */
     public final boolean isUpgradeAvailable;
 
+    // Other status flags
+
+    /**
+     * Contains true if dummy signature calculation is recommended to prevent
+     * the counter's de-synchronization.
+     */
+    public final boolean isSignatureCalculationRecommended;
+
+    /**
+     * Contains true if session's state should be serialized after the successful
+     * activation status decryption.
+     */
+    public final boolean needsSerializeSessionState;
+
     /**
      * Contains custom object received from the server together with the status. The value is optional
      * and the server's implementation must support it.
@@ -119,6 +134,8 @@ public class ActivationStatus {
         this.currentVersion = ProtocolVersion.NA;
         this.upgradeVersion = ProtocolVersion.NA;
         this.isUpgradeAvailable = false;
+        this.isSignatureCalculationRecommended = false;
+        this.needsSerializeSessionState = false;
         this.customObject = null;
     }
 

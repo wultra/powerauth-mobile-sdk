@@ -189,13 +189,15 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Activation status
 
-- (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull NSString *)statusBlob
+- (nullable PA2ActivationStatus*) decodeActivationStatus:(nonnull PA2EncryptedActivationStatus *)encryptedStatus
 													keys:(nonnull PA2SignatureUnlockKeys*)unlockKeys
 {
+	EncryptedActivationStatus cpp_encrypted_status;
 	SignatureUnlockKeys cpp_keys;
 	ActivationStatus cpp_status;
+	PA2EncryptedActivationStatusToStruct(encryptedStatus, cpp_encrypted_status);
 	PA2SignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-	auto error = _session->decodeActivationStatus(cc7::objc::CopyFromNSString(statusBlob), cpp_keys, cpp_status);
+	auto error = _session->decodeActivationStatus(cpp_encrypted_status, cpp_keys, cpp_status);
 	if (error == EC_Ok) {
 		return PA2ActivationStatusToObject(cpp_status);
 	}
@@ -402,6 +404,12 @@ using namespace io::getlime::powerAuth;
 + (nonnull NSData*) generateSignatureUnlockKey
 {
 	return cc7::objc::CopyToNSData(Session::generateSignatureUnlockKey());
+}
+
+
+- (nonnull NSString*) generateActivationStatusChallenge
+{
+	return cc7::objc::CopyToNSString(Session::generateSignatureUnlockKey().base64String());
 }
 
 

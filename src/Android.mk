@@ -99,6 +99,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2SignatureCalculationTests.cpp \
 	PowerAuthTests/pa2SignatureKeysDerivationTest.cpp \
 	PowerAuthTests/pa2PublicKeyFingerprintTests.cpp \
+	PowerAuthTests/pa2ActivationStatusBlobTests.cpp \
 	PowerAuthTests/pa2URLEncodingTests.cpp \
 	PowerAuthTests/pa2OtpUtilTests.cpp \
 	PowerAuthTests/pa2ECIESTests.cpp \

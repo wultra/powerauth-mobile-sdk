@@ -43,7 +43,7 @@
 	BOOL _invalidConfig;
 }
 
-static NSString * PA_Ver = @"3.0";
+static NSString * PA_Ver = @"3.1";
 
 #pragma mark - Test setup
 
@@ -356,6 +356,7 @@ static NSString * PA_Ver = @"3.0";
 	
 	// Now locally calculate signature & nonce
 	NSArray * local_sig_nonce;
+	NSString * signature_version = PA_Ver;
 	if (online) {
 		local_sig_nonce = [self calculateOnlineSignature:local_data method:local_method uriId:local_uriId auth:local_auth];
 	} else {
@@ -375,13 +376,14 @@ static NSString * PA_Ver = @"3.0";
 		response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
 											   data:normalized_data
 										  signature:local_signature
-									  signatureType:[self authToString:auth]];
+									  signatureType:[self authToString:auth]
+								  signatureVersion:signature_version];
 		XCTAssertNotNil(response, @"Online response must be received");
 	} else {
 		response = [_testServerApi verifyOfflineSignature:_sdk.session.activationIdentifier
 													 data:normalized_data
 												signature:local_signature
-											signatureType:[self authToString:auth]];
+											allowBiometry:NO];
 		XCTAssertNotNil(response, @"Offline response must be received");
 	}
 	BOOL result = (response != nil) && (response.signatureValid == (cripple == 0));
@@ -483,7 +485,7 @@ static NSString * PA_Ver = @"3.0";
 	CHECK_RESULT_RET(preliminaryResult);
 	
 	// Now it's time to validate activation status, created on the server
-	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
+	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId challenge:nil];
 	result = serverActivationStatus != nil;
 	CHECK_RESULT_RET(preliminaryResult);
 	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
@@ -672,8 +674,7 @@ static NSString * PA_Ver = @"3.0";
 							? [@"hello online world" dataUsingEncoding:NSUTF8StringEncoding]
 							: [[NSData alloc] initWithBase64EncodedString:@"zYnF8edfgfgT2TcZjupjppBHoUJGjONkk6H+eThIsi0=" options:0] ;
 		// Positive
-		if (online_mode || _testServerApi.serverVersion == PATS_V3 || _testServerApi.serverVersion == PATS_V2) {
-			// V31+ server doesn't allow offline signature with only possession factor
+		if (online_mode) {
 			result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
 			XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		}
@@ -750,7 +751,7 @@ static NSString * PA_Ver = @"3.0";
 
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
 	XCTAssertNotNil(normalized_data);
-	PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:activationData.activationId data:normalized_data signature:local_signature signatureType:[self authToString:sign_auth]];
+	PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:activationData.activationId data:normalized_data signature:local_signature allowBiometry:NO];
 	XCTAssertTrue(response.signatureValid);
 	
 	// Cleanup
@@ -887,7 +888,7 @@ static NSString * PA_Ver = @"3.0";
 	XCTAssertNotNil(sig_nonce);
 	// Verify on the server (we're using SOAP because vanilla PA REST server doesn't have endpoint signed with possession
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/hello/world" nonce:sig_nonce[1] data:data];
-	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:activationData.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"POSSESSION"];
+	PATSVerifySignatureResponse * response = [_testServerApi verifySignature:activationData.activationId data:normalized_data signature:sig_nonce[0] signatureType:@"POSSESSION" signatureVersion:PA_Ver];
 	XCTAssertNotNil(response);
 	XCTAssertTrue(response.signatureValid, @"Calculated signature is not valid");
 
@@ -949,6 +950,125 @@ static NSString * PA_Ver = @"3.0";
 			XCTAssertTrue(after.state == PA2ActivationState_Blocked, @"Activation should be blocked");
 		}
 	}
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+#define CTR_LOOKAHEAD 20	// Default constant on the server
+
+- (void) testCounterSync_ClientIsAhead
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether Mobile SDK proactively synchronize counter
+	// on the server, when local counter is slightly ahead to server's.
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	PA2ActivationStatus * status;
+	// Positive
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		// Just calculate signature on the client. This step simulates a network connection failure.
+		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+		XCTAssertNotNil(header);
+		if ((i % 4) == 0) {
+			// Every 4th signature calculation try to get the status
+			status = [self fetchActivationStatus];
+			XCTAssertNotNil(status);
+			// Everything should be OK, because getting the status fires signature validation internally.
+			XCTAssertEqual(status.state, PA2ActivationState_Active);
+		}
+	}
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	
+	// Negative
+	// Now try to calculate too many signatures that server will never catch
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		// Just calculate signature on the client. This step simulates a network connection failure.
+		PA2AuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+		XCTAssertNotNil(header);
+	}
+	
+	// Now get the status. It should be a deadlocked.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Deadlock);
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
+- (void) testCounterSync_ServerIsAhead
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether Mobile SDK is able to catch
+	// server's counter if server is slightly ahead.
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	PA2ActivationStatus * status;
+
+	// Positive
+	NSData * data_to_sign = [@"hello world" dataUsingEncoding:NSUTF8StringEncoding];
+
+	// Just calculate signature on the server.
+	// This is a little bit tricky, because we need to calculate a valid signature, to move server's counter forward. To do that,
+	// we have to calculate also a local signature, but that moves also local counter forward.
+	// To trick the system, we need to keep old persistent data and restore it later.
+	NSData * previous_state = [_sdk.session serializedState];
+	for (int i = 0; i < CTR_LOOKAHEAD/2; i++) {
+		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
+		PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+		XCTAssertNotNil(response, @"Online response must be received");
+		XCTAssertTrue(response.signatureValid);
+	}
+	// Rollback counter to some previous state.
+	[_sdk.session deserializeState:previous_state];
+	// Fetch the status. This should move local counter forward, so the next calculation will succeed.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Active);
+	BOOL password_result = [self checkForPassword:auth.usePassword];
+	XCTAssertTrue(password_result);
+	
+	// Negative
+	// Now try to calculate too many signatures that client will never catch the server.
+	previous_state = [_sdk.session serializedState];
+	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
+		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
+		PATSVerifySignatureResponse * response = [_testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
+		XCTAssertNotNil(response, @"Online response must be received");
+		XCTAssertTrue(response.signatureValid);
+	}
+	// Rollback counter to some previous state.
+	[_sdk.session deserializeState:previous_state];
+	
+	// Now get the status. It should be a deadlocked.
+	status = [self fetchActivationStatus];
+	XCTAssertNotNil(status);
+	XCTAssertEqual(status.state, PA2ActivationState_Deadlock);
 	
 	// Cleanup
 	[self removeLastActivation:activationData];
@@ -1045,7 +1165,7 @@ static NSString * PA_Ver = @"3.0";
 	
 	// 5. At this point, old activation should be in "REMOVED" state
 	
-	PATSActivationStatus * serverOldActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
+	PATSActivationStatus * serverOldActivationStatus = [_testServerApi getActivationStatus:activationData.activationId challenge:nil];
 	XCTAssertNotNil(serverOldActivationStatus);
 	XCTAssertTrue([serverOldActivationStatus.activationStatus isEqualToString:@"REMOVED"]);
 

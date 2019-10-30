@@ -338,24 +338,29 @@ CC7_JNI_METHOD_PARAMS(jint, completeActivation, jobject lockKeys)
 // ----------------------------------------------------------------------------
 
 //
-// public native ActivationStatus decodeActivationStatus(String statusBlob, SignatureUnlockKeys unlockKeys);
+// public native ActivationStatus decodeActivationStatus(EncryptedActivationStatus encryptedStatus, SignatureUnlockKeys unlockKeys);
 //
-CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobject unlockKeys)
+CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, jobject unlockKeys)
 {
 	auto session = CC7_THIS_OBJ();
-	if (!session || !unlockKeys || !statusBlob) {
+	if (!session || !unlockKeys || !encryptedStatus) {
 		CC7_ASSERT(false, "Missing param or internal handle.");
 		return NULL;
 	}
 	// Load parameters into C++ structures
-	std::string cppStatusBlob = cc7::jni::CopyFromJavaString(env, statusBlob);
+	EncryptedActivationStatus cppEncStatus;
+	jclass encStatusClazz = CC7_JNI_MODULE_FIND_CLASS("EncryptedActivationStatus");
+	cppEncStatus.challenge				= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(encryptedStatus, encStatusClazz, "challenge"));
+	cppEncStatus.encryptedStatusBlob	= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(encryptedStatus, encStatusClazz, "encryptedStatusBlob"));
+	cppEncStatus.nonce					= cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(encryptedStatus, encStatusClazz, "nonce"));
+	//
 	SignatureUnlockKeys cppUnlockKeys;
 	if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
 		return NULL;
 	}
 	// Call C++ session
 	ActivationStatus cppStatus;
-	ErrorCode code = session->decodeActivationStatus(cppStatusBlob, cppUnlockKeys, cppStatus);
+	ErrorCode code = session->decodeActivationStatus(cppEncStatus, cppUnlockKeys, cppStatus);
 	// Copy result to java object
 	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationStatus");
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationStatus"), "()V");
@@ -369,7 +374,9 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jstring statusBlob, jobje
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "maxFailCount",			cppStatus.maxFailCount);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "currentVersion", versionSig, currentVersionObject);
 		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "upgradeVersion", versionSig, upgradeVersionObject);
-		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",	cppStatus.isProtocolUpgradeAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",					cppStatus.isProtocolUpgradeAvailable());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isSignatureCalculationRecommended",	cppStatus.isSignatureCalculationRecommended());
+		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "needsSerializeSessionState",			cppStatus.needsSerializeSessionState());
 	}
 	return resultObject;
 }
@@ -725,7 +732,13 @@ CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
 	return cc7::jni::CopyToJavaByteArray(env, Session::generateSignatureUnlockKey());
 }
 
-
+//
+// public native String generateActivationStatusChallenge()
+//
+CC7_JNI_METHOD(jstring, generateActivationStatusChallenge)
+{
+	return cc7::jni::CopyToJavaString(env, Session::generateSignatureUnlockKey().base64String());
+}
 
 // ----------------------------------------------------------------------------
 // Protocol upgrade

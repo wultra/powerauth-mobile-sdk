@@ -177,6 +177,8 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 @implementation PA2ActivationStep2Result
 @end
 
+@implementation PA2EncryptedActivationStatus
+@end
 
 @implementation PA2ActivationStatus
 {
@@ -227,6 +229,7 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 		case ActivationStatus::Active:		status_str = @"ACTIVE"; break;
 		case ActivationStatus::Blocked:		status_str = @"BLOCKED"; break;
 		case ActivationStatus::Removed:		status_str = @"REMOVED"; break;
+		case ActivationStatus::Deadlock:	status_str = @"DEADLOCK"; break;
 		default:
 			status_str = @"<<unknown>>"; break;
 			
@@ -251,6 +254,16 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 - (BOOL) isProtocolUpgradeAvailable
 {
 	return _status.isProtocolUpgradeAvailable();
+}
+
+- (BOOL) isSignatureCalculationRecommended
+{
+	return _status.isSignatureCalculationRecommended();
+}
+
+- (BOOL) needsSerializeSessionState
+{
+	return _status.needsSerializeSessionState();
 }
 
 @end
@@ -295,6 +308,13 @@ void PA2HTTPRequestDataToStruct(PA2HTTPRequestData * req, io::getlime::powerAuth
 	cpp_req.method					= cc7::objc::CopyFromNSString(req.method);
 	cpp_req.uri						= cc7::objc::CopyFromNSString(req.uri);
 	cpp_req.offlineNonce			= cc7::objc::CopyFromNSString(req.offlineNonce);
+}
+
+void PA2EncryptedActivationStatusToStruct(PA2EncryptedActivationStatus * status, io::getlime::powerAuth::EncryptedActivationStatus& cpp_status)
+{
+	cpp_status.challenge 			= cc7::objc::CopyFromNSString(status.challenge);
+	cpp_status.encryptedStatusBlob	= cc7::objc::CopyFromNSString(status.encryptedStatusBlob);
+	cpp_status.nonce				= cc7::objc::CopyFromNSString(status.nonce);
 }
 
 PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status)

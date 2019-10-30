@@ -99,12 +99,13 @@ namespace protocol
 	void CalculateNextCounterValue(PersistentData & pd);
 	
 	/**
-	 Calculates multi-factor signature from given |data|, for using |ctr_data| and |keys|.
+	 Calculates multi-factor online or offline signature from given |data|, for using |ctr_data| and |keys|.
 	 */
 	std::string CalculateSignature(const SignatureKeys & sk,
 								   SignatureFactor factor,
 								   const cc7::ByteRange & ctr_data,
-								   const cc7::ByteRange & data);
+								   const cc7::ByteRange & data,
+								   bool online);
 	
 	/**
 	 Prepares exact data for signature calculation:
@@ -137,6 +138,22 @@ namespace protocol
 											   const std::string activation_id,
 											   Version v);
 	
+	//
+	// MARK: - Encrypted status -
+	//
+	
+	/**
+	 Derives IV (initialization vector) used for encrypted status blob decryption.
+	 */
+	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
+												   const cc7::ByteRange & nonce,
+												   const cc7::ByteRange & transport_key);
+	
+	/**
+	 Calculates distance between |counter1| and |counter2| (e.g. how many interations is required to move from counter1 to counter2).
+	 The |max_iterations| limits number of iterations to be performed. If the maximum iterations is reached, then the returned value is -1.
+	 */
+	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations);
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

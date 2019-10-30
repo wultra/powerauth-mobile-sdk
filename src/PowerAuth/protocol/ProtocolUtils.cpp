@@ -355,12 +355,19 @@ namespace protocol
 		return _U64ToData(counter);
 	}
 	
+	/**
+	 Move hash based counter forward.
+	 */
+	inline cc7::ByteArray _NextCounterValue(const cc7::ByteRange & prev)
+	{
+		return ReduceSharedSecret(crypto::SHA256(prev));
+	}
 	
 	void CalculateNextCounterValue(PersistentData & pd)
 	{
 		if (pd.isV3()) {
 			// Move hash-based counter forward. Vault unlock is ignored in V3
-			pd.signatureCounterData = ReduceSharedSecret(crypto::SHA256(pd.signatureCounterData));
+			pd.signatureCounterData = _NextCounterValue(pd.signatureCounterData);
 			//
 		} else {
 			// Move old counter forward
@@ -369,7 +376,7 @@ namespace protocol
 	}
 	
 	
-	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data)
+	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data, bool online)
 	{
 		// Prepare keys into one linear vector
 		std::vector<const cc7::ByteArray*> keys;
@@ -383,8 +390,15 @@ namespace protocol
 			keys.push_back(&sk.biometryKey);
 		}
 		
-		// Prepare data with counter; [ 0x0 * 8 + BigEndian(ctr) ]
-		std::string result;
+		// Pepare byte array for online signature or final string for offline signature.
+		cc7::ByteArray signature_bytes;
+		std::string signature_string;
+		if (online) {
+			signature_bytes.reserve(keys.size() * 16);
+		} else {
+			signature_string.reserve(keys.size() * 8 + keys.size() - 1);
+		}
+		// Now calculate signature for all involved factors.
 		for (size_t i = 0; i < keys.size(); i++) {
 			// Outer loop, for over key in the vector.
 			const cc7::ByteArray & signature_key = *keys[i];
@@ -403,20 +417,31 @@ namespace protocol
 				}
 			}
 			// Calculate HMAC for given data
-			auto signature_long = crypto::HMAC_SHA256(data, derived_key);
-			if (signature_long.size() == 0) {
+			auto signature_factor_bytes = crypto::HMAC_SHA256(data, derived_key);
+			if (signature_factor_bytes.size() == 0) {
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
-			// Finally, calculate decimalized value from signature and append it to the
-			// output string.
-			auto signature = CalculateDecimalizedSignature(signature_long);
-			if (!result.empty()) {
-				result.append(DASH);
+			if (online) {
+				// For new online signature, just append last 16 bytes of HMAC result.
+				// We'll calculate final signature string later.
+				signature_bytes.append(signature_factor_bytes.byteRange().subRangeFrom(16));
+			} else {
+				// Offline signature is using old, decimalized format.
+				auto signature_factor = CalculateDecimalizedSignature(signature_factor_bytes);
+				if (!signature_string.empty()) {
+					signature_string.append(DASH);
+				}
+				signature_string.append(signature_factor);
 			}
-			result.append(signature);
 		}
-		return result;
+		if (online) {
+			// Now calculate a final Base64 string for online signature
+			cc7::Base64_Encode(signature_bytes, 0, signature_string);
+		}
+		// Otherwise, for offline signature, just return the result which already
+		// contains the final string.
+		return signature_string;
 	}
 	
 	
@@ -552,6 +577,46 @@ namespace protocol
 		EC_KEY_free(server_public_key);
 		
 		return result;
+	}
+	
+	//
+	// MARK: - Encrypted status -
+	//
+	
+	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
+												   const cc7::ByteRange & nonce,
+												   const cc7::ByteRange & transport_key)
+	{
+		if (CC7_CHECK(challenge.size() == STATUS_BLOB_CHALLENGE_SIZE && nonce.size() == STATUS_BLOB_NONCE_SIZE)) {
+			// Derive base IV key from transport key
+			auto key_transport_iv = DeriveSecretKey(transport_key, 3000);
+			// KDF_INTERNAL
+			auto key_challenge = ReduceSharedSecret(crypto::HMAC_SHA256(challenge, key_transport_iv));
+			// challenge_key ^= nonce
+			if (key_challenge.size() == nonce.size()) {
+				for (size_t i = 0; i < key_challenge.size(); i++) {
+					key_challenge[i] ^= nonce[i];
+				}
+				return key_challenge;
+			}
+		}
+		// In case of failure, return empty array.
+		return cc7::ByteArray();
+	}
+	
+	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations)
+	{
+		cc7::ByteArray cnt = counter1;
+		int iteration = 0;
+		while (max_iterations > 0) {
+			if (cnt == counter2) {
+				return iteration;
+			}
+			cnt = _NextCounterValue(cnt);
+			++iteration;
+			--max_iterations;
+		}
+		return -1;
 	}
 	
 } // io::getlime::powerAuth::protocol

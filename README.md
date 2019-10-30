@@ -13,6 +13,7 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
+- [Migration from version `1.2.x` to `1.3.x`](docs/Migration-from-1.2-to-1.3.md)
 - [Migration from version `1.1.x` to `1.2.x`](docs/Migration-from-1.1-to-1.2.md)
 - [Migration from version `1.0.x` to `1.1.x`](docs/Migration-from-1.0-to-1.1.md)
 - [Migration from version `0.20.x` to `1.0.x`](docs/Migration-from-0.20-to-1.0.md)
@@ -24,8 +25,8 @@ All sources are licensed using Apache 2.0 license, you can use them with no rest
 
 ## Contact
 
-If you need any assistance, do not hesitate to drop us a line at hello@wultra.com.
+If you need any assistance, do not hesitate to drop us a line at [hello@wultra.com](mailto:hello@wultra.com).
 
 ### Security Disclosure
 
-If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to support@wultra.com. Please do not post it to a public issue tracker.
+If you believe you have identified a security vulnerability with PowerAuth, you should report it as soon as possible via email to [support@wultra.com](mailto:support@wultra.com). Please do not post it to a public issue tracker.

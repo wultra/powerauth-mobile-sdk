@@ -442,15 +442,15 @@ namespace powerAuth
 	
 	// MARK: - Status -
 	
-	ErrorCode Session::decodeActivationStatus(const std::string & status_blob, const SignatureUnlockKeys & keys, ActivationStatus & status) const
+	ErrorCode Session::decodeActivationStatus(const EncryptedActivationStatus & enc_status, const SignatureUnlockKeys & keys, ActivationStatus & status) const
 	{
 		LOCK_GUARD();
 		if (!hasValidActivation()) {
 			CC7_LOG("Session %p, %d: Status: Called in wrong state.", this, sessionIdentifier());
 			return EC_WrongState;
 		}
-		if (status_blob.empty()) {
-			CC7_LOG("Session %p, %d: Status: Missing status blob.", this, sessionIdentifier());
+		if (enc_status.challenge.empty() || enc_status.encryptedStatusBlob.empty() || enc_status.nonce.empty()) {
+			CC7_LOG("Session %p, %d: Status: All parameters are required in EncryptedActivationStatus.", this, sessionIdentifier());
 			return EC_WrongParam;
 		}
 		protocol::SignatureKeys signature_keys;
@@ -461,24 +461,37 @@ namespace powerAuth
 		}
 		// Decode blob from B64 string
 		cc7::ByteArray encrypted_status_blob;
-		bool result = encrypted_status_blob.readFromBase64String(status_blob);
+		cc7::ByteArray status_nonce;
+		cc7::ByteArray status_challenge;
+		bool result = encrypted_status_blob.readFromBase64String(enc_status.encryptedStatusBlob);
+		result = result && status_challenge.readFromBase64String(enc_status.challenge);
+		result = result && status_nonce.readFromBase64String(enc_status.nonce);
 		if (encrypted_status_blob.size() != protocol::STATUS_BLOB_SIZE || !result) {
 			// Considered as an attack on protocol
 			return EC_Encryption;
 		}
+		// Prepare IV for status blob decryption
+		auto status_iv = protocol::DeriveIVForStatusBlobDecryption(status_challenge, status_nonce, signature_keys.transportKey);
+		if (status_iv.empty()) {
+			return EC_Encryption;
+		}
 		// Decrypt blob and initialize reader for data parsing.
-		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, protocol::ZERO_IV, encrypted_status_blob));
+		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, status_iv, encrypted_status_blob));
 		cc7::ByteRange hdr;
+		cc7::ByteArray server_ctr_data;
 		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
 		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
-	
+		cc7::byte look_ahead = 0xdd;
+		
 		result = reader.readMemoryRange(hdr, 4) &&
 				 reader.readByte(state) &&
 				 reader.readByte(curr_ver) &&
 				 reader.readByte(upgrade_ver) &&
 				 reader.skipBytes(6) &&
 				 reader.readByte(fail_ctr) &&
-				 reader.readByte(max_fail_ctr);
+				 reader.readByte(max_fail_ctr) &&
+				 reader.readByte(look_ahead) &&
+				 reader.readMemory(server_ctr_data, 16);
 		if (!result) {
 			return EC_Encryption;
 		}
@@ -493,13 +506,53 @@ namespace powerAuth
 		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
 			return EC_Encryption;
 		}
+		if (look_ahead == 0 || look_ahead > protocol::LOOK_AHEAD_MAX) {
+			return EC_Encryption;
+		}
+		// Fill output structure
 		status.state        	= static_cast<ActivationStatus::State>(state);
 		status.failCount    	= fail_ctr;
 		status.maxFailCount 	= max_fail_ctr;
 		status.currentVersion	= curr_ver;
 		status.upgradeVersion	= upgrade_ver;
+		status.lookAheadCount	= look_ahead;
 		
+		// Try to synchronize local counter
+		status.counterState		= trySynchronizeCounter(server_ctr_data, status);
+		// If counter's state is invalid, then set state to "deadlock".
+		if (status.counterState == ActivationStatus::Counter_Invalid) {
+			status.state = ActivationStatus::Deadlock;
+		}
 		return EC_Ok;
+	}
+	
+	ActivationStatus::CounterState Session::trySynchronizeCounter(const cc7::ByteRange & server_ctr_data, const ActivationStatus & status) const
+	{
+		// If activation is still in V2 version, then we cannot determine counter's status.
+		// In this case, it's OK to set Counter_OK.
+		if (status.currentVersion == ActivationStatus::V2 || server_ctr_data == _pd->signatureCounterData) {
+			return ActivationStatus::Counter_OK;
+		}
+		const int look_ahead_window = status.lookAheadCount;
+		// Try to move local counter towards to counter received from the server.
+		int distance = protocol::CalculateHashCounterDistance(_pd->signatureCounterData, server_ctr_data, look_ahead_window);
+		if (distance > 0) {
+			// Server's counter was ahead. We can synchronize our counter with server's.
+			_pd->signatureCounterData = server_ctr_data;
+			return ActivationStatus::Counter_Updated;
+		}
+		// Now try to move server's counter towards our local.
+		distance = protocol::CalculateHashCounterDistance(server_ctr_data, _pd->signatureCounterData, look_ahead_window);
+		if (distance > 0) {
+			// Client's counter is ahead. It will be synchronized with the next signature validation.
+			// We need to only investigate how much dangerous this state is.
+			if (distance > look_ahead_window / 2) {
+				return ActivationStatus::Counter_CalculateSignature;
+			}
+			return ActivationStatus::Counter_OK;
+		}
+		// Looks like counter is out of sync.
+		return ActivationStatus::Counter_Invalid;
 	}
 	
 	
@@ -588,7 +641,7 @@ namespace powerAuth
 		const std::string & app_secret = request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationSecret;
 		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
 		cc7::ByteArray ctr_data = _pd->isV3() ? _pd->signatureCounterData : protocol::SignatureCounterToData(_pd->signatureCounter);
-		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data);
+		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, !request.isOfflineRequest());
 		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
 			return EC_Encryption;

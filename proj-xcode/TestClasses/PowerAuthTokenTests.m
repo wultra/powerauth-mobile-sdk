@@ -40,7 +40,7 @@
 	BOOL _invalidConfig;
 }
 
-static NSString * PA_Ver = @"3.0";
+static NSString * PA_Ver = @"3.1";
 
 #pragma mark - Test setup
 
@@ -311,7 +311,7 @@ static NSString * PA_Ver = @"3.0";
 	CHECK_RESULT_RET(preliminaryResult);
 	
 	// Now it's time to validate activation status, created on the server
-	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
+	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId challenge:nil];
 	result = serverActivationStatus != nil;
 	CHECK_RESULT_RET(preliminaryResult);
 	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);

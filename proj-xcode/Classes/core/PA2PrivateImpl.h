@@ -72,6 +72,10 @@ CC7_EXTERN_C PA2SessionSetup * PA2SessionSetupToObject(const io::getlime::powerA
  */
 CC7_EXTERN_C void PA2SignatureUnlockKeysToStruct(PA2SignatureUnlockKeys * keys, io::getlime::powerAuth::SignatureUnlockKeys & cpp_keys);
 /**
+Converts PA2EncryptedActivationStatus object into EncryptedActivationStatus C++ structure.
+ */
+CC7_EXTERN_C void PA2EncryptedActivationStatusToStruct(PA2EncryptedActivationStatus * status, io::getlime::powerAuth::EncryptedActivationStatus& cpp_status);
+/**
  Returns new instance of PA2ActivationStatus object, with content copied from ActivationStatus C++ structure.
  */
 CC7_EXTERN_C PA2ActivationStatus * PA2ActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status);

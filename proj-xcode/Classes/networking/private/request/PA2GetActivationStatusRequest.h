@@ -21,5 +21,6 @@
 @interface PA2GetActivationStatusRequest : NSObject <PA2Encodable>
 
 @property (nonatomic, strong) NSString *activationId;
+@property (nonatomic, strong) NSString *challenge;
 
 @end

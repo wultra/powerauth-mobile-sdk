@@ -24,10 +24,11 @@ package io.getlime.security.powerauth.networking.model.request;
 public class ActivationStatusRequest {
 
     private String activationId;
+    private String challenge;
 
     /**
      * Get activation ID
-     * @return Activation ID
+     * @return Activation ID.
      */
     public String getActivationId() {
         return activationId;
@@ -35,10 +36,25 @@ public class ActivationStatusRequest {
 
     /**
      * Set activation ID
-     * @param activationId Activation ID
+     * @param activationId Activation ID.
      */
     public void setActivationId(String activationId) {
         this.activationId = activationId;
     }
 
+    /**
+     * Get challenge.
+     * @return Challenge.
+     */
+    public String getChallenge() {
+        return challenge;
+    }
+
+    /**
+     * Set challenge.
+     * @param challenge challenge in Base64 encoded string.
+     */
+    public void setChallenge(String challenge) {
+        this.challenge = challenge;
+    }
 }

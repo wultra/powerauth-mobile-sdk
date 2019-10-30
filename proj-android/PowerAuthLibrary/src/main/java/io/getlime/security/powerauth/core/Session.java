@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -240,12 +242,12 @@ public class Session {
      * activation and obtain information about pairing between the client and the server. You have to provide valid
      * possessionUnlockKey in unlockKeys keys object.
      *
-     * @param statusBlob encrypted status blob received from the server
+     * @param encryptedStatus encrypted status blob received from the server
      * @param unlockKeys object with unlock keys, with the required possession factor.
      * @return Always returns a valid object and you have to check result's errorCode property whether
      *         the operation failed or not.
      */
-    public native ActivationStatus decodeActivationStatus(String statusBlob, SignatureUnlockKeys unlockKeys);
+    public native ActivationStatus decodeActivationStatus(@NonNull EncryptedActivationStatus encryptedStatus, @NonNull SignatureUnlockKeys unlockKeys);
 
     //
     // Data signing
@@ -546,6 +548,16 @@ public class Session {
      * @return new random key
      */
     public native byte[] generateSignatureUnlockKey();
+
+    /**
+     * Returns new challenge for getting activation status.
+     *
+     * Internally, method only generates 16 bytes long random data encoded to Base64 and therefore
+     * is also suitable for all other situations, when the generated random key is required.
+     *
+     * @return new challenge in Base64 formatted string.
+     */
+    public native String generateActivationStatusChallenge();
 
     //
     // Protocol upgrade

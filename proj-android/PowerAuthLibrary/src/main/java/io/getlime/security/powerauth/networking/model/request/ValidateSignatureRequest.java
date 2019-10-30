@@ -1,5 +1,5 @@
-/**
- * Copyright 2016 Wultra s.r.o.
+/*
+ * Copyright 2019 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-#import "PA2GetActivationStatusRequest.h"
-#import "PA2PrivateMacros.h"
+package io.getlime.security.powerauth.networking.model.request;
 
-@implementation PA2GetActivationStatusRequest
+/**
+ * The request object that contains reason for the signature validation request.
+ */
+public class ValidateSignatureRequest {
 
-- (NSDictionary*) toDictionary
-{
-	if (_activationId && _challenge) {
-		return @{ @"activationId" : _activationId, @"challenge" : _challenge };
-	}
-	return @{};
+    private String reason;
+
+    /**
+     * Get reason
+     * @return string with reason.
+     */
+    public String getReason() {
+        return reason;
+    }
+
+    /**
+     * Set reason
+     * @param reason String with reason
+     */
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 }
-
-
-@end

@@ -214,10 +214,13 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 
 - (NSData*) biometryRelatedKeyUserCancelled:(nullable BOOL *)userCancelled prompt:(NSString*)prompt {
 	if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
-		OSStatus status;
-		NSData *key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status prompt:prompt];
+		__block OSStatus status = errSecUserCanceled;
+		__block NSData *key = nil;
+		BOOL executed = [PA2Keychain tryLockBiometryAndExecuteBlock:^{
+			key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status prompt:prompt];
+		}];
 		if (userCancelled != NULL) {
-			if (status == errSecUserCanceled) {
+			if (!executed || status == errSecUserCanceled) {
 				*userCancelled = YES;
 			} else {
 				*userCancelled = NO;
@@ -225,6 +228,9 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		}
 		return key;
 	} else {
+		if (userCancelled != NULL) {
+			*userCancelled = NO;
+		}
 		return nil;
 	}
 }

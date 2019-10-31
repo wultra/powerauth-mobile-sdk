@@ -20,6 +20,7 @@
 #if !defined(PA2_EXTENSION_SDK)
 // LA is not available for watchOS or Extensions
 #import <LocalAuthentication/LocalAuthentication.h>
+#include <pthread.h>
 #endif
 
 @implementation PA2Keychain {
@@ -348,6 +349,27 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	return info;
 }
 
++ (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
+{
+	// Initialize mutex
+	static pthread_mutex_t biometricMutex;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		pthread_mutex_init(&biometricMutex, NULL);
+	});
+	
+	// Try to acquire biometric lock.
+	if (pthread_mutex_trylock(&biometricMutex) != 0) {
+		PA2Log(@"Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
+		return NO;
+	}
+	// Execute block
+	block();
+	// Unlock mutex and return success.
+	pthread_mutex_unlock(&biometricMutex);
+	return YES;
+}
+
 #else  // !defined(PA2_EXTENSION_SDK)
 //
 // watchOS + IOS App Extensions
@@ -361,6 +383,14 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 {
 	PA2BiometricAuthenticationInfo info = { PA2BiometricAuthenticationStatus_NotSupported, PA2BiometricAuthenticationType_None };
 	return info;
+}
+
+/**
+ Do nothing on watchOS or when the class is running in app extension.
+ */
++ (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
+{
+	return NO;
 }
 
 #endif // !defined(PA2_EXTENSION_SDK)
@@ -389,7 +419,6 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 {
 	return _getBiometryInfo();
 }
-
 
 #pragma mark - Private methods
 

@@ -335,4 +335,17 @@ typedef struct PA2BiometricAuthenticationInfo {
  */
 @property (class, readonly) PA2BiometricAuthenticationInfo biometricAuthenticationInfo;
 
+/**
+ Try lock the global mutex and execute the provided block, but only if the lock is acquired. The mutex is released
+ immediately after the block execution.
+ 
+ The function is useful in case that PowerAuth SDK needs to guarantee that only one biometric authentication request
+ is executed at the same time. It's forbidden to throw an exception from the block.
+ 
+ Note that the method is not implemented on watchOS or for iOS App Extensions SDK.
+ 
+ @return YES in case that the provided block has been executed, otherwise NO
+ */
++ (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block;
+
 @end

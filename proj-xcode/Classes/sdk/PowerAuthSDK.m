@@ -541,7 +541,7 @@ static PowerAuthSDK * s_inst;
 		
 		[_statusKeychain addValue:_session.serializedState forKey:_configuration.instanceId];
 		if (biometryKey) {
-			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier useBiometry:YES];
+			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
 		}
 	}
 	
@@ -1071,7 +1071,7 @@ static PowerAuthSDK * s_inst;
 				// Update keychain values after each successful calculations
 				[self saveSessionState];
 				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
+				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
 			} else {
 				error = PA2MakeError(PA2ErrorCodeInvalidActivationState, nil);
 			}

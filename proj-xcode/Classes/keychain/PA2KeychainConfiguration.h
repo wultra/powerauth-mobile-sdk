@@ -16,19 +16,26 @@
 
 #import "PA2Log.h"
 
-/** Constant specifying the default name of the 'key' used to store flag in NSUserDefaults about initialized PowerAuthSDK instances. Used to cleanup the keychain data after the app re-install.
+/**
+ Constant specifying the default name of the 'key' used to store flag in NSUserDefaults about initialized PowerAuthSDK instances.
+ Used to cleanup the keychain data after the app re-install.
  */
 extern NSString * __nonnull const PA2Keychain_Initialized;
 
-/** Default name of the keychain service used to store values of the PowerAuthSDK instance session states.
+/**
+ Default name of the keychain service used to store values of the PowerAuthSDK instance session states.
  */
 extern NSString * __nonnull const PA2Keychain_Status;
 
-/** Default name of the keychain service used to cache possession factor unlock key. This keychain is required because enterprise distribution (for example Testflight) changes 'identifierForVendor' used for the key ad-hoc calculation on each install - hence the value is cached.
+/**
+ Default name of the keychain service used to cache possession factor unlock key. This keychain is required because
+ enterprise distribution (for example Testflight) changes 'identifierForVendor' used for the key ad-hoc calculation
+ on each install - hence the value is cached.
  */
 extern NSString * __nonnull const PA2Keychain_Possession;
 
-/** Default name of the keychain service used to store values of the PowerAuthSDK instance related biometry keys.
+/**
+ Default name of the keychain service used to store values of the PowerAuthSDK instance related biometry keys.
  */
 extern NSString * __nonnull const PA2Keychain_Biometry;
 
@@ -41,29 +48,37 @@ extern NSString * __nonnull const PA2Keychain_TokenStore;
 extern NSString * __nonnull const PA2KeychainKey_Possession;
 
 
-/** Class that is used to provide default (shared) Keychain storage configuration.
+/**
+ Class that is used to provide default (shared) Keychain storage configuration.
  */
 @interface PA2KeychainConfiguration : NSObject<NSCopying>
 
-/** Access group name used by the PowerAuthSDK keychain instances.
+/**
+ Access group name used by the PowerAuthSDK keychain instances.
  */
 @property (nonatomic, strong, nullable) NSString *keychainAttribute_AccessGroup;
 
-/** Suite name used by the NSUserDefaults that check for Keychain data presence.
+/**
+ Suite name used by the NSUserDefaults that check for Keychain data presence.
  
- If the value is not set, `standardUserDefaults` are used. Otherwise, user defaults with given suite name are created. In case a developer started using SDK with no suite name specified, the developer is responsible for migrating data to the new `NSUserDefaults` before using the SDK with the new suite name.
+ If the value is not set, `standardUserDefaults` are used. Otherwise, user defaults with given suite name are created.
+ In case a developer started using SDK with no suite name specified, the developer is responsible for migrating data
+ to the new `NSUserDefaults` before using the SDK with the new suite name.
  */
 @property (nonatomic, strong, nullable) NSString *keychainAttribute_UserDefaultsSuiteName;
 
-/** Name of the Keychain service used to store statuses for different PowerAuth instances.
+/**
+ Name of the Keychain service used to store statuses for different PowerAuth instances.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Status;
 
-/** Name of the Keychain service used to store possession factor related key (one value for all PowerAuthSDK instances).
+/**
+ Name of the Keychain service used to store possession factor related key (one value for all PowerAuthSDK instances).
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Possession;
 
-/** Name of the Keychain service used to store biometry related keys for different PowerAuth instances.
+/**
+ Name of the Keychain service used to store biometry related keys for different PowerAuth instances.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Biometry;
 /**
@@ -71,9 +86,17 @@ extern NSString * __nonnull const PA2KeychainKey_Possession;
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_TokenStore;
 
-/** Name of the Keychain key used to store possession fator related key in an associated service.
+/**
+ Name of the Keychain key used to store possession fator related key in an associated service.
  */
 @property (nonatomic, strong, nonnull) NSString	*keychainKey_Possession;
+
+/**
+ If set, then the item protected with the biometry is invalidated if fingers are added or removed
+ for Touch ID, or if the user re-enrolls for Face ID. The default value is NO (e.g. changing biometry
+ in the system doesn't invalidate the entry)
+ */
+@property (nonatomic, assign) BOOL associateBiometricItemsToCurrentSet;
 
 /** Return the shared in stance of a Keychain configuration object.
  

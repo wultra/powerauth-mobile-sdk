@@ -139,7 +139,7 @@ public class BiometricAuthentication {
             if (status == BiometricStatus.OK) {
                 try {
                     // Prepare secret key for authentication
-                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request.isForceGenerateNewKey()));
+                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request));
                     // Authenticate
                     return device.authenticate(context, fragmentManager, requestData);
 
@@ -164,14 +164,14 @@ public class BiometricAuthentication {
     /**
      * Prepare secret key, stored (or restored) managed by {@link IBiometricKeystore} object.
      * @param keystore Keystore object managing the requested key.
-     * @param createNewKey If {@code true}, then the new key is created in the keystore.
+     * @param request Biometric authentication request.
      * @return {@link SecretKey} acquired from the keystore.
      * @throws PowerAuthErrorException In case that cannot create or restore the key.
      */
-    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, boolean createNewKey) throws PowerAuthErrorException {
+    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
         final SecretKey key;
-        if (createNewKey) {
-            key = keystore.generateDefaultKey();
+        if (request.isForceGenerateNewKey()) {
+            key = keystore.generateDefaultKey(request.isInvalidateByBiometricEnrollment());
             if (key == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
             }

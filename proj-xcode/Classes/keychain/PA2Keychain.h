@@ -15,6 +15,7 @@
  */
 
 #import "PA2KeychainConfiguration.h"
+#import "PA2Macros.h"
 
 /**
  Enum encapsulating possible Keychain query result.
@@ -97,6 +98,25 @@ typedef struct PA2BiometricAuthenticationInfo {
 } PA2BiometricAuthenticationInfo;
 
 
+/**
+ Enum encapsulating type of additional protection of item stored in the keychain.
+ */
+typedef NS_ENUM(int, PA2KeychainItemAccess) {
+	/**
+	 No additional authentication is required to access the item.
+	 */
+	PA2KeychainItemAccess_None,
+	/**
+	 Constraint to access an item with Touch ID for currently enrolled fingers,
+	 or from Face ID with the currently enrolled user.
+	 */
+	PA2KeychainItemAccess_CurrentBiometricSet,
+	/**
+	 Constraint to access an item with Touch ID for any enrolled fingers, or Face ID.
+	 */
+	PA2KeychainItemAccess_AnyBiometricSet,
+};
+
 /** Simple wrapper on top of an iOS Keychain.
  */
 @interface PA2Keychain : NSObject
@@ -155,6 +175,8 @@ typedef struct PA2BiometricAuthenticationInfo {
  protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
  this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
  
+ Note that the method is deprecated in favor of `addValue:forKey:access:` method.
+ 
  @param data Secret data to be stored.
  @param key Key to use for data storage.
  @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
@@ -162,7 +184,42 @@ typedef struct PA2BiometricAuthenticationInfo {
  */
 - (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
 								 forKey:(nonnull NSString*)key
-							useBiometry:(BOOL)useBiometry;
+							useBiometry:(BOOL)useBiometry PA2_DEPRECATED(1.2.2);
+
+/**
+ Store data for given key in the Keychain synchronously.
+
+ If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
+ protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
+ this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
+
+ @param data Secret data to be stored.
+ @param key Key to use for data storage.
+ @param access Restrict access to the item.
+ @return Operation result.
+*/
+- (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
+								 forKey:(nonnull NSString*)key
+								 access:(PA2KeychainItemAccess)access;
+
+/**
+ Store data for given key in the Keychain asynchronously, return the result in a callback.
+ 
+ If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
+ protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
+ this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
+ 
+ Note that the method is deprecated in favor of `addValue:forKey:access:completion:` method.
+ 
+ @param data Secret data to be stored.
+ @param key Key to use for data storage.
+ @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
+ @param completion Callback with the operation result.
+ */
+- (void) addValue:(nonnull NSData*)data
+		   forKey:(nonnull NSString*)key
+	  useBiometry:(BOOL)useBiometry
+	   completion:(nonnull void(^)(PA2KeychainStoreItemResult status))completion PA2_DEPRECATED(1.2.2);
 
 /**
  Store data for given key in the Keychain asynchronously, return the result in a callback.
@@ -173,12 +230,12 @@ typedef struct PA2BiometricAuthenticationInfo {
  
  @param data Secret data to be stored.
  @param key Key to use for data storage.
- @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
+ @param access Restrict access to the item.
  @param completion Callback with the operation result.
  */
 - (void) addValue:(nonnull NSData*)data
 		   forKey:(nonnull NSString*)key
-	  useBiometry:(BOOL)useBiometry
+		   access:(PA2KeychainItemAccess)access
 	   completion:(nonnull void(^)(PA2KeychainStoreItemResult status))completion;
 
 /**

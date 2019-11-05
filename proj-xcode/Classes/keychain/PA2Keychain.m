@@ -51,28 +51,40 @@
 
 #pragma mark - Adding a new records
 
-- (PA2KeychainStoreItemResult)addValue:(NSData *)data forKey:(NSString *)key {
-	return [self addValue:data forKey:key useBiometry:NO];
+- (PA2KeychainStoreItemResult) addValue:(NSData *)data forKey:(NSString *)key
+{
+	return [self implAddValue:data forKey:key access:PA2KeychainItemAccess_None];
 }
 
-- (PA2KeychainStoreItemResult)addValue:(NSData *)data forKey:(NSString *)key useBiometry:(BOOL)useBiometry {
-	if ([self containsDataForKey:key]) {
-		return PA2KeychainStoreItemResult_Duplicate;
-	} else {
-		return [self implAddValue:data forKey:key useBiometry:useBiometry];
-	}
+- (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data forKey:(nonnull NSString*)key access:(PA2KeychainItemAccess)access
+{
+	return [self implAddValue:data forKey:key access:access];
 }
 
-- (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PA2KeychainStoreItemResult status))completion {
-	[self addValue:data forKey:key useBiometry:NO completion:completion];
+- (PA2KeychainStoreItemResult) addValue:(NSData *)data forKey:(NSString *)key useBiometry:(BOOL)useBiometry
+{
+	PA2KeychainItemAccess access = useBiometry ? PA2KeychainItemAccess_AnyBiometricSet : PA2KeychainItemAccess_None;
+	return [self addValue:data forKey:key access:access];
 }
 
-- (void) addValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry completion:(void(^)(PA2KeychainStoreItemResult status))completion {
+- (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PA2KeychainStoreItemResult status))completion
+{
+	[self addValue:data forKey:key access:PA2KeychainItemAccess_None completion:completion];
+}
+
+- (void) addValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry completion:(void(^)(PA2KeychainStoreItemResult status))completion
+{
+	PA2KeychainItemAccess access = useBiometry ? PA2KeychainItemAccess_AnyBiometricSet : PA2KeychainItemAccess_None;
+	[self addValue:data forKey:key access:access completion:completion];
+}
+
+- (void) addValue:(NSData*)data forKey:(NSString*)key access:(PA2KeychainItemAccess)access completion:(void(^)(PA2KeychainStoreItemResult status))completion
+{
 	[self containsDataForKey:key completion:^(BOOL containsValue) {
 		if (containsValue) {
 			completion(PA2KeychainStoreItemResult_Duplicate);
 		} else {
-			completion([self implAddValue:data forKey:key useBiometry:useBiometry]);
+			completion([self implAddValue:data forKey:key access:access]);
 		}
 	}];
 }
@@ -422,7 +434,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 
 #pragma mark - Private methods
 
-static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAddOperation, BOOL useBiometry)
+static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAddOperation, PA2KeychainItemAccess access)
 {
 #if TARGET_OS_SIMULATOR
 	//
@@ -438,13 +450,17 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	}
 #endif
 	SecAccessControlCreateFlags flags;
-	if (isAddOperation && useBiometry) {
+	if (isAddOperation && (access != PA2KeychainItemAccess_None)) {
 		// If it's add operation and the biometry is requrested.
 		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny), or use kNilOptions
 		if (@available(iOS 9, *)) {
 			// Note that kSecAccessControlTouchIDAny is deprecated, but its value is the same as kSecAccessControlBiometryAny
 			// We can safely replace that constant to the new one, once the warning appears in the future.
-			flags = kSecAccessControlTouchIDAny;
+			if (access == PA2KeychainItemAccess_AnyBiometricSet) {
+				flags = kSecAccessControlTouchIDAny;
+			} else {
+				flags = kSecAccessControlTouchIDCurrentSet;
+			}
 		} else {
 			flags = kNilOptions;
 		}
@@ -467,11 +483,11 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	return YES;
 }
 
-- (PA2KeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry
+- (PA2KeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key access:(PA2KeychainItemAccess)access
 {
 	// Return if iOS version is lower than iOS 9.0 - we cannot securely store a biometric key here.
 	// Call is moved here so that we spare further object allocations.
-	if (useBiometry) {
+	if (access != PA2KeychainItemAccess_None) {
 		if (![PA2Keychain canUseBiometricAuthentication]) {
 			return PA2KeychainStoreItemResult_BiometryNotAvailable;
 		}
@@ -482,7 +498,7 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	[query setValue:key		forKey:(__bridge id)kSecAttrAccount];
 	[query setValue:data	forKey:(__bridge id)kSecValueData];
 	_AddUseNoAuthenticationUI(query);
-	if (!_AddAccessControlObject(query, YES, useBiometry)) {
+	if (!_AddAccessControlObject(query, YES, access)) {
 		return PA2KeychainStoreItemResult_Other;
 	}
 	
@@ -514,7 +530,7 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	[dictionary setValue:_identifier						forKey:(__bridge id)kSecAttrService];
 	[dictionary setValue:key								forKey:(__bridge id)kSecAttrAccount];
 	[dictionary setValue:data								forKey:(__bridge id)kSecValueData];
-	if (!_AddAccessControlObject(dictionary, NO, NO)) {
+	if (!_AddAccessControlObject(dictionary, NO, PA2KeychainItemAccess_None)) {
 		return PA2KeychainStoreItemResult_Other;
 	}
 	

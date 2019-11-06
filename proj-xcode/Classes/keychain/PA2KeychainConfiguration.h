@@ -96,7 +96,7 @@ extern NSString * __nonnull const PA2KeychainKey_Possession;
  for Touch ID, or if the user re-enrolls for Face ID. The default value is NO (e.g. changing biometry
  in the system doesn't invalidate the entry)
  */
-@property (nonatomic, assign) BOOL associateBiometricItemsToCurrentSet;
+@property (nonatomic, assign) BOOL linkBiometricItemsToCurrentSet;
 
 /** Return the shared in stance of a Keychain configuration object.
  

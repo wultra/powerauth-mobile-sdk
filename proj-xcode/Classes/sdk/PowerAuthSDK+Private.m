@@ -58,7 +58,7 @@
 
 - (PA2KeychainItemAccess) biometricItemAccess
 {
-	if (self.associateBiometricItemsToCurrentSet) {
+	if (self.linkBiometricItemsToCurrentSet) {
 		return PA2KeychainItemAccess_CurrentBiometricSet;
 	} else {
 		return PA2KeychainItemAccess_AnyBiometricSet;

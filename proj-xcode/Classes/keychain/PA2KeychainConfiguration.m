@@ -37,7 +37,8 @@ NSString *const PA2Keychain_TokenStore		= @"io.getlime.PowerAuthKeychain.TokenSt
 		
 		// Initialize default values for keychain service record item keys
 		_keychainKey_Possession	= PA2KeychainKey_Possession;
-		_associateBiometricItemsToCurrentSet = NO;
+		// Default config for biometry protected items
+		_linkBiometricItemsToCurrentSet = NO;
 	}
 	return self;
 }
@@ -53,7 +54,7 @@ NSString *const PA2Keychain_TokenStore		= @"io.getlime.PowerAuthKeychain.TokenSt
 		c->_keychainInstanceName_Biometry = _keychainInstanceName_Biometry;
 		c->_keychainInstanceName_TokenStore = _keychainInstanceName_TokenStore;
 		c->_keychainKey_Possession = _keychainKey_Possession;
-		c->_associateBiometricItemsToCurrentSet = _associateBiometricItemsToCurrentSet;
+		c->_linkBiometricItemsToCurrentSet = _linkBiometricItemsToCurrentSet;
 	}
 	return c;
 }

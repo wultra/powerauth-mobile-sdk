@@ -1670,7 +1670,7 @@ public class PowerAuthSDK {
                 .setTitle(title)
                 .setDescription(description)
                 .setKeyToProtect(biometryKey)
-                .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isAssociateBiometricItemsToCurrentSet())
+                .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet())
                 .build();
 
         return BiometricAuthentication.authenticate(context, fragmentManager, request, new IBiometricAuthenticationCallback() {

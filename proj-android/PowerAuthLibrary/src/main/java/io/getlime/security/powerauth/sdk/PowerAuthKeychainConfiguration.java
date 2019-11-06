@@ -32,7 +32,7 @@ public class PowerAuthKeychainConfiguration {
     private final String customKeychainIdBiometry;
     private final String customKeychainKeyBiometryDefault;
     private final String customKeychainIdTokenStore;
-    private final boolean associateBiometricItemsToCurrentSet;
+    private final boolean linkBiometricItemsToCurrentSet;
 
     /**
      * Default public constructor.
@@ -42,7 +42,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdBiometry = null;
         this.customKeychainKeyBiometryDefault = null;
         this.customKeychainIdTokenStore = null;
-        this.associateBiometricItemsToCurrentSet = true;
+        this.linkBiometricItemsToCurrentSet = true;
     }
 
     /**
@@ -60,7 +60,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdBiometry = customKeychainIdBiometry;
         this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
         this.customKeychainIdTokenStore = null;
-        this.associateBiometricItemsToCurrentSet = true;
+        this.linkBiometricItemsToCurrentSet = true;
     }
 
     /**
@@ -70,20 +70,20 @@ public class PowerAuthKeychainConfiguration {
      * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
      * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
      * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
-     * @param associateBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
-     *                                            if fingers are added or removed, or if the user re-enrolls for face.
+     * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
+     *                                       if fingers are added or removed, or if the user re-enrolls for face.
      */
     public PowerAuthKeychainConfiguration(
             String customKeychainIdStatus,
             String customKeychainIdBiometry,
             String customKeychainKeyBiometryDefault,
             String customKeychainIdTokenStore,
-            boolean associateBiometricItemsToCurrentSet) {
+            boolean linkBiometricItemsToCurrentSet) {
         this.customKeychainIdStatus = customKeychainIdStatus;
         this.customKeychainIdBiometry = customKeychainIdBiometry;
         this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
         this.customKeychainIdTokenStore = customKeychainIdTokenStore;
-        this.associateBiometricItemsToCurrentSet = associateBiometricItemsToCurrentSet;
+        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
     }
 
     /**
@@ -141,7 +141,7 @@ public class PowerAuthKeychainConfiguration {
      * @return {@code true} when items protected with biometry are linked to the current set
      *         of biometry, configured in the system.
      */
-    public boolean isAssociateBiometricItemsToCurrentSet() {
-        return associateBiometricItemsToCurrentSet;
+    public boolean isLinkBiometricItemsToCurrentSet() {
+        return linkBiometricItemsToCurrentSet;
     }
 }

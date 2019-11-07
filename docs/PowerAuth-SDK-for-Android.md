@@ -717,13 +717,13 @@ powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use
 });
 ```
 
-### Biometry factor related key lifetime
+### Biometry factor-related key lifetime
 
 By default, the biometry factor-related key is invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enroll with a new face, then the biometry factor-related key is no longer available for the signing operation. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `false` and use that configuration for the `PowerAuthSDK` instance construction:
 
 ```java
 // Use false for 'linkBiometricItemsToCurrentSet' parameter. 
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, false);
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, false);
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
         .keychainConfiguration(keychainConfig)

@@ -222,10 +222,14 @@ public class PowerAuthTokenStore {
         final TokenRemoveRequest request = new TokenRemoveRequest();
         request.setTokenId(tokenData.identifier);
 
+        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+        authentication.usePossession = true;
+
         return httpClient.post(
                 request,
                 new RemoveTokenEndpoint(),
                 sdk.getCryptoHelper(context),
+                authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(Void aVoid) {

@@ -590,15 +590,11 @@ namespace protocol
 		if (CC7_CHECK(challenge.size() == STATUS_BLOB_CHALLENGE_SIZE && nonce.size() == STATUS_BLOB_NONCE_SIZE)) {
 			// Derive base IV key from transport key
 			auto key_transport_iv = DeriveSecretKey(transport_key, 3000);
+			// Prepare STATUS_IV_DATA
+			cc7::ByteArray status_iv_data = challenge;
+			status_iv_data.append(nonce);
 			// KDF_INTERNAL
-			auto key_challenge = ReduceSharedSecret(crypto::HMAC_SHA256(challenge, key_transport_iv));
-			// challenge_key ^= nonce
-			if (key_challenge.size() == nonce.size()) {
-				for (size_t i = 0; i < key_challenge.size(); i++) {
-					key_challenge[i] ^= nonce[i];
-				}
-				return key_challenge;
-			}
+			return ReduceSharedSecret(crypto::HMAC_SHA256(status_iv_data, key_transport_iv));
 		}
 		// In case of failure, return empty array.
 		return cc7::ByteArray();

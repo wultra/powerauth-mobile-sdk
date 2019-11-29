@@ -25,5 +25,6 @@
 @property (nonatomic, strong) NSString * ephemeralPublicKey;
 @property (nonatomic, strong) NSString * encryptedData;
 @property (nonatomic, strong) NSString * mac;
+@property (nonatomic, strong) NSString * nonce;
 
 @end

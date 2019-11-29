@@ -812,13 +812,15 @@ Following steps are typically required for a full E2EE request and response proc
    - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
    - `encryptedData` property fill with `cryptogram.bodyBase64`
    - `mac` property fill with `cryptogram.macBase64`
+   - `nonce` property fill with `cryptogram.nonceBase64`
    
    So, the final request JSON should looks like:
    ```json
    {
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE"
    }
    ```
    

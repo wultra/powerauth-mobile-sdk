@@ -25,6 +25,7 @@ public class EciesEncryptedRequest {
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    private String nonce;
 
     /**
      * Get Base64 encoded ephemeral public key.
@@ -72,5 +73,21 @@ public class EciesEncryptedRequest {
      */
     public void setMac(String mac) {
         this.mac = mac;
+    }
+
+    /**
+     * Get Base64 encoded nonce.
+     * @return Nonce in Base64 format.
+     */
+    public String getNonce() {
+        return nonce;
+    }
+
+    /**
+     * Set Base64 encoded nonce.
+     * @param nonce Nonce in Base64 format.
+     */
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
     }
 }

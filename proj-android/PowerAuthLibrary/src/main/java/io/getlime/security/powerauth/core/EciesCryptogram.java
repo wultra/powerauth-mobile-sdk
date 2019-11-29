@@ -38,13 +38,17 @@ public class EciesCryptogram {
      */
     public final byte[] key;
 
+    /**
+     * Nonce for IV derivation. The value is optional for response data.
+     */
+    public final byte[] nonce;
 
     /**
      * @return content of body in Base64 formatted string
      */
     public String getBodyBase64() {
-        if (this.body != null) {
-            return Base64.encodeToString(this.body, Base64.NO_WRAP);
+        if (body != null) {
+            return Base64.encodeToString(body, Base64.NO_WRAP);
         }
         return null;
     }
@@ -53,8 +57,8 @@ public class EciesCryptogram {
      * @return content of mac in Base64 formatted string
      */
     public String getMacBase64() {
-        if (this.mac != null) {
-            return Base64.encodeToString(this.mac, Base64.NO_WRAP);
+        if (mac != null) {
+            return Base64.encodeToString(mac, Base64.NO_WRAP);
         }
         return null;
     }
@@ -63,8 +67,18 @@ public class EciesCryptogram {
      * @return content of key in Base64 formatted string
      */
     public String getKeyBase64() {
-        if (this.key != null) {
-            return Base64.encodeToString(this.key, Base64.NO_WRAP);
+        if (key != null) {
+            return Base64.encodeToString(key, Base64.NO_WRAP);
+        }
+        return null;
+    }
+
+    /**
+     * @return content of nonce in Base64 formatted string
+     */
+    public String getNonceBase64() {
+        if (nonce != null) {
+            return Base64.encodeToString(nonce, Base64.NO_WRAP);
         }
         return null;
     }
@@ -77,32 +91,37 @@ public class EciesCryptogram {
         this.body = null;
         this.mac = null;
         this.key = null;
+        this.nonce = null;
     }
 
     /**
-     * Constructs a cryptogram with body, mac and key. The key can be null for responses received
+     * Constructs a cryptogram with body, mac and key. The key can and nonce be null for responses received
      * from the server.
      * @param body encrypted data
      * @param mac MAC computed for encrypted data
      * @param key An optional ephemeral key
+     * @param nonce An optional nonce.
      */
-    public EciesCryptogram(byte[] body, byte[] mac, byte[] key) {
+    public EciesCryptogram(byte[] body, byte[] mac, byte[] key, byte[] nonce) {
         this.body = body;
         this.mac = mac;
         this.key = key;
+        this.nonce = nonce;
     }
 
     /**
-     * Constructs a cryptogram with body, mac and key in Base64 format. The key can be nil
+     * Constructs a cryptogram with body, mac and key in Base64 format. The key and nonce can be nil
      * for responses received from the server.
      * @param bodyBase64 encrypted data in Base64 format
      * @param macBase64 MAC computed for encrypted data in Base64 format
      * @param keyBase64 An optional ephemeral key in Base64 format
+     * @param nonceBase64 An optional nonce in Base64 format.
      */
-    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64) {
+    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64, String nonceBase64) {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.NO_WRAP) : null;
+        this.nonce = (nonceBase64 != null) ? Base64.decode(nonceBase64, Base64.NO_WRAP) : null;
     }
 
     /**
@@ -114,5 +133,6 @@ public class EciesCryptogram {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = null;
+        this.nonce = null;
     }
 }

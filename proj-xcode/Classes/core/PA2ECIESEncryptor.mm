@@ -50,16 +50,10 @@ using namespace io::getlime::powerAuth;
 	return [self initWithObject: encryptor];
 }
 
-- (id) initWithEnvelopeKey:(NSData*)envelopeKey sharedInfo2:(NSData*)sharedInfo
-{
-	ECIESEnvelopeKey key = cc7::MakeRange(cc7::objc::CopyFromNSData(envelopeKey));
-	return [self initWithObject: ECIESEncryptor(key, cc7::objc::CopyFromNSData(sharedInfo))];
-}
-
 - (nullable PA2ECIESEncryptor*) copyForDecryption
 {
 	if (_encryptor.canDecryptResponse()) {
-		PA2ECIESEncryptor * decryptor = [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+		PA2ECIESEncryptor * decryptor = [[PA2ECIESEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.ivForDecryption(), _encryptor.sharedInfo2())];
 		if (decryptor) {
 			decryptor->_associatedMetaData = _associatedMetaData;
 		}
@@ -179,6 +173,15 @@ using namespace io::getlime::powerAuth;
 	return cc7::objc::CopyToNullableNSData(_c.key);
 }
 
+- (void) setNonce:(NSData *)nonce
+{
+	_c.nonce = cc7::objc::CopyFromNSData(nonce);
+}
+- (NSData*) nonce
+{
+	return cc7::objc::CopyToNullableNSData(_c.nonce);
+}
+
 
 // Base64 setters and getters
 
@@ -209,6 +212,15 @@ using namespace io::getlime::powerAuth;
 	return cc7::objc::CopyToNullableNSString(_c.key.base64String());
 }
 
+- (void) setNonceBase64:(NSString *)nonceBase64
+{
+	_c.nonce.readFromBase64String(cc7::objc::CopyFromNSString(nonceBase64));
+}
+- (NSString*) nonceBase64
+{
+	return cc7::objc::CopyToNullableNSString(_c.nonce.base64String());
+}
+
 @end
 
 
@@ -234,7 +246,7 @@ using namespace io::getlime::powerAuth;
 
 - (NSString*) httpHeaderValue
 {
-	NSString * value = [[@"PowerAuth version=\"3.0\", application_key=\""
+	NSString * value = [[@"PowerAuth version=\"3.1\", application_key=\""
 						 stringByAppendingString:_applicationKey]
 						stringByAppendingString:@"\""];
 	if (_activationIdentifier) {

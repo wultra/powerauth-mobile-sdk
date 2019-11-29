@@ -27,6 +27,7 @@
 		_ephemeralPublicKey = cryptogram.keyBase64;
 		_encryptedData = cryptogram.bodyBase64;
 		_mac = cryptogram.macBase64;
+		_nonce = cryptogram.nonceBase64;
 	}
 	return self;
 }
@@ -42,6 +43,9 @@
 	}
 	if (_mac) {
 		dict[@"mac"] = _mac;
+	}
+	if (_nonce) {
+		dict[@"nonce"] = _nonce;
 	}
 	return dict;
 }

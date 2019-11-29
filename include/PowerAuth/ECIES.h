@@ -146,6 +146,9 @@ namespace powerAuth
 		
 		/// Encrypted data
 		cc7::ByteArray	body;
+		
+		/// Nonce for IV derivation
+		cc7::ByteArray	nonce;
 	};
 	
 	/// The ECIESEnvelopeKey represents a temporary key for ECIES encryption and decryption
@@ -176,6 +179,12 @@ namespace powerAuth
 		/// Returns key for HMAC calculation.
 		const cc7::ByteRange macKey() const;
 		
+		/// Returns key for IV derivation.
+		const cc7::ByteRange ivKey() const;
+		
+		/// Returns IV derived from IV key and provided nonce.
+		cc7::ByteArray deriveIvForNonce(const cc7::ByteRange & nonce) const;
+		
 		/// Creates a new instance of ECIESEnvelopeKey from EC |publiKey| and optional |shared_info1|.
 		/// For optional |shared_info1| you can provide an empty range, if you have no such information available.
 		/// The method also stores a newly created ephemeral public key to the |out_ephemeralKey| reference.
@@ -185,11 +194,24 @@ namespace powerAuth
 		/// For optional |shared_info1| you can provide an empty range, if you have no such information available.
 		static ECIESEnvelopeKey fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1);
 		
-	private:
+	public:
 
-		/// Expected length of a whole envelope key.
-		static const size_t EnvelopeKeySize = 32;
+		// Constants for sub-keys
+		static const size_t EncKeyOffset = 0;
+		static const size_t EncKeySize = 16;
+		static const size_t MacKeyOffset = EncKeyOffset + EncKeySize;
+		static const size_t MacKeySize = 16;
+		static const size_t IvKeyOffset = MacKeyOffset + MacKeySize;
+		static const size_t IvKeySize = 16;
+				
+		// Expected length of a whole envelope key.
+		static const size_t EnvelopeKeySize = EncKeySize + MacKeySize + IvKeySize;
 		
+		// Other constants
+		static const size_t NonceSize = 16;
+		static const size_t IvSize = 16;
+
+	private:
 		/// Envelope key's data
 		cc7::ByteArray _key;
 	};
@@ -208,10 +230,10 @@ namespace powerAuth
 		/// The constructed instance can be used for both encryption and decryption tasks.
 		ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
 		
-		/// Constructs an encryptor with previously calculated |envelope_key| and optional |shared_info2|.
+		/// Constructs an encryptor with previously calculated |envelope_key|, |iv_for_decryption| and optional |shared_info2|.
 		/// For optional |shared_info2| you can provide an empty range, if you have no such information available.
 		/// The constructed instance can be used only for decryption process.
-		ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
+		ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & iv_for_decryption, const cc7::ByteRange & shared_info2);
 
 		
 		/// Returns a reference to public key.
@@ -232,6 +254,9 @@ namespace powerAuth
 		/// Sets a new value to internal |shared_info2| property.
 		void setSharedInfo2(const cc7::ByteRange & shared_info2);
 
+		/// Returns reference to internal |iv_for_decryption| property.
+		const cc7::ByteArray & ivForDecryption() const;
+		
 		/// Returns true if this instance can encrypt request data.
 		/// This is met only when the encryptor is constructed with public key.
 		bool canEncryptRequest() const;
@@ -267,6 +292,8 @@ namespace powerAuth
 		cc7::ByteArray _shared_info2;
 		/// Last calculated envelope key.
 		ECIESEnvelopeKey _envelope_key;
+		/// IV for response decryption
+		cc7::ByteArray _iv_for_decryption;
 	};
 	
 	
@@ -283,9 +310,9 @@ namespace powerAuth
 		/// The constructed instance can be used for both decryption & encryption tasks.
 		ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
 	
-		/// Constructs a decryptor with previously calculated |envelope_key| and optional |shared_info2|.
+		/// Constructs a decryptor with previously calculated |envelope_key|, |iv_for_encryption| and optional |shared_info2|.
 		/// The constructed instance can be used only for encryption taks.
-		ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
+		ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & iv_for_encryption, const cc7::ByteRange & shared_info2);
 		
 		/// Returns a reference to internal public key.
 		const cc7::ByteArray & privateKey() const;
@@ -304,6 +331,9 @@ namespace powerAuth
 		
 		/// Sets a new value to internal |shared_info2| property.
 		void setSharedInfo2(const cc7::ByteRange & shared_info2);
+		
+		/// Returns reference to internal |iv_for_encryption| property.
+		const cc7::ByteArray & ivForEncryption() const;
 		
 		/// Returns true if this instance can decrypt request data.
 		bool canDecryptRequest() const;
@@ -339,6 +369,8 @@ namespace powerAuth
 		cc7::ByteArray   _shared_info2;
 		/// Last calculated envelope key.
 		ECIESEnvelopeKey _envelope_key;
+		/// IV for response encryption
+		cc7::ByteArray _iv_for_encryption;
 	};
 	
 	

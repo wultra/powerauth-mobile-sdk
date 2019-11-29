@@ -109,9 +109,9 @@ namespace protocol
 	
 	cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const cc7::ByteRange & index)
 	{
-		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() == SIGNATURE_KEY_SIZE) {
+		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() >= SIGNATURE_KEY_SIZE) {
 			// Calculate HMAC SHA256 without cropping the result
-			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index);
+			cc7::ByteArray result = crypto::HMAC_SHA256(index, masterKey);
 			if (result.size() == 32) {
 				// Everything looks fine, just xor the final array.
 				for (size_t i = 0; i < 16; i++) {
@@ -594,7 +594,7 @@ namespace protocol
 			cc7::ByteArray status_iv_data = challenge;
 			status_iv_data.append(nonce);
 			// KDF_INTERNAL
-			return ReduceSharedSecret(crypto::HMAC_SHA256(status_iv_data, key_transport_iv));
+			return DeriveSecretKeyFromIndex(key_transport_iv, status_iv_data);
 		}
 		// In case of failure, return empty array.
 		return cc7::ByteArray();

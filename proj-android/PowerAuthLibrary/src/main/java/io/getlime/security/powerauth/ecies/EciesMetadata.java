@@ -67,7 +67,7 @@ public class EciesMetadata {
      * @return String with HTTP request header's value.
      */
     public @NonNull String getHttpHeaderValue() {
-        final String result = "PowerAuth version=\"3.0\" application_key=\"" + applicationKey + "\"";
+        final String result = "PowerAuth version=\"3.1\" application_key=\"" + applicationKey + "\"";
         if (activationIdentifier != null) {
             return result + " activation_id=\"" + activationIdentifier + "\"";
         }

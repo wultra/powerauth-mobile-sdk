@@ -36,18 +36,19 @@ jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & 
 {
 	if (!env) {
 		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-		return NULL;
+		return nullptr;
 	}
 	// Create EciesCryptogram java class instance
 	jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("EciesCryptogram");
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesCryptogram"), "()V");
 	if (!resultObject) {
-		return NULL;
+		return nullptr;
 	}
 	// ...and setup fields
 	CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "body", cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.body));
 	CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "mac",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.mac));
 	CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "key",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.key));
+	CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "nonce",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.nonce));
 	return resultObject;
 }
 
@@ -57,19 +58,20 @@ void LoadCppCryptogramFromJavaObject(JNIEnv * env, jobject cryptogram, ECIESCryp
 	cppCryptogram.body	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "body"));
 	cppCryptogram.mac	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "mac"));
 	cppCryptogram.key	= cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "key"));
+	cppCryptogram.nonce = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(cryptogram, clazz, "nonce"));
 }
 
 jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & encryptor)
 {
 	if (!env) {
 		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-		return NULL;
+		return nullptr;
 	}
 	// Create ECIESEncryptor java class instance
-	ECIESEncryptor * encryptor_copy = new ECIESEncryptor(encryptor);
-	jlong encryptor_copy_long = reinterpret_cast<jlong>(encryptor_copy);
+	auto encryptor_copy = new ECIESEncryptor(encryptor);
+	auto encryptor_copy_long = reinterpret_cast<jlong>(encryptor_copy);
 	jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesEncryptor"), "(J)V", encryptor_copy_long);
-	if (NULL == resultObject) {
+	if (nullptr == resultObject) {
 		// If java object was not constructed then we delete the encryptor's copy.
 		delete encryptor_copy;
 	}
@@ -119,7 +121,7 @@ CC7_JNI_METHOD(jlong, copyHandleForDecryption)
 		CC7_ASSERT(false, "Encryptor can't be used for decryption.");
 		return 0;
 	}
-	auto decryptor = new ECIESEncryptor(encryptor->envelopeKey(), encryptor->sharedInfo2());
+	auto decryptor = new ECIESEncryptor(encryptor->envelopeKey(), encryptor->ivForDecryption(), encryptor->sharedInfo2());
 	return reinterpret_cast<jlong>(decryptor);
 }
 
@@ -136,7 +138,7 @@ CC7_JNI_METHOD(jstring, getPublicKey)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return NULL;
+		return nullptr;
 	}
 	auto publicKey = encryptor->publicKey().base64String();
 	return cc7::jni::CopyToNullableJavaString(env, publicKey);
@@ -150,7 +152,7 @@ CC7_JNI_METHOD(jbyteArray, getSharedInfo1)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return NULL;
+		return nullptr;
 	}
 	return cc7::jni::CopyToNullableJavaByteArray(env, encryptor->sharedInfo1());
 }
@@ -163,7 +165,7 @@ CC7_JNI_METHOD(jbyteArray, getSharedInfo2)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return NULL;
+		return nullptr;
 	}
 	return cc7::jni::CopyToNullableJavaByteArray(env, encryptor->sharedInfo2());
 }
@@ -176,9 +178,9 @@ CC7_JNI_METHOD(jboolean, canEncryptRequest)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return false;
+		return (jboolean) false;
 	}
-	return encryptor->canEncryptRequest();
+	return (jboolean) encryptor->canEncryptRequest();
 }
 
 //
@@ -189,9 +191,9 @@ CC7_JNI_METHOD(jboolean, canDecryptResponse)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return false;
+		return (jboolean) false;
 	}
-	return encryptor->canDecryptResponse();
+	return (jboolean) encryptor->canDecryptResponse();
 }
 
 // ----------------------------------------------------------------------------
@@ -206,7 +208,7 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequest, jbyteArray requestData)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return NULL;
+		return nullptr;
 	}
 	// Copy parameters to CPP objects
 	auto cppRequestData = cc7::jni::CopyFromJavaByteArray(env, requestData);
@@ -216,7 +218,7 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequest, jbyteArray requestData)
 	auto ec = encryptor->encryptRequest(cppRequestData, cppCryptogram);
 	if (ec != EC_Ok) {
 		CC7_ASSERT(false, "ECIESCryptogram.encryptRequest: failed with error code %d", ec);
-		return NULL;
+		return nullptr;
 	}
 	return CreateJavaCryptogramFromCppObject(env, cppCryptogram);
 }
@@ -229,7 +231,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponse, jobject cryptogram)
 	auto encryptor = CC7_THIS_OBJ();
 	if (!encryptor) {
 		CC7_ASSERT(false, "Missing internal handle.");
-		return NULL;
+		return nullptr;
 	}
 	// Copy parameters to CPP objects
 	ECIESCryptogram cppCryptogram;
@@ -240,7 +242,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponse, jobject cryptogram)
 	auto ec = encryptor->decryptResponse(cppCryptogram, cppData);
 	if (ec != EC_Ok) {
 		CC7_ASSERT(false, "ECIESCryptogram.decryptResponse: failed with error code %d", ec);
-		return NULL;
+		return nullptr;
 	}
 	return cc7::jni::CopyToJavaByteArray(env, cppData);
 }

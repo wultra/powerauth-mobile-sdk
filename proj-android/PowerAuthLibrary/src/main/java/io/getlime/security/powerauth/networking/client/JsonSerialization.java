@@ -234,6 +234,7 @@ public class JsonSerialization {
         request.setEncryptedData(cryptogram.getBodyBase64());
         request.setEphemeralPublicKey(cryptogram.getKeyBase64());
         request.setMac(cryptogram.getMacBase64());
+        request.setNonce(cryptogram.getNonceBase64());
         return request;
     }
 

@@ -22,6 +22,8 @@
 #include "crypto/CryptoUtils.h"
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
+#include "utils/DataReader.h"
+
 #include <PowerAuth/Session.h>
 #include <PowerAuth/ECIES.h>
 #include <map>
@@ -51,8 +53,9 @@ namespace powerAuthTests
 			CC7_REGISTER_TEST_METHOD(testActivationWithEEKUsingSetter);
 			CC7_REGISTER_TEST_METHOD(testServerSignedData);
 			CC7_REGISTER_TEST_METHOD(testOldDataMigration);
-			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeToV3);
-			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeToV4);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV2ToV5);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV3ToV5);
+			CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV4ToV5);
 		}
 		
 		EC_KEY *	_masterServerPrivateKey;
@@ -1068,7 +1071,7 @@ namespace powerAuthTests
 			}
 		}
 		
-		void testPersistentDataUpgradeToV3()
+		void testPersistentDataUpgradeFromV2ToV5()
 		{
 			// constants
 			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
@@ -1080,7 +1083,8 @@ namespace powerAuthTests
 			
 			Session s1(oldSetup);
 			
-			auto v2_data = cc7::FromBase64String("UEECUDMAAAAAAAAAABtGVUxMLUJVVC1GQUtFLUFDVElWQVRJT04tSUQAACcQEFxD134A7"
+			// v2 data, where counter = 522
+			auto v2_data = cc7::FromBase64String("UEECUDMAAAAAAAACChtGVUxMLUJVVC1GQUtFLUFDVElWQVRJT04tSUQAACcQEFxD134A7"
 												 "jgrfXqjmzRSNEoQ+WilNdYscLQ/pbrYJqh9bhDqVVY8lLy2ZvMAtpwZwGrtEGAsKs9Rh8"
 												 "mZL1u+aQ3kdsgQKe2HE5aMUP+3mc0Zgzo1XSEC+N8Q8lTW59BH/5x6H+eahxi9n7A4ajz"
 												 "LgtaC3tTJhD8AMA3jUBawHBE2zowK9ThJL4kCPJPfzZVEcZhh6v1+IrQybj5WeD2HhFLw"
@@ -1117,15 +1121,27 @@ namespace powerAuthTests
 			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
 			
 			// Try to save, reset & reload data
-			cc7::ByteArray v3_data = s1.saveSessionState();
+			cc7::ByteArray v5_data = s1.saveSessionState();
 			s1.resetSession();
 			
-			ec = s1.loadSessionState(v3_data);
+			ec = s1.loadSessionState(v5_data);
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			
+			// Try low level function. We have to test whether the counter has been
+			// moved to the ctr_byte.
+			protocol::PersistentData pd;
+			utils::DataReader data_reader(v5_data);
+			data_reader.openVersion('P', 'A');	// Open version
+			data_reader.skipBytes(1);			// Skip flag byte
+			
+			auto b_result = protocol::DeserializePersistentData(pd, data_reader);
+			ccstAssertTrue(b_result);
+			ccstAssertEqual(pd.signatureCounterByte, (522 & 0xFF));
+			ccstAssertEqual(pd.flags.hasSignatureCounterByte, 1);
 		}
 		
-		void testPersistentDataUpgradeToV4()
+		void testPersistentDataUpgradeFromV3ToV5()
 		{
 			// constants
 			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
@@ -1154,10 +1170,9 @@ namespace powerAuthTests
 			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
 			ccstAssertFalse(s1.hasActivationRecoveryData());
 			
-			auto v4_data = s1.saveSessionState();
+			auto v5_data = s1.saveSessionState();
 			s1.resetSession();
-			ec = s1.loadSessionState(v4_data);
-			//ccstMessage("V4_data: %s", s1.saveSessionState().base64String().c_str());
+			ec = s1.loadSessionState(v5_data);
 			
 			ccstAssertTrue(ec == EC_Ok);
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
@@ -1168,6 +1183,70 @@ namespace powerAuthTests
 			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
 			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
 			ccstAssertFalse(s1.hasActivationRecoveryData());
+			
+			// Try low level function. The ctr_byte must not be available.
+			protocol::PersistentData pd;
+			utils::DataReader data_reader(v5_data);
+			data_reader.openVersion('P', 'A');	// Open version
+			data_reader.skipBytes(1);			// Skip flag byte
+			
+			auto b_result = protocol::DeserializePersistentData(pd, data_reader);
+			ccstAssertTrue(b_result);
+			ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
+		}
+		
+		void testPersistentDataUpgradeFromV4ToV5()
+		{
+			// constants
+			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
+			
+			SessionSetup oldSetup;
+			oldSetup.applicationKey		= "MDEyMzQ1Njc4OUFCQ0RFRg==";
+			oldSetup.applicationSecret	= "QUJDREVGMDEyMzQ1Njc4OQ==";
+			oldSetup.masterServerPublicKey = master_server_public_key;
+			
+			Session s1(oldSetup);
+			
+			auto v4_data = cc7::FromBase64String("UEECUDUQcXKzF7KLEfVzcb6F7dQ2jhtGVUxMLUJVVC1GQUtFLUFDVElWQVRJT04tSUQAA"
+												 "CcQEFxD134A7jgrfXqjmzRSNEoQ+WilNdYscLQ/pbrYJqh9bhDqVVY8lLy2ZvMAtpwZwG"
+												 "rtEGAsKs9Rh8mZL1u+aQ3kdsgQKe2HE5aMUP+3mc0Zgzo1XSEC+N8Q8lTW59BH/5x6H+e"
+												 "ahxi9n7A4ajzLgtaC3tTJhD8AMA3jUBawHBE2zowK9ThJL4kCPJPfzZVEcZhh6v1+IrQy"
+												 "bj5WeD2HhFLwEJr1nHvmSQAAAAAA");
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			auto ec = s1.loadSessionState(v4_data);
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertFalse(s1.canStartActivation());
+			ccstAssertTrue(s1.hasValidActivation());
+			ccstAssertFalse(s1.hasPendingActivation());
+			ccstAssertFalse(s1.hasExternalEncryptionKey());
+			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+			ccstAssertFalse(s1.hasActivationRecoveryData());
+			
+			auto v5_data = s1.saveSessionState();
+			s1.resetSession();
+			ec = s1.loadSessionState(v5_data);
+			
+			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertEqual(s1.protocolVersion(), Version_V3);
+			ccstAssertFalse(s1.canStartActivation());
+			ccstAssertTrue(s1.hasValidActivation());
+			ccstAssertFalse(s1.hasPendingActivation());
+			ccstAssertFalse(s1.hasExternalEncryptionKey());
+			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
+			ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+			ccstAssertFalse(s1.hasActivationRecoveryData());
+			
+			// Try low level function. The ctr_byte must not be available.
+			protocol::PersistentData pd;
+			utils::DataReader data_reader(v5_data);
+			data_reader.openVersion('P', 'A');	// Open version
+			data_reader.skipBytes(1);			// Skip byte with flags
+			
+			auto b_result = protocol::DeserializePersistentData(pd, data_reader);
+			ccstAssertTrue(b_result);
+			ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
 		}
 		
 		

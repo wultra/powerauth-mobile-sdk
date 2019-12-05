@@ -37,6 +37,8 @@ namespace powerAuthTests
 		pa2ActivationStatusBlobTests()
 		{
 			CC7_REGISTER_TEST_METHOD(testPublicKeyFingerprint)
+			CC7_REGISTER_TEST_METHOD(testEncryptedStatusBlobData)
+			CC7_REGISTER_TEST_METHOD(testByteCountersDistance)
 		}
 		
 		void testPublicKeyFingerprint()
@@ -54,6 +56,66 @@ namespace powerAuthTests
 				if (calculatedIV != expectedIV) {
 					ccstFailure("Doesn't match: Expected %s vs %s", expectedIV.hexString().c_str(), calculatedIV.hexString().c_str());
 					break;
+				}
+			}
+		}
+		
+		void testEncryptedStatusBlobData()
+		{
+			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/activation-status-blob-data.json");
+			auto&& data = root.arrayAtPath("data");
+			for (const JSONValue & item : data) {
+				// Load input data
+				cc7::ByteArray transportKey  = item.dataFromBase64StringAtPath("input.transportKey");
+				cc7::ByteArray challenge     = item.dataFromBase64StringAtPath("input.challenge");
+				cc7::ByteArray nonce         = item.dataFromBase64StringAtPath("input.nonce");
+				cc7::ByteArray ctrData       = item.dataFromBase64StringAtPath("input.ctrData");
+				cc7::ByteArray cStatusBlob   = item.dataFromBase64StringAtPath("input.encryptedStatusBlob");
+				
+				// Load expected values
+				auto expActivationStatus	= item.stringAtPath("output.activationStatus");
+				auto expCurrentVersion		= item.stringAtPath("output.currentVersion");
+				auto expUpgradeVersion		= item.stringAtPath("output.upgradeVersion");
+				auto expFailedAttempts		= item.stringAtPath("output.failedAttempts");
+				auto expMaxFailedAttempts	= item.stringAtPath("output.maxFailedAttempts");
+				auto expCtrLookAhead		= item.stringAtPath("output.ctrLookAhead");
+				auto expCtrByte				= item.stringAtPath("output.ctrByte");
+				auto expCtrDataHash			= item.stringAtPath("output.ctrDataHash");
+				auto expCounterDistance		= item.stringAtPath("output.counterDistance");
+				
+				// Try to decrypt status
+				ActivationStatus status;
+				auto result = protocol::DecryptEncryptedStatusBlob(cStatusBlob, challenge, nonce, transportKey, status);
+				ccstAssertEqual(EC_Ok, result);
+				
+				// Validate expected values
+				ccstAssertEqual(expActivationStatus, std::to_string((int)status.state));
+				ccstAssertEqual(expCurrentVersion, std::to_string((int)status.currentVersion));
+				ccstAssertEqual(expUpgradeVersion, std::to_string((int)status.upgradeVersion));
+				ccstAssertEqual(expFailedAttempts, std::to_string((int)status.failCount));
+				ccstAssertEqual(expMaxFailedAttempts, std::to_string((int)status.maxFailCount));
+				ccstAssertEqual(expCtrLookAhead, std::to_string((int)status.lookAheadCount));
+				ccstAssertEqual(expCtrByte, std::to_string((int)status.ctrByte));
+				ccstAssertEqual(expCtrDataHash, status.ctrDataHash.base64String());
+				
+				// Calculate distance between
+				auto local_ctr_data = ctrData;
+				int distance = protocol::CalculateHashCounterDistance(local_ctr_data, status.ctrDataHash, transportKey, status.lookAheadCount);
+				ccstAssertEqual(expCounterDistance, std::to_string(distance));
+			}
+		}
+		
+		void testByteCountersDistance()
+		{
+			for (int CTR = 0; CTR < 10000; CTR++) {
+				for (int expected_distance = -100; expected_distance <= 100; expected_distance++) {
+					int server_CTR = CTR;
+					int local_CTR = CTR + expected_distance;
+					if (local_CTR < 0) {
+						continue;	// don't need to repead the same test
+					}
+					int calculated_distance = protocol::CalculateDistanceBetweenByteCounters((cc7::byte)local_CTR, (cc7::byte)server_CTR);
+					ccstAssertEqual(expected_distance, calculated_distance);
 				}
 			}
 		}

@@ -241,7 +241,7 @@ namespace powerAuth
 				 Counter_CalculateSignature,   if counter is close to deadlock, so an online siganture calculation is recommended.
 		 		 Counter_Invalid,              if counter cannot be sychnronized and the activation is technically blocked.
 		 */
-		ActivationStatus::CounterState trySynchronizeCounter(const cc7::ByteRange & server_ctr_data, const ActivationStatus & status) const;
+		ActivationStatus::CounterState trySynchronizeCounter(const ActivationStatus & status, const cc7::ByteRange & transport_key) const;
 		
 	public:
 		

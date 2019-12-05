@@ -20,6 +20,7 @@ namespace powerAuthTests
      * pa2/signatures-v3.json
      * pa2/signatures-v31.json
      * pa2/activation-status-blob-iv.json
+     * pa2/activation-status-blob-data.json
 
   Usage:
 
@@ -12768,6 +12769,175 @@ static cc7::tests::TestResource activation_status_blob_iv_json
 	);
 //
 // -----------------------------------------------------------------------------
+// File: pa2/activation-status-blob-data.json
+// -----------------------------------------------------------------------------
+static const char activation_status_blob_data_json_bytes[] = R"cc7resourcxx({
+  "description" : "Status blob test data.",
+  "data" : [ {
+    "input" : {
+      "transportKey" : "gXqfNj6hC8yMlVpDET4S5Q==",
+      "challenge" : "h9ZX6Xjunqly71KgfgorRQ==",
+      "nonce" : "MtfHnxCDmJuuejhSOgM9Yg==",
+      "ctrData" : "hkIpYfIqQsMrj1Nbuh/BbA==",
+      "encryptedStatusBlob" : "ldIgTphu1GlOHhnY7GbZD6oub8N4KXOqfay41zrMxTU="
+    },
+    "output" : {
+      "activationStatus" : "2",
+      "currentVersion" : "2",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "0",
+      "maxFailedAttempts" : "5",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "1",
+      "ctrDataHash" : "c25pnWvjJTzl4Kv3McaGkA==",
+      "counterDistance" : "0"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "WxXuivtAXftYrynUWg30Qg==",
+      "challenge" : "LhIFvNQHSxOQopRkZi+fnQ==",
+      "nonce" : "FaWmhpUOZjqB+5F63gDCOw==",
+      "ctrData" : "GPkNk4HviJVcdLhydCQaqg==",
+      "encryptedStatusBlob" : "HL8o9m2yOz37lSg4KaUUOYhmu/5ZbSh4gOWAK7SCp2k="
+    },
+    "output" : {
+      "activationStatus" : "3",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "0",
+      "maxFailedAttempts" : "5",
+      "ctrLookAhead" : "33",
+      "ctrByte" : "13",
+      "ctrDataHash" : "8ucL70oYQuQFv8hR/R1oNA==",
+      "counterDistance" : "30"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "so9FkduOZnByMtZFPXUotA==",
+      "challenge" : "F85MRfV68PsK1lInBGOtqg==",
+      "nonce" : "poQievUB+cPhRvTRZlNRDw==",
+      "ctrData" : "wGnsC1qaUfoxo/FMfFkT/g==",
+      "encryptedStatusBlob" : "H69FpaV1XceeBOTt3EuHG/n2cnpzMa1lpu5UyFb/iKQ="
+    },
+    "output" : {
+      "activationStatus" : "4",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "1",
+      "maxFailedAttempts" : "5",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "133",
+      "ctrDataHash" : "81tzkHEOyDPjlbLBovUBtg==",
+      "counterDistance" : "0"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "7DBv+MtW9TTQyRSRQp16pQ==",
+      "challenge" : "vmtyoUP7v3LhfCFtMaAbYg==",
+      "nonce" : "0cVyYu5vMwNOOS2VqEhlQA==",
+      "ctrData" : "zPJfgBzVT4XduxtF3OB00Q==",
+      "encryptedStatusBlob" : "QINRZzV77AiWfGLq7O5Iwkg2xffC65qJSGdwdd4lbUE="
+    },
+    "output" : {
+      "activationStatus" : "5",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "0",
+      "maxFailedAttempts" : "10",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "63",
+      "ctrDataHash" : "gV+DVeHsQvGO9l8XpexxLw==",
+      "counterDistance" : "0"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "zQrtuT15KtVQAru3v4Ga5g==",
+      "challenge" : "unKuSbe7uROEXlatacy2Ww==",
+      "nonce" : "vVKBCcc4aR3YDk/+3mRTwQ==",
+      "ctrData" : "fVC885q139++PuAgPFHu6Q==",
+      "encryptedStatusBlob" : "XwZDvKlTA4EkyrS9mHC6mSOUrHLJNDgWIObCG0Zk2Vk="
+    },
+    "output" : {
+      "activationStatus" : "3",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "5",
+      "maxFailedAttempts" : "10",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "127",
+      "ctrDataHash" : "UKDfGvI8AXYgL0x2+5Ggeg==",
+      "counterDistance" : "0"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "2VWsTkyPw2Aq9HXkBq77+Q==",
+      "challenge" : "Mg34CI6vbPh28tVTLSSdcQ==",
+      "nonce" : "gwsI6CAXPe7hYE4kWpc3+Q==",
+      "ctrData" : "wpL9bF0YLwR377NhwqFQ8w==",
+      "encryptedStatusBlob" : "A83lNiJzUYzz3COZNbqqrGO+G4t4aH6mg6Vi8tNzBX8="
+    },
+    "output" : {
+      "activationStatus" : "3",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "6",
+      "maxFailedAttempts" : "6",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "253",
+      "ctrDataHash" : "1yv/yiv5LKGrPhaqPyZRdw==",
+      "counterDistance" : "0"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "abddUTRgKu4tRyCtWXVrhg==",
+      "challenge" : "CIlHXaGx9tskubTBtQo27g==",
+      "nonce" : "39VJXfdqe1mweCqJSf6SLg==",
+      "ctrData" : "t8vgsV4vLhfgSuVj243bFw==",
+      "encryptedStatusBlob" : "GvZ4fByaL0Lbsx3Mt4uyKxv3KqokEwkAIYvg+x1yni4="
+    },
+    "output" : {
+      "activationStatus" : "4",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "0",
+      "maxFailedAttempts" : "5",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "128",
+      "ctrDataHash" : "HI2M1kUlJy6HwdvoHT7/Xg==",
+      "counterDistance" : "4"
+    }
+  }, {
+    "input" : {
+      "transportKey" : "ETgxJRh3C5pCtbAETc75KQ==",
+      "challenge" : "dn7W9vC0WgTBMnip5WbUHA==",
+      "nonce" : "NEk+kNUvjeq6XuNez7qm8Q==",
+      "ctrData" : "iMaVG4sGCx7SnW7rRYKLtQ==",
+      "encryptedStatusBlob" : "QKzaedpfAYIZ4Xkl+tN/fT8mzxo03xz6p7bgXmCRcCQ="
+    },
+    "output" : {
+      "activationStatus" : "5",
+      "currentVersion" : "3",
+      "upgradeVersion" : "3",
+      "failedAttempts" : "0",
+      "maxFailedAttempts" : "5",
+      "ctrLookAhead" : "20",
+      "ctrByte" : "77",
+      "ctrDataHash" : "41pS6JhBPNj/PNIG5PMDGg==",
+      "counterDistance" : "1"
+    }
+  } ]
+})cc7resourcxx";
+static const size_t activation_status_blob_data_json_size = 4923;
+// -----------------------------------------------------------------------------
+//
+static cc7::tests::TestResource activation_status_blob_data_json
+	(
+		reinterpret_cast<const cc7::byte*>(activation_status_blob_data_json_bytes),
+		activation_status_blob_data_json_size,
+		"pa2/activation-status-blob-data.json"
+	);
+//
+// -----------------------------------------------------------------------------
 // Directory: pa2
 // -----------------------------------------------------------------------------
 //
@@ -12779,6 +12949,7 @@ cc7::tests::TestDirectory g_pa2Files({
 	&signatures_v3_json,
 	&signatures_v31_json,
 	&activation_status_blob_iv_json,
+	&activation_status_blob_data_json,
 });
 
 } // powerAuthTests

@@ -664,7 +664,7 @@ static NSString * PA_Ver = @"3.1";
 	auth_possession_knowledge.usePassword = auth.usePassword;
 	
 	//
-	// Online signatures (calculated as http auth header)
+	// Online & offline signatures (calculated as http auth header)
 	//
 	for (int i = 1; i <= 2; i++)
 	{
@@ -690,6 +690,22 @@ static NSString * PA_Ver = @"3.1";
 		result = [self validateSignature:auth_possession_knowledge data:data method:@"POST" uriId:@"/hello/from/test" online:online_mode cripple:0x1000];
 		XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 	}
+	
+	// Do more valid signatures. Count is important, due to fact that we have 8-bit local counter sice V3.1
+	for (int i = 1; i < 264; i++) {
+		result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+			id<PA2OperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+				[waiting reportCompletion:@(error == nil)];
+			}];
+			XCTAssertNotNil(task);
+		}] boolValue];
+		XCTAssertTrue(result);
+		if ((i & 0x3f) == 1) {
+			XCTAssertTrue(PA2ActivationState_Active == [self fetchActivationStatus].state);
+		}
+	}
+	// One last status check
+	XCTAssertTrue(PA2ActivationState_Active == [self fetchActivationStatus].state);
 	
 	// Cleanup
 	[self removeLastActivation:activationData];

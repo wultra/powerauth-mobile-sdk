@@ -600,7 +600,15 @@ namespace powerAuth
 		/**
 		 Look ahead window used on the server.
 		 */
-		cc7::byte lookAheadCount;		
+		cc7::byte lookAheadCount;
+		/**
+		 Least significant byte from counter.
+		 */
+		cc7::byte ctrByte;
+		/**
+		 Hash calculated from hash based counter.
+		 */
+		cc7::ByteArray ctrDataHash;
 		
 		/**
 		 Constructs a new empty activation status structure.
@@ -612,7 +620,8 @@ namespace powerAuth
 			maxFailCount(0),
 			currentVersion(0),
 			upgradeVersion(0),
-			lookAheadCount(0)
+			lookAheadCount(0),
+			ctrByte(0)
 		{
 		}
 		

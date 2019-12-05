@@ -172,13 +172,7 @@ namespace protocol
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		cc7::byte version_marker;
-		if (pd.isV3()) {
-			version_marker = pd.flags.hasSignatureCounterByte ? PD_VERSION_V5 : PD_VERSION_V4;
-		} else {
-			version_marker = PD_VERSION_V2;
-		}
-		writer.openVersion(PD_TAG, version_marker);
+		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V5 : PD_VERSION_V2);
 		
 		// Serialize hash data or counter, depending on data version
 		if (pd.isV3()) {
@@ -205,10 +199,8 @@ namespace protocol
 		// encrypted recovery data (PD v4)
 		writer.writeData	(pd.cRecoveryData);
 		
-		// Counter byte
-		if (writer.currentVersion() == PD_VERSION_V5) {
-			writer.writeByte(pd.signatureCounterByte);
-		}
+		// Counter byte (PD v5)
+		writer.writeByte	(pd.signatureCounterByte);
 		
 		writer.closeVersion();
 		return true;
@@ -256,7 +248,6 @@ namespace protocol
 		// signature counter byte (PD v5)
 		if (reader.currentVersion() >= PD_VERSION_V5) {
 			result = result && reader.readByte(pd.signatureCounterByte);
-			pd.flags.hasSignatureCounterByte = 1;
 		} else {
 			pd.flags.hasSignatureCounterByte = 0;
 			pd.signatureCounterByte = 0;

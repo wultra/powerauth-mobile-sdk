@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentManager;
+import android.util.Pair;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -39,6 +40,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code BiometricAuthenticator} implements {@link IBiometricAuthenticator} interface with using new
@@ -215,12 +217,24 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), cipher);
                     if (protectedKey != null) {
                         dispatcher.dispatchSuccess(protectedKey);
-                    } else {
-                        dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt biometric key.");
+                        return;
                     }
+                    PA2Log.e("Failed to encrypt biometric key.");
                 } else {
-                    dispatcher.dispatchError(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "The device has broken biometric implementation.");
+                    PA2Log.e("Failed to get Cipher from CryptoObject.");
                 }
+                // If the code ends here, it mostly means that the vendor's implementation is quite off the standard.
+                // The device reports success, but we're unable to derive our cryptographic key, due to malfunction in cipher
+                // or due to fact, that the previously constructed cipher is not available. The right response for this state
+                // is to remove the biometric key from the keychain, show an error dialog and then, finally report "not available" state.
+                dispatcher.reportBiometricKeyUnavailable();
+                dispatcher.dispatchRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key.");
+                        showErrorDialogAfterSuccess(fragmentManager, requestData, exception);
+                    }
+                });
             }
 
             @Override
@@ -384,5 +398,51 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             return context.getString(resources.strings.errorCodeLockout);
         }
         return context.getString(resources.strings.errorCodeGeneric);
+    }
+
+    /**
+     * Shows error dialog despite the fact, that biometric authentication succeeded. This might happen
+     * in rare cases, when the vendor's implementation is unable to encrypt the provided biometric key.
+     *
+     * @param fragmentManager Fragment manager.
+     * @param requestData Private request data.
+     * @param exception Exception to be reported later to the operation's callback.
+     */
+    private void showErrorDialogAfterSuccess(
+            @NonNull final FragmentManager fragmentManager,
+            @NonNull final PrivateRequestData requestData,
+            @NonNull final PowerAuthErrorException exception) {
+
+        final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
+        if (dispatcher.getCancelableTask().isCancelled()) {
+            // Do nothing. Looks like the whole operation was canceled from the application.
+            return;
+        }
+
+        final BiometricDialogResources resources = requestData.getResources();
+        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(BiometricStatus.NOT_AVAILABLE, resources);
+
+        final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
+                .setTitle(titleDescription.first)
+                .setMessage(titleDescription.second)
+                .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
+                .setIcon(resources.drawables.errorIcon)
+                .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
+                    @Override
+                    public void onClose() {
+                        dispatcher.dispatchError(exception);
+                    }
+                })
+                .build();
+        // Handle cancel from the application. Note that this overrides the previous cancel listener.
+        dispatcher.setOnCancelListener(new CancelableTask.OnCancelListener() {
+            @Override
+            public void onCancel() {
+                dialogFragment.dismiss();
+            }
+        });
+
+        // Show fragment
+        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 }

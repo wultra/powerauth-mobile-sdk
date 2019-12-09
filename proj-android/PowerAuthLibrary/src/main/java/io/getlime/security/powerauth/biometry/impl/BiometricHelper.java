@@ -21,6 +21,8 @@ import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.annotation.StringRes;
+import android.util.Pair;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -34,9 +36,11 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.system.PA2Log;
 
 /**
  * The {@code BiometricHelper} class provides helper methods for PowerAuth Mobile SDK. The class
@@ -66,6 +70,36 @@ public class BiometricHelper {
     }
 
     /**
+     * Translate {@link BiometricStatus} into pair of string resources, representing title and description for error dialog.
+     *
+     * @param status Status to be translated to error dialog resources.
+     * @param resources {@link BiometricDialogResources} object with resource identifiers.
+     * @return Pair of string resource identifiers, with appropriate title and description.
+     */
+    public static @NonNull Pair<Integer, Integer> getErrorDialogStringsForBiometricStatus(@BiometricStatus int status, @NonNull BiometricDialogResources resources) {
+        final @StringRes int errorTitle;
+        final @StringRes int errorDescription;
+        if (status == BiometricStatus.NOT_ENROLLED) {
+            // User must enroll at least one fingerprint
+            errorTitle       = resources.strings.errorEnrollFingerprintTitle;
+            errorDescription = resources.strings.errorEnrollFingerprintDescription;
+        } else if (status == BiometricStatus.NOT_SUPPORTED) {
+            // Fingerprint scanner is not supported on the authenticator
+            errorTitle       = resources.strings.errorNoFingerprintScannerTitle;
+            errorDescription = resources.strings.errorNoFingerprintScannerDescription;
+        } else if (status == BiometricStatus.NOT_AVAILABLE) {
+            // Fingerprint scanner is disabled in the system, or permission was not granted.
+            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
+            errorDescription = resources.strings.errorFingerprintDisabledDescription;
+        } else {
+            // Fallback...
+            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
+            errorDescription = resources.strings.errorFingerprintDisabledDescription;
+        }
+        return Pair.create(errorTitle, errorDescription);
+    }
+
+    /**
      * Create AES/CBC with PKCS7 padding cipher with given secret key.
      *
      * @param key Key to be used for encryption and decryption.
@@ -79,13 +113,8 @@ public class BiometricHelper {
             AlgorithmParameterSpec algorithmSpec = new IvParameterSpec(zero_iv);
             cipher.init(Cipher.ENCRYPT_MODE, key, algorithmSpec);
             return cipher;
-        } catch (NoSuchPaddingException e) {
-            return null;
-        } catch (InvalidAlgorithmParameterException e) {
-            return null;
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        } catch (InvalidKeyException e) {
+        } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | InvalidKeyException e) {
+            PA2Log.e("BiometricHelper.createAesCipher failed: " + e.getMessage());
             return null;
         }
     }
@@ -100,9 +129,8 @@ public class BiometricHelper {
     public static @Nullable byte[] protectKeyWithCipher(@NonNull byte[] keyToProtect, @NonNull Cipher cipher) {
         try {
             return cipher.doFinal(keyToProtect);
-        } catch (IllegalBlockSizeException e) {
-            return null;
-        } catch (BadPaddingException e) {
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            PA2Log.e("BiometricHelper.protectKeyWithCipher failed: " + e.getMessage());
             return null;
         }
     }

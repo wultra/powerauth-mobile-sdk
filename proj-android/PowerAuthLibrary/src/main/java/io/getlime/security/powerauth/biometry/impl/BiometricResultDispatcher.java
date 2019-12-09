@@ -41,6 +41,12 @@ public class BiometricResultDispatcher {
          * Called on any kind of completion (e.g. on success, failure or cancel)
          */
         void onCompletion();
+
+        /**
+         * Called when the biometric key is no longer available, due to unexpected malfunction.
+         * If the method is called, then it's always called before {@link #onCompletion()}.
+         */
+        void onBiometricKeyUnavailable();
     }
 
     private @NonNull final IResultCompletion resultCompletion;
@@ -49,6 +55,7 @@ public class BiometricResultDispatcher {
     private @NonNull final CancelableTask cancelable;
     private @Nullable CancelableTask.OnCancelListener onCancelListener;
     private boolean isDispatched = false;
+    private boolean isBiometricKeyUnavailableDispatched = false;
 
     /**
      * @param callback Callback to the application. It's always executed after the {@link #resultCompletion}.
@@ -146,6 +153,33 @@ public class BiometricResultDispatcher {
             @Override
             public void run() {
                 callback.onBiometricDialogFailed(exception);
+            }
+        });
+    }
+
+    /**
+     * Execute runnable object in the internal callback dispatcher. Unlike other public "dispatch" methods,
+     * in this class, this method only executes the runnable, but doesn't mark this result dispatcher
+     * as completed with the result. The method is useful when you need to execute an arbitrary
+     * code at the completion thread.
+     *
+     * @param runnable {@link Runnable} to execute on the callback dispatcher.
+     */
+    public void dispatchRunnable(@NonNull final Runnable runnable) {
+        callbackDispatcher.dispatchCallback(runnable);
+    }
+
+    /**
+     * Report that biometric key is no longer available.
+     */
+    public void reportBiometricKeyUnavailable() {
+        callbackDispatcher.dispatchCallback(new Runnable() {
+            @Override
+            public void run() {
+                if (!isDispatched && !isBiometricKeyUnavailableDispatched) {
+                    isBiometricKeyUnavailableDispatched = true;
+                    resultCompletion.onBiometricKeyUnavailable();
+                }
             }
         });
     }

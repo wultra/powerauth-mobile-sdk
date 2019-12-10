@@ -162,6 +162,7 @@ namespace protocol
 	const cc7::byte PD_VERSION_V2 = '3';	// data version is one step ahead
 	const cc7::byte PD_VERSION_V3 = '4';	// + protocol V3
 	const cc7::byte PD_VERSION_V4 = '5';	// + recovery codes
+	const cc7::byte PD_VERSION_V5 = '6';	// + signature counter byte
 
 	// WARNING: If you update PD_VERSION, then please update also routine
 	//          located in PA2SessionStatusDataReader.m in iOS extensions project.
@@ -171,7 +172,7 @@ namespace protocol
 	{
 		CC7_ASSERT(ValidatePersistentData(pd), "Invalid persistent data");
 		
-		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V4 : PD_VERSION_V2);
+		writer.openVersion(PD_TAG, pd.isV3() ? PD_VERSION_V5 : PD_VERSION_V2);
 		
 		// Serialize hash data or counter, depending on data version
 		if (pd.isV3()) {
@@ -197,6 +198,9 @@ namespace protocol
 
 		// encrypted recovery data (PD v4)
 		writer.writeData	(pd.cRecoveryData);
+		
+		// Counter byte (PD v5)
+		writer.writeByte	(pd.signatureCounterByte);
 		
 		writer.closeVersion();
 		return true;
@@ -239,6 +243,14 @@ namespace protocol
 			result = result && reader.readData	(pd.cRecoveryData);
 		} else {
 			pd.cRecoveryData.clear();
+		}
+		
+		// signature counter byte (PD v5)
+		if (reader.currentVersion() >= PD_VERSION_V5) {
+			result = result && reader.readByte(pd.signatureCounterByte);
+		} else {
+			pd.flags.hasSignatureCounterByte = 0;
+			pd.signatureCounterByte = 0;
 		}
 		
 		// close versioned section & validate data

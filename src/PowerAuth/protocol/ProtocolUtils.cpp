@@ -17,6 +17,7 @@
 #include "ProtocolUtils.h"
 #include "Constants.h"
 #include "../crypto/CryptoUtils.h"
+#include "../utils/DataReader.h"
 #include <cc7/Base64.h>
 #include <cc7/Endian.h>
 
@@ -109,9 +110,9 @@ namespace protocol
 	
 	cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const cc7::ByteRange & index)
 	{
-		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() == SIGNATURE_KEY_SIZE) {
+		if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() >= SIGNATURE_KEY_SIZE) {
 			// Calculate HMAC SHA256 without cropping the result
-			cc7::ByteArray result = crypto::HMAC_SHA256(masterKey, index);
+			cc7::ByteArray result = crypto::HMAC_SHA256(index, masterKey);
 			if (result.size() == 32) {
 				// Everything looks fine, just xor the final array.
 				for (size_t i = 0; i < 16; i++) {
@@ -368,6 +369,10 @@ namespace protocol
 		if (pd.isV3()) {
 			// Move hash-based counter forward. Vault unlock is ignored in V3
 			pd.signatureCounterData = _NextCounterValue(pd.signatureCounterData);
+			// Also move signature counter byte forward, if is available.
+			if (pd.flags.hasSignatureCounterByte) {
+				pd.signatureCounterByte += 1;
+			}
 			//
 		} else {
 			// Move old counter forward
@@ -582,6 +587,69 @@ namespace protocol
 	//
 	// MARK: - Encrypted status -
 	//
+
+	ErrorCode DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
+										 const cc7::ByteRange & challenge,
+										 const cc7::ByteRange & nonce,
+										 const cc7::ByteRange & transport_key,
+										 ActivationStatus & out_status)
+	{
+		if (encrypted_status_blob.size() != protocol::STATUS_BLOB_SIZE) {
+			// Considered as an attack on protocol
+			return EC_Encryption;
+		}
+		// Prepare IV for status blob decryption
+		auto status_iv = protocol::DeriveIVForStatusBlobDecryption(challenge, nonce, transport_key);
+		if (status_iv.empty()) {
+			return EC_Encryption;
+		}
+		// Decrypt blob and initialize reader for data parsing.
+		utils::DataReader reader(crypto::AES_CBC_Decrypt(transport_key, status_iv, encrypted_status_blob));
+		cc7::ByteRange hdr;
+		cc7::ByteArray server_ctr_data;
+		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
+		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
+		cc7::byte ctr_byte = 0xdd;
+		cc7::byte look_ahead = 0xdd;
+		
+		bool result = reader.readMemoryRange(hdr, 4) &&
+				 reader.readByte(state) &&
+				 reader.readByte(curr_ver) &&
+				 reader.readByte(upgrade_ver) &&
+				 reader.skipBytes(5) &&
+				 reader.readByte(ctr_byte) &&
+				 reader.readByte(fail_ctr) &&
+				 reader.readByte(max_fail_ctr) &&
+				 reader.readByte(look_ahead) &&
+				 reader.readMemory(out_status.ctrDataHash, 16);
+		if (!result) {
+			return EC_Encryption;
+		}
+		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || (hdr[3] & 0xF0) != 0xD0) {
+			return EC_Encryption;
+		}
+		// HDR[3] can be 0xDx, but at least 0xD1.
+		// We can use this byte to identify the status blob versions in future protocol versions.
+		if (!((hdr[3] & 0x0F) >= 1)) {
+			return EC_Encryption;
+		}
+		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
+			return EC_Encryption;
+		}
+		if (look_ahead == 0 || look_ahead > protocol::LOOK_AHEAD_MAX) {
+			return EC_Encryption;
+		}
+		// Fill output structure
+		out_status.state        	= static_cast<ActivationStatus::State>(state);
+		out_status.failCount    	= fail_ctr;
+		out_status.maxFailCount 	= max_fail_ctr;
+		out_status.currentVersion	= curr_ver;
+		out_status.upgradeVersion	= upgrade_ver;
+		out_status.lookAheadCount	= look_ahead;
+		out_status.ctrByte			= ctr_byte;
+		
+		return EC_Ok;
+	}
 	
 	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
 												   const cc7::ByteRange & nonce,
@@ -590,33 +658,55 @@ namespace protocol
 		if (CC7_CHECK(challenge.size() == STATUS_BLOB_CHALLENGE_SIZE && nonce.size() == STATUS_BLOB_NONCE_SIZE)) {
 			// Derive base IV key from transport key
 			auto key_transport_iv = DeriveSecretKey(transport_key, 3000);
+			// Prepare STATUS_IV_DATA
+			cc7::ByteArray status_iv_data = challenge;
+			status_iv_data.append(nonce);
 			// KDF_INTERNAL
-			auto key_challenge = ReduceSharedSecret(crypto::HMAC_SHA256(challenge, key_transport_iv));
-			// challenge_key ^= nonce
-			if (key_challenge.size() == nonce.size()) {
-				for (size_t i = 0; i < key_challenge.size(); i++) {
-					key_challenge[i] ^= nonce[i];
-				}
-				return key_challenge;
-			}
+			return DeriveSecretKeyFromIndex(key_transport_iv, status_iv_data);
 		}
 		// In case of failure, return empty array.
 		return cc7::ByteArray();
 	}
 	
-	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations)
+	int CalculateHashCounterDistance(cc7::ByteArray & local_ctr_data,
+									 const cc7::ByteRange & server_ctr_data_hash,
+									 const cc7::ByteRange & transport_key,
+									 int max_iterations)
 	{
-		cc7::ByteArray cnt = counter1;
+		auto key_transport_ctr = DeriveSecretKey(transport_key, 4000);
 		int iteration = 0;
 		while (max_iterations > 0) {
-			if (cnt == counter2) {
+			auto local_ctr_data_hash = DeriveSecretKeyFromIndex(key_transport_ctr, local_ctr_data);
+			if (local_ctr_data_hash == server_ctr_data_hash) {
 				return iteration;
 			}
-			cnt = _NextCounterValue(cnt);
+			local_ctr_data = _NextCounterValue(local_ctr_data);
 			++iteration;
 			--max_iterations;
 		}
 		return -1;
+	}
+
+	int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr)
+	{
+		int L = local_ctr;
+		int S = server_ctr;
+		// Calculate possible distances
+		int d1 = L - S;
+		int d2 = 256 + L - S;
+		int d3 = L - (256 + S);
+		// Find minimum absolute distance from possible distances
+		int d1a = abs(d1);
+		int d2a = abs(d2);
+		int d3a = abs(d3);
+		int distance_abs = std::min(d1a, std::min(d2a, d3a));
+		// Determine which one is it.
+		if (distance_abs == d1a) {
+			return d1;
+		} else if (distance_abs == d2a) {
+			return d2;
+		}
+		return d3;
 	}
 	
 } // io::getlime::powerAuth::protocol

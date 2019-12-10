@@ -693,9 +693,9 @@ You can remove biometry related factor data used by biometric authentication sup
 powerAuthSDK.removeBiometryFactor(context);
 ```
 
-### Fetching the Biometry Factor Related Key for Authentication
+### Fetching the biometry factor-related key for authentication
 
-In order to obtain an encrypted biometry factor related key for the purpose of authentication, call following code:
+In order to obtain an encrypted biometry factor-related key for the purpose of authentication, call following code:
 
 ```java
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
@@ -716,6 +716,21 @@ powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use
     }
 });
 ```
+
+### Biometry factor-related key lifetime
+
+By default, the biometry factor-related key is invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enroll with a new face, then the biometry factor-related key is no longer available for the signing operation. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `false` and use that configuration for the `PowerAuthSDK` instance construction:
+
+```java
+// Use false for 'linkBiometricItemsToCurrentSet' parameter. 
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, false);
+// Apply keychain configuration
+PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
+        .keychainConfiguration(keychainConfig)
+        .build(getApplicationContext());
+```
+
+Be aware that the configuration above is effective only for the new keys. So, if your application is already using the biometry factor-related key with a different configuration, then the configuration change doesn't change the existing key. You have to [disable](#disable-biometric-authentication) and [enable](#enable-biometric-authentication) biometry to apply the change.
 
 ### Biometric authentication details
 
@@ -849,13 +864,15 @@ Following steps are typically required for a full E2EE request and response proc
    - `ephemeralPublicKey` property fill with `cryptogram.getKeyBase64()`
    - `encryptedData` property fill with `cryptogram.getBodyBase64()`
    - `mac` property fill with `cryptogram.getMacBase64()`
+   - `nonce` property fill with `cryptogram.getNonceBase64()`
    
    So, the final request JSON should looks like:
    ```json
    {
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE"
    }
    ```
    

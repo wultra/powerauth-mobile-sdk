@@ -32,6 +32,7 @@ public class BiometricAuthenticationRequest {
     private final @Nullable CharSequence subtitle;
     private final @NonNull CharSequence description;
     private final boolean forceGenerateNewKey;
+    private final boolean invalidateByBiometricEnrollment;
     private final @NonNull byte[] keyToProtect;
 
     private BiometricAuthenticationRequest(
@@ -39,11 +40,13 @@ public class BiometricAuthenticationRequest {
             @Nullable CharSequence subtitle,
             @NonNull CharSequence description,
             boolean forceGenerateNewKey,
+            boolean invalidateByBiometricEnrollment,
             @NonNull byte[] keyToProtect) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
         this.forceGenerateNewKey = forceGenerateNewKey;
+        this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.keyToProtect = Arrays.copyOf(keyToProtect, keyToProtect.length);
     }
 
@@ -76,6 +79,13 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
+     * @return Whether the new key should be invalidated on biometric enrollment.
+     */
+    public boolean isInvalidateByBiometricEnrollment() {
+        return invalidateByBiometricEnrollment;
+    }
+
+    /**
      * @return Application provided key which will be protected by the biometric key.
      */
     public @NonNull byte[] getKeyToProtect() {
@@ -94,6 +104,7 @@ public class BiometricAuthenticationRequest {
         private CharSequence description;
 
         private boolean forceGenerateNewKey;
+        private boolean invalidateByBiometricEnrollment = true;
         private byte[] keyToProtect;
 
         /**
@@ -121,7 +132,13 @@ public class BiometricAuthenticationRequest {
             if (keyToProtect.length < 16) {
                 throw new IllegalArgumentException("KeyToProtect length is insufficient.");
             }
-            return new BiometricAuthenticationRequest(title, subtitle, description, forceGenerateNewKey, keyToProtect);
+            return new BiometricAuthenticationRequest(
+                    title,
+                    subtitle,
+                    description,
+                    forceGenerateNewKey,
+                    invalidateByBiometricEnrollment,
+                    keyToProtect);
         }
 
         /**
@@ -189,10 +206,13 @@ public class BiometricAuthenticationRequest {
         /**
          * @param forceGenerateNewKey If true then the new biometric key will be generated as a
          *                            part of the process.
+         * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on
+         *                                       biometric enrollment.
          * @return This value will never be {@code null}.
          */
-        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey) {
+        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment) {
             this.forceGenerateNewKey = forceGenerateNewKey;
+            this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
             return this;
         }
 

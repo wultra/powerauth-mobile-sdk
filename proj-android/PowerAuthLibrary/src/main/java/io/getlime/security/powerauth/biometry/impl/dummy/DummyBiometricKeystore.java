@@ -40,7 +40,7 @@ public class DummyBiometricKeystore implements IBiometricKeystore {
 
     @Nullable
     @Override
-    public SecretKey generateDefaultKey() {
+    public SecretKey generateDefaultKey(boolean invalidateByBiometricEnrollment) {
         return null;
     }
 

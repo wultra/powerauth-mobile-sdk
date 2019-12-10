@@ -19,6 +19,17 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 - [Migration from version `0.20.x` to `1.0.x`](docs/Migration-from-0.20-to-1.0.md)
 - [Migration from version `0.19.x` to `0.20.x`](docs/Migration-from-0.19-to-0.20.md)
 
+### Support and Compatibility
+
+| Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
+|------------|----------|---------------------|-----------------------------------|
+| `1.3.x`    | `V3.1`   | `0.23+`             | Fully supported                   |
+| `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security & Functionality bugfixes |
+| `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
+| `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
+
+> Note 1: If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can use this version also with PowerAuth Server `0.21`.
+
 ## License
 
 All sources are licensed using Apache 2.0 license, you can use them with no restriction. If you are using PowerAuth 2.0, please let us know. We will be happy to share and promote your project.

@@ -68,7 +68,8 @@ using namespace cc7;
 	if (!result) {
 		NSLog(@"Incidents:\n%@", [NSString stringWithUTF8String:log_data.incidents.c_str()]);
 	}
-	NSLog(@"Full test log:\n%@", [NSString stringWithUTF8String:log_data.log.c_str()]);
+	NSLog(@"Full test log\n");
+	_manager->tl().printLog();
 
 	return result;
 }

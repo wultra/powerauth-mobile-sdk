@@ -16,6 +16,7 @@
 
 #include <PowerAuth/ECIES.h>
 #include "crypto/CryptoUtils.h"
+#include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
 
 namespace io
@@ -43,18 +44,33 @@ namespace powerAuth
 		return _key.size() == EnvelopeKeySize;
 	}
 	
-	const cc7::ByteRange ECIESEnvelopeKey::encKey() const {
+	const cc7::ByteRange ECIESEnvelopeKey::encKey() const
+	{
 		if (isValid()) {
-			return _key.byteRange().subRange(0, EnvelopeKeySize/2);
+			return _key.byteRange().subRange(EncKeyOffset, EncKeySize);
 		}
 		return cc7::ByteRange();
 	}
 	
-	const cc7::ByteRange ECIESEnvelopeKey::macKey() const {
+	const cc7::ByteRange ECIESEnvelopeKey::macKey() const
+	{
 		if (isValid()) {
-			return _key.byteRange().subRange(EnvelopeKeySize/2, EnvelopeKeySize/2);
+			return _key.byteRange().subRange(MacKeyOffset, MacKeySize);
 		}
 		return cc7::ByteRange();
+	}
+
+	const cc7::ByteRange ECIESEnvelopeKey::ivKey() const
+	{
+		if (isValid()) {
+			return _key.byteRange().subRange(IvKeyOffset, IvKeySize);
+		}
+		return cc7::ByteRange();
+	}
+
+	cc7::ByteArray ECIESEnvelopeKey::deriveIvForNonce(const cc7::ByteRange & nonce) const
+	{
+		return protocol::DeriveSecretKeyFromIndex(ivKey(), nonce);
 	}
 	
 	ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key)
@@ -136,9 +152,12 @@ namespace powerAuth
 	// MARK: - Private encryption / decryption -
 	//
 	
-	static ErrorCode _Encrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram)
+	static ErrorCode _Encrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const cc7::ByteRange & data, const cc7::ByteRange & iv, ECIESCryptogram & out_cryptogram)
 	{
-		out_cryptogram.body = crypto::AES_CBC_Encrypt_Padding(ek.encKey(), protocol::ZERO_IV, data);
+		if (iv.size() != ECIESEnvelopeKey::IvSize) {
+			return EC_Encryption;
+		}
+		out_cryptogram.body = crypto::AES_CBC_Encrypt_Padding(ek.encKey(), iv, data);
 		if (out_cryptogram.body.empty()) {
 			return EC_Encryption;
 		}
@@ -155,8 +174,11 @@ namespace powerAuth
 		return EC_Ok;
 	}
 	
-	static ErrorCode _Decrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data)
+	static ErrorCode _Decrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const ECIESCryptogram & cryptogram, const cc7::ByteRange & iv, cc7::ByteArray & out_data)
 	{
+		if (iv.size() != ECIESEnvelopeKey::IvSize) {
+			return EC_Encryption;
+		}
 		// Prepare data for HMAC calculation
 		auto data_for_mac = cryptogram.body;
 		data_for_mac.append(info2);
@@ -167,7 +189,7 @@ namespace powerAuth
 		}
 		// Decrypt data
 		bool error = true;
-		out_data = crypto::AES_CBC_Decrypt_Padding(ek.encKey(), protocol::ZERO_IV, cryptogram.body, &error);
+		out_data = crypto::AES_CBC_Decrypt_Padding(ek.encKey(), iv, cryptogram.body, &error);
 		return error ? EC_Encryption : EC_Ok;
 	}
 	
@@ -182,9 +204,10 @@ namespace powerAuth
 	{
 	}
 	
-	ECIESEncryptor::ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2) :
+	ECIESEncryptor::ECIESEncryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & iv_for_decryption, const cc7::ByteRange & shared_info2) :
 		_envelope_key(envelope_key),
-		_shared_info2(shared_info2)
+		_shared_info2(shared_info2),
+		_iv_for_decryption(iv_for_decryption)
 	{
 	}
 	
@@ -219,6 +242,11 @@ namespace powerAuth
 	{
 		_shared_info2 = shared_info2;
 	}
+
+	const cc7::ByteArray & ECIESEncryptor::ivForDecryption() const
+	{
+		return _iv_for_decryption;
+	}
 	
 	bool ECIESEncryptor::canEncryptRequest() const
 	{
@@ -227,7 +255,7 @@ namespace powerAuth
 	
 	bool ECIESEncryptor::canDecryptResponse() const
 	{
-		return _envelope_key.isValid();
+		return _envelope_key.isValid() && (_iv_for_decryption.size() == ECIESEnvelopeKey::IvSize);
 	}
 	
 	
@@ -238,7 +266,9 @@ namespace powerAuth
 		if (canEncryptRequest()) {
 			_envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, out_cryptogram.key);
 			if (_envelope_key.isValid()) {
-				return _Encrypt(_envelope_key, _shared_info2, data, out_cryptogram);
+				out_cryptogram.nonce = crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
+				_iv_for_decryption = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
+				return _Encrypt(_envelope_key, _shared_info2, data, _iv_for_decryption, out_cryptogram);
 			}
 			return EC_Encryption;
 		}
@@ -248,7 +278,7 @@ namespace powerAuth
 	ErrorCode ECIESEncryptor::decryptResponse(const ECIESCryptogram & cryptogram, cc7::ByteArray & out_data)
 	{
 		if (canDecryptResponse()) {
-			return _Decrypt(_envelope_key, _shared_info2, cryptogram, out_data);
+			return _Decrypt(_envelope_key, _shared_info2, cryptogram, _iv_for_decryption, out_data);
 		}
 		return EC_WrongState;
 	}
@@ -265,9 +295,10 @@ namespace powerAuth
 	{
 	}
 	
-	ECIESDecryptor::ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2) :
+	ECIESDecryptor::ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & iv_for_encryption, const cc7::ByteRange & shared_info2) :
 		_envelope_key(envelope_key),
-		_shared_info2(shared_info2)
+		_shared_info2(shared_info2),
+		_iv_for_encryption(iv_for_encryption)
 	{
 	}
 	
@@ -302,10 +333,15 @@ namespace powerAuth
 	{
 		_shared_info2 = shared_info2;
 	}
+
+	const cc7::ByteArray & ECIESDecryptor::ivForEncryption() const
+	{
+		return _iv_for_encryption;
+	}
 	
 	bool ECIESDecryptor::canEncryptResponse() const
 	{
-		return _envelope_key.isValid();
+		return _envelope_key.isValid() && (_iv_for_encryption.size() == ECIESEnvelopeKey::IvSize);
 	}
 	
 	bool ECIESDecryptor::canDecryptRequest() const
@@ -321,7 +357,8 @@ namespace powerAuth
 		if (canDecryptRequest()) {
 			_envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key, _shared_info1);
 			if (_envelope_key.isValid()) {
-				return _Decrypt(_envelope_key, _shared_info2, cryptogram, out_data);
+				_iv_for_encryption = _envelope_key.deriveIvForNonce(cryptogram.nonce);
+				return _Decrypt(_envelope_key, _shared_info2, cryptogram, _iv_for_encryption, out_data);
 			}
 			return EC_Encryption;
 		}
@@ -331,7 +368,7 @@ namespace powerAuth
 	ErrorCode ECIESDecryptor::encryptResponse(const cc7::ByteRange & data, ECIESCryptogram & out_cryptogram)
 	{
 		if (canEncryptResponse()) {
-			return _Encrypt(_envelope_key, _shared_info2, data, out_cryptogram);
+			return _Encrypt(_envelope_key, _shared_info2, data, _iv_for_encryption, out_cryptogram);
 		}
 		return EC_WrongState;
 	}

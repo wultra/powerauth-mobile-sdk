@@ -214,10 +214,13 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 
 - (NSData*) biometryRelatedKeyUserCancelled:(nullable BOOL *)userCancelled prompt:(NSString*)prompt {
 	if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
-		OSStatus status;
-		NSData *key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status prompt:prompt];
+		__block OSStatus status = errSecUserCanceled;
+		__block NSData *key = nil;
+		BOOL executed = [PA2Keychain tryLockBiometryAndExecuteBlock:^{
+			key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status prompt:prompt];
+		}];
 		if (userCancelled != NULL) {
-			if (status == errSecUserCanceled) {
+			if (!executed || status == errSecUserCanceled) {
 				*userCancelled = YES;
 			} else {
 				*userCancelled = NO;
@@ -225,6 +228,9 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 		}
 		return key;
 	} else {
+		if (userCancelled != NULL) {
+			*userCancelled = NO;
+		}
 		return nil;
 	}
 }
@@ -535,7 +541,7 @@ static PowerAuthSDK * s_inst;
 		
 		[_statusKeychain addValue:_session.serializedState forKey:_configuration.instanceId];
 		if (biometryKey) {
-			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier useBiometry:YES];
+			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
 		}
 	}
 	
@@ -1065,7 +1071,7 @@ static PowerAuthSDK * s_inst;
 				// Update keychain values after each successful calculations
 				[self saveSessionState];
 				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier useBiometry:YES];
+				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
 			} else {
 				error = PA2MakeError(PA2ErrorCodeInvalidActivationState, nil);
 			}

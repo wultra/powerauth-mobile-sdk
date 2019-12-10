@@ -45,9 +45,10 @@ public interface IBiometricKeystore {
      * The key that is created during this process is used to encrypt key stored in shared preferences,
      * in order to derive key used for biometric authentication.
      *
+     * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on biometric enrollment.
      * @return New generated {@link SecretKey} key or {@code null} in case of failure.
      */
-    @Nullable SecretKey generateDefaultKey();
+    @Nullable SecretKey generateDefaultKey(boolean invalidateByBiometricEnrollment);
 
     /**
      * Removes an encryption key from Keystore.

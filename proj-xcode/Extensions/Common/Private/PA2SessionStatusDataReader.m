@@ -21,7 +21,7 @@ const uint8_t TAG2 = 'A';
 
 const uint8_t PD_TAG = 'P';
 const uint8_t PD_VER_MIN = '3';
-const uint8_t PD_VER_MAX = '5';
+const uint8_t PD_VER_MAX = '6';
 
 static BOOL _InvestigateSerializedData(const uint8_t * bytes, NSUInteger length)
 {

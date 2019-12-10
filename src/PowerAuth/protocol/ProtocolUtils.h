@@ -143,6 +143,15 @@ namespace protocol
 	//
 	
 	/**
+	 Decrypts received encrypted status blob into provided ActivationStatus structure.
+	 */
+	ErrorCode DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
+										 const cc7::ByteRange & challenge,
+										 const cc7::ByteRange & nonce,
+										 const cc7::ByteRange & transport_key,
+										 ActivationStatus & out_status);
+
+	/**
 	 Derives IV (initialization vector) used for encrypted status blob decryption.
 	 */
 	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
@@ -150,10 +159,19 @@ namespace protocol
 												   const cc7::ByteRange & transport_key);
 	
 	/**
-	 Calculates distance between |counter1| and |counter2| (e.g. how many interations is required to move from counter1 to counter2).
-	 The |max_iterations| limits number of iterations to be performed. If the maximum iterations is reached, then the returned value is -1.
+	 Calculates distance between |in_out_local_ctr_data| and |server_ctr_data_hash| (e.g. how many interations is required to
+	 move from in_out_local_ctr_data to server_ctr_data_hash). The |max_iterations| limits number of iterations to be performed.
+	 If the maximum iterations is reached, then the returned value is -1.
 	 */
-	int CalculateHashCounterDistance(const cc7::ByteRange & counter1, const cc7::ByteRange & counter2, int max_iterations);
+	int CalculateHashCounterDistance(cc7::ByteArray & in_out_local_ctr_data,
+									 const cc7::ByteRange & server_ctr_data_hash,
+									 const cc7::ByteRange & transport_key,
+									 int max_iterations);
+
+	/**
+	 Calculates distance between local and server counters. If the local counter is ahead, then the returned value is positive.
+	 */
+	int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr);
 	
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

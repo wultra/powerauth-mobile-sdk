@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
+import android.util.Pair;
 
 import javax.crypto.SecretKey;
 
@@ -130,6 +131,12 @@ public class BiometricAuthentication {
                         ctx.finishPendingBiometricAuthentication();
                     }
                 }
+
+                @Override
+                public void onBiometricKeyUnavailable() {
+                    // Remove the default key, because the biometric key is no longer available.
+                    device.getBiometricKeystore().removeDefaultKey();
+                }
             });
             final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
 
@@ -139,12 +146,13 @@ public class BiometricAuthentication {
             if (status == BiometricStatus.OK) {
                 try {
                     // Prepare secret key for authentication
-                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request.isForceGenerateNewKey()));
+                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request));
                     // Authenticate
                     return device.authenticate(context, fragmentManager, requestData);
 
                 } catch (PowerAuthErrorException e) {
                     // Failed to authenticate. Show an error dialog and report that exception to the callback.
+                    PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
                     exception = e;
                     status = BiometricStatus.NOT_AVAILABLE;
                 }
@@ -164,21 +172,21 @@ public class BiometricAuthentication {
     /**
      * Prepare secret key, stored (or restored) managed by {@link IBiometricKeystore} object.
      * @param keystore Keystore object managing the requested key.
-     * @param createNewKey If {@code true}, then the new key is created in the keystore.
+     * @param request Biometric authentication request.
      * @return {@link SecretKey} acquired from the keystore.
      * @throws PowerAuthErrorException In case that cannot create or restore the key.
      */
-    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, boolean createNewKey) throws PowerAuthErrorException {
+    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
         final SecretKey key;
-        if (createNewKey) {
-            key = keystore.generateDefaultKey();
+        if (request.isForceGenerateNewKey()) {
+            key = keystore.generateDefaultKey(request.isInvalidateByBiometricEnrollment());
             if (key == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
             }
         } else {
             key = keystore.getDefaultKey();
             if (key == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Cannot get biometric key from the keystore.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Cannot get biometric key from the keystore.");
             }
         }
         return key;
@@ -204,29 +212,11 @@ public class BiometricAuthentication {
         final CancelableTask cancelableTask = requestData.getDispatcher().getCancelableTask();
 
         final BiometricDialogResources resources = requestData.getResources();
-        final @StringRes int errorTitle;
-        final @StringRes int errorDescription;
-        if (status == BiometricStatus.NOT_ENROLLED) {
-            // User must enroll at least one fingerprint
-            errorTitle       = resources.strings.errorEnrollFingerprintTitle;
-            errorDescription = resources.strings.errorEnrollFingerprintDescription;
-        } else if (status == BiometricStatus.NOT_SUPPORTED) {
-            // Fingerprint scanner is not supported on the authenticator
-            errorTitle       = resources.strings.errorNoFingerprintScannerTitle;
-            errorDescription = resources.strings.errorNoFingerprintScannerDescription;
-        } else if (status == BiometricStatus.NOT_AVAILABLE) {
-            // Fingerprint scanner is disabled in the system, or permission was not granted.
-            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
-            errorDescription = resources.strings.errorFingerprintDisabledDescription;
-        } else {
-            // Fallback...
-            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
-            errorDescription = resources.strings.errorFingerprintDisabledDescription;
-        }
+        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(status, resources);
 
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
-                .setTitle(errorTitle)
-                .setMessage(errorDescription)
+                .setTitle(titleDescription.first)
+                .setMessage(titleDescription.second)
                 .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
                 .setIcon(resources.drawables.errorIcon)
                 .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {

@@ -141,6 +141,10 @@ namespace protocol
 		 */
 		cc7::ByteArray	signatureCounterData;
 		/**
+		 V3.1: Least significant byte from the signature counter
+		 */
+		cc7::byte		signatureCounterByte;
+		/**
 		 ActivationId, that's our identity known on the server
 		 */
 		std::string		activationId;
@@ -189,6 +193,10 @@ namespace protocol
 			 Bits reserved for current pending protocol upgrade
 			 */
 			cc7::U32	pendingUpgradeVersion	: 8;
+			/**
+			 True if `signatureCounterByte` is valid and can be used for calculations.
+			 */
+			cc7::U32	hasSignatureCounterByte	: 1;
 		};
 		union {
 			_Flags		flags;

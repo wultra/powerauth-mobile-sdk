@@ -39,12 +39,6 @@
 								sharedInfo2:(nullable NSData*)sharedInfo2;
 
 /**
- Initializes an encryptor with previously calculated |envelopeKey| and optional |sharedInfo|.
- The initialized instance can be used only for decryption task.
- */
-- (nullable instancetype) initWithEnvelopeKey:(nonnull NSData*)envelopeKey sharedInfo2:(nullable NSData*)sharedInfo;
-
-/**
  Returns a new instance of PA2ECIESEncryptor, suitable only for data decryption or nil if current encryptor is not
  able to decrypt response (this happens typically if you did not call `encryptRequest` or instnace contains invalid keys).
  
@@ -151,6 +145,10 @@
  An ephemeral EC public key. The value is optional for response data.
  */
 @property (nonatomic, strong, nullable) NSData * key;
+/**
+ Nonce for IV derivation. The value is optional for response data.
+ */
+@property (nonatomic, strong, nullable) NSData * nonce;
 
 /**
  Encrypted data in Base64 format. The value is mapped
@@ -167,7 +165,11 @@
  to the `mac` property.
  */
 @property (nonatomic, strong, nullable) NSString * keyBase64;
-
+/**
+ Nonce for IV derivation in Base64 format. The value is mapped
+ to the `nonce` property.
+ */
+@property (nonatomic, strong, nullable) NSString * nonceBase64;
 @end
 
 

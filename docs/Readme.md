@@ -9,6 +9,17 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 - [PowerAuth SDK for watchOS](PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](PowerAuth-SDK-for-Android.md)
 
+### Support and Compatibility
+
+| Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
+|------------|----------|---------------------|-----------------------------------|
+| `1.3.x`    | `V3.1`   | `0.23+`             | Fully supported                   |
+| `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security & Functionality bugfixes |
+| `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
+| `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
+
+> Note 1: If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can use this version also with PowerAuth Server `0.21`.
+
 ## Migration guides
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:

@@ -704,6 +704,29 @@ You can remove biometry related factor data used by Touch or Face ID support by 
 PowerAuthSDK.sharedInstance().removeBiometryFactor()
 ```
 
+### Biometry factor-related key lifetime
+
+By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enroll with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PA2KeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+
+```swift
+// Prepare your PA config
+let configuration = PowerAuthConfiguration()
+// ...
+
+// Prepare PA2KeychainConfiguration
+// Set false to 'linkBiometricItemsToCurrentSet' property.
+let keychainConfiguration = PA2KeychainConfiguration()
+keychainConfiguration.linkBiometricItemsToCurrentSet = true
+
+// Init shared PowerAuthSDK instance
+PowerAuthSDK.initSharedInstance(configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+// ...or create your own
+let sdk = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+```
+
+Be aware that the configuration above is effective only for the new keys. So, if your application is already using the biometry factor-related key with a different configuration, then the configuration change doesn't change the existing key. You have to [disable](#disable-biometry) and [enable](#enable-biometry) biometry to apply the change.
+
+
 ## Activation Removal
 
 You can remove activation using several ways - the choice depends on a desired behavior.
@@ -789,13 +812,15 @@ Following steps are typically required for a full E2EE request and response proc
    - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
    - `encryptedData` property fill with `cryptogram.bodyBase64`
    - `mac` property fill with `cryptogram.macBase64`
+   - `nonce` property fill with `cryptogram.nonceBase64`
    
    So, the final request JSON should looks like:
    ```json
    {
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE"
    }
    ```
    

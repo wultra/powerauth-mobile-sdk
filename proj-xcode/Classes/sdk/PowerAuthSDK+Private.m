@@ -53,3 +53,16 @@
 }
 
 @end
+
+@implementation PA2KeychainConfiguration (BiometricAccess)
+
+- (PA2KeychainItemAccess) biometricItemAccess
+{
+	if (self.linkBiometricItemsToCurrentSet) {
+		return PA2KeychainItemAccess_CurrentBiometricSet;
+	} else {
+		return PA2KeychainItemAccess_AnyBiometricSet;
+	}
+}
+
+@end

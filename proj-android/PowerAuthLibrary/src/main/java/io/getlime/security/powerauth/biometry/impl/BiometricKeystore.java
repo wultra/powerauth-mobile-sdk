@@ -92,17 +92,19 @@ public class BiometricKeystore implements IBiometricKeystore {
      * @return New generated {@link SecretKey} key or {@code null} in case of failure.
      */
     @Override
-    public @Nullable SecretKey generateDefaultKey() {
+    public @Nullable SecretKey generateDefaultKey(boolean invalidateByBiometricEnrollment) {
         try {
             removeDefaultKey();
             final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, PROVIDER_NAME);
-            KeyGenParameterSpec keySpec = new KeyGenParameterSpec.Builder(KEY_NAME, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+            final KeyGenParameterSpec.Builder keySpecBuilder = new KeyGenParameterSpec.Builder(KEY_NAME, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                     .setUserAuthenticationRequired(true)
                     .setRandomizedEncryptionRequired(false)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                    .build();
-            keyGenerator.init(keySpec);
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                keySpecBuilder.setInvalidatedByBiometricEnrollment(invalidateByBiometricEnrollment);
+            }
+            keyGenerator.init(keySpecBuilder.build());
             return keyGenerator.generateKey();
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException | ProviderException e) {
             return null;

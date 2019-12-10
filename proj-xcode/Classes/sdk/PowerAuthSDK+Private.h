@@ -17,6 +17,7 @@
 #import "PowerAuthSDK.h"
 #import "PA2PrivateCryptoHelper.h"
 #import "PA2WCSessionDataHandler.h"
+#import "PA2Keychain.h"
 
 @class PA2PrivateEncryptorFactory;
 
@@ -57,4 +58,9 @@
 // Reveal private init in PA2ActivationRecoveryData object
 @interface PA2ActivationRecoveryData (Private)
 - (instancetype) initWithRecoveryData:(PA2RecoveryData*)recoveryData;
+@end
+
+// Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
+@interface PA2KeychainConfiguration (BiometricAccess)
+@property (nonatomic, readonly) PA2KeychainItemAccess biometricItemAccess;
 @end

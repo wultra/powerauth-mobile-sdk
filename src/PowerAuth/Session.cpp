@@ -388,6 +388,9 @@ namespace powerAuth
 			pd->flagsU32				= 0;
 			// Keep information about external key usage in the flags
 			pd->flags.usesExternalKey = eek() ? 1 : 0;
+			// V3.1 activation, set counter byte to 0.
+			pd->flags.hasSignatureCounterByte = 1;
+			pd->signatureCounterByte = 0;
 			
 			// Derive all required keys from master shared secret.
 			protocol::SignatureKeys plain_keys;
@@ -466,59 +469,14 @@ namespace powerAuth
 		bool result = encrypted_status_blob.readFromBase64String(enc_status.encryptedStatusBlob);
 		result = result && status_challenge.readFromBase64String(enc_status.challenge);
 		result = result && status_nonce.readFromBase64String(enc_status.nonce);
-		if (encrypted_status_blob.size() != protocol::STATUS_BLOB_SIZE || !result) {
-			// Considered as an attack on protocol
-			return EC_Encryption;
-		}
-		// Prepare IV for status blob decryption
-		auto status_iv = protocol::DeriveIVForStatusBlobDecryption(status_challenge, status_nonce, signature_keys.transportKey);
-		if (status_iv.empty()) {
-			return EC_Encryption;
-		}
-		// Decrypt blob and initialize reader for data parsing.
-		utils::DataReader reader(crypto::AES_CBC_Decrypt(signature_keys.transportKey, status_iv, encrypted_status_blob));
-		cc7::ByteRange hdr;
-		cc7::ByteArray server_ctr_data;
-		cc7::byte state = 0xdd, fail_ctr = 0xdd, max_fail_ctr = 0xdd;
-		cc7::byte curr_ver = 0xdd, upgrade_ver = 0xdd;
-		cc7::byte look_ahead = 0xdd;
-		
-		result = reader.readMemoryRange(hdr, 4) &&
-				 reader.readByte(state) &&
-				 reader.readByte(curr_ver) &&
-				 reader.readByte(upgrade_ver) &&
-				 reader.skipBytes(6) &&
-				 reader.readByte(fail_ctr) &&
-				 reader.readByte(max_fail_ctr) &&
-				 reader.readByte(look_ahead) &&
-				 reader.readMemory(server_ctr_data, 16);
 		if (!result) {
 			return EC_Encryption;
 		}
-		if (hdr[0] != 0xDE || hdr[1] != 0xC0 || hdr[2] != 0xDE || (hdr[3] & 0xF0) != 0xD0) {
+		if (EC_Ok != protocol::DecryptEncryptedStatusBlob(encrypted_status_blob, status_challenge, status_nonce, signature_keys.transportKey, status)) {
 			return EC_Encryption;
 		}
-		// HDR[3] can be 0xDx, but at least 0xD1.
-		// We can use this byte to identify the status blob versions in future protocol versions.
-		if (!((hdr[3] & 0x0F) >= 1)) {
-			return EC_Encryption;
-		}
-		if (state < ActivationStatus::Created || state > ActivationStatus::Removed) {
-			return EC_Encryption;
-		}
-		if (look_ahead == 0 || look_ahead > protocol::LOOK_AHEAD_MAX) {
-			return EC_Encryption;
-		}
-		// Fill output structure
-		status.state        	= static_cast<ActivationStatus::State>(state);
-		status.failCount    	= fail_ctr;
-		status.maxFailCount 	= max_fail_ctr;
-		status.currentVersion	= curr_ver;
-		status.upgradeVersion	= upgrade_ver;
-		status.lookAheadCount	= look_ahead;
-		
 		// Try to synchronize local counter
-		status.counterState		= trySynchronizeCounter(server_ctr_data, status);
+		status.counterState		= trySynchronizeCounter(status, signature_keys.transportKey);
 		// If counter's state is invalid, then set state to "deadlock".
 		if (status.counterState == ActivationStatus::Counter_Invalid) {
 			status.state = ActivationStatus::Deadlock;
@@ -526,32 +484,64 @@ namespace powerAuth
 		return EC_Ok;
 	}
 	
-	ActivationStatus::CounterState Session::trySynchronizeCounter(const cc7::ByteRange & server_ctr_data, const ActivationStatus & status) const
+	ActivationStatus::CounterState Session::trySynchronizeCounter(const ActivationStatus & status, const cc7::ByteRange & transport_key) const
 	{
 		// If activation is still in V2 version, then we cannot determine counter's status.
 		// In this case, it's OK to set Counter_OK.
-		if (status.currentVersion == ActivationStatus::V2 || server_ctr_data == _pd->signatureCounterData) {
+		if (status.currentVersion == ActivationStatus::V2) {
 			return ActivationStatus::Counter_OK;
 		}
+		
 		const int look_ahead_window = status.lookAheadCount;
-		// Try to move local counter towards to counter received from the server.
-		int distance = protocol::CalculateHashCounterDistance(_pd->signatureCounterData, server_ctr_data, look_ahead_window);
-		if (distance > 0) {
-			// Server's counter was ahead. We can synchronize our counter with server's.
-			_pd->signatureCounterData = server_ctr_data;
-			return ActivationStatus::Counter_Updated;
+		const bool has_ctr_byte = _pd->flags.hasSignatureCounterByte;
+		
+		// At first, try to check whether the counter hash is OK
+		auto local_ctr_data = _pd->signatureCounterData;
+		auto hash_distance = protocol::CalculateHashCounterDistance(local_ctr_data, status.ctrDataHash, transport_key, look_ahead_window);
+		if (!has_ctr_byte) {
+			// We don't have captured counter byte yet, so test whether the hash is OK and if yes, then keep the received byte.
+			if (hash_distance == 0) {
+				// Everything's OK, keep received byte in persistent data and suggest save the session's state.
+				_pd->flags.hasSignatureCounterByte = 1;
+				_pd->signatureCounterByte = status.ctrByte;
+				return ActivationStatus::Counter_Updated;
+			}
+			// Otherwise it's not possible to determine whether the counter's OK. We have to wait to sync counters
+			// in the next regular signature calculation. In this case, we must pretend that everything's OK.
+			return ActivationStatus::Counter_OK;
 		}
-		// Now try to move server's counter towards our local.
-		distance = protocol::CalculateHashCounterDistance(server_ctr_data, _pd->signatureCounterData, look_ahead_window);
-		if (distance > 0) {
-			// Client's counter is ahead. It will be synchronized with the next signature validation.
-			// We need to only investigate how much dangerous this state is.
-			if (distance > look_ahead_window / 2) {
+		
+		// Counter byte is available, so it's possible to estimate distance between the counters.
+		// Negative 'byte_distance' means that the server is ahead. On opposite to that, positive value indicates
+		// that the clients's ahead.
+		auto byte_distance = protocol::CalculateDistanceBetweenByteCounters(_pd->signatureCounterByte, status.ctrByte);
+		if (hash_distance == 0 && byte_distance == 0) {
+			// Everything's OK.
+			return ActivationStatus::Counter_OK;
+		}
+		if (byte_distance > 0 && hash_distance == -1) {
+			// Client's ahead. Determine for how much and decide the synchronization result.
+			if (byte_distance > look_ahead_window) {
+				// We cannot recover from this state. Client is too much ahead against the server.
+				return ActivationStatus::Counter_Invalid;
+			}
+			if (byte_distance > look_ahead_window / 2) {
+				// The local counter is more than half the allowed interval ahead to server.
+				// It's recommended to calculate some signature soon.
 				return ActivationStatus::Counter_CalculateSignature;
 			}
+			// Counter will be synchronized automatically
 			return ActivationStatus::Counter_OK;
 		}
-		// Looks like counter is out of sync.
+		if (-byte_distance == hash_distance) {
+			// hash distance is always greater than 0, but byte distance is negative in case that server's ahead.
+			// We have last matched CTR_DATA value in local_ctr_data variable.
+			_pd->signatureCounterData = local_ctr_data;
+			_pd->signatureCounterByte = status.ctrByte;
+			// Report that persistent data should be saved now.
+			return ActivationStatus::Counter_Updated;
+		}
+		// Looks like that counters cannot be synchronized and the activation is technically blocked.
 		return ActivationStatus::Counter_Invalid;
 	}
 	
@@ -1137,15 +1127,20 @@ namespace powerAuth
 					CC7_LOG("Session %p, %d: ApplyUpgradeData: Upgrade to V3 was not properly started.", this, sessionIdentifier());
 					return EC_WrongState;
 				}
-				cc7::ByteArray ctrData;
-				if (!cc7::Base64_Decode(upgrade_data.toV3.ctrData, 0, ctrData) || ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
+				cc7::ByteArray ctr_data;
+				if (!cc7::Base64_Decode(upgrade_data.toV3.ctrData, 0, ctr_data) || ctr_data.size() != protocol::SIGNATURE_KEY_SIZE) {
 					CC7_LOG("Session %p, %d: ApplyUpgradeData: Wrong V3 upgrade data.", this, sessionIdentifier());
 					return EC_WrongParam;
 				}
-				// Everything looks fine, we can commit new data
-				_pd->signatureCounterData = ctrData;
+				// Everything looks fine, we can commit new data.
+				// Keep ctr_byte value from the current counter.
+				cc7::byte ctr_byte = (cc7::byte)(_pd->signatureCounter & 0xFF);
+				_pd->signatureCounterData = ctr_data;
 				_pd->signatureCounter = 0;
 				_pd->flags.waitingForVaultUnlock = 0;
+				// V3.1: Also store ctr_byte and flag that value is valid.
+				_pd->signatureCounterByte = ctr_byte;
+				_pd->flags.hasSignatureCounterByte = 1;
 				return EC_Ok;
 			}
 			default:

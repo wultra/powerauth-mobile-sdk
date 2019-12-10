@@ -8,6 +8,7 @@ PowerAuth Mobile SDK in version `1.3.0` introduces support for latest PowerAuth 
 
 - Improved information entropy in PowerAuth online signatures. The signature is now encoded into BASE64 instead of decimal string.
 - Improved protection of encrypted status blob against possible replay attacks.
+- Improved protection of payload encrypted by our ECIES scheme.
 - Improved protocol reliability. The mobile client is now able to synchronize its signature counter with the server's.
 
 The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto) project.

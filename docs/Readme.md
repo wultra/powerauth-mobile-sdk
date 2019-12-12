@@ -9,7 +9,7 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 - [PowerAuth SDK for watchOS](PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](PowerAuth-SDK-for-Android.md)
 
-### Support and Compatibility
+## Support and Compatibility
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|

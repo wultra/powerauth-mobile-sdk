@@ -19,7 +19,7 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 - [Migration from version `0.20.x` to `1.0.x`](docs/Migration-from-0.20-to-1.0.md)
 - [Migration from version `0.19.x` to `0.20.x`](docs/Migration-from-0.19-to-0.20.md)
 
-### Support and Compatibility
+## Support and Compatibility
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|

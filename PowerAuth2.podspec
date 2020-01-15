@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
 		
 	# Source files
 	s.source = { 
-		:git => 'https://github.com/wultra/powerauth-mobile-sdk.git',
+		:git => 'https://github.com/srna/powerauth-mobile-sdk.git',
 		:tag => "#{s.version}",
 		:submodules => true
 	}

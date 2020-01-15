@@ -50,9 +50,12 @@ SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
 #
 PLATFORM_SDK1="iphoneos"
 PLATFORM_SDK2="iphonesimulator"
+PLATFORM_SDK3="maccatalyst"
 PLATFORM_ARCHS1="armv7 armv7s arm64"
 PLATFORM_ARCHS2="i386 x86_64"
+PLATFORM_ARCHS3="x86_64"
 OUT_LIBRARY="libPowerAuthCore.a"
+OUT_LIBRARY_CATALYST="libPowerAuthCore-maccatalyst.a"
 
 # Variables loaded from command line
 VERBOSE=1
@@ -121,6 +124,29 @@ function MAKE_FAT_LIB
 	
 	LOG "Copying final library..."
 	$CP -r "${FAT_LIB_DIR}/${LIB}" "${OUT_DIR}"
+}
+
+function MAKE_FAT_LIB_CATALYST
+{
+	local SCHEME=$1
+	local CONFIG=$2
+	local PLATFORM=$3
+	local LIB=${OUT_LIBRARY}
+	local LIB_OUT=${OUT_LIBRARY_CATALYST}
+	
+	LOG_LINE
+	LOG "FATalizing   ${LIB_OUT}"
+	LOG_LINE
+	
+	local LIB_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}/${CONFIG}-${PLATFORM}"
+	local FAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${CONFIG}"
+
+	$MD "${FAT_LIB_DIR}"	
+
+	eval "${LIPO} -create \"$LIB_DIR/$LIB\" -output \"$FAT_LIB_DIR/$LIB_OUT\""
+	
+	LOG "Copying final library..."
+	$CP -r "${FAT_LIB_DIR}/${LIB_OUT}" "${OUT_DIR}"
 }
 
 # -----------------------------------------------------------------------------
@@ -253,8 +279,10 @@ function BUILD_COMMAND
 	
 	if [ $PLATFORM == $PLATFORM_SDK1 ]; then
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS1"
-	else
+	elif [ $PLATFORM == $PLATFORM_SDK2 ]; then
 		local PLATFORM_ARCHS="$PLATFORM_ARCHS2"
+	else
+		local PLATFORM_ARCHS="$PLATFORM_ARCHS3"
 	fi
 	
 	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${CONFIG} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
@@ -265,7 +293,13 @@ function BUILD_COMMAND
 		COMMAND_LINE="$COMMAND_LINE -quiet"
 	fi
 
-	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG} -sdk ${PLATFORM}"
+	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG}"
+	if [ $PLATFORM == $PLATFORM_SDK3 ]; then
+		COMMAND_LINE="$COMMAND_LINE -destination 'platform=macOS,variant=Mac Catalyst'"
+	else
+		COMMAND_LINE="$COMMAND_LINE -sdk ${PLATFORM}"
+	fi
+	
 	COMMAND_LINE="$COMMAND_LINE -derivedDataPath \"${TMP_DIR}/DerivedData\""
 	COMMAND_LINE="$COMMAND_LINE BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_DIR}\" CODE_SIGNING_REQUIRED=NO"
 	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\" ONLY_ACTIVE_ARCH=NO"
@@ -299,6 +333,26 @@ function BUILD_SCHEME
 	
 	local FAT_LIB="${OUT_DIR}/${OUT_LIBRARY}"
 	local ALL_ARCHS="${PLATFORM_ARCHS1} ${PLATFORM_ARCHS2}"
+	VALIDATE_FAT_ARCHITECTURES "${FAT_LIB}" "${ALL_ARCHS}"
+	
+	# Copy source files...
+	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
+}
+
+function BUILD_SCHEME_CATALYST
+{
+	local SCHEME="$1"
+	local CONFIG="$2"
+	LOG_LINE
+	LOG "Building architectures..."
+	LOG_LINE
+	
+	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK3 build
+		
+	MAKE_FAT_LIB_CATALYST $SCHEME $CONFIG $PLATFORM_SDK3
+	
+	local FAT_LIB="${OUT_DIR}/${OUT_LIBRARY_CATALYST}"
+	local ALL_ARCHS="${PLATFORM_ARCHS3}"
 	VALIDATE_FAT_ARCHITECTURES "${FAT_LIB}" "${ALL_ARCHS}"
 	
 	# Copy source files...
@@ -414,6 +468,7 @@ $MD "${TMP_DIR}"
 # Build
 #
 BUILD_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
+BUILD_SCHEME_CATALYST ${SCHEME_NAME} ${CONFIG_NAME}
 #
 # Remove temporary data
 #

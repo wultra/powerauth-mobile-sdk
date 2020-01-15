@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
 	# Produced files
 	s.source_files          = 'Library/**/*.{h,m}'
 	s.private_header_files  = 'Library/Private/*.h'
-	s.vendored_libraries    = 'Library/libPowerAuthCore.a'
+	s.vendored_libraries    = 'Library/libPowerAuthCore.a', 'Library/libPowerAuthCore-maccatalyst.a'
 	s.requires_arc          = true
 	s.libraries             = 'c++'
 	# Tweaks

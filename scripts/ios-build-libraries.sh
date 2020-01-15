@@ -295,7 +295,7 @@ function BUILD_COMMAND
 
 	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG}"
 	if [ $PLATFORM == $PLATFORM_SDK3 ]; then
-		COMMAND_LINE="$COMMAND_LINE -destination 'platform=macOS,variant=Mac Catalyst' OTHER_CFLAGS=\"-target x86_64-apple-ios13.0-macabi\""
+		COMMAND_LINE="$COMMAND_LINE -destination 'platform=macOS,variant=Mac Catalyst' OTHER_CFLAGS=\"-target x86_64-apple-ios13.0-macabi  -miphoneos-version-min=13.0\" OTHER_LDFLAGS=\"-target x86_64-apple-ios13.0-macabi -miphoneos-version-min=13.0\""
 	else
 		COMMAND_LINE="$COMMAND_LINE -sdk ${PLATFORM}"
 	fi

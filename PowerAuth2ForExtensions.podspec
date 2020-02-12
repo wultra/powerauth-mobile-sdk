@@ -30,6 +30,6 @@ Pod::Spec.new do |s|
 	CMD
 	
 	# Produced files
-	s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.framework'
+	s.vendored_frameworks   = ['Build/PowerAuth2ForExtensions.framework', 'Build/PowerAuth2ForExtensionsMacCatalyst.framework']
 	
 end

@@ -185,6 +185,8 @@ function MAKE_FAT_LIB_CATALYST
 	
 	LOG "Copying final framework..."
 	$CP -r "${FAT_FW_DIR}" "${OUT_DIR}/${OUT_FRAMEWORK_CATALYST}.framework"
+	$CP "${OUT_DIR}/${OUT_FRAMEWORK_CATALYST}.framework/${OUT_FRAMEWORK}" "${OUT_DIR}/${OUT_FRAMEWORK_CATALYST}.framework/${OUT_FRAMEWORK_CATALYST}"
+	$RM "${OUT_DIR}/${OUT_FRAMEWORK_CATALYST}.framework/${OUT_FRAMEWORK}"
 }
 
 # -----------------------------------------------------------------------------

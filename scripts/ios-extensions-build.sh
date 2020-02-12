@@ -44,7 +44,7 @@ EXT_FRAMEWORK_CATALYST="PowerAuth2ForExtensionsMacCatalyst"
 # Variables, will be set in params processing loop
 PLATFORM_SDK=""
 PLATFORM_SDK2=""
-PLATFORM_SDK3="maccatalyst"
+PLATFORM_SDK3=""
 PLATFORM_SCHEME_PREFIX=""
 OUT_FRAMEWORK=""
 OUT_FRAMEWORK_CATALYST=""
@@ -117,7 +117,7 @@ function BUILD_COMMAND
 		ADDITIONAL_CFLAGS+="-fembed-bitcode-marker"
 	fi
 
-	if [ $PLATFORM == $PLATFORM_SDK3 ]; then
+	if [ x$PLATFORM == x$PLATFORM_SDK3 ]; then
 		COMMAND_LINE="$COMMAND_LINE -destination 'platform=macOS,variant=Mac Catalyst' OTHER_CFLAGS=\"-target x86_64-apple-ios13.0-macabi  -miphoneos-version-min=13.0\" OTHER_LDFLAGS=\"-target x86_64-apple-ios13.0-macabi -miphoneos-version-min=13.0\""
 	else
 		COMMAND_LINE="$COMMAND_LINE -sdk ${PLATFORM}"
@@ -272,6 +272,7 @@ do
 		ios)
 			PLATFORM_SDK='iphoneos'
 			PLATFORM_SDK2='iphonesimulator'
+			PLATFORM_SDK3='maccatalyst'
 			PLATFORM_SCHEME_PREFIX="${EXT_SCHEME_PREFIX}"
 			OUT_FRAMEWORK="${EXT_FRAMEWORK}"
 			OUT_FRAMEWORK_CATALYST="${EXT_FRAMEWORK_CATALYST}"
@@ -352,7 +353,7 @@ $MD "${TMP_DIR}"
 #
 #CLEAN_SCHEME ${PLATFORM_SCHEME} ${PLATFORM_SDK} ${PLATFORM_SDK2}
 BUILD_SCHEME ${PLATFORM_SCHEME} ${PLATFORM_SDK} ${PLATFORM_SDK2}
-BUILD_SCHEME_CATALYST ${PLATFORM_SCHEME} ${PLATFORM_SDK3}
+[[ ! -z "$PLATFORM_SDK3" ]] && BUILD_SCHEME_CATALYST ${PLATFORM_SCHEME} ${PLATFORM_SDK3}
 
 #
 # Remove temporary data

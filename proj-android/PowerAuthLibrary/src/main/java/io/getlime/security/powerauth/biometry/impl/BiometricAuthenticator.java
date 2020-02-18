@@ -247,6 +247,10 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dispatcher.dispatchUserCancel();
             }
         });
+        // Setup user's confirmation (Android 10+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setConfirmationRequired(request.isUserConfirmationRequired());
+        }
 
         // Build the prompt and do the authentication
         final BiometricPrompt prompt = builder.build();

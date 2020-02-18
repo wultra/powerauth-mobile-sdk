@@ -767,6 +767,18 @@ final BiometricDialogResources resources = new BiometricDialogResources.Builder(
 BiometricAuthentication.setBiometricDialogResources(resources);
 ```
 
+On Andoid 10+ systems, it's possible to configure `BiometricPrompt` to ask for an additional confirmation after the user is successfully authenticated. The default behavior for PowerAuth Mobile SDK is that such confirmation is not required. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `confirmBiometricAuthentication` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+
+```java
+// Use true for 'confirmBiometricAuthentication' parameter.
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, true, true);
+// Apply keychain configuration
+PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
+        .keychainConfiguration(keychainConfig)
+        .build(getApplicationContext());
+```
+
+
 ## Activation Removal
 
 You can remove activation using several ways - the choice depends on a desired behavior.

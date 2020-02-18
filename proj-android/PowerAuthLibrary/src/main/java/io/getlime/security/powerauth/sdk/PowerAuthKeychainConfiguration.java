@@ -33,6 +33,7 @@ public class PowerAuthKeychainConfiguration {
     private final String customKeychainKeyBiometryDefault;
     private final String customKeychainIdTokenStore;
     private final boolean linkBiometricItemsToCurrentSet;
+    private final boolean confirmBiometricAuthentication;
 
     /**
      * Default public constructor.
@@ -43,6 +44,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainKeyBiometryDefault = null;
         this.customKeychainIdTokenStore = null;
         this.linkBiometricItemsToCurrentSet = true;
+        this.confirmBiometricAuthentication = false;
     }
 
     /**
@@ -61,6 +63,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
         this.customKeychainIdTokenStore = null;
         this.linkBiometricItemsToCurrentSet = true;
+        this.confirmBiometricAuthentication = false;
     }
 
     /**
@@ -84,6 +87,35 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
         this.customKeychainIdTokenStore = customKeychainIdTokenStore;
         this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
+        this.confirmBiometricAuthentication = false;
+    }
+
+    /**
+     * Constructor that allows token store keychain file customization, in case it is required.
+     *
+     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
+     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
+     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
+     * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
+     * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
+     *                                       if fingers are added or removed, or if the user re-enrolls for face.
+     * @param confirmBiometricAuthentication If set, then the user's confirmation will be required after the successful
+     *                                       biometric authentication. Note that this is just hint for the system
+     *                                       and may be ignored.
+     */
+    public PowerAuthKeychainConfiguration(
+            String customKeychainIdStatus,
+            String customKeychainIdBiometry,
+            String customKeychainKeyBiometryDefault,
+            String customKeychainIdTokenStore,
+            boolean linkBiometricItemsToCurrentSet,
+            boolean confirmBiometricAuthentication) {
+        this.customKeychainIdStatus = customKeychainIdStatus;
+        this.customKeychainIdBiometry = customKeychainIdBiometry;
+        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
+        this.customKeychainIdTokenStore = customKeychainIdTokenStore;
+        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
+        this.confirmBiometricAuthentication = confirmBiometricAuthentication;
     }
 
     /**
@@ -143,5 +175,16 @@ public class PowerAuthKeychainConfiguration {
      */
     public boolean isLinkBiometricItemsToCurrentSet() {
         return linkBiometricItemsToCurrentSet;
+    }
+
+    /**
+     * Get information whether additional user's confirmation should be required after the successful
+     * biometric authentication.
+     *
+     * @return {@code true} if additional user's confirmation should be required after the successful
+     *         biometric authentication.
+     */
+    public boolean isConfirmBiometricAuthentication() {
+        return confirmBiometricAuthentication;
     }
 }

@@ -33,6 +33,7 @@ import javax.crypto.SecretKey;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
+import io.getlime.security.powerauth.biometry.BiometryType;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -115,6 +116,11 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
     @Override
     public boolean isAvailable() {
         return keystore.isKeystoreReady();
+    }
+
+    @Override
+    public @BiometryType int getBiometryType(@NonNull Context context) {
+        return fingerprintManager.isHardwareDetected() ? BiometryType.FINGERPRINT : BiometryType.NONE;
     }
 
     @Override

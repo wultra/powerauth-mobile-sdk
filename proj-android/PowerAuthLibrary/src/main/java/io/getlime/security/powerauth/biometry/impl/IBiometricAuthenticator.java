@@ -22,6 +22,7 @@ import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
 
 import io.getlime.security.powerauth.biometry.BiometricStatus;
+import io.getlime.security.powerauth.biometry.BiometryType;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
@@ -39,6 +40,14 @@ public interface IBiometricAuthenticator {
      * @return {@code true} if current device and operating system supports biometric authentication, otherwise {@code false}.
      */
     boolean isAvailable();
+
+    /**
+     * Return type of biometry supported on the system.
+     *
+     * @param context Android context object
+     * @return {@link BiometryType} representing supported biometry on the system.
+     */
+    @BiometryType int getBiometryType(@NonNull Context context);
 
     /**
      * Evaluate whether the biometric authentication is available at the time of the call.

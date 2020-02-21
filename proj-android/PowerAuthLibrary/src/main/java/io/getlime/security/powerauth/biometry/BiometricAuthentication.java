@@ -20,7 +20,6 @@ import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
 import android.util.Pair;
@@ -313,6 +312,18 @@ public class BiometricAuthentication {
     }
 
     /**
+     * Return type of biometry supported on the system.
+     *
+     * @param context Android context object
+     * @return {@link BiometryType} representing supported biometry on the system.
+     */
+    public static @BiometryType int getBiometryType(@NonNull Context context) {
+        synchronized (SharedContext.class) {
+            return getContext().getBiometryType(context);
+        }
+    }
+
+    /**
      * The {@code SharedContext} nested class contains shared data, required for the biometric tasks.
      */
     private static class SharedContext {
@@ -434,6 +445,30 @@ public class BiometricAuthentication {
          */
         void finishPendingBiometricAuthentication() {
             isPendingBiometricAuthentication = false;
+        }
+
+        /**
+         * Flag that indicates that value of {@link #biometryType} is already evaluated.
+         */
+        private boolean isBiometryTypeEvaluated = false;
+
+        /**
+         * Evaluated type of biometry supported on the device.
+         */
+        private @BiometryType int biometryType = BiometryType.NONE;
+
+        /**
+         * Return type of biometry supported on the system.
+         *
+         * @param context Android context object
+         * @return {@link BiometryType} representing supported biometry on the system.
+         */
+        @BiometryType int getBiometryType(@NonNull Context context) {
+            if (!isBiometryTypeEvaluated) {
+                biometryType = getAuthenticator(context).getBiometryType(context);
+                isBiometryTypeEvaluated = true;
+            }
+            return biometryType;
         }
     }
 

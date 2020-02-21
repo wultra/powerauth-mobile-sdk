@@ -652,6 +652,26 @@ switch (BiometricAuthentication.canAuthenticate(context)) {
         // The biometric authentication is not available at this time. 
         // You may try to retry the operation later.
 }
+
+// If you want to adjust localized strings or icons presented to the user,
+// you can use following code to determine the type of biometry available
+// on the system:
+switch (BiometricAuthentication.getBiometryType(context)) {
+    case BiometryType.NONE:
+        // Biometry is not supported on the system.
+    case BiometryType.GENERIC:
+        // It's not possible to determine exact type of biometry. 
+        // This happens on Android 10+ systems, when the device supports 
+        // more than one type of biometric authentication. In this case,
+        // you should use generic terms, like "Authenticate with biometry" 
+        // for your UI.
+    case BiometryType.FINGERPRINT:
+        // Fingerprint scanner is present on the device.
+    case BiometryType.FACE:
+        // Face scanner is present on the device.
+    case BiometryType.IRIS:
+        // Iris scanner is present on the device.
+}
 ```
 
 To check if given activation has biometry factor related data available, use following code:

@@ -35,6 +35,7 @@ import javax.crypto.SecretKey;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
+import io.getlime.security.powerauth.biometry.BiometryType;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -199,6 +200,28 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     @Override
     public boolean isAvailable() {
         return keystore.isKeystoreReady();
+    }
+
+    @Override
+    public @BiometryType int getBiometryType(@NonNull Context context) {
+        final PackageManager pm = context.getPackageManager();
+        int featuresCount = 0;
+        @BiometryType int biometryType = BiometryType.NONE;
+        // Evaluate all currently supported biometry types.
+        if (pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+            biometryType = BiometryType.FINGERPRINT;
+            featuresCount++;
+        }
+        if (pm.hasSystemFeature(PackageManager.FEATURE_FACE)) {
+            biometryType = BiometryType.FACE;
+            featuresCount++;
+        }
+        if (pm.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+            biometryType = BiometryType.IRIS;
+            featuresCount++;
+        }
+        // Handle multiple features.
+        return featuresCount > 1 ? BiometryType.GENERIC : biometryType;
     }
 
     @Override

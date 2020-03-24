@@ -16,7 +16,7 @@
 
 #import "PA2AsyncOperation.h"
 #import "PA2Log.h"
-
+#import "PA2PrivateMacros.h"
 
 @interface PA2AsyncOperation (Private)
 @property (nonatomic, assign) BOOL isExecuting;
@@ -59,12 +59,14 @@
 	_inExecutionBlock = YES;
 	id (^execution)(PA2AsyncOperation*) = _executionBlock;
 	_executionBlock = nil;
+	BOOL shouldExecuteBlock = self.isCancelled == NO;
 	//
 	[_lock unlock];
 	
 	if (execution) {
-		// Call execution block & acquire operation task
-		id operationTask = execution(self);
+		// Call execution block & acquire operation task. If the operation
+		// is already canceled, then do nothing.
+		id operationTask = shouldExecuteBlock ? execution(self) : nil;
 		
 		// In second lock, we need to test, whether there was a cancel while we were
 		// in the execution block. If yes, then the internal cancel needs to be called
@@ -85,10 +87,11 @@
 		[_lock unlock];
 		//
 	} else {
-		PA2Log(@"WARNING: Internal: Async queue without an execution block.");
+		PA2Log(@"WARNING: Internal: Async operation without an execution block.");
 		self.isExecuting = NO;
 		self.isFinished = YES;
-		[self completeWithResult:nil error:nil];
+		NSError * error = PA2MakeError(PA2ErrorCodeWrongParameter, @"Async operation without an execution block.");
+		[self completeWithResult:nil error:error];
 	}
 	
 }
@@ -111,6 +114,11 @@
 			_cancelBlock = nil;
 		}
 		_operationTask = nil;
+		
+		// Mark operation as finished to remove
+		// the operation from the queue.
+		self.isExecuting = NO;
+		self.isFinished = YES;
 	}
 }
 

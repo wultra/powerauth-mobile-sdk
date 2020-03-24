@@ -33,6 +33,7 @@ public class BiometricAuthenticationRequest {
     private final @NonNull CharSequence description;
     private final boolean forceGenerateNewKey;
     private final boolean invalidateByBiometricEnrollment;
+    private final boolean userConfirmationRequired;
     private final @NonNull byte[] keyToProtect;
 
     private BiometricAuthenticationRequest(
@@ -41,12 +42,14 @@ public class BiometricAuthenticationRequest {
             @NonNull CharSequence description,
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
+            boolean userConfirmationRequired,
             @NonNull byte[] keyToProtect) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
+        this.userConfirmationRequired = userConfirmationRequired;
         this.keyToProtect = Arrays.copyOf(keyToProtect, keyToProtect.length);
     }
 
@@ -86,6 +89,13 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
+     * @return {@code true} in case that user's confirmation is required.
+     */
+    public boolean isUserConfirmationRequired() {
+        return userConfirmationRequired;
+    }
+
+    /**
      * @return Application provided key which will be protected by the biometric key.
      */
     public @NonNull byte[] getKeyToProtect() {
@@ -105,6 +115,7 @@ public class BiometricAuthenticationRequest {
 
         private boolean forceGenerateNewKey;
         private boolean invalidateByBiometricEnrollment = true;
+        private boolean userConfirmationRequired = false;
         private byte[] keyToProtect;
 
         /**
@@ -138,6 +149,7 @@ public class BiometricAuthenticationRequest {
                     description,
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
+                    userConfirmationRequired,
                     keyToProtect);
         }
 
@@ -213,6 +225,21 @@ public class BiometricAuthenticationRequest {
         public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment) {
             this.forceGenerateNewKey = forceGenerateNewKey;
             this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
+            return this;
+        }
+
+        /**
+         * Optional: A hint to the system to require user confirmation after a biometric has been
+         * authenticated. For example, implicit modalities like Face and Iris authentication are
+         * passive, meaning they don't require an explicit user action to complete. When set to
+         * {@code false}, the user action (e.g. pressing a button) will not be required. {@code BiometricPrompt}
+         * will require confirmation by default.
+         *
+         * @param userConfirmationRequired Whether user's confirmation should be required in the biometric prompt.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setUserConfirmationRequired(boolean userConfirmationRequired) {
+            this.userConfirmationRequired = userConfirmationRequired;
             return this;
         }
 

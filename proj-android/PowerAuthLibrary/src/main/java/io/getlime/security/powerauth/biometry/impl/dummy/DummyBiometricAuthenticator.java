@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
 
 import io.getlime.security.powerauth.biometry.BiometricStatus;
+import io.getlime.security.powerauth.biometry.BiometryType;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.biometry.impl.IBiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
@@ -41,6 +42,11 @@ public class DummyBiometricAuthenticator implements IBiometricAuthenticator {
     @Override
     public boolean isAvailable() {
         return false;
+    }
+
+    @Override
+    public @BiometryType int getBiometryType(@NonNull Context context) {
+        return BiometryType.NONE;
     }
 
     @Override

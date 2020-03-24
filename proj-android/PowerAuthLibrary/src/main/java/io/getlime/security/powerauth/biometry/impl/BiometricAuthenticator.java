@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.hardware.biometrics.BiometricManager;
 import android.hardware.biometrics.BiometricPrompt;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
@@ -34,6 +35,7 @@ import javax.crypto.SecretKey;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
+import io.getlime.security.powerauth.biometry.BiometryType;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -50,11 +52,27 @@ import io.getlime.security.powerauth.system.PA2Log;
 @RequiresApi(api = Build.VERSION_CODES.P)
 public class BiometricAuthenticator implements IBiometricAuthenticator {
 
+    /**
+     * The private {@code ICanAuthenticate} interface providing enumeration whether
+     * the biometric authentication is available on the system, in advance, before
+     * the {@link BiometricPrompt} dialog is displayed.
+     */
+    private interface ICanAuthenticate {
+        /**
+         * Evaluate whether the biometric authentication is available at the time of the call.
+         *
+         * @return Current {@link BiometricStatus} that determines whether you can call authenticate method.
+         */
+        @BiometricStatus int canAuthenticate();
+    }
+
     private final @NonNull Context context;
     private final @NonNull IBiometricKeystore keystore;
-    private final @NonNull FingerprintManager legacyFingerprintManager;
+    private final @NonNull ICanAuthenticate canAuthenticate;
+
     private byte[] alreadyProtectedKey;
     private boolean authenticationFailedBefore;
+
 
     /**
      * Creates a new instance of {@link BiometricAuthenticator}. The authenticator object is not created when
@@ -65,9 +83,80 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
      * @return {@link BiometricAuthenticator} or {@code null} in case that biometry is not supported on the device.
      */
     public static @Nullable IBiometricAuthenticator createAuthenticator(final Context context, IBiometricKeystore keystore) {
+        // Check whether the keystore can be used.
         if (!keystore.isKeystoreReady()) {
             return null;
         }
+        // Prepare object that implements "canAuthenticate" method
+        final ICanAuthenticate canAuthenticate;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            canAuthenticate = prepareCanAuthenticate(context, keystore);
+        } else {
+            canAuthenticate = prepareLegacyCanAuthenticate(context, keystore);
+        }
+        if (canAuthenticate == null) {
+            return null;
+        }
+        // Looks like we can construct the final authenticator.
+        return new BiometricAuthenticator(context, keystore, canAuthenticate);
+    }
+
+
+    /**
+     * Creates a new instance of {@link ICanAuthenticate} object that implements {@link BiometricAuthenticator#canAuthenticate()}
+     * method on Android 10 and newer systems. The returned object is using {@link BiometricManager} to determine whether biometric
+     * authentication is available and can be used.
+     *
+     * @param context Android {@link Context} object
+     * @param keystore Object implementing {@link IBiometricKeystore} which will manage lifetime of the biometric key.
+     * @return {@link ICanAuthenticate} or {@code null} in case that biometry is not supported on the device.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private static @Nullable ICanAuthenticate prepareCanAuthenticate(final Context context, final IBiometricKeystore keystore) {
+        // Try to acquire BiometricManager first.
+        final BiometricManager biometricManager = (BiometricManager) context.getSystemService(BiometricManager.class);
+        if (biometricManager == null) {
+            PA2Log.e("BiometricManager is not available.");
+            return null;
+        }
+
+        // Now return object that implements ICanAuthenticate.
+        return new ICanAuthenticate() {
+            @Override
+            public int canAuthenticate() {
+                if (!keystore.isKeystoreReady()) {
+                    return BiometricStatus.NOT_AVAILABLE;
+                }
+                final int status = biometricManager.canAuthenticate();
+                switch (status) {
+                    case BiometricManager.BIOMETRIC_SUCCESS:
+                        return BiometricStatus.OK;
+                    case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
+                        return BiometricStatus.NOT_AVAILABLE;
+                    case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
+                        return BiometricStatus.NOT_ENROLLED;
+                    case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
+                        return BiometricStatus.NOT_SUPPORTED;
+                    default:
+                        PA2Log.e("BiometricManager returned unknown status " + status);
+                        return BiometricStatus.NOT_SUPPORTED;
+                }
+            }
+        };
+    }
+
+    /**
+     * Creates a new instance of {@link ICanAuthenticate} object that implements {@link BiometricAuthenticator#canAuthenticate()}
+     * method on Android 9 systems. The returned object is using legacy {@link FingerprintManager} to determine whether biometric
+     * authentication is available and can be used.
+     *
+     * @param context Android {@link Context} object
+     * @param keystore Object implementing {@link IBiometricKeystore} which will manage lifetime of the biometric key.
+     * @return {@link ICanAuthenticate} or {@code null} in case that biometry is not supported on the device.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private static @Nullable ICanAuthenticate prepareLegacyCanAuthenticate(final Context context, final IBiometricKeystore keystore) {
+        // Check fingerprint feature and fingerprint service availability.
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
             return null;
         }
@@ -75,8 +164,22 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         if (fingerprintManager == null) {
             return null;
         }
-        return new BiometricAuthenticator(context, keystore, fingerprintManager);
+
+        // Now construct object that provides "canAuthenticate", compatible with Android 9
+        return new ICanAuthenticate() {
+            @Override
+            public int canAuthenticate() {
+                if (!keystore.isKeystoreReady()) {
+                    return BiometricStatus.NOT_AVAILABLE;
+                }
+                if (!fingerprintManager.hasEnrolledFingerprints()) {
+                    return BiometricStatus.NOT_ENROLLED;
+                }
+                return BiometricStatus.OK;
+            }
+        };
     }
+
 
     /**
      * Construct {@link BiometricAuthenticator}. The constructor is private, so you have to use {@link #createAuthenticator(Context, IBiometricKeystore)} method
@@ -84,12 +187,12 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
      *
      * @param keystore Object implementing {@link IBiometricKeystore} which will manage lifetime of the biometric key.
      * @param context Android {@link Context} object
-     * @param legacyFingerprintManager {@link FingerprintManager} instance, which is required due to poorly designed {@link BiometricPrompt} interface.
+     * @param canAuthenticate Object that implements {@link IBiometricAuthenticator#canAuthenticate()} method.
      */
-    private BiometricAuthenticator(@NonNull Context context, @NonNull IBiometricKeystore keystore, @NonNull FingerprintManager legacyFingerprintManager) {
+    private BiometricAuthenticator(@NonNull Context context, @NonNull IBiometricKeystore keystore, @NonNull ICanAuthenticate canAuthenticate) {
         this.context = context;
         this.keystore = keystore;
-        this.legacyFingerprintManager = legacyFingerprintManager;
+        this.canAuthenticate = canAuthenticate;
     }
 
     // IBiometricAuthenticator methods
@@ -100,15 +203,30 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     }
 
     @Override
+    public @BiometryType int getBiometryType(@NonNull Context context) {
+        final PackageManager pm = context.getPackageManager();
+        int featuresCount = 0;
+        @BiometryType int biometryType = BiometryType.NONE;
+        // Evaluate all currently supported biometry types.
+        if (pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+            biometryType = BiometryType.FINGERPRINT;
+            featuresCount++;
+        }
+        if (pm.hasSystemFeature(PackageManager.FEATURE_FACE)) {
+            biometryType = BiometryType.FACE;
+            featuresCount++;
+        }
+        if (pm.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+            biometryType = BiometryType.IRIS;
+            featuresCount++;
+        }
+        // Handle multiple features.
+        return featuresCount > 1 ? BiometryType.GENERIC : biometryType;
+    }
+
+    @Override
     public @BiometricStatus int canAuthenticate() {
-        if (!isAvailable()) {
-            return BiometricStatus.NOT_AVAILABLE;
-        }
-        // TODO: API level 29 will fix this with `canAuthenticate()` method.
-        if (!legacyFingerprintManager.hasEnrolledFingerprints()) {
-            return BiometricStatus.NOT_ENROLLED;
-        }
-        return BiometricStatus.OK;
+        return canAuthenticate.canAuthenticate();
     }
 
     @NonNull
@@ -152,6 +270,10 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dispatcher.dispatchUserCancel();
             }
         });
+        // Setup user's confirmation (Android 10+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setConfirmationRequired(request.isUserConfirmationRequired());
+        }
 
         // Build the prompt and do the authentication
         final BiometricPrompt prompt = builder.build();
@@ -332,7 +454,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         long elapsedTime = requestData.getElapsedTime();
         if (elapsedTime < PROMPT_API_RESPONSE_TOLERANCE) {
             // We're under 200ms, so the response was really quick. In this case, we should display
-            // our own dialog.
+            // our own dialog. This typically happens on Android 10s in case that biometry is
+            // temporarily disabled for too many failed attempts.
             return true;
         }
         if (elapsedTime >= PROMPT_API_MIN_RESPONSE_TIME &&
@@ -342,7 +465,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             // reported after 2000ms, even if no prompt UI was visible.
             return true;
         }
-        // Looks like that BiometricPrompt UI was really visible.
+        // Looks like that BiometricPrompt UI was really visible, so we don't need to display
+        // our own dialog with error message.
         return false;
     }
 

@@ -652,6 +652,26 @@ switch (BiometricAuthentication.canAuthenticate(context)) {
         // The biometric authentication is not available at this time. 
         // You may try to retry the operation later.
 }
+
+// If you want to adjust localized strings or icons presented to the user,
+// you can use following code to determine the type of biometry available
+// on the system:
+switch (BiometricAuthentication.getBiometryType(context)) {
+    case BiometryType.NONE:
+        // Biometry is not supported on the system.
+    case BiometryType.GENERIC:
+        // It's not possible to determine exact type of biometry. 
+        // This happens on Android 10+ systems, when the device supports 
+        // more than one type of biometric authentication. In this case,
+        // you should use generic terms, like "Authenticate with biometry" 
+        // for your UI.
+    case BiometryType.FINGERPRINT:
+        // Fingerprint scanner is present on the device.
+    case BiometryType.FACE:
+        // Face scanner is present on the device.
+    case BiometryType.IRIS:
+        // Iris scanner is present on the device.
+}
 ```
 
 To check if given activation has biometry factor related data available, use following code:
@@ -766,6 +786,18 @@ final BiometricDialogResources resources = new BiometricDialogResources.Builder(
 // Set resources to BiometricAuthentication
 BiometricAuthentication.setBiometricDialogResources(resources);
 ```
+
+On Andoid 10+ systems, it's possible to configure `BiometricPrompt` to ask for an additional confirmation after the user is successfully authenticated. The default behavior for PowerAuth Mobile SDK is that such confirmation is not required. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `confirmBiometricAuthentication` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+
+```java
+// Use true for 'confirmBiometricAuthentication' parameter.
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, true, true);
+// Apply keychain configuration
+PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
+        .keychainConfiguration(keychainConfig)
+        .build(getApplicationContext());
+```
+
 
 ## Activation Removal
 

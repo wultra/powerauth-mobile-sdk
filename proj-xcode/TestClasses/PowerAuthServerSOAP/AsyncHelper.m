@@ -72,6 +72,7 @@
 		if (triggered == 0) {
 			break;
 		}
+		--attempts;
 	}
 	if (triggered != 0) {
 		@throw [NSException exceptionWithName:@"SoapApi" reason:@"waitForCompletion timed out" userInfo:nil];

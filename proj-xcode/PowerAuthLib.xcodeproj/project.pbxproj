@@ -169,6 +169,7 @@
 		BFD27D8721144DA20020ABA4 /* PowerAuthInvalidCurveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */; };
 		BFD386621F2B528600F74FF9 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
 		BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
+		BFDE2247242A1F0800D4FEB2 /* PA2AsyncOperationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDE2246242A1F0800D4FEB2 /* PA2AsyncOperationTests.m */; };
 		BFDFED9520BEEF730094138A /* PA2CoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED9420BEEF730094138A /* PA2CoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFDFED9820BEEFAC0094138A /* PA2Log.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED9620BEEFAC0094138A /* PA2Log.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFDFED9920BEEFAC0094138A /* PA2Log.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED9720BEEFAC0094138A /* PA2Log.m */; };
@@ -402,6 +403,7 @@
 		BFD386611F2B528600F74FF9 /* TestConfig */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TestConfig; sourceTree = SOURCE_ROOT; };
 		BFD386651F2B6BE700F74FF9 /* PowerAuthTestServerConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerConfig.h; sourceTree = "<group>"; };
 		BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerConfig.m; sourceTree = "<group>"; };
+		BFDE2246242A1F0800D4FEB2 /* PA2AsyncOperationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AsyncOperationTests.m; sourceTree = "<group>"; };
 		BFDFED9420BEEF730094138A /* PA2CoreLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CoreLog.h; sourceTree = "<group>"; };
 		BFDFED9620BEEFAC0094138A /* PA2Log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2Log.h; sourceTree = "<group>"; };
 		BFDFED9720BEEFAC0094138A /* PA2Log.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2Log.m; sourceTree = "<group>"; };
@@ -683,6 +685,7 @@
 				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
 				BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */,
 				BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */,
+				BFDE2246242A1F0800D4FEB2 /* PA2AsyncOperationTests.m */,
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
 				BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */,
 				BF9EED2020372AEB001D8DF8 /* PowerAuthConcurrencyTests.m */,
@@ -1099,6 +1102,7 @@
 				BFAF73081EAA83AD005E7572 /* PowerAuthSDKTests.m in Sources */,
 				BF7751131FC48A1A008455A6 /* PowerAuthTokenTests.m in Sources */,
 				BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */,
+				BFDE2247242A1F0800D4FEB2 /* PA2AsyncOperationTests.m in Sources */,
 				BF20EA8C1EACB17600733D91 /* CXMLNamespaceNode.m in Sources */,
 				BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */,
 				BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */,
@@ -1316,10 +1320,9 @@
 			buildSettings = {
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../include",
-					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(inherited)",
 					/usr/include/libxml2,
+					"$(PROJECT_DIR)/Classes",
 				);
 				INFOPLIST_FILE = TestClasses/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -1333,10 +1336,9 @@
 			buildSettings = {
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				HEADER_SEARCH_PATHS = (
-					"$(PROJECT_DIR)/../include",
-					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(inherited)",
 					/usr/include/libxml2,
+					"$(PROJECT_DIR)/Classes",
 				);
 				INFOPLIST_FILE = TestClasses/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";

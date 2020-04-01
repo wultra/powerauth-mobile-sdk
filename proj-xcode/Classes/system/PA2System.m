@@ -16,7 +16,12 @@
 
 #import "PA2System.h"
 #import "PA2Session.h"
+#import "PA2Log.h"
+
 #import <UIKit/UIKit.h>
+
+#include <sys/utsname.h>
+#include "TargetConditionals.h"
 
 BOOL pa_isJailbroken() {
 #if !(TARGET_IPHONE_SIMULATOR)
@@ -78,6 +83,38 @@ BOOL pa_isJailbroken() {
 //       So, the long term plan is to remove this feature from the SDK and have a separate library for jailbreak detection.
 + (BOOL) isJailbroken {
 	return pa_isJailbroken();
+}
+
++ (NSString*) platform
+{
+#if TARGET_OS_OSX == 1
+	return @"macOS";
+#elif TARGET_OS_IOS == 1
+	return @"iOS";
+#elif TARGET_OS_WATCH == 1
+	return @"watchOS";
+#elif TARGET_OS_TV == 1
+	return @"tvOS";
+#elif TARGET_OS_MACCATALYST == 1
+	return "macCatalyst";
+#else
+	unknown_platform // Compilation must fail here.
+#endif
+}
+
++ (NSString*) deviceInfo
+{
+#if TARGET_OS_SIMULATOR == 0
+	struct utsname utsname;
+	int err = uname(&utsname);
+	if (err != 0) {
+		PA2Log(@"PA2System.deviceInfo: uname() failed with code %d", errno);
+		return @"iDeviceUnknown";
+	}
+	return [NSString stringWithUTF8String:utsname.machine];
+ #else
+	return @"simulator";
+#endif
 }
 
 @end

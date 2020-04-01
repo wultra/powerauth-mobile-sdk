@@ -47,4 +47,14 @@ extern BOOL pa_isJailbroken(void);
  */
 + (BOOL) isJailbroken;
 
+/**
+ Returns string representing the current device's platform (e.g. "ios", "tvos", etc.)
+ */
++ (nonnull NSString*) platform;
+
+/**
+ Returns more detailed information about the device (e.g. "iPhone12,3")
+ */
++ (nonnull NSString*) deviceInfo;
+
 @end

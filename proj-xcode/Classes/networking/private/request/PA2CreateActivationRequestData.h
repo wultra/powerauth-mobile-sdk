@@ -26,5 +26,8 @@
 @property (nonatomic, strong) NSString * devicePublicKey;
 @property (nonatomic, strong) NSString * activationName;
 @property (nonatomic, strong) NSString * extras;
+@property (nonatomic, strong) NSString * activationOtp;
+@property (nonatomic, strong) NSString * platform;
+@property (nonatomic, strong) NSString * deviceInfo;
 
 @end

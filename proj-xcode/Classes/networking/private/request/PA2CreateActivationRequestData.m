@@ -20,7 +20,7 @@
 
 - (NSDictionary<NSString*, NSObject*>*) toDictionary
 {
-	NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:3];
+	NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:6];
 	if (_activationName) {
 		dictionary[@"activationName"] = _activationName;
 	}
@@ -29,6 +29,15 @@
 	}
 	if (_extras) {
 		dictionary[@"extras"] = _extras;
+	}
+	if (_activationOtp) {
+		dictionary[@"activationOtp"] = _activationOtp;
+	}
+	if (_platform) {
+		dictionary[@"platform"] = _platform;
+	}
+	if (_deviceInfo) {
+		dictionary[@"deviceInfo"] = _deviceInfo;
 	}
 	return dictionary;
 }

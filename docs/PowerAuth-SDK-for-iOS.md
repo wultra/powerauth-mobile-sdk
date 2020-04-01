@@ -14,6 +14,7 @@
     - [Activation via Activation Code](#activation-via-activation-code)
     - [Activation via Custom Credentials](#activation-via-custom-credentials)
     - [Activation via Recovery Code](#activation-via-recovery-code)
+    - [Customize Activation](#customize-activation)
     - [Committing Activation Data](#committing-activation-data)
     - [Validating user inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
@@ -188,21 +189,44 @@ Use following code to create an activation once you have an activation code:
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
-// Create a new activation with given device name and activation code
-PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, activationCode: activationCode) { (result, error) in
+// Create activation object with given activation code.
+guard let activation = PowerAuthActivation(activationCode: activationCode)?.with(name: deviceName) else {
+    // Activation code is invalid
+}
 
+// Create a new activation with just created activation object
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
         // If server supports recovery codes for activations, then `activationRecovery` property contains object with information about activation recovery.
     } else {
         // Error occurred, report it to the user
-    }    
-
+    }
 }
 ```
 
 If the received activation result also contains recovery data, then you should display that values to the user. To do that, please read [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
+
+#### Additional activation OTP
+
+If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure `PowerAuthActivation` object: 
+
+```swift
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
+let activationOtp = "12345"
+
+// Create activation object with given activation code.
+guard let activation = PowerAuthActivation(activationCode: activationCode)?
+    .with(name: deviceName)
+    .with(additionalActivationOtp: activationOtp) else {
+        // Activation code is invalid
+}
+// The rest of the activation code is the same.
+```
+
+> Be aware that OTP can be used only if the activation is configured for ON_KEYS_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 
 
 ### Activation via Custom Credentials
 
@@ -218,7 +242,13 @@ let credentials = [
     "password": "YBzBEM"
 ]
 
-PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, identityAttributes: credentials, extras: nil) { (result, error) in
+// Create activation object with given credentials.
+guard let activation = PowerAuthActivation(identityAttributes: credentials)?.with(name: deviceName) else {
+    // Activation credentials are empty
+}
+
+// Create a new activation with just created activation object
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
@@ -243,7 +273,13 @@ let deviceName = "John Tramonta" // or UIDevice.current.name
 let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil 
 
-PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, recoveryCode: recoveryCode, puk: puk, extras: nil) { (result, error) in
+// Create activation object with recovery code and PUK
+guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk)?.with(name: deviceName) else {
+    // Recovery code or PUK is not valid.
+}
+
+// Create a new activation with just created activation object
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     if let error = error {
         // Error occurred, report it to the user
         // On top of a regular error processing, you should handle a special situation, when server gives an additional information
@@ -261,6 +297,43 @@ PowerAuthSDK.sharedInstance().createActivation(withName: deviceName, recoveryCod
     }
 }
 ``` 
+
+### Customize Activation
+
+You can set an additional properties to `PowerAuthActivation` object, before the activation is created. For example:
+
+```swift
+// Custom attributes that can be processed before the activation is created on PowerAuth Server.
+// The dictionary may contain only values that can be serialized to JSON.
+let customAttributes: [String:Any] = [
+    "isNowPrimaryActivation" : true,
+    "otherActivationIds" : [ 
+        "e43f5f99-e2e9-49f2-bcae-5e32a5e96d22", 
+        "41dd704c-65e6-4d4b-b28f-0bc0e4eb9715"
+    ]
+]
+
+// Extra flags, that will be associated with the activation record on PowerAuth Server.
+let extraFlags = "EXTRA_FLAGS"
+
+// Activation name is also optional, but recommended to use.
+let activationName = "Troyplatnitchka"
+
+// Now create the activation object with all that extra data
+guard let activation = PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-ABANA")?
+    .with(name: activationName)
+    .with(extras: extraFlags)
+    .with(customAttributes: customAttributes) else {
+        // Invalid activation code...
+    }
+    
+// Create a new activation as usual
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+    // 
+}
+```  
+
+Such customizations can be used for all types of activation.
 
 
 ### Committing Activation Data

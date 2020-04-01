@@ -26,33 +26,22 @@
 /**
  Contains type of activation. Currenty, only "CODE" and "CUSTOM" is expected.
  */
-@property (nonatomic, strong, readonly) NSString * activationType;
+@property (nonatomic, strong) NSString * activationType;
 /**
  Identity attributes, may contain activation code, or complete custom,
  application specific attributes.
  */
-@property (nonatomic, strong, readonly) NSDictionary<NSString*, NSString*>* identityAttributes;
+@property (nonatomic, strong) NSDictionary<NSString*, NSString*>* identityAttributes;
+/**
+ Custom attributes, may contain additional information required for the activation creation.
+ The dictionary must be serializable by NSJSONSerialization.
+ */
+@property (nonatomic, strong) NSDictionary<NSString*, NSObject*>* customAttributes;
 /**
  Property contains encrypted, private data, required for activation creation.
  The encrypted `PA2CreateActivationRequestData` object is expected.
  */
 @property (nonatomic, strong) PA2EncryptedRequest * activationData;
-
-/**
- Returns a new instnace of object, prepared for standard activation. The `activationData`
- property has to be set to the object.
- */
-+ (instancetype) standardActivationWithCode:(NSString*)activationCode;
-/**
- Returns a new instance of object, prepared for a custom activation. The `activationData`
- property has to be set to the object.
- */
-+ (instancetype) customActivationWithIdentityAttributes:(NSDictionary<NSString*, NSString*>*)attributes;
-/**
- Returns a new instance of object, prepared for a recovery activation. The `activationData`
- property has to be set to the object.
- */
-+ (instancetype) recoveryActivationWithCode:(NSString*)recoveryCode puk:(NSString*)puk;
 
 @end
 

@@ -22,48 +22,21 @@
 
 - (NSDictionary*) toDictionary
 {
-    NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:3];
+    NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:4];
 	if (_activationType) {
 		dictionary[@"type"] = _activationType;
 	}
 	if (_identityAttributes) {
 		dictionary[@"identityAttributes"] = _identityAttributes;
 	}
+	if (_customAttributes) {
+		dictionary[@"customAttributes"] = _customAttributes;
+	}
 	NSDictionary * activationData = [_activationData toDictionary];
 	if (activationData) {
 		dictionary[@"activationData"] = activationData;
 	}
     return dictionary;
-}
-
-+ (instancetype) standardActivationWithCode:(NSString*)activationCode
-{
-	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
-	if (obj) {
-		obj->_activationType = @"CODE";
-		obj->_identityAttributes = @{ @"code" : activationCode };
-	}
-	return obj;
-}
-
-+ (instancetype) customActivationWithIdentityAttributes:(NSDictionary<NSString*, NSString*>*)attributes
-{
-	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
-	if (obj) {
-		obj->_activationType = @"CUSTOM";
-		obj->_identityAttributes = attributes;
-	}
-	return obj;
-}
-
-+ (instancetype) recoveryActivationWithCode:(NSString*)recoveryCode puk:(NSString*)puk
-{
-	PA2CreateActivationRequest * obj = [[PA2CreateActivationRequest alloc] init];
-	if (obj) {
-		obj->_activationType = @"RECOVERY";
-		obj->_identityAttributes = @{ @"recoveryCode" : recoveryCode, @"puk" : puk };
-	}
-	return obj;
 }
 
 @end

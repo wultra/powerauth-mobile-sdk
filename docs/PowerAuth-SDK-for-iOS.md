@@ -190,8 +190,9 @@ let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create activation object with given activation code.
-guard let activation = PowerAuthActivation(activationCode: activationCode)?.with(name: deviceName) else {
-    // Activation code is invalid
+guard let activation = PowerAuthActivation(activationCode: activationCode)?
+    .with(name: deviceName) else {
+        // Activation code is invalid
 }
 
 // Create a new activation with just created activation object
@@ -243,8 +244,9 @@ let credentials = [
 ]
 
 // Create activation object with given credentials.
-guard let activation = PowerAuthActivation(identityAttributes: credentials)?.with(name: deviceName) else {
-    // Activation credentials are empty
+guard let activation = PowerAuthActivation(identityAttributes: credentials)?
+    .with(name: deviceName) else {
+        // Activation credentials are empty
 }
 
 // Create a new activation with just created activation object
@@ -274,8 +276,9 @@ let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil 
 
 // Create activation object with recovery code and PUK
-guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk)?.with(name: deviceName) else {
-    // Recovery code or PUK is not valid.
+guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk)?
+    .with(name: deviceName) else {
+        // Recovery code or PUK is not valid.
 }
 
 // Create a new activation with just created activation object
@@ -300,7 +303,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 
 ### Customize Activation
 
-You can set an additional properties to `PowerAuthActivation` object, before the activation is created. For example:
+You can set an additional properties to `PowerAuthActivation` object, before any type of activation is created. For example:
 
 ```swift
 // Custom attributes that can be processed before the activation is created on PowerAuth Server.
@@ -332,9 +335,6 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     // 
 }
 ```  
-
-Such customizations can be used for all types of activation.
-
 
 ### Committing Activation Data
 

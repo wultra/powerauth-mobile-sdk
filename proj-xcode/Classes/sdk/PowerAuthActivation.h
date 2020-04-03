@@ -17,6 +17,7 @@
 #import "PA2Macros.h"
 
 @class PA2Otp;
+
 /**
  The `PowerAuthActivation` object contains activation data required for the activation creation. The object supports
  all types of activation, currently supported in the SDK.
@@ -24,44 +25,57 @@
 @interface PowerAuthActivation : NSObject<NSCopying>
 
 /**
+ Use class factory methods to init object.
+ */
+- (nonnull instancetype)init NS_UNAVAILABLE;
+
+/**
  Create an instance of `PowerAuthActivation` configured with the activation code. The activation code may contain
- an optional signature part, in case that it is scanned from QR code. The signature is validated
+ an optional signature part, in case that it is scanned from QR code.
+ 
+ The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
+ `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
+ an activation record on PowerAuth Server.
  
  @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
+ @param name Activation name to be used for the activation.
  @return New instance of `PowerAuthActivation` or `nil` in case that activation code is invalid.
  */
-+ (nullable instancetype) activationWithActivationCode:(nonnull NSString*)activationCode;
++ (nullable instancetype) activationWithActivationCode:(nonnull NSString*)activationCode
+												  name:(nullable NSString*)name;
 
 /**
  Creates an instance of `PowerAuthActivation` with an identity attributes for the custom activation purposes.
-
+ 
+ The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
+ `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
+ an activation record on PowerAuth Server.
+ 
  @param identityAttributes Custom activation parameters that are used to prove identity of a user.
+ @param name Activation name to be used for the activation.
  @return New instance of `PowerAuthActivation` or `nil` in case that identity attributes are empty.
  */
-+ (nullable instancetype) activationWithIdentityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes;
++ (nullable instancetype) activationWithIdentityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
+													  name:(nullable NSString*)name;
 
 /**
  Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
-
+ 
+ The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
+ `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
+ an activation record on PowerAuth Server.
+ 
  @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
  @param recoveryPuk PUK obtained by manual entry.
+ @param name Activation name to be used for the activation.
  @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
  */
 + (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
-										 recoveryPuk:(nonnull NSString*)recoveryPuk;
+										 recoveryPuk:(nonnull NSString*)recoveryPuk
+												name:(nullable NSString*)name;
 
 
 #pragma mark - Activation customization
-
-/**
- Sets activation name, for example "John's iPhone". You can use value obtained from `UIDevice.current.name` or
- let the user set the name. The name of activation will be associated with the activation record on PowerAuth Server.
-
- @param name Activation name to be used for the activation.
- @return The same object instance.
- */
-- (nonnull instancetype) withName:(nonnull NSString*)name
-						 NS_SWIFT_NAME(with(name:));
 
 /**
  Sets extra attributes of the activation, used for application specific purposes (for example, info about the client
@@ -105,7 +119,7 @@
 @property (nonatomic, strong, nonnull, readonly) NSString * activationType;
 
 /**
- Contains processed activation code in case that this is a regular activation, by activation code.
+ Contains parsed activation code in case this is a regular activation.
  */
 @property (nonatomic, strong, nullable, readonly) PA2Otp * activationCode;
 

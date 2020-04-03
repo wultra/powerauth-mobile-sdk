@@ -190,9 +190,8 @@ let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create activation object with given activation code.
-guard let activation = PowerAuthActivation(activationCode: activationCode)?
-    .with(name: deviceName) else {
-        // Activation code is invalid
+guard let activation = PowerAuthActivation(activationCode: activationCode, name: deviceName) else {
+    // Activation code is invalid
 }
 
 // Create a new activation with just created activation object
@@ -219,15 +218,14 @@ let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this 
 let activationOtp = "12345"
 
 // Create activation object with given activation code.
-guard let activation = PowerAuthActivation(activationCode: activationCode)?
-    .with(name: deviceName)
+guard let activation = PowerAuthActivation(activationCode: activationCode, name: deviceName)?
     .with(additionalActivationOtp: activationOtp) else {
         // Activation code is invalid
 }
 // The rest of the activation code is the same.
 ```
 
-> Be aware that OTP can be used only if the activation is configured for ON_KEYS_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 
+> Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 
 
 ### Activation via Custom Credentials
 
@@ -244,9 +242,8 @@ let credentials = [
 ]
 
 // Create activation object with given credentials.
-guard let activation = PowerAuthActivation(identityAttributes: credentials)?
-    .with(name: deviceName) else {
-        // Activation credentials are empty
+guard let activation = PowerAuthActivation(identityAttributes: credentials, name: deviceName) else {
+    // Activation credentials are empty
 }
 
 // Create a new activation with just created activation object
@@ -276,9 +273,8 @@ let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil 
 
 // Create activation object with recovery code and PUK
-guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk)?
-    .with(name: deviceName) else {
-        // Recovery code or PUK is not valid.
+guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
+    // Recovery code or PUK is not valid.
 }
 
 // Create a new activation with just created activation object
@@ -319,12 +315,8 @@ let customAttributes: [String:Any] = [
 // Extra flags, that will be associated with the activation record on PowerAuth Server.
 let extraFlags = "EXTRA_FLAGS"
 
-// Activation name is also optional, but recommended to use.
-let activationName = "Troyplatnitchka"
-
 // Now create the activation object with all that extra data
-guard let activation = PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-ABANA")?
-    .with(name: activationName)
+guard let activation = PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-ABANA", name: activationName)?
     .with(extras: extraFlags)
     .with(customAttributes: customAttributes) else {
         // Invalid activation code...

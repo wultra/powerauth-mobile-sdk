@@ -30,12 +30,14 @@
 - (id) initWithIdentityAttributes:(NSDictionary*)identityAttributes
 				   activationType:(NSString*)activationType
 				   activationCode:(PA2Otp*)activationCode
+							 name:(NSString*)name
 {
 	self = [super init];
 	if (self) {
 		_identityAttributes = identityAttributes;
 		_activationType = activationType;
 		_activationCode = activationCode;
+		_name = name;
 	}
 	return self;
 }
@@ -55,9 +57,11 @@
 	return copy;
 }
 
+
 #pragma mark - Static initializers
 
 + (instancetype) activationWithActivationCode:(NSString*)activationCode
+										 name:(NSString*)name
 {
 	PA2Otp * otp = [PA2OtpUtil parseFromActivationCode:activationCode];
 	if (!otp) {
@@ -67,10 +71,12 @@
 	NSDictionary * identityAttributes = @{ @"code" : otp.activationCode };
 	return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
 													activationType:@"CODE"
-													activationCode:otp];
+													activationCode:otp
+															  name:name];
 }
 
 + (instancetype) activationWithIdentityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
+											 name:(NSString*)name
 {
 	if (!identityAttributes || identityAttributes.count == 0) {
 		PA2Log(@"PowerAuthActivation: Missing identity attributes.");
@@ -78,11 +84,13 @@
 	}
 	return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
 													activationType:@"CUSTOM"
-													activationCode:nil];
+													activationCode:nil
+															  name:name];
 }
 
 + (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
 								recoveryPuk:(NSString*)recoveryPuk
+									   name:(NSString*)name
 {
 	PA2Otp * otp = [PA2OtpUtil parseFromRecoveryCode:recoveryCode];
 	if (!otp) {
@@ -96,17 +104,12 @@
 	NSDictionary * identityAttributes = @{ @"recoveryCode" : otp.activationCode, @"puk" : recoveryPuk };
 	return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
 													activationType:@"RECOVERY"
-													activationCode:nil];
+													activationCode:nil
+															  name:name];
 }
 
 
 #pragma mark - Customization
-
-- (instancetype) withName:(NSString *)name
-{
-	_name = name;
-	return self;
-}
 
 - (instancetype) withExtras:(NSString *)extras
 {
@@ -147,7 +150,7 @@
 		}
 	}
 #if defined(DEBUG)
-	// For debug build, try to serialize custom attributes.
+	// For debug build, try to serialize the custom attributes.
 	if (_customAttributes) {
 		PA2CreateActivationRequest * request = [[PA2CreateActivationRequest alloc] init];
 		request.customAttributes = _customAttributes;
@@ -171,11 +174,22 @@
 #if DEBUG
 - (NSString*) description
 {
+	NSMutableString * optional = [NSMutableString string];
 	if (_name) {
-		return [NSString stringWithFormat:@"<PowerAuthActivation type: '%@', name: '%@', identity: %@>", _activationType, _name, _identityAttributes];
+		[optional appendFormat:@", name=\"%@\"", _name];
 	} else {
-		return [NSString stringWithFormat:@"<PowerAuthActivation type: '%@', identity: %@>", _activationType, _identityAttributes];
+		[optional appendFormat:@", no-name"];
 	}
+	if (_additionalActivationOtp) {
+		[optional appendFormat:@", otp=\"%@\"", _additionalActivationOtp];
+	}
+	if (_extras) {
+		[optional appendFormat:@", extras=\"%@\"", _extras];
+	}
+	if (_customAttributes) {
+		[optional appendFormat:@", customAttrs=%@", _customAttributes];
+	}
+	return [NSString stringWithFormat:@"<PowerAuthActivation type=\"%@\", identity=%@%@>", _activationType, _identityAttributes, optional];
 }
 #endif
 

@@ -38,12 +38,20 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V2) {
-			_templateMapping = [SoapHelper mappingForV2];
-		} else if (_version == PATS_V3) {
-			_templateMapping = [SoapHelper mappingForV3];
+		if (_version == PATS_V0_24) {
+			_templateMapping = [SoapHelper mappingForV0_24];
+		} else if (_version == PATS_V0_23_2) {
+			_templateMapping = [SoapHelper mappingForV0_23_2];
+		} else if (_version == PATS_V0_23) {
+			_templateMapping = [SoapHelper mappingForV0_23];
+		} else if (_version == PATS_V0_22_2) {
+			_templateMapping = [SoapHelper mappingForV0_22_2];
+		} else if (_version == PATS_V0_22) {
+			_templateMapping = [SoapHelper mappingForV0_22];
+		} else if (_version == PATS_V0_21) {
+			_templateMapping = [SoapHelper mappingForV0_21];
 		} else {
-			_templateMapping = [SoapHelper mappingForV31];
+			_templateMapping = [SoapHelper mappingForV0_18];
 		}
 	}
 	return self;
@@ -210,7 +218,7 @@
 
 #define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV2
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_18
 {
 	NSString * ns = @"http://getlime.io/security/powerauth";
 	return @{
@@ -240,7 +248,7 @@
 			};
 }
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV3
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_21
 {
 	// Note that all Crypto 3.0 specific requests are now identified with "_V3" suffix.
 	// This will be changed in Crypto 3.0 capable SDK. Right now, we just create entry in the table,
@@ -276,7 +284,79 @@
 			 };
 }
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV31
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_22
+{
+	// Note that all Crypto 3.0 specific requests are now identified with "_V3" suffix.
+	// This will be changed in Crypto 3.0 capable SDK. Right now, we just create entry in the table,
+	// but will not use them.
+	
+	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
+			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v2/VerifySignature"),	// Must use V3 namespace, but equal to V2
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v3/VerifySignature_ForcedVer"),
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_22_2
+{
+	// Note that all Crypto 3.0 specific requests are now identified with "_V3" suffix.
+	// This will be changed in Crypto 3.0 capable SDK. Right now, we just create entry in the table,
+	// but will not use them.
+	
+	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
+			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation_Revoke"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v2/VerifySignature"),	// Must use V3 namespace, but equal to V2
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v3/VerifySignature_ForcedVer"),
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_23
 {
 	// The V3.1 SOAP interface is very similar to V3. The only difference is that
 	// the call for signature calculation must contains a signature version.
@@ -299,6 +379,76 @@
 			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
 			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
 			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v31/VerifySignature"),	// V3 namespace, but additional param
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v31/VerifySignature_ForcedVer"),	// V3 namespace, but additional param and forced version.
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_23_2
+{
+	// The V3.1 SOAP interface is very similar to V3. The only difference is that
+	// the call for signature calculation must contains a signature version.
+	
+	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
+			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation_Revoke"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"_v31/VerifySignature"),	// V3 namespace, but additional param
+			 @"VerifySignature_ForcedVer"		: MAP(v3, @"_v31/VerifySignature_ForcedVer"),	// V3 namespace, but additional param and forced version.
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_24
+{
+	// The V3.1 SOAP interface is very similar to V3. The only difference is that
+	// the call for signature calculation must contains a signature version.
+	
+	NSString * v2 = @"http://getlime.io/security/powerauth/v2";
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v2, @"_v2/CreateToken"),
+			 @"CreateToken_V3"					: MAP(v3, @"_v3/CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetNonpersonalizedEncryptionKey"	: MAP(v2, @"_v2/GetNonpersonalizedEncryptionKey"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"), // Same, but V2 is emulated over V3 ifc
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation_Revoke"),
 			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
 			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
 			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),

@@ -674,7 +674,9 @@ static NSString * PA_Ver = @"2.1";
 							: [[NSData alloc] initWithBase64EncodedString:@"zYnF8edfgfgT2TcZjupjppBHoUJGjONkk6H+eThIsi0=" options:0] ;
 		// Positive
 		// V31 server doesn't allow offline signature with only possession factor.
-		if (online_mode || _testServerApi.serverVersion == PATS_V3 || _testServerApi.serverVersion == PATS_V2) {
+		PowerAuthProtocolVersion protoVer = PATSProtoVer(_testServerApi.serverVersion);
+		if (online_mode || protoVer == PATS_P3 || protoVer == PATS_P2) {
+			// V31+ server doesn't allow offline signature with only possession factor
 			result = [self validateSignature:auth_possession data:data method:@"POST" uriId:@"/hello/world" online:online_mode cripple:0];
 			XCTAssertTrue(result, @"Failed for %@ mode", online_mode ? @"online" : @"offline");
 		}

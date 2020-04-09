@@ -1,0 +1,9 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <pow:RemoveActivationRequest>
+         <pow:activationId>$1</pow:activationId>
+         <pow:revokeRecoveryCodes>false</pow:revokeRecoveryCodes>
+      </pow:RemoveActivationRequest>
+   </soapenv:Body>
+</soapenv:Envelope>

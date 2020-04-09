@@ -38,8 +38,12 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V31) {
-			_templateMapping = [SoapHelper mappingForV31];
+		if (_version == PATS_V0_24) {
+			_templateMapping = [SoapHelper mappingForV0_24];
+		} else if (_version == PATS_V0_23_2) {
+			_templateMapping = [SoapHelper mappingForV0_23_2];
+		} else if (_version == PATS_V0_23) {
+			_templateMapping = [SoapHelper mappingForV0_23];
 		} else {
 			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 or V3 server is not supported." userInfo:nil];
 		}
@@ -208,7 +212,7 @@
 
 #define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV31
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_23
 {
 	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
 	return @{
@@ -226,6 +230,66 @@
 			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
 			 @"InitActivation"					: MAP(v3, @"InitActivation"),
 			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"VerifySignature"),
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"VerifySignature_ForceVer"),	// Forced protocol version
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_23_2
+{
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v3, @"CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetActivationStatus_Challenge"	: MAP(v3, @"GetActivationStatus_Challenge"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"),
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation_Revoke"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"VerifySignature"),
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"VerifySignature_ForceVer"),	// Forced protocol version
+			 };
+}
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_24
+{
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v3, @"CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetActivationStatus_Challenge"	: MAP(v3, @"GetActivationStatus_Challenge"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"),
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation_Revoke"),
 			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
 			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),
 			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),

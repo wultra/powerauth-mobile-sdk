@@ -300,7 +300,7 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 		NSError * localError = nil;
 		PATSInitActivationResponse * obj = [[PATSInitActivationResponse alloc] init];
 		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (_serverVersion == PATS_V2) {
+		if (PATSProtoVer(_serverVersion) == PATS_P2) {
 			// V2 server
 			if (!localError) obj.activationIdShort	= [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
 			if (!localError) obj.activationOTP		= [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
@@ -371,7 +371,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 		if (!localError) obj.timestampLastUsed		= [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.encryptedStatusBlob	= [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
-		if (_serverVersion != PATS_V2) {
+		if (PATSProtoVer(_serverVersion) != PATS_P2) {
 			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
 		} else {
 			obj.protocolVersion = 0;

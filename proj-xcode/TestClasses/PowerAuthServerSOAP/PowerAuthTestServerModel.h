@@ -98,6 +98,14 @@ typedef enum _PATSActivationStatusEnum {
 	PATSActivationStatus_REMOVED,
 } PATSActivationStatusEnum;
 
+typedef enum _PATSActivationOtpValidationEnum {
+	PATSActivationOtpValidation_NONE,
+	PATSActivationOtpValidation_ON_KEY_EXCHANGE,
+	PATSActivationOtpValidation_ON_COMMIT
+} PATSActivationOtpValidationEnum;
+
+extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValidationEnum val);
+
 @interface PATSSimpleActivationStatus : NSObject
 
 @property (nonatomic, strong) NSString * activationId;

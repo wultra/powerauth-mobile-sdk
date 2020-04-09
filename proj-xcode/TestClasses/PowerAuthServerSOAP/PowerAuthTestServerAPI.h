@@ -106,6 +106,12 @@
 - (PATSInitActivationResponse*) initializeActivation:(NSString*)userId;
 
 /**
+ Initializes an activation with desired OTP validation mode.
+ */
+- (PATSInitActivationResponse*) initializeActivation:(NSString*)userId
+									   otpValidation:(PATSActivationOtpValidationEnum)otpValidation
+												 otp:(NSString*)otp;
+/**
  Returns status of the activation.
  */
 - (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge;
@@ -134,6 +140,12 @@
  */
 - (BOOL) removeActivation:(NSString*)activationId;
 
+/**
+ Removes an existing activation and revokes all associated recovery codes.
+ Returns YES if activation was successfully removed. Note that you can still check status
+ of removed activation.
+*/
+- (BOOL) removeActivation:(NSString*)activationId revokeRecoveryCodes:(BOOL)revokeRecoveryCodes;
 
 #pragma mark - SOAP Signatures
 
@@ -186,19 +198,6 @@
 
 
 #pragma mark - Tokens
-
-/**
- Creates a new token for given application and activation id.
- Note that this method is using PA2ECIESEncryptor internally for encryption and decryption.
- */
-//- (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application
-//							activationId:(NSString*)activationId
-//						   signatureType:(NSString*)signatureType;
-
-/**
- Removes a previously created token.
- */
-//- (BOOL) removeToken:(PATSToken*)token;
 
 /**
  Validates a token request. Returns response object with various information.

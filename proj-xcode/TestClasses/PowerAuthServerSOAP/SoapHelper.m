@@ -38,10 +38,10 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V31) {
-			_templateMapping = [SoapHelper mappingForV31];
+		if (_version == PATS_V0_24) {
+			_templateMapping = [SoapHelper mappingForV0_24];
 		} else {
-			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to V2 or V3 server is not supported." userInfo:nil];
+			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to older servers is not supported." userInfo:nil];
 		}
 	}
 	return self;
@@ -208,7 +208,7 @@
 
 #define MAP(ns, path) [SoapHelperMapping map:@[ns, path]]
 
-+ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV31
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV0_24
 {
 	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
 	return @{
@@ -225,6 +225,7 @@
 			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
 			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
 			 @"InitActivation"					: MAP(v3, @"InitActivation"),
+			 @"InitActivation_OTP"				: MAP(v3, @"InitActivation_OTP"),
 			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
 			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
 			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion"),

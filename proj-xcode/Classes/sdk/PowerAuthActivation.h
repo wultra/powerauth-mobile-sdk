@@ -20,7 +20,7 @@
 
 /**
  The `PowerAuthActivation` object contains activation data required for the activation creation. The object supports
- all types of activation, currently supported in the SDK.
+ all types of activation currently supported in the SDK.
  */
 @interface PowerAuthActivation : NSObject<NSCopying>
 
@@ -98,7 +98,7 @@
 						 NS_SWIFT_NAME(with(customAttributes:));
 
 /**
- Sets an additioanl activation OTP that can be used only with a regular activation, by activation code.
+ Sets an additional activation OTP that can be used only with a regular activation, by activation code.
  
  @param additionalActivationOtp Additional activation OTP.
  @return The same object instance.

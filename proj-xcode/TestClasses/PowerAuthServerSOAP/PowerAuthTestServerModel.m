@@ -111,3 +111,17 @@
 
 @implementation PATSECIESCryptogram
 @end
+
+NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValidationEnum val)
+{
+	switch (val) {
+		case PATSActivationOtpValidation_NONE:
+			return nil;
+		case PATSActivationOtpValidation_ON_COMMIT:
+			return @"ON_COMMIT";
+		case PATSActivationOtpValidation_ON_KEY_EXCHANGE:
+			return @"ON_KEY_EXCHANGE";
+		default:
+			return nil;
+	}
+}

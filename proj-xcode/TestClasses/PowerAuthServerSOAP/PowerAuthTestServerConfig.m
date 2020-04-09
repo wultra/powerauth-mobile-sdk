@@ -30,7 +30,6 @@
 #define POWERAUTH_BASE_URL @"http://localhost"
 #endif
 
-
 @implementation PowerAuthTestServerConfig
 
 + (instancetype) defaultConfig
@@ -67,18 +66,49 @@
 	return [self loadFromDictionary:object];
 }
 
-+ (PowerAuthTestServerVersion) soapApiVersionFromString:(NSString*)string
+PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
-	string = [string lowercaseString];
-	if ([string isEqualToString:@"v3.1"]) {
-		return PATS_V31;
-	} else if ([string isEqualToString:@"v3"]) {
-		return PATS_V3;
-	} else if ([string isEqualToString:@"v2"]) {
-		return PATS_V2;
+	switch (serverVer) {
+		case PATS_V0_18:
+			return PATS_P2;
+		case PATS_V0_21:
+		case PATS_V0_22:
+			return PATS_P3;
+		case PATS_V0_23:
+		case PATS_V0_24:
+			return PATS_P31;
+		default:
+			// Older versions, defaulting to V2
+			return PATS_P2;
 	}
-	NSLog(@"%@: soapApiVersion is wrong. Defaulting to V2", [self class]);
-	return PATS_V2;
+}
+
++ (PowerAuthTestServerVersion) soapApiVersionFromString:(NSString*)stringVersion
+{
+	static NSDictionary * versionMapping = nil;
+	if (versionMapping == nil) {
+		versionMapping = @{
+			@"0.18" : @(PATS_V0_18),
+			@"0.19" : @(PATS_V0_18),
+			@"0.20" : @(PATS_V0_18),
+			@"0.21" : @(PATS_V0_21),
+			@"0.22" : @(PATS_V0_22),
+			@"0.23" : @(PATS_V0_23),
+			@"0.24" : @(PATS_V0_24),
+		 };
+	}
+	// Remove "V" character from the beginning of the string.
+	NSString * ver = [stringVersion lowercaseString];
+	if ([ver characterAtIndex:0] == 'v') {
+		ver = [ver substringFromIndex:1];
+	}
+	NSNumber * version = versionMapping[ver];
+	if (version) {
+		return [version intValue];
+	}
+	// Older versions, defaulting to 0.18
+	NSLog(@"%@: Unknown soapApiVersion '%@'. Defaulting to V0.18", [self class], stringVersion);
+	return PATS_V0_18;
 }
 
 + (instancetype) loadFromDictionary:(NSDictionary*)dict

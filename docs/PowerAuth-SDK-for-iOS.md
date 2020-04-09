@@ -222,7 +222,7 @@ guard let activation = PowerAuthActivation(activationCode: activationCode, name:
     .with(additionalActivationOtp: activationOtp) else {
         // Activation code is invalid
 }
-// The rest of the activation code is the same.
+// The rest of the activation routine is the same.
 ```
 
 > Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 

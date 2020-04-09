@@ -99,6 +99,7 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PA2System;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
 
@@ -510,6 +511,143 @@ public class PowerAuthSDK {
         mSession = null;
     }
 
+    /**
+     * Create a new activation by calling a PowerAuth Standard RESTful API.
+     *
+     * @param activation {@link PowerAuthActivation} object containing all information required for the activation creation.
+     * @param listener   A callback listener called when the process finishes - it contains an activation fingerprint in case of success or error in case of failure.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable ICancelable createActivation(@NonNull final PowerAuthActivation activation, @NonNull final ICreateActivationListener listener) {
+
+        // Initial validation
+        checkForValidSetup();
+
+        // Check if activation may be started
+        if (!canStartActivation()) {
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                }
+            });
+            return null;
+        }
+
+        final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
+        final JsonSerialization serialization = new JsonSerialization();
+        final EciesEncryptor encryptor;
+
+        try {
+            // Prepare cryptographic helper & Layer2 ECIES encryptor
+            encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
+
+            // Prepare low level activation parameters
+            final ActivationStep1Param step1Param;
+            if (activation.activationCode != null) {
+                step1Param = new ActivationStep1Param(activation.activationCode.activationCode, activation.activationCode.activationSignature);
+            } else {
+                step1Param = null;
+            }
+
+            // Start the activation
+            final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
+            if (step1Result.errorCode != ErrorCode.OK) {
+                // Looks like create activation failed
+                final int errorCode = step1Result.errorCode == ErrorCode.Encryption
+                        ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
+                        : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+                dispatchCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
+                    }
+                });
+                return null;
+            }
+
+            // Prepare level 2 payload
+            final ActivationLayer2Request privateData = new ActivationLayer2Request();
+            privateData.setActivationName(activation.activationName);
+            privateData.setExtras(activation.extras);
+            privateData.setActivationOtp(activation.additionalActivationOtp);
+            privateData.setDevicePublicKey(step1Result.devicePublicKey);
+            privateData.setPlatform(PA2System.getPlatform());
+            privateData.setDeviceInfo(PA2System.getDeviceInfo());
+
+            // Prepare level 1 payload
+            final ActivationLayer1Request request = new ActivationLayer1Request();
+            request.setType(activation.activationType);
+            request.setIdentityAttributes(activation.identityAttributes);
+            request.setCustomAttributes(activation.customAttributes);
+            // Set encrypted level 2 activation data to the request.
+            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+
+            // Fire HTTP request
+            return mClient.post(
+                    request,
+                    new CreateActivationEndpoint(),
+                    cryptoHelper,
+                    new INetworkResponseListener<ActivationLayer1Response>() {
+                        @Override
+                        public void onNetworkResponse(ActivationLayer1Response response) {
+                            // Process response from the server
+                            try {
+                                // Try to decrypt Layer2 object from response
+                                final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
+                                // Prepare Step2 param for low level session
+                                final RecoveryData recoveryData;
+                                if (layer2Response.getActivationRecovery() != null) {
+                                    final ActivationRecovery rd = layer2Response.getActivationRecovery();
+                                    recoveryData = new RecoveryData(rd.getRecoveryCode(), rd.getPuk());
+                                } else {
+                                    recoveryData = null;
+                                }
+                                final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), recoveryData);
+                                // Validate the response
+                                final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
+                                //
+                                if (step2Result.errorCode == ErrorCode.OK) {
+                                    final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData);
+                                    listener.onActivationCreateSucceed(result);
+                                    return;
+                                }
+                                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Invalid activation data received from the server.");
+
+                            } catch (PowerAuthErrorException e) {
+                                // In case of error, reset the session & report that exception
+                                mSession.resetSession();
+                                listener.onActivationCreateFailed(e);
+                            }
+                        }
+
+                        @Override
+                        public void onNetworkError(Throwable throwable) {
+                            // In case of error, reset the session & report that exception
+                            mSession.resetSession();
+                            listener.onActivationCreateFailed(throwable);
+                        }
+
+                        @Override
+                        public void onCancel() {
+                            // In case of cancel, reset the session
+                            mSession.resetSession();
+                        }
+                    });
+
+        } catch (final PowerAuthErrorException e) {
+            mSession.resetSession();
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(e);
+                }
+            });
+            return null;
+        }
+    }
+
 
     /**
      * Create a new standard activation with given name and activation code by calling a PowerAuth Standard RESTful API.
@@ -555,30 +693,22 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable createActivation(@Nullable String name, @NonNull String activationCode, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
+        try {
+            final PowerAuthActivation activation = PowerAuthActivation.Builder.activation(activationCode, name)
+                    .setCustomAttributes(customAttributes)
+                    .setExtras(extras)
+                    .build();
+            return createActivation(activation, listener);
 
-        // Validate the code first
-        final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
-        if (otp == null) {
+        } catch (final PowerAuthErrorException e) {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+                    listener.onActivationCreateFailed(e);
                 }
             });
             return null;
         }
-
-        // Prepare identity attributes for "code" based activation
-        final HashMap<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("code", otp.activationCode);
-
-        // Prepare request for a standard activation
-        final ActivationLayer1Request request = new ActivationLayer1Request();
-        request.setType(ActivationType.CODE);
-        request.setIdentityAttributes(identityAttributes);
-        request.setCustomAttributes(customAttributes);
-
-        return createActivationImpl(name, request, otp, extras, listener);
     }
 
 
@@ -595,14 +725,22 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable createCustomActivation(@Nullable String name, @NonNull Map<String,String> identityAttributes, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
+        try {
+            final PowerAuthActivation activation = PowerAuthActivation.Builder.customActivation(identityAttributes, name)
+                    .setCustomAttributes(customAttributes)
+                    .setExtras(extras)
+                    .build();
+            return createActivation(activation, listener);
 
-        // Prepare request for a custom activation
-        final ActivationLayer1Request request = new ActivationLayer1Request();
-        request.setType(ActivationType.CUSTOM);
-        request.setIdentityAttributes(identityAttributes);
-        request.setCustomAttributes(customAttributes);
-
-        return createActivationImpl(name, request, null, extras, listener);
+        } catch (final PowerAuthErrorException e) {
+            dispatchCallback(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onActivationCreateFailed(e);
+                }
+            });
+            return null;
+        }
     }
 
 
@@ -620,105 +758,14 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable createRecoveryActivation(@Nullable String name, @NonNull String recoveryCode, @NonNull String puk, @Nullable String extras, @Nullable Map<String, Object> customAttributes, @NonNull final ICreateActivationListener listener) {
-
-        // Validate code and puk first
-        final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
-        final boolean validPuk = OtpUtil.validateRecoveryPuk(puk);
-        if (otp == null || !validPuk) {
-            dispatchCallback(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
-                }
-            });
-            return null;
-        }
-        // Prepare identity attributes for "recovery" based activation
-        final HashMap<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("recoveryCode", otp.activationCode);
-        identityAttributes.put("puk", puk);
-
-        // Prepare request for a recovery activation
-        final ActivationLayer1Request request = new ActivationLayer1Request();
-        request.setType(ActivationType.RECOVERY);
-        request.setIdentityAttributes(identityAttributes);
-        request.setCustomAttributes(customAttributes);
-
-        return createActivationImpl(name, request, null, extras, listener);
-    }
-
-
-    /**
-     * Create an arbitrary activation. This method is an actual implementation for the activation creation.
-     *
-     * @param name          Activation name, for example "John's iPhone".
-     * @param request       Activation request. The type &amp; identity attributes must be set in the object.
-     * @param otp           Otp object, which is valid only for standard activations
-     * @param extras        Extra attributes of the activation, used for application specific purposes (for example, info about the client device or system). The attribute is visible only for PowerAuth Server.
-     * @param listener      A callback listener called when the process finishes
-     * @return {@link ICancelable} object associated with the running HTTP request.
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
-     */
-    private @Nullable
-    ICancelable createActivationImpl(@Nullable String name, @NonNull ActivationLayer1Request request, @Nullable Otp otp, @Nullable String extras, @NonNull final ICreateActivationListener listener) {
-
-        // Initial validation
-        checkForValidSetup();
-
-        // Check if activation may be started
-        if (!canStartActivation()) {
-            dispatchCallback(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
-                }
-            });
-            return null;
-        }
-
-        final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
-        final JsonSerialization serialization = new JsonSerialization();
-        final EciesEncryptor encryptor;
-
         try {
-            // Prepare cryptographic helper & Layer2 ECIES encryptor
-            encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
-
-            // Prepare low level activation parameters
-            final ActivationStep1Param step1Param;
-            if (otp != null) {
-                step1Param = new ActivationStep1Param(otp.activationCode, otp.activationSignature);
-            } else {
-                step1Param = null;
-            }
-
-            // Start the activation
-            final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
-            if (step1Result.errorCode != ErrorCode.OK) {
-                // Looks like create activation failed
-                final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-                        ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
-                        : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
-                dispatchCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-                    }
-                });
-                return null;
-            }
-
-            // Prepare private payload & encrypt it
-            final ActivationLayer2Request privateData = new ActivationLayer2Request();
-            privateData.setActivationName(name);
-            privateData.setExtras(extras);
-            privateData.setDevicePublicKey(step1Result.devicePublicKey);
-
-            // Complete Layer1 request data
-            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+            final PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation(recoveryCode, puk, name)
+                    .setExtras(extras)
+                    .setCustomAttributes(customAttributes)
+                    .build();
+            return createActivation(activation, listener);
 
         } catch (final PowerAuthErrorException e) {
-            mSession.resetSession();
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
@@ -727,58 +774,6 @@ public class PowerAuthSDK {
             });
             return null;
         }
-
-        // Fire HTTP request
-        return mClient.post(
-                request,
-                new CreateActivationEndpoint(),
-                cryptoHelper,
-                new INetworkResponseListener<ActivationLayer1Response>() {
-                    @Override
-                    public void onNetworkResponse(ActivationLayer1Response response) {
-                        // Process response from the server
-                        try {
-                            // Try to decrypt Layer2 object from response
-                            final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
-                            // Prepare Step2 param for low level session
-                            final RecoveryData recoveryData;
-                            if (layer2Response.getActivationRecovery() != null) {
-                                final ActivationRecovery rd = layer2Response.getActivationRecovery();
-                                recoveryData = new RecoveryData(rd.getRecoveryCode(), rd.getPuk());
-                            } else {
-                                recoveryData = null;
-                            }
-                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), recoveryData);
-                            // Validate the response
-                            final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
-                            //
-                            if (step2Result.errorCode == ErrorCode.OK) {
-                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData);
-                                listener.onActivationCreateSucceed(result);
-                                return;
-                            }
-                            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Invalid activation data received from the server.");
-
-                        } catch (PowerAuthErrorException e) {
-                            // In case of error, reset the session & report that exception
-                            mSession.resetSession();
-                            listener.onActivationCreateFailed(e);
-                        }
-                    }
-
-                    @Override
-                    public void onNetworkError(Throwable throwable) {
-                        // In case of error, reset the session & report that exception
-                        mSession.resetSession();
-                        listener.onActivationCreateFailed(throwable);
-                    }
-
-                    @Override
-                    public void onCancel() {
-                        // In case of cancel, reset the session
-                        mSession.resetSession();
-                    }
-                });
     }
 
 

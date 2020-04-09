@@ -20,10 +20,26 @@
  The `PowerAuthTestServerVersion` defines version of PowerAuth SOAP API.
  */
 typedef NS_ENUM(int, PowerAuthTestServerVersion) {
-	PATS_V2  = 0x002,
-	PATS_V3  = 0x003,
-	PATS_V31 = 0x301,
+	PATS_V0_18,		// V2 crypto
+	PATS_V0_21,		// V3 crypto
+	PATS_V0_22,		// V3 crypto + RC
+	PATS_V0_23,		// V3.1 crypto
+	PATS_V0_24,		// V3.1 crypto + Activation OTP
 };
+
+/**
+ The `PowerAuthProtocolVersion` defines version of PowerAuth Protocol.
+ */
+typedef NS_ENUM(int, PowerAuthProtocolVersion) {
+	PATS_P2,		// V2 crypto
+	PATS_P3,		// V3 crypto
+	PATS_P31,		// V3.1 crypto
+};
+
+/**
+ Function converts server version into general protocol version.
+ */
+extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer);
 
 /**
  The `PowerAuthTestServerConfig` object contains a configuration required for inregration

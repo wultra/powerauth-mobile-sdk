@@ -3,6 +3,7 @@
    <soapenv:Body>
       <pow:RemoveActivationRequest>
          <pow:activationId>$1</pow:activationId>
+         <pow:revokeRecoveryCodes>$2</pow:revokeRecoveryCodes>
       </pow:RemoveActivationRequest>
    </soapenv:Body>
 </soapenv:Envelope>

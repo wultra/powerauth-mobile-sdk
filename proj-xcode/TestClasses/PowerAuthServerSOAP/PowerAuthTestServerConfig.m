@@ -36,9 +36,9 @@
 {
 	NSDictionary * dict =
 	@{
-	  @"restApiUrl"           : POWERAUTH_BASE_URL @":13030/powerauth-webauth",
-	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":20010/powerauth-java-server/soap",
-	  @"soapApiVersion"       : @"V2",
+	  @"restApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-webflow",
+	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-java-server/soap",
+	  @"soapApiVersion"       : @"0.18",
 	  @"powerAuthAppName"     : @"AutomaticTest-IOS",
 	  @"powerAuthAppVersion"  : @"default"
 	  
@@ -73,8 +73,10 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 			return PATS_P2;
 		case PATS_V0_21:
 		case PATS_V0_22:
+		case PATS_V0_22_2:
 			return PATS_P3;
 		case PATS_V0_23:
+		case PATS_V0_23_2:
 		case PATS_V0_24:
 			return PATS_P31;
 		default:
@@ -88,13 +90,17 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 	static NSDictionary * versionMapping = nil;
 	if (versionMapping == nil) {
 		versionMapping = @{
-			@"0.18" : @(PATS_V0_18),
-			@"0.19" : @(PATS_V0_18),
-			@"0.20" : @(PATS_V0_18),
-			@"0.21" : @(PATS_V0_21),
-			@"0.22" : @(PATS_V0_22),
-			@"0.23" : @(PATS_V0_23),
-			@"0.24" : @(PATS_V0_24),
+			@"0.18"   : @(PATS_V0_18),
+			@"0.19"   : @(PATS_V0_18),
+			@"0.20"   : @(PATS_V0_18),
+			@"0.21"   : @(PATS_V0_21),
+			@"0.22"   : @(PATS_V0_22),
+			@"0.22.1" : @(PATS_V0_22),
+			@"0.22.2" : @(PATS_V0_22_2),
+			@"0.23"   : @(PATS_V0_23),
+			@"0.23.1" : @(PATS_V0_23),
+			@"0.23.2" : @(PATS_V0_23_2),
+			@"0.24"   : @(PATS_V0_24),
 		 };
 	}
 	// Remove "V" character from the beginning of the string.

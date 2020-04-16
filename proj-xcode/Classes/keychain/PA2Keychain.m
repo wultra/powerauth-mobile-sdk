@@ -56,12 +56,6 @@
 	return [self addValue:data forKey:key access:PA2KeychainItemAccess_None];
 }
 
-- (PA2KeychainStoreItemResult) addValue:(NSData *)data forKey:(NSString *)key useBiometry:(BOOL)useBiometry
-{
-	PA2KeychainItemAccess access = useBiometry ? PA2KeychainItemAccess_AnyBiometricSet : PA2KeychainItemAccess_None;
-	return [self addValue:data forKey:key access:access];
-}
-
 - (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data forKey:(nonnull NSString*)key access:(PA2KeychainItemAccess)access
 {
 	if ([self containsDataForKey:key]) {
@@ -73,12 +67,6 @@
 - (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PA2KeychainStoreItemResult status))completion
 {
 	[self addValue:data forKey:key access:PA2KeychainItemAccess_None completion:completion];
-}
-
-- (void) addValue:(NSData*)data forKey:(NSString*)key useBiometry:(BOOL)useBiometry completion:(void(^)(PA2KeychainStoreItemResult status))completion
-{
-	PA2KeychainItemAccess access = useBiometry ? PA2KeychainItemAccess_AnyBiometricSet : PA2KeychainItemAccess_None;
-	[self addValue:data forKey:key access:access completion:completion];
 }
 
 - (void) addValue:(NSData*)data forKey:(NSString*)key access:(PA2KeychainItemAccess)access completion:(void(^)(PA2KeychainStoreItemResult status))completion

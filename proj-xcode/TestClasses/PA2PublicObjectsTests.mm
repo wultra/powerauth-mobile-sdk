@@ -63,10 +63,10 @@ using namespace io::getlime::powerAuth;
 
 - (void) testPA2ActivationStatus
 {
-	NSArray * pa2statuses = @[@(PA2ActivationState_Created), @(PA2ActivationState_OTP_Used),
+	NSArray * pa2statuses = @[@(PA2ActivationState_Created), @(PA2ActivationState_PendingCommit),
 							  @(PA2ActivationState_Active), @(PA2ActivationState_Blocked),
 							  @(PA2ActivationState_Removed)];
-	static ActivationStatus::State coreStates[] = { ActivationStatus::Created, ActivationStatus::OTP_Used,
+	static ActivationStatus::State coreStates[] = { ActivationStatus::Created, ActivationStatus::PendingCommit,
 													ActivationStatus::Active, ActivationStatus::Blocked,
 													ActivationStatus::Removed };
 	

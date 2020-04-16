@@ -479,7 +479,7 @@ static NSString * PA_Ver = @"3.1";
 		// If activation OTP was used for the activation, then the activation is ACTIVE right now.
 		XCTAssertTrue(activationStatus.state == PA2ActivationState_Active);
 	} else {
-		XCTAssertTrue(activationStatus.state == PA2ActivationState_OTP_Used);
+		XCTAssertTrue(activationStatus.state == PA2ActivationState_PendingCommit);
 		// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
 		//            This is typically done internally on the server side and depends on activation flow
 		//            in concrete internet banking project.

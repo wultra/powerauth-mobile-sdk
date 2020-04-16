@@ -278,10 +278,10 @@
 	XCTAssertFalse([_sdk hasPendingActivation]);
 	XCTAssertTrue([_sdk hasValidActivation]);
 	
-	// 3.1) CLIENT: Fetch status again. In this time, the operation should work and return OTP_USED
+	// 3.1) CLIENT: Fetch status again. In this time, the operation should work and return PENDING_COMMIT
 	activationStatus = [self fetchActivationStatus];
 	XCTAssertNotNil(activationStatus);
-	XCTAssertTrue(activationStatus.state == PA2ActivationState_OTP_Used);
+	XCTAssertTrue(activationStatus.state == PA2ActivationState_PendingCommit);
 	
 	// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
 	//            This is typically done internally on the server side and depends on activation flow

@@ -16,7 +16,7 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
 
 - Added a new `PowerAuthActivation` class that unifies an activation creation process. Use new simple `PowerAuthSDK.createActivation(activation, listener)` method to create an activation.
   - This change doesn't break your existing code. We still maintain an old way of the activation creation, but don't hesitate to try this new approach. 
-  
+- The `ActivationStatus.State_OTP_Used` enumeration is now deprecated. Please use `ActivationStatus.State_Pending_Commit` as a replacement.  
 
 ## iOS
 
@@ -24,3 +24,4 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
 
 - Added a new `PowerAuthActivation` class that unifies an activation creation process. Use new simple `PowerAuthSDK.createActivation(activation) { .. } ` method to create an activation.
   - This change doesn't break your existing code. We still maintain an old way of the activation creation, but don't hesitate to try this new approach. 
+- The `PA2ActivationState.otp_Used` enumeration is now deprecated. Please use `PA2ActivationState.pendingCommit` as a replacement.

@@ -224,12 +224,12 @@ const PA2SignatureFactor PA2SignatureFactor_Possession_Knowledge_Biometry	= SF_P
 {
 	NSString * status_str;
 	switch (_status.state) {
-		case ActivationStatus::Created:		status_str = @"CREATED"; break;
-		case ActivationStatus::OTP_Used:	status_str = @"OTP_USED"; break;
-		case ActivationStatus::Active:		status_str = @"ACTIVE"; break;
-		case ActivationStatus::Blocked:		status_str = @"BLOCKED"; break;
-		case ActivationStatus::Removed:		status_str = @"REMOVED"; break;
-		case ActivationStatus::Deadlock:	status_str = @"DEADLOCK"; break;
+		case ActivationStatus::Created:			status_str = @"CREATED"; break;
+		case ActivationStatus::PendingCommit:	status_str = @"PENDING_COMMIT"; break;
+		case ActivationStatus::Active:			status_str = @"ACTIVE"; break;
+		case ActivationStatus::Blocked:			status_str = @"BLOCKED"; break;
+		case ActivationStatus::Removed:			status_str = @"REMOVED"; break;
+		case ActivationStatus::Deadlock:		status_str = @"DEADLOCK"; break;
 		default:
 			status_str = @"<<unknown>>"; break;
 			

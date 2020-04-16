@@ -343,6 +343,9 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 		return PATSActivationStatus_CREATED;
 	} else if ([str isEqualToString:@"OTP_USED"]) {
 		return PATSActivationStatus_OTP_USED;
+	} else if ([str isEqualToString:@"PENDING_COMMIT"]) {
+		// Server 0.24+ uses different string for the same state.
+		return PATSActivationStatus_OTP_USED;
 	} else if ([str isEqualToString:@"ACTIVE"]) {
 		return PATSActivationStatus_ACTIVE;
 	} else if ([str isEqualToString:@"BLOCKED"]) {

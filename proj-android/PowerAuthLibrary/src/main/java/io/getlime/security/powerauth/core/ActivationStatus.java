@@ -25,7 +25,7 @@ import java.util.Map;
 public class ActivationStatus {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock})
+    @IntDef({State_Created, State_Pending_Commit, State_Active, State_Blocked, State_Removed, State_Deadlock})
     public @interface ActivationState {}
 
     /**
@@ -33,9 +33,9 @@ public class ActivationStatus {
      */
     public static final int State_Created  = 1;
     /**
-     * The OTP was already used.
+     * The activation is not completed yet on the server.
      */
-    public static final int State_OTP_Used = 2;
+    public static final int State_Pending_Commit = 2;
     /**
      * The shared secure context is valid and active.
      */
@@ -52,8 +52,14 @@ public class ActivationStatus {
      * The activation is technically blocked. You cannot use it anymore for the signature calculations.
      */
     public static final int State_Deadlock = 128;
-    
-    
+
+    /**
+     * The activation is not completed yet on the server. The enumeration is deprecated
+     * and you should use State_Pending_Commit as a replacement.
+     */
+    @Deprecated
+    public static final int State_OTP_Used = 2;
+
     /**
      * Error code returned from the C++ code. The value can be compared
      * to constants from ErrorCode class.

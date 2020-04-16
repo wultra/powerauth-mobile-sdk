@@ -534,14 +534,14 @@ namespace powerAuth
 		 */
 		enum State
 		{
-			Created  = 1,
-			OTP_Used = 2,
-			Active   = 3,
-			Blocked  = 4,
-			Removed  = 5,
+			Created			= 1,
+			PendingCommit	= 2,
+			Active			= 3,
+			Blocked			= 4,
+			Removed			= 5,
 			// Deadlock is not received from the server.
 			// The state is determined on client's side.
-			Deadlock = 128
+			Deadlock		= 128
 		};
 		
 		/**

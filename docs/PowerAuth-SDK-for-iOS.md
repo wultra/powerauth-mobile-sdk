@@ -460,7 +460,7 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
         // If no error occurred, process the status
         if error == nil {
 
-            // Activation state: .created, .otp_Used, .blocked, .removed, .deadlock
+            // Activation state: .created, .pendingCommit, .blocked, .removed, .deadlock
             let state: PA2ActivationState = status.state
 
             // Failed login attempts, remaining = max - current

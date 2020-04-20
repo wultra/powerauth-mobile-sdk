@@ -47,12 +47,6 @@ typedef NS_ENUM(int, PA2BiometricAuthenticationType) {
 };
 
 /**
- The PA2SupportedBiometricAuthentication is deprecated since SDK version 0.19.
- You can use PA2BiometricAuthenticationType as a full replacement.
- */
-typedef PA2BiometricAuthenticationType PA2SupportedBiometricAuthentication PA2_DEPRECATED(0.19);
-
-/**
  Enum encapsulating status of biometric authentication on the system.
  */
 typedef NS_ENUM(int, PA2BiometricAuthenticationStatus) {
@@ -170,24 +164,6 @@ typedef NS_ENUM(int, PA2KeychainItemAccess) {
 
 /**
  Store data for given key in the Keychain synchronously.
- 
- If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
- protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
- this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
- 
- Note that the method is deprecated in favor of `addValue:forKey:access:` method.
- 
- @param data Secret data to be stored.
- @param key Key to use for data storage.
- @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
- @return Operation result.
- */
-- (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
-								 forKey:(nonnull NSString*)key
-							useBiometry:(BOOL)useBiometry PA2_DEPRECATED(1.2.2);
-
-/**
- Store data for given key in the Keychain synchronously.
 
  If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
  protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
@@ -201,25 +177,6 @@ typedef NS_ENUM(int, PA2KeychainItemAccess) {
 - (PA2KeychainStoreItemResult) addValue:(nonnull NSData*)data
 								 forKey:(nonnull NSString*)key
 								 access:(PA2KeychainItemAccess)access;
-
-/**
- Store data for given key in the Keychain asynchronously, return the result in a callback.
- 
- If a value for given key exists, 'PA2KeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
- protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
- this method returns 'PA2KeychainStoreItemResult_BiometryNotAvailable' response code.
- 
- Note that the method is deprecated in favor of `addValue:forKey:access:completion:` method.
- 
- @param data Secret data to be stored.
- @param key Key to use for data storage.
- @param useBiometry If set to true, the record will be protected using Touch or Face ID. Uses 'kSecAccessControlTouchIDAny' for record storage.
- @param completion Callback with the operation result.
- */
-- (void) addValue:(nonnull NSData*)data
-		   forKey:(nonnull NSString*)key
-	  useBiometry:(BOOL)useBiometry
-	   completion:(nonnull void(^)(PA2KeychainStoreItemResult status))completion PA2_DEPRECATED(1.2.2);
 
 /**
  Store data for given key in the Keychain asynchronously, return the result in a callback.

@@ -92,11 +92,19 @@ typedef enum _PATSActivationStatusEnum {
 	// "unknown" must be defined, tests expects that 0 is not a valid state.
 	PATSActivationStatus_Unknown,
 	PATSActivationStatus_CREATED,
-	PATSActivationStatus_OTP_USED,
+	PATSActivationStatus_PENDING_COMMIT,
 	PATSActivationStatus_ACTIVE,
 	PATSActivationStatus_BLOCKED,
 	PATSActivationStatus_REMOVED,
 } PATSActivationStatusEnum;
+
+typedef enum _PATSActivationOtpValidationEnum {
+	PATSActivationOtpValidation_NONE,
+	PATSActivationOtpValidation_ON_KEY_EXCHANGE,
+	PATSActivationOtpValidation_ON_COMMIT
+} PATSActivationOtpValidationEnum;
+
+extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValidationEnum val);
 
 @interface PATSSimpleActivationStatus : NSObject
 

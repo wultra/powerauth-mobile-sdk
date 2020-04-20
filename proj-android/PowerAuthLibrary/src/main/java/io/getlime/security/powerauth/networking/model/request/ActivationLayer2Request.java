@@ -26,6 +26,9 @@ public class ActivationLayer2Request {
     private String devicePublicKey;
     private String activationName;
     private String extras;
+    private String activationOtp;
+    private String platform;
+    private String deviceInfo;
 
     /**
      * Get Base64 encoded device public key.
@@ -73,5 +76,53 @@ public class ActivationLayer2Request {
      */
     public void setExtras(String extras) {
         this.extras = extras;
+    }
+
+    /**
+     * Get additional activation OTP.
+     * @return Additional activation OTP.
+     */
+    public String getActivationOtp() {
+        return activationOtp;
+    }
+
+    /**
+     * Set additional activation OTP.
+     * @param activationOtp Additional activation OTP.
+     */
+    public void setActivationOtp(String activationOtp) {
+        this.activationOtp = activationOtp;
+    }
+
+    /**
+     * Get platform.
+     * @return Platform.
+     */
+    public String getPlatform() {
+        return platform;
+    }
+
+    /**
+     * Set platform.
+     * @param platform Platform.
+     */
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    /**
+     * Get device info.
+     * @return Device info.
+     */
+    public String getDeviceInfo() {
+        return deviceInfo;
+    }
+
+    /**
+     * Set device info.
+     * @param deviceInfo Device info.
+     */
+    public void setDeviceInfo(String deviceInfo) {
+        this.deviceInfo = deviceInfo;
     }
 }

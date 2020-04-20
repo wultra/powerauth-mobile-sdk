@@ -8,6 +8,7 @@
    - [Activation via Activation Code](#activation-via-activation-code)
    - [Activation via Custom Credentials](#activation-via-custom-credentials)
    - [Activation via Recovery Code](#activation-via-recovery-code)
+   - [Customize Activation](#customize-activation)
    - [Committing Activation Data](#committing-activation-data)
    - [Validating user inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
@@ -124,8 +125,16 @@ Use following code to create an activation once you have an activation code:
 String deviceName = "Petr's Leagoo T5C";
 String activationCode = "VVVVV-VVVVV-VVVVV-VTFVA"; // let user type or QR-scan this value
 
-// Create a new activation with given device name and activation code
-powerAuthSDK.createActivation(deviceName, activationCode, new ICreateActivationListener() {
+// Create activation object with given activation code.
+final PowerAuthActivation activation;
+try {
+    activation = PowerAuthActivation.Builder.activation(activationCode, deviceName).build();
+} catch (PowerAuthErrorException e) {
+    // Invalid activation code
+}
+
+// Create a new activation with given activation object
+powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
@@ -144,6 +153,29 @@ powerAuthSDK.createActivation(deviceName, activationCode, new ICreateActivationL
 
 If the received activation result also contains recovery data, then you should display that values to the user. To do that, please read [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
+#### Additional activation OTP
+
+If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure `PowerAuthActivation` object: 
+
+```java
+String deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+String activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
+String activationOtp = "12345"
+
+// Create activation object with given activation code and OTP.
+final PowerAuthActivation activation;
+try {
+    activation = PowerAuthActivation.Builder.activation(activationCode, deviceName)
+        .setAdditionalActivationOtp(activationOtp)
+        .build();
+} catch (PowerAuthErrorException e) {
+    // Invalid activation code
+}
+// The rest of the activation routine is the same.
+```
+
+> Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 
+
 ### Activation via Custom Credentials
 
 You may also create an activation using any custom login data - it can be anything that server can use to obtain user ID to associate with a new activation. Since the credentials are custom, the server's implementation must be able to process such request. Unlike the previous versions of SDK, the custom activation no longer requires a custom activation endpoint.
@@ -157,7 +189,16 @@ Map<String, String> credentials = new HashMap<>();
 credentials.put("username", "john.doe@example.com");
 credentials.put("password", "YBzBEM");
 
-powerAuthSDK.createActivation(deviceName, credentials, null, null, new ICreateActivationListener() {
+// Create activation object with given credentials.
+final PowerAuthActivation activation;
+try {
+    activation = PowerAuthActivation.Builder.customActivation(credentials, deviceName).build();
+} catch (PowerAuthErrorException e) {
+    // Credentials dictionary is empty
+}
+
+// Create a new activation with given activation object
+powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
@@ -188,7 +229,16 @@ final String deviceName = "John Tramonta"
 final String recoveryCode = "55555-55555-55555-55YMA" // User's input
 final String puk = "0123456789" // User's input. You should validate RC & PUK with using OtpUtil 
 
-powerAuthSDK.createRecoveryActivation(deviceName, recoveryCode, puk, null, null, new ICreateActivationListener() {
+// Create activation object with given recovery code and PUK.
+final PowerAuthActivation activation;
+try {
+    activation = PowerAuthActivation.Builder.recoveryActivation(recoveryCode, puk, deviceName).build();
+} catch (PowerAuthErrorException e) {
+    // Invalid recovery code or PUK
+}
+
+// Create a new activation with given activation object
+powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
@@ -214,6 +264,42 @@ powerAuthSDK.createRecoveryActivation(deviceName, recoveryCode, puk, null, null,
     }
 });
 ```
+
+### Customize Activation
+
+You can set an additional properties to `PowerAuthActivation` object, before any type of activation is created. For example:
+
+```java
+String deviceName = "Petr's Leagoo T5C";
+String activationCode = "VVVVV-VVVVV-VVVVV-VTFVA"; // let user type or QR-scan this value
+
+// Custom attributes that can be processed before the activation is created on PowerAuth Server.
+// The dictionary may contain only values that can be serialized to JSON.
+List<String> otherIds = new ArrayList<>();
+otherIds.add("e43f5f99-e2e9-49f2-bcae-5e32a5e96d22");
+otherIds.add("41dd704c-65e6-4d4b-b28f-0bc0e4eb9715");
+
+Map<String, Object> customAttributes = new HashMap<>();
+customAttributes.put("isPrimaryActivation", true);
+customAttributes.put("otherActivationIds", otherIds);
+
+// Extra flags, that will be associated with the activation record on PowerAuth Server.
+String extraFlags = "EXTRA_FLAGS"
+    
+// Now create the activation object with all that extra data
+final PowerAuthActivation activation;
+try {
+    activation = PowerAuthActivation.Builder.activation(activationCode, deviceName)
+            .setCustomAttributes(customAttributes)
+            .setExtras(extras)
+            .build();
+} catch (PowerAuthErrorException e) {
+    // Invalid activation code
+}
+// The rest of the activation routine is the same.
+}
+```  
+
 
 ### Committing Activation Data
 
@@ -371,7 +457,7 @@ if (powerAuthSDK.hasValidActivation()) {
     powerAuthSDK.fetchActivationStatusWithCallback(context, new IActivationStatusListener() {
         @Override
         public void onActivationStatusSucceed(ActivationStatus status) {
-            // Activation state: State_Created, State_OTP_Used, State_Active, State_Blocked, State_Removed, State_Deadlock
+            // Activation state: State_Created, State_Pending_Commit, State_Active, State_Blocked, State_Removed, State_Deadlock
             int state = status.state;
 
             // Failed login attempts, remaining = max - current

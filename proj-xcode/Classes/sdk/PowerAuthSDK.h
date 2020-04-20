@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#import "PowerAuthActivation.h"
 #import "PowerAuthAuthentication.h"
 #import "PowerAuthConfiguration.h"
 #import "PowerAuthToken+WatchSupport.h"
@@ -120,6 +121,17 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) restoreState;
+
+/**
+ Create a new activation.
+ 
+ @param activation A PowerAuthActivation object containg all information required for the activation creation.
+ @param callback A callback called when the process finishes - it contains an activation fingerprint in case of success and error in case of failure.
+ @return PA2OperationTask associated with the running request.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable id<PA2OperationTask>) createActivation:(nonnull PowerAuthActivation*)activation
+										  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
  Create a new standard activation with given name and activation code.

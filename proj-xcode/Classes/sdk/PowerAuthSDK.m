@@ -18,6 +18,7 @@
 
 #import "PA2Keychain.h"
 #import "PA2OtpUtil.h"
+#import "PA2System.h"
 
 #import "PA2HttpClient.h"
 #import "PA2RestApiObjects.h"
@@ -416,6 +417,87 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Activation
 #pragma mark Creating a new activation
 
+- (id<PA2OperationTask>) createActivation:(PowerAuthActivation*)activation
+								 callback:(void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback
+{
+	// Input parameters check
+	[self checkForValidSetup];
+	
+	if (!callback) {
+		PA2Log(@"Missing callback in createActivation() method.");
+		return nil;
+	}
+	if (!activation) {
+		callback(nil, PA2MakeError(PA2ErrorCodeWrongParameter, nil));
+		return nil;
+	}
+	if (![activation validate]) {
+		callback(nil, PA2MakeError(PA2ErrorCodeWrongParameter, nil));
+		return nil;
+	}
+	
+	// Check if activation can be started
+	if (![self canStartActivation]) {
+		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationState, nil));
+		return nil;
+	}
+	
+	// Prepare both layers of activation data
+	PA2CreateActivationRequest * request = [[PA2CreateActivationRequest alloc] init];
+	request.activationType = activation.activationType;
+	request.identityAttributes = activation.identityAttributes;
+	request.customAttributes = activation.customAttributes;
+	
+	PA2CreateActivationRequestData * requestData = [[PA2CreateActivationRequestData alloc] init];
+	requestData.activationName = activation.name;
+	requestData.extras = activation.extras;
+	requestData.activationOtp = activation.additionalActivationOtp;
+	requestData.platform = [PA2System platform];
+	requestData.deviceInfo = [PA2System deviceInfo];
+	
+	// Start activation and encrypt both layers of the request data.
+	NSError * error = nil;
+	PA2ECIESEncryptor * decryptor = [self prepareActivation:activation
+												 forRequest:request
+												requestData:requestData
+													  error:&error];
+	if (!decryptor) {
+		callback(nil, error);
+		return nil;
+	}
+	
+	// Now it's everything prepared for sending the request
+	return [_client postObject:request
+							to:[PA2RestApiEndpoint createActivation]
+						  auth:nil
+					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
+						// HTTP request completion
+						PA2ActivationResult * result = nil;
+						if (status == PA2RestResponseStatus_OK) {
+							// Validate response from the server
+							result = [self validateActivationResponse:response
+															decryptor:decryptor
+																error:&error];
+						}
+						if (!result && !error) {
+							// Fallback, to produce at least some error
+							error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
+						}
+						if (error) {
+							[_session resetSession];
+						}
+						// Now call back to the application
+						callback(result, error);
+						
+					} cancel:^{
+						// In case of cancel, we need to reset the session. The reset itself is
+						// thread safe, but it's good to issue that to the main thread.
+						dispatch_async(dispatch_get_main_queue(), ^{
+							[_session resetSession];
+						});
+					}];
+}
+
 - (id<PA2OperationTask>) createActivationWithName:(NSString*)name
 								   activationCode:(NSString*)activationCode
 										 callback:(void(^)(PA2ActivationResult *result, NSError *error))callback
@@ -428,20 +510,13 @@ static PowerAuthSDK * s_inst;
 										   extras:(NSString*)extras
 										 callback:(void(^)(PA2ActivationResult *result, NSError *error))callback
 {
-	// Validate activation code
-	PA2Otp * otp = [PA2OtpUtil parseFromActivationCode:activationCode];
-	if (!otp) {
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithActivationCode:activationCode name:name] withExtras:extras];
+	if (!activation && callback) {
 		// Invalid activation code
 		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationData, nil));
 		return nil;
 	}
-	// Now create request & call private function
-	PA2CreateActivationRequest * request = [PA2CreateActivationRequest standardActivationWithCode:otp.activationCode];
-	return [self createActivationWithName:name
-								  request:request
-									  otp:otp
-								   extras:extras
-								 callback:callback];
+	return [self createActivation:activation callback:callback];
 }
 
 - (id<PA2OperationTask>) createActivationWithName:(NSString*)name
@@ -449,12 +524,13 @@ static PowerAuthSDK * s_inst;
 										   extras:(NSString*)extras
 										 callback:(void(^)(PA2ActivationResult * result, NSError * error))callback
 {
-	PA2CreateActivationRequest * request = [PA2CreateActivationRequest customActivationWithIdentityAttributes:identityAttributes];
-	return [self createActivationWithName:name
-								  request:request
-									  otp:nil
-								   extras:extras
-								 callback:callback];
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithIdentityAttributes:identityAttributes name:name] withExtras:extras];
+	if (!activation && callback) {
+		// Missing identity attributes
+		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationData, nil));
+		return nil;
+	}
+	return [self createActivation:activation callback:callback];
 }
 
 - (nullable id<PA2OperationTask>) createActivationWithName:(nullable NSString*)name
@@ -463,21 +539,13 @@ static PowerAuthSDK * s_inst;
 													extras:(nullable NSString*)extras
 												  callback:(nonnull void(^)(PA2ActivationResult * _Nullable result, NSError * _Nullable error))callback
 {
-	// Validate recovery code & PUK
-	BOOL validPUK = [PA2OtpUtil validateRecoveryPuk:puk];
-	PA2Otp * otp = [PA2OtpUtil parseFromRecoveryCode:recoveryCode];
-	if (!otp || !validPUK) {
-		// Invalid input data
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithRecoveryCode:recoveryCode recoveryPuk:puk name:name] withExtras:extras];
+	if (!activation && callback) {
+		// Wrong recovery code or PUK
 		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationData, nil));
 		return nil;
 	}
-	// Now create an activation creation request
-	PA2CreateActivationRequest * request = [PA2CreateActivationRequest recoveryActivationWithCode:otp.activationCode puk:puk];
-	return [self createActivationWithName:name
-								  request:request
-									  otp:nil
-								   extras:extras
-								 callback:callback];
+	return [self createActivation:activation callback:callback];
 }
 
 #pragma mark Commit
@@ -563,85 +631,22 @@ static PowerAuthSDK * s_inst;
 #pragma mark Private activation
 
 /**
- Private method for activation creation
- */
-- (id<PA2OperationTask>) createActivationWithName:(NSString*)name
-										  request:(PA2CreateActivationRequest*)request
-											  otp:(PA2Otp*)otp
-										   extras:(NSString*)extras
-										 callback:(void(^)(PA2ActivationResult * result, NSError * error))callback
-{
-	[self checkForValidSetup];
-	
-	// Check if activation may be started
-	if (![self canStartActivation]) {
-		callback(nil, PA2MakeError(PA2ErrorCodeInvalidActivationState, nil));
-		return nil;
-	}
-	
-	PA2CreateActivationRequestData * requestData = [[PA2CreateActivationRequestData alloc] init];
-	requestData.activationName = name;
-	requestData.extras = extras;
-	
-	NSError * error = nil;
-	PA2ECIESEncryptor * decryptor = [self prepareActivationRequest:request
-													   requestData:requestData
-															   otp:otp
-															 error:&error];
-	if (!decryptor) {
-		callback(nil, error);
-		return nil;
-	}
-	
-	// Now it's everything prepared for sending the request
-	return [_client postObject:request
-							to:[PA2RestApiEndpoint createActivation]
-						  auth:nil
-					completion:^(PA2RestResponseStatus status, id<PA2Decodable> response, NSError *error) {
-						// HTTP request completion
-						PA2ActivationResult * result = nil;
-						if (status == PA2RestResponseStatus_OK) {
-							// Validate response from the server
-							result = [self validateActivationResponse:response
-															decryptor:decryptor
-																error:&error];
-						}
-						if (!result && !error) {
-							// Fallback, to produce at least some error
-							error = PA2MakeError(PA2ErrorCodeInvalidActivationData, nil);
-						}
-						if (error) {
-							[_session resetSession];
-						}
-						// Now call back to the application
-						callback(result, error);
-						
-					} cancel:^{
-						// In case of cancel, we need to reset the session. The reset itself is
-						// thread safe, but it's good to issue that to the main thread.
-						dispatch_async(dispatch_get_main_queue(), ^{
-							[_session resetSession];
-						});
-					}];
-}
-
-/**
  Private method starts an activation.
  
  The method requires request & request data and if everything's right, then request.activationData
  is prepared and metods returns a new decryptor, required for response decryption.
  */
-- (PA2ECIESEncryptor*) prepareActivationRequest:(PA2CreateActivationRequest*)request
-									requestData:(PA2CreateActivationRequestData*)requestData
-											otp:(PA2Otp*)otp
-										  error:(NSError**)error
+- (PA2ECIESEncryptor*) prepareActivation:(PowerAuthActivation*)activation
+							  forRequest:(PA2CreateActivationRequest*)request
+							 requestData:(PA2CreateActivationRequestData*)requestData
+								   error:(NSError**)error
 {
 	PA2ECIESEncryptor * decryptor = nil;
 	NSError * localError = nil;
 	
-	// Prepare data for low level code. Note that "otp" is optional and may be nil.
+	// Prepare data for low level code. Note that "activationCode" is optional and may be nil.
 	PA2ActivationStep1Param * paramStep1 = [[PA2ActivationStep1Param alloc] init];
-	paramStep1.activationCode = otp;
+	paramStep1.activationCode = activation.activationCode;
 
 	// Begin with the activation
 	PA2ActivationStep1Result * resultStep1 = [_session startActivation:paramStep1];

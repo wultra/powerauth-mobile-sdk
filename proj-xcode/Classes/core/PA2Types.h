@@ -16,6 +16,7 @@
 
 #import "PA2Password.h"
 #import "PA2OtpUtil.h"
+#import "PA2Macros.h"
 
 #pragma mark - Session setup & Error -
 
@@ -443,9 +444,9 @@ typedef NS_ENUM(int, PA2ActivationState) {
 	 */
 	PA2ActivationState_Created  = 1,
 	/**
-	 The OTP was already used.
+	 The activation is not completed yet on the server.
 	 */
-	PA2ActivationState_OTP_Used = 2,
+	PA2ActivationState_PendingCommit = 2,
 	/**
 	 The shared secure context is valid and active.
 	 */
@@ -463,6 +464,12 @@ typedef NS_ENUM(int, PA2ActivationState) {
 	 for the signature calculations.
 	 */
 	PA2ActivationState_Deadlock	= 128,
+	
+	/**
+	 The activation is not completed yet on the server. The enumeration is deprecated
+	 and you should use PA2ActivationState_PendingCommit as a replacement.
+	 */
+	PA2ActivationState_OTP_Used PA2_DEPRECATED(1.4.0) = 2,
 };
 
 /**

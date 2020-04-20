@@ -406,7 +406,9 @@ static NSString * PA_Ver = @"3.1";
  and result of activation. You can configure whether the activation can use optional signature during the activation
  and whether the activation should be removed automatically after the creation.
  */
-- (NSArray*) createActivation:(BOOL)useSignature removeAfter:(BOOL)removeAfter
+- (NSArray*) createActivation:(BOOL)useSignature
+				activationOtp:(NSString*)activationOtp
+				  removeAfter:(BOOL)removeAfter
 {
 	XCTAssertFalse([_sdk hasPendingActivation]);
 	XCTAssertFalse([_sdk hasValidActivation]);
@@ -421,7 +423,10 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertTrue([_sdk canStartActivation]);
 	
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
+	PATSActivationOtpValidationEnum otpValidation = activationOtp != nil ? PATSActivationOtpValidation_ON_KEY_EXCHANGE : PATSActivationOtpValidation_NONE;
+	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier
+																		 otpValidation:otpValidation
+																				   otp:activationOtp];
 	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
 	NSArray * preliminaryResult = nil;
 	
@@ -431,7 +436,11 @@ static NSString * PA_Ver = @"3.1";
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
-		id<PA2OperationTask> task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PA2ActivationResult * result, NSError * error) {
+		PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:activationCode name:activationName];
+		if (activationOtp) {
+			[activation withAdditionalActivationOtp:activationOtp];
+		}
+		id<PA2OperationTask> task = [_sdk createActivation:activation callback:^(PA2ActivationResult * result, NSError * error) {
 			activationResult = result;
 			[waiting reportCompletion:@(error == nil)];
 		}];
@@ -462,17 +471,22 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertFalse([_sdk hasPendingActivation]);
 	XCTAssertTrue([_sdk hasValidActivation]);
 	
-	// 3.1) CLIENT: Fetch status again. In this time, the operation should work and return OTP_USED
+	// 3.1) CLIENT: Fetch status again. In this time, the operation should work and return status depending
+	//              on whether activation OTP was used.
 	activationStatus = [self fetchActivationStatus];
 	XCTAssertNotNil(activationStatus);
-	XCTAssertTrue(activationStatus.state == PA2ActivationState_OTP_Used);
-	
-	// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
-	//            This is typically done internally on the server side and depends on activation flow
-	//            in concrete internet banking project.
-	result = [_testServerApi commitActivation:activationData.activationId];
-	XCTAssertTrue(result, @"Server's commit failed");
-	CHECK_RESULT_RET(preliminaryResult);
+	if (activationOtp != nil) {
+		// If activation OTP was used for the activation, then the activation is ACTIVE right now.
+		XCTAssertTrue(activationStatus.state == PA2ActivationState_Active);
+	} else {
+		XCTAssertTrue(activationStatus.state == PA2ActivationState_PendingCommit);
+		// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
+		//            This is typically done internally on the server side and depends on activation flow
+		//            in concrete internet banking project.
+		result = [_testServerApi commitActivation:activationData.activationId];
+		XCTAssertTrue(result, @"Server's commit failed");
+		CHECK_RESULT_RET(preliminaryResult);
+	}
 	
 	// 5) CLIENT: Fetch status again. Now the state should be active
 	activationStatus = [self fetchActivationStatus];
@@ -500,6 +514,11 @@ static NSString * PA_Ver = @"3.1";
 		[self removeLastActivation:activationData];
 	}
 	return @[activationData, auth, activationResult, @YES];
+}
+
+- (NSArray*) createActivation:(BOOL)useSignature removeAfter:(BOOL)removeAfter
+{
+	return [self createActivation:useSignature activationOtp:nil removeAfter:removeAfter];
 }
 
 /**
@@ -546,6 +565,15 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertTrue([activation.lastObject boolValue]);
 }
 
+- (void) testCreateActivationWithOtpAndSignature
+{
+	CHECK_TEST_CONFIG();
+	
+	NSArray * activation = [self createActivation:YES
+									activationOtp:@"12345"
+									  removeAfter:YES];
+	XCTAssertTrue([activation.lastObject boolValue]);
+}
 
 - (void) testRemoveActivation
 {

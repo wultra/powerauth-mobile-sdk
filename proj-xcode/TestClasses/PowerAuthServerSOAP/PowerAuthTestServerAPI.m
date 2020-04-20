@@ -122,6 +122,11 @@
 
 #pragma mark - SOAP Application
 
+static NSString * _ToXmlBool(BOOL value)
+{
+	return value ? @"true" : @"false";
+}
+
 static BOOL _BoolValue(CXMLNode * node)
 {
 	if (node) {
@@ -295,12 +300,30 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 
 - (PATSInitActivationResponse*) initializeActivation:(NSString *)userId
 {
+	return [self initializeActivation:userId
+						otpValidation:PATSActivationOtpValidation_NONE
+								  otp:nil];
+}
+
+- (PATSInitActivationResponse*) initializeActivation:(NSString *)userId
+									   otpValidation:(PATSActivationOtpValidationEnum)otpValidation
+												 otp:(NSString*)otp;
+{
 	[self checkForValidConnection];
-	PATSInitActivationResponse * response = [_helper soapRequest:@"InitActivation" params:@[userId, _appDetail.applicationId] response:@"InitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSString * soapMethod;
+	NSArray * soapMethodParams;
+	if (otpValidation != PATSActivationOtpValidation_NONE && otp.length > 0) {
+		soapMethod = @"InitActivation_OTP";
+		soapMethodParams = @[userId, _appDetail.applicationId, PATSActivationOtpValidationEnumToString(otpValidation), otp];
+	} else {
+		soapMethod = @"InitActivation";
+		soapMethodParams = @[userId, _appDetail.applicationId];
+	}
+	PATSInitActivationResponse * response = [_helper soapRequest:soapMethod params:soapMethodParams response:@"InitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSInitActivationResponse * obj = [[PATSInitActivationResponse alloc] init];
 		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (_serverVersion == PATS_V2) {
+		if (PATSProtoVer(_serverVersion) == PATS_P2) {
 			// V2 server
 			if (!localError) obj.activationIdShort	= [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
 			if (!localError) obj.activationOTP		= [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
@@ -320,10 +343,15 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 	return response;
 }
 
-- (BOOL) removeActivation:(NSString*)activationId
+- (BOOL) removeActivation:(NSString *)activationId
+{
+	return [self removeActivation:activationId revokeRecoveryCodes:NO];
+}
+
+- (BOOL) removeActivation:(NSString*)activationId revokeRecoveryCodes:(BOOL)revokeRecoveryCodes
 {
 	[self checkForValidConnection];
-	NSDictionary * response = [_helper soapRequest:@"RemoveActivation" params:@[activationId] response:@"RemoveActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSDictionary * response = [_helper soapRequest:@"RemoveActivation" params:@[activationId, _ToXmlBool(revokeRecoveryCodes)] response:@"RemoveActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
 		if (!localError) obj[@"activationId"]		= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
@@ -341,8 +369,8 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 {
 	if ([str isEqualToString:@"CREATED"]) {
 		return PATSActivationStatus_CREATED;
-	} else if ([str isEqualToString:@"OTP_USED"]) {
-		return PATSActivationStatus_OTP_USED;
+	} else if ([str isEqualToString:@"PENDING_COMMIT"]) {
+		return PATSActivationStatus_PENDING_COMMIT;
 	} else if ([str isEqualToString:@"ACTIVE"]) {
 		return PATSActivationStatus_ACTIVE;
 	} else if ([str isEqualToString:@"BLOCKED"]) {
@@ -371,7 +399,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 		if (!localError) obj.timestampLastUsed		= [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.encryptedStatusBlob	= [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
 		if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
-		if (_serverVersion != PATS_V2) {
+		if (PATSProtoVer(_serverVersion) != PATS_P2) {
 			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
 		} else {
 			obj.protocolVersion = 0;
@@ -532,54 +560,6 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 
 #pragma mark - Tokens
-
-- (PATSToken*) createTokenForApplication:(PATSApplicationDetail*)application activationId:(NSString*)activationId signatureType:(NSString*)signatureType
-{
-//	[self checkForValidConnection];
-//
-//	NSData * publicKey = [[NSData alloc] initWithBase64EncodedString:application.masterPublicKey options:0];
-//	PA2ECIESEncryptor * encryptor = [[PA2ECIESEncryptor alloc] initWithPublicKey:publicKey sharedInfo1:nil sharedInfo2:nil];
-//	PA2ECIESCryptogram * cryptogram = [encryptor encryptRequest:nil];
-//	if (!cryptogram) {
-//		return nil;
-//	}
-//	PA2ECIESEncryptor * decryptor = [encryptor copyForDecryption];
-//	NSArray * params = @[ activationId, signatureType.uppercaseString, cryptogram.keyBase64 ];
-//	PATSToken * response = [_helper soapRequest:@"CreateToken" params:params response:@"CreateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-//		NSDictionary * jsonObject = [self decryptECIESResponseWithDecryptor:decryptor resp:resp ns:ns as:[NSDictionary class]];
-//		BOOL success = NO;
-//		PATSToken * token = [[PATSToken alloc] init];
-//		if (jsonObject) {
-//			token.tokenIdentifier = jsonObject[@"tokenId"];
-//			token.tokenSecret = jsonObject[@"tokenSecret"];
-//			token.activationId = activationId;
-//			success = (token.tokenIdentifier != nil && token.tokenSecret != nil);
-//		}
-//		return success ? token : nil;
-//	}];
-//	return response;
-	
-	// The implementation above is for V2. Looks like the function is no longer required, but
-	// if yes, then it has to be changed to V3 protocol first.
-	return nil;
-}
-
-- (BOOL) removeToken:(PATSToken*)token
-{
-//	[self checkForValidConnection];
-//
-//	NSDictionary * response = [_helper soapRequest:@"RemoveToken" params:@[token.tokenIdentifier, token.activationId] response:@"RemoveTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-//		NSError * localError = nil;
-//		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
-//		if (!localError) obj[@"removed"] = @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
-//		return !localError ? obj : nil;
-//	}];
-//	return [response[@"removed"] boolValue];
-	
-	// The implementation above is correct, but it looks like we don't need it for tests anymore.
-	// Should be removed later.
-	return NO;
-}
 
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
 {

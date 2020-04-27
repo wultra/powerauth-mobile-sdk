@@ -213,8 +213,12 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
             }
         });
 
+        // Link dialog fragment with handler and present the dialog.
+        // The presentation may not happen in case that device presents its own fingerprint dialog.
         dialogFragment.setFingerprintAuthenticationHandler(handler);
-        dialogFragment.show(fragmentManager);
+        if (!BiometricHelper.shouldHideFingerprintDialog(context)) {
+            dialogFragment.show(fragmentManager);
+        }
 
         return dispatcher.getCancelableTask();
     }

@@ -346,7 +346,7 @@ public class BiometricAuthentication {
         private @Nullable IBiometricAuthenticator authenticator;
 
         /**
-         * Contains {@code true} in case that legacy biometric authentication must be used on devices
+         * Contains {@code true} in case that legacy fingerprint authentication must be used on devices
          * supporting the new {@code BiometricPrompt}.
          */
         private boolean isBiometricPromptAuthenticationDisabled = false;
@@ -356,6 +356,9 @@ public class BiometricAuthentication {
          */
         private boolean isPendingBiometricAuthentication = false;
 
+        /**
+         * Private {@code SharedContext} constructor.
+         */
         private SharedContext() {
             biometricDialogResources = new BiometricDialogResources.Builder().build();
             authenticator = null;
@@ -407,7 +410,9 @@ public class BiometricAuthentication {
                 return authenticator;
             }
             // If Android 9.0 "Pie" and newer, then try to build authenticator supporting BiometricPrompt.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isBiometricPromptAuthenticationDisabled) {
+            final boolean isBiometricPromptDisabled = isBiometricPromptAuthenticationDisabled
+                    || BiometricHelper.shouldFallbackToFingerprintManager(context);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isBiometricPromptDisabled) {
                 final IBiometricAuthenticator newAuthenticator = BiometricAuthenticator.createAuthenticator(context, getBiometricKeystore());
                 if (newAuthenticator != null) {
                     return newAuthenticator;

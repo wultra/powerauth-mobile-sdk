@@ -511,7 +511,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
     /**
      * Return fallback error message in case that implementation on device is broken and did not provide
-     * a string with failure reason. That happens for example on Samsung S8 devices.
+     * a string with failure reason. That happens for example on Samsung Galaxy S8 devices.
      *
      * @param code Error code returned from {@link BiometricPrompt} API.
      * @param resources Object with string resources.

@@ -1437,7 +1437,7 @@ Here's the list of an important error codes, which should be properly handled by
 
 ### Working with Invalid SSL Certificates
 
-Sometimes, you may need to develop or test you application against a service that runs over HTTPS protocol with invalid (self-signed) SSL certificate. By default, HTTP client used in PowerAuth SDK communication validates certificate. To disable the certificate validation, add following code just before your `PowerAuthSDK` instance configuration:
+Sometimes, you may need to develop or test your application against a service that runs over HTTPS protocol with an invalid (self-signed) SSL certificate. By default, HTTP client used in PowerAuth SDK communication validates the certificate. To disable the certificate validation, add the following code just before your `PowerAuthSDK` instance configuration:
 
 ```swift
 // Set `PA2ClientSslNoValidationStrategy as the defauld client SSL certificate validation strategy`

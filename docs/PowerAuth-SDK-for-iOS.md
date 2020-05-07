@@ -137,7 +137,7 @@ import PowerAuth2
 
 ```objc
 // Objective-C
-#import <PowerAuth2/PowerAuth2.h>
+@import PowerAuth2;
 ```
 
 From now on, you can use `PowerAuthSDK` and other classes in your project.

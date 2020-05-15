@@ -23,8 +23,8 @@ An example of such attack may look like this:
 
 1. Attacker roots/jailbreaks/failbreaks the device.
 2. Attacker either
-  a) connects the debugger to the running app (attack "at runtime"), or
-  b) modifies the code of an application bundle by repackaging (attack "at rest")
+  - connects the debugger to the running app (attack "at runtime"), or
+  - modifies the code of an application bundle by repackaging (attack "at rest")
 3. Attacker records the PIN code entered by the user, by listening to events on the UI components via debugger or by logging the events using a modified code.
 4. Attacker prepares a fake payment and calls the cryptographic core with the payment data and a captured PIN code.
 
@@ -33,10 +33,10 @@ Note that the attack may be even performed without root on some devices and oper
 1. Attacker can prepares an app with the Accessibility service support on Android and tricks the user into activating such a service.
 2. Attacker can record the PIN code using the accessibility service in the case of an incorrect PIN code implementation.
 3. Attacker can launch the app from the background:
-  a) use the accessibility service to replay the PIN code
-  b) navigate through the app using taps and other gestures
-  c) type in the payment details
-  d) replay the PIN code again and confirm payment
+  - use the accessibility service to replay the PIN code
+  - navigate through the app using taps and other gestures
+  - type in the payment details
+  - replay the PIN code again and confirm payment
 
 As a result, mobile apps with high-security requirements cannot rely on the OS security features. Instead, they need to protect themselves with advanced obfuscation, app integrity checks and proactive anti-tampering features.
 

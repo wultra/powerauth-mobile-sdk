@@ -20,9 +20,9 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 | `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
 
 > Notes
-> 1. If [Additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) feature is not used, 
+> 1. If [Additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) feature is not used,
 >    then you can use this version also with PowerAuth Server `0.23`.
-> 2. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can 
+> 2. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can
 >    use this version also with PowerAuth Server `0.21`.
 
 ## Migration guides

@@ -63,3 +63,10 @@ Generally speaking, it is not simple to reliably fix the issues mentioned above 
 As a result, a new category of solutions emerged to provide less straightforward, sophisticated solutions that combine code obfuscation, evasion techniques, integrity checking, proactive anti-tampering features, and other protective measures. These solutions are called [Mobile App Shielding](https://wultra.com/mobile-app-shielding), or RASP (Runtime Application Self-Protection).
 
 Unless you are looking for a strictly formal fix (meaning "making the pen-testers happy, while not fixing the actual issue"), we strongly suggest you deploy such technology.
+
+We encourage you to use any system provided protection measures as much as possible while coding your application, such as:
+
+- Built-in secure storage (iOS Keychain with Secure Enclave, Android Keystore with StrongBox).
+- App transport security to enforce newer TLS standards, check for the correctness of the certificate, and disallow any HTTP connections.
+
+However, please note that on a compromised device, these features may be disabled or bypassed, and therefore, they will not help to make your application secure.

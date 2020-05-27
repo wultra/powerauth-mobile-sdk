@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
+               BlueprintIdentifier = "BFAD0841247D4349007BCF11"
                BuildableName = "PowerAuth2.framework"
-               BlueprintName = "PowerAuth2"
+               BlueprintName = "PowerAuth2-tvos"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,9 +28,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "XCTests.xctest"
-               BlueprintName = "XCTests"
+               BlueprintIdentifier = "BFAD08E1247D4400007BCF11"
+               BuildableName = "XCTests-tvos.xctest"
+               BlueprintName = "XCTests-tvos"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,32 +46,18 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "XCTests.xctest"
-               BlueprintName = "XCTests"
+               BlueprintIdentifier = "BFAD08E1247D4400007BCF11"
+               BuildableName = "XCTests-tvos.xctest"
+               BlueprintName = "XCTests-tvos"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "PA2CoreTestsWrapper">
-               </Test>
-               <Test
-                  Identifier = "PA2PublicObjectsTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthInvalidCurveTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthSDKTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthTokenTests">
+                  Identifier = "PowerAuthConcurrencyTests">
                </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -83,17 +69,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
-            BuildableName = "PowerAuth2.framework"
-            BlueprintName = "PowerAuth2"
-            ReferencedContainer = "container:PowerAuthLib.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -101,6 +76,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "BFAD0841247D4349007BCF11"
+            BuildableName = "PowerAuth2.framework"
+            BlueprintName = "PowerAuth2-tvos"
+            ReferencedContainer = "container:PowerAuthLib.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF99D9142073E17000735ED2"
-               BuildableName = "libPowerAuthCoreTests.a"
-               BlueprintName = "PowerAuthCoreTests"
+               BlueprintIdentifier = "BF7349AD247E9F36001F46BA"
+               BuildableName = "PowerAuthCore.framework"
+               BlueprintName = "PowerAuthCore-iOS"
                ReferencedContainer = "container:PowerAuthCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,8 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -42,17 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -60,15 +47,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

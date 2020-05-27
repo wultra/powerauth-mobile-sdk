@@ -7,10 +7,71 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
 		BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
-		BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
-		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
+		BF7349A1247E8E4F001F46BA /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
+		BF7349A2247E8E4F001F46BA /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
+		BF7349BE247EA035001F46BA /* PA2Password.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2220753359008A6A52 /* PA2Password.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349BF247EA03D001F46BA /* PA2Password.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1C20753359008A6A52 /* PA2Password.mm */; };
+		BF7349C2247EA0CC001F46BA /* libPowerAuthCoreLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib.a */; };
+		BF7349C3247EA0F4001F46BA /* PA2Session.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2720753359008A6A52 /* PA2Session.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349C4247EA0FB001F46BA /* PA2Session.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2320753359008A6A52 /* PA2Session.mm */; };
+		BF7349C5247EA0FF001F46BA /* PA2SessionStatusProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349C6247EA104001F46BA /* PA2Types.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2F20753359008A6A52 /* PA2Types.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349C7247EA10E001F46BA /* PA2Types+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349C8247EA126001F46BA /* PA2Types.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2920753359008A6A52 /* PA2Types.mm */; };
+		BF7349C9247EA12B001F46BA /* PA2ProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349CA247EA132001F46BA /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
+		BF7349CB247EA136001F46BA /* PA2Macros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2A20753359008A6A52 /* PA2Macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349CC247EA13B001F46BA /* PA2CoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349CD247EA142001F46BA /* PA2CoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */; };
+		BF7349CE247EA146001F46BA /* PA2PrivateMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1E20753359008A6A52 /* PA2PrivateMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349CF247EA14B001F46BA /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2C20753359008A6A52 /* PA2PrivateMacros.m */; };
+		BF7349D0247EA14F001F46BA /* PA2ErrorConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2D20753359008A6A52 /* PA2ErrorConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349D1247EA155001F46BA /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
+		BF7349D2247EA159001F46BA /* PA2ECIESEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349D3247EA160001F46BA /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
+		BF7349D4247EA163001F46BA /* PA2PrivateCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349D5247EA16B001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
+		BF7349D6247EA17A001F46BA /* PA2PrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BF7349D7247EA18A001F46BA /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */; };
+		BF7349D8247EA190001F46BA /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2E20753359008A6A52 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349D9247EA196001F46BA /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1D20753359008A6A52 /* PA2WeakArray.m */; };
+		BF7349DA247EA19B001F46BA /* PA2OtpUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = BF61F906207687C500520C57 /* PA2OtpUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349DB247EA1A8001F46BA /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
+		BF7349DC247EA1AC001F46BA /* PA2CryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFD224182139601400E26692 /* PA2CryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349DD247EA1B4001F46BA /* PA2CryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFD224192139601400E26692 /* PA2CryptoUtils.mm */; };
+		BF7349DE247EA1E3001F46BA /* PowerAuthCore.h in Headers */ = {isa = PBXBuildFile; fileRef = BF7349BC247E9FE3001F46BA /* PowerAuthCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349E6247EA447001F46BA /* PA2CoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFDFED8D20BEED3D0094138A /* PA2CoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349E7247EA447001F46BA /* PowerAuthCore.h in Headers */ = {isa = PBXBuildFile; fileRef = BF7349BC247E9FE3001F46BA /* PowerAuthCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349E8247EA447001F46BA /* PA2PrivateMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1E20753359008A6A52 /* PA2PrivateMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349E9247EA447001F46BA /* PA2Macros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2A20753359008A6A52 /* PA2Macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349EA247EA447001F46BA /* PA2PrivateCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349EB247EA447001F46BA /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2E20753359008A6A52 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349EC247EA447001F46BA /* PA2ECIESEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349ED247EA447001F46BA /* PA2PrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		BF7349EE247EA447001F46BA /* PA2Types.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2F20753359008A6A52 /* PA2Types.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349EF247EA447001F46BA /* PA2Password.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2220753359008A6A52 /* PA2Password.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F0247EA447001F46BA /* PA2SessionStatusProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F1247EA447001F46BA /* PA2ProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F2247EA447001F46BA /* PA2CryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFD224182139601400E26692 /* PA2CryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F3247EA447001F46BA /* PA2Session.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2720753359008A6A52 /* PA2Session.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F4247EA447001F46BA /* PA2Types+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F5247EA447001F46BA /* PA2ErrorConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2D20753359008A6A52 /* PA2ErrorConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F6247EA447001F46BA /* PA2OtpUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = BF61F906207687C500520C57 /* PA2OtpUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349F8247EA447001F46BA /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
+		BF7349F9247EA447001F46BA /* PA2Types.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2920753359008A6A52 /* PA2Types.mm */; };
+		BF7349FA247EA447001F46BA /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2C20753359008A6A52 /* PA2PrivateMacros.m */; };
+		BF7349FB247EA447001F46BA /* PA2CryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFD224192139601400E26692 /* PA2CryptoUtils.mm */; };
+		BF7349FC247EA447001F46BA /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */; };
+		BF7349FD247EA447001F46BA /* PA2Session.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2320753359008A6A52 /* PA2Session.mm */; };
+		BF7349FE247EA447001F46BA /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
+		BF7349FF247EA447001F46BA /* PA2CoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */; };
+		BF734A00247EA447001F46BA /* PA2Password.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1C20753359008A6A52 /* PA2Password.mm */; };
+		BF734A01247EA447001F46BA /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
+		BF734A02247EA447001F46BA /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1D20753359008A6A52 /* PA2WeakArray.m */; };
+		BF734A03247EA447001F46BA /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
+		BF734A04247EA447001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
+		BF734A13247EA4AC001F46BA /* libPowerAuthCoreLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
 		BF99D9022073E14100735ED2 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
@@ -30,6 +91,48 @@
 		BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
 		BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD66214ABE2500A9221F /* CRC16.cpp */; };
 		BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
+		BFAD07E6247BFC9D007BCF11 /* PRNG.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8D82073E00D00735ED2 /* PRNG.cpp */; };
+		BFAD07E9247BFC9D007BCF11 /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DB2073E00D00735ED2 /* MAC.cpp */; };
+		BFAD07EA247BFC9D007BCF11 /* OtpUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */; };
+		BFAD07EB247BFC9D007BCF11 /* Password.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E22073E00D00735ED2 /* Password.cpp */; };
+		BFAD07EC247BFC9D007BCF11 /* DataWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E92073E00D00735ED2 /* DataWriter.cpp */; };
+		BFAD07ED247BFC9D007BCF11 /* PKCS7Padding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DF2073E00D00735ED2 /* PKCS7Padding.cpp */; };
+		BFAD07EE247BFC9D007BCF11 /* AES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E02073E00D00735ED2 /* AES.cpp */; };
+		BFAD07EF247BFC9D007BCF11 /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EC2073E00D00735ED2 /* Constants.cpp */; };
+		BFAD07F3247BFC9D007BCF11 /* PrivateTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EB2073E00D00735ED2 /* PrivateTypes.cpp */; };
+		BFAD07F4247BFC9D007BCF11 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
+		BFAD07F9247BFC9D007BCF11 /* Hash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DD2073E00D00735ED2 /* Hash.cpp */; };
+		BFAD07FB247BFC9D007BCF11 /* ECC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DA2073E00D00735ED2 /* ECC.cpp */; };
+		BFAD07FD247BFC9D007BCF11 /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8FF2073E00D00735ED2 /* ECIES.cpp */; };
+		BFAD07FF247BFC9D007BCF11 /* URLEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */; };
+		BFAD0800247BFC9D007BCF11 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
+		BFAD0801247BFC9D007BCF11 /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD66214ABE2500A9221F /* CRC16.cpp */; };
+		BFAD0803247BFC9D007BCF11 /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8D52073E00D00735ED2 /* KDF.cpp */; };
+		BFAD0804247BFC9D007BCF11 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
+		BFAD0806247BFC9D007BCF11 /* DataReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E72073E00D00735ED2 /* DataReader.cpp */; };
+		BFAD0807247BFC9D007BCF11 /* ProtocolUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */; };
+		BFAD080F247BFCCD007BCF11 /* libcc7-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFAD07C624780269007BCF11 /* libcc7-tvos.a */; };
+		BFAD0816247BFD3B007BCF11 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
+		BFAD0817247BFD3B007BCF11 /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
+		BFAD0818247BFD3B007BCF11 /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
+		BFAD0819247BFD3B007BCF11 /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
+		BFAD081A247BFD3B007BCF11 /* pa2OtpUtilTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */; };
+		BFAD081B247BFD3B007BCF11 /* pa2SignatureCalculationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */; };
+		BFAD081C247BFD3B007BCF11 /* pa2MasterSecretKeyComputation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */; };
+		BFAD081D247BFD3B007BCF11 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */; };
+		BFAD081E247BFD3B007BCF11 /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
+		BFAD081F247BFD3B007BCF11 /* pa2PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */; };
+		BFAD0820247BFD3B007BCF11 /* pa2ECIESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */; };
+		BFAD0821247BFD3B007BCF11 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */; };
+		BFAD0822247BFD3B007BCF11 /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */; };
+		BFAD0823247BFD3B007BCF11 /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */; };
+		BFAD0824247BFD3B007BCF11 /* pa2CryptoPKCS7PaddingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C72073E00D00735ED2 /* pa2CryptoPKCS7PaddingTests.cpp */; };
+		BFAD0825247BFD3B007BCF11 /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */; };
+		BFAD0826247BFD3B007BCF11 /* pa2SignatureKeysDerivationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */; };
+		BFAD0827247BFD3B007BCF11 /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
+		BFAD0828247BFD3B007BCF11 /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */; };
+		BFAD0835247BFDD5007BCF11 /* libPowerAuthCoreLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */; };
+		BFAD0836247BFDDA007BCF11 /* libcc7tests-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFAD07C824780269007BCF11 /* libcc7tests-tvos.a */; };
 		BFB47D06207532BE008A6A52 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */; };
 		BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */; };
 		BFB47D08207532C5008A6A52 /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */; };
@@ -45,27 +148,65 @@
 		BFB47D1620753324008A6A52 /* DataReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E72073E00D00735ED2 /* DataReader.cpp */; };
 		BFB47D1720753324008A6A52 /* DataWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E92073E00D00735ED2 /* DataWriter.cpp */; };
 		BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */; };
-		BFB47D322075335A008A6A52 /* PA2Password.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1C20753359008A6A52 /* PA2Password.mm */; };
-		BFB47D332075335A008A6A52 /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1D20753359008A6A52 /* PA2WeakArray.m */; };
-		BFB47D342075335A008A6A52 /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
-		BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2320753359008A6A52 /* PA2Session.mm */; };
-		BFB47D372075335A008A6A52 /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
-		BFB47D382075335A008A6A52 /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */; };
-		BFB47D392075335A008A6A52 /* PA2Types.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2920753359008A6A52 /* PA2Types.mm */; };
-		BFB47D3A2075335A008A6A52 /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
-		BFB47D3B2075335A008A6A52 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2C20753359008A6A52 /* PA2PrivateMacros.m */; };
 		BFB47D512075347E008A6A52 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
-		BFB47D5420753491008A6A52 /* libPowerAuthCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */; };
+		BFB47D5420753491008A6A52 /* libPowerAuthCoreLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib.a */; };
 		BFB47D5620753491008A6A52 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4720753444008A6A52 /* libcc7tests-ios.a */; };
 		BFC92DEF2073E3860087851C /* pa2CryptoPKCS7PaddingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C72073E00D00735ED2 /* pa2CryptoPKCS7PaddingTests.cpp */; };
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
 		BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
-		BFD2241A2139601400E26692 /* PA2CryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFD224192139601400E26692 /* PA2CryptoUtils.mm */; };
-		BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFDFED8E20BEED3D0094138A /* PA2CoreLog.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		BF7349C0247EA0BE001F46BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF3ACC842073DBA500B8107E;
+			remoteInfo = "PowerAuthCoreLib-iOS";
+		};
+		BF734A11247EA49F001F46BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFAD07E2247BFC9D007BCF11;
+			remoteInfo = "PowerAuthCoreLib-tvOS";
+		};
+		BFAD07C524780269007BCF11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8AAF2449B4F80032821F;
+			remoteInfo = "cc7-tvos";
+		};
+		BFAD07C724780269007BCF11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8ACF2449B53C0032821F;
+			remoteInfo = "cc7tests-tvos";
+		};
+		BFAD07C924780269007BCF11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8ADF2449B5820032821F;
+			remoteInfo = "CC7TestsWrapper-tvos";
+		};
+		BFAD0810247BFCDD007BCF11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFFE8A9F2449B4F80032821F;
+			remoteInfo = "cc7-tvos";
+		};
+		BFAD0831247BFD69007BCF11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFAD07E2247BFC9D007BCF11;
+			remoteInfo = "PowerAuthCore-tvos";
+		};
 		BFB47D4420753444008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
@@ -122,6 +263,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BFAD080A247BFC9D007BCF11 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFAD082C247BFD3B007BCF11 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -131,7 +290,7 @@
 		BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2RecoveryCodeTests.cpp; sourceTree = "<group>"; };
 		BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ProtocolUpgradeData.h; sourceTree = "<group>"; };
 		BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2ProtocolUpgradeData.mm; sourceTree = "<group>"; };
-		BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCore.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3ACC962073DF5F00B8107E /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
 		BF3ACC992073DF5F00B8107E /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
 		BF3ACC9A2073DF5F00B8107E /* PublicTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicTypes.h; sourceTree = "<group>"; };
@@ -142,6 +301,11 @@
 		BF3ACC9F2073DF5F00B8107E /* ECIES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
 		BF61F906207687C500520C57 /* PA2OtpUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2OtpUtil.h; sourceTree = "<group>"; };
 		BF61F909207687C500520C57 /* PA2OtpUtil.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2OtpUtil.mm; sourceTree = "<group>"; };
+		BF7349AE247E9F36001F46BA /* PowerAuthCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuthCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF7349BA247E9FE2001F46BA /* PowerAuthCore.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = PowerAuthCore.modulemap; sourceTree = "<group>"; };
+		BF7349BB247E9FE3001F46BA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BF7349BC247E9FE3001F46BA /* PowerAuthCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCore.h; sourceTree = "<group>"; };
+		BF734A0B247EA447001F46BA /* PowerAuthCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuthCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF8BFBD5215A8EB6001D6852 /* signatures-v3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v3.json"; sourceTree = "<group>"; };
 		BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
 		BF99D8B02073E00D00735ED2 /* verify-encrypted-server-public-key-signature.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "verify-encrypted-server-public-key-signature.json"; sourceTree = "<group>"; };
@@ -209,6 +373,8 @@
 		BFABCD63214ABDCB00A9221F /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
 		BFABCD66214ABE2500A9221F /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
 		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
+		BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFAD0830247BFD3B007BCF11 /* libPowerAuthCoreTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreTests.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2SessionStatusProvider.h; sourceTree = "<group>"; };
 		BFB47D1C20753359008A6A52 /* PA2Password.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Password.mm; sourceTree = "<group>"; };
 		BFB47D1D20753359008A6A52 /* PA2WeakArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArray.m; sourceTree = "<group>"; };
@@ -246,12 +412,45 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BF7349AB247E9F36001F46BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF7349C2247EA0CC001F46BA /* libPowerAuthCoreLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF734A05247EA447001F46BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF734A13247EA4AC001F46BA /* libPowerAuthCoreLib.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF99D9122073E17000735ED2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFB47D5420753491008A6A52 /* libPowerAuthCore.a in Frameworks */,
+				BFB47D5420753491008A6A52 /* libPowerAuthCoreLib.a in Frameworks */,
 				BFB47D5620753491008A6A52 /* libcc7tests-ios.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFAD0808247BFC9D007BCF11 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAD080F247BFCCD007BCF11 /* libcc7-tvos.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFAD0829247BFD3B007BCF11 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAD0835247BFDD5007BCF11 /* libPowerAuthCoreLib.a in Frameworks */,
+				BFAD0836247BFDDA007BCF11 /* libcc7tests-tvos.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,8 +470,12 @@
 		BF3ACC862073DBA500B8107E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */,
+				BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib.a */,
 				BF99D9152073E17000735ED2 /* libPowerAuthCoreTests.a */,
+				BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */,
+				BFAD0830247BFD3B007BCF11 /* libPowerAuthCoreTests.a */,
+				BF7349AE247E9F36001F46BA /* PowerAuthCore.framework */,
+				BF734A0B247EA447001F46BA /* PowerAuthCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -332,6 +535,16 @@
 				BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */,
 			);
 			name = Protocol;
+			sourceTree = "<group>";
+		};
+		BF7349BD247E9FEE001F46BA /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				BF7349BB247E9FE3001F46BA /* Info.plist */,
+				BF7349BC247E9FE3001F46BA /* PowerAuthCore.h */,
+				BF7349BA247E9FE2001F46BA /* PowerAuthCore.modulemap */,
+			);
+			name = Support;
 			sourceTree = "<group>";
 		};
 		BF99D8AA2073E00D00735ED2 /* src */ = {
@@ -495,6 +708,7 @@
 		BFB47D1A20753359008A6A52 /* core */ = {
 			isa = PBXGroup;
 			children = (
+				BF7349BD247E9FEE001F46BA /* Support */,
 				BFB47D2220753359008A6A52 /* PA2Password.h */,
 				BFB47D1C20753359008A6A52 /* PA2Password.mm */,
 				BFB47D2720753359008A6A52 /* PA2Session.h */,
@@ -534,8 +748,11 @@
 			isa = PBXGroup;
 			children = (
 				BFB47D4520753444008A6A52 /* libcc7-ios.a */,
+				BFAD07C624780269007BCF11 /* libcc7-tvos.a */,
 				BFB47D4720753444008A6A52 /* libcc7tests-ios.a */,
-				BFB47D4920753444008A6A52 /* CC7TestsWrapper.xctest */,
+				BFAD07C824780269007BCF11 /* libcc7tests-tvos.a */,
+				BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */,
+				BFAD07CA24780269007BCF11 /* CC7TestsWrapper-tvos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -549,10 +766,61 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		BF7349A9247E9F36001F46BA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF7349CC247EA13B001F46BA /* PA2CoreLog.h in Headers */,
+				BF7349DE247EA1E3001F46BA /* PowerAuthCore.h in Headers */,
+				BF7349CE247EA146001F46BA /* PA2PrivateMacros.h in Headers */,
+				BF7349CB247EA136001F46BA /* PA2Macros.h in Headers */,
+				BF7349D4247EA163001F46BA /* PA2PrivateCrypto.h in Headers */,
+				BF7349D8247EA190001F46BA /* PA2WeakArray.h in Headers */,
+				BF7349D2247EA159001F46BA /* PA2ECIESEncryptor.h in Headers */,
+				BF7349D6247EA17A001F46BA /* PA2PrivateImpl.h in Headers */,
+				BF7349C6247EA104001F46BA /* PA2Types.h in Headers */,
+				BF7349BE247EA035001F46BA /* PA2Password.h in Headers */,
+				BF7349C5247EA0FF001F46BA /* PA2SessionStatusProvider.h in Headers */,
+				BF7349C9247EA12B001F46BA /* PA2ProtocolUpgradeData.h in Headers */,
+				BF7349DC247EA1AC001F46BA /* PA2CryptoUtils.h in Headers */,
+				BF7349C3247EA0F4001F46BA /* PA2Session.h in Headers */,
+				BF7349C7247EA10E001F46BA /* PA2Types+Private.h in Headers */,
+				BF7349D0247EA14F001F46BA /* PA2ErrorConstants.h in Headers */,
+				BF7349DA247EA19B001F46BA /* PA2OtpUtil.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7349E5247EA447001F46BA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF7349E6247EA447001F46BA /* PA2CoreLog.h in Headers */,
+				BF7349E7247EA447001F46BA /* PowerAuthCore.h in Headers */,
+				BF7349E8247EA447001F46BA /* PA2PrivateMacros.h in Headers */,
+				BF7349E9247EA447001F46BA /* PA2Macros.h in Headers */,
+				BF7349EA247EA447001F46BA /* PA2PrivateCrypto.h in Headers */,
+				BF7349EB247EA447001F46BA /* PA2WeakArray.h in Headers */,
+				BF7349EC247EA447001F46BA /* PA2ECIESEncryptor.h in Headers */,
+				BF7349ED247EA447001F46BA /* PA2PrivateImpl.h in Headers */,
+				BF7349EE247EA447001F46BA /* PA2Types.h in Headers */,
+				BF7349EF247EA447001F46BA /* PA2Password.h in Headers */,
+				BF7349F0247EA447001F46BA /* PA2SessionStatusProvider.h in Headers */,
+				BF7349F1247EA447001F46BA /* PA2ProtocolUpgradeData.h in Headers */,
+				BF7349F2247EA447001F46BA /* PA2CryptoUtils.h in Headers */,
+				BF7349F3247EA447001F46BA /* PA2Session.h in Headers */,
+				BF7349F4247EA447001F46BA /* PA2Types+Private.h in Headers */,
+				BF7349F5247EA447001F46BA /* PA2ErrorConstants.h in Headers */,
+				BF7349F6247EA447001F46BA /* PA2OtpUtil.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		BF3ACC842073DBA500B8107E /* PowerAuthCore */ = {
+		BF3ACC842073DBA500B8107E /* PowerAuthCoreLib-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BF3ACC8E2073DBA500B8107E /* Build configuration list for PBXNativeTarget "PowerAuthCore" */;
+			buildConfigurationList = BF3ACC8E2073DBA500B8107E /* Build configuration list for PBXNativeTarget "PowerAuthCoreLib-iOS" */;
 			buildPhases = (
 				BF3ACC812073DBA500B8107E /* Sources */,
 				BF3ACC822073DBA500B8107E /* Frameworks */,
@@ -563,14 +831,52 @@
 			dependencies = (
 				BFB47D4C20753475008A6A52 /* PBXTargetDependency */,
 			);
-			name = PowerAuthCore;
+			name = "PowerAuthCoreLib-iOS";
 			productName = PowerAuthCore;
-			productReference = BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */;
+			productReference = BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		BF99D9142073E17000735ED2 /* PowerAuthCoreTests */ = {
+		BF7349AD247E9F36001F46BA /* PowerAuthCore-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BF99D91B2073E17000735ED2 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests" */;
+			buildConfigurationList = BF7349B9247E9F36001F46BA /* Build configuration list for PBXNativeTarget "PowerAuthCore-iOS" */;
+			buildPhases = (
+				BF7349A9247E9F36001F46BA /* Headers */,
+				BF7349AA247E9F36001F46BA /* Sources */,
+				BF7349AB247E9F36001F46BA /* Frameworks */,
+				BF7349AC247E9F36001F46BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF7349C1247EA0BE001F46BA /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCore-iOS";
+			productName = PowerAuthCore;
+			productReference = BF7349AE247E9F36001F46BA /* PowerAuthCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		BF7349E2247EA447001F46BA /* PowerAuthCore-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF734A08247EA447001F46BA /* Build configuration list for PBXNativeTarget "PowerAuthCore-tvOS" */;
+			buildPhases = (
+				BF7349E5247EA447001F46BA /* Headers */,
+				BF7349F7247EA447001F46BA /* Sources */,
+				BF734A05247EA447001F46BA /* Frameworks */,
+				BF734A07247EA447001F46BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF734A12247EA49F001F46BA /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCore-tvOS";
+			productName = PowerAuthCore;
+			productReference = BF734A0B247EA447001F46BA /* PowerAuthCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		BF99D9142073E17000735ED2 /* PowerAuthCoreTests-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF99D91B2073E17000735ED2 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-iOS" */;
 			buildPhases = (
 				BF99D9112073E17000735ED2 /* Sources */,
 				BF99D9122073E17000735ED2 /* Frameworks */,
@@ -581,9 +887,45 @@
 			dependencies = (
 				BFB47D5320753487008A6A52 /* PBXTargetDependency */,
 			);
-			name = PowerAuthCoreTests;
+			name = "PowerAuthCoreTests-iOS";
 			productName = PowerAuthCoreTests;
 			productReference = BF99D9152073E17000735ED2 /* libPowerAuthCoreTests.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		BFAD07E2247BFC9D007BCF11 /* PowerAuthCoreLib-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFAD080B247BFC9D007BCF11 /* Build configuration list for PBXNativeTarget "PowerAuthCoreLib-tvOS" */;
+			buildPhases = (
+				BFAD07E5247BFC9D007BCF11 /* Sources */,
+				BFAD0808247BFC9D007BCF11 /* Frameworks */,
+				BFAD080A247BFC9D007BCF11 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BFAD0811247BFCDD007BCF11 /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCoreLib-tvOS";
+			productName = PowerAuthCore;
+			productReference = BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		BFAD0812247BFD3B007BCF11 /* PowerAuthCoreTests-tvOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFAD082D247BFD3B007BCF11 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-tvOS" */;
+			buildPhases = (
+				BFAD0815247BFD3B007BCF11 /* Sources */,
+				BFAD0829247BFD3B007BCF11 /* Frameworks */,
+				BFAD082C247BFD3B007BCF11 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BFAD0832247BFD69007BCF11 /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCoreTests-tvOS";
+			productName = PowerAuthCoreTests;
+			productReference = BFAD0830247BFD3B007BCF11 /* libPowerAuthCoreTests.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -597,6 +939,9 @@
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {
 						CreatedOnToolsVersion = 9.3;
+					};
+					BF7349AD247E9F36001F46BA = {
+						CreatedOnToolsVersion = 11.5;
 					};
 					BF99D9142073E17000735ED2 = {
 						CreatedOnToolsVersion = 9.3;
@@ -622,13 +967,38 @@
 			);
 			projectRoot = "";
 			targets = (
-				BF3ACC842073DBA500B8107E /* PowerAuthCore */,
-				BF99D9142073E17000735ED2 /* PowerAuthCoreTests */,
+				BF3ACC842073DBA500B8107E /* PowerAuthCoreLib-iOS */,
+				BFAD07E2247BFC9D007BCF11 /* PowerAuthCoreLib-tvOS */,
+				BF99D9142073E17000735ED2 /* PowerAuthCoreTests-iOS */,
+				BFAD0812247BFD3B007BCF11 /* PowerAuthCoreTests-tvOS */,
+				BF7349AD247E9F36001F46BA /* PowerAuthCore-iOS */,
+				BF7349E2247EA447001F46BA /* PowerAuthCore-tvOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		BFAD07C624780269007BCF11 /* libcc7-tvos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7-tvos.a";
+			remoteRef = BFAD07C524780269007BCF11 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BFAD07C824780269007BCF11 /* libcc7tests-tvos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7tests-tvos.a";
+			remoteRef = BFAD07C724780269007BCF11 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BFAD07CA24780269007BCF11 /* CC7TestsWrapper-tvos.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CC7TestsWrapper-tvos.xctest";
+			remoteRef = BFAD07C924780269007BCF11 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		BFB47D4520753444008A6A52 /* libcc7-ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -643,14 +1013,31 @@
 			remoteRef = BFB47D4620753444008A6A52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		BFB47D4920753444008A6A52 /* CC7TestsWrapper.xctest */ = {
+		BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = CC7TestsWrapper.xctest;
+			path = "CC7TestsWrapper-ios.xctest";
 			remoteRef = BFB47D4820753444008A6A52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BF7349AC247E9F36001F46BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF734A07247EA447001F46BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		BF3ACC812073DBA500B8107E /* Sources */ = {
@@ -658,8 +1045,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF99D90B2073E15100735ED2 /* PRNG.cpp in Sources */,
-				BFB47D322075335A008A6A52 /* PA2Password.mm in Sources */,
-				BFB47D392075335A008A6A52 /* PA2Types.mm in Sources */,
 				BF99D9102073E15100735ED2 /* MAC.cpp in Sources */,
 				BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */,
 				BF99D9032073E14100735ED2 /* Password.cpp in Sources */,
@@ -667,30 +1052,58 @@
 				BF99D90A2073E15100735ED2 /* PKCS7Padding.cpp in Sources */,
 				BF99D90D2073E15100735ED2 /* AES.cpp in Sources */,
 				BF99D9072073E14700735ED2 /* Constants.cpp in Sources */,
-				BF20075E215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm in Sources */,
-				BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */,
-				BFB47D382075335A008A6A52 /* PA2PrivateImpl.mm in Sources */,
 				BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */,
 				BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */,
-				BFB47D3B2075335A008A6A52 /* PA2PrivateMacros.m in Sources */,
-				BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */,
-				BFB47D3A2075335A008A6A52 /* PA2ECIESEncryptor.mm in Sources */,
-				BFB47D362075335A008A6A52 /* PA2Session.mm in Sources */,
 				BF99D90E2073E15100735ED2 /* Hash.cpp in Sources */,
-				BFD2241A2139601400E26692 /* PA2CryptoUtils.mm in Sources */,
 				BF99D90C2073E15100735ED2 /* ECC.cpp in Sources */,
-				BFDFED8F20BEED3D0094138A /* PA2CoreLog.m in Sources */,
 				BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */,
-				BFB47D342075335A008A6A52 /* PA2ErrorConstants.m in Sources */,
 				BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */,
 				BF99D9002073E14100735ED2 /* Session.cpp in Sources */,
 				BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */,
-				BFB47D372075335A008A6A52 /* PA2PrivateCrypto_IOS.mm in Sources */,
 				BF99D90F2073E15100735ED2 /* KDF.cpp in Sources */,
 				BF99D9022073E14100735ED2 /* Debug.cpp in Sources */,
-				BFB47D332075335A008A6A52 /* PA2WeakArray.m in Sources */,
 				BFB47D1620753324008A6A52 /* DataReader.cpp in Sources */,
 				BF99D9092073E14700735ED2 /* ProtocolUtils.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7349AA247E9F36001F46BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF7349CA247EA132001F46BA /* PA2ProtocolUpgradeData.mm in Sources */,
+				BF7349C8247EA126001F46BA /* PA2Types.mm in Sources */,
+				BF7349CF247EA14B001F46BA /* PA2PrivateMacros.m in Sources */,
+				BF7349DD247EA1B4001F46BA /* PA2CryptoUtils.mm in Sources */,
+				BF7349D7247EA18A001F46BA /* PA2PrivateImpl.mm in Sources */,
+				BF7349C4247EA0FB001F46BA /* PA2Session.mm in Sources */,
+				BF7349DB247EA1A8001F46BA /* PA2OtpUtil.mm in Sources */,
+				BF7349CD247EA142001F46BA /* PA2CoreLog.m in Sources */,
+				BF7349BF247EA03D001F46BA /* PA2Password.mm in Sources */,
+				BF7349D3247EA160001F46BA /* PA2ECIESEncryptor.mm in Sources */,
+				BF7349D9247EA196001F46BA /* PA2WeakArray.m in Sources */,
+				BF7349D1247EA155001F46BA /* PA2ErrorConstants.m in Sources */,
+				BF7349D5247EA16B001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF7349F7247EA447001F46BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF7349F8247EA447001F46BA /* PA2ProtocolUpgradeData.mm in Sources */,
+				BF7349F9247EA447001F46BA /* PA2Types.mm in Sources */,
+				BF7349FA247EA447001F46BA /* PA2PrivateMacros.m in Sources */,
+				BF7349FB247EA447001F46BA /* PA2CryptoUtils.mm in Sources */,
+				BF7349FC247EA447001F46BA /* PA2PrivateImpl.mm in Sources */,
+				BF7349FD247EA447001F46BA /* PA2Session.mm in Sources */,
+				BF7349FE247EA447001F46BA /* PA2OtpUtil.mm in Sources */,
+				BF7349FF247EA447001F46BA /* PA2CoreLog.m in Sources */,
+				BF734A00247EA447001F46BA /* PA2Password.mm in Sources */,
+				BF734A01247EA447001F46BA /* PA2ECIESEncryptor.mm in Sources */,
+				BF734A02247EA447001F46BA /* PA2WeakArray.m in Sources */,
+				BF734A03247EA447001F46BA /* PA2ErrorConstants.m in Sources */,
+				BF734A04247EA447001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -710,6 +1123,7 @@
 				BFB47D09207532C5008A6A52 /* pa2PasswordTests.cpp in Sources */,
 				BFB47D0B207532C5008A6A52 /* pa2ECIESTests.cpp in Sources */,
 				BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */,
+				BF7349A2247E8E4F001F46BA /* pa2ActivationStatusBlobTests.cpp in Sources */,
 				BFB47D15207532CB008A6A52 /* pa2PublicKeyFingerprintTests.cpp in Sources */,
 				BFB47D0D207532CB008A6A52 /* pa2URLEncodingTests.cpp in Sources */,
 				BFC92DEF2073E3860087851C /* pa2CryptoPKCS7PaddingTests.cpp in Sources */,
@@ -720,9 +1134,83 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BFAD07E5247BFC9D007BCF11 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAD07E6247BFC9D007BCF11 /* PRNG.cpp in Sources */,
+				BFAD07E9247BFC9D007BCF11 /* MAC.cpp in Sources */,
+				BFAD07EA247BFC9D007BCF11 /* OtpUtil.cpp in Sources */,
+				BFAD07EB247BFC9D007BCF11 /* Password.cpp in Sources */,
+				BFAD07EC247BFC9D007BCF11 /* DataWriter.cpp in Sources */,
+				BFAD07ED247BFC9D007BCF11 /* PKCS7Padding.cpp in Sources */,
+				BFAD07EE247BFC9D007BCF11 /* AES.cpp in Sources */,
+				BFAD07EF247BFC9D007BCF11 /* Constants.cpp in Sources */,
+				BFAD07F3247BFC9D007BCF11 /* PrivateTypes.cpp in Sources */,
+				BFAD07F4247BFC9D007BCF11 /* PublicTypes.cpp in Sources */,
+				BFAD07F9247BFC9D007BCF11 /* Hash.cpp in Sources */,
+				BFAD07FB247BFC9D007BCF11 /* ECC.cpp in Sources */,
+				BFAD07FD247BFC9D007BCF11 /* ECIES.cpp in Sources */,
+				BFAD07FF247BFC9D007BCF11 /* URLEncoding.cpp in Sources */,
+				BFAD0800247BFC9D007BCF11 /* Session.cpp in Sources */,
+				BFAD0801247BFC9D007BCF11 /* CRC16.cpp in Sources */,
+				BFAD0803247BFC9D007BCF11 /* KDF.cpp in Sources */,
+				BFAD0804247BFC9D007BCF11 /* Debug.cpp in Sources */,
+				BFAD0806247BFC9D007BCF11 /* DataReader.cpp in Sources */,
+				BFAD0807247BFC9D007BCF11 /* ProtocolUtils.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFAD0815247BFD3B007BCF11 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFAD0816247BFD3B007BCF11 /* pa2RecoveryCodeTests.cpp in Sources */,
+				BFAD0817247BFD3B007BCF11 /* pa2CryptoAESTests.cpp in Sources */,
+				BFAD0818247BFD3B007BCF11 /* g_pa2Files.cpp in Sources */,
+				BFAD0819247BFD3B007BCF11 /* pa2CryptoECDHKDFTests.cpp in Sources */,
+				BFAD081A247BFD3B007BCF11 /* pa2OtpUtilTests.cpp in Sources */,
+				BFAD081B247BFD3B007BCF11 /* pa2SignatureCalculationTests.cpp in Sources */,
+				BFAD081C247BFD3B007BCF11 /* pa2MasterSecretKeyComputation.cpp in Sources */,
+				BFAD081D247BFD3B007BCF11 /* PowerAuthTestsList.cpp in Sources */,
+				BFAD081E247BFD3B007BCF11 /* pa2CRC16Tests.cpp in Sources */,
+				BFAD081F247BFD3B007BCF11 /* pa2PasswordTests.cpp in Sources */,
+				BFAD0820247BFD3B007BCF11 /* pa2ECIESTests.cpp in Sources */,
+				BFAD0821247BFD3B007BCF11 /* pa2DataWriterReaderTests.cpp in Sources */,
+				BF7349A1247E8E4F001F46BA /* pa2ActivationStatusBlobTests.cpp in Sources */,
+				BFAD0822247BFD3B007BCF11 /* pa2PublicKeyFingerprintTests.cpp in Sources */,
+				BFAD0823247BFD3B007BCF11 /* pa2URLEncodingTests.cpp in Sources */,
+				BFAD0824247BFD3B007BCF11 /* pa2CryptoPKCS7PaddingTests.cpp in Sources */,
+				BFAD0825247BFD3B007BCF11 /* pa2SessionTests.cpp in Sources */,
+				BFAD0826247BFD3B007BCF11 /* pa2SignatureKeysDerivationTest.cpp in Sources */,
+				BFAD0827247BFD3B007BCF11 /* pa2CryptoHMACTests.cpp in Sources */,
+				BFAD0828247BFD3B007BCF11 /* pa2ProtocolUtilsTests.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		BF7349C1247EA0BE001F46BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF3ACC842073DBA500B8107E /* PowerAuthCoreLib-iOS */;
+			targetProxy = BF7349C0247EA0BE001F46BA /* PBXContainerItemProxy */;
+		};
+		BF734A12247EA49F001F46BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFAD07E2247BFC9D007BCF11 /* PowerAuthCoreLib-tvOS */;
+			targetProxy = BF734A11247EA49F001F46BA /* PBXContainerItemProxy */;
+		};
+		BFAD0811247BFCDD007BCF11 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7-tvos";
+			targetProxy = BFAD0810247BFCDD007BCF11 /* PBXContainerItemProxy */;
+		};
+		BFAD0832247BFD69007BCF11 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFAD07E2247BFC9D007BCF11 /* PowerAuthCoreLib-tvOS */;
+			targetProxy = BFAD0831247BFD69007BCF11 /* PBXContainerItemProxy */;
+		};
 		BFB47D4C20753475008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "cc7-ios";
@@ -730,7 +1218,7 @@
 		};
 		BFB47D5320753487008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = BF3ACC842073DBA500B8107E /* PowerAuthCore */;
+			target = BF3ACC842073DBA500B8107E /* PowerAuthCoreLib-iOS */;
 			targetProxy = BFB47D5220753487008A6A52 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -771,6 +1259,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_BITCODE = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -790,11 +1279,14 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../include",
 					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
 		};
@@ -833,6 +1325,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = c11;
@@ -846,11 +1339,14 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../include",
 					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				SDKROOT = iphoneos;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
 		};
@@ -860,7 +1356,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = PowerAuthCoreLib;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -872,9 +1368,141 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = PowerAuthCoreLib;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BF7349B3247E9F36001F46BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Classes/core/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
+				PRODUCT_NAME = PowerAuthCore;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		BF7349B4247E9F36001F46BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Classes/core/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
+				PRODUCT_NAME = PowerAuthCore;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		BF734A09247EA447001F46BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Classes/core/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
+				PRODUCT_NAME = PowerAuthCore;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		BF734A0A247EA447001F46BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = Classes/core/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
+				PRODUCT_NAME = PowerAuthCore;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
@@ -891,7 +1519,7 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = PowerAuthCoreTests;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -910,7 +1538,73 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = PowerAuthCoreTests;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BFAD080C247BFC9D007BCF11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = PowerAuthCoreLib;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BFAD080D247BFC9D007BCF11 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = PowerAuthCoreLib;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BFAD082E247BFD3B007BCF11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../src/PowerAuth",
+				);
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = PowerAuthCoreTests;
+				SDKROOT = appletvos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BFAD082F247BFD3B007BCF11 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../src/PowerAuth",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = PowerAuthCoreTests;
+				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -928,7 +1622,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BF3ACC8E2073DBA500B8107E /* Build configuration list for PBXNativeTarget "PowerAuthCore" */ = {
+		BF3ACC8E2073DBA500B8107E /* Build configuration list for PBXNativeTarget "PowerAuthCoreLib-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BF3ACC8F2073DBA500B8107E /* Debug */,
@@ -937,11 +1631,47 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BF99D91B2073E17000735ED2 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests" */ = {
+		BF7349B9247E9F36001F46BA /* Build configuration list for PBXNativeTarget "PowerAuthCore-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF7349B3247E9F36001F46BA /* Debug */,
+				BF7349B4247E9F36001F46BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF734A08247EA447001F46BA /* Build configuration list for PBXNativeTarget "PowerAuthCore-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF734A09247EA447001F46BA /* Debug */,
+				BF734A0A247EA447001F46BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF99D91B2073E17000735ED2 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				BF99D91C2073E17000735ED2 /* Debug */,
 				BF99D91D2073E17000735ED2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFAD080B247BFC9D007BCF11 /* Build configuration list for PBXNativeTarget "PowerAuthCoreLib-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFAD080C247BFC9D007BCF11 /* Debug */,
+				BFAD080D247BFC9D007BCF11 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFAD082D247BFD3B007BCF11 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-tvOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFAD082E247BFD3B007BCF11 /* Debug */,
+				BFAD082F247BFD3B007BCF11 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

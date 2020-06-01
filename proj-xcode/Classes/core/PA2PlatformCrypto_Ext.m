@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PA2PrivateCrypto.h"
+#import "PA2PlatformCrypto.h"
 #import "PA2Log.h"
 
 #if !defined(PA2_EXTENSION_SDK)

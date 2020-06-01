@@ -520,6 +520,42 @@ typedef NS_ENUM(int, PA2ActivationState) {
 
 @end
 
+/**
+ The `Private` class extension on `PA2ActivationStatus` exposes an additional
+ interfaces, which should not be used by the application developers.
+ */
+@interface PA2ActivationStatus (Private)
+
+/**
+ Contains current version of activation.
+ This is SDK internal property that should not be used by the application.
+ */
+@property (nonatomic, assign, readonly) UInt8 currentActivationVersion;
+/**
+ Contains version of activation available for upgrade.
+ This is SDK internal property that should not be used by the application.
+ */
+@property (nonatomic, assign, readonly) UInt8 upgradeActivationVersion;
+/**
+ Contains YES if upgrade to a newer protocol version is available.
+ This is SDK internal property that should not be used by the application.
+ */
+@property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
+/**
+ Returns true if dummy signature calculation is recommended to prevent
+ the counter's de-synchronization.
+ This is SDK internal property that should not be used by the application.
+ */
+@property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;
+/**
+ Returns true if session's state should be serialized after the successful
+ activation status decryption.
+ This is SDK internal property that should not be used by the application.
+ */
+@property (nonatomic, assign, readonly) BOOL needsSerializeSessionState;
+
+@end
+
 #pragma mark - End to End Encryption -
 
 // Forward declaration for ECIES encryptor

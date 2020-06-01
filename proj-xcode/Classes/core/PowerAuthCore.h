@@ -23,7 +23,6 @@ FOUNDATION_EXPORT double PowerAuthCoreVersionNumber;
 FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 
 #import "PA2Types.h"
-#import "PA2Types+Private.h"
 #import "PA2CoreLog.h"
 #import "PA2CryptoUtils.h"
 #import "PA2ECIESEncryptor.h"
@@ -31,7 +30,7 @@ FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 #import "PA2Macros.h"
 #import "PA2OtpUtil.h"
 #import "PA2Password.h"
-#import "PA2PrivateCrypto.h"
+#import "PA2PlatformCrypto.h"
 #import "PA2PrivateMacros.h"
 #import "PA2ProtocolUpgradeData.h"
 #import "PA2Session.h"

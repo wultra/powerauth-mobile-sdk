@@ -18,7 +18,7 @@
 #include <cc7/objc/ObjcHelper.h>
 #include "CryptoUtils.h"
 
-#import "PA2PrivateCrypto.h"
+#import "PA2PlatformCrypto.h"
 
 #if defined(PA2_EXTENSION_SDK)
 #error "This should not be compiled in IOS extensions or WatchOS projects"

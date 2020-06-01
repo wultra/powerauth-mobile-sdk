@@ -15,7 +15,7 @@
  */
 
 #import "PA2PrivateImpl.h"
-#import "PA2Types+Private.h"
+#import "PA2Types.h"
 #import <XCTest/XCTest.h>
 
 /*

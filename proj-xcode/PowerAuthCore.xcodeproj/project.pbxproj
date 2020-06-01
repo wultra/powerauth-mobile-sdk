@@ -17,7 +17,6 @@
 		BF7349C4247EA0FB001F46BA /* PA2Session.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2320753359008A6A52 /* PA2Session.mm */; };
 		BF7349C5247EA0FF001F46BA /* PA2SessionStatusProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349C6247EA104001F46BA /* PA2Types.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2F20753359008A6A52 /* PA2Types.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF7349C7247EA10E001F46BA /* PA2Types+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349C8247EA126001F46BA /* PA2Types.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2920753359008A6A52 /* PA2Types.mm */; };
 		BF7349C9247EA12B001F46BA /* PA2ProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349CA247EA132001F46BA /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
@@ -30,8 +29,8 @@
 		BF7349D1247EA155001F46BA /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
 		BF7349D2247EA159001F46BA /* PA2ECIESEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349D3247EA160001F46BA /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
-		BF7349D4247EA163001F46BA /* PA2PrivateCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF7349D5247EA16B001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
+		BF7349D4247EA163001F46BA /* PA2PlatformCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PlatformCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349D5247EA16B001F46BA /* PA2PlatformCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PlatformCrypto_IOS.mm */; };
 		BF7349D6247EA17A001F46BA /* PA2PrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BF7349D7247EA18A001F46BA /* PA2PrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */; };
 		BF7349D8247EA190001F46BA /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2E20753359008A6A52 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -45,7 +44,7 @@
 		BF7349E7247EA447001F46BA /* PowerAuthCore.h in Headers */ = {isa = PBXBuildFile; fileRef = BF7349BC247E9FE3001F46BA /* PowerAuthCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349E8247EA447001F46BA /* PA2PrivateMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D1E20753359008A6A52 /* PA2PrivateMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349E9247EA447001F46BA /* PA2Macros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2A20753359008A6A52 /* PA2Macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF7349EA247EA447001F46BA /* PA2PrivateCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF7349EA247EA447001F46BA /* PA2PlatformCrypto.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2620753359008A6A52 /* PA2PlatformCrypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349EB247EA447001F46BA /* PA2WeakArray.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2E20753359008A6A52 /* PA2WeakArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349EC247EA447001F46BA /* PA2ECIESEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349ED247EA447001F46BA /* PA2PrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -55,7 +54,6 @@
 		BF7349F1247EA447001F46BA /* PA2ProtocolUpgradeData.h in Headers */ = {isa = PBXBuildFile; fileRef = BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349F2247EA447001F46BA /* PA2CryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFD224182139601400E26692 /* PA2CryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349F3247EA447001F46BA /* PA2Session.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2720753359008A6A52 /* PA2Session.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF7349F4247EA447001F46BA /* PA2Types+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349F5247EA447001F46BA /* PA2ErrorConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BFB47D2D20753359008A6A52 /* PA2ErrorConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349F6247EA447001F46BA /* PA2OtpUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = BF61F906207687C500520C57 /* PA2OtpUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF7349F8247EA447001F46BA /* PA2ProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */; };
@@ -70,7 +68,7 @@
 		BF734A01247EA447001F46BA /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
 		BF734A02247EA447001F46BA /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1D20753359008A6A52 /* PA2WeakArray.m */; };
 		BF734A03247EA447001F46BA /* PA2ErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */; };
-		BF734A04247EA447001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */; };
+		BF734A04247EA447001F46BA /* PA2PlatformCrypto_IOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2520753359008A6A52 /* PA2PlatformCrypto_IOS.mm */; };
 		BF734A13247EA4AC001F46BA /* libPowerAuthCoreLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFAD080E247BFC9D007BCF11 /* libPowerAuthCoreLib.a */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
@@ -369,7 +367,6 @@
 		BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OtpUtil.cpp; sourceTree = "<group>"; };
 		BF99D8FF2073E00D00735ED2 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPowerAuthCoreTests.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PA2Types+Private.h"; sourceTree = "<group>"; };
 		BFABCD63214ABDCB00A9221F /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
 		BFABCD66214ABE2500A9221F /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
 		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
@@ -383,8 +380,8 @@
 		BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2ECIESEncryptor.h; sourceTree = "<group>"; };
 		BFB47D2220753359008A6A52 /* PA2Password.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Password.h; sourceTree = "<group>"; };
 		BFB47D2320753359008A6A52 /* PA2Session.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Session.mm; sourceTree = "<group>"; };
-		BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateCrypto_IOS.mm; sourceTree = "<group>"; };
-		BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateCrypto.h; sourceTree = "<group>"; };
+		BFB47D2520753359008A6A52 /* PA2PlatformCrypto_IOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PlatformCrypto_IOS.mm; sourceTree = "<group>"; };
+		BFB47D2620753359008A6A52 /* PA2PlatformCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PlatformCrypto.h; sourceTree = "<group>"; };
 		BFB47D2720753359008A6A52 /* PA2Session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Session.h; sourceTree = "<group>"; };
 		BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2PrivateImpl.mm; sourceTree = "<group>"; };
 		BFB47D2920753359008A6A52 /* PA2Types.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2Types.mm; sourceTree = "<group>"; };
@@ -395,7 +392,7 @@
 		BFB47D2E20753359008A6A52 /* PA2WeakArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2WeakArray.h; sourceTree = "<group>"; };
 		BFB47D2F20753359008A6A52 /* PA2Types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2Types.h; sourceTree = "<group>"; };
 		BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateImpl.h; sourceTree = "<group>"; };
-		BFB47D3D207533E6008A6A52 /* PA2PrivateCrypto_Ext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateCrypto_Ext.m; sourceTree = "<group>"; };
+		BFB47D3D207533E6008A6A52 /* PA2PlatformCrypto_Ext.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PlatformCrypto_Ext.m; sourceTree = "<group>"; };
 		BFB47D3E20753444008A6A52 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
 		BFD224182139601400E26692 /* PA2CryptoUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CryptoUtils.h; sourceTree = "<group>"; };
 		BFD224192139601400E26692 /* PA2CryptoUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PA2CryptoUtils.mm; sourceTree = "<group>"; };
@@ -715,7 +712,6 @@
 				BFB47D2320753359008A6A52 /* PA2Session.mm */,
 				BFB47D1B20753359008A6A52 /* PA2SessionStatusProvider.h */,
 				BFB47D2F20753359008A6A52 /* PA2Types.h */,
-				BF9D9C2B2170E0A3004FAE9C /* PA2Types+Private.h */,
 				BFB47D2920753359008A6A52 /* PA2Types.mm */,
 				BF20075C215A5DEF001F3614 /* PA2ProtocolUpgradeData.h */,
 				BF20075D215A5DEF001F3614 /* PA2ProtocolUpgradeData.mm */,
@@ -728,9 +724,9 @@
 				BFB47D1F20753359008A6A52 /* PA2ErrorConstants.m */,
 				BFB47D2020753359008A6A52 /* PA2ECIESEncryptor.h */,
 				BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */,
-				BFB47D2620753359008A6A52 /* PA2PrivateCrypto.h */,
-				BFB47D2520753359008A6A52 /* PA2PrivateCrypto_IOS.mm */,
-				BFB47D3D207533E6008A6A52 /* PA2PrivateCrypto_Ext.m */,
+				BFB47D2620753359008A6A52 /* PA2PlatformCrypto.h */,
+				BFB47D2520753359008A6A52 /* PA2PlatformCrypto_IOS.mm */,
+				BFB47D3D207533E6008A6A52 /* PA2PlatformCrypto_Ext.m */,
 				BFB47D3120753359008A6A52 /* PA2PrivateImpl.h */,
 				BFB47D2820753359008A6A52 /* PA2PrivateImpl.mm */,
 				BFB47D2E20753359008A6A52 /* PA2WeakArray.h */,
@@ -775,7 +771,7 @@
 				BF7349DE247EA1E3001F46BA /* PowerAuthCore.h in Headers */,
 				BF7349CE247EA146001F46BA /* PA2PrivateMacros.h in Headers */,
 				BF7349CB247EA136001F46BA /* PA2Macros.h in Headers */,
-				BF7349D4247EA163001F46BA /* PA2PrivateCrypto.h in Headers */,
+				BF7349D4247EA163001F46BA /* PA2PlatformCrypto.h in Headers */,
 				BF7349D8247EA190001F46BA /* PA2WeakArray.h in Headers */,
 				BF7349D2247EA159001F46BA /* PA2ECIESEncryptor.h in Headers */,
 				BF7349D6247EA17A001F46BA /* PA2PrivateImpl.h in Headers */,
@@ -785,7 +781,6 @@
 				BF7349C9247EA12B001F46BA /* PA2ProtocolUpgradeData.h in Headers */,
 				BF7349DC247EA1AC001F46BA /* PA2CryptoUtils.h in Headers */,
 				BF7349C3247EA0F4001F46BA /* PA2Session.h in Headers */,
-				BF7349C7247EA10E001F46BA /* PA2Types+Private.h in Headers */,
 				BF7349D0247EA14F001F46BA /* PA2ErrorConstants.h in Headers */,
 				BF7349DA247EA19B001F46BA /* PA2OtpUtil.h in Headers */,
 			);
@@ -799,7 +794,7 @@
 				BF7349E7247EA447001F46BA /* PowerAuthCore.h in Headers */,
 				BF7349E8247EA447001F46BA /* PA2PrivateMacros.h in Headers */,
 				BF7349E9247EA447001F46BA /* PA2Macros.h in Headers */,
-				BF7349EA247EA447001F46BA /* PA2PrivateCrypto.h in Headers */,
+				BF7349EA247EA447001F46BA /* PA2PlatformCrypto.h in Headers */,
 				BF7349EB247EA447001F46BA /* PA2WeakArray.h in Headers */,
 				BF7349EC247EA447001F46BA /* PA2ECIESEncryptor.h in Headers */,
 				BF7349ED247EA447001F46BA /* PA2PrivateImpl.h in Headers */,
@@ -809,7 +804,6 @@
 				BF7349F1247EA447001F46BA /* PA2ProtocolUpgradeData.h in Headers */,
 				BF7349F2247EA447001F46BA /* PA2CryptoUtils.h in Headers */,
 				BF7349F3247EA447001F46BA /* PA2Session.h in Headers */,
-				BF7349F4247EA447001F46BA /* PA2Types+Private.h in Headers */,
 				BF7349F5247EA447001F46BA /* PA2ErrorConstants.h in Headers */,
 				BF7349F6247EA447001F46BA /* PA2OtpUtil.h in Headers */,
 			);
@@ -1083,7 +1077,7 @@
 				BF7349D3247EA160001F46BA /* PA2ECIESEncryptor.mm in Sources */,
 				BF7349D9247EA196001F46BA /* PA2WeakArray.m in Sources */,
 				BF7349D1247EA155001F46BA /* PA2ErrorConstants.m in Sources */,
-				BF7349D5247EA16B001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */,
+				BF7349D5247EA16B001F46BA /* PA2PlatformCrypto_IOS.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1103,7 +1097,7 @@
 				BF734A01247EA447001F46BA /* PA2ECIESEncryptor.mm in Sources */,
 				BF734A02247EA447001F46BA /* PA2WeakArray.m in Sources */,
 				BF734A03247EA447001F46BA /* PA2ErrorConstants.m in Sources */,
-				BF734A04247EA447001F46BA /* PA2PrivateCrypto_IOS.mm in Sources */,
+				BF734A04247EA447001F46BA /* PA2PlatformCrypto_IOS.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1285,6 +1279,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRIP_STYLE = "non-global";
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
@@ -1344,6 +1339,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				SDKROOT = iphoneos;
+				STRIP_STYLE = "non-global";
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VALIDATE_PRODUCT = YES;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
@@ -1383,7 +1379,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1395,9 +1391,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACH_O_TYPE = staticlib;
+				MACH_O_TYPE = mh_dylib;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
 				PRODUCT_NAME = PowerAuthCore;
 				SKIP_INSTALL = YES;
@@ -1416,7 +1416,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1428,9 +1428,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACH_O_TYPE = staticlib;
+				MACH_O_TYPE = mh_dylib;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
 				PRODUCT_NAME = PowerAuthCore;
 				SKIP_INSTALL = YES;
@@ -1449,7 +1453,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1461,9 +1465,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACH_O_TYPE = staticlib;
+				MACH_O_TYPE = mh_dylib;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
 				PRODUCT_NAME = PowerAuthCore;
 				SDKROOT = appletvos;
@@ -1482,7 +1490,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1494,9 +1502,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACH_O_TYPE = staticlib;
+				MACH_O_TYPE = mh_dylib;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthCore;
 				PRODUCT_NAME = PowerAuthCore;
 				SDKROOT = appletvos;
@@ -1553,7 +1565,6 @@
 				PRODUCT_NAME = PowerAuthCoreLib;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1566,7 +1577,6 @@
 				PRODUCT_NAME = PowerAuthCoreLib;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1586,7 +1596,6 @@
 				PRODUCT_NAME = PowerAuthCoreTests;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1606,7 +1615,6 @@
 				PRODUCT_NAME = PowerAuthCoreTests;
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

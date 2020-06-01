@@ -268,7 +268,7 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 #pragma mark - Biometry support
 
-#if !defined(PA2_EXTENSION_SDK)
+#if !defined(PA2_EXTENSION_SDK) && defined(PA2_BIOMETRY_SUPPORT)
 //
 // IOS
 //

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import "PA2Macros.h"
 
 // Forward declarations...
 @class PA2AuthorizationHttpHeader;

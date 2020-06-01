@@ -16,7 +16,7 @@
 
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateTokenData.h"
-#import "PA2PrivateCrypto.h"
+#import "PA2PlatformCrypto.h"
 #import "PA2AuthorizationHttpHeader.h"
 #import "PA2Log.h"
 

@@ -17,13 +17,11 @@
 #
 # Script is using following folders (if not changed):
 #
-#    ./Lib/Debug          - result of debug configuration, containing
-#                           final fat library, source codes and public headers
-#    ./Lib/Debug/Private  - contains all private headers
+#    ./Lib/*.xcframework  - All supporting xcframeworks
 #
-#    ./Lib/Debug          - result of release configuration, containing
-#                           final fat library, source codes and public headers
-#    ./Lib/Debug/Private  - contains all private headers
+#    ./Lib/Src            - All source codes and public headers
+#
+#    ./Lib/Src/Private    - Contains all private headers
 #
 #    ./Tmp                - for all temporary data
 #
@@ -340,21 +338,25 @@ function BUILD_PLATFORMS
 	done
 	
 	LOG_LINE
-	LOG "Creating final ..."
-    
+	LOG "Creating final ${OUT_FW}.xcframework..."
+	local XCFW_PATH="${OUT_DIR}/Frameworks/${OUT_FW}.xcframework"
 	local XCFW_ARGS=
     for ARG in ${ALL_FAT_LIBS[@]}; do
         XCFW_ARGS+="-framework ${ARG} "
+		DEBUG_LOG "  - source fw: ${ARG}"
     done
-	$MD ${OUT_DIR}
-    xcodebuild -create-xcframework $XCFW_ARGS -output "${OUT_DIR}/${OUT_FW}.xcframework"
+	DEBUG_LOG "  - target fw: ${XCFW_PATH}"
+	
+	$MD "${OUT_DIR}/Frameworks"
+    xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"
 		
 	# Copy source files...
-	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
+	$MD "${OUT_DIR}/Src"
+	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}/Src"
 	
-	LOG_LINE
-	LOG "Copying openssl.xcframework ..."
-	$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" ${OUT_DIR}
+	#LOG_LINE
+	#LOG "Copying openssl.xcframework ..."
+	#$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" "${OUT_DIR}/Frameworks"
 }
 
 # -----------------------------------------------------------------------------

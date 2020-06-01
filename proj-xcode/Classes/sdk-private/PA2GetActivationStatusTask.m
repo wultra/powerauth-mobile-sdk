@@ -16,7 +16,7 @@
 
 #import "PA2GetActivationStatusTask.h"
 #import "PA2PrivateMacros.h"
-#import "PA2Types+Private.h"
+#import "PA2Types.h"
 #import "PA2RestApiObjects.h"
 #import "PA2RestApiEndpoint.h"
 #import "PA2RestResponseStatus.h"

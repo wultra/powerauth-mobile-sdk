@@ -4,7 +4,7 @@ We currently support the following versions of mobile OS:
 
 - iOS 8.0
 - watchOS 2.0
-- Android 4.3 (API level 16)
+- Android 4.4 (API level 19)
 
 ## Feature Limitations
 

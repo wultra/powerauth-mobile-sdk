@@ -7,7 +7,6 @@
    - [Manual Installation](#manual)
    - [Carthage Installation](#carthage)
 - [Post-Installation steps](#post-installation-steps)
-   - [Disabling bitcode](#disabling-bitcode)
    - [Include PowerAuth SDK in your sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
@@ -68,18 +67,6 @@ platform :ios, '8.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end
-
-# Disable bitcode for iOS targets (also see chapter Disabling bitcode)
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    if target.platform_name == :ios
-      puts "Disabling bitcode for target  #{target.name}"
-      target.build_configurations.each do |config|
-        config.build_settings['ENABLE_BITCODE'] = 'NO'
-      end
-    end
-  end
-end
 ```
 
 Then, run the following command:
@@ -118,14 +105,6 @@ We provide a limited and experimental support for [Carthage dependency manager](
 ## Post-installation steps
 
 Following steps are recommended for all types of installations.
-
-### Disabling Bitcode
-
-When the `Enable Bitcode` option is set to `YES`, your application is build to LLVM IR (intermediate representation) rather than to the final executable binary. Later, the final binary is built in the Apple cloud for various architectures. As a result of this process, you are not in control of what actually goes in your binary. Any application with high security requirements cannot accept this proposition. As a result, PowerAuth SDK for iOS cannot be built with `Enable Bitcode` option enabled.
-
-To disable Bitcode, go to your project `Build Settings`, search for `Enable Bitcode` option and set value to `NO`.
-
-![Disable Bitcode in Xcode](images/ios_manual_04_bitcode.png)
 
 ### Include PowerAuth SDK in your sources
 

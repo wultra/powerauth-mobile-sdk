@@ -46,6 +46,9 @@ do
 	shift
 done
 
+# Fetch OpenSSL for android
+"${SRC_ROOT}/cc7/openssl-build/fetch.sh" android
+
 PUSH_DIR "${SRC_ROOT}/proj-android"
 ####
 ./gradlew $DO_CLEAN build publishToMavenLocal

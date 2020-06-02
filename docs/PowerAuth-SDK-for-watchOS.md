@@ -25,7 +25,7 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a static library, provided by the `PowerAuth2ForWatch.framework`. Unlike the PowerAuth for iOS, the watch SDK supports bitcode.
+This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a static library, provided by the `PowerAuth2ForWatch.framework`.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 
@@ -49,18 +49,6 @@ end
 target 'YourWatchAppTarget' do
   platform :watchos, '2.0'
   pod 'PowerAuth2ForWatch'
-end
-
-# Disable bitcode for iOS targets (see iOS integration for details)
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    if target.platform_name == :ios
-      puts "Disabling bitcode for target  #{target.name}"
-      target.build_configurations.each do |config|
-        config.build_settings['ENABLE_BITCODE'] = 'NO'
-      end
-    end
-  end
 end
 ```
 

@@ -412,6 +412,11 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 	return response;
 }
 
+- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId
+{
+	return [self getActivationStatus:activationId challenge:nil];
+}
+
 - (PATSSimpleActivationStatus*) blockActivation:(NSString*)activationId
 {
 	[self checkForValidConnection];

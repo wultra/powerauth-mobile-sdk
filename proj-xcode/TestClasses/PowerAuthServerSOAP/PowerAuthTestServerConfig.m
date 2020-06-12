@@ -30,16 +30,15 @@
 #define POWERAUTH_BASE_URL @"http://localhost"
 #endif
 
-
 @implementation PowerAuthTestServerConfig
 
 + (instancetype) defaultConfig
 {
 	NSDictionary * dict =
 	@{
-	  @"restApiUrl"           : POWERAUTH_BASE_URL @":13030/powerauth-webauth",
-	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":20010/powerauth-java-server/soap",
-	  @"soapApiVersion"       : @"V2",
+	  @"restApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-webauth",
+	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-java-server/soap",
+	  @"soapApiVersion"       : @"0.24",
 	  @"powerAuthAppName"     : @"AutomaticTest-IOS",
 	  @"powerAuthAppVersion"  : @"default"
 	  
@@ -129,6 +128,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 		instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];
 		instance->_userIdentifier = dict[@"userIdentifier"];
 		instance->_userActivationName = dict[@"userActivationName"];
+		instance->_configDictionary = [dict copy];
 		if (![instance validateAndFillOptionals]) {
 			return nil;
 		}
@@ -169,6 +169,12 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
 	UIDevice * dev = [UIDevice currentDevice];
 	return [NSString stringWithFormat:@"Testing on '%@', %@, %@ %@", dev.name, dev.model, dev.systemName, dev.systemVersion];
+}
+
+- (id) configValueForKey:(NSString*)key defaultValue:(id)defaultValue
+{
+	id value = [_configDictionary objectForKey:key];
+	return value != nil ? value : defaultValue;
 }
 
 @end

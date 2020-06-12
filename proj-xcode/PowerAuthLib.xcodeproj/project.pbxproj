@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF00758924939C970019F07A /* PowerAuthSDKProtocolUpgradeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF00758824939C970019F07A /* PowerAuthSDKProtocolUpgradeTests.m */; };
 		BF13A03A1FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */; };
 		BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
 		BF20EA871EACB17600733D91 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
@@ -250,6 +251,7 @@
 		1B9AD2BF1DA5B2F200CF52C9 /* PA2OperationTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2OperationTask.m; sourceTree = "<group>"; };
 		1BFD687A1D742C1C00B08338 /* PA2System.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2System.h; sourceTree = "<group>"; };
 		1BFD687B1D742C1C00B08338 /* PA2System.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2System.m; sourceTree = "<group>"; };
+		BF00758824939C970019F07A /* PowerAuthSDKProtocolUpgradeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKProtocolUpgradeTests.m; sourceTree = "<group>"; };
 		BF13A0381FC3315D00E6F9B3 /* FakePowerAuthTokenStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FakePowerAuthTokenStore.h; sourceTree = "<group>"; };
 		BF13A0391FC3315D00E6F9B3 /* FakePowerAuthTokenStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FakePowerAuthTokenStore.m; sourceTree = "<group>"; };
 		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
@@ -689,6 +691,7 @@
 				BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */,
 				BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */,
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
+				BF00758824939C970019F07A /* PowerAuthSDKProtocolUpgradeTests.m */,
 				BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */,
 				BF9EED2020372AEB001D8DF8 /* PowerAuthConcurrencyTests.m */,
 				BF13A0381FC3315D00E6F9B3 /* FakePowerAuthTokenStore.h */,
@@ -950,6 +953,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = BF4DBB921CDF3130008F3A47;
@@ -1029,6 +1033,7 @@
 				BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */,
 				BF20EA8C1EACB17600733D91 /* CXMLNamespaceNode.m in Sources */,
 				BF20EA861EACB17600733D91 /* CXHTMLDocument.m in Sources */,
+				BF00758924939C970019F07A /* PowerAuthSDKProtocolUpgradeTests.m in Sources */,
 				BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */,
 				BF9EED2420372B5C001D8DF8 /* PowerAuthConcurrencyTests.m in Sources */,
 				BF5184B81EBCCA9B0073E018 /* AsyncHelper.m in Sources */,

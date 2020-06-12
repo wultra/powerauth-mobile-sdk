@@ -117,6 +117,11 @@
 - (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge;
 
 /**
+ Returns status of the activation. Compatibility with older test codes.
+*/
+- (PATSActivationStatus*) getActivationStatus:(NSString*)activationId;
+
+/**
  Blocks activation and returns simple status after the operation. You can check whether
  the activation was blocked from the returned object.
  */

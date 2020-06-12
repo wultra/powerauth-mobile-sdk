@@ -1134,14 +1134,12 @@ namespace powerAuth
 					return EC_WrongParam;
 				}
 				// Everything looks fine, we can commit new data.
-				// Keep ctr_byte value from the current counter.
-				cc7::byte ctr_byte = (cc7::byte)(_pd->signatureCounter & 0xFF);
 				_pd->signatureCounterData = ctr_data;
 				_pd->signatureCounter = 0;
 				_pd->flags.waitingForVaultUnlock = 0;
-				// V3.1: Also store ctr_byte and flag that value is valid.
-				_pd->signatureCounterByte = ctr_byte;
-				_pd->flags.hasSignatureCounterByte = 1;
+				// V3.1: Despite the fact that we still have a local counter, it might be still out of the sync.
+				//       So, mark the counter byte as invalid, just like we do for migration from V3 to V3.1.
+				_pd->flags.hasSignatureCounterByte = 0;
 				return EC_Ok;
 			}
 			default:

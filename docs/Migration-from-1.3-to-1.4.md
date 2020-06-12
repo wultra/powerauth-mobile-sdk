@@ -10,6 +10,10 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
 
 - This release is fully compatible with PowerAuth Server version `0.24.x`.
 
+### Important
+
+- Please be aware that PowerAuth mobile SDK `1.4.1` fixed a [serious issue with protocol upgrade](https://github.com/wultra/powerauth-mobile-sdk/issues/302) from `V2.x` to `V3.1`. You should upgrade your application to `1.4.1` and newer. 
+
 ## Android
 
 ### API changes

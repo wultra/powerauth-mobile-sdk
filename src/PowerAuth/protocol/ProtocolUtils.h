@@ -105,7 +105,7 @@ namespace protocol
 								   SignatureFactor factor,
 								   const cc7::ByteRange & ctr_data,
 								   const cc7::ByteRange & data,
-								   bool online);
+								   bool base64_format);
 	
 	/**
 	 Prepares exact data for signature calculation:

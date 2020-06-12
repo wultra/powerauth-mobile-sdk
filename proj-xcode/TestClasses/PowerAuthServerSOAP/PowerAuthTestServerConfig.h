@@ -82,6 +82,15 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
  Default value is @"Testing on " + short device description
  */
 @property (nonatomic, strong, readonly) NSString * userActivationName;
+/**
+ A content of original dictionary used to create this configuration.
+ */
+@property (nonatomic, strong, readonly) NSDictionary * configDictionary;
+
+/**
+ Returns value from `configDictionary` with given key, or `defaultValue` if no such value is available.
+ */
+- (id) configValueForKey:(NSString*)key defaultValue:(id)defaultValue;
 
 /**
  Creates a default configuration for a server, placed at "http://localhost" base domain.

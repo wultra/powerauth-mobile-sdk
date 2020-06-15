@@ -21,7 +21,7 @@
 #import "PowerAuthTestServerConfig.h"
 #import "AsyncHelper.h"
 
-#import "PowerAuth2.h"
+@import PowerAuth2;
 
 /**
  The purpose of `PowerAuthSDKProtocolUpgradeTests` is to test protocol
@@ -246,14 +246,14 @@
 /**
  Validates password on server. Returns YES if password is valid.
  */
-- (BOOL) checkForPassword:(NSString*)password
+- (NSError*) checkForPassword:(NSString*)password
 {
-	BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+	NSError * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PA2TestsOperationTask task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
-			[waiting reportCompletion:@(error == nil)];
+			[waiting reportCompletion:error];
 		}];
 		XCTAssertNotNil(task);
-	}] boolValue];
+	}];
 	return result;
 }
 
@@ -469,14 +469,16 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	NSLog(@"  - act-id   %@", activationId);
 	NSLog(@"=======================================================================");
 	
-	BOOL result = [self checkForPassword:password];
-	XCTAssertFalse(result);
+	NSError * result = [self checkForPassword:password];
+	XCTAssertNotNil(result);
+	XCTAssertTrue([result.domain isEqualToString:PA2ErrorDomain]);
+	XCTAssertTrue(result.code == PA2ErrorCodePendingProtocolUpgrade);
 	
 	PA2ActivationStatus * status = [self fetchActivationStatus];
 	XCTAssertTrue(status.state == PA2ActivationState_Active);
 	
 	result = [self checkForPassword:password];
-	XCTAssertTrue(result);
+	XCTAssertNil(result);
 	
 	status = [self fetchActivationStatus];
 	XCTAssertTrue(status.state == PA2ActivationState_Active);

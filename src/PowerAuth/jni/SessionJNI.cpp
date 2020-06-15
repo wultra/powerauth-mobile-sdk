@@ -745,6 +745,19 @@ CC7_JNI_METHOD(jstring, generateActivationStatusChallenge)
 // ----------------------------------------------------------------------------
 
 //
+// public native boolean hasProtocolUpgradeAvailable();
+//
+CC7_JNI_METHOD(jboolean, hasProtocolUpgradeAvailable)
+{
+	auto session = CC7_THIS_OBJ();
+	if (!session) {
+		CC7_ASSERT(false, "Missing internal handle.");
+		return false;
+	}
+	return (jboolean) session->hasProtocolUpgradeAvailable();
+}
+
+//
 // public native boolean hasPendingProtocolUpgrade();
 //
 CC7_JNI_METHOD(jboolean, hasPendingProtocolUpgrade)

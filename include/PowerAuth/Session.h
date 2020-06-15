@@ -113,7 +113,11 @@ namespace powerAuth
 		 the server has been estabilished. You can sign data in this state.
 		 */
 		bool hasValidActivation() const;
-		
+		/**
+		 Checks if there's a valid activation that requires a protocol upgrade. Method returns false
+		 once the upgrade process is started.
+		 */
+		bool hasProtocolUpgradeAvailable() const;
 		/**
 		 Returns true if the session has a pending protocol upgrade to a newer version.
 		 */

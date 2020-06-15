@@ -564,6 +564,14 @@ public class Session {
     //
 
     /**
+     * Checks if there's a valid activation that requires a protocol upgrade. Returns {@code false} once the
+     * upgrade process is started. The application should fetch the activation's status to do the upgrade.
+     *
+     * @return {@code true} if there's a protocol upgrade required and not started yet.
+     */
+    public native boolean hasProtocolUpgradeAvailable();
+
+    /**
      * @return true if session has pending upgrade to a newer protocol version. Note that some
      *         operations may not be available in this situation.
      */

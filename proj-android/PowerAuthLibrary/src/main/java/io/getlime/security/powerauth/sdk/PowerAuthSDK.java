@@ -1240,8 +1240,10 @@ public class PowerAuthSDK {
         }
 
         // Check protocol upgrade
-        if (mSession.hasPendingProtocolUpgrade() && !allowInUpgrade) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade, "Data signing is temporarily unavailable, due to pending protocol upgrade.");
+        if (mSession.hasPendingProtocolUpgrade() || mSession.hasProtocolUpgradeAvailable()) {
+            if (!allowInUpgrade) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade, "Data signing is temporarily unavailable, due to required or pending protocol upgrade.");
+            }
         }
 
         // Determine authentication factor type

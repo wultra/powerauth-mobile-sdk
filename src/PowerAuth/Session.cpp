@@ -123,6 +123,16 @@ namespace powerAuth
 		return false;
 	}
 	
+	bool Session::hasProtocolUpgradeAvailable() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->protocolVersion() != Version_Latest &&
+					_pd->flags.pendingUpgradeVersion == Version_NA;
+		}
+		return false;
+	}
+
 	bool Session::hasPendingProtocolUpgrade() const
 	{
 		LOCK_GUARD();

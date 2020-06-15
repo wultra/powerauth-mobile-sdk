@@ -47,6 +47,15 @@
 - (BOOL) hasValidActivation;
 
 /**
+ Checks if there's a valid activation that requires a protocol upgrade. Contains NO once the upgrade
+ process is started. The application should fetch the activation's status to do the upgrade.
+ 
+ @return YES if there is available protocol upgrade.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) hasProtocolUpgradeAvailable;
+
+/**
  Checks if there is a pending protocol upgrade.
 
  @return YES if session has a pending upgrade.

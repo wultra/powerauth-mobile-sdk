@@ -34,10 +34,10 @@
 											authentication:(PowerAuthAuthentication*)authentication
 													 error:(NSError**)error
 {
-	if (self.hasPendingProtocolUpgrade) {
+	if (self.hasPendingProtocolUpgrade || self.hasProtocolUpgradeAvailable) {
 		if (!endpoint.isAvailableInProtocolUpgrade) {
 			if (error) {
-				*error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Request is temporarily unavailable, due to pending protocol upgrade.");
+				*error = PA2MakeError(PA2ErrorCodePendingProtocolUpgrade, @"Request is temporarily unavailable, due to required or pending protocol upgrade.");
 			}
 			return nil;
 		}

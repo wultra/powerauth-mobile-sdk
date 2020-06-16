@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 	# General information
 	s.name              = 'PowerAuth2'
-	s.version           = '1.3.2'
+	s.version           = '1.4.1'
 	s.summary           = 'PowerAuth Mobile SDK for iOS'
 	s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
 	s.social_media_url  = 'https://twitter.com/wultra'
@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
 	# Produced files
 	s.source_files          = 'Library/**/*.{h,m}'
 	s.private_header_files  = 'Library/Private/*.h'
-	s.vendored_libraries    = 'Library/libPowerAuthCore.a'
+	s.vendored_libraries    = 'Library/lib*.a'
 	s.requires_arc          = true
 	s.libraries             = 'c++'
 	# Tweaks

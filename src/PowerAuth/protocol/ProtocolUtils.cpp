@@ -381,7 +381,7 @@ namespace protocol
 	}
 	
 	
-	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data, bool online)
+	std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data, bool base64_format)
 	{
 		// Prepare keys into one linear vector
 		std::vector<const cc7::ByteArray*> keys;
@@ -398,7 +398,7 @@ namespace protocol
 		// Pepare byte array for online signature or final string for offline signature.
 		cc7::ByteArray signature_bytes;
 		std::string signature_string;
-		if (online) {
+		if (base64_format) {
 			signature_bytes.reserve(keys.size() * 16);
 		} else {
 			signature_string.reserve(keys.size() * 8 + keys.size() - 1);
@@ -427,7 +427,7 @@ namespace protocol
 				CC7_ASSERT(false, "HMAC_SHA256() calculation failed.");
 				return std::string();
 			}
-			if (online) {
+			if (base64_format) {
 				// For new online signature, just append last 16 bytes of HMAC result.
 				// We'll calculate final signature string later.
 				signature_bytes.append(signature_factor_bytes.byteRange().subRangeFrom(16));
@@ -440,7 +440,7 @@ namespace protocol
 				signature_string.append(signature_factor);
 			}
 		}
-		if (online) {
+		if (base64_format) {
 			// Now calculate a final Base64 string for online signature
 			cc7::Base64_Encode(signature_bytes, 0, signature_string);
 		}

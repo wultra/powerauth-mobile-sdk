@@ -50,9 +50,10 @@ SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
 #
 PLATFORM_SDK1="iphoneos"
 PLATFORM_SDK2="iphonesimulator"
-PLATFORM_ARCHS1="armv7 armv7s arm64"
+PLATFORM_ARCHS1="armv7 armv7s arm64 arm64e"
 PLATFORM_ARCHS2="i386 x86_64"
 OUT_LIBRARY="libPowerAuthCore.a"
+OPENSSL_LIB="${TOP}/../cc7/openssl-lib/apple/libcrypto.a"
 
 # Variables loaded from command line
 VERBOSE=1
@@ -121,6 +122,9 @@ function MAKE_FAT_LIB
 	
 	LOG "Copying final library..."
 	$CP -r "${FAT_LIB_DIR}/${LIB}" "${OUT_DIR}"
+	
+	LOG "Copying libcrypto.a library..."
+	$CP "${OPENSSL_LIB}" "${OUT_DIR}" 
 }
 
 # -----------------------------------------------------------------------------
@@ -300,6 +304,7 @@ function BUILD_SCHEME
 	local FAT_LIB="${OUT_DIR}/${OUT_LIBRARY}"
 	local ALL_ARCHS="${PLATFORM_ARCHS1} ${PLATFORM_ARCHS2}"
 	VALIDATE_FAT_ARCHITECTURES "${FAT_LIB}" "${ALL_ARCHS}"
+	VALIDATE_FAT_ARCHITECTURES "${OPENSSL_LIB}" "${ALL_ARCHS}"
 	
 	# Copy source files...
 	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"

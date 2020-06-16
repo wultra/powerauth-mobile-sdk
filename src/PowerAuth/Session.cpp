@@ -123,6 +123,16 @@ namespace powerAuth
 		return false;
 	}
 	
+	bool Session::hasProtocolUpgradeAvailable() const
+	{
+		LOCK_GUARD();
+		if (hasValidActivation()) {
+			return _pd->protocolVersion() != Version_Latest &&
+					_pd->flags.pendingUpgradeVersion == Version_NA;
+		}
+		return false;
+	}
+
 	bool Session::hasPendingProtocolUpgrade() const
 	{
 		LOCK_GUARD();
@@ -631,7 +641,8 @@ namespace powerAuth
 		const std::string & app_secret = request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationSecret;
 		cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
 		cc7::ByteArray ctr_data = _pd->isV3() ? _pd->signatureCounterData : protocol::SignatureCounterToData(_pd->signatureCounter);
-		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, !request.isOfflineRequest());
+		const bool base64_sig_format = !request.isOfflineRequest() && _pd->isV3();
+		out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, base64_sig_format);
 		if (out.signature.empty()) {
 			CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
 			return EC_Encryption;
@@ -1133,14 +1144,12 @@ namespace powerAuth
 					return EC_WrongParam;
 				}
 				// Everything looks fine, we can commit new data.
-				// Keep ctr_byte value from the current counter.
-				cc7::byte ctr_byte = (cc7::byte)(_pd->signatureCounter & 0xFF);
 				_pd->signatureCounterData = ctr_data;
 				_pd->signatureCounter = 0;
 				_pd->flags.waitingForVaultUnlock = 0;
-				// V3.1: Also store ctr_byte and flag that value is valid.
-				_pd->signatureCounterByte = ctr_byte;
-				_pd->flags.hasSignatureCounterByte = 1;
+				// V3.1: Despite the fact that we still have a local counter, it might be still out of the sync.
+				//       So, mark the counter byte as invalid, just like we do for migration from V3 to V3.1.
+				_pd->flags.hasSignatureCounterByte = 0;
 				return EC_Ok;
 			}
 			default:

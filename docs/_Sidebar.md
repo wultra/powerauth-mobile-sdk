@@ -8,6 +8,8 @@
 **Other Links**
 
 - [SDK home](./Readme.md)
-- [Migration guides](./Readme.md#migration-guides)
+- [Migration Guides](./Readme.md#migration-guides)
+- [Supported Versions](./Supported-Versions.md)
+- [Mobile Runtime Security](./Runtime-Security.md)
 - [License](./Readme.md#license)
 - [Contact](./Readme.md#contact)

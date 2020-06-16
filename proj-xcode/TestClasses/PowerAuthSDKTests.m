@@ -19,7 +19,7 @@
 #import "PowerAuthTestServerConfig.h"
 #import "AsyncHelper.h"
 
-#import "PowerAuth2.h"
+@import PowerAuth2;
 
 /**
  The purpose of `PowerAuthSDKTests` is to run a series of integration tests where the

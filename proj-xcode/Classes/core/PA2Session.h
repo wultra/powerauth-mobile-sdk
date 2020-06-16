@@ -79,6 +79,11 @@
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
 /**
+ Checks if there's a valid activation that requires a protocol upgrade. Contains NO once the upgrade
+ process is started. The application should fetch the activation's status to do the upgrade.
+ */
+@property (nonatomic, assign, readonly) BOOL hasProtocolUpgradeAvailable;
+/**
  Contains YES if the session has pending upgrade to newer protocol version.
  Some operations may be temporarily blocked during the upgrade process.
  */

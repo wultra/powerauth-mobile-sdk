@@ -10,17 +10,26 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
 
 - This release is fully compatible with PowerAuth Server version `0.24.x`.
 
+### Important
+
+- Please be aware that PowerAuth mobile SDK `1.4.1` fixed a [serious issue with protocol upgrade](https://github.com/wultra/powerauth-mobile-sdk/issues/302) from `V2.x` to `V3.1`. You should upgrade your application to `1.4.1` and newer. 
+
 ## Android
 
 ### API changes
 
+- PowerAuth mobile SDK now requires at least Android API level 19 (Android 4.4 KitKat).
+
 - Added a new `PowerAuthActivation` class that unifies an activation creation process. Use new simple `PowerAuthSDK.createActivation(activation, listener)` method to create an activation.
   - This change doesn't break your existing code. We still maintain an old way of the activation creation, but don't hesitate to try this new approach. 
+  
 - The `ActivationStatus.State_OTP_Used` enumeration is now deprecated. Please use `ActivationStatus.State_Pending_Commit` as a replacement.  
 
 ## iOS
 
 ### API changes
+
+- PowerAuth mobile SDK now supports bitcode.
 
 - Added a new `PowerAuthActivation` class that unifies an activation creation process. Use new simple `PowerAuthSDK.createActivation(activation) { .. } ` method to create an activation.
   - This change doesn't break your existing code. We still maintain an old way of the activation creation, but don't hesitate to try this new approach. 

@@ -18,6 +18,10 @@ The changes of cryptography are documented in details in the [powerauth-crypto](
 
 - This release is fully compatible with PowerAuth Server version `0.23.x`.
 
+### Important
+
+- Please be aware that PowerAuth mobile SDK `1.3.4` fixed a [serious issue with protocol upgrade](https://github.com/wultra/powerauth-mobile-sdk/issues/302) from `V2.x` to `V3.1`. You should upgrade your application to `1.3.4` and newer. 
+
 ## Android
 
 ### API changes

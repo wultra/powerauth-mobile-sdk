@@ -91,5 +91,16 @@ publishing {
     }
 }
 
-apply from: 'android-release-aar.gradle'
+// Task to prepare OpenSSL precompiled library
+task prepareOpenSSL(type: Exec) {
+    workingDir '../../cc7'
+    commandLine 'sh', './openssl-build/fetch.sh', 'android'
+}
 
+afterEvaluate {
+    externalNativeBuildCleanDebug.dependsOn prepareOpenSSL
+    externalNativeBuildCleanRelease.dependsOn prepareOpenSSL
+    preBuild.dependsOn prepareOpenSSL
+}
+
+apply from: 'android-release-aar.gradle'

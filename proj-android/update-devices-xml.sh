@@ -13,7 +13,7 @@ DEST_FILE="${DEST_PATH}/${FILE}"
 OPT="${1:-na}"
 if [ $OPT == '-h' ] || [ $OPT == '--help' ]; then
 	echo ""
-	echo "Usage: $(basename $0) [-h|--help]"
+	echo "Usage: $(basename $0) [-h | --help]"
 	echo ""
 	echo "This script will download '${FILE}' resource from a remote "
 	echo "git repository to a local file. It's useful in case that we"

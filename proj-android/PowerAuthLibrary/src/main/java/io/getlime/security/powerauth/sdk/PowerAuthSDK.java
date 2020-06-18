@@ -27,7 +27,6 @@ import android.support.v4.app.FragmentManager;
 
 import com.google.gson.reflect.TypeToken;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
@@ -57,7 +56,8 @@ import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.exception.PowerAuthMissingConfigException;
-import io.getlime.security.powerauth.keychain.PA2Keychain;
+import io.getlime.security.powerauth.keychain.Keychain;
+import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.endpoints.ConfirmRecoveryCodeEndpoint;
@@ -68,7 +68,6 @@ import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.entity.ActivationRecovery;
-import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 import io.getlime.security.powerauth.networking.model.request.ActivationLayer1Request;
 import io.getlime.security.powerauth.networking.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.networking.model.request.ConfirmRecoveryRequestPayload;
@@ -116,8 +115,9 @@ public class PowerAuthSDK {
     private PowerAuthKeychainConfiguration mKeychainConfiguration;
     private HttpClient mClient;
     private ISavePowerAuthStateListener mStateListener;
-    private PA2Keychain mStatusKeychain;
-    private PA2Keychain mBiometryKeychain;
+    private Keychain mStatusKeychain;
+    private Keychain mBiometryKeychain;
+    private Keychain mTokenStoreKeychain;
     private PowerAuthTokenStore mTokenStore;
     private ICallbackDispatcher mCallbackDispatcher;
 
@@ -150,7 +150,8 @@ public class PowerAuthSDK {
             return this;
         }
 
-        public PowerAuthSDK build(@NonNull final Context context) {
+        public PowerAuthSDK build(@NonNull Context context) {
+            final Context appContext = context.getApplicationContext();
             PowerAuthSDK instance = new PowerAuthSDK();
             instance.mConfiguration = mConfiguration;
 
@@ -166,13 +167,14 @@ public class PowerAuthSDK {
                 instance.mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
             instance.mClient = new HttpClient(instance.mClientConfiguration, instance.mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
-            instance.mStatusKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainStatusId());
-            instance.mBiometryKeychain = new PA2Keychain(instance.mKeychainConfiguration.getKeychainBiometryId());
+            instance.mStatusKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainStatusId());
+            instance.mBiometryKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainBiometryId());
+            instance.mTokenStoreKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainTokenStoreId());
 
             if (mStateListener != null) {
                 instance.mStateListener = mStateListener;
             } else {
-                instance.mStateListener = new DefaultSavePowerAuthStateListener(context, instance.mStatusKeychain);
+                instance.mStateListener = new DefaultSavePowerAuthStateListener(instance.mStatusKeychain);
             }
 
             final SessionSetup sessionSetup = new SessionSetup(
@@ -390,8 +392,7 @@ public class PowerAuthSDK {
      */
     public synchronized @NonNull PowerAuthTokenStore getTokenStore() {
         if (mTokenStore == null) {
-            PA2Keychain tokenStoreKeychain = new PA2Keychain(mKeychainConfiguration.getKeychainTokenStoreId());
-            mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, mClient);
+            mTokenStore = new PowerAuthTokenStore(this, mTokenStoreKeychain, mClient);
         }
         return mTokenStore;
     }
@@ -1129,7 +1130,7 @@ public class PowerAuthSDK {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             if (removeSharedBiometryKey && mSession.hasBiometryFactor() && context != null) {
-                mBiometryKeychain.removeDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                mBiometryKeychain.removeDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             }
             BiometricAuthentication.getBiometricKeystore().removeDefaultKey();
         }
@@ -1404,7 +1405,7 @@ public class PowerAuthSDK {
 
         // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
         return mSession.hasBiometryFactor() && keyStore.containsDefaultKey() &&
-                mBiometryKeychain.containsDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                mBiometryKeychain.containsDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
     }
 
     /**
@@ -1541,7 +1542,7 @@ public class PowerAuthSDK {
         if (result == ErrorCode.OK) {
             // Update state after each successful calculations
             saveSerializedState();
-            mBiometryKeychain.removeDataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            mBiometryKeychain.removeDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             BiometricAuthentication.getBiometricKeystore().removeDefaultKey();
         }
         return result == ErrorCode.OK;
@@ -1660,10 +1661,31 @@ public class PowerAuthSDK {
     private ICancelable authenticateUsingBiometry(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final @NonNull IBiometricAuthenticationCallback callback) {
 
         final byte[] biometryKey;
-        if (forceGenerateNewKey) { // new key has to be generated
+        if (forceGenerateNewKey) {
+            // new key has to be generated
             biometryKey = mSession.generateSignatureUnlockKey();
-        } else { // old key should be used, if present
-            biometryKey = mBiometryKeychain.dataForKey(context, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+        } else {
+            // old key should be used, if present
+            biometryKey = mBiometryKeychain.dataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            if (biometryKey == null) {
+                dispatchCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Biometric authentication failed due to missing biometric key."));
+                    }
+                });
+                // Return dummy cancelable object.
+                return new ICancelable() {
+                    @Override
+                    public void cancel() {
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        return true;
+                    }
+                };
+            }
         }
 
         // Build a new authentication request.
@@ -1685,7 +1707,7 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted) {
                 // Store the new key, if a new key was generated
                 if (forceGenerateNewKey) {
-                    mBiometryKeychain.putDataForKey(context, biometryKey, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                    mBiometryKeychain.putDataForKey(biometryKey, mKeychainConfiguration.getKeychainBiometryDefaultKey());
                 }
                 byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyEncrypted);
                 callback.onBiometricDialogSuccess(normalizedEncryptionKey);

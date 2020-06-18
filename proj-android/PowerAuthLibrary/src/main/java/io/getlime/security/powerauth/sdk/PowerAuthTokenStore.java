@@ -27,7 +27,7 @@ import java.util.HashSet;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.keychain.PA2Keychain;
+import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.endpoints.CreateTokenEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveTokenEndpoint;
@@ -41,7 +41,7 @@ import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 
 /**
  * The {@code PowerAuthTokenStore} provides interface for managing access tokens.
- * The class is using {@link PA2Keychain} as underlying storage for received data.
+ * The class is using {@link Keychain} as underlying storage for received data.
  *
  * Note that the whole store's interface is thread safe, but it's not recommended to
  * query for the same token in overlapping asynchronous requests. This usage may lead
@@ -54,9 +54,9 @@ public class PowerAuthTokenStore {
      */
     private final PowerAuthSDK sdk;
     /**
-     * Reference to {@link PA2Keychain} for persistent storage purposes
+     * Reference to {@link Keychain} for persistent storage purposes
      */
-    private final PA2Keychain keychain;
+    private final Keychain keychain;
     /**
      * Reference to @{link HttpClient} for networking purposes
      */
@@ -73,7 +73,7 @@ public class PowerAuthTokenStore {
 
 
     /**
-     * Constructs a new token store with references to parent {@link PowerAuthSDK}, {@link PA2Keychain}
+     * Constructs a new token store with references to parent {@link PowerAuthSDK}, {@link Keychain}
      * as storage and {@link HttpClient} for networking.
      *
      * @param sdk a parent object which created this instance
@@ -82,7 +82,7 @@ public class PowerAuthTokenStore {
      */
     public PowerAuthTokenStore(
             @NonNull PowerAuthSDK sdk,
-            @NonNull PA2Keychain keychain,
+            @NonNull Keychain keychain,
             @NonNull HttpClient httpClient) {
         this.sdk = sdk;
         this.keychain = keychain;
@@ -286,7 +286,7 @@ public class PowerAuthTokenStore {
     public synchronized void removeLocalToken(@NonNull final Context context, @NonNull String tokenName) {
         String identifier = this.getLocalIdentifier(tokenName);
         this.localTokens.remove(identifier);
-        this.keychain.removeDataForKey(context, identifier);
+        this.keychain.removeDataForKey(identifier);
         // Update index
         HashSet<String> allIdentifiers = this.loadTokensIndex(context);
         allIdentifiers.remove(identifier);
@@ -317,7 +317,7 @@ public class PowerAuthTokenStore {
         String identifier = this.getLocalIdentifier(tokenName);
         PowerAuthPrivateTokenData tokenData = this.localTokens.get(identifier);
         if (tokenData == null) {
-            byte[] tokenBytes = this.keychain.dataForKey(context, identifier);
+            byte[] tokenBytes = this.keychain.dataForKey(identifier);
             if (tokenBytes != null) {
                 tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
                 if (tokenData != null) {
@@ -344,7 +344,7 @@ public class PowerAuthTokenStore {
         // Store data into local dictionary
         this.localTokens.put(identifier, tokenData);
         // Store to keychain
-        this.keychain.putDataForKey(context, tokenData.getSerializedData(), identifier);
+        this.keychain.putDataForKey(tokenData.getSerializedData(), identifier);
 
         // And finally, update index
         HashSet<String> index = loadTokensIndex(context);
@@ -402,7 +402,7 @@ public class PowerAuthTokenStore {
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
         final String joinedIdentifiers = TextUtils.join("\n", index.toArray());
-         this.keychain.putStringForKey(context, joinedIdentifiers, this.getIndexKey());
+        this.keychain.putStringForKey(joinedIdentifiers, this.getIndexKey());
     }
 
     /**
@@ -412,7 +412,7 @@ public class PowerAuthTokenStore {
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
-        final String joinedIdentifiers = this.keychain.stringForKey(context, this.getIndexKey());
+        final String joinedIdentifiers = this.keychain.stringForKey(this.getIndexKey());
         if (joinedIdentifiers != null) {
             // Split previously joined identifiers
             String[] tokenIdentifiers = joinedIdentifiers.split("\\n");
@@ -433,8 +433,8 @@ public class PowerAuthTokenStore {
     private void clearTokensIndex(@NonNull final Context context) {
         HashSet<String> identifiers = loadTokensIndex(context);
         for (String id: identifiers) {
-            this.keychain.removeDataForKey(context, id);
+            this.keychain.removeDataForKey(id);
         }
-        this.keychain.removeDataForKey(context, this.getIndexKey());
+        this.keychain.removeDataForKey(this.getIndexKey());
     }
 }

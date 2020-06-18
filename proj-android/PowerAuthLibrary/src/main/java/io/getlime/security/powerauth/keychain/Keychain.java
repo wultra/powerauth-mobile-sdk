@@ -39,7 +39,8 @@ public interface Keychain {
 
     /**
      * Function tests whether the provided key is reserved by the Keychain implementation. Such key
-     * cannot be used to store data to the keychain.
+     * cannot be used to store data to the keychain. If you try to use such key in keychain, then
+     * {@link IllegalArgumentException} is thrown.
      *
      * @param key Key to be evaluated.
      * @return {@code true} in case that the provided key is reserved.

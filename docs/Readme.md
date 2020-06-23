@@ -15,7 +15,7 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 |------------|----------|---------------------|-----------------------------------|
 | `1.4.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
 | `1.3.x`    | `V3.1`   | `0.23+`             | Security & Functionality bugfixes |
-| `1.2.x`    | `V3.0`   | `0.22+`<sup>2</sup> | Security bugfixes                 |
+| `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security bugfixes                 |
 | `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
 | `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
 

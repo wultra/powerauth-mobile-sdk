@@ -58,6 +58,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.exception.PowerAuthMissingConfigException;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainFactory;
+import io.getlime.security.powerauth.keychain.KeychainProtection;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.endpoints.ConfirmRecoveryCodeEndpoint;
@@ -150,47 +151,61 @@ public class PowerAuthSDK {
             return this;
         }
 
-        public PowerAuthSDK build(@NonNull Context context) {
+        /**
+         * Build instance of {@link PowerAuthSDK}.
+         *
+         * @param context Android context
+         * @return Instance of {@link PowerAuthSDK} class.
+         * @throws PowerAuthErrorException In case that {@link KeychainFactory} cannot create a secure enough {@link Keychain}.
+         *                                 This may happen when your {@link PowerAuthKeychainConfiguration} enforces a higher level
+         *                                 of {@link KeychainProtection} than is supported on the current device. You should
+         *                                 check {@link KeychainFactory#getKeychainProtectionSupportedOnDevice(Context)} before you instantiate
+         *                                 {@link PowerAuthSDK} class.
+         */
+        public PowerAuthSDK build(@NonNull Context context) throws PowerAuthErrorException {
             final Context appContext = context.getApplicationContext();
+
+            // Create default configuration objects
+            if (mKeychainConfiguration == null) {
+                mKeychainConfiguration = new PowerAuthKeychainConfiguration();
+            }
+            if (mClientConfiguration == null) {
+                mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
+            }
+
+            // Instantiate PowerAuthSDK and assign configurations
             PowerAuthSDK instance = new PowerAuthSDK();
             instance.mConfiguration = mConfiguration;
+            instance.mKeychainConfiguration = mKeychainConfiguration;
+            instance.mClientConfiguration = mClientConfiguration;
 
-            if (mKeychainConfiguration != null) {
-                instance.mKeychainConfiguration = mKeychainConfiguration;
-            } else {
-                instance.mKeychainConfiguration = new PowerAuthKeychainConfiguration();
-            }
+            // Create internal objects
+            instance.mClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
 
-            if (mClientConfiguration != null) {
-                instance.mClientConfiguration = mClientConfiguration;
-            } else {
-                instance.mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
-            }
-            instance.mClient = new HttpClient(instance.mClientConfiguration, instance.mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
-            instance.mStatusKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainStatusId());
-            instance.mBiometryKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainBiometryId());
-            instance.mTokenStoreKeychain = KeychainFactory.getKeychain(appContext, instance.mKeychainConfiguration.getKeychainTokenStoreId());
+            // Prepare keychains
+            final @KeychainProtection int minRequiredKeychainProtection = mKeychainConfiguration.getMinimalRequiredKeychainProtection();
+            instance.mStatusKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainStatusId(), minRequiredKeychainProtection);
+            instance.mBiometryKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainBiometryId(), minRequiredKeychainProtection);
+            instance.mTokenStoreKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainTokenStoreId(), minRequiredKeychainProtection);
 
+            // Prepare state listener and callback dispatcher
             if (mStateListener != null) {
                 instance.mStateListener = mStateListener;
             } else {
                 instance.mStateListener = new DefaultSavePowerAuthStateListener(instance.mStatusKeychain);
             }
-
-            final SessionSetup sessionSetup = new SessionSetup(
-                    instance.mConfiguration.getAppKey(),
-                    instance.mConfiguration.getAppSecret(),
-                    instance.mConfiguration.getMasterServerPublicKey(),
-                    0,
-                    instance.mConfiguration.getExternalEncryptionKey()
-            );
-
-            instance.mSession = new Session(sessionSetup);
-
-            boolean b = instance.restoreState(instance.mStateListener.serializedState(instance.mConfiguration.getInstanceId()));
-
             instance.mCallbackDispatcher = new DefaultCallbackDispatcher();
 
+            // Prepare low-level Session object.
+            final SessionSetup sessionSetup = new SessionSetup(
+                    mConfiguration.getAppKey(),
+                    mConfiguration.getAppSecret(),
+                    mConfiguration.getMasterServerPublicKey(),
+                    0,
+                    mConfiguration.getExternalEncryptionKey()
+            );
+            instance.mSession = new Session(sessionSetup);
+            boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
             return instance;
         }
 

@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import io.getlime.security.powerauth.keychain.KeychainProtection;
+
 /**
  * Class representing the keychain settings.
  *
@@ -34,6 +36,7 @@ public class PowerAuthKeychainConfiguration {
     private final String customKeychainIdTokenStore;
     private final boolean linkBiometricItemsToCurrentSet;
     private final boolean confirmBiometricAuthentication;
+    private final @KeychainProtection int minimalRequiredKeychainProtection;
 
     /**
      * Default public constructor.
@@ -45,6 +48,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdTokenStore = null;
         this.linkBiometricItemsToCurrentSet = true;
         this.confirmBiometricAuthentication = false;
+        this.minimalRequiredKeychainProtection = KeychainProtection.NONE;
     }
 
     /**
@@ -64,6 +68,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdTokenStore = null;
         this.linkBiometricItemsToCurrentSet = true;
         this.confirmBiometricAuthentication = false;
+        this.minimalRequiredKeychainProtection = KeychainProtection.NONE;
     }
 
     /**
@@ -88,6 +93,7 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdTokenStore = customKeychainIdTokenStore;
         this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
         this.confirmBiometricAuthentication = false;
+        this.minimalRequiredKeychainProtection = KeychainProtection.NONE;
     }
 
     /**
@@ -116,8 +122,40 @@ public class PowerAuthKeychainConfiguration {
         this.customKeychainIdTokenStore = customKeychainIdTokenStore;
         this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
         this.confirmBiometricAuthentication = confirmBiometricAuthentication;
+        this.minimalRequiredKeychainProtection = KeychainProtection.NONE;
     }
 
+    /**
+     * Constructor that allows token store keychain file customization, in case it is required.
+     *
+     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
+     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
+     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
+     * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
+     * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
+     *                                       if fingers are added or removed, or if the user re-enrolls for face.
+     * @param confirmBiometricAuthentication If set, then the user's confirmation will be required after the successful
+     *                                       biometric authentication. Note that this is just hint for the system
+     *                                       and may be ignored.
+     * @param minimalRequiredKeychainProtection {@link KeychainProtection} constant with minimal required keychain
+     *                                          protection level that must be supported on the current device.
+     */
+    public PowerAuthKeychainConfiguration(
+            String customKeychainIdStatus,
+            String customKeychainIdBiometry,
+            String customKeychainKeyBiometryDefault,
+            String customKeychainIdTokenStore,
+            boolean linkBiometricItemsToCurrentSet,
+            boolean confirmBiometricAuthentication,
+            @KeychainProtection int minimalRequiredKeychainProtection) {
+        this.customKeychainIdStatus = customKeychainIdStatus;
+        this.customKeychainIdBiometry = customKeychainIdBiometry;
+        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
+        this.customKeychainIdTokenStore = customKeychainIdTokenStore;
+        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
+        this.confirmBiometricAuthentication = confirmBiometricAuthentication;
+        this.minimalRequiredKeychainProtection = minimalRequiredKeychainProtection;
+    }
     /**
      * Get name of the Keychain file used for storing status information.
      * @return Name of the Keychain file.
@@ -186,5 +224,18 @@ public class PowerAuthKeychainConfiguration {
      */
     public boolean isConfirmBiometricAuthentication() {
         return confirmBiometricAuthentication;
+    }
+
+    /**
+     * Get minimal required keychain protection level that must be supported on the current device.
+     * If the level of protection on the device is insufficient, then you cannot use PowerAuth
+     * mobile SDK on the device. If not configured, then {@link KeychainProtection#NONE} is used
+     * as a default value.
+     *
+     * @return {@link KeychainProtection} constant that represents minimal required protection level
+     * that must be supported on the current device.
+     */
+    public @KeychainProtection int getMinimalRequiredKeychainProtection() {
+        return minimalRequiredKeychainProtection;
     }
 }

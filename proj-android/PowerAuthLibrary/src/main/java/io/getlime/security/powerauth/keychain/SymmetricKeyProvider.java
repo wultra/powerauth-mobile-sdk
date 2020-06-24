@@ -180,7 +180,11 @@ public class SymmetricKeyProvider {
             }
             final SecretKey newSecretKey;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                newSecretKey = generateStrongBoxSecretKey(context);
+                if (isStrongBoxSupported(context)) {
+                    newSecretKey = generateStrongBoxSecretKey(context);
+                } else {
+                    newSecretKey = generateSecretKey();
+                }
             } else {
                 newSecretKey = generateSecretKey();
             }
@@ -218,6 +222,19 @@ public class SymmetricKeyProvider {
     @NonNull
     public String getKeyAlias() {
         return keyAlias;
+    }
+
+    /**
+     * Get {@link KeyInfo} object from the key provided by this key provider.
+     *
+     * @param context Android context.
+     * @return {@link KeyInfo} or {@code null} in case that key or information about key cannot be created.
+     */
+    @Nullable
+    public KeyInfo getSecretKeyInfo(@NonNull Context context) {
+        synchronized (SymmetricKeyProvider.class) {
+            return getKeyInfoForSecretKey(getOrCreateSecretKey(context, false));
+        }
     }
 
     /**
@@ -314,8 +331,7 @@ public class SymmetricKeyProvider {
     }
 
     /**
-     * Generate new StrongBox backed key, if such feature is supported by the device. If the device
-     * has no StrongBox support then creates a regular key.
+     * Generate new StrongBox backed key.
      *
      * @param context Android context object.
      * @return {@link SecretKey} or {@code null} in case of failure.
@@ -323,20 +339,27 @@ public class SymmetricKeyProvider {
     @Nullable
     @RequiresApi(api = Build.VERSION_CODES.P)
     private SecretKey generateStrongBoxSecretKey(@NonNull Context context) {
-        // Secret key is not created yet, or has been just removed. Try to create a new one.
         try {
-            if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)) {
-                final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-                keyGenerator.init(getSecretKeySpecBuilder()
-                        .setIsStrongBoxBacked(true)
-                        .build());
-                return keyGenerator.generateKey();
-            }
+            final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
+            keyGenerator.init(getSecretKeySpecBuilder()
+                    .setIsStrongBoxBacked(true)
+                    .build());
+            return keyGenerator.generateKey();
+
         } catch (StrongBoxUnavailableException | NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             PA2Log.d("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new StrongBox backed key. Exception: " + e.getMessage());
+            return null;
         }
-        // If failed, or strongbox is not available, then try to create a legacy key.
-        return generateSecretKey();
+    }
+
+    /**
+     * Determine whether StrongBox hardware is available on the device.
+     * @param context Android context
+     * @return {@code true} if StrongBox is supported on the device.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    private boolean isStrongBoxSupported(@NonNull Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE);
     }
 
     /**
@@ -345,8 +368,8 @@ public class SymmetricKeyProvider {
      */
     @Nullable
     private SecretKey generateSecretKey() {
-        // Secret key is not created yet, or has been just removed. Try to create a new one.
         try {
+            // Secret key is not created yet, or has been just removed. Try to create a new one.
             final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
             keyGenerator.init(getSecretKeySpecBuilder()
                      .build());

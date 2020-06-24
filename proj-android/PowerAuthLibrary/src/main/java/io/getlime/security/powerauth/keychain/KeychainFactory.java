@@ -18,7 +18,9 @@ package io.getlime.security.powerauth.keychain;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.security.keystore.KeyInfo;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -26,6 +28,10 @@ import android.support.annotation.RequiresApi;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.SecretKey;
+
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
 import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
 import io.getlime.security.powerauth.system.PA2Log;
@@ -44,13 +50,18 @@ public class KeychainFactory {
      *
      * @param context Android context object.
      * @param identifier String with keychain identifier.
+     * @param minimumKeychainProtection Minimum required keychain protection that must be supported on the device to create the keychain.
      * @return Instance of {@link Keychain} object.
+     * @throws PowerAuthErrorException In case that device provides insufficient keychain protection than is required in {@code minimumKeychainProtection} parameter.
      */
     @NonNull
-    public static Keychain getKeychain(@NonNull Context context, @NonNull String identifier) {
+    public static Keychain getKeychain(@NonNull Context context, @NonNull String identifier, @KeychainProtection int minimumKeychainProtection) throws PowerAuthErrorException {
         synchronized (SharedData.class) {
             final SharedData sharedData = getSharedData();
             final Context appContext = context.getApplicationContext();
+            if (minimumKeychainProtection > sharedData.getKeychainProtection(context)) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInsufficientKeychainProtection, "Device doesn't support required level of keychain protection.");
+            }
             Keychain keychain = sharedData.getKeychainMap().get(identifier);
             if (keychain == null) {
                 keychain = createKeychain(appContext, sharedData, identifier);
@@ -62,31 +73,14 @@ public class KeychainFactory {
     }
 
     /**
-     * Disable keychain encryption for the testing only purposes. The configuration change is not applied
-     * to the already created keychains. So, it's recommended to disable the encryption before any keychain
-     * is accessed in the method {@link #getKeychain(Context, String)}.
+     * Get current keychain protection level supported on the device.
      *
-     * <p>
-     * <strong>WARNING:</strong> It's not recommended to use this method in the production application.
-     * Misuse of this method may lead to the PowerAuth activation lost.
-     *
-     * @param disable If {@code true} then encryption will be disabled for all subsequently created keychains.
+     * @param context Android context.
+     * @return {@link KeychainProtection} representing the level of the keychain protection.
      */
-    public static void setKeychainEncryptionDisabled(boolean disable) {
+    public static @KeychainProtection int getKeychainProtectionSupportedOnDevice(@NonNull Context context) {
         synchronized (SharedData.class) {
-            final SharedData sharedData = getSharedData();
-            sharedData.setKeychainEncryptionDisabled(disable);
-            PA2Log.d("KeychainFactory: Keychain encryption is now " + (disable ? "disabled" : "enabled"));
-        }
-    }
-
-    /**
-     * @return {@code true} is the keychain encryption is globally disabled.
-     */
-    public static boolean isKeychainEncryptionDisabled() {
-        synchronized (SharedData.class) {
-            final SharedData sharedData = getSharedData();
-            return sharedData.isKeychainEncryptionDisabled();
+            return getSharedData().getKeychainProtection(context);
         }
     }
 
@@ -108,27 +102,17 @@ public class KeychainFactory {
     @NonNull
     private static Keychain createKeychain(@NonNull Context context, @NonNull SharedData sharedData, @NonNull String identifier) {
         final SharedPreferences preferences = context.getSharedPreferences(identifier, Context.MODE_PRIVATE);
-
-        final boolean isEncryptionDisabled = sharedData.isKeychainEncryptionDisabled();
         final boolean isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
-
+        final int keychainProtection = sharedData.getKeychainProtection(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // If Android "M" and later, then create a secret key provider and try to create an encrypted keychain.
-            final SymmetricKeyProvider masterKeyProvider = sharedData.getMasterEncryptionKeyProvider();
-            if (masterKeyProvider != null) {
-                // If this is the first time that the encrypted keychain is instantiated, then verify its functionality.
-                if (sharedData.shouldVerifyKeystoreEncryption()) {
-                    sharedData.setKeystoreEncryptionVerified(EncryptedKeychain.verifyKeystoreEncryption(context, masterKeyProvider));
-                }
-                if (sharedData.isKeystoreEncryptionTrusted()) {
-                    if (!isEncryptionDisabled) {
-                        final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(context, identifier, masterKeyProvider);
-                        // Return encrypted keychain, if it's already encrypted or import is successful.
-                        if (isAlreadyEncrypted || encryptedKeychain.importFromLegacyKeychain(preferences)) {
-                            return encryptedKeychain;
-                        }
-                    } else {
-                        PA2Log.e("KeychainFactory: " + identifier + ": Encryption is supported, but it's disabled.");
+            if (keychainProtection != KeychainProtection.NONE) {
+                // If Android "M" and later, then create a secret key provider and try to create an encrypted keychain.
+                final SymmetricKeyProvider masterKeyProvider = sharedData.getMasterEncryptionKeyProvider();
+                if (masterKeyProvider != null) {
+                    final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(context, identifier, masterKeyProvider);
+                    // Return encrypted keychain, if it's already encrypted or import is successful.
+                    if (isAlreadyEncrypted || encryptedKeychain.importFromLegacyKeychain(preferences)) {
+                        return encryptedKeychain;
                     }
                 }
             }
@@ -155,11 +139,6 @@ public class KeychainFactory {
         private static final SharedData INSTANCE = new SharedData();
 
         /**
-         * If set to {@code true} then the keychain encryption is disabled globally.
-         */
-        private boolean disableEncryptedKeychain = false;
-
-        /**
          * Map that contains an already instantiated keychain objects.
          */
         private Map<String, Keychain> keychainMap = new HashMap<>();
@@ -170,29 +149,10 @@ public class KeychainFactory {
         private SymmetricKeyProvider masterEncryptionKeyProvider;
 
         /**
-         * If true, then Android Keystore encryption should be verified.
+         * Contains {@code 0} if keychain protection level is not determined yet, or the determined
+         * level of {@link KeychainProtection}.
          */
-        private boolean verifyKeystoreEncryption = true;
-
-        /**
-         * If true, then Android Keystore is already verified and trusted.
-         */
-        private boolean trustedKeystoreEncryption = false;
-
-        /**
-         * Disable keychain encryption.
-         * @param disable If set to {@code true} then the keychain encryption will be disabled.
-         */
-        void setKeychainEncryptionDisabled(boolean disable) {
-            disableEncryptedKeychain = disable;
-        }
-
-        /**
-         * @return {@code true} if the keychain encryption is disabled.
-         */
-        boolean isKeychainEncryptionDisabled() {
-            return disableEncryptedKeychain;
-        }
+        private @KeychainProtection int keychainProtection;
 
         /**
          * @return Map containing an already instantiated keychain objects.
@@ -227,26 +187,44 @@ public class KeychainFactory {
         }
 
         /**
-         * @return {@code true} in case that Android Keystore encryption should be verified for its functionality.
+         * Determine the keychain protection level.
+         *
+         * @param context Android context
+         * @return Constant from {@link KeychainProtection} representing the level of keychain protection.
          */
-        boolean shouldVerifyKeystoreEncryption() {
-            return verifyKeystoreEncryption;
-        }
-
-        /**
-         * Set Android Keystore encryption as verified with verification result.
-         * @param isTrusted {@code true} in case that Android Keystore encryption is trusted.
-         */
-        void setKeystoreEncryptionVerified(boolean isTrusted) {
-            verifyKeystoreEncryption = false;
-            trustedKeystoreEncryption = isTrusted;
-        }
-
-        /**
-         * @return {@code true} in case that Android Keystore encryption is already verified and trusted.
-          */
-        public boolean isKeystoreEncryptionTrusted() {
-            return trustedKeystoreEncryption;
+        @KeychainProtection int getKeychainProtection(@NonNull Context context) {
+            if (keychainProtection == 0) {
+                // Protection level is not determined yet (e.g. value is equal to `0`)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    final SymmetricKeyProvider keyProvider = getMasterEncryptionKeyProvider();
+                    final SecretKey secretKey = keyProvider != null ? keyProvider.getOrCreateSecretKey(context, false) : null;
+                    final KeyInfo secretKeyInfo = keyProvider != null ? keyProvider.getSecretKeyInfo(context) : null;
+                    if (secretKey != null && secretKeyInfo != null) {
+                        if (EncryptedKeychain.verifyKeystoreEncryption(context, keyProvider)) {
+                            // We can trust KeyStore, just determine the level of protection
+                            if (secretKeyInfo.isInsideSecureHardware()) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                                        context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)) {
+                                    // Keychain encryption key is stored in StrongBox.
+                                    keychainProtection = KeychainProtection.STRONGBOX;
+                                } else {
+                                    // Keychain encryption key is stored in the dedicated secure hardware, but is not StrongBox backed.
+                                    keychainProtection = KeychainProtection.HARDWARE;
+                                }
+                            } else {
+                                // Keychain encryption key is not stored in the dedicated secure hardware.
+                                keychainProtection = KeychainProtection.SOFTWARE;
+                            }
+                        }
+                    }
+                }
+                // If keychain protection is still undetermined, then it means that some operation
+                // above failed. So, we have to fallback to NONE.
+                if (keychainProtection == 0) {
+                    keychainProtection = KeychainProtection.NONE;
+                }
+            }
+            return keychainProtection;
         }
     }
 }

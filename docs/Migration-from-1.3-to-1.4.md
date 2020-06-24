@@ -25,7 +25,9 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
   
 - The `ActivationStatus.State_OTP_Used` enumeration is now deprecated. Please use `ActivationStatus.State_Pending_Commit` as a replacement.
 
-- `PA2Keychain` class is no longer available. You can use `KeychainFactory` and `Keychain` interface from the same package as a replacement.
+- _Version 1.4.2+:_ The `PA2Keychain` class is no longer available. You can use `KeychainFactory` and `Keychain` interface from the same package as a replacement. Changes in the underlying keychain implementation has the following impact into your application's code:
+  - `PowerAuthSDK.Builder.build()` method now throws an exception in case that your `PowerAuthKeychainConfiguration` enforces a higher level of keychain protection than it is supported on the device. By default, `KeychainProtection.NONE` is used, so the fallback to no-encryption is allowed and such exception is never thrown.
+  - If you use higher levels of proteciton than `KeychainProtection.NONE`, then your application may use `KeychainFactory.getKeychainProtectionSupportedOnDevice()` to determine whether the device supports enough level of protection. You can display an error message to the user, if the application cannot be used on the device.
 
 ## iOS
 

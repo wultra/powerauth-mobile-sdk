@@ -26,6 +26,7 @@ import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2Err
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeEncryptionError;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInsufficientKeychainProtection;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState;
@@ -50,7 +51,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PA2ErrorCodeBiometryCancel, PA2ErrorCodeOperationCancelled, PA2ErrorCodeInvalidActivationCode,
         PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
         PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade,
-        PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized})
+        PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized,
+        PA2ErrorCodeInsufficientKeychainProtection})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -149,4 +151,10 @@ public @interface PowerAuthErrorCodes {
      * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
      */
     int PA2ErrorCodeBiometryNotRecognized = 20;
+
+    /**
+     * The keychain protection is not sufficient. The exception is thrown in case that device doesn't
+     * support the minimum required level of the keychain protection.
+     */
+    int PA2ErrorCodeInsufficientKeychainProtection = 21;
 }

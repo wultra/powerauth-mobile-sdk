@@ -808,7 +808,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    public ICancelable commitActivation(final @NonNull Context context, FragmentManager fragmentManager, String title, String description, @NonNull final String password, final ICommitActivationWithBiometryListener callback) {
+    public ICancelable commitActivation(final @NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull String title, @NonNull String description, @NonNull final String password, final @NonNull ICommitActivationWithBiometryListener callback) {
         return authenticateUsingBiometry(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
@@ -1422,7 +1422,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
-    public ICancelable addBiometryFactor(@NonNull final Context context, final FragmentManager fragmentManager, final String title, final String description, String password, @NonNull final IAddBiometryFactorListener listener) {
+    public ICancelable addBiometryFactor(@NonNull final Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, @NonNull String password, @NonNull final IAddBiometryFactorListener listener) {
 
         // Initial authentication object, used for vault unlock call on server
         final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
@@ -1639,7 +1639,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    public ICancelable authenticateUsingBiometry(Context context, FragmentManager fragmentManager, String title, String description, final IBiometricAuthenticationCallback callback) {
+    public ICancelable authenticateUsingBiometry(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull String title, @NonNull String description, final @NonNull IBiometricAuthenticationCallback callback) {
         return authenticateUsingBiometry(context, fragmentManager, title, description, false, callback);
     }
 
@@ -1657,7 +1657,7 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    private ICancelable authenticateUsingBiometry(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final IBiometricAuthenticationCallback callback) {
+    private ICancelable authenticateUsingBiometry(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final @NonNull IBiometricAuthenticationCallback callback) {
 
         final byte[] biometryKey;
         if (forceGenerateNewKey) { // new key has to be generated

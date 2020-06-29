@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.text.TextUtils;
 
 import java.util.Arrays;
 
@@ -134,7 +135,7 @@ public class BiometricAuthenticationRequest {
          * @return Instance of {@link BiometricAuthenticationRequest} object.
          */
         public BiometricAuthenticationRequest build() {
-            if (title == null || description == null) {
+            if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description)) {
                 throw new IllegalArgumentException("Title and description is required.");
             }
             if (keyToProtect == null) {

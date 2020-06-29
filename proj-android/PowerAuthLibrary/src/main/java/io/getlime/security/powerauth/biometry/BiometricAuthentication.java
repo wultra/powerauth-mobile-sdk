@@ -154,6 +154,12 @@ public class BiometricAuthentication {
                     PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
                     exception = e;
                     status = BiometricStatus.NOT_AVAILABLE;
+
+                } catch (IllegalArgumentException e) {
+                    // Failed to authenticate due to a wrong configuration.
+                    PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
+                    exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getMessage());
+                    status = BiometricStatus.NOT_AVAILABLE;
                 }
             }
             // Failed to use biometric authentication. At first, we should cleanup the possible stored

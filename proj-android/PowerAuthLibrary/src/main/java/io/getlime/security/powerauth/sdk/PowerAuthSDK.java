@@ -388,7 +388,7 @@ public class PowerAuthSDK {
      *
      * @return Reference to {@code PowerAuthTokenStore} instance.
      */
-    public synchronized PowerAuthTokenStore getTokenStore() {
+    public synchronized @NonNull PowerAuthTokenStore getTokenStore() {
         if (mTokenStore == null) {
             PA2Keychain tokenStoreKeychain = new PA2Keychain(mKeychainConfiguration.getKeychainTokenStoreId());
             mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, mClient);
@@ -406,7 +406,7 @@ public class PowerAuthSDK {
      *
      * @return low level {@link Session} object
      */
-    public Session getSession() {
+    public @NonNull Session getSession() {
         return mSession;
     }
 
@@ -1494,7 +1494,7 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
-    ICancelable addBiometryFactor(@NonNull final Context context, String password, final byte[] encryptedBiometryKey, @NonNull final IAddBiometryFactorListener listener) {
+    ICancelable addBiometryFactor(@NonNull final Context context, @NonNull String password, final @NonNull byte[] encryptedBiometryKey, @NonNull final IAddBiometryFactorListener listener) {
         final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
         authAuthentication.usePossession = true;
         authAuthentication.usePassword = password;
@@ -1593,7 +1593,7 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
-    ICancelable validatePasswordCorrect(@NonNull Context context, String password, @NonNull final IValidatePasswordListener listener) {
+    ICancelable validatePasswordCorrect(@NonNull Context context, @NonNull String password, @NonNull final IValidatePasswordListener listener) {
 
         // Prepare authentication object
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
@@ -1785,7 +1785,7 @@ public class PowerAuthSDK {
      *
      * @param runnable Runnable wrapping a callback that's supposed to be dispatched.
      */
-    void dispatchCallback(Runnable runnable) {
+    void dispatchCallback(@NonNull Runnable runnable) {
         mCallbackDispatcher.dispatchCallback(runnable);
     }
 

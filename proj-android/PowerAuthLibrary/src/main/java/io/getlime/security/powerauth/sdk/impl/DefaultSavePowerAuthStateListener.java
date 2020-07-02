@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -37,12 +36,12 @@ public class DefaultSavePowerAuthStateListener implements ISavePowerAuthStateLis
 
     @Override
     public @Nullable byte[] serializedState(@NonNull String instanceId) {
-        return keychain.dataForKey(instanceId);
+        return keychain.getData(instanceId);
     }
 
     @Override
     public void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState) {
-        keychain.putDataForKey(serializedState, instanceId);
+        keychain.putData(serializedState, instanceId);
     }
 
 }

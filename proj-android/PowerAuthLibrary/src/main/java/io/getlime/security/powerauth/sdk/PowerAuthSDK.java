@@ -1145,7 +1145,7 @@ public class PowerAuthSDK {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             if (removeSharedBiometryKey && mSession.hasBiometryFactor() && context != null) {
-                mBiometryKeychain.removeDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                mBiometryKeychain.remove(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             }
             BiometricAuthentication.getBiometricKeystore().removeDefaultKey();
         }
@@ -1420,7 +1420,7 @@ public class PowerAuthSDK {
 
         // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
         return mSession.hasBiometryFactor() && keyStore.containsDefaultKey() &&
-                mBiometryKeychain.containsDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                mBiometryKeychain.contains(mKeychainConfiguration.getKeychainBiometryDefaultKey());
     }
 
     /**
@@ -1557,7 +1557,7 @@ public class PowerAuthSDK {
         if (result == ErrorCode.OK) {
             // Update state after each successful calculations
             saveSerializedState();
-            mBiometryKeychain.removeDataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            mBiometryKeychain.remove(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             BiometricAuthentication.getBiometricKeystore().removeDefaultKey();
         }
         return result == ErrorCode.OK;
@@ -1681,7 +1681,7 @@ public class PowerAuthSDK {
             biometryKey = mSession.generateSignatureUnlockKey();
         } else {
             // old key should be used, if present
-            biometryKey = mBiometryKeychain.dataForKey(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            biometryKey = mBiometryKeychain.getData(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             if (biometryKey == null) {
                 dispatchCallback(new Runnable() {
                     @Override
@@ -1722,7 +1722,7 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted) {
                 // Store the new key, if a new key was generated
                 if (forceGenerateNewKey) {
-                    mBiometryKeychain.putDataForKey(biometryKey, mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                    mBiometryKeychain.putData(biometryKey, mKeychainConfiguration.getKeychainBiometryDefaultKey());
                 }
                 byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyEncrypted);
                 callback.onBiometricDialogSuccess(normalizedEncryptionKey);

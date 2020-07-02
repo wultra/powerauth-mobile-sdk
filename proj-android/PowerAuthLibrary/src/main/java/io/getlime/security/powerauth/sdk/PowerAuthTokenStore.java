@@ -286,7 +286,7 @@ public class PowerAuthTokenStore {
     public synchronized void removeLocalToken(@NonNull final Context context, @NonNull String tokenName) {
         String identifier = this.getLocalIdentifier(tokenName);
         this.localTokens.remove(identifier);
-        this.keychain.removeDataForKey(identifier);
+        this.keychain.remove(identifier);
         // Update index
         HashSet<String> allIdentifiers = this.loadTokensIndex(context);
         allIdentifiers.remove(identifier);
@@ -317,7 +317,7 @@ public class PowerAuthTokenStore {
         String identifier = this.getLocalIdentifier(tokenName);
         PowerAuthPrivateTokenData tokenData = this.localTokens.get(identifier);
         if (tokenData == null) {
-            byte[] tokenBytes = this.keychain.dataForKey(identifier);
+            byte[] tokenBytes = this.keychain.getData(identifier);
             if (tokenBytes != null) {
                 tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
                 if (tokenData != null) {
@@ -344,7 +344,7 @@ public class PowerAuthTokenStore {
         // Store data into local dictionary
         this.localTokens.put(identifier, tokenData);
         // Store to keychain
-        this.keychain.putDataForKey(tokenData.getSerializedData(), identifier);
+        this.keychain.putData(tokenData.getSerializedData(), identifier);
 
         // And finally, update index
         HashSet<String> index = loadTokensIndex(context);
@@ -402,7 +402,7 @@ public class PowerAuthTokenStore {
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
         final String joinedIdentifiers = TextUtils.join("\n", index.toArray());
-        this.keychain.putStringForKey(joinedIdentifiers, this.getIndexKey());
+        this.keychain.putString(joinedIdentifiers, this.getIndexKey());
     }
 
     /**
@@ -412,7 +412,7 @@ public class PowerAuthTokenStore {
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
-        final String joinedIdentifiers = this.keychain.stringForKey(this.getIndexKey());
+        final String joinedIdentifiers = this.keychain.getString(this.getIndexKey());
         if (joinedIdentifiers != null) {
             // Split previously joined identifiers
             String[] tokenIdentifiers = joinedIdentifiers.split("\\n");
@@ -433,8 +433,8 @@ public class PowerAuthTokenStore {
     private void clearTokensIndex(@NonNull final Context context) {
         HashSet<String> identifiers = loadTokensIndex(context);
         for (String id: identifiers) {
-            this.keychain.removeDataForKey(id);
+            this.keychain.remove(id);
         }
-        this.keychain.removeDataForKey(this.getIndexKey());
+        this.keychain.remove(this.getIndexKey());
     }
 }

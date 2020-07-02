@@ -22,6 +22,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 
+import java.util.Set;
+
 import io.getlime.security.powerauth.keychain.Keychain;
 
 /**
@@ -63,12 +65,13 @@ public class LegacyKeychain implements Keychain {
     // Byte array accessors
 
     @Override
-    public synchronized boolean containsDataForKey(@NonNull String key) {
-        return getValue(key) != null;
+    public synchronized boolean contains(@NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        return getSharedPreferences().contains(key);
     }
 
     @Override
-    public synchronized void removeDataForKey(@NonNull String key) {
+    public synchronized void remove(@NonNull String key) {
         ReservedKeyImpl.failOnReservedKey(key);
         getSharedPreferences()
                 .edit()
@@ -86,8 +89,8 @@ public class LegacyKeychain implements Keychain {
 
     @Nullable
     @Override
-    public synchronized byte[] dataForKey(@NonNull String key) {
-        final String serializedData = getValue(key);
+    public synchronized byte[] getData(@NonNull String key) {
+        final String serializedData = getStringValue(key);
         if (serializedData != null) {
             final byte[] data = Base64.decode(serializedData, Base64.DEFAULT);
             return data.length > 0 ? data : null;
@@ -96,22 +99,98 @@ public class LegacyKeychain implements Keychain {
     }
 
     @Override
-    public synchronized void putDataForKey(@Nullable byte[] data, @NonNull String key) {
+    public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
         final String serializedData = data != null ? Base64.encodeToString(data, Base64.DEFAULT) : null;
-        setValue(key, serializedData);
+        setStringValue(key, serializedData);
     }
 
     // String accessors
 
     @Nullable
     @Override
-    public synchronized String stringForKey(@NonNull String key) {
-        return getValue(key);
+    public synchronized String getString(@NonNull String key) {
+        return getStringValue(key);
+    }
+
+    @NonNull
+    @Override
+    public synchronized String getString(@NonNull String key, @NonNull String defaultValue) {
+        String value = getStringValue(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
-    public synchronized void putStringForKey(@Nullable String string, @NonNull String key) {
-        setValue(key, string);
+    public synchronized void putString(@Nullable String string, @NonNull String key) {
+        setStringValue(key, string);
+    }
+
+    // String Set accessors
+
+    @Nullable
+    @Override
+    public Set<String> getStringSet(@NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        return getSharedPreferences().getStringSet(key, null);
+    }
+
+    @Override
+    public void putStringSet(@Nullable Set<String> stringSet, @NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        getSharedPreferences()
+                .edit()
+                .putStringSet(key, stringSet)
+                .apply();
+    }
+
+    // Boolean accessors
+
+    @Override
+    public synchronized boolean getBoolean(@NonNull String key, boolean defaultValue) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        return getSharedPreferences().getBoolean(key, defaultValue);
+    }
+
+    @Override
+    public synchronized void putBoolean(boolean value, @NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        getSharedPreferences()
+                .edit()
+                .putBoolean(key, value)
+                .apply();
+    }
+
+    // Long accessors
+
+    @Override
+    public synchronized long getLong(@NonNull String key, long defaultValue) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        return getSharedPreferences().getLong(key, defaultValue);
+    }
+
+    @Override
+    public synchronized void putLong(long value, @NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        getSharedPreferences()
+                .edit()
+                .putLong(key, value)
+                .apply();
+    }
+
+    // Float accessors
+
+    @Override
+    public float getFloat(@NonNull String key, float defaultValue) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        return getSharedPreferences().getFloat(key, defaultValue);
+    }
+
+    @Override
+    public void putFloat(float value, @NonNull String key) {
+        ReservedKeyImpl.failOnReservedKey(key);
+        getSharedPreferences()
+                .edit()
+                .putFloat(key, value)
+                .apply();
     }
 
     // Private methods
@@ -129,7 +208,7 @@ public class LegacyKeychain implements Keychain {
      * @param key Key to be used for string retrieval.
      * @return Stored value in case there are some data under given key, null otherwise.
      */
-    private @Nullable String getValue(@NonNull String key) {
+    private @Nullable String getStringValue(@NonNull String key) {
         ReservedKeyImpl.failOnReservedKey(key);
         return getSharedPreferences().getString(key, null);
     }
@@ -140,7 +219,7 @@ public class LegacyKeychain implements Keychain {
      * @param key Key to be used for storing string.
      * @param value String to be stored. If value is null then it's equal to {@code removeDataForKey()}.
      */
-    private void setValue(@NonNull String key, @Nullable String value) {
+    private void setStringValue(@NonNull String key, @Nullable String value) {
         ReservedKeyImpl.failOnReservedKey(key);
         getSharedPreferences()
                 .edit()

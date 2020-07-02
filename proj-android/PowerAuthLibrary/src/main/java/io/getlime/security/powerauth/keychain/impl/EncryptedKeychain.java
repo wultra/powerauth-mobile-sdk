@@ -59,6 +59,10 @@ public class EncryptedKeychain implements Keychain {
      * Secret key provider.
      */
     private final @NonNull SymmetricKeyProvider keyProvider;
+    /**
+     * Encoder that helps with the keychain value serialization and deserialization.
+     */
+    private final @NonNull KeychainValueEncoder valueEncoder;
 
     /**
      * * Default constructor, initialize keychain with given identifier and symmetric key provider.
@@ -71,6 +75,7 @@ public class EncryptedKeychain implements Keychain {
         this.identifier = identifier;
         this.context = context;
         this.keyProvider = secretKeyProvider;
+        this.valueEncoder = new KeychainValueEncoder();
     }
 
     @NonNull
@@ -92,12 +97,12 @@ public class EncryptedKeychain implements Keychain {
     // Byte array accessors
 
     @Override
-    public synchronized boolean containsDataForKey(@NonNull String key) {
-        return getValue(key) != null;
+    public synchronized boolean contains(@NonNull String key) {
+        return getRawValue(key) != null;
     }
 
     @Override
-    public synchronized void removeDataForKey(@NonNull String key) {
+    public synchronized void remove(@NonNull String key) {
         ReservedKeyImpl.failOnReservedKey(key);
         getSharedPreferences()
                 .edit()
@@ -116,31 +121,110 @@ public class EncryptedKeychain implements Keychain {
 
     @Nullable
     @Override
-    public synchronized byte[] dataForKey(@NonNull String key) {
-        return getValue(key);
+    public synchronized byte[] getData(@NonNull String key) {
+        final byte[] encoded = getRawValue(key);
+        if (encoded == null) {
+            return null;
+        }
+        final byte[] decoded = valueEncoder.decodeBytes(encoded);
+        return decoded.length > 0 ? decoded : null;
     }
 
     @Override
-    public synchronized void putDataForKey(@Nullable byte[] data, @NonNull String key) {
-        setValue(key, data);
+    public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
+        setRawValue(key, data != null ? valueEncoder.encode(data) : null);
     }
 
     // String accessors
 
     @Nullable
     @Override
-    public synchronized String stringForKey(@NonNull String key) {
-        final byte[] stringBytes = getValue(key);
-        if (stringBytes == null) {
+    public synchronized String getString(@NonNull String key) {
+        final byte[] encoded = getRawValue(key);
+        if (encoded == null) {
             return null;
         }
-        return new String(stringBytes, Charset.defaultCharset());
+        return valueEncoder.decodeString(encoded);
+    }
+
+    @NonNull
+    @Override
+    public synchronized String getString(@NonNull String key, @NonNull String defaultValue) {
+        final byte[] encoded = getRawValue(key);
+        if (encoded == null) {
+            return defaultValue;
+        }
+        return valueEncoder.decodeString(encoded);
     }
 
     @Override
-    public synchronized void putStringForKey(@Nullable String string, @NonNull String key) {
-        final byte[] stringBytes = string != null ? string.getBytes(Charset.defaultCharset()) : null;
-        setValue(key, stringBytes);
+    public synchronized void putString(@Nullable String string, @NonNull String key) {
+        setRawValue(key, string != null ? valueEncoder.encode(string) : null);
+    }
+
+    // String Set accessors
+
+    @Nullable
+    @Override
+    public synchronized Set<String> getStringSet(@NonNull String key) {
+        final byte[] encoded = getRawValue(key);
+        if (encoded == null) {
+            return null;
+        }
+        return valueEncoder.decodeStringSet(encoded);
+    }
+
+    @Override
+    public synchronized void putStringSet(@Nullable Set<String> stringSet, @NonNull String key) {
+        setRawValue(key, stringSet != null ? valueEncoder.encode(stringSet) : null);
+    }
+
+    // Boolean accessors
+
+    @Override
+    public synchronized boolean getBoolean(@NonNull String key, boolean defaultValue) {
+        final byte[] bytes = getRawValue(key);
+        if (bytes == null) {
+            return defaultValue;
+        }
+        return valueEncoder.decodeBoolean(bytes);
+    }
+
+    @Override
+    public synchronized void putBoolean(boolean value, @NonNull String key) {
+        setRawValue(key, valueEncoder.encode(value));
+    }
+
+    // Long accessors
+
+    @Override
+    public synchronized long getLong(@NonNull String key, long defaultValue) {
+        final byte[] bytes = getRawValue(key);
+        if (bytes == null) {
+            return defaultValue;
+        }
+        return valueEncoder.decodeLong(bytes);
+    }
+
+    @Override
+    public synchronized void putLong(long value, @NonNull String key) {
+        setRawValue(key, valueEncoder.encode(value));
+    }
+
+    // Float accessors
+
+    @Override
+    public float getFloat(@NonNull String key, float defaultValue) {
+        final byte[] bytes = getRawValue(key);
+        if (bytes == null) {
+            return defaultValue;
+        }
+        return valueEncoder.decodeFloat(bytes);
+    }
+
+    @Override
+    public void putFloat(float value, @NonNull String key) {
+        setRawValue(key, valueEncoder.encode(value));
     }
 
     // Import legacy keychain
@@ -226,30 +310,50 @@ public class EncryptedKeychain implements Keychain {
         final Set<String> keysToRemove = new HashSet<>();
         // Iterate over all entries stored in the shared preferences.
         for (final Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
-            if (entry.getValue() instanceof String) {
-                final String string = (String)entry.getValue();
+            final Object value = entry.getValue();
+            final @NonNull byte[] encodedValue;
+            if (value instanceof String) {
+                final String string = (String)value;
                 // Test whether the string is Base64 encoded sequence of bytes
                 final byte[] decodedBytes = Base64.decode(string, Base64.DEFAULT);
-                final byte[] encodedValue;
                 if (Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
-                    // String contains Base64 encoded sequence of bytes. We can encrypt such bytes as is.
-                    encodedValue = decodedBytes;
+                    // String contains Base64 encoded sequence of bytes.
+                    encodedValue = valueEncoder.encode(decodedBytes);
                 } else {
-                    // Non-Base64 encoded string. Just convert string into sequence of bytes.
-                    encodedValue = string.getBytes(Charset.defaultCharset());
+                    // Non-Base64 encoded string. Just encode string as it is.
+                    encodedValue = valueEncoder.encode(string);
                 }
-                final byte[] encryptedValue = AesGcmImpl.encrypt(encodedValue, encryptionKey, identifier);
-                if (encryptedValue == null) {
-                    PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + entry.getKey());
-                    return false;
-                }
-                // Keep encrypted value, encoded to Base64, for later save.
-                encryptedContent.put(entry.getKey(), Base64.encodeToString(encryptedValue, Base64.NO_WRAP));
+            } else if (value instanceof Boolean) {
+                // Boolean value
+                encodedValue = valueEncoder.encode((Boolean)value);
+            } else if (value instanceof Long) {
+                // Long value
+                encodedValue = valueEncoder.encode((Long)value);
+            } else if (value instanceof Float) {
+                // Float value
+                encodedValue = valueEncoder.encode((Float)value);
+            } else if (value instanceof Set<?>) {
+                // Set<String> value.
+                // We can suppress "unchecked" warning, because SharedPreferences doesn't use other
+                // type of set than Set<String>.
+                @SuppressWarnings("unchecked")
+                final Set<String> stringSet = (Set<String>)value;
+                encodedValue = valueEncoder.encode(stringSet);
             } else {
                 // This type of object is not supported by the keychain, so remove it from shared preferences.
                 PA2Log.e("EncryptedKeychain: " + identifier + ": Removing unsupported value from key: " + entry.getKey());
                 keysToRemove.add(entry.getKey());
+                continue;
             }
+
+            // Now encrypt the encoded value
+            final byte[] encryptedValue = AesGcmImpl.encrypt(encodedValue, encryptionKey, identifier);
+            if (encryptedValue == null) {
+                PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + entry.getKey());
+                return false;
+            }
+            // Keep encrypted value, encoded to Base64, for later save.
+            encryptedContent.put(entry.getKey(), Base64.encodeToString(encryptedValue, Base64.NO_WRAP));
         }
 
         // Commit all changes to the underlying shared preferences
@@ -277,13 +381,13 @@ public class EncryptedKeychain implements Keychain {
     }
 
     /**
-     * Return value stored in the shared preferences.
+     * Return encoded raw value bytes stored in the shared preferences.
      *
-     * @param key Key to be used for string retrieval.
-     * @return Stored value in case there are some data under given key, null otherwise.
+     * @param key Key to be used for value retrieval.
+     * @return Encoded raw value in case there are some data under given key, {@code null} otherwise.
      */
     @Nullable
-    private byte[] getValue(@NonNull String key) {
+    private byte[] getRawValue(@NonNull String key) {
         ReservedKeyImpl.failOnReservedKey(key);
         final String encodedValue = getSharedPreferences().getString(key, null);
         if (encodedValue == null) {
@@ -301,12 +405,12 @@ public class EncryptedKeychain implements Keychain {
     }
 
     /**
-     * Put value to the shared preferences.
+     * Put encoded raw value to the shared preferences.
      *
-     * @param key Key to be used for storing string.
-     * @param value String to be stored. If value is null then it's equal to {@code removeDataForKey()}.
+     * @param key Key to be used for storing the encoded raw value.
+     * @param value Encoded raw value to be stored. If value is {@code null} then it's equal to {@link #remove(String)}.
      */
-    private void setValue(@NonNull String key, @Nullable byte[] value) {
+    private void setRawValue(@NonNull String key, @Nullable byte[] value) {
         ReservedKeyImpl.failOnReservedKey(key);
         final SecretKey secretKey = getMasterKey();
         if (secretKey == null) {

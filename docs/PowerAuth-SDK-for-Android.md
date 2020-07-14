@@ -121,7 +121,9 @@ By default, PowerAuth mobile SDK encrypts it's local activation data with the sy
 
 ```java
 try {
-    PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, true, false, KeychainProtection.HARDWARE);
+    PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+            .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE))
+            .build();
     // Apply keychain configuration
     PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
             .keychainConfiguration(keychainConfig)
@@ -870,7 +872,9 @@ By default, the biometry factor-related key is invalidated after the biometry en
 
 ```java
 // Use false for 'linkBiometricItemsToCurrentSet' parameter. 
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, false);
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+            .linkBiometricItemsToCurrentSet(false)
+            .build();
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
         .keychainConfiguration(keychainConfig)
@@ -918,7 +922,9 @@ On Andoid 10+ systems, it's possible to configure `BiometricPrompt` to ask for a
 
 ```java
 // Use true for 'confirmBiometricAuthentication' parameter.
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration(null, null, null, null, true, true);
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+        .confirmBiometricAuthentication(true)
+        .build();
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
         .keychainConfiguration(keychainConfig)

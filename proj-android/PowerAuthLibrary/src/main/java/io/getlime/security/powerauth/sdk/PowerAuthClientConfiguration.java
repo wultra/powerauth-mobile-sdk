@@ -28,46 +28,51 @@ import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
 import io.getlime.security.powerauth.system.PA2Log;
 
 /**
- * Created by miroslavmichalec on 21/10/2016.
- */
-
-/**
- * Class that is used to provide default (shared) RESTful API client configuration.
+ * Class that is used to provide RESTful API client configuration.
  */
 public class PowerAuthClientConfiguration {
 
-    private static final int DEF_CONNECTION_TIMEOUT = 20 * 1000; //ms
-    private static final int DEF_READ_TIMEOUT = 20 * 1000; //ms
-    private static final boolean DEF_ALLOW_UNSECURED_CONNECTION = false;
+    /**
+     * Default value for connection timeout (in ms)
+     */
+    public static final int DEFAULT_CONNECTION_TIMEOUT = 20 * 1000;
+
+    /**
+     * Default value for read timeout (in ms)
+     */
+    public static final int DEFAULT_READ_TIMEOUT = 20 * 1000;
+
+    /**
+     * By default, unsecured connections are not allowed.
+     */
+    public static final boolean DEFAULT_ALLOW_UNSECURED_CONNECTION = false;
 
     /**
      * Property that specifies the default HTTP client connection timeout. The default value is 20.0 (seconds).
      */
-    private int connectionTimeout = DEF_CONNECTION_TIMEOUT;
+    private final int connectionTimeout;
 
     /**
      * Property that specifies the default HTTP client read timeout. The default value is 20.0 (seconds).
      */
-    private int readTimeout = DEF_READ_TIMEOUT;
+    private final int readTimeout;
 
     /**
      * Property that specifies whether it's possible to connect to non-TLS endpoints.
-     *
-     * WARNING
-     *
-     * You should never allow unsecured connections to production-grade servers.
+     * <p>
+     * <b>WARNING:</b> You should never allow unsecured connections to production-grade servers.
      */
-    private boolean allowUnsecuredConnection = DEF_ALLOW_UNSECURED_CONNECTION;
+    private final boolean allowUnsecuredConnection;
 
     /**
      * Property that specifies the SSL validation strategy applied by the client.
      */
-    private PA2ClientValidationStrategy clientValidationStrategy;
+    private final PA2ClientValidationStrategy clientValidationStrategy;
 
     /**
      * Property that specifies the list of request interceptors used by the client before the request is executed.
      */
-    private List<HttpRequestInterceptor> requestInterceptors;
+    private final List<HttpRequestInterceptor> requestInterceptors;
 
     /**
      * @return connection timeout in milliseconds
@@ -84,12 +89,12 @@ public class PowerAuthClientConfiguration {
     }
 
     /**
-     * @return true if unsecured connections are allowed
+     * @return {@code true} if unsecured connections are allowed
      */
     public boolean isUnsecuredConnectionAllowed() { return allowUnsecuredConnection; }
 
     /**
-     * @return Validation strategy
+     * @return {@link PA2ClientValidationStrategy} object that implements TLS validation strategy.
      */
     public PA2ClientValidationStrategy getClientValidationStrategy() {
         return clientValidationStrategy;
@@ -102,13 +107,41 @@ public class PowerAuthClientConfiguration {
         return requestInterceptors;
     }
 
+    /**
+     * Default private constructor. Use {@link Builder} to create a new instance of this class.
+     *
+     * @param connectionTimeout Connection timeout in ms.
+     * @param readTimeout Read timeout in ms.
+     * @param allowUnsecuredConnection Defines whether unsecured connection is allowed.
+     * @param clientValidationStrategy {@link PA2ClientValidationStrategy} object that implements TLS validation strategy.
+     * @param requestInterceptors Array of {@link HttpRequestInterceptor} objects or {@code null} if there's none.
+     */
+    private PowerAuthClientConfiguration(
+            int connectionTimeout,
+            int readTimeout,
+            boolean allowUnsecuredConnection,
+            PA2ClientValidationStrategy clientValidationStrategy,
+            List<HttpRequestInterceptor> requestInterceptors) {
+        this.connectionTimeout = connectionTimeout;
+        this.readTimeout = readTimeout;
+        this.allowUnsecuredConnection = allowUnsecuredConnection;
+        this.clientValidationStrategy = clientValidationStrategy;
+        this.requestInterceptors = requestInterceptors;
+    }
+
+    /**
+     * A builder that collects arguments for {@link PowerAuthClientConfiguration}.
+     */
     public static class Builder {
-        private int connectionTimeout = DEF_CONNECTION_TIMEOUT;
-        private int readTimeout = DEF_READ_TIMEOUT;
-        private boolean allowUnsecuredConnection = DEF_ALLOW_UNSECURED_CONNECTION;
+        private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+        private int readTimeout = DEFAULT_READ_TIMEOUT;
+        private boolean allowUnsecuredConnection = DEFAULT_ALLOW_UNSECURED_CONNECTION;
         private PA2ClientValidationStrategy clientValidationStrategy;
         private ArrayList<HttpRequestInterceptor> requestInterceptors;
 
+        /**
+         * Creates a builder for {@link PowerAuthClientConfiguration}.
+         */
         public Builder() {
         }
 
@@ -170,15 +203,12 @@ public class PowerAuthClientConfiguration {
          * @return Final {@link PowerAuthClientConfiguration} instance.
          */
         public PowerAuthClientConfiguration build() {
-            final PowerAuthClientConfiguration powerAuthClientConfiguration = new PowerAuthClientConfiguration();
-            powerAuthClientConfiguration.connectionTimeout = connectionTimeout;
-            powerAuthClientConfiguration.readTimeout = readTimeout;
-            powerAuthClientConfiguration.allowUnsecuredConnection = allowUnsecuredConnection;
-            powerAuthClientConfiguration.clientValidationStrategy = clientValidationStrategy;
-            if (requestInterceptors != null) {
-                powerAuthClientConfiguration.requestInterceptors = Collections.unmodifiableList(requestInterceptors);
-            }
-            return powerAuthClientConfiguration;
+            return new PowerAuthClientConfiguration(
+                    connectionTimeout,
+                    readTimeout,
+                    allowUnsecuredConnection,
+                    clientValidationStrategy,
+                    requestInterceptors != null ? Collections.unmodifiableList(requestInterceptors) : null);
         }
     }
 }

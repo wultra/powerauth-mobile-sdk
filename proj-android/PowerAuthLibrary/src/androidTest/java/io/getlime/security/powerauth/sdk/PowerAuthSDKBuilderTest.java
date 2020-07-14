@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
@@ -47,11 +63,6 @@ public class PowerAuthSDKBuilderTest {
         assertNotNull(powerAuthSDK);
         assertNotNull(powerAuthSDK.getConfiguration());
 
-        Field clientConfigurationField = powerAuthSDK.getClass().getDeclaredField("mClientConfiguration");
-        clientConfigurationField.setAccessible(true);
-        PowerAuthClientConfiguration powerAuthClientConfiguration = (PowerAuthClientConfiguration) clientConfigurationField.get(powerAuthSDK);
-        assertNotNull(powerAuthClientConfiguration);
-
         Field pa2ClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         pa2ClientField.setAccessible(true);
         HttpClient httpClient = (HttpClient) pa2ClientField.get(powerAuthSDK);
@@ -59,8 +70,6 @@ public class PowerAuthSDKBuilderTest {
 
         PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
-
-        assertEquals(powerAuthClientConfiguration, powerAuthClientConfigurationInClient);
     }
 
     @Test
@@ -74,12 +83,6 @@ public class PowerAuthSDKBuilderTest {
         assertNotNull(powerAuthSDK);
         assertNotNull(powerAuthSDK.getConfiguration());
 
-        Field clientConfigurationField = powerAuthSDK.getClass().getDeclaredField("mClientConfiguration");
-        clientConfigurationField.setAccessible(true);
-        PowerAuthClientConfiguration powerAuthClientConfiguration = (PowerAuthClientConfiguration) clientConfigurationField.get(powerAuthSDK);
-        assertNotNull(powerAuthClientConfiguration);
-        assertEquals(srcClientConfiguration, powerAuthClientConfiguration);
-
         Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
         httpClientField.setAccessible(true);
         HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
@@ -88,7 +91,39 @@ public class PowerAuthSDKBuilderTest {
         PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
         assertEquals(srcClientConfiguration, powerAuthClientConfigurationInClient);
+    }
 
-        assertEquals(powerAuthClientConfiguration, powerAuthClientConfigurationInClient);
+    @Test
+    public void testKeychainConfigurationNull() throws Exception {
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
+                .build(androidContext);
+
+        assertNotNull(powerAuthSDK);
+        assertNotNull(powerAuthSDK.getConfiguration());
+
+        Field keychainConfigurationField = powerAuthSDK.getClass().getDeclaredField("mKeychainConfiguration");
+        keychainConfigurationField.setAccessible(true);
+        PowerAuthKeychainConfiguration keychainConfiguration = (PowerAuthKeychainConfiguration) keychainConfigurationField.get(powerAuthSDK);
+        assertNotNull(keychainConfiguration);
+        assertEquals(PowerAuthKeychainConfiguration.KEYCHAIN_ID_STATUS, keychainConfiguration.getKeychainStatusId());
+    }
+
+    @Test
+    public void testKeychainConfigurationNonNull() throws Exception {
+        PowerAuthKeychainConfiguration srcKeychainConfiguration = new PowerAuthKeychainConfiguration.Builder()
+                .linkBiometricItemsToCurrentSet(false)
+                .build();
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
+                .keychainConfiguration(srcKeychainConfiguration)
+                .build(androidContext);
+
+        assertNotNull(powerAuthSDK);
+        assertNotNull(powerAuthSDK.getConfiguration());
+
+        Field keychainConfigurationField = powerAuthSDK.getClass().getDeclaredField("mKeychainConfiguration");
+        keychainConfigurationField.setAccessible(true);
+        PowerAuthKeychainConfiguration keychainConfiguration = (PowerAuthKeychainConfiguration) keychainConfigurationField.get(powerAuthSDK);
+        assertNotNull(keychainConfiguration);
+        assertEquals(srcKeychainConfiguration, keychainConfiguration);
     }
 }

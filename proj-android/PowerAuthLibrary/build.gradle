@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
-apply from: 'android-release-aar.gradle'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -49,6 +48,7 @@ android {
         implementation "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
         implementation 'com.google.code.gson:gson:2.8.5'
 
+        // testing
         androidTestImplementation 'junit:junit:4.12'
         androidTestImplementation 'com.android.support.test:runner:1.0.2'
     }
@@ -66,42 +66,23 @@ android {
     }
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId project.GROUP_ID
-            artifactId project.ARTIFACT_ID
-            version project.VERSION_NAME
-
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-            artifact(androidSourcesJar)
-            artifact(androidJavadocsJar)
-
-            // http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
-
-                // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-                }
-            }
-
-        }
-    }
-}
-
 // Task to prepare OpenSSL precompiled library
 task prepareOpenSSL(type: Exec) {
     workingDir '../../cc7'
     commandLine 'sh', './openssl-build/fetch.sh', 'android'
 }
 
+// Task to verify release to do not contain debug symbols
+task verifyDebugSymbolsForRelease(type: Exec) {
+    commandLine 'sh', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
+}
+
 afterEvaluate {
     externalNativeBuildCleanDebug.dependsOn prepareOpenSSL
     externalNativeBuildCleanRelease.dependsOn prepareOpenSSL
     preBuild.dependsOn prepareOpenSSL
+    verifyDebugSymbolsForRelease.dependsOn install
+    bintrayUpload.dependsOn verifyDebugSymbolsForRelease
 }
+
+apply from: 'android-release-aar.gradle'

@@ -1,17 +1,16 @@
 package io.getlime.security.powerauth.sdk;
 
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
 
 import io.getlime.security.powerauth.networking.client.HttpClient;
-import io.getlime.security.powerauth.shadow.ShadowDefaultSavePowerAuthStateListener;
-import io.getlime.security.powerauth.shadow.ShadowSession;
 
 import static org.junit.Assert.*;
 
@@ -21,17 +20,16 @@ import static org.junit.Assert.*;
  *
  * @author Tomas Kypta, tomas.kypta@wultra.com
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(shadows = {
-        ShadowSession.class,
-        ShadowDefaultSavePowerAuthStateListener.class
-})
+@RunWith(AndroidJUnit4.class)
 public class PowerAuthSDKBuilderTest {
 
     private PowerAuthConfiguration powerAuthConfiguration;
+    private Context androidContext;
 
     @Before
     public void setUp() {
+        androidContext = InstrumentationRegistry.getInstrumentation().getContext();
+
         PowerAuthConfiguration.Builder builder = new PowerAuthConfiguration.Builder(
                 "com.wultra.android.powerauth.test",
                 "http://wultra.com",
@@ -43,9 +41,8 @@ public class PowerAuthSDKBuilderTest {
 
     @Test
     public void testClientConfigurationNull() throws Exception {
-        PowerAuthSDK.Builder builder = new PowerAuthSDK.Builder(powerAuthConfiguration);
-        PowerAuthSDK powerAuthSDK = builder
-                .build(RuntimeEnvironment.systemContext);
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
+                .build(androidContext);
 
         assertNotNull(powerAuthSDK);
         assertNotNull(powerAuthSDK.getConfiguration());
@@ -70,10 +67,9 @@ public class PowerAuthSDKBuilderTest {
     public void testClientConfigurationNonNull() throws Exception {
         PowerAuthClientConfiguration srcClientConfiguration = new PowerAuthClientConfiguration.Builder()
                 .build();
-        PowerAuthSDK.Builder builder = new PowerAuthSDK.Builder(powerAuthConfiguration);
-        PowerAuthSDK powerAuthSDK = builder
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
                 .clientConfiguration(srcClientConfiguration)
-                .build(RuntimeEnvironment.systemContext);
+                .build(androidContext);
 
         assertNotNull(powerAuthSDK);
         assertNotNull(powerAuthSDK.getConfiguration());

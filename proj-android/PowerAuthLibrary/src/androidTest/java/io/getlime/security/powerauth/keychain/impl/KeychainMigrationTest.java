@@ -25,15 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Set;
-
 import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
-import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
-import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
 
 import static org.junit.Assert.*;
 

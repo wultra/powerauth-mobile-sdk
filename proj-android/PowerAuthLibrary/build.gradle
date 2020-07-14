@@ -1,5 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply from: 'android-release-aar.gradle'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -18,6 +19,8 @@ android {
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -46,8 +49,8 @@ android {
         implementation "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
         implementation 'com.google.code.gson:gson:2.8.5'
 
-        testImplementation 'junit:junit:4.12'
-        testImplementation 'org.robolectric:robolectric:4.3.1'
+        androidTestImplementation 'junit:junit:4.12'
+        androidTestImplementation 'com.android.support.test:runner:1.0.2'
     }
 
     externalNativeBuild {
@@ -102,5 +105,3 @@ afterEvaluate {
     externalNativeBuildCleanRelease.dependsOn prepareOpenSSL
     preBuild.dependsOn prepareOpenSSL
 }
-
-apply from: 'android-release-aar.gradle'

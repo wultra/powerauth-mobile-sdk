@@ -110,43 +110,61 @@ import io.getlime.security.powerauth.util.otp.OtpUtil;
  */
 public class PowerAuthSDK {
 
-    private Session mSession;
-    private PowerAuthConfiguration mConfiguration;
-    private PowerAuthClientConfiguration mClientConfiguration;
-    private PowerAuthKeychainConfiguration mKeychainConfiguration;
-    private HttpClient mClient;
-    private ISavePowerAuthStateListener mStateListener;
-    private Keychain mStatusKeychain;
-    private Keychain mBiometryKeychain;
-    private Keychain mTokenStoreKeychain;
+    private final @NonNull Session mSession;
+    private final @NonNull PowerAuthConfiguration mConfiguration;
+    private final @NonNull PowerAuthKeychainConfiguration mKeychainConfiguration;
+    private final @NonNull HttpClient mClient;
+    private final @NonNull ISavePowerAuthStateListener mStateListener;
+    private final @NonNull Keychain mBiometryKeychain;
+    private final @NonNull Keychain mTokenStoreKeychain;
+    private final @NonNull ICallbackDispatcher mCallbackDispatcher;
     private PowerAuthTokenStore mTokenStore;
-    private ICallbackDispatcher mCallbackDispatcher;
 
     /**
-     * Helper class for building new instances.
+     * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
      */
     public static class Builder {
 
-        private PowerAuthConfiguration mConfiguration;
+        private final @NonNull PowerAuthConfiguration mConfiguration;
         private PowerAuthClientConfiguration mClientConfiguration;
         private PowerAuthKeychainConfiguration mKeychainConfiguration;
         private ISavePowerAuthStateListener mStateListener;
 
-        public Builder(@NonNull PowerAuthConfiguration mConfiguration) {
-            this.mConfiguration = mConfiguration;
+        /**
+         * Creates a builder for {@link PowerAuthSDK}.
+         *
+         * @param configuration {@link PowerAuthConfiguration} object.
+         */
+        public Builder(@NonNull PowerAuthConfiguration configuration) {
+            this.mConfiguration = configuration;
         }
 
-        public Builder clientConfiguration(PowerAuthClientConfiguration configuration) {
+        /**
+         * Set custom configuration for RESTful API client.
+         * @param configuration Configuration for RESTful API client.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder clientConfiguration(PowerAuthClientConfiguration configuration) {
             this.mClientConfiguration = configuration;
             return this;
         }
 
-        public Builder keychainConfiguration(PowerAuthKeychainConfiguration configuration) {
+        /**
+         * Set custom keychain configuration.
+         * @param configuration Configuration for keychain.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder keychainConfiguration(PowerAuthKeychainConfiguration configuration) {
             this.mKeychainConfiguration = configuration;
             return this;
         }
 
-        public Builder stateListener(ISavePowerAuthStateListener stateListener) {
+        /**
+         * Set custom state listener.
+         * @param stateListener State listener that implements {@link ISavePowerAuthStateListener}.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder stateListener(ISavePowerAuthStateListener stateListener) {
             this.mStateListener = stateListener;
             return this;
         }
@@ -156,45 +174,46 @@ public class PowerAuthSDK {
          *
          * @param context Android context
          * @return Instance of {@link PowerAuthSDK} class.
-         * @throws PowerAuthErrorException In case that {@link KeychainFactory} cannot create a secure enough {@link Keychain}.
-         *                                 This may happen when your {@link PowerAuthKeychainConfiguration} enforces a higher level
-         *                                 of {@link KeychainProtection} than is supported on the current device. You should
-         *                                 check {@link KeychainFactory#getKeychainProtectionSupportedOnDevice(Context)} before you instantiate
-         *                                 {@link PowerAuthSDK} class.
+         * @throws PowerAuthErrorException In case that builder cannot create an instance of {@link PowerAuthSDK}. This may happen for a several reasons:
+         *                                 <ul>
+         *                                     <li>
+         *                                         You have provided {@link PowerAuthConfiguration} object with invalid configuration.
+         *                                     </li>
+         *                                     <li>
+         *                                         Your {@link PowerAuthKeychainConfiguration} enforces a higher level
+         *                                         of {@link KeychainProtection} than is supported on the current device. You should
+         *                                         check {@link KeychainFactory#getKeychainProtectionSupportedOnDevice(Context)} before you instantiate
+         *                                         {@link PowerAuthSDK} class.
+         *                                      </li>
+         *                                 </ul>
+         *
          */
         public PowerAuthSDK build(@NonNull Context context) throws PowerAuthErrorException {
             final Context appContext = context.getApplicationContext();
 
+            if (!mConfiguration.validateConfiguration()) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid PowerAuthConfiguration.");
+            }
+
             // Create default configuration objects
             if (mKeychainConfiguration == null) {
-                mKeychainConfiguration = new PowerAuthKeychainConfiguration();
+                mKeychainConfiguration = new PowerAuthKeychainConfiguration.Builder().build();
             }
             if (mClientConfiguration == null) {
                 mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
 
-            // Instantiate PowerAuthSDK and assign configurations
-            PowerAuthSDK instance = new PowerAuthSDK();
-            instance.mConfiguration = mConfiguration;
-            instance.mKeychainConfiguration = mKeychainConfiguration;
-            instance.mClientConfiguration = mClientConfiguration;
-
-            // Create internal objects
-            instance.mClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
+            // Prepare HTTP client
+            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
 
             // Prepare keychains
             final @KeychainProtection int minRequiredKeychainProtection = mKeychainConfiguration.getMinimalRequiredKeychainProtection();
-            instance.mStatusKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainStatusId(), minRequiredKeychainProtection);
-            instance.mBiometryKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainBiometryId(), minRequiredKeychainProtection);
-            instance.mTokenStoreKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainTokenStoreId(), minRequiredKeychainProtection);
+            final Keychain statusKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainStatusId(), minRequiredKeychainProtection);
+            final Keychain biometryKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainBiometryId(), minRequiredKeychainProtection);
+            final Keychain tokenStoreKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainTokenStoreId(), minRequiredKeychainProtection);
 
             // Prepare state listener and callback dispatcher
-            if (mStateListener != null) {
-                instance.mStateListener = mStateListener;
-            } else {
-                instance.mStateListener = new DefaultSavePowerAuthStateListener(instance.mStatusKeychain);
-            }
-            instance.mCallbackDispatcher = new DefaultCallbackDispatcher();
+            final ISavePowerAuthStateListener stateListener = mStateListener != null ? mStateListener : new DefaultSavePowerAuthStateListener(statusKeychain);
 
             // Prepare low-level Session object.
             final SessionSetup sessionSetup = new SessionSetup(
@@ -204,14 +223,51 @@ public class PowerAuthSDK {
                     0,
                     mConfiguration.getExternalEncryptionKey()
             );
-            instance.mSession = new Session(sessionSetup);
+            final Session session = new Session(sessionSetup);
+
+            // Create a final PowerAuthSDK instance
+            final PowerAuthSDK instance = new PowerAuthSDK(
+                    session,
+                    mConfiguration,
+                    mKeychainConfiguration,
+                    httpClient,
+                    stateListener,
+                    biometryKeychain,
+                    tokenStoreKeychain);
+
+            // Restore state of this SDK instance.
             boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
             return instance;
         }
-
     }
 
-    private PowerAuthSDK() {
+    /**
+     * Private class constructor. Use {@link Builder} to create an instance of this class.
+     *
+     * @param session                   Low-level {@link Session} instance.
+     * @param configuration             Main {@link PowerAuthConfiguration}.
+     * @param keychainConfiguration     Keychain configuration.
+     * @param client                    HTTP client implementation.
+     * @param stateListener             State listener.
+     * @param biometryKeychain          Keychain that store biometry-related key.
+     * @param tokenStoreKeychain        Keychain that store tokens.
+     */
+    private PowerAuthSDK(
+            @NonNull Session session,
+            @NonNull PowerAuthConfiguration configuration,
+            @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
+            @NonNull HttpClient client,
+            @NonNull ISavePowerAuthStateListener stateListener,
+            @NonNull Keychain biometryKeychain,
+            @NonNull Keychain tokenStoreKeychain) {
+        this.mSession = session;
+        this.mConfiguration = configuration;
+        this.mKeychainConfiguration = keychainConfiguration;
+        this.mClient = client;
+        this.mStateListener = stateListener;
+        this.mBiometryKeychain = biometryKeychain;
+        this.mTokenStoreKeychain = tokenStoreKeychain;
+        this.mCallbackDispatcher = new DefaultCallbackDispatcher();
     }
 
     /**
@@ -261,7 +317,7 @@ public class PowerAuthSDK {
      */
     private void checkForValidSetup() {
         // Check for the session setup
-        if (mSession == null || !mSession.hasValidSetup()) {
+        if (!mSession.hasValidSetup()) {
             throw new PowerAuthMissingConfigException("Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer.");
         }
     }
@@ -523,8 +579,9 @@ public class PowerAuthSDK {
      * can't be more used after this call.
      */
     public void destroy() {
+        // After this call, Session.hasValidSetup() no longer return true, because handle is
+        // no longer set to a valid C++ Session instance.
         mSession.destroy();
-        mSession = null;
     }
 
     /**

@@ -100,7 +100,7 @@ public class LegacyKeychain implements Keychain {
 
     @Override
     public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
-        final String serializedData = data != null ? Base64.encodeToString(data, Base64.DEFAULT) : null;
+        final String serializedData = (data != null && data.length > 0) ? Base64.encodeToString(data, Base64.DEFAULT) : null;
         setStringValue(key, serializedData);
     }
 

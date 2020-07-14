@@ -132,7 +132,7 @@ public class EncryptedKeychain implements Keychain {
 
     @Override
     public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
-        setRawValue(key, data != null ? valueEncoder.encode(data) : null);
+        setRawValue(key, (data != null && data.length > 0) ? valueEncoder.encode(data) : null);
     }
 
     // String accessors
@@ -316,7 +316,7 @@ public class EncryptedKeychain implements Keychain {
                 final String string = (String)value;
                 // Test whether the string is Base64 encoded sequence of bytes
                 final byte[] decodedBytes = Base64.decode(string, Base64.DEFAULT);
-                if (Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
+                if (string.length() > 0 && Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
                     // String contains Base64 encoded sequence of bytes.
                     encodedValue = valueEncoder.encode(decodedBytes);
                 } else {

@@ -314,9 +314,16 @@ public class EncryptedKeychain implements Keychain {
             final @NonNull byte[] encodedValue;
             if (value instanceof String) {
                 final String string = (String)value;
+                if (string.isEmpty()) {
+                    // It's impossible to determine whether the stored value was string or Base64
+                    // encoded data. The most safe way to handle this situation is to remove such
+                    // value from the keychain.
+                    keysToRemove.add(entry.getKey());
+                    continue;
+                }
                 // Test whether the string is Base64 encoded sequence of bytes
                 final byte[] decodedBytes = Base64.decode(string, Base64.DEFAULT);
-                if (string.length() > 0 && Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
+                if (Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
                     // String contains Base64 encoded sequence of bytes.
                     encodedValue = valueEncoder.encode(decodedBytes);
                 } else {

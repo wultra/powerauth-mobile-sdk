@@ -66,12 +66,16 @@ public class BaseKeychainTest {
         keychain.putLong(-303, "test.negativeLong");
     }
 
-    public void testFilledValues(@NonNull Keychain keychain) throws Exception {
+    public void testFilledValues(@NonNull Keychain keychain, boolean emptyStringIsNull) throws Exception {
         assertTrue(keychain.getBoolean("test.true", false));
         assertFalse(keychain.getBoolean("test.false", true));
         assertNull(keychain.getData("test.data_Empty"));
         assertArrayEquals(data_NotEmpty, keychain.getData("test.data_NotEmpty"));
-        assertEquals(string_Empty, keychain.getString("test.string_Empty", string_NotEmpty));
+        if (emptyStringIsNull) {
+            assertNull(keychain.getString("test.string_Empty"));
+        } else {
+            assertEquals(string_Empty, keychain.getString("test.string_Empty", string_NotEmpty));
+        }
         assertEquals(string_NotEmpty, keychain.getString("test.string_NotEmpty", string_Empty));
         final Set<String> emptySet = keychain.getStringSet("test.set_Empty");
         assertNotNull(emptySet);

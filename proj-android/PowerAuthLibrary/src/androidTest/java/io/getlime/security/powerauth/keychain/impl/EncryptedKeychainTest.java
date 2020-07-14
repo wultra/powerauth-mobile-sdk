@@ -69,7 +69,7 @@ public class EncryptedKeychainTest extends BaseKeychainTest {
         // Do not run this test, in case that device doesn't support enough protection level.
         if (currentProtectionLevel > KeychainProtection.NONE) {
             fillTestValues(keychain);
-            testFilledValues(keychain);
+            testFilledValues(keychain, false);
             testDefaultValues(keychain);
         }
     }

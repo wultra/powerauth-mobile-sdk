@@ -88,7 +88,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
         legacyKeychain.removeAll();
 
         fillTestValues(legacyKeychain);
-        testFilledValues(legacyKeychain);
+        testFilledValues(legacyKeychain, false);
 
         // Now try to migrate the keychain
         assertFalse(EncryptedKeychain.isEncryptedContentInSharedPreferences(backingSharedPreferences));
@@ -97,7 +97,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
         assertTrue(symmetricKeyProvider.containsSecretKey());
         assertTrue(EncryptedKeychain.isEncryptedContentInSharedPreferences(backingSharedPreferences));
 
-        testFilledValues(encryptedKeychain);
+        testFilledValues(encryptedKeychain, true);  // Empty string is treated as null after migration.
     }
 
 }

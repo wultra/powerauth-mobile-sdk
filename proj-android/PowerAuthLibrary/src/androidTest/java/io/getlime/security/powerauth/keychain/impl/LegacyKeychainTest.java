@@ -48,8 +48,6 @@ public class LegacyKeychainTest extends BaseKeychainTest {
 
     @Test
     public void testKeychainUsage() throws Exception {
-        fillTestValues(keychain);
-        testFilledValues(keychain, false);
-        testDefaultValues(keychain);
+        runAllStandardTests(keychain);
     }
 }

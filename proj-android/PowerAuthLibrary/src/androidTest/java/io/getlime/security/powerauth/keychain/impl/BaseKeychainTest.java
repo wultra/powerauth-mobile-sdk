@@ -31,24 +31,36 @@ public abstract class BaseKeychainTest {
     // Test data
 
     public static final byte[] TEST_DATA_EMPTY = new byte[0];
-    public static final byte[] TEST_DATA_NOT_EMPTY = new byte[] { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd' , '!' };
+    public static final byte[] TEST_DATA_NOT_EMPTY_1 = new byte[] { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd' , '!' };
+    public static final byte[] TEST_DATA_NOT_EMPTY_2 = new byte[] { 'n', 'b', 'u', 's', 'r', '1', '2', '3' };
     public static final String TEST_STRING_EMPTY = "";
-    public static final String TEST_STRING_NOT_EMPTY = "Hello world!";
+    public static final String TEST_STRING_NOT_EMPTY_1 = "Hello world!";
+    public static final String TEST_STRING_NOT_EMPTY_2 = "Just hello...";
+
     public static final Set<String> TEST_SET_EMPTY = new HashSet<>();
-    public static final Set<String> TEST_SET_NOT_EMPTY = new HashSet<>(Arrays.asList("This", "is", "test", "set", "wultra.com"));
+    public static final Set<String> TEST_SET_NOT_EMPTY_1 = new HashSet<>(Arrays.asList("This", "is", "test", "set", "wultra.com"));
+    public static final Set<String> TEST_SET_NOT_EMPTY_2 = new HashSet<>(Arrays.asList("hash", "set"));
 
     public void setupTestData() {
+    }
+
+    public void runAllStandardTests(@NonNull Keychain keychain) throws Exception {
+        fillTestValues(keychain);
+        testFilledValues(keychain, false);
+        testDefaultValues(keychain);
+        testNullValueToRemoveKey(keychain);
+        testUpdateData(keychain);
     }
 
     public void fillTestValues(@NonNull Keychain keychain) throws Exception {
         keychain.putBoolean(true, "test.true");
         keychain.putBoolean(false, "test.false");
         keychain.putData(TEST_DATA_EMPTY, "test.data_Empty");
-        keychain.putData(TEST_DATA_NOT_EMPTY, "test.data_NotEmpty");
+        keychain.putData(TEST_DATA_NOT_EMPTY_1, "test.data_NotEmpty");
         keychain.putString(TEST_STRING_EMPTY, "test.string_Empty");
-        keychain.putString(TEST_STRING_NOT_EMPTY, "test.string_NotEmpty");
+        keychain.putString(TEST_STRING_NOT_EMPTY_1, "test.string_NotEmpty");
         keychain.putStringSet(TEST_SET_EMPTY, "test.set_Empty");
-        keychain.putStringSet(TEST_SET_NOT_EMPTY, "test.set_NotEmpty");
+        keychain.putStringSet(TEST_SET_NOT_EMPTY_1, "test.set_NotEmpty");
         keychain.putFloat(0.f, "test.zeroFloat");
         keychain.putFloat(-99.f, "test.negativeFloat");
         keychain.putFloat( 3.14159f, "test.positiveFloat");
@@ -61,19 +73,19 @@ public abstract class BaseKeychainTest {
         assertTrue(keychain.getBoolean("test.true", false));
         assertFalse(keychain.getBoolean("test.false", true));
         assertNull(keychain.getData("test.data_Empty"));
-        assertArrayEquals(TEST_DATA_NOT_EMPTY, keychain.getData("test.data_NotEmpty"));
+        assertArrayEquals(TEST_DATA_NOT_EMPTY_1, keychain.getData("test.data_NotEmpty"));
         if (emptyStringIsNull) {
             assertNull(keychain.getString("test.string_Empty"));
         } else {
-            assertEquals(TEST_STRING_EMPTY, keychain.getString("test.string_Empty", TEST_STRING_NOT_EMPTY));
+            assertEquals(TEST_STRING_EMPTY, keychain.getString("test.string_Empty", TEST_STRING_NOT_EMPTY_1));
         }
-        assertEquals(TEST_STRING_NOT_EMPTY, keychain.getString("test.string_NotEmpty", TEST_STRING_EMPTY));
+        assertEquals(TEST_STRING_NOT_EMPTY_1, keychain.getString("test.string_NotEmpty", TEST_STRING_EMPTY));
         final Set<String> emptySet = keychain.getStringSet("test.set_Empty");
         assertNotNull(emptySet);
         assertEquals(0, emptySet.size());
         final Set<String> notEmptySet = keychain.getStringSet("test.set_NotEmpty");
         assertNotNull(notEmptySet);
-        assertEquals(TEST_SET_NOT_EMPTY.size(), notEmptySet.size());
+        assertEquals(TEST_SET_NOT_EMPTY_1.size(), notEmptySet.size());
         assertTrue(notEmptySet.contains("This"));
         assertTrue(notEmptySet.contains("is"));
         assertTrue(notEmptySet.contains("test"));
@@ -95,5 +107,40 @@ public abstract class BaseKeychainTest {
         assertNull(keychain.getData("test.unknownKey"));
         assertNull(keychain.getString("test.unknownKey"));
         assertNull(keychain.getStringSet("test.unknownKey"));
+    }
+
+    public void testNullValueToRemoveKey(@NonNull Keychain keychain) throws Exception {
+        fillTestValues(keychain);
+        keychain.putString(null, "test.string_NotEmpty");
+        assertFalse(keychain.contains("test.string_NotEmpty"));
+        keychain.putData(null, "test.data_NotEmpty");
+        assertFalse(keychain.contains("test.data_NotEmpty"));
+        keychain.putStringSet(null, "test.set_NotEmpty");
+        assertFalse(keychain.contains("test.set_NotEmpty"));
+    }
+
+    public void testUpdateData(@NonNull Keychain keychain) throws Exception {
+        fillTestValues(keychain);
+
+        keychain.putBoolean(false, "test.true");
+        keychain.putData(TEST_DATA_NOT_EMPTY_2, "test.data_NotEmpty");
+        keychain.putString(TEST_STRING_NOT_EMPTY_2, "test.string_NotEmpty");
+        keychain.putStringSet(TEST_SET_NOT_EMPTY_2, "test.set_NotEmpty");
+        keychain.putFloat(1.f, "test.zeroFloat");
+        keychain.putLong(1, "test.zeroLong");
+
+        assertFalse(keychain.getBoolean("test.true", true));
+        assertArrayEquals(TEST_DATA_NOT_EMPTY_2, keychain.getData("test.data_NotEmpty"));
+        assertEquals(TEST_STRING_NOT_EMPTY_2, keychain.getString("test.string_NotEmpty"));
+        assertEquals(1.f, keychain.getFloat("test.zeroFloat", 0.f), 0.0);
+        assertEquals(1, keychain.getLong("test.zeroLong", 0));
+        final Set<String> receivedSet = keychain.getStringSet("test.set_NotEmpty");
+        assertNotNull(receivedSet);
+        assertTrue(receivedSet.contains("hash"));
+        assertTrue(receivedSet.contains("set"));
+        assertFalse(receivedSet.contains("This"));
+        assertFalse(receivedSet.contains("is"));
+        assertFalse(receivedSet.contains("test"));
+        assertFalse(receivedSet.contains("wultra.com"));
     }
 }

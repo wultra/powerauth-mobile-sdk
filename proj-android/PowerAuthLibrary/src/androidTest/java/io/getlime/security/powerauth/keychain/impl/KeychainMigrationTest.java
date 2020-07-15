@@ -37,8 +37,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
     private Context androidContext;
     private SymmetricKeyProvider symmetricKeyProvider;
     private SharedPreferences backingSharedPreferences;
-    private @KeychainProtection
-    int currentProtectionLevel;
+    private @KeychainProtection int currentProtectionLevel;
 
     private static final String KEYCHAIN_NAME = "com.wultra.test.migrationTest.keychainId";
 

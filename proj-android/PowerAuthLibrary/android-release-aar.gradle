@@ -20,7 +20,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 
 ext {
     bintrayRepo = "PowerAuth"
-    bintrayName = project.GROUP_ID
+    bintrayPkg = project.ARTIFACT_ID
     libraryName = project.ARTIFACT_ID
 
     publishedGroupId = project.GROUP_ID
@@ -29,7 +29,8 @@ ext {
 
     libraryDescription = "Android SDK for PowerAuth Protocol"
     siteUrl = "https://www.powerauth.com"
-    gitUrl = "https://github.com/lime-company/powerauth-mobile-sdk.git"
+    gitUrl = "https://github.com/wultra/powerauth-mobile-sdk.git"
+    issuesUrl = "https://github.com/wultra/powerauth-mobile-sdk/issues"
     developerId = "wultra"
     developerName = "Wultra s.r.o."
     developerEmail = "support@wultra.com"
@@ -73,7 +74,6 @@ install {
                     connection gitUrl
                     developerConnection gitUrl
                     url siteUrl
-
                 }
             }
         }
@@ -103,10 +103,11 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = bintrayRepo
-        name = bintrayName
+        name = bintrayPkg
         userOrg = properties.getProperty("bintray.userOrg")
         desc = libraryDescription
         websiteUrl = siteUrl
+        issueTrackerUrl = issuesUrl
         vcsUrl = gitUrl
         licenses = allLicenses
         dryRun = false
@@ -115,6 +116,7 @@ bintray {
         override = false
         version {
             desc = libraryDescription
+            vcsTag = libraryVersion
             gpg {
                 sign = false //Determines whether to GPG sign the files. The default is false
                 passphrase = properties.getProperty("bintray.gpg.password")

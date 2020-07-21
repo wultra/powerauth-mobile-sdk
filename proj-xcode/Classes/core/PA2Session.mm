@@ -109,6 +109,11 @@ using namespace io::getlime::powerAuth;
 	return _session->hasValidActivation();
 }
 
+- (BOOL) hasProtocolUpgradeAvailable
+{
+	return _session->hasProtocolUpgradeAvailable();
+}
+
 - (BOOL) hasPendingProtocolUpgrade
 {
 	return _session->hasPendingProtocolUpgrade();

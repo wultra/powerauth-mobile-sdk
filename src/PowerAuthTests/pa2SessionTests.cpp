@@ -1051,7 +1051,7 @@ namespace powerAuthTests
 				std::string uriId  = "/vault/unlock";
 				SignatureFactor factor = SF_Possession_Knowledge;
 				//
-				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange(), false);
+				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange(), true);
 				ccstAssertTrue(expected_signature == sig["pa_signature"]);
 				// encrypted vault key
 				cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
@@ -1129,7 +1129,7 @@ namespace powerAuthTests
 			ccstAssertEqual(s1.protocolVersion(), Version_V3);
 			
 			// Try low level function. We have to test whether the counter has been
-			// moved to the ctr_byte.
+			// ignored and not moved to the ctr_byte.
 			protocol::PersistentData pd;
 			utils::DataReader data_reader(v5_data);
 			data_reader.openVersion('P', 'A');	// Open version
@@ -1137,8 +1137,7 @@ namespace powerAuthTests
 			
 			auto b_result = protocol::DeserializePersistentData(pd, data_reader);
 			ccstAssertTrue(b_result);
-			ccstAssertEqual(pd.signatureCounterByte, (522 & 0xFF));
-			ccstAssertEqual(pd.flags.hasSignatureCounterByte, 1);
+			ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
 		}
 		
 		void testPersistentDataUpgradeFromV3ToV5()
@@ -1308,7 +1307,7 @@ namespace powerAuthTests
 			const SignatureFactor	factor,
 			const cc7::U64			counter,
 		 	const cc7::ByteRange &	counter_data,
-		 	const bool				is_offline
+		 	const bool				is_decimal_format
 		)
 		{
 			// Normalize data
@@ -1357,7 +1356,7 @@ namespace powerAuthTests
 				}
 				cc7::ByteArray signatureLong = crypto::HMAC_SHA256(cc7::MakeRange(sigData),  derivedKey);
 				ccstAssertTrue(signatureLong.size() >= 4);
-				if (is_offline) {
+				if (is_decimal_format) {
 					// Old V2 & V3 signature version (now used only for offline signatures)
 					size_t offset = signatureLong.size() - 4;
 					const cc7::byte * signatureBytes = (const cc7::byte *)signatureLong.data();
@@ -1379,7 +1378,7 @@ namespace powerAuthTests
 					result_bytes.append(signatureLong.byteRange().subRangeFrom(16));
 				}
 			}
-			if (!is_offline) {
+			if (!is_decimal_format) {
 				// Finalize V3.1 online signature
 				cc7::Base64_Encode(result_bytes, 0, result_string);
 			}

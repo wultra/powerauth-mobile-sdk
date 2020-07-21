@@ -1,2 +1,2 @@
 #!/bin/sh
-./gradlew clean build publishToMavenLocal
+./gradlew clean assembleRelease install

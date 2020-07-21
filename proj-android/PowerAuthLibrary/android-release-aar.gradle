@@ -1,86 +1,126 @@
-apply plugin: 'maven'
-apply plugin: 'signing'
+/*
+ * Copyright 2020 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
 
-def groupId = project.GROUP_ID
-def artifactId = project.ARTIFACT_ID
-def version = project.VERSION_NAME
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
 
-def localReleaseDest = "${buildDir}/release/${version}"
 
-task androidJavadocs(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    // options.addStringOption('Xdoclint:none', '-quiet')
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    // adds libraries to classpath
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.getJavaCompileProvider().get().classpath
-        }
-    }
+ext {
+    bintrayRepo = "PowerAuth"
+    bintrayPkg = project.ARTIFACT_ID
+    libraryName = project.ARTIFACT_ID
+
+    publishedGroupId = project.GROUP_ID
+    artifact = project.ARTIFACT_ID
+    libraryVersion = project.VERSION_NAME
+
+    libraryDescription = "Android SDK for PowerAuth Protocol"
+    siteUrl = "https://www.powerauth.com"
+    gitUrl = "https://github.com/wultra/powerauth-mobile-sdk.git"
+    issuesUrl = "https://github.com/wultra/powerauth-mobile-sdk/issues"
+    developerId = "wultra"
+    developerName = "Wultra s.r.o."
+    developerEmail = "support@wultra.com"
+    licenseName = "Apache License Software License, Version 2.0"
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
 }
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-    classifier = 'javadoc'
-    from androidJavadocs.destinationDir
-}
+group = publishedGroupId
+version = libraryVersion
 
-task androidSourcesJar(type: Jar) {
-	classifier = 'sources'
-	from android.sourceSets.main.java.srcDirs
-}
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                groupId publishedGroupId
+                artifactId artifact
 
-uploadArchives {
-	repositories.mavenDeployer {
-		pom.groupId = groupId
-		pom.artifactId = artifactId
-		pom.version = version
-		// Add other pom properties here if you want (developer details / licenses)
-		pom.project {
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                // Add your description here
+                name libraryName
+                description libraryDescription
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name licenseName
+                        url licenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id developerId
+                        name developerName
+                        email developerEmail
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
                 }
             }
         }
-		repository(url: "file://${localReleaseDest}")
-	}
-}
-
-task zipRelease(type: Zip) {
-	from localReleaseDest
-	destinationDir buildDir
-	archiveName "release-${version}.zip"
-}
-
-task generateRelease {
-    doLast {
-        println "Release ${version} can be found at ${localReleaseDest}/"
-        println "Release ${version} zipped can be found ${buildDir}/release-${version}.zip"
     }
 }
 
-generateRelease.dependsOn(uploadArchives)
-generateRelease.dependsOn(zipRelease)
-zipRelease.dependsOn(uploadArchives)
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
 
 artifacts {
-	archives androidSourcesJar
-	archives androidJavadocsJar
+    archives androidSourcesJar
 }
 
+// Bintray
+Properties properties = new Properties()
+def propFile = project.rootProject.file('local.properties')
+if (propFile.canRead()) {
+    properties.load(propFile.newDataInputStream())
+}
 
-// signing
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apiKey")
 
-if (project.hasProperty('signing.keyId')) {
-    signing {
-        sign configurations.archives
-    }
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+    configurations = ['archives']
+    pkg {
+        repo = bintrayRepo
+        name = bintrayPkg
+        userOrg = properties.getProperty("bintray.userOrg")
+        desc = libraryDescription
+        websiteUrl = siteUrl
+        issueTrackerUrl = issuesUrl
+        vcsUrl = gitUrl
+        licenses = allLicenses
+        dryRun = false
+        publish = true
+        publicDownloadNumbers = false
+        override = false
+        version {
+            desc = libraryDescription
+            vcsTag = libraryVersion
+            gpg {
+                sign = false //Determines whether to GPG sign the files. The default is false
+                passphrase = properties.getProperty("bintray.gpg.password")
+                //Optional. The passphrase for GPG signing'
             }
         }
     }

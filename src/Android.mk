@@ -34,7 +34,7 @@ LOCAL_STATIC_LIBRARIES	:= cc7
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../cc7/include \
-	$(LOCAL_PATH)/../cc7/openssl/android/include
+	$(LOCAL_PATH)/../cc7/openssl-lib/android/include
 
 # Multiplatform sources
 LOCAL_SRC_FILES := \
@@ -81,7 +81,7 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../src/PowerAuth \
 	$(LOCAL_PATH)/../cc7/include \
-	$(LOCAL_PATH)/../cc7/openssl/android/include
+	$(LOCAL_PATH)/../cc7/openssl-lib/android/include
 
 # Multiplatform sources
 LOCAL_SRC_FILES := \
@@ -133,7 +133,7 @@ endif
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../cc7/include \
-	$(LOCAL_PATH)/../cc7/openssl/android/include
+	$(LOCAL_PATH)/../cc7/openssl-lib/android/include
 
 # JNI sources
 LOCAL_SRC_FILES := \

@@ -24,16 +24,14 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|
-| `1.4.x`    | `V3.1`   | `0.24+`<sup>1</sup> | Fully supported                   |
+| `1.4.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
 | `1.3.x`    | `V3.1`   | `0.23+`             | Security & Functionality bugfixes |
-| `1.2.x`    | `V3.0`   | `0.22+`<sup>2</sup> | Security bugfixes                 |
+| `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security bugfixes                 |
 | `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
 | `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
 
 > Notes
-> 1. If [Additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) feature is not used, 
->    then you can use this version also with PowerAuth Server `0.23`.
-> 2. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can 
+> 1. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can 
 >    use this version also with PowerAuth Server `0.21`.
 
 ## License

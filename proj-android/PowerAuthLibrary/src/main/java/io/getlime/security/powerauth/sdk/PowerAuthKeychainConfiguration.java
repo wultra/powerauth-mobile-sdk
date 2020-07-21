@@ -16,156 +16,67 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.support.annotation.NonNull;
+
+import io.getlime.security.powerauth.keychain.KeychainProtection;
+
 /**
  * Class representing the keychain settings.
- *
- * @author Petr Dvorak, petr@wultra.com
  */
 public class PowerAuthKeychainConfiguration {
 
-    private static final String KEYCHAIN_ID_STATUS = "io.getlime.PowerAuthKeychain.StatusKeychain";
-    private static final String KEYCHAIN_ID_BIOMETRY = "io.getlime.PowerAuthKeychain.BiometryKeychain";
-    private static final String KEYCHAIN_ID_TOKEN_STORE = "io.getlime.PowerAuthKeychain.TokenStoreKeychain";
-    private static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
+    public static final String KEYCHAIN_ID_STATUS = "io.getlime.PowerAuthKeychain.StatusKeychain";
+    public static final String KEYCHAIN_ID_BIOMETRY = "io.getlime.PowerAuthKeychain.BiometryKeychain";
+    public static final String KEYCHAIN_ID_TOKEN_STORE = "io.getlime.PowerAuthKeychain.TokenStoreKeychain";
+    public static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
+    public static final boolean DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET = true;
+    public static final boolean DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION = false;
+    public static final @KeychainProtection int DEFAULT_REQUIRED_KEYCHAIN_PROTECTION = KeychainProtection.NONE;
 
-    private final String customKeychainIdStatus;
-    private final String customKeychainIdBiometry;
-    private final String customKeychainKeyBiometryDefault;
-    private final String customKeychainIdTokenStore;
+    private final @NonNull String keychainIdStatus;
+    private final @NonNull String keychainIdBiometry;
+    private final @NonNull String keychainIdTokenStore;
+    private final @NonNull String keychainKeyBiometryDefault;
     private final boolean linkBiometricItemsToCurrentSet;
     private final boolean confirmBiometricAuthentication;
-
-    /**
-     * Default public constructor.
-     */
-    public PowerAuthKeychainConfiguration() {
-        this.customKeychainIdStatus = null;
-        this.customKeychainIdBiometry = null;
-        this.customKeychainKeyBiometryDefault = null;
-        this.customKeychainIdTokenStore = null;
-        this.linkBiometricItemsToCurrentSet = true;
-        this.confirmBiometricAuthentication = false;
-    }
-
-    /**
-     * Constructor that allows key name customization, in case it is required.
-     *
-     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
-     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
-     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
-     */
-    public PowerAuthKeychainConfiguration(
-            String customKeychainIdStatus,
-            String customKeychainIdBiometry,
-            String customKeychainKeyBiometryDefault) {
-        this.customKeychainIdStatus = customKeychainIdStatus;
-        this.customKeychainIdBiometry = customKeychainIdBiometry;
-        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
-        this.customKeychainIdTokenStore = null;
-        this.linkBiometricItemsToCurrentSet = true;
-        this.confirmBiometricAuthentication = false;
-    }
-
-    /**
-     * Constructor that allows token store keychain file customization, in case it is required.
-     *
-     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
-     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
-     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
-     * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
-     * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
-     *                                       if fingers are added or removed, or if the user re-enrolls for face.
-     */
-    public PowerAuthKeychainConfiguration(
-            String customKeychainIdStatus,
-            String customKeychainIdBiometry,
-            String customKeychainKeyBiometryDefault,
-            String customKeychainIdTokenStore,
-            boolean linkBiometricItemsToCurrentSet) {
-        this.customKeychainIdStatus = customKeychainIdStatus;
-        this.customKeychainIdBiometry = customKeychainIdBiometry;
-        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
-        this.customKeychainIdTokenStore = customKeychainIdTokenStore;
-        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
-        this.confirmBiometricAuthentication = false;
-    }
-
-    /**
-     * Constructor that allows token store keychain file customization, in case it is required.
-     *
-     * @param customKeychainIdStatus Name of the Keychain file used for storing the status information.
-     * @param customKeychainIdBiometry Name of the Keychain file used for storing the biometry key information.
-     * @param customKeychainKeyBiometryDefault Name of the Keychain key used to store the default biometry key.
-     * @param customKeychainIdTokenStore Name of the Keychain file used for storing the access tokens.
-     * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
-     *                                       if fingers are added or removed, or if the user re-enrolls for face.
-     * @param confirmBiometricAuthentication If set, then the user's confirmation will be required after the successful
-     *                                       biometric authentication. Note that this is just hint for the system
-     *                                       and may be ignored.
-     */
-    public PowerAuthKeychainConfiguration(
-            String customKeychainIdStatus,
-            String customKeychainIdBiometry,
-            String customKeychainKeyBiometryDefault,
-            String customKeychainIdTokenStore,
-            boolean linkBiometricItemsToCurrentSet,
-            boolean confirmBiometricAuthentication) {
-        this.customKeychainIdStatus = customKeychainIdStatus;
-        this.customKeychainIdBiometry = customKeychainIdBiometry;
-        this.customKeychainKeyBiometryDefault = customKeychainKeyBiometryDefault;
-        this.customKeychainIdTokenStore = customKeychainIdTokenStore;
-        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
-        this.confirmBiometricAuthentication = confirmBiometricAuthentication;
-    }
+    private final @KeychainProtection int minimalRequiredKeychainProtection;
 
     /**
      * Get name of the Keychain file used for storing status information.
      * @return Name of the Keychain file.
      */
-    public String getKeychainStatusId() {
-        if (customKeychainIdStatus != null) {
-            return customKeychainIdStatus;
-        }
-        return KEYCHAIN_ID_STATUS;
+    public @NonNull String getKeychainStatusId() {
+        return keychainIdStatus;
     }
 
     /**
      * Get name of the Keychain file used for storing biometry key information.
      * @return Name of the Keychain file.
      */
-    public String getKeychainBiometryId() {
-        if (customKeychainIdBiometry != null) {
-            return customKeychainIdBiometry;
-        }
-        return KEYCHAIN_ID_BIOMETRY;
+    public @NonNull String getKeychainBiometryId() {
+        return keychainIdBiometry;
     }
 
     /**
      * Get name of the Keychain key used for storing the default biometry key information.
      * @return Name of the biometry Keychain key.
      */
-    public String getKeychainBiometryDefaultKey() {
-        if (customKeychainKeyBiometryDefault != null) {
-            return customKeychainKeyBiometryDefault;
-        }
-        return KEYCHAIN_KEY_BIOMETRY_DEFAULT;
+    public @NonNull String getKeychainBiometryDefaultKey() {
+        return keychainKeyBiometryDefault;
     }
 
     /**
      * Get name of the Keychain file used for storing access tokens.
      * @return Name of the Keychain file.
      */
-    public String getKeychainTokenStoreId() {
-        if (customKeychainIdTokenStore != null) {
-            return customKeychainIdTokenStore;
-        }
-        return KEYCHAIN_ID_TOKEN_STORE;
+    public @NonNull String getKeychainTokenStoreId() {
+        return keychainIdTokenStore;
     }
 
     /**
      * Get information whether item protected with the biometry is invalidated when the biometric
      * configuration changes in the system.
-     *
+     * <p>
      * If set, then the item protected with the biometry is invalidated if fingers are added or removed,
      * or if the user re-enrolls for face. The default value is {@code true} (e.g. changing biometry
      * in the system invalidate the entry)
@@ -186,5 +97,170 @@ public class PowerAuthKeychainConfiguration {
      */
     public boolean isConfirmBiometricAuthentication() {
         return confirmBiometricAuthentication;
+    }
+
+    /**
+     * Get minimal required keychain protection level that must be supported on the current device.
+     * If the level of protection on the device is insufficient, then you cannot use PowerAuth
+     * mobile SDK on the device. If not configured, then {@link KeychainProtection#NONE} is used
+     * as a default value.
+     *
+     * @return {@link KeychainProtection} constant that represents minimal required protection level
+     * that must be supported on the current device.
+     */
+    public @KeychainProtection int getMinimalRequiredKeychainProtection() {
+        return minimalRequiredKeychainProtection;
+    }
+
+    /**
+     * Private constructor. Use {@link Builder} to create a new instance of this class.
+     *
+     * @param keychainIdStatus                  Name of the Keychain file used for storing the status information.
+     * @param keychainIdBiometry                Name of the Keychain file used for storing the biometry key information.
+     * @param keychainKeyBiometryDefault        Name of the Keychain key used to store the default biometry key.
+     * @param keychainIdTokenStore              Name of the Keychain file used for storing the access tokens.
+     * @param linkBiometricItemsToCurrentSet    If set, then the item protected with the biometry is invalidated
+     *                                          if fingers are added or removed, or if the user re-enrolls for face.
+     * @param confirmBiometricAuthentication    If set, then the user's confirmation will be required after the successful
+     *                                          biometric authentication. Note that this is just hint for the system
+     *                                          and may be ignored.
+     * @param minimalRequiredKeychainProtection {@link KeychainProtection} constant with minimal required keychain
+     *                                          protection level that must be supported on the current device.
+     */
+    private PowerAuthKeychainConfiguration(
+            @NonNull String keychainIdStatus,
+            @NonNull String keychainIdBiometry,
+            @NonNull String keychainKeyBiometryDefault,
+            @NonNull String keychainIdTokenStore,
+            boolean linkBiometricItemsToCurrentSet,
+            boolean confirmBiometricAuthentication,
+            @KeychainProtection int minimalRequiredKeychainProtection) {
+        this.keychainIdStatus = keychainIdStatus;
+        this.keychainIdBiometry = keychainIdBiometry;
+        this.keychainKeyBiometryDefault = keychainKeyBiometryDefault;
+        this.keychainIdTokenStore = keychainIdTokenStore;
+        this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
+        this.confirmBiometricAuthentication = confirmBiometricAuthentication;
+        this.minimalRequiredKeychainProtection = minimalRequiredKeychainProtection;
+    }
+
+    /**
+     * A builder that collects arguments for {@link PowerAuthKeychainConfiguration}.
+     */
+    public static class Builder {
+
+        private @NonNull String keychainStatusId = KEYCHAIN_ID_STATUS;
+        private @NonNull String keychainBiometryId = KEYCHAIN_ID_BIOMETRY;
+        private @NonNull String keychainTokenStoreId = KEYCHAIN_ID_TOKEN_STORE;
+        private @NonNull String keychainBiometryDefaultKey = KEYCHAIN_KEY_BIOMETRY_DEFAULT;
+        private boolean linkBiometricItemsToCurrentSet = DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET;
+        private boolean confirmBiometricAuthentication = DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION;
+        private @KeychainProtection int minimalRequiredKeychainProtection = DEFAULT_REQUIRED_KEYCHAIN_PROTECTION;
+
+        /**
+         * Creates a builder for {@link PowerAuthKeychainConfiguration}.
+         */
+        public Builder() {
+        }
+
+        /**
+         * Set name of the Keychain file used for storing the status information.
+         *
+         * @param keychainStatusId Name of the Keychain file used for storing the status information.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder keychainStatusId(@NonNull String keychainStatusId) {
+            this.keychainStatusId = keychainStatusId;
+            return this;
+        }
+
+        /**
+         * Set name of the Keychain file used for storing the biometry key information.
+         *
+         * @param keychainBiometryId Name of the Keychain file used for storing the biometry key information.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder keychainBiometryId(@NonNull String keychainBiometryId) {
+            this.keychainBiometryId = keychainBiometryId;
+            return this;
+        }
+
+        /**
+         * Set name of the Keychain file used for storing the access tokens.
+         *
+         * @param keychainTokenStoreId Name of the Keychain file used for storing the access tokens.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder keychainTokenStoreId(@NonNull String keychainTokenStoreId) {
+            this.keychainTokenStoreId = keychainTokenStoreId;
+            return this;
+        }
+
+        /**
+         * Set name of the Keychain key used to store the default biometry key.
+         *
+         * @param keychainBiometryDefaultKey Name of the Keychain key used to store the default biometry key.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder keychainBiometryDefaultKey(@NonNull String keychainBiometryDefaultKey) {
+            this.keychainBiometryDefaultKey = keychainBiometryDefaultKey;
+            return this;
+        }
+
+        /**
+         * Set whether the item protected with the biometry is invalidated if fingers are added or
+         * removed, or if the user re-enrolls for face.
+         *
+         * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
+         *                                       if fingers are added or removed, or if the user re-enrolls for face.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder linkBiometricItemsToCurrentSet(boolean linkBiometricItemsToCurrentSet) {
+            this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
+            return this;
+        }
+
+        /**
+         * Set whether the user's confirmation will be required after the successful biometric authentication.
+         *
+         * @param confirmBiometricAuthentication If set, then the user's confirmation will be required after the successful
+         *                                       biometric authentication. Note that this is just hint for the system
+         *                                       and may be ignored.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder confirmBiometricAuthentication(boolean confirmBiometricAuthentication) {
+            this.confirmBiometricAuthentication = confirmBiometricAuthentication;
+            return this;
+        }
+
+        /**
+         * Set minimal required keychain protection level that must be supported on the current device. Note that
+         * if you enforce protection higher that {@link KeychainProtection#NONE}, then your application must target
+         * at least Android 6.0.
+         *
+         * @param minimalRequiredKeychainProtection {@link KeychainProtection} constant with minimal required keychain
+         *                                          protection level that must be supported on the current device.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder minimalRequiredKeychainProtection(@KeychainProtection int minimalRequiredKeychainProtection) {
+            this.minimalRequiredKeychainProtection = minimalRequiredKeychainProtection;
+            return this;
+        }
+
+        /**
+         * Build final {@link PowerAuthKeychainConfiguration} object.
+         *
+         * @return New instance of {@link PowerAuthKeychainConfiguration}.
+         */
+        public @NonNull PowerAuthKeychainConfiguration build() {
+            return new PowerAuthKeychainConfiguration(
+                    keychainStatusId,
+                    keychainBiometryId,
+                    keychainBiometryDefaultKey,
+                    keychainTokenStoreId,
+                    linkBiometricItemsToCurrentSet,
+                    confirmBiometricAuthentication,
+                    minimalRequiredKeychainProtection);
+        }
     }
 }

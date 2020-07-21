@@ -414,6 +414,12 @@ static PowerAuthSDK * s_inst;
 	return _session.hasValidActivation;
 }
 
+- (BOOL) hasProtocolUpgradeAvailable
+{
+	[self checkForValidSetup];
+	return _session.hasProtocolUpgradeAvailable;
+}
+
 - (BOOL) hasPendingProtocolUpgrade
 {
 	[self checkForValidSetup];

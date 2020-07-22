@@ -1,5 +1,6 @@
 Pod::Spec.new do |s|
 	# General information
+    s.cocoapods_version = '>= 1.9'
 	s.name              = 'PowerAuth2'
 	s.version           = '1.4.2'
 	s.summary           = 'PowerAuth Mobile SDK for iOS'
@@ -7,11 +8,11 @@ Pod::Spec.new do |s|
 	s.social_media_url  = 'https://twitter.com/wultra'
 	s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/blob/develop/docs/PowerAuth-SDK-for-iOS.md'
 	s.author            = { 
-	  'Wultra s.r.o.' => 'support@wultra.com'
+	    'Wultra s.r.o.' => 'support@wultra.com'
 	}
 	s.license = { 
-		:type => 'Apache License, Version 2.0', 
-		:file => 'LICENSE' 
+        :type => 'Apache License, Version 2.0', 
+        :file => 'LICENSE' 
 	}
 		
 	# Source files
@@ -21,22 +22,31 @@ Pod::Spec.new do |s|
 		:submodules => true
 	}
 	
-	# FAT framework build
-	s.platform        = :ios, '8.0'
+	s.ios.deployment_target  = '8.0'
+    s.tvos.deployment_target = '9.0'
+    
+	# XCFramework  build    
 	s.prepare_command = <<-CMD
-		./scripts/ios-build-libraries.sh release --out-dir Library
+		./scripts/ios-build-libraries.sh --out-dir Lib
 	CMD
 	
 	# Produced files
-	s.source_files          = 'Library/**/*.{h,m}'
-	s.private_header_files  = 'Library/Private/*.h'
-	s.vendored_libraries    = 'Library/lib*.a'
+	s.source_files          = 'Lib/Src/**/*.{h,m}'
+	s.private_header_files  = 'Lib/Src/Private/*.h'
+    s.vendored_frameworks   = 'Lib/Frameworks/*'
+    s.tvos.exclude_files    = [
+        'Lib/Src/PA2WC*.{h,m}',
+        'Lib/Src/Private/PA2WC*.{h,m}',
+        'Lib/Src/PowerAuthSDK+WatchSupport.m',
+        'Lib/Src/PowerAuthToken+WatchSupport.{h,m}'
+    ]
 	s.requires_arc          = true
 	s.libraries             = 'c++'
+    
 	# Tweaks
 	s.pod_target_xcconfig   = {
-		'OTHER_LDFLAGS' => '-ObjC',
-		'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
+        'OTHER_LDFLAGS' => '-ObjC -framework PowerAuthCore -framework openssl',
+        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
 	}
-	
+
 end

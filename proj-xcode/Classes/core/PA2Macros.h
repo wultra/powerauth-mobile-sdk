@@ -15,6 +15,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "TargetConditionals.h"
 
 /**
  Macro for marking interface as deprecated. You have to provide a version in which was this
@@ -40,4 +41,9 @@
 #endif
 
 
+#pragma mark - Apple platforms
 
+#if TARGET_OS_TV == 0 && TARGET_OS_OSX == 0
+	#define PA2_WATCH_SUPPORT
+	#define PA2_BIOMETRY_SUPPORT
+#endif

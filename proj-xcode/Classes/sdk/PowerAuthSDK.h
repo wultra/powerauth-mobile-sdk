@@ -17,7 +17,10 @@
 #import "PowerAuthActivation.h"
 #import "PowerAuthAuthentication.h"
 #import "PowerAuthConfiguration.h"
+#import "PowerAuthToken.h"
+#if defined(PA2_WATCH_SUPPORT)
 #import "PowerAuthToken+WatchSupport.h"
+#endif
 
 #import "PA2Session.h"
 #import "PA2ActivationResult.h"
@@ -454,7 +457,9 @@
 
 @end
 
-
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 #pragma mark - Apple Watch support
 
 /**
@@ -482,7 +487,9 @@
 - (void) sendActivationStatusToWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion;
 
 @end
-
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 
 #pragma mark - Request synchronization
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1020"
+   LastUpgradeVersion = "1160"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF99D9142073E17000735ED2"
-               BuildableName = "libPowerAuthCoreTests.a"
-               BlueprintName = "PowerAuthCoreTests"
+               BlueprintIdentifier = "BF6ADD1424C8486D001B3E5E"
+               BuildableName = "PowerAuthCore.framework"
+               BlueprintName = "PowerAuthCore-ios"
                ReferencedContainer = "container:PowerAuthCore.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,8 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -42,17 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -63,9 +50,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
+            BlueprintIdentifier = "BF6ADD1424C8486D001B3E5E"
+            BuildableName = "PowerAuthCore.framework"
+            BlueprintName = "PowerAuthCore-ios"
             ReferencedContainer = "container:PowerAuthCore.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

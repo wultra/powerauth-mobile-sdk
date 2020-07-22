@@ -14,6 +14,36 @@ set -e
 set +v
 VERBOSE=1
 LAST_LOG_IS_LINE=0
+###############################################################################
+# Self update function
+#
+# Why?
+#  - We have copy of this script in several repositiories, so it would be great
+#    to simply self update it from one central point
+# How?
+#  - type:  sh common-functions.sh selfupdate
+ # -----------------------------------------------------------------------------
+function __COMMON_FUNCTIONS_SELF_UPDATE
+{
+	local self=$0
+	local backup=$self.backup
+	local remote="https://raw.githubusercontent.com/wultra/library-deploy/master/common-functions.sh"
+	LOG_LINE
+	LOG "This script is going to update itself:"
+	LOG "  source : $remote"
+	LOG "    dest : $self"
+	LOG_LINE
+	PROMPT_YES_FOR_CONTINUE
+	cp $self $backup
+	wget $remote -O $self
+	LOG_LINE
+	LOG "Update looks good. Now you can:"
+	LOG "  - press CTRL+C to cancel next step" 
+	LOG "  - or type 'y' to remove backup file"
+	LOG_LINE
+	PROMPT_YES_FOR_CONTINUE "Would you like to remove backup file?"
+	rm $backup
+}
 # -----------------------------------------------------------------------------
 # FAILURE prints error to stderr and exits the script with error code 1
 # -----------------------------------------------------------------------------
@@ -38,6 +68,8 @@ function WARNING
 #    Function also prevents that two lines will never be displayed subsequently
 # DEBUG_LOG 
 #    Prints all parameters to stdout if VERBOSE is greater than 1
+# EXIT_SUCCESS
+#    print dashed line and "Success" text and exit process with code 0
 # -----------------------------------------------------------------------------
 function LOG
 {
@@ -48,7 +80,7 @@ function LOG
 }
 function LOG_LINE
 {
-	if [ $LAST_LOG_IS_LINE -eq 0 ]; then
+	if [ $LAST_LOG_IS_LINE -eq 0 ] && [ $VERBOSE -gt 0 ]; then
 		echo "$CMD: -----------------------------------------------------------------------------"
 		LAST_LOG_IS_LINE=1
 	fi
@@ -59,6 +91,12 @@ function DEBUG_LOG
 		echo "$CMD: $@"
 		LAST_LOG_IS_LINE=0
 	fi	
+}
+function EXIT_SUCCESS
+{
+    LOG_LINE
+    LOG "Success"
+    exit 0
 }
 # -----------------------------------------------------------------------------
 # PROMPT_YES_FOR_CONTINUE asks user whether script should continue
@@ -97,7 +135,7 @@ function REQUIRE_COMMAND
 	local tool=$1
 	local path=`which $tool`
 	if [ -z $path ]; then
-		FAILURE "$tool: command not found."
+		FAILURE "$tool: required command not found."
 	fi
 	set -e
 	DEBUG_LOG "$tool: found at $path"
@@ -116,7 +154,7 @@ function REQUIRE_COMMAND_PATH
 	local tool=$1
 	local path=`which $tool`
 	if [ -z $path ]; then
-		FAILURE "$tool: command not found."
+		FAILURE "$tool: required command not found."
 	fi
 	set -e
 	echo $path
@@ -143,6 +181,7 @@ function SET_VERBOSE_LEVEL_FROM_SWITCH
 #  - $MD = mkdir -p [-v]
 #  - $RM = rm -f [-v]
 #  - $CP = cp [-v]
+#  - $MV = mv [-v]
 # -----------------------------------------------------------------------------
 function UPDATE_VERBOSE_COMMANDS
 {
@@ -151,11 +190,13 @@ function UPDATE_VERBOSE_COMMANDS
 		CP="cp"
 		RM="rm -f"
 		MD="mkdir -p"
+		MV="mv"
 	else
 		# verbose
 		CP="cp -v"
 		RM="rm -f -v"
 		MD="mkdir -p -v"
+		MV="mv -v"
 	fi
 }
 # -----------------------------------------------------------------------------
@@ -225,35 +266,27 @@ function POP_DIR
 	fi
 }
 
-###############################################################################
-# Self update function
+# -----------------------------------------------------------------------------
+# SHA256, SHA384, SHA512 calculates appropriate SHA hash for given file and 
+# prints the result hash to stdout. Example: $(SHA256 my-file.txt)
 #
-# Why?
-#  - We have copy of this script in several repositiories, so it would be great
-#    to simply self update it from one central point
-# How?
-#  - type:  sh common-functions.sh selfupdate
- # -----------------------------------------------------------------------------
-function __COMMON_FUNCTIONS_SELF_UPDATE
+# Parameters:
+#   $1   - input file
+# -----------------------------------------------------------------------------
+function SHA256
 {
-	local self=$0
-	local backup=$self.backup
-	local remote="https://raw.githubusercontent.com/wultra/library-deploy/master/common-functions.sh"
-	LOG_LINE
-	LOG "This script is going to update itself:"
-	LOG "  source : $remote"
-	LOG "    dest : $self"
-	LOG_LINE
-	PROMPT_YES_FOR_CONTINUE
-	cp $self $backup
-	wget $remote -O $self
-	LOG_LINE
-	LOG "Update looks good. Now you can:"
-	LOG "  - press CTRL+C to cancel next step" 
-	LOG "  - or type 'y' to remove backup file"
-	LOG_LINE
-	PROMPT_YES_FOR_CONTINUE "Would you like to remove backup file?"
-	rm $backup
+	local HASH=( `shasum -a 256 "$1"` )
+	echo ${HASH[0]}
+}
+function SHA384
+{
+	local HASH=( `shasum -a 384 "$1"` )
+	echo ${HASH[0]}
+}
+function SHA512
+{
+	local HASH=( `shasum -a 512 "$1"` )
+	echo ${HASH[0]}
 }
 
 ###############################################################################

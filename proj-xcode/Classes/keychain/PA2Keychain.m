@@ -291,6 +291,30 @@ static PA2BiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 	return PA2BiometricAuthenticationType_TouchID;
 }
 
+// Distinguinsh between old, deprecated "TouchID" enums and new with "biometry" in name.
+//
+// This is required due to a different min-SDK requirements between iOS and Catalyst
+// builds. On "iOS", we target iOS 8+, so deprecated constants are still valid.
+// On opposite to that, the Catalyst build targets simulated iOS 13+, so the deprecated
+// constants causes a few warnings.
+//
+// The most important thing is that it's just a matter of constants that have the same
+// values for both, new and old definitions. Once we target iOS 11.2+, we can freely
+// remove this tweak.
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_13_0
+	#define __LABiometryTypeNone					LABiometryTypeNone
+	#define __LAErrorBiometryLockout				LAErrorBiometryLockout
+	#define __LAErrorBiometryNotEnrolled			LAErrorBiometryNotEnrolled
+	#define __kSecAccessControlBiometryAny			kSecAccessControlBiometryAny
+	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlBiometryCurrentSet
+#else
+	#define __LABiometryTypeNone					LABiometryNone
+	#define __LAErrorBiometryLockout				LAErrorTouchIDLockout
+	#define __LAErrorBiometryNotEnrolled			LAErrorTouchIDNotEnrolled
+	#define __kSecAccessControlBiometryAny			kSecAccessControlTouchIDAny
+	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlTouchIDCurrentSet
+#endif
+
 /**
  Private function returns full information about biometric support on the system. The method internally
  uses `LAContext.canEvaluatePolicy()`.
@@ -321,11 +345,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 				// On iOS 11 its quite simple, we have type property available and status can be determined
 				// from the error.
 				LABiometryType bt = context.biometryType;
-				// The short living LABiometryNone was introduced in IOS 11.0 and deprecated in 11.2 :D
-				// Following condition will probably cause a warning in future SDKs. If this happens, then we
-				// can safely use the 0 constant, because the new LABiometryTypeNone requires targeting IOS 11.2+,
-				// and that's not acceptable. Both constants are equal to 0...
-				if (bt != LABiometryNone) {
+				if (bt != __LABiometryTypeNone) {
 					info.biometryType = _LABiometryTypeToPAType(bt);
 					if (code == LAErrorBiometryLockout) {
 						info.currentStatus = PA2BiometricAuthenticationStatus_Lockout;
@@ -339,10 +359,10 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 				}
 			} else {
 				// On older systems (IOS 8..10), only Touch ID is available.
-				if (code == LAErrorTouchIDLockout) {
+				if (code == __LAErrorBiometryLockout) {
 					info.currentStatus = PA2BiometricAuthenticationStatus_Lockout;
 					info.biometryType  = PA2BiometricAuthenticationType_TouchID;
-				} else if (code == LAErrorTouchIDNotEnrolled) {
+				} else if (code == __LAErrorBiometryNotEnrolled) {
 					info.currentStatus = PA2BiometricAuthenticationStatus_NotEnrolled;
 					info.biometryType  = PA2BiometricAuthenticationType_TouchID;
 				}
@@ -445,12 +465,10 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 		// If it's add operation and the biometry is requrested.
 		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny), or use kNilOptions
 		if (@available(iOS 9, *)) {
-			// Note that kSecAccessControlTouchIDAny is deprecated, but its value is the same as kSecAccessControlBiometryAny
-			// We can safely replace that constant to the new one, once the warning appears in the future.
 			if (access == PA2KeychainItemAccess_AnyBiometricSet) {
-				flags = kSecAccessControlTouchIDAny;
+				flags = __kSecAccessControlBiometryAny;
 			} else {
-				flags = kSecAccessControlTouchIDCurrentSet;
+				flags = __kSecAccessControlBiometryCurrentSet;
 			}
 		} else {
 			flags = kNilOptions;

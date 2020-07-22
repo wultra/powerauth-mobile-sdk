@@ -158,26 +158,54 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		BF6ADD6924C84C0C001B3E5E /* PBXContainerItemProxy */ = {
+		BF5EB57C24C863D100F9DDB2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = BF734A48248523F3001F46BA;
-			remoteInfo = "cc7-legacy-ios";
+			remoteGlobalIDString = BFFE8A9F2449B4F80032821F;
+			remoteInfo = "cc7-tvos";
 		};
-		BF6ADD9024C84FE0001B3E5E /* PBXContainerItemProxy */ = {
+		BF5EB57E24C863DB00F9DDB2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = BF734A5924852487001F46BA;
-			remoteInfo = "cc7tests-legacy-ios";
+			remoteGlobalIDString = BFB1A6B31CB5937800B2D172;
+			remoteInfo = "cc7-ios";
 		};
-		BF6ADD9224C84FE0001B3E5E /* PBXContainerItemProxy */ = {
+		BF5EB58024C8640100F9DDB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BF30682D1CC91B20002FD3BC;
+			remoteInfo = "cc7tests-ios";
+		};
+		BF5EB58224C8642000F9DDB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFFE8AB02449B53C0032821F;
+			remoteInfo = "cc7tests-tvos";
+		};
+		BF5EB58524C865C300F9DDB2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = BF3ACC842073DBA500B8107E;
-			remoteInfo = PowerAuthCore;
+			remoteInfo = "PowerAuthCoreLib-ios";
+		};
+		BF5EB58724C865C800F9DDB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF6ADD6724C84C0C001B3E5E;
+			remoteInfo = "PowerAuthCoreLib-tvos";
+		};
+		BF5EB58B24C865E900F9DDB2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF6ADD6724C84C0C001B3E5E;
+			remoteInfo = "PowerAuthCoreLib-tvos";
 		};
 		BF734A842485250D001F46BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -213,20 +241,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = BFFE8ADF2449B5820032821F;
 			remoteInfo = "CC7TestsWrapper-tvos";
-		};
-		BF734A8E24852514001F46BA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BF734A48248523F3001F46BA;
-			remoteInfo = "cc7-legacy-ios";
-		};
-		BF734A9224852550001F46BA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BF734A5924852487001F46BA;
-			remoteInfo = "cc7tests-legacy-ios";
 		};
 		BFB47D4420753444008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -845,7 +859,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BF734A8F24852514001F46BA /* PBXTargetDependency */,
+				BF5EB57F24C863DB00F9DDB2 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCoreLib-ios";
 			productName = PowerAuthCore;
@@ -864,6 +878,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF5EB58624C865C300F9DDB2 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCore-ios";
 			productName = PowerAuthCore;
@@ -882,6 +897,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF5EB58824C865C800F9DDB2 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCore-tvos";
 			productName = PowerAuthCore;
@@ -899,7 +915,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BF6ADD6824C84C0C001B3E5E /* PBXTargetDependency */,
+				BF5EB57D24C863D100F9DDB2 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCoreLib-tvos";
 			productName = PowerAuthCore;
@@ -917,8 +933,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				BF6ADD8F24C84FE0001B3E5E /* PBXTargetDependency */,
-				BF6ADD9124C84FE0001B3E5E /* PBXTargetDependency */,
+				BF5EB58324C8642000F9DDB2 /* PBXTargetDependency */,
+				BF5EB58C24C865E900F9DDB2 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCoreLibTests-tvos";
 			productName = PowerAuthCoreTests;
@@ -936,7 +952,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BF734A9324852550001F46BA /* PBXTargetDependency */,
+				BF5EB58124C8640100F9DDB2 /* PBXTargetDependency */,
 				BFB47D5320753487008A6A52 /* PBXTargetDependency */,
 			);
 			name = "PowerAuthCoreLibTests-ios";
@@ -1221,30 +1237,40 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BF6ADD6824C84C0C001B3E5E /* PBXTargetDependency */ = {
+		BF5EB57D24C863D100F9DDB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "cc7-legacy-ios";
-			targetProxy = BF6ADD6924C84C0C001B3E5E /* PBXContainerItemProxy */;
+			name = "cc7-tvos";
+			targetProxy = BF5EB57C24C863D100F9DDB2 /* PBXContainerItemProxy */;
 		};
-		BF6ADD8F24C84FE0001B3E5E /* PBXTargetDependency */ = {
+		BF5EB57F24C863DB00F9DDB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "cc7tests-legacy-ios";
-			targetProxy = BF6ADD9024C84FE0001B3E5E /* PBXContainerItemProxy */;
+			name = "cc7-ios";
+			targetProxy = BF5EB57E24C863DB00F9DDB2 /* PBXContainerItemProxy */;
 		};
-		BF6ADD9124C84FE0001B3E5E /* PBXTargetDependency */ = {
+		BF5EB58124C8640100F9DDB2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7tests-ios";
+			targetProxy = BF5EB58024C8640100F9DDB2 /* PBXContainerItemProxy */;
+		};
+		BF5EB58324C8642000F9DDB2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7tests-tvos";
+			targetProxy = BF5EB58224C8642000F9DDB2 /* PBXContainerItemProxy */;
+		};
+		BF5EB58624C865C300F9DDB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BF3ACC842073DBA500B8107E /* PowerAuthCoreLib-ios */;
-			targetProxy = BF6ADD9224C84FE0001B3E5E /* PBXContainerItemProxy */;
+			targetProxy = BF5EB58524C865C300F9DDB2 /* PBXContainerItemProxy */;
 		};
-		BF734A8F24852514001F46BA /* PBXTargetDependency */ = {
+		BF5EB58824C865C800F9DDB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "cc7-legacy-ios";
-			targetProxy = BF734A8E24852514001F46BA /* PBXContainerItemProxy */;
+			target = BF6ADD6724C84C0C001B3E5E /* PowerAuthCoreLib-tvos */;
+			targetProxy = BF5EB58724C865C800F9DDB2 /* PBXContainerItemProxy */;
 		};
-		BF734A9324852550001F46BA /* PBXTargetDependency */ = {
+		BF5EB58C24C865E900F9DDB2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = "cc7tests-legacy-ios";
-			targetProxy = BF734A9224852550001F46BA /* PBXContainerItemProxy */;
+			target = BF6ADD6724C84C0C001B3E5E /* PowerAuthCoreLib-tvos */;
+			targetProxy = BF5EB58B24C865E900F9DDB2 /* PBXContainerItemProxy */;
 		};
 		BFB47D5320753487008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1564,7 +1590,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1576,7 +1601,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1593,8 +1617,8 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1611,8 +1635,8 @@
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

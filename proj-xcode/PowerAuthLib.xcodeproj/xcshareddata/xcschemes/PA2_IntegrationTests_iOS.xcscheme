@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
                BuildableName = "PowerAuth2.framework"
-               BlueprintName = "PowerAuth2"
+               BlueprintName = "PowerAuth2-ios"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,8 +29,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "XCTests.xctest"
-               BlueprintName = "XCTests"
+               BuildableName = "XCTests-ios.xctest"
+               BlueprintName = "XCTests-ios"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,8 +47,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
-               BuildableName = "XCTests.xctest"
-               BlueprintName = "XCTests"
+               BuildableName = "XCTests-ios.xctest"
+               BlueprintName = "XCTests-ios"
                ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
             <SkippedTests>
@@ -58,8 +58,6 @@
             </SkippedTests>
          </TestableReference>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -76,12 +74,10 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
             BuildableName = "PowerAuth2.framework"
-            BlueprintName = "PowerAuth2"
+            BlueprintName = "PowerAuth2-ios"
             ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

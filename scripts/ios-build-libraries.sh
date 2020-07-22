@@ -48,7 +48,7 @@ XCODE_SCHEME_TVOS="PA2Core_tvOS"
 PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
 # Platform architectures
 ARCH_IOS="armv7 armv7s arm64 arm64e"
-ARCH_IOS_SIM="x86_64"
+ARCH_IOS_SIM="i386 x86_64"
 ARCH_CATALYST="x86_64"
 ARCH_TVOS="arm64"
 ARCH_TVOS_SIM="x86_64"

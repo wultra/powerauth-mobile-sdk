@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
 	# General information
-    s.cocoapods_version = '>= 1.9'
+    s.cocoapods_version = '>= 1.10'
 	s.name              = 'PowerAuth2'
 	s.version           = '1.4.2'
 	s.summary           = 'PowerAuth Mobile SDK for iOS'
@@ -44,7 +44,7 @@ Pod::Spec.new do |s|
 	s.libraries             = 'c++'
 	# Tweaks
 	s.pod_target_xcconfig   = {
-        'OTHER_LDFLAGS' => '-ObjC',
+        'OTHER_LDFLAGS' => '-ObjC -framework PowerAuthCore',
         'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
 	}
 

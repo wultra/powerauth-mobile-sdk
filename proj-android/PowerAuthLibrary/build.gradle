@@ -20,6 +20,7 @@ android {
         }
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        loadInstrumentationTestConfigProperties(project, owner)
     }
 
     compileOptions {
@@ -51,6 +52,8 @@ android {
         // testing
         androidTestImplementation 'junit:junit:4.12'
         androidTestImplementation 'com.android.support.test:runner:1.0.2'
+        androidTestImplementation 'io.getlime.core:rest-model-base:1.1.0'
+        androidTestImplementation 'com.google.code.gson:gson:2.8.5'
     }
 
     externalNativeBuild {
@@ -63,6 +66,33 @@ android {
         unitTests {
             includeAndroidResources = true
         }
+    }
+}
+
+
+// Load properties for instrumentation tests.
+static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
+    def configsRoot = new File("${project.rootProject.projectDir}/configs")
+    def configPropertiesFile = new File(configsRoot, "powerauth-instrumentation-tests.properties")
+
+    def instrumentationArguments = [
+            "test.powerauth.restApiUrl",
+            "test.powerauth.serverApiUrl",
+            "test.powerauth.serverVersion",
+            "test.powerauth.appName",
+            "test.powerauth.appVersion",
+            "test.powerauth.userIdentifier" ]
+
+    project.logger.info("LOADING_PROPERTIES Reading $configPropertiesFile")
+    if (configPropertiesFile.canRead()) {
+        def props = new Properties()
+        props.load(new FileInputStream(configPropertiesFile))
+
+        for (key in instrumentationArguments) {
+            defaultConfig.testInstrumentationRunnerArgument key, "${props[key]}"
+        }
+    } else {
+        project.logger.warn("Loading properties error: Missing $configPropertiesFile")
     }
 }
 

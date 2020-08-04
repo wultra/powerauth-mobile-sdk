@@ -386,4 +386,11 @@ public class PowerAuthTestHelper {
         }
         return sdk;
     }
+
+    /**
+     * @return Expected protocol version for HTTP headers.
+     */
+    public @NonNull String getProtocolVersionForHeader() {
+        return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
+    }
 }

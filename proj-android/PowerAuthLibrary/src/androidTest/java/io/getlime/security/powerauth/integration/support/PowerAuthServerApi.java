@@ -29,6 +29,7 @@ import io.getlime.security.powerauth.integration.support.model.ApplicationDetail
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 
 public interface PowerAuthServerApi {
 
@@ -241,4 +242,18 @@ public interface PowerAuthServerApi {
      * @throws Exception In case of failure.
      */
     @NonNull ActivationDetail getActivationDetail(@NonNull Activation activation) throws Exception;
+
+    // Tokens
+
+    /**
+     * Validate token on the server.
+     *
+     * @param tokenId Token identifier.
+     * @param tokenDigest Token digest.
+     * @param nonce Nonce in Base64 encoding.
+     * @param timestamp Timestamp used for calculate token.
+     * @return {@link TokenInfo} object in case of success.
+     * @throws Exception In case of failure.
+     */
+    @NonNull TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception;
 }

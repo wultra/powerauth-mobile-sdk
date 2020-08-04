@@ -16,28 +16,11 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
-import android.support.annotation.NonNull;
-
-public enum ProtocolVersion {
-    V2(20, "2.0"),
-    V2_1(21, "2.1"),
-    V3(30, "3.0"),
-    V3_1(31, "3.1");
-
-    public int version;
-    public String versionForHeader;
-
-    ProtocolVersion(int version, String versionForHeader) {
-        this.version = version;
-        this.versionForHeader = versionForHeader;
-    }
-
-    public static @NonNull ProtocolVersion versionFromInt(int version) {
-        for (ProtocolVersion v : values()) {
-            if (v.version == version) {
-                return v;
-            }
-        }
-        throw new IllegalArgumentException("Invalid protocol version " + version);
-    }
+public enum SignatureType {
+    POSSESSION,
+    KNOWLEDGE,
+    BIOMETRY,
+    POSSESSION_KNOWLEDGE,
+    POSSESSION_BIOMETRY,
+    POSSESSION_KNOWLEDGE_BIOMETRY,
 }

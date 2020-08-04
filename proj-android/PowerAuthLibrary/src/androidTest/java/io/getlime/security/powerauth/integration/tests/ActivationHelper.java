@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.integration.tests;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.List;
 
@@ -40,6 +41,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -123,8 +125,17 @@ public class ActivationHelper {
             invalidAuthentication = null;
             createActivationResult = null;
         }
+        removeActivationLocal(true);
+    }
+
+    /**
+     * Remove activation locally.
+     *
+     * @param removeSharedBiometryKey If true, then also remove a shared biometry key.
+     */
+    public void removeActivationLocal(boolean removeSharedBiometryKey) {
         if (powerAuthSDK.hasValidActivation()) {
-            powerAuthSDK.removeActivationLocal(testHelper.getContext(), true);
+            powerAuthSDK.removeActivationLocal(testHelper.getContext(), removeSharedBiometryKey);
         }
     }
 
@@ -185,10 +196,11 @@ public class ActivationHelper {
      * instance for other tests.
      *
      * @param codeWithSignature If true, then code + signature will be used for the activation.
+     * @param extras Extra attributes associated with the activation.
      * @return Information about activation.
      * @throws Exception In case of failure.
      */
-    public @NonNull ActivationDetail createStandardActivation(boolean codeWithSignature) throws Exception {
+    public @NonNull ActivationDetail createStandardActivation(boolean codeWithSignature, @Nullable String extras) throws Exception {
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -207,7 +219,9 @@ public class ActivationHelper {
         } else {
             activationCode = activation.getActivationCode();
         }
-        final PowerAuthActivation paActivation = PowerAuthActivation.Builder.activation(activationCode, testHelper.getDeviceInfo()).build();
+        final PowerAuthActivation paActivation = PowerAuthActivation.Builder.activation(activationCode, testHelper.getDeviceInfo())
+                .setExtras(extras)
+                .build();
         createActivationResult = AsyncHelper.await(new AsyncHelper.Execution<CreateActivationResult>() {
             @Override
             public void execute(@NonNull final AsyncHelper.ResultCatcher<CreateActivationResult> resultCatcher) throws Exception {
@@ -257,12 +271,41 @@ public class ActivationHelper {
         // Commit activation on the server.
         testHelper.getServerApi().activationCommit(activation);
 
-        // Fetch status to
+        // Fetch status to validate whether activation is now active
         activationStatus = fetchActivationStatus();
         if (activationStatus.state != ActivationStatus.State_Active) {
             throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
         }
 
+        return activationDetail;
+    }
+
+    /**
+     * Assign a custom created activation and its activation result to this helper object. This method
+     * is useful in case that you need to test custom or recovery activations and wants to continue
+     * use this helper for other tasks.
+     *
+     * @param createActivationResult {@link CreateActivationResult} object returned from PowerAuthSDK.
+     * @return {@link ActivationDetail) for just assigned activation.
+     * @throws Exception In case of failure.
+     */
+    public @NonNull ActivationDetail assignCustomActivationAndCommitLocally(@NonNull CreateActivationResult createActivationResult) throws Exception {
+        if (this.activation != null) {
+            throw new Exception("ActivationHelper already has an activation. Use removeActivation() before you initialize new activation.");
+        }
+        this.createActivationResult = createActivationResult;
+        final List<String> passwords = prepareAuthentications();
+        // Commit activation locally
+        int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        if (resultCode != PowerAuthErrorCodes.PA2Succeed) {
+            throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
+        }
+        // Now we can get an activation identifier
+        String activationId = powerAuthSDK.getActivationIdentifier();
+        assertNotNull(activationId);
+        // Acquire activation detail and create and keep new Activation object.
+        ActivationDetail activationDetail = testHelper.getServerApi().getActivationDetail(activationId, null);
+        activation = activationDetail.copyToActivation();
         return activationDetail;
     }
 

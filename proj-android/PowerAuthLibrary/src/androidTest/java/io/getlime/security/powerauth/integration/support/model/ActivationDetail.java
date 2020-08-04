@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
+import android.support.annotation.NonNull;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -40,6 +42,20 @@ public class ActivationDetail {
     private String devicePublicKeyFingerprint;
     @SerializedName("version")
     private int protocolVersion;
+
+    /**
+     * Create {@link Activation} object from values stored in this detail.
+     * @return New {@link Activation} instance.
+     */
+    public @NonNull Activation copyToActivation() {
+        Activation activation = new Activation();
+        activation.setActivationCode(activationCode);
+        activation.setActivationSignature(activationSignature);
+        activation.setActivationId(activationId);
+        activation.setApplicationId(applicationId);
+        activation.setUserId(userId);
+        return activation;
+    }
 
     public String getActivationId() {
         return activationId;

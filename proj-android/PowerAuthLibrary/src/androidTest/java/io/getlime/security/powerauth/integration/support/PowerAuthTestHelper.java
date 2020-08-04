@@ -141,6 +141,10 @@ public class PowerAuthTestHelper {
                     .clientConfiguration(clientConfiguration)
                     .keychainConfiguration(prepareKeychainConfiguration())
                     .build(context);
+            if (sdk.hasValidActivation()) {
+                Logger.e("Shared PowerAuthSDK has a valid activation at test initialization.");
+            }
+            sdk.removeActivationLocal(context, true);
             return new PowerAuthTestHelper(
                     context,
                     testConfig,

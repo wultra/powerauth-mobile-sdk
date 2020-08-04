@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.integration.support.model.ActivationOtpVali
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 
 public interface PowerAuthServerApi {
@@ -91,6 +92,24 @@ public interface PowerAuthServerApi {
      * @throws Exception if operation fails.
      */
     void setApplicationVersionSupported(long applicationVersionId, boolean supported) throws Exception;
+
+    // Recovery config
+
+    /**
+     * Get recovery config for application.
+     *
+     * @param applicationId Application identifier.
+     * @return {@link RecoveryConfig} object.
+     * @throws Exception In case of failure.
+     */
+    @NonNull RecoveryConfig getRecoveryConfig(long applicationId) throws Exception;
+
+    /**
+     * Update recovery config for application specified in {@link RecoveryConfig} object.
+     * @param recoveryConfig Config that specifies application and fields that should be updated.
+     * @throws Exception In case of failure.
+     */
+    void updateRecoveryConfig(@NonNull RecoveryConfig recoveryConfig) throws Exception;
 
     // Activation
 

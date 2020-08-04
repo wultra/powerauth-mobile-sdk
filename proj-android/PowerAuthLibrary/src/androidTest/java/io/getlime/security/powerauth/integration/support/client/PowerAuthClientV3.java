@@ -18,7 +18,6 @@ package io.getlime.security.powerauth.integration.support.client;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +41,6 @@ import io.getlime.security.powerauth.integration.support.endpoints.GetApplicatio
 import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationListResponse;
 import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigResponse;
 import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusResponse;
 import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEndpoint;
@@ -64,6 +62,8 @@ import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivat
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigRequest;
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigResponse;
+import io.getlime.security.powerauth.integration.support.endpoints.ValidateTokenEndpoint;
+import io.getlime.security.powerauth.integration.support.endpoints.ValidateTokenRequest;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
@@ -74,6 +74,7 @@ import io.getlime.security.powerauth.integration.support.model.ApplicationVersio
 import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 
 public class PowerAuthClientV3 implements PowerAuthServerApi {
 
@@ -314,5 +315,16 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @Override
     public ActivationDetail getActivationDetail(@NonNull Activation activation) throws Exception {
         return getActivationDetail(activation.getActivationId(), null);
+    }
+
+    @NonNull
+    @Override
+    public TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception {
+        final ValidateTokenRequest request = new ValidateTokenRequest();
+        request.setTokenId(tokenId);
+        request.setTokenDigest(tokenDigest);
+        request.setNonce(nonce);
+        request.setTimestamp(timestamp);
+        return restClient.send(request, new ValidateTokenEndpoint());
     }
 }

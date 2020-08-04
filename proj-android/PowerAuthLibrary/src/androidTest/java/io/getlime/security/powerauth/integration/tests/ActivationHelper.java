@@ -403,6 +403,15 @@ public class ActivationHelper {
     }
 
     /**
+     * @return Return new instance of {@link PowerAuthAuthentication} object with possession factor set.
+     */
+    public @NonNull PowerAuthAuthentication getPossessionAuthentication() {
+        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+        authentication.usePossession = true;
+        return authentication;
+    }
+
+    /**
      * Get authentication object with invalid password.
      * @return Authentication object with invalid credentials.
      * @throws Exception In case that such object is not created yet.

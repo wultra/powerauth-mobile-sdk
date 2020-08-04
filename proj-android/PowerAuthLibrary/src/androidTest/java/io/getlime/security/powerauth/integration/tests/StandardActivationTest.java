@@ -35,7 +35,6 @@ import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
-import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PA2System;
 
@@ -99,7 +98,7 @@ public class StandardActivationTest {
 
     @Test
     public void testLegacyCreateWithActivationCode() throws Exception {
-        createActivation(false);
+        legacyCreateActivation(false);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);
@@ -109,7 +108,7 @@ public class StandardActivationTest {
 
     @Test
     public void testLegacyCreateWithActivationCodeAndSignature() throws Exception {
-        createActivation(true);
+        legacyCreateActivation(true);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);
@@ -117,7 +116,12 @@ public class StandardActivationTest {
         assertFalse(passwordValid);
     }
 
-    private void createActivation(boolean codeWithSignature) throws Exception {
+    /**
+     * Create activation with using legacy methods (e.g. without PowerAuthActivation object).
+     * @param codeWithSignature true if activation should use code and signature.
+     * @throws Exception In case of failure.
+     */
+    private void legacyCreateActivation(boolean codeWithSignature) throws Exception {
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
@@ -135,7 +139,6 @@ public class StandardActivationTest {
         } else {
             activationCode = activation.getActivationCode();
         }
-        final PowerAuthActivation paActivation = PowerAuthActivation.Builder.activation(activationCode, testHelper.getDeviceInfo()).build();
         final CreateActivationResult createActivationResult = AsyncHelper.await(new AsyncHelper.Execution<CreateActivationResult>() {
             @Override
             public void execute(@NonNull final AsyncHelper.ResultCatcher<CreateActivationResult> resultCatcher) throws Exception {

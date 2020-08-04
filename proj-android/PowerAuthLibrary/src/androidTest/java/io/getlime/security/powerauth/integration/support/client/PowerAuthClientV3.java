@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.integration.support.client;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +40,9 @@ import io.getlime.security.powerauth.integration.support.endpoints.GetApplicatio
 import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationDetailRequest;
 import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationListEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationListResponse;
+import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigRequest;
+import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigResponse;
 import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusResponse;
 import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEndpoint;
@@ -57,6 +61,9 @@ import io.getlime.security.powerauth.integration.support.endpoints.UnblockActiva
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpEndpoint;
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpRequest;
 import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpResponse;
+import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigRequest;
+import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigResponse;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
@@ -64,6 +71,7 @@ import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 
@@ -168,6 +176,23 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
         final SetApplicationVersionSupportResponse response = restClient.send(request, endpoint);
         if (response.isSupported() != supported) {
             throw new Exception("Application version is still " + (supported ? "unsupported" : "supported") + " after successful response.");
+        }
+    }
+
+    @NonNull
+    @Override
+    public RecoveryConfig getRecoveryConfig(long applicationId) throws Exception {
+        final GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        return restClient.send(request, new GetRecoveryConfigEndpoint());
+    }
+
+    @Override
+    public void updateRecoveryConfig(@NonNull RecoveryConfig recoveryConfig) throws Exception {
+        final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest(recoveryConfig);
+        final UpdateRecoveryConfigResponse response = restClient.send(request, new UpdateRecoveryConfigEndpoint());
+        if (!response.isUpdated()) {
+            throw new Exception("Recovery config for application " + recoveryConfig.getApplicationId() + " is not updated after successful response.");
         }
     }
 

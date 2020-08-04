@@ -28,12 +28,6 @@ public class CommitActivationEndpoint implements IServerApiEndpoint<CommitActiva
         return "/rest/v3/activation/commit";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<CommitActivationResponse> getResponseType() {

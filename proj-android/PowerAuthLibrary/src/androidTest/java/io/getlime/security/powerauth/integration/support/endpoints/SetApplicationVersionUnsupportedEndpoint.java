@@ -28,12 +28,6 @@ public class SetApplicationVersionUnsupportedEndpoint implements IServerApiEndpo
         return "/rest/v3/application/version/unsupport";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<SetApplicationVersionSupportResponse> getResponseType() {

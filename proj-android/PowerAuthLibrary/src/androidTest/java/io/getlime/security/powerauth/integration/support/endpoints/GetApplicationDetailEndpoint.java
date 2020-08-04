@@ -28,12 +28,6 @@ public class GetApplicationDetailEndpoint implements IServerApiEndpoint<GetAppli
         return "/rest/v3/application/detail";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<GetApplicationDetailResponse> getResponseType() {

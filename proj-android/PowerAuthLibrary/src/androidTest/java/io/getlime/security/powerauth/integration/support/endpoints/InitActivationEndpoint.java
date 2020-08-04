@@ -29,12 +29,6 @@ public class InitActivationEndpoint implements IServerApiEndpoint<InitActivation
         return "/rest/v3/activation/init";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<InitActivationResponse> getResponseType() {

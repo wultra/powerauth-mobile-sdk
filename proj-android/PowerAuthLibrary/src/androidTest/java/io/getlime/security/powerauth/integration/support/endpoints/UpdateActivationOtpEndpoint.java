@@ -28,12 +28,6 @@ public class UpdateActivationOtpEndpoint implements IServerApiEndpoint<UpdateAct
         return "/rest/v3/activation/otp/update";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<UpdateActivationOtpResponse> getResponseType() {

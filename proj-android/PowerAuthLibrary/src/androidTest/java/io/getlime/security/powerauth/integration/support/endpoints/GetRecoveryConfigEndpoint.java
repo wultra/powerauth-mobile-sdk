@@ -28,12 +28,6 @@ public class GetRecoveryConfigEndpoint implements IServerApiEndpoint<GetRecovery
         return "/rest/v3/recovery/config/detail";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<GetRecoveryConfigResponse> getResponseType() {

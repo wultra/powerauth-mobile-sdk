@@ -28,12 +28,6 @@ public class UnblockActivationEndpoint implements IServerApiEndpoint<UnblockActi
         return "/rest/v3/activation/unblock";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<UnblockActivationResponse> getResponseType() {

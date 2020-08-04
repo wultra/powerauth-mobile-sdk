@@ -28,12 +28,6 @@ public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActiva
         return "/rest/v3/activation/remove";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<RemoveActivationResponse> getResponseType() {

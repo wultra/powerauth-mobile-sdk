@@ -28,12 +28,6 @@ public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActiva
         return "/rest/v3/activation/status";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<GetActivationStatusResponse> getResponseType() {

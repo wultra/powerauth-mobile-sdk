@@ -28,12 +28,6 @@ public class UpdateRecoveryConfigEndpoint implements IServerApiEndpoint<UpdateRe
         return "/rest/v3/recovery/config/update";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<UpdateRecoveryConfigResponse> getResponseType() {

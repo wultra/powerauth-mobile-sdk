@@ -28,12 +28,6 @@ public class GetSystemStatusEndpoint implements IServerApiEndpoint<GetSystemStat
         return "/rest/v3/status";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<GetSystemStatusResponse> getResponseType() {

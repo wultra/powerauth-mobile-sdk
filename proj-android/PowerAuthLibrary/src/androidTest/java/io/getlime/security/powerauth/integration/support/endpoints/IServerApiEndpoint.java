@@ -31,11 +31,6 @@ public interface IServerApiEndpoint<TResponse> {
     @NonNull String getRelativePath();
 
     /**
-     * @return String with HTTP method.
-     */
-    @NonNull String getHttpMethod();
-
-    /**
      * @return Type of response object or {@code null} in case of empty response.
      */
     @Nullable TypeToken<TResponse> getResponseType();

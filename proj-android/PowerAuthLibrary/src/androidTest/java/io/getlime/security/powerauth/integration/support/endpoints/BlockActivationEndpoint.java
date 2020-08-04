@@ -28,12 +28,6 @@ public class BlockActivationEndpoint implements IServerApiEndpoint<BlockActivati
         return "/rest/v3/activation/block";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<BlockActivationResponse> getResponseType() {

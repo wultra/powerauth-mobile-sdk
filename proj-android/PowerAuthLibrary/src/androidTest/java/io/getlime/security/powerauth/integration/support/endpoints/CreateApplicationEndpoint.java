@@ -29,12 +29,6 @@ public class CreateApplicationEndpoint implements IServerApiEndpoint<CreateAppli
         return "/rest/v3/application/create";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<CreateApplicationResponse> getResponseType() {

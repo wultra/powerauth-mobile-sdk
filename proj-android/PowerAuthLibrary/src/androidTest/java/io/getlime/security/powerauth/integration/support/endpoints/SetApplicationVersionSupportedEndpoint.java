@@ -28,12 +28,6 @@ public class SetApplicationVersionSupportedEndpoint implements IServerApiEndpoin
         return "/rest/v3/application/version/support";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<SetApplicationVersionSupportResponse> getResponseType() {

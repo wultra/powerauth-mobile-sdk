@@ -69,8 +69,8 @@ public class HttpRestClient {
     public synchronized <TRequest, TResponse> TResponse send(@Nullable TRequest object, @NonNull IServerApiEndpoint<TResponse> endpoint) throws Exception {
         final RequestData requestData = new RequestData(
                 baseUrl + endpoint.getRelativePath(),
-                endpoint.getHttpMethod(),
-                hasBodyPayload(endpoint) ? serializeRequestBytes(object) : null
+                "POST",
+                serializeRequestBytes(object)
         );
         final ResponseData responseData = sendAndReceiveData(requestData);
         return deserializeResponseBytes(responseData, endpoint.getResponseType());
@@ -135,15 +135,6 @@ public class HttpRestClient {
         Logger.d("Test HTTP Recv " + responseCode + " from: " + requestData.url);
 
         return new ResponseData(responseCode, responseData);
-    }
-
-    /**
-     * Determine whether endpoint require a body payload.
-     * @param endpoint Endpoint
-     * @return {@code true} in case that endpoint require a body bytes.
-     */
-    private static boolean hasBodyPayload(@NonNull IServerApiEndpoint<?> endpoint) {
-        return endpoint.getHttpMethod().equals("POST");
     }
 
     /**

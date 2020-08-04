@@ -28,12 +28,6 @@ public class CreateApplicationVersionEndpoint implements IServerApiEndpoint<Crea
         return "/rest/v3/application/version/create";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<CreateApplicationVersionResponse> getResponseType() {

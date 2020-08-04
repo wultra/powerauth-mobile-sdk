@@ -13,12 +13,6 @@ public class GetApplicationListEndpoint implements IServerApiEndpoint<GetApplica
         return "/rest/v3/application/list";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public TypeToken<GetApplicationListResponse> getResponseType() {

@@ -54,6 +54,7 @@ public class TokenStoreTest {
     private PowerAuthSDK powerAuthSDK;
     private PowerAuthTokenStore tokenStore;
     private ActivationHelper activationHelper;
+    private SignatureHelper signatureHelper;
 
     private static final String TOKEN_NAME_POSSESSION = "TestToken_POSSESSION";
     private static final String TOKEN_NAME_POSSESSION_KNOWLEDGE = "TestToken_POSSESSION_KNOWLEDGE";
@@ -65,6 +66,7 @@ public class TokenStoreTest {
         powerAuthSDK = testHelper.getSharedSdk();
         tokenStore = powerAuthSDK.getTokenStore();
         activationHelper = new ActivationHelper(testHelper);
+        signatureHelper = new SignatureHelper();
     }
 
     @After
@@ -212,7 +214,8 @@ public class TokenStoreTest {
         assertTrue(token.canGenerateHeader());
         PowerAuthAuthorizationHttpHeader header = token.generateHeader();
         assertTrue(header.isValid());
-        Map<String, String> headerComponents = parseTokenHeader(header);
+        assertEquals("X-PowerAuth-Token", header.getKey());
+        Map<String, String> headerComponents = signatureHelper.parseAuthorizationHeader(header);
         // Validate values
         assertEquals(testHelper.getProtocolVersionForHeader(), headerComponents.get("version"));
         assertEquals(token.getTokenIdentifier(), headerComponents.get("token_id"));
@@ -227,32 +230,5 @@ public class TokenStoreTest {
         assertTrue(tokenInfo.isTokenValid());
         assertEquals(expectedSignatureType, tokenInfo.getSignatureType());
         return true;
-    }
-
-    /**
-     * Parse header into map of key-value components.
-     * @param header Token header.
-     * @return Key-Value components.
-     */
-    private @NonNull Map<String, String> parseTokenHeader(@NonNull PowerAuthAuthorizationHttpHeader header) {
-        assertEquals("X-PowerAuth-Token", header.getKey());
-        String value = header.value;
-        assertNotNull(value);
-        assertTrue(value.startsWith("PowerAuth "));
-        value = value.substring(10);
-        Map<String, String> components = new HashMap<>();
-        for (String component : TextUtils.split(value, ",")) {
-            component = component.trim();
-            int equalSign = component.indexOf("=");
-            assertTrue(equalSign > 0);
-            // acquire value
-            String componentKey = component.substring(0, equalSign);
-            String componentValue = component.substring(equalSign + 1);
-            assertTrue(componentValue.startsWith("\""));
-            assertTrue(componentValue.endsWith("\""));
-            componentValue = componentValue.substring(1, componentValue.length() - 1);
-            components.put(componentKey, componentValue);
-        }
-        return components;
     }
 }

@@ -1,6 +1,7 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.support.annotation.NonNull;
+import android.util.Base64;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,15 @@ public class RandomGenerator {
         final byte[] bytes = new byte[length];
         random.nextBytes(bytes);
         return bytes;
+    }
+
+    /**
+     * Generate random bytes in Base64 format.
+     * @param length Number of bytes to produce.
+     * @return Array of random bytes.
+     */
+    public @NonNull String generateBase64Bytes(int length) {
+        return Base64.encodeToString(generateBytes(length), Base64.NO_WRAP);
     }
 
     /**

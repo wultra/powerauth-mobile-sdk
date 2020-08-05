@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActivationStatusResponse> {
+import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+
+public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActivationStatusEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,36 @@ public class GetActivationStatusEndpoint implements IServerApiEndpoint<GetActiva
 
     @Nullable
     @Override
-    public TypeToken<GetActivationStatusResponse> getResponseType() {
-        return TypeToken.get(GetActivationStatusResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationId;
+        private String challenge;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public String getChallenge() {
+            return challenge;
+        }
+
+        public void setChallenge(String challenge) {
+            this.challenge = challenge;
+        }
+    }
+
+    // Response
+
+    public static class Response extends ActivationDetail {
     }
 }

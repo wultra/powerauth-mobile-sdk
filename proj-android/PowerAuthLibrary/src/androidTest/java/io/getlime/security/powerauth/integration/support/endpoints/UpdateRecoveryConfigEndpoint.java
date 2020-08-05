@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class UpdateRecoveryConfigEndpoint implements IServerApiEndpoint<UpdateRecoveryConfigResponse> {
+import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
+
+public class UpdateRecoveryConfigEndpoint implements IServerApiEndpoint<UpdateRecoveryConfigEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,39 @@ public class UpdateRecoveryConfigEndpoint implements IServerApiEndpoint<UpdateRe
 
     @Nullable
     @Override
-    public TypeToken<UpdateRecoveryConfigResponse> getResponseType() {
-        return TypeToken.get(UpdateRecoveryConfigResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request extends RecoveryConfig {
+
+        /**
+         * Create request from given recovery config.
+         * @param config Recovery config.
+         */
+        public Request(@NonNull RecoveryConfig config) {
+            setApplicationId(config.getApplicationId());
+            setActivationRecoveryEnabled(config.isActivationRecoveryEnabled());
+            setRecoveryPostcardEnabled(config.isRecoveryPostcardEnabled());
+            setAllowMultipleRecoveryCodes(config.getAllowMultipleRecoveryCodes());
+            setRemotePostcardPublicKey(config.getRemotePostcardPublicKey());
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private boolean updated;
+
+        public boolean isUpdated() {
+            return updated;
+        }
+
+        public void setUpdated(boolean updated) {
+            this.updated = updated;
+        }
     }
 }

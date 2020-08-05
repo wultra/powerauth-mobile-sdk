@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class BlockActivationEndpoint implements IServerApiEndpoint<BlockActivationResponse> {
+import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
+
+public class BlockActivationEndpoint implements IServerApiEndpoint<BlockActivationEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,64 @@ public class BlockActivationEndpoint implements IServerApiEndpoint<BlockActivati
 
     @Nullable
     @Override
-    public TypeToken<BlockActivationResponse> getResponseType() {
-        return TypeToken.get(BlockActivationResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationId;
+        private String externalUserId;
+        private String reason;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public String getExternalUserId() {
+            return externalUserId;
+        }
+
+        public void setExternalUserId(String externalUserId) {
+            this.externalUserId = externalUserId;
+        }
+
+        public String getReason() {
+            return reason;
+        }
+
+        public void setReason(String reason) {
+            this.reason = reason;
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private String activationId;
+        private ActivationStatus activationStatus;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public ActivationStatus getActivationStatus() {
+            return activationStatus;
+        }
+
+        public void setActivationStatus(ActivationStatus activationStatus) {
+            this.activationStatus = activationStatus;
+        }
     }
 }

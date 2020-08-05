@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class GetRecoveryConfigEndpoint implements IServerApiEndpoint<GetRecoveryConfigResponse> {
+import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
+
+public class GetRecoveryConfigEndpoint implements IServerApiEndpoint<GetRecoveryConfigEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,27 @@ public class GetRecoveryConfigEndpoint implements IServerApiEndpoint<GetRecovery
 
     @Nullable
     @Override
-    public TypeToken<GetRecoveryConfigResponse> getResponseType() {
-        return TypeToken.get(GetRecoveryConfigResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private long applicationId;
+
+        public long getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(long applicationId) {
+            this.applicationId = applicationId;
+        }
+    }
+
+    // Response
+
+    public static class Response extends RecoveryConfig {
     }
 }

@@ -5,7 +5,11 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class GetApplicationListEndpoint implements IServerApiEndpoint<GetApplicationListResponse> {
+import java.util.List;
+
+import io.getlime.security.powerauth.integration.support.model.Application;
+
+public class GetApplicationListEndpoint implements IServerApiEndpoint<GetApplicationListEndpoint.Response> {
 
     @NonNull
     @Override
@@ -15,7 +19,23 @@ public class GetApplicationListEndpoint implements IServerApiEndpoint<GetApplica
 
     @Nullable
     @Override
-    public TypeToken<GetApplicationListResponse> getResponseType() {
-        return TypeToken.get(GetApplicationListResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Empty request
+
+    // Response
+
+    public static class Response {
+        private List<Application> applications;
+
+        public List<Application> getApplications() {
+            return applications;
+        }
+
+        public void setApplications(List<Application> applications) {
+            this.applications = applications;
+        }
     }
 }

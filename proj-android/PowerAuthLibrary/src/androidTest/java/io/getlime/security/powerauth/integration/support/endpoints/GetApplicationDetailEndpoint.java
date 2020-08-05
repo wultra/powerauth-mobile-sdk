@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class GetApplicationDetailEndpoint implements IServerApiEndpoint<GetApplicationDetailResponse> {
+import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
+
+public class GetApplicationDetailEndpoint implements IServerApiEndpoint<GetApplicationDetailEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,35 @@ public class GetApplicationDetailEndpoint implements IServerApiEndpoint<GetAppli
 
     @Nullable
     @Override
-    public TypeToken<GetApplicationDetailResponse> getResponseType() {
-        return TypeToken.get(GetApplicationDetailResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+        private Long applicationId;
+        private String applicationName;
+
+        public Long getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(Long applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        public String getApplicationName() {
+            return applicationName;
+        }
+
+        public void setApplicationName(String applicationName) {
+            this.applicationName = applicationName;
+        }
+    }
+
+    // Response
+
+    public static class Response extends ApplicationDetail {
     }
 }

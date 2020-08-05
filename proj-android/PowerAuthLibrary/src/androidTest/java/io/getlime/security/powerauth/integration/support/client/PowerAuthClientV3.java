@@ -51,7 +51,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void validateConnection() throws Exception {
-        final GetSystemStatusResponse response = restClient.send(null, new GetSystemStatusEndpoint());
+        final GetSystemStatusEndpoint.Response response = restClient.send(null, new GetSystemStatusEndpoint());
         String version = response.getVersion();
         if (version == null) {
             throw new Exception("Missing version in system status response.");
@@ -77,14 +77,14 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public List<Application> getApplicationList() throws Exception {
-        final GetApplicationListResponse response = restClient.send(null, new GetApplicationListEndpoint());
+        final GetApplicationListEndpoint.Response response = restClient.send(null, new GetApplicationListEndpoint());
         return response.getApplications() != null ? response.getApplications() : Collections.<Application>emptyList();
     }
 
     @NonNull
     @Override
     public Application createApplication(@NonNull String applicationName) throws Exception {
-        final CreateApplicationRequest request = new CreateApplicationRequest();
+        final CreateApplicationEndpoint.Request request = new CreateApplicationEndpoint.Request();
         request.setApplicationName(applicationName);
         return restClient.send(request, new CreateApplicationEndpoint());
     }
@@ -92,7 +92,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public ApplicationDetail getApplicationDetailByName(@NonNull String applicationName) throws Exception {
-        final GetApplicationDetailRequest request = new GetApplicationDetailRequest();
+        final GetApplicationDetailEndpoint.Request request = new GetApplicationDetailEndpoint.Request();
         request.setApplicationName(applicationName);
         return restClient.send(request, new GetApplicationDetailEndpoint());
     }
@@ -100,7 +100,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public ApplicationDetail getApplicationDetailById(long applicationId) throws Exception {
-        final GetApplicationDetailRequest request = new GetApplicationDetailRequest();
+        final GetApplicationDetailEndpoint.Request request = new GetApplicationDetailEndpoint.Request();
         request.setApplicationId(applicationId);
         return restClient.send(request, new GetApplicationDetailEndpoint());
     }
@@ -108,7 +108,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public ApplicationVersion createApplicationVersion(long applicationId, @NonNull String versionName) throws Exception {
-        final CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
+        final CreateApplicationVersionEndpoint.Request request = new CreateApplicationVersionEndpoint.Request();
         request.setApplicationId(applicationId);
         request.setApplicationVersionName(versionName);
         return restClient.send(request, new CreateApplicationVersionEndpoint());
@@ -116,15 +116,9 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void setApplicationVersionSupported(long applicationVersionId, boolean supported) throws Exception {
-        final SetApplicationVersionSupportRequest request = new SetApplicationVersionSupportRequest();
+        final SetApplicationVersionSupportedEndpoint.Request request = new SetApplicationVersionSupportedEndpoint.Request();
         request.setApplicationVersionId(applicationVersionId);
-        final IServerApiEndpoint<SetApplicationVersionSupportResponse> endpoint;
-        if (supported) {
-            endpoint = new SetApplicationVersionSupportedEndpoint();
-        } else {
-            endpoint = new SetApplicationVersionUnsupportedEndpoint();
-        }
-        final SetApplicationVersionSupportResponse response = restClient.send(request, endpoint);
+        final SetApplicationVersionSupportedEndpoint.Response response = restClient.send(request, new SetApplicationVersionSupportedEndpoint(supported));
         if (response.isSupported() != supported) {
             throw new Exception("Application version is still " + (supported ? "unsupported" : "supported") + " after successful response.");
         }
@@ -133,15 +127,15 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public RecoveryConfig getRecoveryConfig(long applicationId) throws Exception {
-        final GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
+        final GetRecoveryConfigEndpoint.Request request = new GetRecoveryConfigEndpoint.Request();
         request.setApplicationId(applicationId);
         return restClient.send(request, new GetRecoveryConfigEndpoint());
     }
 
     @Override
     public void updateRecoveryConfig(@NonNull RecoveryConfig recoveryConfig) throws Exception {
-        final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest(recoveryConfig);
-        final UpdateRecoveryConfigResponse response = restClient.send(request, new UpdateRecoveryConfigEndpoint());
+        final UpdateRecoveryConfigEndpoint.Request request = new UpdateRecoveryConfigEndpoint.Request(recoveryConfig);
+        final UpdateRecoveryConfigEndpoint.Response response = restClient.send(request, new UpdateRecoveryConfigEndpoint());
         if (!response.isUpdated()) {
             throw new Exception("Recovery config for application " + recoveryConfig.getApplicationId() + " is not updated after successful response.");
         }
@@ -153,7 +147,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
         if ((otp != null && otpValidation == null) || (otp == null) && (otpValidation != null)) {
             throw new Exception("Invalid combination of activation OTP and OTP validation.");
         }
-        final InitActivationRequest request = new InitActivationRequest();
+        final InitActivationEndpoint.Request request = new InitActivationEndpoint.Request();
         request.setApplicationId(application.getApplicationId());
         request.setUserId(userId);
         request.setActivationOtp(otp);
@@ -170,11 +164,11 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void updateActivationOtp(@NonNull String activationId, @NonNull String otp, @Nullable String externalUserId) throws Exception {
-        final UpdateActivationOtpRequest request = new UpdateActivationOtpRequest();
+        final UpdateActivationOtpEndpoint.Request request = new UpdateActivationOtpEndpoint.Request();
         request.setActivationId(activationId);
         request.setActivationOtp(otp);
         request.setExternalUserId(externalUserId != null ? externalUserId : ServerConstants.DEFAULT_EXTERNAL_USER_ID);
-        final UpdateActivationOtpResponse response = restClient.send(request, new UpdateActivationOtpEndpoint());
+        final UpdateActivationOtpEndpoint.Response response = restClient.send(request, new UpdateActivationOtpEndpoint());
         if (!response.isUpdated()) {
             throw new Exception("Ativation OTP for activation " + activationId + " is not updated after request success.");
         }
@@ -187,11 +181,11 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void activationCommit(@NonNull String activationId, @Nullable String otp, @Nullable String externalUserId) throws Exception {
-        final CommitActivationRequest request = new CommitActivationRequest();
+        final CommitActivationEndpoint.Request request = new CommitActivationEndpoint.Request();
         request.setActivationId(activationId);
         request.setActivationOtp(otp);
         request.setExternalUserId(externalUserId != null ? externalUserId : ServerConstants.DEFAULT_EXTERNAL_USER_ID);
-        final CommitActivationResponse response = restClient.send(request, new CommitActivationEndpoint());
+        final CommitActivationEndpoint.Response response = restClient.send(request, new CommitActivationEndpoint());
         if (!response.isActivated()) {
             throw new Exception("Activation " + activationId + " is not activated after commit after successful response.");
         }
@@ -204,11 +198,11 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void activationRemove(@NonNull String activationId, @Nullable String externalUserId, boolean revokeRecoveryCodes) throws Exception {
-        final RemoveActivationRequest request = new RemoveActivationRequest();
+        final RemoveActivationEndpoint.Request request = new RemoveActivationEndpoint.Request();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         request.setRevokeRecoveryCodes(revokeRecoveryCodes);
-        final RemoveActivationResponse response = restClient.send(request, new RemoveActivationEndpoint());
+        final RemoveActivationEndpoint.Response response = restClient.send(request, new RemoveActivationEndpoint());
         if (!response.isRemoved()) {
             throw new Exception("Activation " + activationId + " is not removed after request success.");
         }
@@ -221,11 +215,11 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void activationBlock(@NonNull String activationId, @Nullable String reason, @Nullable String externalUserId) throws Exception {
-        final BlockActivationRequest request = new BlockActivationRequest();
+        final BlockActivationEndpoint.Request request = new BlockActivationEndpoint.Request();
         request.setActivationId(activationId);
         request.setReason(reason != null ? reason : ServerConstants.BLOCKED_REASON_NOT_SPECIFIED);
         request.setExternalUserId(externalUserId != null ? externalUserId : ServerConstants.DEFAULT_EXTERNAL_USER_ID);
-        final BlockActivationResponse response = restClient.send(request, new BlockActivationEndpoint());
+        final BlockActivationEndpoint.Response response = restClient.send(request, new BlockActivationEndpoint());
         if (response.getActivationStatus() != ActivationStatus.BLOCKED) {
             throw new Exception("Activation " + activationId + " is not blocked after block request success.");
         }
@@ -238,10 +232,10 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
 
     @Override
     public void activationUnblock(@NonNull String activationId, @Nullable String externalUserId) throws Exception {
-        final UnblockActivationRequest request = new UnblockActivationRequest();
+        final UnblockActivationEndpoint.Request request = new UnblockActivationEndpoint.Request();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId != null ? externalUserId : ServerConstants.DEFAULT_EXTERNAL_USER_ID);
-        final UnblockActivationResponse response = restClient.send(request, new UnblockActivationEndpoint());
+        final UnblockActivationEndpoint.Response response = restClient.send(request, new UnblockActivationEndpoint());
         if (response.getActivationStatus() != ActivationStatus.ACTIVE) {
             throw new Exception("Activation " + activationId + " is not active after unblock request success.");
         }
@@ -255,7 +249,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public ActivationDetail getActivationDetail(@NonNull String activationId, @Nullable String challenge) throws Exception {
-        final GetActivationStatusRequest request = new GetActivationStatusRequest();
+        final GetActivationStatusEndpoint.Request request = new GetActivationStatusEndpoint.Request();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
         return restClient.send(request, new GetActivationStatusEndpoint());
@@ -270,7 +264,7 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
     @NonNull
     @Override
     public TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception {
-        final ValidateTokenRequest request = new ValidateTokenRequest();
+        final ValidateTokenEndpoint.Request request = new ValidateTokenEndpoint.Request();
         request.setTokenId(tokenId);
         request.setTokenDigest(tokenDigest);
         request.setNonce(nonce);

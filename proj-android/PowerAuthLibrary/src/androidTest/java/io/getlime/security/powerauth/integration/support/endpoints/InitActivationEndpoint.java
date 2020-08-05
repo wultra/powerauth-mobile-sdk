@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class InitActivationEndpoint implements IServerApiEndpoint<InitActivationResponse> {
+import io.getlime.security.powerauth.integration.support.model.Activation;
+import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
+
+public class InitActivationEndpoint implements IServerApiEndpoint<InitActivationEndpoint.Response> {
 
     @NonNull
     @Override
@@ -31,7 +34,63 @@ public class InitActivationEndpoint implements IServerApiEndpoint<InitActivation
 
     @Nullable
     @Override
-    public TypeToken<InitActivationResponse> getResponseType() {
-        return TypeToken.get(InitActivationResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationOtp;
+        private ActivationOtpValidation activationOtpValidation;
+        private long applicationId;
+        private long maxFailureCount;
+        private String userId;
+
+        public String getActivationOtp() {
+            return activationOtp;
+        }
+
+        public void setActivationOtp(String activationOtp) {
+            this.activationOtp = activationOtp;
+        }
+
+        public ActivationOtpValidation getActivationOtpValidation() {
+            return activationOtpValidation;
+        }
+
+        public void setActivationOtpValidation(ActivationOtpValidation activationOtpValidation) {
+            this.activationOtpValidation = activationOtpValidation;
+        }
+
+        public long getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(long applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        public long getMaxFailureCount() {
+            return maxFailureCount;
+        }
+
+        public void setMaxFailureCount(long maxFailureCount) {
+            this.maxFailureCount = maxFailureCount;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+    }
+
+    // Response
+
+    public static class Response extends Activation {
     }
 }

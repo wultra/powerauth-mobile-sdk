@@ -21,7 +21,8 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActivationResponse> {
+public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActivationEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +31,64 @@ public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActiva
 
     @Nullable
     @Override
-    public TypeToken<RemoveActivationResponse> getResponseType() {
-        return TypeToken.get(RemoveActivationResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationId;
+        private String externalUserId;
+        private boolean revokeRecoveryCodes;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public String getExternalUserId() {
+            return externalUserId;
+        }
+
+        public void setExternalUserId(String externalUserId) {
+            this.externalUserId = externalUserId;
+        }
+
+        public boolean isRevokeRecoveryCodes() {
+            return revokeRecoveryCodes;
+        }
+
+        public void setRevokeRecoveryCodes(boolean revokeRecoveryCodes) {
+            this.revokeRecoveryCodes = revokeRecoveryCodes;
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private String activationId;
+        private boolean removed;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public boolean isRemoved() {
+            return removed;
+        }
+
+        public void setRemoved(boolean removed) {
+            this.removed = removed;
+        }
     }
 }

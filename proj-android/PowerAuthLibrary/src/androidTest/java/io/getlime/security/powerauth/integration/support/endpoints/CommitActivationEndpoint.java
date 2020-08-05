@@ -21,7 +21,8 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class CommitActivationEndpoint implements IServerApiEndpoint<CommitActivationResponse> {
+public class CommitActivationEndpoint implements IServerApiEndpoint<CommitActivationEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +31,64 @@ public class CommitActivationEndpoint implements IServerApiEndpoint<CommitActiva
 
     @Nullable
     @Override
-    public TypeToken<CommitActivationResponse> getResponseType() {
-        return TypeToken.get(CommitActivationResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationId;
+        private String activationOtp;
+        private String externalUserId;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public String getActivationOtp() {
+            return activationOtp;
+        }
+
+        public void setActivationOtp(String activationOtp) {
+            this.activationOtp = activationOtp;
+        }
+
+        public String getExternalUserId() {
+            return externalUserId;
+        }
+
+        public void setExternalUserId(String externalUserId) {
+            this.externalUserId = externalUserId;
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private boolean activated;
+        private String activationId;
+
+        public boolean isActivated() {
+            return activated;
+        }
+
+        public void setActivated(boolean activated) {
+            this.activated = activated;
+        }
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
     }
 }

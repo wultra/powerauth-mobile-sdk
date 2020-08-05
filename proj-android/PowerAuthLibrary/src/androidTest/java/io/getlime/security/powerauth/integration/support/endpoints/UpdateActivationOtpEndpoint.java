@@ -21,7 +21,8 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class UpdateActivationOtpEndpoint implements IServerApiEndpoint<UpdateActivationOtpResponse> {
+public class UpdateActivationOtpEndpoint implements IServerApiEndpoint<UpdateActivationOtpEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +31,64 @@ public class UpdateActivationOtpEndpoint implements IServerApiEndpoint<UpdateAct
 
     @Nullable
     @Override
-    public TypeToken<UpdateActivationOtpResponse> getResponseType() {
-        return TypeToken.get(UpdateActivationOtpResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String activationId;
+        private String activationOtp;
+        private String externalUserId;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public String getActivationOtp() {
+            return activationOtp;
+        }
+
+        public void setActivationOtp(String activationOtp) {
+            this.activationOtp = activationOtp;
+        }
+
+        public String getExternalUserId() {
+            return externalUserId;
+        }
+
+        public void setExternalUserId(String externalUserId) {
+            this.externalUserId = externalUserId;
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private String activationId;
+        private boolean updated;
+
+        public String getActivationId() {
+            return activationId;
+        }
+
+        public void setActivationId(String activationId) {
+            this.activationId = activationId;
+        }
+
+        public boolean isUpdated() {
+            return updated;
+        }
+
+        public void setUpdated(boolean updated) {
+            this.updated = updated;
+        }
     }
 }

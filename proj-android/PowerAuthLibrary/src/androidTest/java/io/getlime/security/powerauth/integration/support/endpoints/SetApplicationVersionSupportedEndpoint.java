@@ -21,16 +21,62 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class SetApplicationVersionSupportedEndpoint implements IServerApiEndpoint<SetApplicationVersionSupportResponse> {
+public class SetApplicationVersionSupportedEndpoint implements IServerApiEndpoint<SetApplicationVersionSupportedEndpoint.Response> {
+
+    private final boolean supported;
+
+    public SetApplicationVersionSupportedEndpoint(boolean supported) {
+        this.supported = supported;
+    }
+
     @NonNull
     @Override
     public String getRelativePath() {
-        return "/rest/v3/application/version/support";
+        return supported ? "/rest/v3/application/version/support" : "/rest/v3/application/version/unsupport";
     }
 
     @Nullable
     @Override
-    public TypeToken<SetApplicationVersionSupportResponse> getResponseType() {
-        return TypeToken.get(SetApplicationVersionSupportResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private Long applicationVersionId;
+
+        public Long getApplicationVersionId() {
+            return applicationVersionId;
+        }
+
+        public void setApplicationVersionId(Long applicationVersionId) {
+            this.applicationVersionId = applicationVersionId;
+        }
+    }
+
+    // Response
+
+    public static class Response {
+
+        private Long applicationVersionId;
+        private boolean supported;
+
+        public Long getApplicationVersionId() {
+            return applicationVersionId;
+        }
+
+        public void setApplicationVersionId(Long applicationVersionId) {
+            this.applicationVersionId = applicationVersionId;
+        }
+
+        public boolean isSupported() {
+            return supported;
+        }
+
+        public void setSupported(boolean supported) {
+            this.supported = supported;
+        }
     }
 }

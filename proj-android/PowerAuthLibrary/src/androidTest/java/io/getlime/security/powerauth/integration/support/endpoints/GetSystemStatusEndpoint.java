@@ -21,7 +21,8 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class GetSystemStatusEndpoint implements IServerApiEndpoint<GetSystemStatusResponse> {
+public class GetSystemStatusEndpoint implements IServerApiEndpoint<GetSystemStatusEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +31,69 @@ public class GetSystemStatusEndpoint implements IServerApiEndpoint<GetSystemStat
 
     @Nullable
     @Override
-    public TypeToken<GetSystemStatusResponse> getResponseType() {
-        return TypeToken.get(GetSystemStatusResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Empty request
+
+    // Response
+
+    public static class Response {
+
+        private String status;
+        private String applicationName;
+        private String applicationDisplayName;
+        private String applicationEnvironment;
+        private String timestamp;
+        private String version;
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public String getApplicationName() {
+            return applicationName;
+        }
+
+        public void setApplicationName(String applicationName) {
+            this.applicationName = applicationName;
+        }
+
+        public String getApplicationDisplayName() {
+            return applicationDisplayName;
+        }
+
+        public void setApplicationDisplayName(String applicationDisplayName) {
+            this.applicationDisplayName = applicationDisplayName;
+        }
+
+        public String getApplicationEnvironment() {
+            return applicationEnvironment;
+        }
+
+        public void setApplicationEnvironment(String applicationEnvironment) {
+            this.applicationEnvironment = applicationEnvironment;
+        }
+
+        public String getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(String timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
     }
 }

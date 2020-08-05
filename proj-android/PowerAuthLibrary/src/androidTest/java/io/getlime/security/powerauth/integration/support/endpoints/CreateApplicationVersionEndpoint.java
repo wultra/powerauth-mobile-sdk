@@ -21,7 +21,10 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class CreateApplicationVersionEndpoint implements IServerApiEndpoint<CreateApplicationVersionResponse> {
+import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+
+public class CreateApplicationVersionEndpoint implements IServerApiEndpoint<CreateApplicationVersionEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -30,7 +33,36 @@ public class CreateApplicationVersionEndpoint implements IServerApiEndpoint<Crea
 
     @Nullable
     @Override
-    public TypeToken<CreateApplicationVersionResponse> getResponseType() {
-        return TypeToken.get(CreateApplicationVersionResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private Long applicationId;
+        private String applicationVersionName;
+
+        public Long getApplicationId() {
+            return applicationId;
+        }
+
+        public void setApplicationId(Long applicationId) {
+            this.applicationId = applicationId;
+        }
+
+        public String getApplicationVersionName() {
+            return applicationVersionName;
+        }
+
+        public void setApplicationVersionName(String applicationVersionName) {
+            this.applicationVersionName = applicationVersionName;
+        }
+    }
+
+    // Response
+
+    public static class Response extends ApplicationVersion {
     }
 }

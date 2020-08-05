@@ -21,7 +21,9 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class CreateApplicationEndpoint implements IServerApiEndpoint<CreateApplicationResponse> {
+import io.getlime.security.powerauth.integration.support.model.Application;
+
+public class CreateApplicationEndpoint implements IServerApiEndpoint<CreateApplicationEndpoint.Response> {
 
     @NonNull
     @Override
@@ -31,7 +33,27 @@ public class CreateApplicationEndpoint implements IServerApiEndpoint<CreateAppli
 
     @Nullable
     @Override
-    public TypeToken<CreateApplicationResponse> getResponseType() {
-        return TypeToken.get(CreateApplicationResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String applicationName;
+
+        public String getApplicationName() {
+            return applicationName;
+        }
+
+        public void setApplicationName(String applicationName) {
+            this.applicationName = applicationName;
+        }
+    }
+
+    // Response
+
+    public static class Response extends Application {
     }
 }

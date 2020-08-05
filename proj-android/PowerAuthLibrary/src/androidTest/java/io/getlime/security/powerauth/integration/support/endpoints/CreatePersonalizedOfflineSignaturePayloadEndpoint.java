@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 
 public class CreatePersonalizedOfflineSignaturePayloadEndpoint implements IServerApiEndpoint<CreatePersonalizedOfflineSignaturePayloadEndpoint.Response> {
+
     @NonNull
     @Override
     public String getRelativePath() {
@@ -35,6 +36,8 @@ public class CreatePersonalizedOfflineSignaturePayloadEndpoint implements IServe
     public TypeToken<Response> getResponseType() {
         return TypeToken.get(Response.class);
     }
+
+    // Request
 
     public static class Request {
         private String activationId;
@@ -56,6 +59,8 @@ public class CreatePersonalizedOfflineSignaturePayloadEndpoint implements IServe
             this.data = data;
         }
     }
+
+    // Response
 
     public static class Response extends OfflineSignaturePayload {
     }

@@ -21,6 +21,8 @@ public class CreateNonPersonalizedOfflineSignaturePayloadEndpoint implements ISe
         return TypeToken.get(Response.class);
     }
 
+    // Request
+
     public static class Request {
 
         private long applicationId;
@@ -42,6 +44,8 @@ public class CreateNonPersonalizedOfflineSignaturePayloadEndpoint implements ISe
             this.data = data;
         }
     }
+
+    // Response
 
     public static class Response extends OfflineSignaturePayload {
     }

@@ -21,7 +21,9 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-public class ValidateTokenEndpoint implements IServerApiEndpoint<ValidateTokenResponse>{
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+
+public class ValidateTokenEndpoint implements IServerApiEndpoint<ValidateTokenEndpoint.Response>{
 
     @NonNull
     @Override
@@ -31,7 +33,54 @@ public class ValidateTokenEndpoint implements IServerApiEndpoint<ValidateTokenRe
 
     @Nullable
     @Override
-    public TypeToken<ValidateTokenResponse> getResponseType() {
-        return TypeToken.get(ValidateTokenResponse.class);
+    public TypeToken<Response> getResponseType() {
+        return TypeToken.get(Response.class);
+    }
+
+    // Request
+
+    public static class Request {
+
+        private String tokenId;
+        private String tokenDigest;
+        private String nonce;
+        private long timestamp;
+
+        public String getTokenId() {
+            return tokenId;
+        }
+
+        public void setTokenId(String tokenId) {
+            this.tokenId = tokenId;
+        }
+
+        public String getTokenDigest() {
+            return tokenDigest;
+        }
+
+        public void setTokenDigest(String tokenDigest) {
+            this.tokenDigest = tokenDigest;
+        }
+
+        public String getNonce() {
+            return nonce;
+        }
+
+        public void setNonce(String nonce) {
+            this.nonce = nonce;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(long timestamp) {
+            this.timestamp = timestamp;
+        }
+    }
+
+    // Response
+
+    public static class Response extends TokenInfo {
     }
 }

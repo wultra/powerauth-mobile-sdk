@@ -1288,11 +1288,6 @@ public class PowerAuthSDK {
 
         checkForValidSetup();
 
-        // Check if there is an activation present
-        if (!mSession.hasValidActivation()) {
-            return false;
-        }
-
         // Verify signature
         SignedData signedData = new SignedData(data, signature, useMasterKey);
         return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;

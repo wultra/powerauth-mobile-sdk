@@ -23,58 +23,8 @@ import java.util.Collections;
 import java.util.List;
 
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
-import io.getlime.security.powerauth.integration.support.endpoints.BlockActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.BlockActivationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.BlockActivationResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.CommitActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.CommitActivationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.CommitActivationResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.CreateApplicationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.CreateApplicationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.CreateApplicationVersionEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.CreateApplicationVersionRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.GetActivationStatusEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.GetActivationStatusRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationDetailEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationDetailRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationListEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.GetApplicationListResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.GetRecoveryConfigRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.GetSystemStatusResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.InitActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.InitActivationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.RemoveActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.RemoveActivationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.RemoveActivationResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.SetApplicationVersionSupportRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.SetApplicationVersionSupportResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.SetApplicationVersionSupportedEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.SetApplicationVersionUnsupportedEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.UnblockActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.UnblockActivationRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.UnblockActivationResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateActivationOtpResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigRequest;
-import io.getlime.security.powerauth.integration.support.endpoints.UpdateRecoveryConfigResponse;
-import io.getlime.security.powerauth.integration.support.endpoints.ValidateTokenEndpoint;
-import io.getlime.security.powerauth.integration.support.endpoints.ValidateTokenRequest;
-import io.getlime.security.powerauth.integration.support.model.Activation;
-import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
-import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
-import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
-import io.getlime.security.powerauth.integration.support.model.Application;
-import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
-import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
-import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
-import io.getlime.security.powerauth.integration.support.model.ServerConstants;
-import io.getlime.security.powerauth.integration.support.model.ServerVersion;
-import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+import io.getlime.security.powerauth.integration.support.endpoints.*;
+import io.getlime.security.powerauth.integration.support.model.*;
 
 public class PowerAuthClientV3 implements PowerAuthServerApi {
 
@@ -326,5 +276,47 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
         return restClient.send(request, new ValidateTokenEndpoint());
+    }
+
+    @NonNull
+    @Override
+    public SignatureInfo verifyOnlineSignature(@NonNull SignatureData signatureData) throws Exception {
+        final VerifyOnlineSignatureEndpoint.Request request = new VerifyOnlineSignatureEndpoint.Request(signatureData);
+        return restClient.send(request, new VerifyOnlineSignatureEndpoint());
+    }
+
+    @NonNull
+    @Override
+    public SignatureInfo verifyOfflineSignature(@NonNull SignatureData signatureData) throws Exception {
+        final VerifyOfflineSignatureEndpoint.Request request = new VerifyOfflineSignatureEndpoint.Request(signatureData);
+        return restClient.send(request, new VerifyOfflineSignatureEndpoint());
+    }
+
+    @Override
+    public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature) throws Exception {
+        final VerifyEcdsaSignatureEndpoint.Request request = new VerifyEcdsaSignatureEndpoint.Request();
+        request.setActivationId(activationId);
+        request.setData(data);
+        request.setSignature(signature);
+        final VerifyEcdsaSignatureEndpoint.Response response = restClient.send(request, new VerifyEcdsaSignatureEndpoint());
+        return response.isSignatureValid();
+    }
+
+    @NonNull
+    @Override
+    public OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(long applicationId, @NonNull String data) throws Exception {
+        final CreateNonPersonalizedOfflineSignaturePayloadEndpoint.Request request = new CreateNonPersonalizedOfflineSignaturePayloadEndpoint.Request();
+        request.setApplicationId(applicationId);
+        request.setData(data);
+        return restClient.send(request, new CreateNonPersonalizedOfflineSignaturePayloadEndpoint());
+    }
+
+    @NonNull
+    @Override
+    public OfflineSignaturePayload createPersonalizedOfflineSignaturePayload(@NonNull String activationId, @NonNull String data) throws Exception {
+        final CreatePersonalizedOfflineSignaturePayloadEndpoint.Request request = new CreatePersonalizedOfflineSignaturePayloadEndpoint.Request();
+        request.setActivationId(activationId);
+        request.setData(data);
+        return restClient.send(request, new CreatePersonalizedOfflineSignaturePayloadEndpoint());
     }
 }

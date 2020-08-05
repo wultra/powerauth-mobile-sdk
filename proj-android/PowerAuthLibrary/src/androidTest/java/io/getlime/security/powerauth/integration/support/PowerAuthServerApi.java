@@ -27,8 +27,11 @@ import io.getlime.security.powerauth.integration.support.model.ActivationOtpVali
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
 import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
+import io.getlime.security.powerauth.integration.support.model.SignatureData;
+import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 
 public interface PowerAuthServerApi {
@@ -256,4 +259,50 @@ public interface PowerAuthServerApi {
      * @throws Exception In case of failure.
      */
     @NonNull TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception;
+
+    // Signatures
+
+    /**
+     * Verify online signature on the server.
+     * @param signatureData {@link SignatureData} object that contains common and online-specific properties set.
+     * @return {@link SignatureInfo} with verification result.
+     * @throws Exception In case of failure.
+     */
+    @NonNull SignatureInfo verifyOnlineSignature(@NonNull SignatureData signatureData) throws Exception;
+
+    /**
+     * Verify offline signature on the server.
+     * @param signatureData {@link SignatureData} object that contains common and offline-specific properties set.
+     * @return {@link SignatureInfo} with verification result.
+     * @throws Exception In case of failure.
+     */
+    @NonNull SignatureInfo verifyOfflineSignature(@NonNull SignatureData signatureData) throws Exception;
+
+    /**
+     * Verify ECDSA signature, calculated with device's private key.
+     * @param activationId Activation identifier.
+     * @param data Signed data.
+     * @param signature Signature for data.
+     * @return {@code true} if signature is valid.
+     * @throws Exception In case of failure.
+     */
+    boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature) throws Exception;
+
+    /**
+     * Create a payload for offline QR code, signed with non-personalized private key.
+     * @param applicationId Application identifier.
+     * @param data Data to sign.
+     * @return {@link OfflineSignaturePayload} with payload data.
+     * @throws Exception In case of failure.
+     */
+    @NonNull OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(long applicationId, @NonNull String data) throws Exception;
+
+    /**
+     * Create a payload for offline QR code, signed with personalized private key associated with user's activation.
+     * @param activationId Activation identifier.
+     * @param data Data to sign.
+     * @return {@link OfflineSignaturePayload} with payload data.
+     * @throws Exception In case of failure.
+     */
+    @NonNull OfflineSignaturePayload createPersonalizedOfflineSignaturePayload(@NonNull String activationId, @NonNull String data) throws Exception;
 }

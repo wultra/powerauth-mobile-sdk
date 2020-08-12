@@ -215,6 +215,8 @@ namespace powerAuth
 		LOCK_GUARD();
 		if (hasValidActivation()) {
 			return _pd->activationId;
+		} else if (hasPendingActivation()) {
+			return _ad->activationId;
 		}
 		return std::string();
 	}

@@ -68,6 +68,9 @@
                   Identifier = "PowerAuthInvalidCurveTests">
                </Test>
                <Test
+                  Identifier = "PowerAuthSDKProtocolUpgradeTests">
+               </Test>
+               <Test
                   Identifier = "PowerAuthSDKTests">
                </Test>
                <Test

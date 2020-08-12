@@ -261,13 +261,15 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertTrue(s1.hasPendingActivation());
 					ccstAssertFalse(s1.hasValidActivation());
-
+					ccstAssertTrue(s1.activationIdentifier().empty());
+					
 					if (break_in_step == 1) {
 						s1.resetSession();
 						ccstAssertTrue(s1.hasValidSetup());
 						ccstAssertTrue(s1.canStartActivation());
 						ccstAssertFalse(s1.hasPendingActivation());
 						ccstAssertFalse(s1.hasValidActivation());
+						ccstAssertTrue(s1.activationIdentifier().empty());
 						continue;
 					}
 					
@@ -340,6 +342,7 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertTrue(s1.hasPendingActivation());
 					ccstAssertFalse(s1.hasValidActivation());
+					ccstAssertEqual(_activation_id, s1.activationIdentifier());
 					
 					if (break_in_step == 2) {
 						s1.resetSession();

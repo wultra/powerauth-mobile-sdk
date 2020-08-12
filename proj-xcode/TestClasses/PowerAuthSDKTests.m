@@ -421,6 +421,7 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertFalse([_sdk hasPendingActivation]);
 	XCTAssertFalse([_sdk hasValidActivation]);
 	XCTAssertTrue([_sdk canStartActivation]);
+	XCTAssertNil(_sdk.activationIdentifier);
 	
 	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
 	PATSActivationOtpValidationEnum otpValidation = activationOtp != nil ? PATSActivationOtpValidation_ON_KEY_EXCHANGE : PATSActivationOtpValidation_NONE;
@@ -454,7 +455,7 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertTrue([_sdk hasPendingActivation]);
 	XCTAssertFalse([_sdk hasValidActivation]);
 	XCTAssertFalse([_sdk canStartActivation]);
-	
+	XCTAssertTrue([activationData.activationId isEqualToString:_sdk.activationIdentifier]);
 	
 	// 2.1) CLIENT: Try to fetch status. At this point, it should not work! The activation is not completed yet.
 	PA2ActivationStatus * activationStatus = [self fetchActivationStatus];
@@ -596,6 +597,7 @@ static NSString * PA_Ver = @"3.1";
 		XCTAssertNotNil(task);
 	}];
 	XCTAssertNil(removeError);
+	XCTAssertNil(_sdk.activationIdentifier);
 	
 	// Cleanup, only if the SDK remove did fail
 	if (removeError) {

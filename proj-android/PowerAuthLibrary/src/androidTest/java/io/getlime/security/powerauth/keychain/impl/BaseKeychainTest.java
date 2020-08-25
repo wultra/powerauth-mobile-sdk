@@ -36,6 +36,7 @@ public abstract class BaseKeychainTest {
     public static final String TEST_STRING_EMPTY = "";
     public static final String TEST_STRING_NOT_EMPTY_1 = "Hello world!";
     public static final String TEST_STRING_NOT_EMPTY_2 = "Just hello...";
+    public static final String TEST_STRING_BAD_BASE64 = "a==";
 
     public static final Set<String> TEST_SET_EMPTY = new HashSet<>();
     public static final Set<String> TEST_SET_NOT_EMPTY_1 = new HashSet<>(Arrays.asList("This", "is", "test", "set", "wultra.com"));
@@ -59,6 +60,7 @@ public abstract class BaseKeychainTest {
         keychain.putData(TEST_DATA_NOT_EMPTY_1, "test.data_NotEmpty");
         keychain.putString(TEST_STRING_EMPTY, "test.string_Empty");
         keychain.putString(TEST_STRING_NOT_EMPTY_1, "test.string_NotEmpty");
+        keychain.putString(TEST_STRING_BAD_BASE64, "test.string_BadBase64");
         keychain.putStringSet(TEST_SET_EMPTY, "test.set_Empty");
         keychain.putStringSet(TEST_SET_NOT_EMPTY_1, "test.set_NotEmpty");
         keychain.putFloat(0.f, "test.zeroFloat");
@@ -80,6 +82,7 @@ public abstract class BaseKeychainTest {
             assertEquals(TEST_STRING_EMPTY, keychain.getString("test.string_Empty", TEST_STRING_NOT_EMPTY_1));
         }
         assertEquals(TEST_STRING_NOT_EMPTY_1, keychain.getString("test.string_NotEmpty", TEST_STRING_EMPTY));
+        assertEquals(TEST_STRING_BAD_BASE64, keychain.getString("test.string_BadBase64", TEST_STRING_EMPTY));
         final Set<String> emptySet = keychain.getStringSet("test.set_Empty");
         assertNotNull(emptySet);
         assertEquals(0, emptySet.size());

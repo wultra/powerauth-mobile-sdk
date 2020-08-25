@@ -322,8 +322,8 @@ public class EncryptedKeychain implements Keychain {
                     continue;
                 }
                 // Test whether the string is Base64 encoded sequence of bytes
-                final byte[] decodedBytes = Base64.decode(string, Base64.DEFAULT);
-                if (Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
+                final byte[] decodedBytes = tryDecodeBase64Data(string);
+                if (decodedBytes != null) {
                     // String contains Base64 encoded sequence of bytes.
                     encodedValue = valueEncoder.encode(decodedBytes);
                 } else {
@@ -376,6 +376,25 @@ public class EncryptedKeychain implements Keychain {
         editor.putInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, ENCRYPTED_KEYCHAIN_VERSION);
         editor.apply();
         return true;
+    }
+
+    /**
+     * Try to decode provided string as Base64 data. If string is real Base64 data, then return
+     * array with decoded bytes, otherwise return null.
+     *
+     * @param string Possible Base64 data to decode.
+     * @return Decoded array of bytes in case that string is real Base64 data, otherwise null.
+     */
+    private @Nullable byte[] tryDecodeBase64Data(@NonNull String string) {
+        try {
+            final byte[] decodedBytes = Base64.decode(string, Base64.DEFAULT);
+            if (Base64.encodeToString(decodedBytes, Base64.DEFAULT).trim().equals(string.trim())) {
+                return decodedBytes;
+            }
+            return null;
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     // Private methods

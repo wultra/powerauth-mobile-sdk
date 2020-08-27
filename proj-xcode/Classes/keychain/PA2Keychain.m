@@ -291,7 +291,7 @@ static PA2BiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 	return PA2BiometricAuthenticationType_TouchID;
 }
 
-// Distinguinsh between old, deprecated "TouchID" enums and new with "biometry" in name.
+// Distinguish between old, deprecated "TouchID" enums and new with "biometry" in name.
 //
 // This is required due to a different min-SDK requirements between iOS and Catalyst
 // builds. On "iOS", we target iOS 8+, so deprecated constants are still valid.

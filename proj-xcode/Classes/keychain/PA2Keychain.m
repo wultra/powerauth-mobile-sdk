@@ -372,6 +372,26 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	return info;
 }
 
+/**
+ Translates PA2KeychainItemAccess into SecAccessControlCreateFlags depending on access mode.
+ */
+static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PA2KeychainItemAccess access)
+{
+	if (access != PA2KeychainItemAccess_None)) {
+		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
+		// or use kNilOptions.
+		if (@available(iOS 9, *)) {
+			if (access == PA2KeychainItemAccess_AnyBiometricSet) {
+				return __kSecAccessControlBiometryAny;
+			} else {
+				return __kSecAccessControlBiometryCurrentSet;
+			}
+		}
+	}
+	// If biometry is not supporte or not requested, use the kNilOptions.
+	return kNilOptions;
+}
+
 + (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
 {
 	// Initialize mutex
@@ -409,6 +429,14 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 }
 
 /**
+ This platform doesn't support biometry, so always return kNilOptions.
+ */
+static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PA2KeychainItemAccess access)
+{
+	return kNilOptions;
+}
+
+/**
  Do nothing on watchOS or when the class is running in app extension.
  */
 + (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
@@ -416,7 +444,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
 	return NO;
 }
 
-#endif // !defined(PA2_EXTENSION_SDK)
+#endif // !defined(PA2_EXTENSION_SDK) && defined(PA2_BIOMETRY_SUPPORT)
 
 //
 // High level biometry interfaces
@@ -461,18 +489,9 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	}
 #endif
 	SecAccessControlCreateFlags flags;
-	if (isAddOperation && (access != PA2KeychainItemAccess_None)) {
-		// If it's add operation and the biometry is requrested.
-		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny), or use kNilOptions
-		if (@available(iOS 9, *)) {
-			if (access == PA2KeychainItemAccess_AnyBiometricSet) {
-				flags = __kSecAccessControlBiometryAny;
-			} else {
-				flags = __kSecAccessControlBiometryCurrentSet;
-			}
-		} else {
-			flags = kNilOptions;
-		}
+	if (isAddOperation) {
+		// For add operation, translate requested access to control flags.
+		flags = _getBiometryAccessControlFlags(access);
 	} else {
 		// For update operation, or if biometry is not requested, use the kNilOptions.
 		flags = kNilOptions;

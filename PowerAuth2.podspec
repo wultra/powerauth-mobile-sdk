@@ -46,7 +46,8 @@ Pod::Spec.new do |s|
     # Tweaks
     s.pod_target_xcconfig   = {
         'OTHER_LDFLAGS' => '-ObjC -framework PowerAuthCore -framework openssl',
-        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
+        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO',
+        'CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER' => 'NO'
     }
 
 end

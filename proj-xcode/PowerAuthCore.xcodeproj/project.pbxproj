@@ -214,26 +214,12 @@
 			remoteGlobalIDString = BFFE8AAF2449B4F80032821F;
 			remoteInfo = "cc7-tvos";
 		};
-		BF734A862485250D001F46BA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BF734A58248523F3001F46BA;
-			remoteInfo = "cc7-legacy-ios";
-		};
 		BF734A882485250D001F46BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BFFE8ACF2449B53C0032821F;
 			remoteInfo = "cc7tests-tvos";
-		};
-		BF734A8A2485250D001F46BA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = BF734A7924852487001F46BA;
-			remoteInfo = "cc7tests-legacy-ios";
 		};
 		BF734A8C2485250D001F46BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -777,10 +763,8 @@
 			children = (
 				BFB47D4520753444008A6A52 /* libcc7-ios.a */,
 				BF734A852485250D001F46BA /* libcc7-tvos.a */,
-				BF734A872485250D001F46BA /* libcc7-legacy-ios.a */,
 				BFB47D4720753444008A6A52 /* libcc7tests-ios.a */,
 				BF734A892485250D001F46BA /* libcc7tests-tvos.a */,
-				BF734A8B2485250D001F46BA /* libcc7tests-legacy-ios.a */,
 				BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */,
 				BF734A8D2485250D001F46BA /* CC7TestsWrapper-tvos.xctest */,
 			);
@@ -1017,25 +1001,11 @@
 			remoteRef = BF734A842485250D001F46BA /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		BF734A872485250D001F46BA /* libcc7-legacy-ios.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = "libcc7-legacy-ios.a";
-			remoteRef = BF734A862485250D001F46BA /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		BF734A892485250D001F46BA /* libcc7tests-tvos.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = "libcc7tests-tvos.a";
 			remoteRef = BF734A882485250D001F46BA /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		BF734A8B2485250D001F46BA /* libcc7tests-legacy-ios.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = "libcc7tests-legacy-ios.a";
-			remoteRef = BF734A8A2485250D001F46BA /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		BF734A8D2485250D001F46BA /* CC7TestsWrapper-tvos.xctest */ = {
@@ -1306,6 +1276,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -1375,6 +1346,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

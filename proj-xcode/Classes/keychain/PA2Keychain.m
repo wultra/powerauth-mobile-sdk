@@ -377,7 +377,7 @@ static PA2BiometricAuthenticationInfo _getBiometryInfo()
  */
 static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PA2KeychainItemAccess access)
 {
-	if (access != PA2KeychainItemAccess_None)) {
+	if (access != PA2KeychainItemAccess_None) {
 		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
 		// or use kNilOptions.
 		if (@available(iOS 9, *)) {

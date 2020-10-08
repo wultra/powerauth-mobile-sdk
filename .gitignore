@@ -39,6 +39,7 @@ xcuserdata
 # Pods/
 # Temp. folder for our local CocoaPods build
 Library/
+Lib/
 
 # Carthage
 #

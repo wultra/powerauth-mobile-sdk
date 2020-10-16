@@ -165,15 +165,13 @@ function REQUIRE_COMMAND_PATH
 # -----------------------------------------------------------------------------
 function SET_VERBOSE_LEVEL_FROM_SWITCH
 {
-	if [ "$1" == "-v0" ]; then
-		VERBOSE=0
-	elif [ "$1" == "-v1" ]; then
-		VERBOSE=1
-	elif [ "$1" == "-v2" ]; then
-		VERBOSE=2
-	else
-		FAILURE "Invalid verbose level $1"
-	fi
+	case "$1" in
+		-v0) VERBOSE=0 ;;
+		-v1) VERBOSE=1 ;;
+		-v2) VERBOSE=2 ;;
+		*) FAILURE "Invalid verbose level $1" ;;
+	esac
+	UPDATE_VERBOSE_COMMANDS
 }
 # -----------------------------------------------------------------------------
 # Updates verbose switches for common commands. Function will create following
@@ -208,7 +206,7 @@ function VALIDATE_AND_SET_VERSION_STRING
 	if [ -z "$1" ]; then
 		FAILURE "Version string is empty"
 	fi
-	rx='^([0-9]+\.){2}(\*|[0-9]+)$'
+	local rx='^([0-9]+\.){2}(\*|[0-9]+)$'
 	if [[ ! "$1" =~ $rx ]]; then
 	 	FAILURE "Version string is invalid: '$1'"
 	fi
@@ -289,6 +287,30 @@ function SHA512
 	echo ${HASH[0]}
 }
 
+# -----------------------------------------------------------------------------
+# Prints Xcode version into stdout or -1 in case of error.
+# Parameters:
+#   $1   - optional switch, can be:
+#          '--full'  - prints a full version of Xcode (e.g. 11.7.1)
+#          '--major' - prints only a major version (e.g. 11)
+#          otherwise prints first line from `xcodebuild -version` result
+# -----------------------------------------------------------------------------
+function GET_XCODE_VERSION
+{
+    local xcodever=(`xcodebuild -version | grep ^Xcode`)
+    local ver=${xcodever[1]}
+    if [ -z "$ver" ]; then
+        echo -1
+        return
+    fi
+    local ver_array=( ${ver//./ } )
+    case $1 in
+        --full) echo $ver ;;
+        --major) echo ${ver_array[0]} ;;
+        *) echo ${xcodever[*]} ;;
+    esac
+}
+
 ###############################################################################
 # Global scope
 #   Gets full path to current directory and exits with error when 
@@ -300,6 +322,7 @@ function SHA512
 # -----------------------------------------------------------------------------
 CMD=$(basename $0)
 TOP="`( cd \"$TOP\" && pwd )`"
+UPDATE_VERBOSE_COMMANDS
 if [ -z "$TOP" ]; then
     FAILURE "Current dir is not accessible."
 fi

@@ -330,6 +330,8 @@ function BUILD_PLATFORMS
 
 	ALL_FAT_LIBS=()
 	
+    BUILD_PATCH_ARCHITECTURES
+    
 	[[ x$FULL_REBUILD == x1 ]] && CLEAN_COMMAND
 	
 	for PLATFORM in ${PLATFORMS}
@@ -357,6 +359,23 @@ function BUILD_PLATFORMS
 	LOG_LINE
 	LOG "Copying openssl.xcframework ..."
 	$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" "${OUT_DIR}/Frameworks"
+}
+
+# -----------------------------------------------------------------------------
+# Adjust CPU architectures supported in Xcode, depending on Xcode version.
+# -----------------------------------------------------------------------------
+function BUILD_PATCH_ARCHITECTURES
+{
+    local xcodever=$(GET_XCODE_VERSION --major)
+    if (( $xcodever == 0 )); then
+        FAILURE "Unsupported Xcode version."
+    fi
+    if (( $xcodever >= 12 )); then
+        DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
+        ARCH_CATALYST+=" arm64"
+    else
+        WARNING "Building library on older than Xcode 12. ARM64 architectures will be omitted."
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -412,8 +431,6 @@ do
 	esac
 	shift
 done
-
-UPDATE_VERBOSE_COMMANDS
 
 # Defaulting target & temporary folders
 if [ -z "$OUT_DIR" ]; then

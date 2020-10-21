@@ -372,7 +372,9 @@ function BUILD_PATCH_ARCHITECTURES
     fi
     if (( $xcodever >= 12 )); then
         DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
-        ARCH_CATALYST+=" arm64"
+        #ARCH_CATALYST+=" arm64"
+        ARCH_IOS_SIM+=" arm64"
+        ARCH_TVOS_SIM+=" arm64"
     else
         WARNING "Building library on older than Xcode 12. ARM64 architectures will be omitted."
     fi

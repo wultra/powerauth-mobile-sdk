@@ -215,6 +215,8 @@ namespace powerAuth
 		LOCK_GUARD();
 		if (hasValidActivation()) {
 			return _pd->activationId;
+		} else if (hasPendingActivation()) {
+			return _ad->activationId;
 		}
 		return std::string();
 	}
@@ -223,8 +225,14 @@ namespace powerAuth
 	{
 		LOCK_GUARD();
 		std::string result;
-		if (hasValidActivation()) {
-			result = protocol::CalculateActivationFingerprint(_pd->devicePublicKey, _pd->serverPublicKey, _pd->activationId, _pd->protocolVersion());
+		if (hasValidActivation() || (hasPendingActivation() && _state == SS_Activation2)) {
+			if (_state == SS_Activation2) {
+				// Still pending activation
+				result = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, _ad->activationId, Version_Latest);
+			} else {
+				// Has valid activation
+				result = protocol::CalculateActivationFingerprint(_pd->devicePublicKey, _pd->serverPublicKey, _pd->activationId, _pd->protocolVersion());
+			}
 			if (result.empty()) {
 				CC7_LOG("Session %p, %d: ActivationFingerprint: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 			}
@@ -348,7 +356,7 @@ namespace powerAuth
 				break;
 			}
 			// So far so good, the last step is decimalization of device's public key
-			result.activationFingerprint = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, param.activationId, Version_V3);
+			result.activationFingerprint = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, param.activationId, Version_Latest);
 			if (result.activationFingerprint.empty()) {
 				CC7_LOG("Session %p, %d: Step 2: Unable to calculate activation fingerprint.", this, sessionIdentifier());
 				break;

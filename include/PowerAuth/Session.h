@@ -151,14 +151,14 @@ namespace powerAuth
 		// MARK: - Activation -
 		
 		/**
-		 If the session has valid activation, then returns the activation identifier.
-		 Otherwise returns empty string.
+		 If the session has valid activation or state is SS_Activation2, then returns the
+		 activation identifier. Otherwise returns empty string.
 		 */
 		std::string activationIdentifier() const;
 		
 		/**
-		 If the session has valid activation, then returns decimalized fingerprint, calculated
-		 from device's public key. Otherwise returns empty string.
+		 If the session has valid activation or state is SS_Activation2, then returns
+		 decimalized fingerprint, calculated from device's public key. Otherwise returns empty string.
 		 
 		 Note: The value is equivalent to H_K_DEVICE_PUBLIC mentioned in PowerAuth crypto
 		 protocol documentation.

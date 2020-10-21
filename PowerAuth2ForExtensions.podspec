@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
     # General information
     s.name              = 'PowerAuth2ForExtensions'
-    s.version           = '1.4.2'
+    s.version           = '1.4.3'
     s.summary           = 'PowerAuth Mobile SDK for iOS App Extensions'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'

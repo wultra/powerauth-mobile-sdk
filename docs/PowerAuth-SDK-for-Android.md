@@ -501,13 +501,51 @@ if (powerAuthSDK.hasValidActivation()) {
         @Override
         public void onActivationStatusSucceed(ActivationStatus status) {
             // Activation state: State_Created, State_Pending_Commit, State_Active, State_Blocked, State_Removed, State_Deadlock
-            int state = status.state;
+            switch (status.state) {
+                case ActivationStatus.State_Pending_Commit:
+                    // Activation is awaiting commit on the server.
+                    android.util.Log.i(TAG, "Waiting for commit");
+                    break;
+                case ActivationStatus.State_Active:
+                    // Activation is valid and active.
+                    android.util.Log.i(TAG, "Activation is active");
+                    break;
+                case ActivationStatus.State_Blocked:
+                    // Activation is blocked. You can display unblock
+                    // instructions to the user.
+                    android.util.Log.i(TAG, "Activation is blocked");
+                    break;
+                case ActivationStatus.State_Removed:
+                    // Activation is no longer valid on the server.
+                    // You can inform user about this situation and remove
+                    // activation locally.
+                    android.util.Log.i(TAG, "Activation is no longer valid");
+                    powerAuthSDK.removeActivationLocal(context);
+                    break;
+                case ActivationStatus.State_Deadlock:
+                    // Local activation is technically blocked and no longer
+                    // can be used for the signature calculations. You can inform
+                    // user about this situation and remove activation locally.
+                    android.util.Log.i(TAG, "Activation is technically blocked");
+                    powerAuthSDK.removeActivationLocal(context);
+                    break;
+                case ActivationStatus.State_Created:
+                    // Activation is just created. This is the internal
+                    // state on the server and therefore can be ignored
+                    // on the mobile application.
+                default:
+                    android.util.Log.i(TAG, "Unknown state");
+                    break;
+            }
 
             // Failed login attempts, remaining = max - current
             int currentFailCount = status.failCount;
             int maxAllowedFailCount = status.maxFailCount;
-            int remainingFailCount = maxAllowedFailCount - currentFailCount;
-
+            int remainingFailCount = status.getRemainingAttempts();
+            
+            if (status.getCustomObject() != null) {
+                // Custom object contains any proprietary server specific data
+            }
         }
 
         @Override
@@ -521,6 +559,8 @@ if (powerAuthSDK.hasValidActivation()) {
 ```
 
 Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCodes.PA2ErrorCodeProtocolUpgrade`, meaning that it's not possible to upgrade PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
+
+To get more information about activation lifecycle, check [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository. 
 
 ## Data Signing
 

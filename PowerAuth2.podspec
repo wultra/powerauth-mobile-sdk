@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     # General information
     s.cocoapods_version = '>= 1.9'
     s.name              = 'PowerAuth2'
-    s.version           = '1.4.2'
+    s.version           = '1.4.3'
     s.summary           = 'PowerAuth Mobile SDK for iOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
@@ -45,9 +45,8 @@ Pod::Spec.new do |s|
     
     # Tweaks
     s.pod_target_xcconfig   = {
-        'OTHER_LDFLAGS' => '-ObjC -framework PowerAuthCore -framework openssl',
+        'OTHER_LDFLAGS' => '-ObjC',
         'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO',
         'CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER' => 'NO'
     }
-
 end

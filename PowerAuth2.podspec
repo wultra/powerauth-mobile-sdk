@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     # General information
-    s.cocoapods_version = '>= 1.9'
+    s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2'
     s.version           = '1.4.3'
     s.summary           = 'PowerAuth Mobile SDK for iOS'

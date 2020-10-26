@@ -530,7 +530,7 @@
 		BF7D502E1FDF03EB00200119 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1210;
 				ORGANIZATIONNAME = "Juraj Durech";
 				TargetAttributes = {
 					BF5491D31FFFB9220036DB9E = {

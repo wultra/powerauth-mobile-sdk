@@ -15,6 +15,9 @@
  */
 
 #import "PowerAuthSDK+Private.h"
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 #import "PA2WCSessionManager+Private.h"
 #import "PA2WCSessionPacket_ActivationStatus.h"
 #import "PA2WCSessionPacket_TokenData.h"
@@ -221,3 +224,7 @@
 }
 
 @end
+
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

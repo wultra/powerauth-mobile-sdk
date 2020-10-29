@@ -258,8 +258,6 @@ do
 	shift
 done
 
-UPDATE_VERBOSE_COMMANDS
-
 # Check required parameters
 if [ x$PLATFORM_SDK == x ]; then
 	FAILURE "You have to specify platform (watchos or ios)"

@@ -16,6 +16,10 @@
 
 #import "PowerAuthToken.h"
 
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
+
 /**
  The WatchSupport category provides simple interface for sending tokens to paired Apple Watch.
  Please read our integration guide (https://github.com/wultra/powerauth-mobile-sdk/docs/PowerAuth-SDK-for-watchOS.md)
@@ -64,3 +68,7 @@
 - (void) removeFromWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion;
 
 @end
+
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

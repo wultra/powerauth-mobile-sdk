@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1020"
+   LastUpgradeVersion = "1210"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,24 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF99D9142073E17000735ED2"
-               BuildableName = "libPowerAuthCoreTests.a"
-               BlueprintName = "PowerAuthCoreTests"
-               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+               BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
+               BuildableName = "PowerAuth2.framework"
+               BlueprintName = "PowerAuth2-ios"
+               ReferencedContainer = "container:PowerAuthLib.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
+               BuildableName = "XCTests-ios.xctest"
+               BlueprintName = "XCTests-ios"
+               ReferencedContainer = "container:PowerAuthLib.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -26,11 +40,24 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "NO">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
+               BuildableName = "XCTests-ios.xctest"
+               BlueprintName = "XCTests-ios"
+               ReferencedContainer = "container:PowerAuthLib.xcodeproj">
+            </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthConcurrencyTests">
+               </Test>
+            </SkippedTests>
+         </TestableReference>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -45,14 +72,12 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+            BlueprintIdentifier = "BF8CF47D2032EB41002A6B6E"
+            BuildableName = "PowerAuth2.framework"
+            BlueprintName = "PowerAuth2-ios"
+            ReferencedContainer = "container:PowerAuthLib.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -60,15 +85,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF99D9142073E17000735ED2"
-            BuildableName = "libPowerAuthCoreTests.a"
-            BlueprintName = "PowerAuthCoreTests"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

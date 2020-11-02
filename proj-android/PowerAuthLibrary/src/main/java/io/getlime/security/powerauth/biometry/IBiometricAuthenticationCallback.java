@@ -40,11 +40,11 @@ public interface IBiometricAuthenticationCallback {
     /**
      * Biometric authentication succeeded.
      *
-     * @param biometricKeyEncrypted Biometric key encrypted with biometric protected key from
-     *                              Keystore - use this key as a value for biometric authentication.
+     * @param biometricKeyData Object containing derived biometric key and key data that must be saved
+     *                         to persistent storage.
      */
     @UiThread
-    void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted);
+    void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData);
 
     /**
      * Biometric authentication failed with the error.

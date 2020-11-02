@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
+import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
 import io.getlime.security.powerauth.system.PA2Log;
 
 /**
@@ -134,7 +135,7 @@ public class BiometricAuthentication {
                 @Override
                 public void onBiometricKeyUnavailable() {
                     // Remove the default key, because the biometric key is no longer available.
-                    device.getBiometricKeystore().removeDefaultKey();
+                    device.getBiometricKeystore().removeBiometricKeyEncryptor();
                 }
             });
             final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
@@ -144,8 +145,6 @@ public class BiometricAuthentication {
             PowerAuthErrorException exception = null;
             if (status == BiometricStatus.OK) {
                 try {
-                    // Prepare secret key for authentication
-                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request));
                     // Authenticate
                     return device.authenticate(context, fragmentManager, requestData);
 
@@ -164,7 +163,7 @@ public class BiometricAuthentication {
             }
             // Failed to use biometric authentication. At first, we should cleanup the possible stored
             // biometric key.
-            device.getBiometricKeystore().removeDefaultKey();
+            device.getBiometricKeystore().removeBiometricKeyEncryptor();
 
             // Now show the error dialog, and report the exception later.
             if (exception == null) {
@@ -181,20 +180,20 @@ public class BiometricAuthentication {
      * @return {@link SecretKey} acquired from the keystore.
      * @throws PowerAuthErrorException In case that cannot create or restore the key.
      */
-    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
-        final SecretKey key;
+    private static @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
+        final IBiometricKeyEncryptor encryptor;
         if (request.isForceGenerateNewKey()) {
-            key = keystore.generateDefaultKey(request.isInvalidateByBiometricEnrollment());
-            if (key == null) {
+            encryptor = keystore.createBiometricKeyEncryptor(request.isInvalidateByBiometricEnrollment(), request.isUseSymmetricCipher());
+            if (encryptor == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
             }
         } else {
-            key = keystore.getDefaultKey();
-            if (key == null) {
+            encryptor = keystore.getBiometricKeyEncryptor();
+            if (encryptor == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Cannot get biometric key from the keystore.");
             }
         }
-        return key;
+        return encryptor;
     }
 
     /**
@@ -261,16 +260,7 @@ public class BiometricAuthentication {
             }
         });
         // Return dummy cancelable object.
-        return new ICancelable() {
-            @Override
-            public void cancel() {
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return true;
-            }
-        };
+        return new DummyCancelable();
     }
 
     /**

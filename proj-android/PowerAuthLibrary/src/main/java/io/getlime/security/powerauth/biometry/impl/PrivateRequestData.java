@@ -20,10 +20,9 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import javax.crypto.SecretKey;
-
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
+import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 
 /**
  * The {@code PrivateRequestData} class contains various temporary data required for the biometric
@@ -35,8 +34,6 @@ public class PrivateRequestData {
     private final @NonNull BiometricResultDispatcher dispatcher;
     private final @NonNull BiometricDialogResources resources;
     private final long creationTime;
-
-    private @Nullable SecretKey secretKey;
 
     /**
      * Construct private request data object.
@@ -73,26 +70,6 @@ public class PrivateRequestData {
      */
     public @NonNull BiometricDialogResources getResources() {
         return resources;
-    }
-
-    /**
-     * Set secret key to the private request data object. The secret key has to be set before the
-     * authentication is performed on the device implementation.
-     * @param secretKey {@link SecretKey} object with the key protected by the biometry.
-     */
-    public void setSecretKey(@NonNull SecretKey secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    /**
-     * @return {@link SecretKey} object with the key protected by the biometry. Method throws
-     *         {@code IllegalStateException} in case that key was not set before.
-     */
-    public @NonNull SecretKey getSecretKey() {
-        if (secretKey == null) {
-            throw new IllegalStateException("SecretKey is null.");
-        }
-        return secretKey;
     }
 
     /**

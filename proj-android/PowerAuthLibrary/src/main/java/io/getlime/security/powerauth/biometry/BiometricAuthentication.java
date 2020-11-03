@@ -24,8 +24,6 @@ import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
 import android.util.Pair;
 
-import javax.crypto.SecretKey;
-
 import io.getlime.security.powerauth.biometry.impl.BiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -42,7 +40,6 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
 import io.getlime.security.powerauth.system.PA2Log;
 
 /**

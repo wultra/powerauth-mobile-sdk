@@ -18,11 +18,9 @@ package io.getlime.security.powerauth.biometry.impl;
 
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
-import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 
 /**
  * The {@code PrivateRequestData} class contains various temporary data required for the biometric

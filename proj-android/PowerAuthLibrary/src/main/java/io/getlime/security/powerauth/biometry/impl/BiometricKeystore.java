@@ -128,21 +128,19 @@ public class BiometricKeystore implements IBiometricKeystore {
         }
         try {
             mKeyStore.load(null);
-            if (mKeyStore.isCertificateEntry(KEY_NAME)) {
-                // RSA key-pair
-                final Key key = mKeyStore.getKey(KEY_NAME, null);
-                if (key instanceof PrivateKey) {
-                    return new BiometricKeyEncryptorRsa(key);
-                }
-            } else {
-                // AES key
-                final Key key = mKeyStore.getKey(KEY_NAME, null);
-                if (key instanceof SecretKey) {
-                    return new BiometricKeyEncryptorAes(key);
-                }
+            final Key key = mKeyStore.getKey(KEY_NAME, null);
+            if (key instanceof SecretKey) {
+                // AES symmetric key
+                return new BiometricKeyEncryptorAes((SecretKey)key);
+            } else if (key instanceof PrivateKey) {
+                // RSA private key
+                return new BiometricKeyEncryptorRsa((PrivateKey)key);
+            } else if (key != null) {
+                PA2Log.e("BiometricKeystore.getBiometricKeyEncryptor unknown key type: " + key.toString());
             }
             return null;
         } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | IOException e) {
+            PA2Log.e("BiometricKeystore.getBiometricKeyEncryptor failed: " + e.getMessage());
             return null;
         }
     }

@@ -35,23 +35,47 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.system.PA2Log;
 
+/**
+ * The {@code BiometricKeyEncryptorAes} implements {@link IBiometricKeyEncryptor} and provides
+ * protection of PowerAuth biometric factor with using symmetric AES cipher. The key is stored in
+ * Android KeyStore and the biometric authentication is required for both data encryption and decryption.
+ * <p>
+ * The cipher configuration is compatible with previous versions of PowerAuth SDK (1.4.3 and older).
+ */
 public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
-    private final @NonNull Key key;
+    private final @NonNull SecretKey key;
     private @Nullable Cipher cipher;
+    /**
+     * If true, then internal cipher is already initialized.
+     */
     private boolean cipherIsInitialized;
+    /**
+     * If true, then encryptor object was already used, so no subsequent calls are allowed.
+     */
     private boolean encryptorIsUsed;
+    /**
+     * If true, then encrypt operation is expected.
+     */
     private boolean encryptMode;
 
+    /**
+     * AES cipher configuration.
+     */
     private static final String AES_CIPHER = "AES/CBC/PKCS7Padding";
 
-    public BiometricKeyEncryptorAes(@NonNull Key key) {
+    /**
+     * Initialize encryptor with symmetric {@link SecretKey}.
+     * @param key Encryption and decryption key.
+     */
+    public BiometricKeyEncryptorAes(@NonNull SecretKey key) {
         this.key = key;
     }
 
@@ -69,9 +93,12 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             }
             cipher = Cipher.getInstance(AES_CIPHER);
             if (cipher != null) {
+                // We always initialize cipher to encrypt mode, because AES cipher is later used
+                // as KDF function. We don't actually encrypt and decrypt the raw biometric key.
                 final byte[] zero_iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
                 AlgorithmParameterSpec algorithmSpec = new IvParameterSpec(zero_iv);
                 cipher.init(Cipher.ENCRYPT_MODE, key, algorithmSpec);
+                // Keep encrypt mode flag to be validated later in encrypt / decrypt methods.
                 this.encryptMode = encryptMode;
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
@@ -87,18 +114,27 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
     @Override
     public BiometricKeyData encryptBiometricKey(@NonNull byte[] key) {
         final byte[] derivedKey = aesKdf(key, true);
-        // TODO: explain why we're returning different data.
-        return derivedKey != null ? new BiometricKeyData(key, derivedKey) : null;
+        // We use AES as KDF, so we must return the provided key back to the application
+        // to save it to the persistent storage, to be able to perform the same KDF in decryption.
+        return derivedKey != null ? new BiometricKeyData(key, derivedKey, true) : null;
     }
 
     @Nullable
     @Override
     public BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey) {
         final byte[] derivedKey = aesKdf(encryptedKey, false);
-        // TODO: explain why we're returning different data.
-        return derivedKey != null ? new BiometricKeyData(encryptedKey, derivedKey) : null;
+        // We use AES as KDF, so we must return the provided key back to the application
+        // to save it to the persistent storage, to be able to perform the same KDF in decryption.
+        return derivedKey != null ? new BiometricKeyData(encryptedKey, derivedKey, false) : null;
     }
 
+    /**
+     * Private method that implements AES KDF.
+     *
+     * @param keyToDerive Key material to be derived with KDF.
+     * @param encryptMode Encrypt / Decrypt flag, to test API usage.
+     * @return Derived data or {@code null} in case of failure.
+     */
     @Nullable
     private byte[] aesKdf(@NonNull byte[] keyToDerive, boolean encryptMode) {
         try {
@@ -122,10 +158,21 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
         }
     }
 
+    /**
+     * Create a new instance of this class with given parameters.
+     *
+     * @param providerName KeyStore provider name.
+     * @param keyName KeyStore key alias.
+     * @param invalidateByBiometricEnrollment If {@code true}, then key will be invalidated on
+     *                                        new biometric enrollment.
+     * @return New instance of {@link BiometricKeyEncryptorAes} or {@code null} in case of failure.
+     */
     @Nullable
     public static IBiometricKeyEncryptor createAesEncryptor(@NonNull String providerName, @NonNull String keyName, boolean invalidateByBiometricEnrollment) {
         try {
+            // Acquire AES key generator
             final KeyGenerator keyGenerator = KeyGenerator.getInstance("AES", providerName);
+            // Configure AES key generator
             final KeyGenParameterSpec.Builder keySpecBuilder = new KeyGenParameterSpec.Builder(keyName, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                     .setUserAuthenticationRequired(true)
@@ -134,8 +181,10 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 keySpecBuilder.setInvalidatedByBiometricEnrollment(invalidateByBiometricEnrollment);
             }
+            // Initialize generator and generate a new AES key in the KeyStore.
             keyGenerator.init(keySpecBuilder.build());
-            final Key key = keyGenerator.generateKey();
+            final SecretKey key = keyGenerator.generateKey();
+            // Create a new instance of encryptor.
             return new BiometricKeyEncryptorAes(key);
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException | ProviderException e) {
             PA2Log.e("BiometricKeyEncryptorAes.createAesEncryptor failed: " + e.getMessage());

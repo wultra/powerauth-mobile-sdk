@@ -1715,7 +1715,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(byte[])} callback is called,
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
      * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.
@@ -1764,8 +1764,16 @@ public class PowerAuthSDK {
             return new DummyCancelable();
         }
 
-        // Prepare internal callback object that will delegate resut back to the application.
-        final IBiometricAuthenticationCallback internalCallback = new IBiometricAuthenticationCallback() {
+        // Build a new authentication request.
+        BiometricAuthenticationRequest request = new BiometricAuthenticationRequest.Builder(context)
+                .setTitle(title)
+                .setDescription(description)
+                .setRawKeyData(rawKeyData, encryptor)
+                .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
+                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
+                .build();
+
+        return BiometricAuthentication.authenticate(context, fragmentManager, request, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 callback.onBiometricDialogCancelled(userCancel);
@@ -1774,11 +1782,11 @@ public class PowerAuthSDK {
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 // Store the new key, if a new key was generated
-                if (forceGenerateNewKey) {
+                if (biometricKeyData.isNewKey()) {
                     mBiometryKeychain.putData(biometricKeyData.getDataToSave(), mKeychainConfiguration.getKeychainBiometryDefaultKey());
                 }
                 byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData());
-                callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey));
+                callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));
             }
 
             @Override
@@ -1791,35 +1799,13 @@ public class PowerAuthSDK {
                     // That will lead to unsuccessful authentication on the server and increased
                     // counter of failed attempts.
                     final byte[] randomData =  mSession.generateSignatureUnlockKey();
-                    callback.onBiometricDialogSuccess(new BiometricKeyData(randomData, randomData));
+                    callback.onBiometricDialogSuccess(new BiometricKeyData(randomData, randomData, false));
                 } else {
                     // Otherwise just report the failure.
                     callback.onBiometricDialogFailed(error);
                 }
             }
-        };
-
-        if (forceGenerateNewKey && !encryptor.isAuthenticationRequiredOnEncryption()) {
-            // Biometric key setup, but encryptor don't require an actual authentication.
-            final BiometricKeyData keyData = encryptor.encryptBiometricKey(rawKeyData);
-            if (keyData != null) {
-                internalCallback.onBiometricDialogSuccess(keyData);
-            } else {
-                internalCallback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key."));
-            }
-            return new DummyCancelable();
-        }
-
-        // Build a new authentication request.
-        BiometricAuthenticationRequest request = new BiometricAuthenticationRequest.Builder(context)
-                .setTitle(title)
-                .setDescription(description)
-                .setRawKeyData(rawKeyData, encryptor)
-                .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
-                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
-                .build();
-
-        return BiometricAuthentication.authenticate(context, fragmentManager, request, internalCallback);
+        });
     }
 
     // E2EE

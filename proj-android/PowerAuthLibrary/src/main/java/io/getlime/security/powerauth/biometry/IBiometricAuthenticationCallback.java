@@ -40,8 +40,8 @@ public interface IBiometricAuthenticationCallback {
     /**
      * Biometric authentication succeeded.
      *
-     * @param biometricKeyData Object containing derived biometric key and key data that must be saved
-     *                         to persistent storage.
+     * @param biometricKeyData {@link BiometricKeyData} object with derived key and data that should
+     *                         be stored to the persistent storage.
      */
     @UiThread
     void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData);

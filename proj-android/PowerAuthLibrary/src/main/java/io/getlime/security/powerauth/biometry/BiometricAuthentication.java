@@ -42,6 +42,7 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
+import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
 import io.getlime.security.powerauth.system.PA2Log;
 
 /**
@@ -145,8 +146,14 @@ public class BiometricAuthentication {
             PowerAuthErrorException exception = null;
             if (status == BiometricStatus.OK) {
                 try {
-                    // Authenticate
-                    return device.authenticate(context, fragmentManager, requestData);
+                    if (request.isForceGenerateNewKey() && !request.getBiometricKeyEncryptor().isAuthenticationRequiredOnEncryption()) {
+                        // Biometric authentication is not actually required, because we're generating (e.g encrypting) the key
+                        // and the encryptor doesn't require authentication for such task.
+                        return justEncryptBiometricKey(request, dispatcher);
+                    } else {
+                        // Authenticate with device
+                        return device.authenticate(context, fragmentManager, requestData);
+                    }
 
                 } catch (PowerAuthErrorException e) {
                     // Failed to authenticate. Show an error dialog and report that exception to the callback.
@@ -174,26 +181,29 @@ public class BiometricAuthentication {
     }
 
     /**
-     * Prepare secret key, stored (or restored) managed by {@link IBiometricKeystore} object.
-     * @param keystore Keystore object managing the requested key.
-     * @param request Biometric authentication request.
-     * @return {@link SecretKey} acquired from the keystore.
-     * @throws PowerAuthErrorException In case that cannot create or restore the key.
+     * This helper method only encrypts a raw key data with encryptor and dispatch result back to the
+     * application. The encryptor should not require the biometric authentication on it's encrypt task.
+     *
+     * @param request Request object containing raw key data and encryptor.
+     * @param dispatcher Biometric result dispatcher.
+     * @return Result from {@link BiometricResultDispatcher#getCancelableTask()}.
+     * @throws PowerAuthErrorException If cannot encrypt biometric key.
      */
-    private static @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
-        final IBiometricKeyEncryptor encryptor;
-        if (request.isForceGenerateNewKey()) {
-            encryptor = keystore.createBiometricKeyEncryptor(request.isInvalidateByBiometricEnrollment(), request.isUseSymmetricCipher());
-            if (encryptor == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
-            }
-        } else {
-            encryptor = keystore.getBiometricKeyEncryptor();
-            if (encryptor == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Cannot get biometric key from the keystore.");
-            }
+    private static @NonNull ICancelable justEncryptBiometricKey(
+            @NonNull BiometricAuthenticationRequest request,
+            @NonNull BiometricResultDispatcher dispatcher) throws PowerAuthErrorException {
+
+        // Initialize encryptor's cipher
+        final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
+        final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
+        // Encrypt the key
+        final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
+        if (keyData == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key.");
         }
-        return encryptor;
+        // In case of success, just dispatch the result back to the application
+        dispatcher.dispatchSuccess(keyData);
+        return dispatcher.getCancelableTask();
     }
 
     /**

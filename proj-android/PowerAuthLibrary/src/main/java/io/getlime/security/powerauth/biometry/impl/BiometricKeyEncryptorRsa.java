@@ -30,6 +30,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
@@ -46,23 +47,58 @@ import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.system.PA2Log;
 
+/**
+ * The {@code BiometricKeyEncryptorRsa} implements {@link IBiometricKeyEncryptor} and provides
+ * protection of PowerAuth biometric factor with using asymmetric RSA cipher. The RSA key-pair
+ * is stored in Android KeyStore and the biometric authentication is required only for data
+ * decryption.
+ */
 public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
+    /**
+     * Public key, required for encrypt operation.
+     */
     private final @Nullable PublicKey publicKey;
-    private final @Nullable Key privateKey;
+    /**
+     * Private key, required for decrypt operation.
+     */
+    private final @Nullable PrivateKey privateKey;
+    /**
+     * Initialized cipher.
+     */
     private @Nullable Cipher cipher;
+    /**
+     * If true, then internal cipher is already initialized.
+     */
     private boolean cipherIsInitialized;
+    /**
+     * If true, then encryptor object was already used, so no subsequent calls are allowed.
+     */
     private boolean encryptorIsUsed;
+    /**
+     * If true, then encrypt operation is expected.
+     */
     private boolean encryptMode;
 
+    /**
+     * RSA cipher configuration.
+     */
     private static final String RSA_CIPHER = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
 
+    /**
+     * Initialize encryptor for encrypt operation.
+     * @param publicKey RSA public key.
+     */
     public BiometricKeyEncryptorRsa(@NonNull PublicKey publicKey) {
         this.publicKey = publicKey;
         this.privateKey = null;
     }
 
-    public BiometricKeyEncryptorRsa(@NonNull Key privateKey) {
+    /**
+     * Initialize encryptor for decrypt operation.
+     * @param privateKey RSA private key.
+     */
+    public BiometricKeyEncryptorRsa(@NonNull PrivateKey privateKey) {
         this.publicKey = null;
         this.privateKey = privateKey;
     }
@@ -89,7 +125,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                     }
                     // Initialize RSA parameters (OAEP with SHA-256 and MGF1)
                     final PublicKey unrestrictedPublicKey = KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(new X509EncodedKeySpec(publicKey.getEncoded()));
-                    final OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, PSource.PSpecified.DEFAULT);
+                    final OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
                     // Initialize cipher for data encryption
                     cipher.init(Cipher.ENCRYPT_MODE, unrestrictedPublicKey, spec);
                 } else {
@@ -129,9 +165,9 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
             // Encrypt data
             final byte[] encryptedBiometricKey = cipher.doFinal(key);
-            // RSA encryptor really needs to store encrypted data. So, we're returned the same
-            // array of bytes in BiometricKeyData object.
-            return new BiometricKeyData(encryptedBiometricKey, encryptedBiometricKey);
+            // RSA encryptor really encrypts and decrypts data. That means that 'key' on input is
+            // already the key, that will protect biometric factor for PowerAuth protocol.
+            return new BiometricKeyData(encryptedBiometricKey, key, true);
 
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             PA2Log.e("BiometricKeyEncryptorRsa.encryptBiometricKey failed: " + e.getMessage());
@@ -157,7 +193,9 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
             // Decrypt data
             final byte[] decryptedKey = cipher.doFinal(encryptedKey);
-            return new BiometricKeyData(encryptedKey, decryptedKey);
+            // The decrypted key is the key that was previously used to lock PowerAuth biometric
+            // factor. Just for convenience, we'll return the same data as we received on input.
+            return new BiometricKeyData(encryptedKey, decryptedKey, false);
 
         } catch (BadPaddingException | IllegalBlockSizeException e) {
             PA2Log.e("BiometricKeyEncryptorRsa.decryptBiometricKey failed: " + e.getMessage());
@@ -165,6 +203,15 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
         }
     }
 
+    /**
+     * Create a new instance of this class with given parameters.
+     *
+     * @param providerName KeyStore provider name.
+     * @param keyName KeyStore key alias.
+     * @param invalidateByBiometricEnrollment If {@code true}, then key will be invalidated on
+     *                                        new biometric enrollment.
+     * @return New instance of {@link BiometricKeyEncryptorRsa} or {@code null} in case of failure.
+     */
     @Nullable
     public static IBiometricKeyEncryptor createRsaEncryptor(@NonNull String providerName, @NonNull String keyName, boolean invalidateByBiometricEnrollment) {
         try {

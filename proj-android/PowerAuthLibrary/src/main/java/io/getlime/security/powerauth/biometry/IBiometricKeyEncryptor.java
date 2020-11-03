@@ -24,13 +24,20 @@ import android.support.annotation.RequiresApi;
 import javax.crypto.Cipher;
 
 /**
- * TODO: missing doc
+ * The {@code IBiometricKeyEncryptor} provides encryption and decryption of KEK that protects
+ * PowerAuth biometric factor. The underlying implementation use Android KeyStore to store
+ * the encryption key that is protected with the biometric authentication.
+ * <p>
+ * Instance of this object can be typically used only for once, per encryption or decryption task.
+ * Calling methods from this interface for multiple times produce an illegal argument exception.
  */
 @RequiresApi(api = Build.VERSION_CODES.M)
 public interface IBiometricKeyEncryptor {
 
     /**
-     * @return {@code true} if biometric authentication is required in {@link #decryptBiometricKey(byte[])} method.
+     * @return {@code true} if biometric authentication is required in {@link #encryptBiometricKey(byte[])} method.
+     *         If {@code false} is returned, then typically the setup of biometric factor doesn't require
+     *         biometric authentication.
      */
     boolean isAuthenticationRequiredOnEncryption();
 
@@ -40,9 +47,10 @@ public interface IBiometricKeyEncryptor {
      *
      * @param encryptMode Tells whether object will be later used for key encryption or decryption.
      *
-     * @return Instance of {@link Cipher} object.
+     * @return Instance of {@link Cipher} object or {@code null} in case of failure.
      */
-    @Nullable Cipher initializeCipher(boolean encryptMode);
+    @Nullable
+    Cipher initializeCipher(boolean encryptMode);
 
     /**
      * Encrypt biometric key and return object that contains encrypted key and data to store to permanent storage.
@@ -52,8 +60,7 @@ public interface IBiometricKeyEncryptor {
      * The method can be used only for once during the encryptor's lifecycle.
      *
      * @param key Biometric KEK to encrypt.
-     * @return Pair of byte arrays, where first contains data to store to the permanent storage and
-     *         second contains encrypted key.
+     * @return {@link BiometricKeyData} with key derivation and data to store to persistent storage.
      */
     @Nullable
     BiometricKeyData encryptBiometricKey(@NonNull byte[] key);
@@ -64,7 +71,7 @@ public interface IBiometricKeyEncryptor {
      * The method can be used only for once during the encryptor's lifecycle.
      *
      * @param encryptedKey Previously stored encrypted key.
-     * @return Decrypted key.
+     * @return {@link BiometricKeyData} with restored key derivation.
      */
     @Nullable
     BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey);

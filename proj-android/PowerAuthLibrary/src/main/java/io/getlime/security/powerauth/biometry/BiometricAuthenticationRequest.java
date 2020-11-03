@@ -134,7 +134,7 @@ public class BiometricAuthenticationRequest {
         private CharSequence subtitle;
         private CharSequence description;
 
-        private boolean forceGenerateNewKey;
+        private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
         private boolean useSymmetricCipher = false;
@@ -244,12 +244,12 @@ public class BiometricAuthenticationRequest {
         }
 
         /**
-         * @param forceGenerateNewKey If true then the new biometric key will be generated as a
-         *                            part of the process.
+         * @param forceGenerateNewKey             If true then the new biometric key will be generated as a
+         *                                        part of the process.
          * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on
          *                                        biometric enrollment.
-         * @param useSymmetricCipher If true then symmetric cipher will be used to biometric factor key
-         *                           protection.
+         * @param useSymmetricCipher              If true then symmetric cipher will be used to biometric
+         *                                        factor key protection.
          * @return This value will never be {@code null}.
          */
         public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment, boolean useSymmetricCipher) {

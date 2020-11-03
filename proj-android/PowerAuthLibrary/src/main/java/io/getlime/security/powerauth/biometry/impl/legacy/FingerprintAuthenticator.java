@@ -154,7 +154,7 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         final BiometricAuthenticationRequest request = requestData.getRequest();
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
 
-        // Now construct AES cipher with the biometric key, wrapped in the crypto object.
+        // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
         final FingerprintManager.CryptoObject cryptoObject = wrapCipherToCryptoObject(request.getBiometricKeyEncryptor().initializeCipher(request.isForceGenerateNewKey()));
         if (cryptoObject == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Cannot create CryptoObject for biometric authentication.");

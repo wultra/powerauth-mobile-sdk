@@ -19,21 +19,23 @@ package io.getlime.security.powerauth.biometry;
 import android.support.annotation.Nullable;
 
 /**
- * Interface representing a Keystore used to store biometry related key.
+ * Interface wrapping a key stored in Android KeyStore and providing {@link IBiometricKeyEncryptor}
+ * that can encrypt and decrypt biometry related keys for PowerAuth protocol.
  */
 public interface IBiometricKeystore {
 
     /**
      * Check if the Keystore is ready.
      *
-     * @return True if Keystore is ready, false otherwise.
+     * @return {@code true} if KeyStore is ready, false otherwise.
      */
     boolean isKeystoreReady();
 
     /**
-     * Check if a key for biometric key encryptor is present in Keystore
+     * Check if a key for biometric key encryptor is present in Keystore and {@link IBiometricKeyEncryptor}
+     * can be acquired.
      *
-     * @return True in case a key for biometric key encryptor is present, false otherwise.
+     * @return {@code true} in case a key for biometric key encryptor is present, false otherwise.
      *         Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
      */
     boolean containsBiometricKeyEncryptor();
@@ -58,7 +60,8 @@ public interface IBiometricKeystore {
     void removeBiometricKeyEncryptor();
 
     /**
-     * @return Default biometry related key, stored in KeyStore or null if no such key is stored.
+     * @return {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore or {@code null}
+     *         if no such key is stored.
      */
     @Nullable
     IBiometricKeyEncryptor getBiometricKeyEncryptor();

@@ -18,21 +18,47 @@ package io.getlime.security.powerauth.biometry;
 
 import android.support.annotation.NonNull;
 
+/**
+ * The {@code BiometricKeyData} class contains result from the biometric authentication in case that
+ * authentication succeeded.
+ */
 public class BiometricKeyData {
 
     private final @NonNull byte[] dataToSave;
     private final @NonNull byte[] derivedData;
+    private final boolean newKey;
 
-    public BiometricKeyData(@NonNull byte[] dataToSave, @NonNull byte[] derivedData) {
+    /**
+     * Construct object with data to save, derived key and flag that this is a new key generated.
+     *
+     * @param dataToSave Data that should be stored to the persistent storage in case that this is a new key.
+     * @param derivedData Data derived from raw key bytes provided in biometric authentication request.
+     * @param isNewKey Is {@code true} in case that this is a new key generated.
+     */
+    public BiometricKeyData(@NonNull byte[] dataToSave, @NonNull byte[] derivedData, boolean isNewKey) {
         this.dataToSave = dataToSave;
         this.derivedData = derivedData;
+        this.newKey = isNewKey;
     }
 
+    /**
+     * @return Data that should be stored to the persistent storage in case that this is a new key.
+     */
     public @NonNull byte[] getDataToSave() {
         return dataToSave;
     }
 
+    /**
+     * @return Data derived from raw key bytes provided in biometric authentication request.
+     */
     public @NonNull byte[] getDerivedData() {
         return derivedData;
+    }
+
+    /**
+     * @return Is {@code true} in case that this is a new key generated.
+     */
+    public boolean isNewKey() {
+        return newKey;
     }
 }

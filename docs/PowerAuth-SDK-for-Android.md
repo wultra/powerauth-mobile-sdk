@@ -122,7 +122,7 @@ By default, PowerAuth mobile SDK encrypts it's local activation data with the sy
 ```java
 try {
     PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
-            .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE))
+            .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE)
             .build();
     // Apply keychain configuration
     PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
@@ -871,6 +871,18 @@ powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Biometric Authe
         // Error occurred, report it to user
     }
 });
+```
+
+By default, PowerAuth SDK asks user to authenticate with the biometric sensor also during the setup procedure (or during the [activation commit](#committing-activation-data)). To alter this behavior, use the following code to change `PowerAuthKeychainConfiguration` provided to `PowerAuthSDK` instance:
+
+```java
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+        .authenticateOnBiometricKeySetup(false)
+        .build();
+// Apply keychain configuration
+PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
+        .keychainConfiguration(keychainConfig)
+        .build(getApplicationContext());
 ```
 
 ### Disable biometric authentication

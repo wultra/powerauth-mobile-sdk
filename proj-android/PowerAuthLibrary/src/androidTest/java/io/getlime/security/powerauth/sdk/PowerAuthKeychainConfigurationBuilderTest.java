@@ -39,6 +39,7 @@ public class PowerAuthKeychainConfigurationBuilderTest {
         assertEquals(KeychainProtection.NONE, configuration.getMinimalRequiredKeychainProtection());
         assertFalse(configuration.isConfirmBiometricAuthentication());
         assertTrue(configuration.isLinkBiometricItemsToCurrentSet());
+        assertTrue(configuration.isAuthenticateOnBiometricKeySetup());
     }
 
     @Test
@@ -51,6 +52,7 @@ public class PowerAuthKeychainConfigurationBuilderTest {
                 .keychainTokenStoreId("keychain.tokens")
                 .keychainBiometryDefaultKey("biometryKey")
                 .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE)
+                .authenticateOnBiometricKeySetup(false)
                 .build();
         assertEquals("keychain.biometry", configuration.getKeychainBiometryId());
         assertEquals("keychain.status", configuration.getKeychainStatusId());
@@ -59,5 +61,6 @@ public class PowerAuthKeychainConfigurationBuilderTest {
         assertEquals(KeychainProtection.HARDWARE, configuration.getMinimalRequiredKeychainProtection());
         assertTrue(configuration.isConfirmBiometricAuthentication());
         assertFalse(configuration.isLinkBiometricItemsToCurrentSet());
+        assertFalse(configuration.isAuthenticateOnBiometricKeySetup());
     }
 }

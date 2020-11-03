@@ -262,12 +262,12 @@ public class PowerAuthKeychainConfiguration {
          * <p>
          * The default value is {@code true}.
          *
-         * @param autheticate If set, then biometric authentication is required for both setup and usage
-         *                    of biometric key.
+         * @param authenticate If set, then biometric authentication is required for both setup and usage
+         *                     of biometric key.
          * @return {@link Builder}
          */
-        public @NonNull Builder authenticateOnBiometricKeySetup(boolean autheticate) {
-            this.authenticateOnBiometricKeySetup = autheticate;
+        public @NonNull Builder authenticateOnBiometricKeySetup(boolean authenticate) {
+            this.authenticateOnBiometricKeySetup = authenticate;
             return this;
         }
 

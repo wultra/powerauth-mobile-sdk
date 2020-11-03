@@ -30,6 +30,14 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
   - If you use higher levels of proteciton than `KeychainProtection.NONE`, then your application may use `KeychainFactory.getKeychainProtectionSupportedOnDevice()` to determine whether the device supports enough level of protection. You can display an error message to the user, if the application cannot be used on the device.
   - Various `PowerAuthKeychainConfiguration` class constructors are no longer available. You have to use `PowerAuthKeychainConfiguration.Builder()` to construct a custom keychain configuration.
 
+- _Version 1.4.4+:_ The `IBiometricAuthenticationCallback` interface has slightly changed:
+  - `void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted)` is now `void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData)`.
+  - You can call `biometricKeyData.getDerivedData()` to get data equivalent to previous `byte[] biometricKeyEncrypted`.
+
+- _Version 1.4.4+:_ `PowerAuthKeychainConfiguration.Builder` has new option `authenticateOnBiometricKeySetup(boolean)` to tell SDK that biometric authentication is not required for the biometric key setup.
+  - Altering this option will cause that RSA keypair instead of AES key is stored to Android KeyStore.
+  - Previously created keys are not altered, so biometric factors configured with older SDKs works as before.
+
 ## iOS
 
 ### API changes
@@ -46,3 +54,7 @@ PowerAuth Mobile SDK in version `1.4.0` introduces support for an [additional ac
   - The `PA2SupportedBiometricAuthentication` enumeration is no longer available. Use `PA2BiometricAuthenticationType` as a replacement.
   - The `PA2Keychain.addValue(Data, forKey: String, useBiometry: Bool)` method is no longer available. Use `addValue(Data, forKey: String, access: PA2KeychainItemAccess)` as a replacement.
   - The `PA2Keychain.addValue(Data, forKey: String, useBiometry: Bool, completion:)` method is no longer available. Use `addValue(Data, forKey: String, access: PA2KeychainItemAccess, completion:)` as a replacement.
+
+- _Version 1.4.4+:_ Added support for `tvOS` and `macCatalyst` platforms. This change has the following implications to SDK integration:
+  - CocoaPods tool version `1.10+` is required.
+  - CocoaPods integration now uses precompiled `XCFrameworks` as binary artifacts, so be careful in case that your SDK integration has whole `Pods` folder added to the git source control. 

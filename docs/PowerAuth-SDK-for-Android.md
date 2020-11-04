@@ -907,8 +907,9 @@ powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use
     }
 
     @Override
-    public void onBiometricDialogSuccess(@NonNull byte[] encryptedBiometryKey) {
+    public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
         // User authenticated and biometry key was returned
+        byte[] biometryFactorRelatedKey = biometricKeyData.getDerivedData();
     }
 
     @Override

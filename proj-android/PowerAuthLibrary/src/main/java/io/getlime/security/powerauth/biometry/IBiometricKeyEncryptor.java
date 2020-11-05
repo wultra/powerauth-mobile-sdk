@@ -29,7 +29,7 @@ import javax.crypto.Cipher;
  * the encryption key that is protected with the biometric authentication.
  * <p>
  * Instance of this object can be typically used only for once, per encryption or decryption task.
- * Calling methods from this interface for multiple times produce an illegal argument exception.
+ * Calling methods from this interface for multiple times produce {@code IllegalStateException}.
  */
 @RequiresApi(api = Build.VERSION_CODES.M)
 public interface IBiometricKeyEncryptor {

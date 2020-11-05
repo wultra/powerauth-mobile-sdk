@@ -121,9 +121,11 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
     @Nullable
     @Override
     public BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey) {
+        // Note that "encryptedKey" is actually the same key as was provided to "encryptBiometricKey"
+        // method. This is due to fact, that we use AES as KDF.
         final byte[] derivedKey = aesKdf(encryptedKey, false);
-        // We use AES as KDF, so we must return the provided key back to the application
-        // to save it to the persistent storage, to be able to perform the same KDF in decryption.
+        // It's not required to store "dataToSave" after the decryption. We return the same data
+        // just for convenience.
         return derivedKey != null ? new BiometricKeyData(encryptedKey, derivedKey, false) : null;
     }
 

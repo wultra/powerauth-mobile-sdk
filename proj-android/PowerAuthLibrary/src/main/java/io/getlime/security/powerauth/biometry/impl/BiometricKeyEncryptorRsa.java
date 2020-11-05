@@ -122,7 +122,8 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                     if (publicKey == null) {
                         throw new IllegalStateException("Initializing cipher for encryption, but public key is missing");
                     }
-                    // Initialize RSA parameters (OAEP with SHA-256 and MGF1)
+                    // Initialize RSA parameters (OAEP with SHA-256 and MGF1).
+                    // Note that MGF1 configured with SHA-256 is not supported, so that's why we still use SHA-1.
                     final PublicKey unrestrictedPublicKey = KeyFactory.getInstance(publicKey.getAlgorithm()).generatePublic(new X509EncodedKeySpec(publicKey.getEncoded()));
                     final OAEPParameterSpec spec = new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT);
                     // Initialize cipher for data encryption

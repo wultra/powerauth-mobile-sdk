@@ -33,6 +33,7 @@ import java.util.concurrent.Executor;
 import io.getlime.security.powerauth.biometry.BiometricAuthentication;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
+import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
@@ -83,7 +84,6 @@ import io.getlime.security.powerauth.networking.model.response.VaultUnlockRespon
 import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
-import io.getlime.security.powerauth.networking.response.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
 import io.getlime.security.powerauth.networking.response.IConfirmRecoveryCodeListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
@@ -1543,7 +1543,7 @@ public class PowerAuthSDK {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(t);
+                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.PA2ErrorCodeNetworkError, t));
             }
         });
         if (httpRequest != null) {
@@ -1592,7 +1592,7 @@ public class PowerAuthSDK {
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(t);
+                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.PA2ErrorCodeNetworkError, t));
             }
         });
     }

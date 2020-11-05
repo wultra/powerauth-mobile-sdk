@@ -21,6 +21,7 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -52,6 +53,7 @@ import io.getlime.security.powerauth.system.PA2Log;
  * is stored in Android KeyStore and the biometric authentication is required only for data
  * decryption.
  */
+@RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
     /**

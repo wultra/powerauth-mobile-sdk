@@ -17,6 +17,11 @@ PowerAuth Mobile SDK in version `1.5.0` is a maintenance release that brings few
 - The `IBiometricAuthenticationCallback` interface has slightly changed:
   - `void onBiometricDialogSuccess(@NonNull byte[] biometricKeyEncrypted)` is now `void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData)`.
   - You can call `biometricKeyData.getDerivedData()` to get data equivalent to previous `byte[] biometricKeyEncrypted`.
+  
+- The `IAddBiometryFactorListener` interface is now in `io.getlime.security.powerauth.biometry` package.
+  - `onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error)` callback now returns `PowerAuthErrorException` instead of `Throwable`. 
+
+- The `ICommitActivationWithBiometryListener` interface now provides non-null exception in `onBiometricDialogFailed(@NonNull PowerAuthErrorException exception)` callback.
 
 - `PowerAuthKeychainConfiguration.Builder` has new option `authenticateOnBiometricKeySetup(boolean)` to tell SDK that biometric authentication is not required for the biometric key setup.
   - Altering this option to `false` will cause that RSA keypair is created in Android KeyStore instead of AES key.

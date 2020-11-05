@@ -16,10 +16,8 @@
 
 package io.getlime.security.powerauth.biometry;
 
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 
 import javax.crypto.Cipher;
 
@@ -31,7 +29,6 @@ import javax.crypto.Cipher;
  * Instance of this object can be typically used only for once, per encryption or decryption task.
  * Calling methods from this interface for multiple times produce {@code IllegalStateException}.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
 public interface IBiometricKeyEncryptor {
 
     /**

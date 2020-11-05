@@ -372,7 +372,7 @@ powerAuthSDK.commitActivation(context, fragmentManager, "Enable Biometric Authen
     }
     
     @Override
-    public void onBiometricDialogFailed(PowerAuthErrorException error) {
+    public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
         // failure, typically as a result of API misuse, or a biometric authentication failure
     }
 });
@@ -867,7 +867,7 @@ powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Biometric Authe
     }
 
     @Override
-    public void onAddBiometryFactorFailed(Throwable t) {
+    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
         // Error occurred, report it to user
     }
 });

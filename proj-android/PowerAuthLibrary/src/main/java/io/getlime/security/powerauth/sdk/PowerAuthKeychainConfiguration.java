@@ -31,6 +31,7 @@ public class PowerAuthKeychainConfiguration {
     public static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
     public static final boolean DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET = true;
     public static final boolean DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION = false;
+    public static final boolean DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP = true;
     public static final @KeychainProtection int DEFAULT_REQUIRED_KEYCHAIN_PROTECTION = KeychainProtection.NONE;
 
     private final @NonNull String keychainIdStatus;
@@ -39,6 +40,7 @@ public class PowerAuthKeychainConfiguration {
     private final @NonNull String keychainKeyBiometryDefault;
     private final boolean linkBiometricItemsToCurrentSet;
     private final boolean confirmBiometricAuthentication;
+    private final boolean authenticateOnBiometricKeySetup;
     private final @KeychainProtection int minimalRequiredKeychainProtection;
 
     /**
@@ -100,6 +102,15 @@ public class PowerAuthKeychainConfiguration {
     }
 
     /**
+     * Get whether biometric authentication is required also for biometric key setup.
+     *
+     * @return {@code true} if biometric authentication is required for biometric key setup.
+     */
+    public boolean isAuthenticateOnBiometricKeySetup() {
+        return authenticateOnBiometricKeySetup;
+    }
+
+    /**
      * Get minimal required keychain protection level that must be supported on the current device.
      * If the level of protection on the device is insufficient, then you cannot use PowerAuth
      * mobile SDK on the device. If not configured, then {@link KeychainProtection#NONE} is used
@@ -124,6 +135,8 @@ public class PowerAuthKeychainConfiguration {
      * @param confirmBiometricAuthentication    If set, then the user's confirmation will be required after the successful
      *                                          biometric authentication. Note that this is just hint for the system
      *                                          and may be ignored.
+     * @param authenticateOnBiometricKeySetup   If set, then the biometric key setup always require biometric authentication.
+     *                                          If not set, then only usage of biometric key require biometric authentication.
      * @param minimalRequiredKeychainProtection {@link KeychainProtection} constant with minimal required keychain
      *                                          protection level that must be supported on the current device.
      */
@@ -134,6 +147,7 @@ public class PowerAuthKeychainConfiguration {
             @NonNull String keychainIdTokenStore,
             boolean linkBiometricItemsToCurrentSet,
             boolean confirmBiometricAuthentication,
+            boolean authenticateOnBiometricKeySetup,
             @KeychainProtection int minimalRequiredKeychainProtection) {
         this.keychainIdStatus = keychainIdStatus;
         this.keychainIdBiometry = keychainIdBiometry;
@@ -141,6 +155,7 @@ public class PowerAuthKeychainConfiguration {
         this.keychainIdTokenStore = keychainIdTokenStore;
         this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
         this.confirmBiometricAuthentication = confirmBiometricAuthentication;
+        this.authenticateOnBiometricKeySetup = authenticateOnBiometricKeySetup;
         this.minimalRequiredKeychainProtection = minimalRequiredKeychainProtection;
     }
 
@@ -155,6 +170,7 @@ public class PowerAuthKeychainConfiguration {
         private @NonNull String keychainBiometryDefaultKey = KEYCHAIN_KEY_BIOMETRY_DEFAULT;
         private boolean linkBiometricItemsToCurrentSet = DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET;
         private boolean confirmBiometricAuthentication = DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION;
+        private boolean authenticateOnBiometricKeySetup = DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP;
         private @KeychainProtection int minimalRequiredKeychainProtection = DEFAULT_REQUIRED_KEYCHAIN_PROTECTION;
 
         /**
@@ -234,6 +250,28 @@ public class PowerAuthKeychainConfiguration {
         }
 
         /**
+         * (Optional) Set, whether biometric key setup always require a biometric authentication.
+         * <p>
+         * Setting parameter to {@code true} leads to use symmetric AES cipher on the background,
+         * so both configuration and usage of biometric key require the biometric authentication.
+         * <p>
+         * If set to {@code false}, then RSA cipher is used and only the usage of biometric key
+         * require the biometric authentication. This is due to fact, that RSA cipher can encrypt
+         * data with using it's public key available immediate after the key-pair is created in
+         * Android KeyStore.
+         * <p>
+         * The default value is {@code true}.
+         *
+         * @param authenticate If set, then biometric authentication is required for both setup and usage
+         *                     of biometric key.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder authenticateOnBiometricKeySetup(boolean authenticate) {
+            this.authenticateOnBiometricKeySetup = authenticate;
+            return this;
+        }
+
+        /**
          * Set minimal required keychain protection level that must be supported on the current device. Note that
          * if you enforce protection higher that {@link KeychainProtection#NONE}, then your application must target
          * at least Android 6.0.
@@ -260,6 +298,7 @@ public class PowerAuthKeychainConfiguration {
                     keychainTokenStoreId,
                     linkBiometricItemsToCurrentSet,
                     confirmBiometricAuthentication,
+                    authenticateOnBiometricKeySetup,
                     minimalRequiredKeychainProtection);
         }
     }

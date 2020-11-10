@@ -28,12 +28,13 @@ import android.support.v4.app.FragmentManager;
 import android.util.Pair;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
+import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.biometry.BiometryType;
+import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -59,6 +60,9 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
     private final @NonNull FingerprintManager fingerprintManager;
     private final @NonNull IBiometricKeystore keystore;
     private byte[] alreadyProtectedKey;
+
+    private BiometricKeyData processedBiometricKeyData;
+    private boolean hasAlreadyProcessedBiometricKeyData;
 
     // Device construction
 
@@ -140,7 +144,7 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         return keystore;
     }
 
-    @Nullable
+    @NonNull
     @Override
     public ICancelable authenticate(@NonNull final Context context,
                                     @NonNull final FragmentManager fragmentManager,
@@ -150,8 +154,8 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
         final BiometricAuthenticationRequest request = requestData.getRequest();
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
 
-        // Now construct AES cipher with the biometric key, wrapped in the crypto object.
-        final FingerprintManager.CryptoObject cryptoObject = getCryptoObject(requestData.getSecretKey());
+        // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
+        final FingerprintManager.CryptoObject cryptoObject = wrapCipherToCryptoObject(request.getBiometricKeyEncryptor().initializeCipher(request.isForceGenerateNewKey()));
         if (cryptoObject == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Cannot create CryptoObject for biometric authentication.");
         }
@@ -177,9 +181,9 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationSuccess(@NonNull FingerprintManager.AuthenticationResult result) {
                 final Cipher cipher = result.getCryptoObject() != null ? result.getCryptoObject().getCipher() : null;
                 if (cipher != null) {
-                    final byte[] protectedKey = protectKeyWithCipher(request.getKeyToProtect(), cipher);
-                    if (protectedKey != null) {
-                        dispatcher.dispatchSuccess(protectedKey);
+                    final BiometricKeyData biometricKeyData = encryptOrDecryptRawKeyData(request);
+                    if (biometricKeyData != null) {
+                        dispatcher.dispatchSuccess(biometricKeyData);
                         return;
                     }
                     PA2Log.e("Failed to encrypt biometric key.");
@@ -255,45 +259,36 @@ public class FingerprintAuthenticator implements IBiometricAuthenticator {
     // Private methods
 
     /**
-     * Construct an AES cipher with given secret key and return that cipher wrapped into {@link FingerprintManager.CryptoObject}.
+     * Wrap {@link Cipher} into {@link FingerprintManager.CryptoObject}.
      *
-     * @param secretKey A secret key that be used to AES cipher.
-     * @return {@link FingerprintManager.CryptoObject} created for AES cipher with given key or {@code null}
-     *         in case of failure.
+     * @param cipher A cipher object that must be wrapped.
+     * @return {@link FingerprintManager.CryptoObject} created for given cipher.
      */
-    private @Nullable FingerprintManager.CryptoObject getCryptoObject(@Nullable SecretKey secretKey) {
-        // Test whether the key is null
-        if (secretKey == null) {
-            return null;
-        }
-        // Create AES cipher with given key
-        final Cipher cipher = BiometricHelper.createAesCipher(secretKey);
-        if (cipher == null) {
-            return null;
-        }
+    private @Nullable FingerprintManager.CryptoObject wrapCipherToCryptoObject(@Nullable Cipher cipher) {
         // Wrap cipher into required crypto object
-        return new FingerprintManager.CryptoObject(cipher);
+        return cipher != null ? new FingerprintManager.CryptoObject(cipher) : null;
     }
 
     /**
-     * Protect key with Cipher, initialized with the biometric key.
+     * Encrypt or decrypt raw key data from biometric request.
      *
-     * @param keyToProtect Key which will be encrypted with biometric key.
-     * @param cipher Cipher initialized with the biometric key.
+     * @param request Biometric request data.
      * @return Encrypted bytes or {@code null} in case that encryption fails.
      */
-    private @Nullable byte[] protectKeyWithCipher(@NonNull byte[] keyToProtect, @NonNull Cipher cipher) {
+    private @Nullable BiometricKeyData encryptOrDecryptRawKeyData( @NonNull BiometricAuthenticationRequest request) {
         synchronized (this) {
-            if (alreadyProtectedKey == null) {
-                alreadyProtectedKey = BiometricHelper.protectKeyWithCipher(keyToProtect, cipher);
-                if (alreadyProtectedKey == null) {
-                    // Failed to encrypt provided key. Allocating array with zero bytes we indicate
-                    // that an attempt to encrypt key failed with the error.
-                    alreadyProtectedKey = new byte[0];
+            if (!hasAlreadyProcessedBiometricKeyData) {
+                hasAlreadyProcessedBiometricKeyData = true;
+                // Let's try to encrypt or decrypt the biometric key
+                final byte[] rawKeyData = request.getRawKeyData();
+                final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
+                if (request.isForceGenerateNewKey()) {
+                    processedBiometricKeyData = encryptor.encryptBiometricKey(rawKeyData);
+                } else {
+                    processedBiometricKeyData = encryptor.decryptBiometricKey(rawKeyData);
                 }
             }
-            // If alreadyProtectedKey contains bytes, then return that bytes, otherwise null.
-            return alreadyProtectedKey.length > 0 ? alreadyProtectedKey : null;
+            return processedBiometricKeyData;
         }
     }
 

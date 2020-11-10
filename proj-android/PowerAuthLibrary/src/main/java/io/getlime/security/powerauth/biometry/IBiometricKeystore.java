@@ -18,47 +18,51 @@ package io.getlime.security.powerauth.biometry;
 
 import android.support.annotation.Nullable;
 
-import javax.crypto.SecretKey;
-
 /**
- * Interface representing a Keystore used to store biometry related key.
+ * Interface wrapping a key stored in Android KeyStore and providing {@link IBiometricKeyEncryptor}
+ * that can encrypt and decrypt biometry related keys for PowerAuth protocol.
  */
 public interface IBiometricKeystore {
 
     /**
      * Check if the Keystore is ready.
      *
-     * @return True if Keystore is ready, false otherwise.
+     * @return {@code true} if KeyStore is ready, false otherwise.
      */
     boolean isKeystoreReady();
 
     /**
-     * Check if a default key is present in Keystore
+     * Check if a key for biometric key encryptor is present in Keystore and {@link IBiometricKeyEncryptor}
+     * can be acquired.
      *
-     * @return True in case a default key is present, false otherwise. Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
+     * @return {@code true} in case a key for biometric key encryptor is present, false otherwise.
+     *         Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
      */
-    boolean containsDefaultKey();
+    boolean containsBiometricKeyEncryptor();
 
     /**
-     * Generate a new biometry related Keystore key with default key name.
+     * Generate a new biometry related Keystore key and return object that provide KEK encryption and decryption.
      *
-     * The key that is created during this process is used to encrypt key stored in shared preferences,
+     * The key that is created during this process is used to encrypt KEK stored in shared preferences,
      * in order to derive key used for biometric authentication.
      *
      * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on biometric enrollment.
-     * @return New generated {@link SecretKey} key or {@code null} in case of failure.
+     * @param useSymmetricKey Sets whether symmetric key should be created.
+     *
+     * @return New generated {@link IBiometricKeyEncryptor} key or {@code null} in case of failure.
      */
-    @Nullable SecretKey generateDefaultKey(boolean invalidateByBiometricEnrollment);
+    @Nullable
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
 
     /**
      * Removes an encryption key from Keystore.
-     *
-     * @return True in case key was removed, false otherwise.
      */
-    boolean removeDefaultKey();
+    void removeBiometricKeyEncryptor();
 
     /**
-     * @return Default biometry related key, stored in KeyStore or null if no such key is stored.
+     * @return {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore or {@code null}
+     *         if no such key is stored.
      */
-    @Nullable SecretKey getDefaultKey();
+    @Nullable
+    IBiometricKeyEncryptor getBiometricKeyEncryptor();
 }

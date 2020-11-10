@@ -35,7 +35,9 @@ public class BiometricAuthenticationRequest {
     private final boolean forceGenerateNewKey;
     private final boolean invalidateByBiometricEnrollment;
     private final boolean userConfirmationRequired;
-    private final @NonNull byte[] keyToProtect;
+    private final boolean useSymmetricCipher;
+    private final @NonNull byte[] rawKeyData;
+    private final @NonNull IBiometricKeyEncryptor biometricKeyEncryptor;
 
     private BiometricAuthenticationRequest(
             @NonNull CharSequence title,
@@ -44,14 +46,18 @@ public class BiometricAuthenticationRequest {
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
-            @NonNull byte[] keyToProtect) {
+            boolean useSymmetricCipher,
+            @NonNull byte[] rawKeyData,
+            @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
-        this.keyToProtect = Arrays.copyOf(keyToProtect, keyToProtect.length);
+        this.useSymmetricCipher = useSymmetricCipher;
+        this.rawKeyData = Arrays.copyOf(rawKeyData, rawKeyData.length);
+        this.biometricKeyEncryptor = biometricKeyEncryptor;
     }
 
     /**
@@ -97,10 +103,26 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
-     * @return Application provided key which will be protected by the biometric key.
+     * @return {@code true} in case that symmetric cipher should be used for biometric key protection.
      */
-    public @NonNull byte[] getKeyToProtect() {
-        return keyToProtect;
+    public boolean isUseSymmetricCipher() {
+        return useSymmetricCipher;
+    }
+
+    /**
+     * @return Application provided key which will be protected by the biometric key. The content
+     * depends on whether the key is being encrypted (for key setup procedure) or decrypted (for
+     * a signature calculation).
+     */
+    public @NonNull byte[] getRawKeyData() {
+        return rawKeyData;
+    }
+
+    /**
+     * @return Object that encrypt or decrypt raw key data.
+     */
+    public @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+        return biometricKeyEncryptor;
     }
 
     /**
@@ -114,10 +136,12 @@ public class BiometricAuthenticationRequest {
         private CharSequence subtitle;
         private CharSequence description;
 
-        private boolean forceGenerateNewKey;
+        private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
-        private byte[] keyToProtect;
+        private boolean useSymmetricCipher = true;
+        private byte[] rawKeyData;
+        private IBiometricKeyEncryptor biometricKeyEncryptor;
 
         /**
          * Creates a builder for a biometric dialog.
@@ -138,11 +162,14 @@ public class BiometricAuthenticationRequest {
             if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description)) {
                 throw new IllegalArgumentException("Title and description is required.");
             }
-            if (keyToProtect == null) {
-                throw new IllegalArgumentException("KeyToProtect is required.");
+            if (rawKeyData == null) {
+                throw new IllegalArgumentException("RawKeyData is required.");
             }
-            if (keyToProtect.length < 16) {
-                throw new IllegalArgumentException("KeyToProtect length is insufficient.");
+            if (rawKeyData.length < 16) {
+                throw new IllegalArgumentException("RawKeyData length is insufficient.");
+            }
+            if (biometricKeyEncryptor == null) {
+                throw new IllegalArgumentException("BiometricKeyEncryptor is required.");
             }
             return new BiometricAuthenticationRequest(
                     title,
@@ -151,7 +178,9 @@ public class BiometricAuthenticationRequest {
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
                     userConfirmationRequired,
-                    keyToProtect);
+                    useSymmetricCipher,
+                    rawKeyData,
+                    biometricKeyEncryptor);
         }
 
         /**
@@ -217,15 +246,18 @@ public class BiometricAuthenticationRequest {
         }
 
         /**
-         * @param forceGenerateNewKey If true then the new biometric key will be generated as a
-         *                            part of the process.
+         * @param forceGenerateNewKey             If true then the new biometric key will be generated as a
+         *                                        part of the process.
          * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on
-         *                                       biometric enrollment.
+         *                                        biometric enrollment.
+         * @param useSymmetricCipher              If true then symmetric cipher will be used to biometric
+         *                                        factor key protection.
          * @return This value will never be {@code null}.
          */
-        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment) {
+        public Builder setForceGenerateNewKey(boolean forceGenerateNewKey, boolean invalidateByBiometricEnrollment, boolean useSymmetricCipher) {
             this.forceGenerateNewKey = forceGenerateNewKey;
             this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
+            this.useSymmetricCipher = useSymmetricCipher;
             return this;
         }
 
@@ -245,13 +277,15 @@ public class BiometricAuthenticationRequest {
         }
 
         /**
-         * Required: Sets sequence of bytes as key, which will be encrypted by the biometry.
+         * Required: Sets sequence of bytes that will be encrypted or decrypted with using biometric authentication.
          *
-         * @param keyBytes Array of bytes containing a key, which will be encrypted by the biometric key.
+         * @param keyData Array of bytes containing a key, which will be encrypted by the biometric key.
+         * @param biometricKeyEncryptor Object that perform biometric key encryption and decryption.
          * @return This value will never be {@code null}.
          */
-        public Builder setKeyToProtect(@NonNull byte[] keyBytes) {
-            this.keyToProtect = keyBytes;
+        public Builder setRawKeyData(@NonNull byte[] keyData, @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
+            this.rawKeyData = keyData;
+            this.biometricKeyEncryptor = biometricKeyEncryptor;
             return this;
         }
     }

@@ -122,7 +122,7 @@ By default, PowerAuth mobile SDK encrypts it's local activation data with the sy
 ```java
 try {
     PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
-            .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE))
+            .minimalRequiredKeychainProtection(KeychainProtection.HARDWARE)
             .build();
     // Apply keychain configuration
     PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
@@ -372,7 +372,7 @@ powerAuthSDK.commitActivation(context, fragmentManager, "Enable Biometric Authen
     }
     
     @Override
-    public void onBiometricDialogFailed(PowerAuthErrorException error) {
+    public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
         // failure, typically as a result of API misuse, or a biometric authentication failure
     }
 });
@@ -867,11 +867,26 @@ powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Biometric Authe
     }
 
     @Override
-    public void onAddBiometryFactorFailed(Throwable t) {
+    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
         // Error occurred, report it to user
     }
 });
 ```
+
+By default, PowerAuth SDK asks user to authenticate with the biometric sensor also during the setup procedure (or during the [activation commit](#committing-activation-data)). To alter this behavior, use the following code to change `PowerAuthKeychainConfiguration` provided to `PowerAuthSDK` instance:
+
+```java
+PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+        .authenticateOnBiometricKeySetup(false)
+        .build();
+// Apply keychain configuration
+PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
+        .keychainConfiguration(keychainConfig)
+        .build(getApplicationContext());
+```
+
+> Note that the RSA key-pair is internally generated for the configuration above. That may take more time on older devices than the default configuration.
+
 
 ### Disable biometric authentication
 
@@ -895,8 +910,9 @@ powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use
     }
 
     @Override
-    public void onBiometricDialogSuccess(@NonNull byte[] encryptedBiometryKey) {
+    public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
         // User authenticated and biometry key was returned
+        byte[] biometryFactorRelatedKey = biometricKeyData.getDerivedData();
     }
 
     @Override

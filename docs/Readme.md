@@ -13,11 +13,12 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|
-| `1.4.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
-| `1.3.x`    | `V3.1`   | `0.23+`             | Security & Functionality bugfixes |
+| `1.5.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
+| `1.4.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
+| `1.3.x`    | `V3.1`   | `0.23+`             | Security bugfixes                 |
 | `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security bugfixes                 |
 | `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
-| `0.20.x`   | `V2.1`   | `0.18+`             | Security bugfixes                 |
+| `0.20.x`   | `V2.1`   | `0.18+`             | Not supported                     |
 
 > Notes
 > 1. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can
@@ -27,6 +28,7 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
+- [Migration from version `1.4.x` to `1.5.x`](Migration-from-1.4-to-1.5.md)
 - [Migration from version `1.3.x` to `1.4.x`](Migration-from-1.3-to-1.4.md)
 - [Migration from version `1.2.x` to `1.3.x`](Migration-from-1.2-to-1.3.md)
 - [Migration from version `1.1.x` to `1.2.x`](Migration-from-1.1-to-1.2.md)

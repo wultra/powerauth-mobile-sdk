@@ -24,8 +24,6 @@ import android.support.annotation.UiThread;
 import android.support.v4.app.FragmentManager;
 import android.util.Pair;
 
-import javax.crypto.SecretKey;
-
 import io.getlime.security.powerauth.biometry.impl.BiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -41,6 +39,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
+import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
 import io.getlime.security.powerauth.system.PA2Log;
 
 /**
@@ -134,7 +133,7 @@ public class BiometricAuthentication {
                 @Override
                 public void onBiometricKeyUnavailable() {
                     // Remove the default key, because the biometric key is no longer available.
-                    device.getBiometricKeystore().removeDefaultKey();
+                    device.getBiometricKeystore().removeBiometricKeyEncryptor();
                 }
             });
             final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
@@ -144,10 +143,14 @@ public class BiometricAuthentication {
             PowerAuthErrorException exception = null;
             if (status == BiometricStatus.OK) {
                 try {
-                    // Prepare secret key for authentication
-                    requestData.setSecretKey(prepareSecretKey(device.getBiometricKeystore(), request));
-                    // Authenticate
-                    return device.authenticate(context, fragmentManager, requestData);
+                    if (request.isForceGenerateNewKey() && !request.getBiometricKeyEncryptor().isAuthenticationRequiredOnEncryption()) {
+                        // Biometric authentication is not actually required, because we're generating (e.g encrypting) the key
+                        // and the encryptor doesn't require authentication for such task.
+                        return justEncryptBiometricKey(request, dispatcher);
+                    } else {
+                        // Authenticate with device
+                        return device.authenticate(context, fragmentManager, requestData);
+                    }
 
                 } catch (PowerAuthErrorException e) {
                     // Failed to authenticate. Show an error dialog and report that exception to the callback.
@@ -164,7 +167,7 @@ public class BiometricAuthentication {
             }
             // Failed to use biometric authentication. At first, we should cleanup the possible stored
             // biometric key.
-            device.getBiometricKeystore().removeDefaultKey();
+            device.getBiometricKeystore().removeBiometricKeyEncryptor();
 
             // Now show the error dialog, and report the exception later.
             if (exception == null) {
@@ -175,26 +178,29 @@ public class BiometricAuthentication {
     }
 
     /**
-     * Prepare secret key, stored (or restored) managed by {@link IBiometricKeystore} object.
-     * @param keystore Keystore object managing the requested key.
-     * @param request Biometric authentication request.
-     * @return {@link SecretKey} acquired from the keystore.
-     * @throws PowerAuthErrorException In case that cannot create or restore the key.
+     * This helper method only encrypts a raw key data with encryptor and dispatch result back to the
+     * application. The encryptor should not require the biometric authentication on it's encrypt task.
+     *
+     * @param request Request object containing raw key data and encryptor.
+     * @param dispatcher Biometric result dispatcher.
+     * @return Result from {@link BiometricResultDispatcher#getCancelableTask()}.
+     * @throws PowerAuthErrorException If cannot encrypt biometric key.
      */
-    private static @NonNull SecretKey prepareSecretKey(IBiometricKeystore keystore, @NonNull BiometricAuthenticationRequest request) throws PowerAuthErrorException {
-        final SecretKey key;
-        if (request.isForceGenerateNewKey()) {
-            key = keystore.generateDefaultKey(request.isInvalidateByBiometricEnrollment());
-            if (key == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
-            }
-        } else {
-            key = keystore.getDefaultKey();
-            if (key == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Cannot get biometric key from the keystore.");
-            }
+    private static @NonNull ICancelable justEncryptBiometricKey(
+            @NonNull BiometricAuthenticationRequest request,
+            @NonNull BiometricResultDispatcher dispatcher) throws PowerAuthErrorException {
+
+        // Initialize encryptor's cipher
+        final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
+        final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
+        // Encrypt the key
+        final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
+        if (keyData == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key.");
         }
-        return key;
+        // In case of success, just dispatch the result back to the application
+        dispatcher.dispatchSuccess(keyData);
+        return dispatcher.getCancelableTask();
     }
 
     /**
@@ -261,16 +267,7 @@ public class BiometricAuthentication {
             }
         });
         // Return dummy cancelable object.
-        return new ICancelable() {
-            @Override
-            public void cancel() {
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return true;
-            }
-        };
+        return new DummyCancelable();
     }
 
     /**

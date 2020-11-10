@@ -52,7 +52,13 @@ import io.getlime.security.powerauth.system.PA2Log;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
+    /**
+     * Symmetric AES key.
+     */
     private final @NonNull SecretKey key;
+    /**
+     * Symmetric AES cipher
+     */
     private @Nullable Cipher cipher;
     /**
      * If true, then internal cipher is already initialized.

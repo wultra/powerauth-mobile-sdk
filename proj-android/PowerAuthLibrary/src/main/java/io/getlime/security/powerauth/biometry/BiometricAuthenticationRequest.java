@@ -110,7 +110,9 @@ public class BiometricAuthenticationRequest {
     }
 
     /**
-     * @return Application provided key which will be protected by the biometric key.
+     * @return Application provided key which will be protected by the biometric key. The content
+     * depends on whether the key is being encrypted (for key setup procedure) or decrypted (for
+     * a signature calculation).
      */
     public @NonNull byte[] getRawKeyData() {
         return rawKeyData;
@@ -137,7 +139,7 @@ public class BiometricAuthenticationRequest {
         private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
-        private boolean useSymmetricCipher = false;
+        private boolean useSymmetricCipher = true;
         private byte[] rawKeyData;
         private IBiometricKeyEncryptor biometricKeyEncryptor;
 

@@ -885,6 +885,9 @@ PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
         .build(getApplicationContext());
 ```
 
+> Note that the RSA key-pair is internally generated for the configuration above. That may take more time on older devices than the default configuration.
+
+
 ### Disable biometric authentication
 
 You can remove biometry related factor data used by biometric authentication support by simply removing the related key locally, using this one-liner:

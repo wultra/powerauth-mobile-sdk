@@ -155,7 +155,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
                 throw new IllegalStateException("Encryptor is not configured for " + (encryptMode ? "encryption" : "decryption"));
             }
             if (encryptorIsUsed) {
-                throw new IllegalStateException("Encryptor cannot be used for twice");
+                throw new IllegalStateException("Encryptor cannot be used for the second time");
             }
             encryptorIsUsed = true;
 

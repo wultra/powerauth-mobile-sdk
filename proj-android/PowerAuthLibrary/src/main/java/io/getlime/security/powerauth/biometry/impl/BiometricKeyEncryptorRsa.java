@@ -158,10 +158,10 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                 throw new IllegalStateException("Cipher is not initialized");
             }
             if (!encryptMode) {
-                throw new IllegalStateException("Encryptor is not configured for encryption.");
+                throw new IllegalStateException("Encryptor is not configured for encryption");
             }
             if (encryptorIsUsed) {
-                throw new IllegalStateException("Encryptor cannot be used for twice");
+                throw new IllegalStateException("Encryptor cannot be used for the second time");
             }
             encryptorIsUsed = true;
 
@@ -189,7 +189,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                 throw new IllegalStateException("Encryptor is not used for decryption");
             }
             if (encryptorIsUsed) {
-                throw new IllegalStateException("Encryptor cannot be used for twice");
+                throw new IllegalStateException("Encryptor cannot be used for the second time");
             }
             encryptorIsUsed = true;
 

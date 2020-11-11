@@ -53,7 +53,7 @@ ARCH_CATALYST="x86_64"
 ARCH_TVOS="arm64"
 ARCH_TVOS_SIM="x86_64"
 # Minimum OS version
-MIN_VER_IOS="8.0"
+MIN_VER_IOS="9.0"
 MIN_VER_TVOS="9.0"
 MIN_VER_CATALYST="10.15"
 
@@ -367,16 +367,25 @@ function BUILD_PLATFORMS
 function BUILD_PATCH_ARCHITECTURES
 {
     local xcodever=$(GET_XCODE_VERSION --major)
-    if (( $xcodever == 0 )); then
+    if (( $xcodever == -1 )); then
         FAILURE "Unsupported Xcode version."
     fi
-    if (( $xcodever >= 12 )); then
+    xcodever=$(GET_XCODE_VERSION --full)
+    local xcodever_split=(${xcodever//./ })
+    if (( ${xcodever_split[0]} >= 12 )); then
+        # Greater and equal than 12.0
         DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
-        #ARCH_CATALYST+=" arm64"
         ARCH_IOS_SIM+=" arm64"
         ARCH_TVOS_SIM+=" arm64"
+        if [[ (${xcodever_split[0]} == 12 && ${xcodever_split[1]} < 2) ]]; then
+            # 12.0 or 12.1
+            WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
+        else
+            # Greater and equal than 12.2
+            ARCH_CATALYST+=" arm64"
+        fi
     else
-        WARNING "Building library on older than Xcode 12. ARM64 architectures will be omitted."
+        WARNING "Building library on older than Xcode 12. Several ARM64 architectures will be omitted."
     fi
 }
 

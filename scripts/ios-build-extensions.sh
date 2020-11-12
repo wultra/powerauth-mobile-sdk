@@ -1,28 +1,17 @@
 #!/bin/bash
+# ----------------------------------------------------------------------------
+set -e
+set +v
 ###############################################################################
-# PowerAuth2 build for Apple platforms
+# PowerAuth2ForExtensions / PowerAuth2ForWatch build
 #
-# The main purpose of this script is build and prepare PA2 "fat" libraries for
-# library distribution. Typically, this script is used for CocoaPods integration.
-# 
-# The result of the build process is:
-#    PowerAuthCore.xcframework:
-#      multi-architecture, multi-platform static framework (also called as "fat") 
-#      with all core functionality of PowerAuth2 SDK. The library contains all C++
-#      code, plus thin ObjC wrapper written on top of that codes.
-#
-#    SDK sources:
-#      all SDK high level source codes are copied to destination directory.
-#      all private headers are copied into "Private" sub directory.
+# The main purpose of this script is build and prepare files hierarchy for 
+# cocoapod library distribution. The result of the build process is a xcframework 
+# with all supported platforms and architectures.
 #
 # Script is using following folders (if not changed):
 #
-#    ./Lib/*.xcframework  - All supporting xcframeworks
-#
-#    ./Lib/Src            - All source codes and public headers
-#
-#    ./Lib/Src/Private    - Contains all private headers
-#
+#    ./Lib/FW.xcframework - final xcframework with dynamic library
 #    ./Tmp                - for all temporary data
 #
 # ----------------------------------------------------------------------------
@@ -37,33 +26,42 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 #
 # Source headers & Xcode project location
 #
-XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthCore.xcodeproj"
-SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
-XCODE_SCHEME_IOS="PowerAuthCore_iOS"
-XCODE_SCHEME_TVOS="PowerAuthCore_tvOS"
+XCODE_DIR="${SRC_ROOT}/proj-xcode"
+XCODE_PROJECT="${XCODE_DIR}/PowerAuthExtensionSdk.xcodeproj"
 
 #
 # Platforms & CPU architectures
 #
-PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
-# Platform architectures
+
+# iOS / tvOS
+EXT_FRAMEWORK="PowerAuth2ForExtensions"
+EXT_PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
+# WatchOS
+WOS_FRAMEWORK="PowerAuth2ForWatch"
+WOS_PLATFORMS="watchOS watchOS_Simulator"
+
+# Platform CPU architectures
 ARCH_IOS="armv7 armv7s arm64 arm64e"
 ARCH_IOS_SIM="i386 x86_64"
 ARCH_CATALYST="x86_64"
 ARCH_TVOS="arm64"
 ARCH_TVOS_SIM="x86_64"
+ARCH_WATCHOS="armv7k arm64_32"
+ARCH_WATCHOS_SIM="i386 x86_64"
+
 # Minimum OS version
 MIN_VER_IOS="9.0"
 MIN_VER_TVOS="9.0"
 MIN_VER_CATALYST="10.15"
-
-OUT_FW="PowerAuthCore"
+MIN_VER_WATCHOS="2.0"
 
 # Variables loaded from command line
+PLATFORMS=''
 VERBOSE=1
 FULL_REBUILD=1
 CLEANUP_AFTER=1
 OUT_DIR=''
+OUT_FW=''
 TMP_DIR=''
 
 # -----------------------------------------------------------------------------
@@ -74,7 +72,11 @@ TMP_DIR=''
 function USAGE
 {
 	echo ""
-	echo "Usage:  $CMD  [options]"
+	echo "Usage:  $CMD  [options] platform"
+	echo ""
+	echo "platform is:"
+	echo "  watchos           for watchOS library build"
+	echo "  extensions        for iOS/tvOS extensions build"
 	echo ""
 	echo "options are:"
 	echo "  -nc | --no-clean  disable 'clean' before 'build'"
@@ -82,8 +84,8 @@ function USAGE
 	echo "  -v0               turn off all prints to stdout"
 	echo "  -v1               print only basic log about build progress"
 	echo "  -v2               print full build log with rich debug info"
-	echo "  --out-dir path    changes directory where final framework"
-	echo "                    will be stored"
+	echo "  --out-dir path    changes directory for final framework"
+	echo "                    and source codes will be copied"
 	echo "  --tmp-dir path    changes temporary directory to |path|"
 	echo "  -h | --help       prints this help information"
 	echo ""
@@ -101,7 +103,7 @@ function USAGE
 #
 # GET_PLATFORM_TARGET
 #   Print a build target for given build platform. For example, for 'iOS'
-#   function prints 'PowerAuthCore-ios'.
+#   function prints 'PowerAuth2ForExtensions_iOS'.
 #
 # GET_PLATFORM_MIN_OS_VER
 #   Print a minimum supported OS version for given build platform. For example, 
@@ -109,7 +111,7 @@ function USAGE
 #
 # GET_PLATFORM_SCHEME
 #   Print build scheme for given build platform. For example, for 'iOS'
-#   function prints ${XCODE_SCHEME_IOS}
+#   function prints 'PowerAuth2ForExtensions_iOS'
 #
 # Parameters:
 #   $1   - build platform (e.g. 'iOS', 'tvOS', etc...)
@@ -117,143 +119,58 @@ function USAGE
 function GET_PLATFORM_ARCH
 {
 	case $1 in
-		iOS)			echo ${ARCH_IOS} ;;
-		iOS_Simulator)	echo ${ARCH_IOS_SIM} ;;
-		macOS_Catalyst)	echo ${ARCH_CATALYST} ;;
-		tvOS)			echo ${ARCH_TVOS} ;;
-		tvOS_Simulator)	echo ${ARCH_TVOS_SIM} ;;
+		iOS)		    	echo ${ARCH_IOS} ;;
+		iOS_Simulator)  	echo ${ARCH_IOS_SIM} ;;
+		macOS_Catalyst) 	echo ${ARCH_CATALYST} ;;
+		tvOS)		    	echo ${ARCH_TVOS} ;;
+		tvOS_Simulator)	    echo ${ARCH_TVOS_SIM} ;;
+		watchOS)		    echo ${ARCH_WATCHOS} ;;
+		watchOS_Simulator)	echo ${ARCH_WATCHOS_SIM} ;;
 		*) FAILURE "Cannot determine architecture. Unsupported platform: '$1'" ;;
 	esac
 }
 function GET_PLATFORM_SDK
 {
 	case $1 in
-		iOS)			echo 'iphoneos' ;;
-		iOS_Simulator)	echo 'iphonesimulator' ;;
-		macOS_Catalyst)	echo 'macosx' ;;
-		tvOS)			echo 'appletvos' ;;
-		tvOS_Simulator)	echo 'appletvsimulator' ;;
+		iOS)			    echo 'iphoneos' ;;
+		iOS_Simulator)	    echo 'iphonesimulator' ;;
+		macOS_Catalyst)	    echo 'macosx' ;;
+		tvOS)			    echo 'appletvos' ;;
+		tvOS_Simulator)	    echo 'appletvsimulator' ;;
+		watchOS)		    echo 'watchos' ;;
+		watchOS_Simulator)	echo 'watchsimulator' ;;
 		*) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
 	esac
 }
 function GET_PLATFORM_TARGET
 {
 	case $1 in
-		iOS | iOS_Simulator | macOS_Catalyst)	echo 'PowerAuthCore-ios' ;;
-		tvOS | tvOS_Simulator)					echo 'PowerAuthCore-tvos' ;;
+		iOS | iOS_Simulator | macOS_Catalyst)	echo 'PowerAuth2ForExtensions_iOS' ;;
+		tvOS | tvOS_Simulator)					echo 'PowerAuth2ForExtensions_tvOS' ;;
+        watchOS | watchOS_Simulator)			echo 'PowerAuth2ForWatch' ;;
 		*) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
 	esac
 }
 function GET_PLATFORM_MIN_OS_VER
 {
 	case $1 in
-		iOS | iOS_Simulator) 	echo ${MIN_VER_IOS} ;;
-		macOS_Catalyst) 		echo ${MIN_VER_CATALYST} ;;
-		tvOS | tvOS_Simulator)	echo ${MIN_VER_TVOS} ;;
+		iOS | iOS_Simulator)        	echo ${MIN_VER_IOS} ;;
+		macOS_Catalyst)         		echo ${MIN_VER_CATALYST} ;;
+		tvOS | tvOS_Simulator)      	echo ${MIN_VER_TVOS} ;;
+        watchOS | watchOS_Simulator)	echo ${MIN_VER_WATCHOS} ;;
 		*) FAILURE "Cannot determine minimum supported OS version. Unsupported platform: '$1'" ;;
 	esac
 }
 function GET_PLATFORM_SCHEME
 {
 	case $1 in
-		iOS | iOS_Simulator | macOS_Catalyst)	echo ${XCODE_SCHEME_IOS} ;;
-		tvOS | tvOS_Simulator)					echo ${XCODE_SCHEME_TVOS} ;;
+		iOS | iOS_Simulator | macOS_Catalyst)	echo 'PowerAuth2ForExtensions_iOS' ;;
+		tvOS | tvOS_Simulator)					echo 'PowerAuth2ForExtensions_tvOS' ;;
+        watchOS | watchOS_Simulator)        	echo 'PowerAuth2ForWatch' ;;
 		*) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
 	esac
 }
 
-# -----------------------------------------------------------------------------
-# Copy file from $1 to $2. 
-#   If $1 is header and contains "Private" or "private" in path, 
-#   then copy to $2/Private
-# Parameters:
-#   $1   - source file
-#   $2   - destination directory
-# -----------------------------------------------------------------------------
-function COPY_SRC_FILE
-{
-	local SRC=$1
-	local DST=$2
-	case "$SRC" in 
-	  *Private* | *private*)
-		[[ "$SRC" == *.h ]] && DST="$DST/Private"
-	    ;;
-	esac
-	$CP "${SRC}" "${DST}"
-}
-
-# -----------------------------------------------------------------------------
-# Copy all source files from $1 directory to $2. 
-#   If $3 contains "1" then only headers will be copied
-# Parameters:
-#   $1   - SDK folder (relative)
-#   $2   - SDK folder base
-#   $3   - destination directory
-#   $4   - only headers if equal to 1
-# -----------------------------------------------------------------------------
-function COPY_SRC_DIR
-{
-	local SRC="$1"
-	local BASE="$2"
-	local DST="$3"
-	local ONLY_HEADERS="$4"
-	
-	local SRC_FULL="${BASE}/$SRC"
-	local SRC_DIR_FULL="`( cd \"$SRC_FULL\" && pwd )`"
-	
-	LOG "Copying $SRC ..."
-	
-	PUSH_DIR "${SRC_DIR_FULL}"	
-	####
-	if [ x$ONLY_HEADERS == x1 ]; then
-		local files=(`grep -R -null --include "*.h" "" .`)
-	else
-		local files=(`grep -R -null --include "*.h" --include "*.m" "" .`)
-	fi
-	# Do for each file we found...
-	for ix in ${!files[*]}
-	do
-		local FILE="${files[$ix]}"
-		COPY_SRC_FILE "${FILE}" "${DST}"
-	done
-	####
-	POP_DIR
-}
-
-# -----------------------------------------------------------------------------
-# Copy all source files in SDK to destination directory
-# Parameters:
-#   $1   - source directory
-#   $2   - destination directory
-# -----------------------------------------------------------------------------
-function COPY_SOURCE_FILES
-{
-	local SRC="$1"
-	local DST="$2"
-	
-	LOG_LINE
-	LOG "Copying SDK folders ..."
-	LOG_LINE
-	
-	# Prepare dirs in output directory
-	DST="`( cd \"$DST\" && pwd )`"
-	$MD "${DST}"
-	$MD "${DST}/Private"
-	
-	# Copy each SDK folder
-	COPY_SRC_DIR "sdk"        	"$SRC" "$DST" 0
-	COPY_SRC_DIR "sdk-private"	"$SRC" "$DST" 0
-	COPY_SRC_DIR "core"       	"$SRC" "$DST" 1
-	COPY_SRC_DIR "networking" 	"$SRC" "$DST" 0
-	COPY_SRC_DIR "keychain"   	"$SRC" "$DST" 0
-	COPY_SRC_DIR "token"      	"$SRC" "$DST" 0
-	COPY_SRC_DIR "system"     	"$SRC" "$DST" 0
-	COPY_SRC_DIR "watch"      	"$SRC" "$DST" 0
-	
-	# And finally, top level header..
-	# Disabled, CocoaPods generates it own umbrella header. 
-	#$CP "${SRC}/PowerAuth2.h" "$DST" 
-}
 
 # -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
@@ -296,10 +213,9 @@ function BUILD_COMMAND
 	ALL_FAT_LIBS+=("${FINAL_FW}")
 }
 
+
 # -----------------------------------------------------------------------------
 # Build scheme for both plaforms and create FAT libraries
-# Parameters:
-#   $1   - build configuration (e.g. Debug | Release)
 # -----------------------------------------------------------------------------
 function BUILD_PLATFORMS
 {
@@ -320,24 +236,15 @@ function BUILD_PLATFORMS
 	
 	LOG_LINE
 	LOG "Creating final ${OUT_FW}.xcframework..."
-	local XCFW_PATH="${OUT_DIR}/Frameworks/${OUT_FW}.xcframework"
+	local XCFW_PATH="${OUT_DIR}/${OUT_FW}.xcframework"
 	local XCFW_ARGS=
     for ARG in ${ALL_FAT_LIBS[@]}; do
         XCFW_ARGS+="-framework ${ARG} "
 		DEBUG_LOG "  - source fw: ${ARG}"
     done
 	DEBUG_LOG "  - target fw: ${XCFW_PATH}"
-	
-	$MD "${OUT_DIR}/Frameworks"
+	$MD "${OUT_DIR}"
     xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"
-		
-	# Copy source files...
-	$MD "${OUT_DIR}/Src"
-	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}/Src"
-	
-	LOG_LINE
-	LOG "Copying openssl.xcframework ..."
-	$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" "${OUT_DIR}/Frameworks"
 }
 
 # -----------------------------------------------------------------------------
@@ -356,6 +263,7 @@ function BUILD_PATCH_ARCHITECTURES
         DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
         ARCH_IOS_SIM+=" arm64"
         ARCH_TVOS_SIM+=" arm64"
+        ARCH_WATCHOS_SIM+=" arm64"
         if [[ (${xcodever_split[0]} == 12 && ${xcodever_split[1]} < 2) ]]; then
             # 12.0 or 12.1
             WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
@@ -382,20 +290,28 @@ function CLEAN_COMMAND
 	if [ $VERBOSE -lt 2 ]; then
 		QUIET=" -quiet"
 	fi
-	
-	xcodebuild clean -project "${XCODE_PROJECT}" -scheme ${XCODE_SCHEME_IOS} ${QUIET}
+    local ALL_PLATFORMS=( $PLATFORMS )
+    local SCHEME=$(GET_PLATFORM_SCHEME ${ALL_PLATFORMS[0]})
+    local COMMAND_LINE="xcodebuild clean -project \"${XCODE_PROJECT}\" -scheme ${SCHEME} ${QUIET}"
+    
+    DEBUG_LOG $COMMAND_LINE
+    eval $COMMAND_LINE
 }
 
 ###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
-
 while [[ $# -gt 0 ]]
 do
 	opt="$1"
 	case "$opt" in
-		debug | release)
-			WARNING "debug or release option is now deprecated."
+		watchos)
+			OUT_FW=${WOS_FRAMEWORK}
+            PLATFORMS="${WOS_PLATFORMS}"
+			;;
+		extensions)
+			OUT_FW=${EXT_FRAMEWORK}
+            PLATFORMS="${EXT_PLATFORMS}"
 			;;
 		-nc | --no-clean)
 			FULL_REBUILD=0 
@@ -422,9 +338,14 @@ do
 	shift
 done
 
-# Defaulting target & temporary folders
+# Check required parameters
+if [ -z "$PLATFORMS" ]; then
+	FAILURE "You have to specify platform (watchos or extensions)"
+fi
+
+# Defaulting out & temporary folders
 if [ -z "$OUT_DIR" ]; then
-	OUT_DIR="${TOP}/Lib"
+	OUT_DIR="${TOP}/Lib/${PLATFORM_SDK}"
 fi
 if [ -z "$TMP_DIR" ]; then
 	TMP_DIR="${TOP}/Tmp"

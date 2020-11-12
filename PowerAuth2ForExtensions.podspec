@@ -1,8 +1,9 @@
 Pod::Spec.new do |s|
     # General information
+    s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2ForExtensions'
     s.version           = '1.5.0'
-    s.summary           = 'PowerAuth Mobile SDK for iOS App Extensions'
+    s.summary           = 'PowerAuth Mobile SDK for iOS/tvOS App Extensions'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
     s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/blob/develop/docs/PowerAuth-SDK-for-iOS-Extensions.md'
@@ -23,13 +24,15 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    # Library validation & build
-    s.platform        = :ios, '9.0'
+    # Library build
+    s.ios.deployment_target  = '9.0'
+    s.tvos.deployment_target = '9.0'
+    
     s.prepare_command = <<-CMD
-        ./scripts/ios-extensions-build.sh --out-dir Build release ios
+        ./scripts/ios-build-extensions.sh --out-dir Build extensions
     CMD
     
     # Produced files
-    s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.framework'
+    s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.xcframework'
     
 end

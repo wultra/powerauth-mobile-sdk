@@ -14,33 +14,24 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-               BuildableName = "PowerAuth2ForExtensions.framework"
-               BlueprintName = "PowerAuth2ForExtensions"
+               BlueprintIdentifier = "BFFE4491255D77130016AA5E"
+               BuildableName = "PowerAuth2ForExtensions_tvOS.framework"
+               BlueprintName = "PowerAuth2ForExtensions_tvOS"
                ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
-            ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <Testables>
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -49,15 +40,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
-            ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -68,15 +50,15 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
-            BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
+            BlueprintIdentifier = "BFFE4491255D77130016AA5E"
+            BuildableName = "PowerAuth2ForExtensions_tvOS.framework"
+            BlueprintName = "PowerAuth2ForExtensions_tvOS"
             ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Release">
+      buildConfiguration = "Debug">
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"

@@ -1,5 +1,6 @@
 Pod::Spec.new do |s|
     # General information
+    s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2ForWatch'
     s.version           = '1.5.0'
     s.summary           = 'PowerAuth Mobile SDK for watchOS'
@@ -23,13 +24,13 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    # Library validation & build
+    # Library build
     s.platform        = :watchos, '2.0'
     s.prepare_command = <<-CMD
-        ./scripts/ios-extensions-build.sh --out-dir Build release watchos
+        ./scripts/ios-build-extensions.sh --out-dir Build watchos
     CMD
     
     # Produced files
-    s.vendored_frameworks   = 'Build/PowerAuth2ForWatch.framework'
+    s.vendored_frameworks   = 'Build/PowerAuth2ForWatch.xcframework'
     
 end

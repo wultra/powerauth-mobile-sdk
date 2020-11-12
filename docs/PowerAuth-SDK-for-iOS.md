@@ -1,8 +1,9 @@
-# PowerAuth Mobile SDK for iOS Apps
+# PowerAuth Mobile SDK for iOS and tvOS Apps
 
 ## Table of Contents
 
 - [Installation](#installation)
+   - [Supported Platforms](#supported-platforms)
    - [CocoaPods Installation](#cocoapods)
    - [Manual Installation](#manual)
    - [Carthage Installation](#carthage)
@@ -52,7 +53,17 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration.
+This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. 
+
+### Supported platforms
+
+The library is available for the following Apple platforms:
+
+- **iOS**
+- **mac Catalyst**
+- **tvOS**
+
+To simplify the documentation, we'll use **iOS** for the rest of the documentation and highlight the exceptions only. For example, **tvOS** doesn't support biometry and watch connectivity.
 
 ### CocoaPods
 
@@ -63,7 +74,7 @@ $ gem install cocoapods
 
 To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 ```ruby
-platform :ios, '8.0'
+platform :ios, '9.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end
@@ -699,7 +710,7 @@ PowerAuthSDK.sharedInstance().unsafeChangePassword(from: oldPassword, to: newPas
 
 ## Biometry Setup
 
-PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face ID support. While the authentication / data signing itself is nicely and transparently embedded in `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other biometry related processes require their own API.
+PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face ID support. While the authentication / data signing itself is nicely and transparently embedded in `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other biometry related processes require their own API. This part of the documentation is not relevant for **tvOS** platform.
 
 ### Check Biometry Status
 
@@ -1159,7 +1170,7 @@ Note that removing tokens locally you'll loose control about tokens stored on th
 
 ## Apple Watch Support
 
-This part of the documentation describes how to add support for Apple Watch into your PowerAuth powered IOS application.
+This part of the documentation describes how to add support for Apple Watch into your PowerAuth powered IOS application. This part of the documentation is not relevant for **tvOS** platform. 
 
 ### Prepare Watch Connectivity
 

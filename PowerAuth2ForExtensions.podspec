@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2ForExtensions'
     s.version           = '1.5.0'
-    s.summary           = 'PowerAuth Mobile SDK for iOS/tvOS App Extensions'
+    s.summary           = 'PowerAuth Mobile SDK for iOS and tvOS App Extensions'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
     s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/blob/develop/docs/PowerAuth-SDK-for-iOS-Extensions.md'

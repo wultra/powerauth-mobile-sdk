@@ -56,9 +56,6 @@ Then, run the following command:
 $ pod install
 ```
 
-**Warning:** You should also check Troubleshooting section of this document to fix possible CocoaPods related [linker issues](#cocoapods-linker-workaround).
-
-
 ### Manual
 
 If you prefer not to use CocoaPods as dependency manager, you can integrate Extensions SDK into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).
@@ -254,40 +251,6 @@ The DEBUG build is usually helpful during the application development, but on ot
 ## Troubleshooting
 
 This section of document contains a various workarounds and tips for Extensions SDK usage.
-
-### CocoaPods Linker workaround
-
-Unfortunately, the current version of CocoaPods (`1.3`) has a nasty issue in its dependency management and both, `PowerAuth2` and `PowerAuth2ForExtensions` libraries, are linked into the application's target. If this situation happens then the following kind of linker errors are produced:
-
-```
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._secret in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._identifier in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._name in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-...etc
-```
-
-You can manually break that unwanted dependency by adding post-install hook into your `Podfile`:
-
-```ruby
-post_install do |installer|
-  installer.aggregate_targets.each do |aggregate_target|
-    if aggregate_target.label == 'Pods-YourAppTarget'
-      puts "Patching xcconfig files for #{aggregate_target.label} ..."
-      aggregate_target.xcconfigs.each do |name, config|
-        config_path = aggregate_target.xcconfig_path(name)
-        config.frameworks.delete('PowerAuth2ForExtensions')
-        config.save_as(config_path)
-      end
-    end
-  end
-end
-```
 
 ### UserDefaults migration
 

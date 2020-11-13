@@ -23,13 +23,13 @@ Pod::Spec.new do |s|
         :submodules => true
     }
     
-    # Library validation & build
+    # Library build
     s.platform        = :watchos, '2.0'
     s.prepare_command = <<-CMD
-        ./scripts/ios-extensions-build.sh --out-dir Build release watchos
+        ./scripts/ios-build-extensions.sh --out-dir Build watchos
     CMD
     
     # Produced files
-    s.vendored_frameworks   = 'Build/PowerAuth2ForWatch.framework'
+    s.vendored_frameworks   = 'Build/PowerAuth2ForWatch.xcframework'
     
 end

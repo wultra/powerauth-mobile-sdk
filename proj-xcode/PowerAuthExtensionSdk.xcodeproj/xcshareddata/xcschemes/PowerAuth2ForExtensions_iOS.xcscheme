@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1210"
+   LastUpgradeVersion = "1220"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
                BuildableName = "PowerAuth2ForExtensions.framework"
-               BlueprintName = "PowerAuth2ForExtensions"
+               BlueprintName = "PowerAuth2ForExtensions_iOS"
                ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,7 +32,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
             BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
+            BlueprintName = "PowerAuth2ForExtensions_iOS"
             ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -54,7 +54,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
             BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
+            BlueprintName = "PowerAuth2ForExtensions_iOS"
             ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -70,7 +70,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BF5491D31FFFB9220036DB9E"
             BuildableName = "PowerAuth2ForExtensions.framework"
-            BlueprintName = "PowerAuth2ForExtensions"
+            BlueprintName = "PowerAuth2ForExtensions_iOS"
             ReferencedContainer = "container:PowerAuthExtensionSdk.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

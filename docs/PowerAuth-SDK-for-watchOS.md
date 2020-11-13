@@ -25,7 +25,7 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a static library, provided by the `PowerAuth2ForWatch.framework`.
+This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a dynamic library, provided by the `PowerAuth2ForWatch.[xc]framework`.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 

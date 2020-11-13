@@ -292,6 +292,7 @@ function SHA512
 # Parameters:
 #   $1   - optional switch, can be:
 #          '--full'  - prints a full version of Xcode (e.g. 11.7.1)
+#          '--split' - prints a full, space separated version of Xcode (e.g. 11 7 1)
 #          '--major' - prints only a major version (e.g. 11)
 #          otherwise prints first line from `xcodebuild -version` result
 # -----------------------------------------------------------------------------
@@ -306,6 +307,7 @@ function GET_XCODE_VERSION
     local ver_array=( ${ver//./ } )
     case $1 in
         --full) echo $ver ;;
+        --split) echo ${ver_array[@]} ;;
         --major) echo ${ver_array[0]} ;;
         *) echo ${xcodever[*]} ;;
     esac

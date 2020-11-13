@@ -1,4 +1,4 @@
-# PowerAuth Mobile SDK for iOS Extensions
+# PowerAuth Mobile SDK for iOS and tvOS Extensions
 
 ## Table of Contents
 
@@ -24,12 +24,12 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS Extensions up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your app extension linked with a static library, provided by the `PowerAuth2ForExtensions.framework`.
+This chapter describes how to get PowerAuth SDK for iOS and tvOS Extensions up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your app extension linked with a dynamic library, provided by the `PowerAuth2ForExtensions.[xc]framework`.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 
-- **iOS SDK**, as short term for *PowerAuth SDK for iOS*
-- **Extensions SDK** as short term for *PowerAuth SDK for iOS Extensions*
+- **iOS SDK**, as short term for *PowerAuth SDK for iOS and tvOS*
+- **Extensions SDK** as short term for *PowerAuth SDK for iOS and tvOS Extensions*
 
 ### CocoaPods
 
@@ -40,7 +40,7 @@ $ gem install cocoapods
 
 To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 ```ruby
-platform :ios, '8.0'
+platform :ios, '9.0'
 
 target 'YourAppTarget' do
   pod 'PowerAuth2'

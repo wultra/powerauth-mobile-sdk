@@ -1,8 +1,7 @@
 Pod::Spec.new do |s|
     # General information
-    s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2ForWatch'
-    s.version           = '1.5.0'
+    s.version           = '1.5.1'
     s.summary           = 'PowerAuth Mobile SDK for watchOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'

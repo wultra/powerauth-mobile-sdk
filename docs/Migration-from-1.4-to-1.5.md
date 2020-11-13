@@ -38,3 +38,5 @@ PowerAuth Mobile SDK in version `1.5.0` is a maintenance release that brings few
 - Support for new platforms has the following implications to SDK integration:
   - CocoaPods tool version `1.10+` is required.
   - CocoaPods integration now uses precompiled `XCFrameworks` as binary artifacts, so be careful in case that your application project has whole `Pods` folder added to the git source control. 
+  - It's recommended to use Xcode 12.2+ to build library for all available ARM64 targets. Otherwise you risk that CocoaPods will keep an incomplete library in its cache.
+

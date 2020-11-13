@@ -76,7 +76,7 @@ function USAGE
     echo ""
     echo "platform is:"
     echo "  watchos           for watchOS library build"
-    echo "  extensions        for iOS/tvOS extensions build"
+    echo "  extensions        for iOS and tvOS extensions build"
     echo ""
     echo "options are:"
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
@@ -252,19 +252,17 @@ function BUILD_PLATFORMS
 # -----------------------------------------------------------------------------
 function BUILD_PATCH_ARCHITECTURES
 {
-    local xcodever=$(GET_XCODE_VERSION --major)
-    if (( $xcodever == -1 )); then
-        FAILURE "Unsupported Xcode version."
+    local xcodever=( $(GET_XCODE_VERSION --split) )
+    if (( ${xcodever[0]} == -1 )); then
+        FAILURE "Invalid Xcode installation."
     fi
-    xcodever=$(GET_XCODE_VERSION --full)
-    local xcodever_split=(${xcodever//./ })
-    if (( ${xcodever_split[0]} >= 12 )); then
+    if (( ${xcodever[0]} >= 12 )); then
         # Greater and equal than 12.0
         DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
         ARCH_IOS_SIM+=" arm64"
         ARCH_TVOS_SIM+=" arm64"
         ARCH_WATCHOS_SIM+=" arm64"
-        if [[ (${xcodever_split[0]} == 12 && ${xcodever_split[1]} < 2) ]]; then
+        if [[ (${xcodever[0]} == 12 && ${xcodever[1]} < 2) ]]; then
             # 12.0 or 12.1
             WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
         else

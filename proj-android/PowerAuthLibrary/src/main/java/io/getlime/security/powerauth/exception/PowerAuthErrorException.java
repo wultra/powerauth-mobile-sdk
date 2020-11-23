@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.exception;
 
+import android.support.annotation.NonNull;
+
 /**
  * Will be thrown, or will be returned to listener, in case that requested operation fails
  * on an error.
@@ -26,7 +28,7 @@ public class PowerAuthErrorException extends Exception {
      * Integer constant from {@link PowerAuthErrorCodes} class.
      */
     @PowerAuthErrorCodes
-    private int powerAuthErrorCode;
+    private final int powerAuthErrorCode;
 
     /**
      * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
@@ -45,10 +47,54 @@ public class PowerAuthErrorException extends Exception {
     }
 
     /**
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
+     * @param message String with detailed error description.
+     * @param cause Original cause of failure.
+     */
+    public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode, String message, Throwable cause) {
+        super(message, cause);
+        this.powerAuthErrorCode = powerAuthErrorCode;
+    }
+
+    /**
      * @return Integer constant from {@link PowerAuthErrorCodes}, describing the reason of failure.
      */
     @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
+    }
+
+    /**
+     * Wrap {@link Throwable} cause of failure into {@link PowerAuthErrorException} with provided
+     * error code and message. In case that original exception is already {@link PowerAuthErrorException},
+     * then return that object.
+     *
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}.
+     * @param message String with detailed error description.
+     * @param exception Original cause of failure.
+     *
+     * @return Original exception if it's already instance of {@link PowerAuthErrorException} or
+     *         new instance of {@link PowerAuthErrorException}.
+     */
+    public static @NonNull PowerAuthErrorException wrapException(@PowerAuthErrorCodes int powerAuthErrorCode, String message, Throwable exception) {
+        if (exception instanceof PowerAuthErrorException) {
+            return (PowerAuthErrorException)exception;
+        }
+        return new PowerAuthErrorException(powerAuthErrorCode, message, exception);
+    }
+
+    /**
+     * Wrap {@link Throwable} cause of failure into {@link PowerAuthErrorException} with provided
+     * error code. In case that original exception is already {@link PowerAuthErrorException},
+     * then return that object.
+     *
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}.
+     * @param exception Original cause of failure.
+     *
+     * @return Original exception if it's already instance of {@link PowerAuthErrorException} or
+     *         new instance of {@link PowerAuthErrorException}.
+     */
+    public static @NonNull PowerAuthErrorException wrapException(@PowerAuthErrorCodes int powerAuthErrorCode, Throwable exception) {
+        return wrapException(powerAuthErrorCode, null, exception);
     }
 }

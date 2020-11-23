@@ -28,9 +28,12 @@
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
-#import "PA2WCSessionManager+Private.h"
 #import "PA2PrivateEncryptorFactory.h"
 #import "PA2GetActivationStatusTask.h"
+
+#if defined(PA2_WATCH_SUPPORT)
+#import "PA2WCSessionManager+Private.h"
+#endif
 
 #import <UIKit/UIKit.h>
 
@@ -143,14 +146,18 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 	// Attempt to restore session state
 	[self restoreState];
 	
+#if defined(PA2_WATCH_SUPPORT)
 	// Register this instance to handle messages
 	[[PA2WCSessionManager sharedInstance] registerDataHandler:self];
+#endif
 }
 
 - (void) dealloc
 {
+#if defined(PA2_WATCH_SUPPORT)
 	// Unregister this instance for processing packets...
 	[[PA2WCSessionManager sharedInstance] unregisterDataHandler:self];
+#endif
 	// Cancel possible get activation status task
 	[self cancelActivationStatusTask];
 }

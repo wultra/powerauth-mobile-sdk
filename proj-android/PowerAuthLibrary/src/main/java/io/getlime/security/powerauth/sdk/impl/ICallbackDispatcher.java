@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
+import android.support.annotation.NonNull;
+
 /**
  * Dispatcher for callbacks for SDK public APIs.
  *
@@ -28,5 +30,5 @@ public interface ICallbackDispatcher {
      *
      * @param runnable callback wrapped in a runnable to be dispatched.
      */
-    void dispatchCallback(Runnable runnable);
+    void dispatchCallback(@NonNull Runnable runnable);
 }

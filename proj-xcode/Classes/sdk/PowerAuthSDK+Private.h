@@ -16,8 +16,11 @@
 
 #import "PowerAuthSDK.h"
 #import "PA2PrivateCryptoHelper.h"
-#import "PA2WCSessionDataHandler.h"
 #import "PA2Keychain.h"
+
+#if defined(PA2_WATCH_SUPPORT)
+#import "PA2WCSessionDataHandler.h"
+#endif
 
 @class PA2PrivateEncryptorFactory;
 
@@ -49,11 +52,15 @@
 @interface PowerAuthSDK (CryptoHelper) <PA2PrivateCryptoHelper>
 @end
 
-
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 // Declaration required by watchSDK integration (see PowerAuthSDK+WatchSupport.m)
 @interface PowerAuthSDK (WatchSupportPrivate) <PA2WCSessionDataHandler>
 @end
-
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 
 // Reveal private init in PA2ActivationRecoveryData object
 @interface PA2ActivationRecoveryData (Private)

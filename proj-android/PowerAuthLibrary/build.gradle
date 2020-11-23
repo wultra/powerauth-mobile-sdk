@@ -18,6 +18,9 @@ android {
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        loadInstrumentationTestConfigProperties(project, owner)
     }
 
     compileOptions {
@@ -46,8 +49,11 @@ android {
         implementation "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
         implementation 'com.google.code.gson:gson:2.8.5'
 
-        testImplementation 'junit:junit:4.12'
-        testImplementation 'org.robolectric:robolectric:4.3.1'
+        // testing
+        androidTestImplementation 'junit:junit:4.12'
+        androidTestImplementation 'com.android.support.test:runner:1.0.2'
+        androidTestImplementation 'io.getlime.core:rest-model-base:1.1.0'
+        androidTestImplementation 'com.google.code.gson:gson:2.8.5'
     }
 
     externalNativeBuild {
@@ -63,31 +69,30 @@ android {
     }
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId project.GROUP_ID
-            artifactId project.ARTIFACT_ID
-            version project.VERSION_NAME
 
-            artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
-            artifact(androidSourcesJar)
-            artifact(androidJavadocsJar)
+// Load properties for instrumentation tests.
+static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
+    def configsRoot = new File("${project.rootProject.projectDir}/configs")
+    def configPropertiesFile = new File(configsRoot, "powerauth-instrumentation-tests.properties")
 
-            // http://stackoverflow.com/questions/24743562/gradle-not-including-dependencies-in-published-pom-xml
-            pom.withXml {
-                def dependenciesNode = asNode().appendNode('dependencies')
+    def instrumentationArguments = [
+            "test.powerauth.restApiUrl",
+            "test.powerauth.serverApiUrl",
+            "test.powerauth.serverVersion",
+            "test.powerauth.appName",
+            "test.powerauth.appVersion",
+            "test.powerauth.userIdentifier" ]
 
-                // Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
-                configurations.compile.allDependencies.each {
-                    def dependencyNode = dependenciesNode.appendNode('dependency')
-                    dependencyNode.appendNode('groupId', it.group)
-                    dependencyNode.appendNode('artifactId', it.name)
-                    dependencyNode.appendNode('version', it.version)
-                }
-            }
+    project.logger.info("LOADING_PROPERTIES Reading $configPropertiesFile")
+    if (configPropertiesFile.canRead()) {
+        def props = new Properties()
+        props.load(new FileInputStream(configPropertiesFile))
 
+        for (key in instrumentationArguments) {
+            defaultConfig.testInstrumentationRunnerArgument key, "${props[key]}"
         }
+    } else {
+        project.logger.warn("Loading properties error: Missing $configPropertiesFile")
     }
 }
 
@@ -97,10 +102,17 @@ task prepareOpenSSL(type: Exec) {
     commandLine 'sh', './openssl-build/fetch.sh', 'android'
 }
 
+// Task to verify release to do not contain debug symbols
+task verifyDebugSymbolsForRelease(type: Exec) {
+    commandLine 'sh', '../../scripts/android-validate-build.sh', '--aar', "${buildDir}/outputs/aar/PowerAuthLibrary-release.aar"
+}
+
 afterEvaluate {
     externalNativeBuildCleanDebug.dependsOn prepareOpenSSL
     externalNativeBuildCleanRelease.dependsOn prepareOpenSSL
     preBuild.dependsOn prepareOpenSSL
+    verifyDebugSymbolsForRelease.dependsOn install
+    bintrayUpload.dependsOn verifyDebugSymbolsForRelease
 }
 
 apply from: 'android-release-aar.gradle'

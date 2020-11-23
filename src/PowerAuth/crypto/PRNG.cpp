@@ -17,7 +17,7 @@
 #include "PRNG.h"
 #include <openssl/rand.h>
 
-#if defined(CC7_IOS) || defined(CC7_ANDROID)
+#if defined(CC7_APPLE) || defined(CC7_ANDROID)
 #include <fcntl.h>
 #include <unistd.h>
 #endif
@@ -116,7 +116,7 @@ namespace crypto
 	
 	// MARK: - Platform specific implementations -
 	
-#if defined(CC7_IOS) || defined(CC7_ANDROID)
+#if defined(CC7_APPLE) || defined(CC7_ANDROID)
 	
 	static bool GetBytesFromSystemGenerator(void * out_buffer, size_t nbytes)
 	{

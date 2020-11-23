@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+#import "PA2Macros.h"
+
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
+
 #import <WatchConnectivity/WatchConnectivity.h>
 
 /**
@@ -55,3 +61,7 @@
 - (BOOL) processReceivedUserInfo:(nonnull NSDictionary<NSString *, id> *)userInfo;
 
 @end
+
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

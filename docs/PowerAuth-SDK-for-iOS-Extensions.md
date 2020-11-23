@@ -1,4 +1,4 @@
-# PowerAuth Mobile SDK for iOS Extensions
+# PowerAuth Mobile SDK for iOS and tvOS Extensions
 
 ## Table of Contents
 
@@ -24,12 +24,12 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS Extensions up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your app extension linked with a static library, provided by the `PowerAuth2ForExtensions.framework`.
+This chapter describes how to get PowerAuth SDK for iOS and tvOS Extensions up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your app extension linked with a dynamic library, provided by the `PowerAuth2ForExtensions.[xc]framework`.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 
-- **iOS SDK**, as short term for *PowerAuth SDK for iOS*
-- **Extensions SDK** as short term for *PowerAuth SDK for iOS Extensions*
+- **iOS SDK**, as short term for *PowerAuth SDK for iOS and tvOS*
+- **Extensions SDK** as short term for *PowerAuth SDK for iOS and tvOS Extensions*
 
 ### CocoaPods
 
@@ -40,7 +40,7 @@ $ gem install cocoapods
 
 To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 ```ruby
-platform :ios, '8.0'
+platform :ios, '9.0'
 
 target 'YourAppTarget' do
   pod 'PowerAuth2'
@@ -55,9 +55,6 @@ Then, run the following command:
 ```bash
 $ pod install
 ```
-
-**Warning:** You should also check Troubleshooting section of this document to fix possible CocoaPods related [linker issues](#cocoapods-linker-workaround).
-
 
 ### Manual
 
@@ -254,40 +251,6 @@ The DEBUG build is usually helpful during the application development, but on ot
 ## Troubleshooting
 
 This section of document contains a various workarounds and tips for Extensions SDK usage.
-
-### CocoaPods Linker workaround
-
-Unfortunately, the current version of CocoaPods (`1.3`) has a nasty issue in its dependency management and both, `PowerAuth2` and `PowerAuth2ForExtensions` libraries, are linked into the application's target. If this situation happens then the following kind of linker errors are produced:
-
-```
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._secret in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._identifier in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-duplicate symbol _OBJC_IVAR_$_PA2PrivateTokenData._name in:
-    .../Pods/PowerAuth2/Library/libPowerAuth2.a(PA2PrivateTokenData.o)
-    .../Pods/PowerAuth2ForExtensions/Build/PowerAuth2ForExtensions.framework/PowerAuth2ForExtensions(PA2PrivateTokenData.o)
-...etc
-```
-
-You can manually break that unwanted dependency by adding post-install hook into your `Podfile`:
-
-```ruby
-post_install do |installer|
-  installer.aggregate_targets.each do |aggregate_target|
-    if aggregate_target.label == 'Pods-YourAppTarget'
-      puts "Patching xcconfig files for #{aggregate_target.label} ..."
-      aggregate_target.xcconfigs.each do |name, config|
-        config_path = aggregate_target.xcconfig_path(name)
-        config.frameworks.delete('PowerAuth2ForExtensions')
-        config.save_as(config_path)
-      end
-    end
-  end
-end
-```
 
 ### UserDefaults migration
 

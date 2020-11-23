@@ -16,11 +16,10 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import io.getlime.security.powerauth.keychain.PA2Keychain;
+import io.getlime.security.powerauth.keychain.Keychain;
 
 /**
  * Default implementation of PowerAuth state listener.
@@ -29,22 +28,20 @@ import io.getlime.security.powerauth.keychain.PA2Keychain;
  */
 public class DefaultSavePowerAuthStateListener implements ISavePowerAuthStateListener {
 
-    private Context context;
-    private PA2Keychain keychain;
+    private final Keychain keychain;
 
-    public DefaultSavePowerAuthStateListener(@NonNull Context context, @NonNull PA2Keychain keychain) {
-        this.context = context.getApplicationContext();
+    public DefaultSavePowerAuthStateListener(@NonNull Keychain keychain) {
         this.keychain = keychain;
     }
 
     @Override
     public @Nullable byte[] serializedState(@NonNull String instanceId) {
-        return keychain.dataForKey(context, instanceId);
+        return keychain.getData(instanceId);
     }
 
     @Override
     public void onPowerAuthStateChanged(@NonNull String instanceId, @NonNull byte[] serializedState) {
-        keychain.putDataForKey(context, serializedState, instanceId);
+        keychain.putData(serializedState, instanceId);
     }
 
 }

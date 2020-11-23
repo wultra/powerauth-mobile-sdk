@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+#import "PA2Macros.h"
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
 #import "PA2WCSessionPacket.h"
 
 @class PA2WCSessionManager;
@@ -38,3 +42,7 @@
 - (PA2WCSessionPacket*) sessionManager:(PA2WCSessionManager*)manager responseForPacket:(PA2WCSessionPacket*)packet;
 
 @end
+
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

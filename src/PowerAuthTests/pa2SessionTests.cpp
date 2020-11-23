@@ -261,13 +261,17 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertTrue(s1.hasPendingActivation());
 					ccstAssertFalse(s1.hasValidActivation());
-
+					ccstAssertTrue(s1.activationIdentifier().empty());
+					ccstAssertTrue(s1.activationFingerprint().empty());
+					
 					if (break_in_step == 1) {
 						s1.resetSession();
 						ccstAssertTrue(s1.hasValidSetup());
 						ccstAssertTrue(s1.canStartActivation());
 						ccstAssertFalse(s1.hasPendingActivation());
 						ccstAssertFalse(s1.hasValidActivation());
+						ccstAssertTrue(s1.activationIdentifier().empty());
+						ccstAssertTrue(s1.activationFingerprint().empty());
 						continue;
 					}
 					
@@ -340,6 +344,8 @@ namespace powerAuthTests
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertTrue(s1.hasPendingActivation());
 					ccstAssertFalse(s1.hasValidActivation());
+					ccstAssertEqual(_activation_id, s1.activationIdentifier());
+					ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
 					
 					if (break_in_step == 2) {
 						s1.resetSession();
@@ -400,6 +406,7 @@ namespace powerAuthTests
 					ec = s1.completeActivation(lock_keys);
 					ccstAssertEqual(ec, EC_Ok);
 					ccstAssertEqual(s1.activationIdentifier(), _activation_id);
+					ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
 					ccstAssertTrue(s1.hasValidSetup());
 					ccstAssertFalse(s1.canStartActivation());
 					ccstAssertFalse(s1.hasPendingActivation());

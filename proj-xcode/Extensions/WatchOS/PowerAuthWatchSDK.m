@@ -92,6 +92,11 @@
 	return NO;
 }
 
+- (BOOL) hasProtocolUpgradeAvailable
+{
+	return NO;
+}
+
 @end
 
 

@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.biometry;
 
+import android.support.annotation.NonNull;
+
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
@@ -38,6 +40,6 @@ public interface ICommitActivationWithBiometryListener {
      *
      * @param error error that occurred during the activation commit.
      */
-    void onBiometricDialogFailed(PowerAuthErrorException error);
+    void onBiometricDialogFailed(@NonNull PowerAuthErrorException error);
 
 }

@@ -1,7 +1,4 @@
 #!/bin/bash
-# ----------------------------------------------------------------------------
-set -e
-set +v
 ###############################################################################
 # PowerAuth2 build for Apple platforms
 #
@@ -9,9 +6,9 @@ set +v
 # library distribution. Typically, this script is used for CocoaPods integration.
 # 
 # The result of the build process is:
-#    libPowerAuthCore.a:
-#      multi-architecture static library (also called as "fat") with all 
-#      core functionality of PowerAuth2 SDK. The library contains all C++
+#    PowerAuthCore.xcframework:
+#      multi-architecture, multi-platform static framework (also called as "fat") 
+#      with all core functionality of PowerAuth2 SDK. The library contains all C++
 #      code, plus thin ObjC wrapper written on top of that codes.
 #
 #    SDK sources:
@@ -20,13 +17,11 @@ set +v
 #
 # Script is using following folders (if not changed):
 #
-#    ./Lib/Debug          - result of debug configuration, containing
-#                           final fat library, source codes and public headers
-#    ./Lib/Debug/Private  - contains all private headers
+#    ./Lib/*.xcframework  - All supporting xcframeworks
 #
-#    ./Lib/Debug          - result of release configuration, containing
-#                           final fat library, source codes and public headers
-#    ./Lib/Debug/Private  - contains all private headers
+#    ./Lib/Src            - All source codes and public headers
+#
+#    ./Lib/Src/Private    - Contains all private headers
 #
 #    ./Tmp                - for all temporary data
 #
@@ -44,23 +39,30 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 #
 XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthCore.xcodeproj"
 SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
+XCODE_SCHEME_IOS="PowerAuthCore_iOS"
+XCODE_SCHEME_TVOS="PowerAuthCore_tvOS"
 
 #
-# Architectures & Target libraries
+# Platforms & CPU architectures
 #
-PLATFORM_SDK1="iphoneos"
-PLATFORM_SDK2="iphonesimulator"
-PLATFORM_ARCHS1="armv7 armv7s arm64 arm64e"
-PLATFORM_ARCHS2="i386 x86_64"
-OUT_LIBRARY="libPowerAuthCore.a"
-OPENSSL_LIB="${TOP}/../cc7/openssl-lib/apple/libcrypto.a"
+PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
+# Platform architectures
+ARCH_IOS="armv7 armv7s arm64 arm64e"
+ARCH_IOS_SIM="i386 x86_64"
+ARCH_CATALYST="x86_64"
+ARCH_TVOS="arm64"
+ARCH_TVOS_SIM="x86_64"
+# Minimum OS version
+MIN_VER_IOS="9.0"
+MIN_VER_TVOS="9.0"
+MIN_VER_CATALYST="10.15"
+
+OUT_FW="PowerAuthCore"
 
 # Variables loaded from command line
 VERBOSE=1
 FULL_REBUILD=1
 CLEANUP_AFTER=1
-SCHEME_NAME=''
-CONFIG_NAME=''
 OUT_DIR=''
 TMP_DIR=''
 
@@ -72,15 +74,11 @@ TMP_DIR=''
 function USAGE
 {
 	echo ""
-	echo "Usage:  $CMD  [options]  command"
-	echo ""
-	echo "command is:"
-	echo "  debug       for DEBUG build"
-	echo "  release     for RELEASE build"
+	echo "Usage:  $CMD  [options]"
 	echo ""
 	echo "options are:"
 	echo "  -nc | --no-clean  disable 'clean' before 'build'"
-	echo "                    also disables derived data cleanup after build"
+	echo "                    also disables temporary data cleanup after build"
 	echo "  -v0               turn off all prints to stdout"
 	echo "  -v1               print only basic log about build progress"
 	echo "  -v2               print full build log with rich debug info"
@@ -93,58 +91,75 @@ function USAGE
 }
 
 # -----------------------------------------------------------------------------
-# Performs xcodebuild command for a single platform (iphone / simulator)
+# GET_PLATFORM_ARCH
+#   Print a list of architectures for given build platform. For example,
+#   for 'iOS' function prints 'armv7 armv7s arm64 arm64e'.
+#
+# GET_PLATFORM_SDK
+#   Print a list of architectures for given build platform. For example,
+#    for 'iOS' function prints 'iphoneos'.
+#
+# GET_PLATFORM_TARGET
+#   Print a build target for given build platform. For example, for 'iOS'
+#   function prints 'PowerAuthCore-ios'.
+#
+# GET_PLATFORM_MIN_OS_VER
+#   Print a minimum supported OS version for given build platform. For example, 
+#   for 'iOS' function prints '${MIN_VER_IOS}'.
+#
+# GET_PLATFORM_SCHEME
+#   Print build scheme for given build platform. For example, for 'iOS'
+#   function prints ${XCODE_SCHEME_IOS}
+#
 # Parameters:
-#   $1   - scheme name (e.g. PA2Ext_Debug, PA2Watch_Release)
-#   $2   - configuration name (e.g. Debug, Release)
-#   $3   - platform SDK (watchos, iphoneos)
-#   $4   - simulator SDK (watchsimulator, iphonesimulator)
+#   $1   - build platform (e.g. 'iOS', 'tvOS', etc...)
 # -----------------------------------------------------------------------------
-function MAKE_FAT_LIB
+function GET_PLATFORM_ARCH
 {
-	local SCHEME=$1
-	local CONFIG=$2
-	local NAT_PLATFORM=$3
-	local SIM_PLATFORM=$4
-	local LIB=${OUT_LIBRARY}
-	
-	LOG_LINE
-	LOG "FATalizing   ${LIB}"
-	LOG_LINE
-	
-	local NAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${NAT_PLATFORM}/${CONFIG}-${NAT_PLATFORM}"
-	local SIM_LIB_DIR="${TMP_DIR}/${SCHEME}-${SIM_PLATFORM}/${CONFIG}-${SIM_PLATFORM}"
-	local FAT_LIB_DIR="${TMP_DIR}/${SCHEME}-${CONFIG}"
-
-	$MD "${FAT_LIB_DIR}"	
-
-	eval "${LIPO} -create \"$NAT_LIB_DIR/$LIB\" \"$SIM_LIB_DIR/$LIB\" -output \"$FAT_LIB_DIR/$LIB\""
-	
-	LOG "Copying final library..."
-	$CP -r "${FAT_LIB_DIR}/${LIB}" "${OUT_DIR}"
-	
-	LOG "Copying libcrypto.a library..."
-	$CP "${OPENSSL_LIB}" "${OUT_DIR}" 
+	case $1 in
+		iOS)			echo ${ARCH_IOS} ;;
+		iOS_Simulator)	echo ${ARCH_IOS_SIM} ;;
+		macOS_Catalyst)	echo ${ARCH_CATALYST} ;;
+		tvOS)			echo ${ARCH_TVOS} ;;
+		tvOS_Simulator)	echo ${ARCH_TVOS_SIM} ;;
+		*) FAILURE "Cannot determine architecture. Unsupported platform: '$1'" ;;
+	esac
 }
-
-# -----------------------------------------------------------------------------
-# Validates whether given library has all expected platforms
-# Parameters:
-#   $1   - library path
-#   $2   - architectures, space separated values
-# -----------------------------------------------------------------------------
-function VALIDATE_FAT_ARCHITECTURES
+function GET_PLATFORM_SDK
 {
-	local LIB="$1"
-	local ARCHITECTURES=($2)
-	local INFO=`${LIPO} -info "${LIB}"`
-	for ARCH in "${ARCHITECTURES[@]}"
-	do
-		local HAS_ARCH=`echo $INFO | grep $ARCH | wc -l`
-		if [ $HAS_ARCH != "1" ]; then 
-			FAILURE "Architecture $ARCH is missing in final FAT library."
-		fi
-	done
+	case $1 in
+		iOS)			echo 'iphoneos' ;;
+		iOS_Simulator)	echo 'iphonesimulator' ;;
+		macOS_Catalyst)	echo 'macosx' ;;
+		tvOS)			echo 'appletvos' ;;
+		tvOS_Simulator)	echo 'appletvsimulator' ;;
+		*) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
+	esac
+}
+function GET_PLATFORM_TARGET
+{
+	case $1 in
+		iOS | iOS_Simulator | macOS_Catalyst)	echo 'PowerAuthCore-ios' ;;
+		tvOS | tvOS_Simulator)					echo 'PowerAuthCore-tvos' ;;
+		*) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
+	esac
+}
+function GET_PLATFORM_MIN_OS_VER
+{
+	case $1 in
+		iOS | iOS_Simulator) 	echo ${MIN_VER_IOS} ;;
+		macOS_Catalyst) 		echo ${MIN_VER_CATALYST} ;;
+		tvOS | tvOS_Simulator)	echo ${MIN_VER_TVOS} ;;
+		*) FAILURE "Cannot determine minimum supported OS version. Unsupported platform: '$1'" ;;
+	esac
+}
+function GET_PLATFORM_SCHEME
+{
+	case $1 in
+		iOS | iOS_Simulator | macOS_Catalyst)	echo ${XCODE_SCHEME_IOS} ;;
+		tvOS | tvOS_Simulator)					echo ${XCODE_SCHEME_TVOS} ;;
+		*) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
+	esac
 }
 
 # -----------------------------------------------------------------------------
@@ -243,89 +258,130 @@ function COPY_SOURCE_FILES
 # -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
-#   $1   - scheme name (e.g. PA2Core_Lib)
-#   $2   - build configuration (e.g. Release | Debug)
-#   $3   - platform (iphoneos, iphonesimulator)
-#   $4   - command to execute. You can use 'build' or 'clean'
+#   $1   - platform (iOS, iOS_Simulator, etc...)
+#   $2   - set to 1, to clean the build folder
 # -----------------------------------------------------------------------------
 function BUILD_COMMAND
 {
-	local SCHEME="$1"
-	local CONFIG="$2"
-	local PLATFORM="$3"
-	local COMMAND="$4"
+	local PLATFORM="$1"
+	local DO_CLEAN="$2"
 	
-	if [ $PLATFORM == $PLATFORM_SDK1 ]; then
-		local PLATFORM_ARCHS="$PLATFORM_ARCHS1"
-	else
-		local PLATFORM_ARCHS="$PLATFORM_ARCHS2"
-	fi
+	local PLATFORM_DIR=$"${TMP_DIR}/${PLATFORM}"
+	local ARCHIVE_PATH="${PLATFORM_DIR}/${OUT_FW}.xcarchive"
 	
-	LOG "Executing ${COMMAND} for scheme  ${SCHEME} :: ${CONFIG} :: ${PLATFORM} :: ${PLATFORM_ARCHS}"
+	local PLATFORM_ARCHS="$(GET_PLATFORM_ARCH $PLATFORM)"
+	local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
+	local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
+	local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
+	local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
 	
-	local BUILD_DIR="${TMP_DIR}/${SCHEME}-${PLATFORM}"
-	local COMMAND_LINE="${XCBUILD} -project \"${XCODE_PROJECT}\""
-	if [ $VERBOSE -lt 2 ]; then
-		COMMAND_LINE="$COMMAND_LINE -quiet"
-	fi
-
-	COMMAND_LINE="$COMMAND_LINE -scheme ${SCHEME} -configuration ${CONFIG} -sdk ${PLATFORM}"
-	COMMAND_LINE="$COMMAND_LINE -derivedDataPath \"${TMP_DIR}/DerivedData\""
-	COMMAND_LINE="$COMMAND_LINE BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_DIR}\" CODE_SIGNING_REQUIRED=NO"
-	COMMAND_LINE="$COMMAND_LINE ARCHS=\"${PLATFORM_ARCHS}\" ONLY_ACTIVE_ARCH=NO"
-	COMMAND_LINE="$COMMAND_LINE ${COMMAND}"
+	LOG_LINE
+	LOG "Building ${PLATFORM} (${MIN_SDK_VER}+) for architectures ${PLATFORM_ARCHS}"
+	
+	DEBUG_LOG "Executing 'archive' for target ${PLATFORM_TARGET} ${PLATFORM_TARGET} :: ${PLATFORM_ARCHS}"
+	
+	local COMMAND_LINE="xcodebuild archive -project \"${XCODE_PROJECT}\" -scheme ${SCHEME}"
+	COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
+	COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
+	COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
+	[[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
+	[[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
+	
 	DEBUG_LOG ${COMMAND_LINE}
 	eval ${COMMAND_LINE}
-	
-	if [ "${COMMAND}" == "clean" ] && [ -e "${BUILD_DIR}" ]; then
-		$RM -r "${BUILD_DIR}"
-	fi
+
+	# Add produced platform framework to the list
+	local FINAL_FW="${ARCHIVE_PATH}/Products/Library/Frameworks/${OUT_FW}.framework"
+	[[ ! -d "${FINAL_FW}" ]] && FAILURE "Xcode build did not produce '${OUT_FW}.framework' for platform ${PLATFORM}"
+	ALL_FAT_LIBS+=("${FINAL_FW}")
 }
 
 # -----------------------------------------------------------------------------
 # Build scheme for both plaforms and create FAT libraries
 # Parameters:
-#   $1   - scheme name (e.g. PA2Core_Lib)
-#   $2   - build configuration (e.g. Debug | Release)
+#   $1   - build configuration (e.g. Debug | Release)
 # -----------------------------------------------------------------------------
-function BUILD_SCHEME
+function BUILD_PLATFORMS
 {
-	local SCHEME="$1"
-	local CONFIG="$2"
 	LOG_LINE
-	LOG "Building architectures..."
+	LOG "Building platforms..."
 	LOG_LINE
+
+	ALL_FAT_LIBS=()
 	
-	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 build
-	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 build
+    BUILD_PATCH_ARCHITECTURES
+    
+	[[ x$FULL_REBUILD == x1 ]] && CLEAN_COMMAND
+	
+	for PLATFORM in ${PLATFORMS}
+	do
+		BUILD_COMMAND $PLATFORM $FULL_REBUILD
+	done
+	
+	LOG_LINE
+	LOG "Creating final ${OUT_FW}.xcframework..."
+	local XCFW_PATH="${OUT_DIR}/Frameworks/${OUT_FW}.xcframework"
+	local XCFW_ARGS=
+    for ARG in ${ALL_FAT_LIBS[@]}; do
+        XCFW_ARGS+="-framework ${ARG} "
+		DEBUG_LOG "  - source fw: ${ARG}"
+    done
+	DEBUG_LOG "  - target fw: ${XCFW_PATH}"
+	
+	$MD "${OUT_DIR}/Frameworks"
+    xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"
 		
-	MAKE_FAT_LIB $SCHEME $CONFIG $PLATFORM_SDK1 $PLATFORM_SDK2 
-	
-	local FAT_LIB="${OUT_DIR}/${OUT_LIBRARY}"
-	local ALL_ARCHS="${PLATFORM_ARCHS1} ${PLATFORM_ARCHS2}"
-	VALIDATE_FAT_ARCHITECTURES "${FAT_LIB}" "${ALL_ARCHS}"
-	VALIDATE_FAT_ARCHITECTURES "${OPENSSL_LIB}" "${ALL_ARCHS}"
-	
 	# Copy source files...
-	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
+	$MD "${OUT_DIR}/Src"
+	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}/Src"
+	
+	LOG_LINE
+	LOG "Copying openssl.xcframework ..."
+	$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" "${OUT_DIR}/Frameworks"
+}
+
+# -----------------------------------------------------------------------------
+# Adjust CPU architectures supported in Xcode, depending on Xcode version.
+# -----------------------------------------------------------------------------
+function BUILD_PATCH_ARCHITECTURES
+{
+    local xcodever=( $(GET_XCODE_VERSION --split) )
+    if (( ${xcodever[0]} == -1 )); then
+        FAILURE "Invalid Xcode installation."
+    fi
+    if (( ${xcodever[0]} >= 12 )); then
+        # Greater and equal than 12.0
+        DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
+        ARCH_IOS_SIM+=" arm64"
+        ARCH_TVOS_SIM+=" arm64"
+        if [[ (${xcodever[0]} == 12 && ${xcodever[1]} < 2) ]]; then
+            # 12.0 or 12.1
+            WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
+        else
+            # Greater and equal than 12.2
+            ARCH_CATALYST+=" arm64"
+        fi
+    else
+        WARNING "Building library on older than Xcode 12. Several ARM64 architectures will be omitted."
+    fi
 }
 
 # -----------------------------------------------------------------------------
 # Clear project for specific scheme
 # Parameters:
-#   $1  -   scheme name (e.g. PA2Core_Lib...)
-#   $2  -   configuration name
+#   $1  -   configuration name
 # -----------------------------------------------------------------------------
-function CLEAN_SCHEME
+function CLEAN_COMMAND
 {
-	local SCHEME=$1
-	local CONFIG=$2
 	LOG_LINE
-	LOG "Cleaning architectures..."
-	LOG_LINE
+	LOG "Cleaning build folder..."
 	
-	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK1 clean
-	BUILD_COMMAND $SCHEME $CONFIG $PLATFORM_SDK2 clean
+	local QUIET=
+	if [ $VERBOSE -lt 2 ]; then
+		QUIET=" -quiet"
+	fi
+	
+	xcodebuild clean -project "${XCODE_PROJECT}" -scheme ${XCODE_SCHEME_IOS} ${QUIET}
 }
 
 ###############################################################################
@@ -336,13 +392,8 @@ while [[ $# -gt 0 ]]
 do
 	opt="$1"
 	case "$opt" in
-		debug)
-			SCHEME_NAME='PA2Core_Lib'
-			CONFIG_NAME='Debug'
-			;;
-		release)
-			SCHEME_NAME='PA2Core_Lib'
-			CONFIG_NAME="Release"
+		debug | release)
+			WARNING "debug or release option is now deprecated."
 			;;
 		-nc | --no-clean)
 			FULL_REBUILD=0 
@@ -369,37 +420,17 @@ do
 	shift
 done
 
-UPDATE_VERBOSE_COMMANDS
-
-# Check required parameters
-if [ x$SCHEME_NAME == x ] || [ x$CONFIG_NAME == x ]; then
-	FAILURE "You have to specify build configuration (debug or release)"
-fi
-
 # Defaulting target & temporary folders
 if [ -z "$OUT_DIR" ]; then
-	OUT_DIR="${TOP}/Lib/${CONFIG_NAME}"
+	OUT_DIR="${TOP}/Lib"
 fi
 if [ -z "$TMP_DIR" ]; then
 	TMP_DIR="${TOP}/Tmp"
 fi
 
-# Find various build tools
-XCBUILD=`xcrun -sdk iphoneos -find xcodebuild`
-LIPO=`xcrun -sdk iphoneos -find lipo`
-if [ x$XCBUILD == x ]; then
-	FAILURE "xcodebuild command not found."
-fi
-if [ x$LIPO == x ]; then
-	FAILURE "lipo command not found."
-fi
-
-# Print current config
-DEBUG_LOG "Going to build scheme ${SCHEME_NAME} :: ${CONFIG_NAME}"
-DEBUG_LOG " >> OUT_DIR = ${OUT_DIR}"
-DEBUG_LOG " >> TMP_DIR = ${TMP_DIR}"
-DEBUG_LOG "    XCBUILD = ${XCBUILD}"
-DEBUG_LOG "    LIPO    = ${LIPO}"
+REQUIRE_COMMAND xcodebuild
+REQUIRE_COMMAND lipo
+REQUIRE_COMMAND otool
 
 # -----------------------------------------------------------------------------
 # Real job starts here :) 
@@ -407,18 +438,16 @@ DEBUG_LOG "    LIPO    = ${LIPO}"
 #
 # Prepare target directories
 #
-[[ x$FULL_REBUILD == x1 ]] && $RM -r "${OUT_DIR}" "${TMP_DIR}"
+[[ x$FULL_REBUILD == x1 ]] && [[ -d "${OUT_DIR}" ]] && $RM -r "${OUT_DIR}"
+[[ x$FULL_REBUILD == x1 ]] && [[ -d "${TMP_DIR}" ]] && $RM -r "${TMP_DIR}"
 $MD "${OUT_DIR}"
 $MD "${TMP_DIR}"
-#
-# Perform clean if required
-#
-#[[ x$FULL_REBUILD == x1 ]] && CLEAN_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
 
 #
 # Build
 #
-BUILD_SCHEME ${SCHEME_NAME} ${CONFIG_NAME}
+BUILD_PLATFORMS
+
 #
 # Remove temporary data
 #
@@ -427,5 +456,5 @@ if [ x$CLEANUP_AFTER == x1 ]; then
 	LOG "Removing temporary data..."
 	$RM -r "${TMP_DIR}"
 fi
-LOG_LINE
-LOG "SUCCESS"
+
+EXIT_SUCCESS

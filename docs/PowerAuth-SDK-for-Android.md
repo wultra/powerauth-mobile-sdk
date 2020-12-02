@@ -43,10 +43,10 @@ repositories {
 }
 
 dependencies {
-    compile 'io.getlime.security.powerauth:powerauth-android-sdk:1.0.0'
+    compile 'io.getlime.security.powerauth:powerauth-android-sdk:1.x.y'
 }
 ```
-Note that this documentation is using version `1.0.0` as an example. You can find the latest version in our [List of Releases](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Releases.md). The Android Studio IDE can also find and offer updates for your application's dependencies.
+Note that this documentation is using version `1.x.y` as an example. You can find the latest version in our [List of Releases](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Releases.md). The Android Studio IDE can also find and offer updates for your application's dependencies.
 
 From now on, you can use `PowerAuthSDK` class in your project.
 

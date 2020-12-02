@@ -1441,6 +1441,35 @@ PowerAuthSDK powerAuthSDK = new PowerAuthSDK();
 powerAuthSDK.initializeWithConfiguration(context, configuration, clientConfiguration);
 ```
 
+Be aware, that using this option will lead to use an unsafe implementation of `HostnameVerifier` and `X509TrustManager` SSL client validation. This is useful for debug/testing purposes only, e.g. when untrusted self-signed SSL certificate is used on server side.
+
+It's strictly recommended to use this option only in debug flavours of your application. Deploying to production may cause "Security alert" in Google Developer Console. Please see [this](https://support.google.com/faqs/answer/7188426) and [this](https://support.google.com/faqs/answer/6346016) Google Help Center articles for more details. Beginning 1 March 2017, Google Play will block publishing of any new apps or updates that use such unsafe implementation of `HostnameVerifier`.
+
+How to solve this problem for debug/production flavours in gradle build script:
+
+1. Define boolean type `buildConfigField` in flavour configuration.
+   ```gradle
+   productFlavors {
+      production {
+          buildConfigField 'boolean', 'TRUST_ALL_SSL_HOSTS', 'false'
+      }
+      debug {
+          buildConfigField 'boolean', 'TRUST_ALL_SSL_HOSTS', 'true'
+      }
+   }
+   ```
+
+2. In code use this conditional initialization for `PowerAuthClientConfiguration.Builder` builder.
+   ```java
+   PowerAuthClientConfiguration.Builder clientBuilder = new PowerAuthClientConfiguration.Builder();
+   if (BuildConfig.TRUST_ALL_SSL_HOSTS) {
+       clientBuilder.clientValidationStrategy(new PA2ClientSslNoValidationStrategy());
+   }
+   ```
+
+3. Set `minifyEnabled` to true for release buildType to enable code shrinking with ProGuard.
+
+
 ### Debugging
 
 The debug log is by default turned-off. To turn it on, use following code:

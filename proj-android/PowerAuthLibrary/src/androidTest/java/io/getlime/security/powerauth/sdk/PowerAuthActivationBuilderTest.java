@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import java.util.HashMap;
 import java.util.Map;
 
-import androidx.test.filters.SmallTest;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.model.entity.ActivationType;
 

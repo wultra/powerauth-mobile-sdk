@@ -21,7 +21,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import androidx.test.filters.SmallTest;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
 
 import static org.junit.Assert.*;

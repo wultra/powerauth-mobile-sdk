@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.keychain.impl;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 

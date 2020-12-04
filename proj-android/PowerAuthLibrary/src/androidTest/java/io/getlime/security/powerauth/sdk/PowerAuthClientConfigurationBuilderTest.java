@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import java.net.HttpURLConnection;
 
-import androidx.test.filters.SmallTest;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.ssl.PA2ClientSslNoValidationStrategy;
 

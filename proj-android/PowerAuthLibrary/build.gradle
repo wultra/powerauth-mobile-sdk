@@ -58,10 +58,7 @@ android {
         androidTestImplementation 'io.getlime.core:rest-model-base:1.1.0'
         androidTestImplementation 'com.google.code.gson:gson:2.8.5'
     }
-
-    useLibrary 'android.test.runner'
-    useLibrary 'android.test.base'
-
+    
     externalNativeBuild {
         ndkBuild {
             path 'jni/Android.mk'

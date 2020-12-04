@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.RecoveryData;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;

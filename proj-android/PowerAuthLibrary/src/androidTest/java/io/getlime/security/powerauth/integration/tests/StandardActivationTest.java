@@ -26,7 +26,6 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
-import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;

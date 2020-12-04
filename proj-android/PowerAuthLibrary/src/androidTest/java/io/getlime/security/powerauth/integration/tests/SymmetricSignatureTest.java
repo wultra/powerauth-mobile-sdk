@@ -28,7 +28,6 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Objects;
 
-import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;

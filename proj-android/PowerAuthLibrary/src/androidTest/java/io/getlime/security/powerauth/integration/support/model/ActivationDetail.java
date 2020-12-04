@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.integration.support.model;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 

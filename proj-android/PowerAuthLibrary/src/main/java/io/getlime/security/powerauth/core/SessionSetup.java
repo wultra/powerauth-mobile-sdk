@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * The SessionSetup class defines unique constants required during the lifetime

@@ -18,7 +18,7 @@ package io.getlime.security.powerauth.networking.client;
 
 import android.net.TrafficStats;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import android.support.annotation.NonNull;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.util.List;
 
+import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
@@ -41,6 +42,7 @@ import io.getlime.security.powerauth.system.PA2System;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
+@LargeTest
 public class StandardActivationTest {
 
     private PowerAuthTestHelper testHelper;

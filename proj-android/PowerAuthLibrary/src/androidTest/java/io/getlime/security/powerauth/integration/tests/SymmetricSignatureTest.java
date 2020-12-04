@@ -17,7 +17,7 @@
 package io.getlime.security.powerauth.integration.tests;
 
 import android.content.Context;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Objects;
 
+import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
@@ -40,6 +41,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
+@LargeTest
 public class SymmetricSignatureTest {
 
     private PowerAuthTestHelper testHelper;

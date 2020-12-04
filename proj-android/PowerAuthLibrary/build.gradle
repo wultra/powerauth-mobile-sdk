@@ -4,6 +4,7 @@ apply plugin: 'maven-publish'
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
+    ndkVersion rootProject.ext.ndkVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
@@ -19,7 +20,7 @@ android {
             }
         }
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         loadInstrumentationTestConfigProperties(project, owner)
     }
 
@@ -44,17 +45,22 @@ android {
 
     dependencies {
         implementation 'io.getlime.core:rest-model-base:1.1.0'
-        implementation "com.android.support:support-annotations:${rootProject.ext.supportLibVersion}"
-        implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-        implementation "com.android.support:support-fragment:${rootProject.ext.supportLibVersion}"
+        implementation "androidx.annotation:annotation:1.1.0"
+        implementation "androidx.appcompat:appcompat:1.2.0"
+        implementation "androidx.fragment:fragment:1.2.5"
         implementation 'com.google.code.gson:gson:2.8.5'
 
         // testing
-        androidTestImplementation 'junit:junit:4.12'
-        androidTestImplementation 'com.android.support.test:runner:1.0.2'
+        androidTestImplementation 'androidx.test:core:1.3.0'
+        androidTestImplementation 'androidx.test:runner:1.3.0'
+        androidTestImplementation 'androidx.test:rules:1.3.0'
+        androidTestImplementation 'androidx.test.ext:junit:1.1.2'
         androidTestImplementation 'io.getlime.core:rest-model-base:1.1.0'
         androidTestImplementation 'com.google.code.gson:gson:2.8.5'
     }
+
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
 
     externalNativeBuild {
         ndkBuild {

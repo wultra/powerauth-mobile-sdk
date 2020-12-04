@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.integration.support;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

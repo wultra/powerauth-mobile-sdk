@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.exception;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Will be thrown, or will be returned to listener, in case that requested operation fails

@@ -17,8 +17,8 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.test.InstrumentationRegistry;
+import androidx.annotation.NonNull;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import io.getlime.security.powerauth.integration.support.client.PowerAuthClientFactory;
 import io.getlime.security.powerauth.integration.support.model.Application;
@@ -74,7 +74,7 @@ public class PowerAuthTestHelper {
          * @throws Exception In case that PowerAuth Server REST API is not accessible or config is invalid.
          */
         public Builder() throws Exception {
-            this.context = InstrumentationRegistry.getContext();
+            this.context = InstrumentationRegistry.getInstrumentation().getContext();
             this.testConfig = PowerAuthTestConfig.loadDefaultConfig();
             this.serverApi = new PowerAuthClientFactory().createApiClient(testConfig);
         }

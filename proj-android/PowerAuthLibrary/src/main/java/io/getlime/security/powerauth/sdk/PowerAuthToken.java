@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.TokenCalculator;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;

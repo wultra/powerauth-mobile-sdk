@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.core;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Result from signature calculation.

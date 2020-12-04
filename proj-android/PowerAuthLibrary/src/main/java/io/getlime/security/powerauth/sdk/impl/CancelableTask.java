@@ -17,7 +17,7 @@
 package io.getlime.security.powerauth.sdk.impl;
 
 import android.os.CancellationSignal;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 

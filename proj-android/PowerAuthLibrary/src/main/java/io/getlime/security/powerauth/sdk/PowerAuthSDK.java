@@ -18,12 +18,12 @@ package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.CheckResult;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.FragmentManager;
+import androidx.annotation.CheckResult;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -1698,7 +1698,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(byte[])} callback is called,
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
      * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.

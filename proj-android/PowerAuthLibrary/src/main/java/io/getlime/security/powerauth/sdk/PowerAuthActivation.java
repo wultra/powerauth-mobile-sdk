@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,6 @@ import java.util.Map;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.model.entity.ActivationType;
-import io.getlime.security.powerauth.system.PA2Log;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
 

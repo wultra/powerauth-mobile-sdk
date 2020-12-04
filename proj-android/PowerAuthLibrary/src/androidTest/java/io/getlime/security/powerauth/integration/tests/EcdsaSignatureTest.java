@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
-import android.support.annotation.NonNull;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.annotation.NonNull;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.text.TextUtils;
 import android.util.Base64;
 
@@ -30,6 +30,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
+import androidx.test.filters.LargeTest;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
@@ -39,6 +40,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
+@LargeTest
 public class EcdsaSignatureTest {
 
     private PowerAuthTestHelper testHelper;

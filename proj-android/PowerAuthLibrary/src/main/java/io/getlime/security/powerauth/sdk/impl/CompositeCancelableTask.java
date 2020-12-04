@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 

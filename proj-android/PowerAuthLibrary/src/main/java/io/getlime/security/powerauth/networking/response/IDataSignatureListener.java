@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-import android.support.annotation.MainThread;
+import androidx.annotation.MainThread;
 
 /**
  * Listener for data signature.

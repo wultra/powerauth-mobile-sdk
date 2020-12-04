@@ -17,8 +17,8 @@
 package io.getlime.security.powerauth.biometry.impl;
 
 import android.os.Build;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
 import java.security.Key;

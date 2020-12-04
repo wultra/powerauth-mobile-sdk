@@ -17,7 +17,7 @@
 package io.getlime.security.powerauth.sdk.impl;
 
 
-import android.support.annotation.StringDef;
+import androidx.annotation.StringDef;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

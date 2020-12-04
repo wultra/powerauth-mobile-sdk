@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 /**
  * Created by miroslavmichalec on 20/10/2016.

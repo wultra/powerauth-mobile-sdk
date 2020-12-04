@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.sdk.impl;
 
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayDeque;
 import java.util.concurrent.Executor;

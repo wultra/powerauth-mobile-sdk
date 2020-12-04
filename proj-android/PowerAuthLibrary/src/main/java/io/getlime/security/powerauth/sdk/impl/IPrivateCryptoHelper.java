@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.sdk.impl;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;

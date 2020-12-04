@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.ssl;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;

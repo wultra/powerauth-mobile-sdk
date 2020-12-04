@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.networking.response;
 
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.RecoveryData;
 

@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.keychain.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * The {@code ReservedKeyImpl} is a helper class that determines whether the Keychain key

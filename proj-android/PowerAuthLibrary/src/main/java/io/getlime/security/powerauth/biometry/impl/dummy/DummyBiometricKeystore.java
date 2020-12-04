@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.biometry.impl.dummy;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;

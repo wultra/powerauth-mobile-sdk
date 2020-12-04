@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.interceptors;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 
 import java.nio.charset.Charset;

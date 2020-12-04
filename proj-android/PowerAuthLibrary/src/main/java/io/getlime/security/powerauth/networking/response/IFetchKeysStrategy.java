@@ -17,7 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Created by miroslavmichalec on 03/11/2016.

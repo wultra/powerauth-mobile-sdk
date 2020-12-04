@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.core;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * The {@code RecoveryData} contains information about recovery code and PUK, created

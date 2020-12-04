@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.biometry;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 /**
  * Interface wrapping a key stored in Android KeyStore and providing {@link IBiometricKeyEncryptor}

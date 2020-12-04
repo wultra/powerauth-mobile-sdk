@@ -17,7 +17,7 @@
 package io.getlime.security.powerauth.networking.ssl;
 
 import android.annotation.SuppressLint;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;

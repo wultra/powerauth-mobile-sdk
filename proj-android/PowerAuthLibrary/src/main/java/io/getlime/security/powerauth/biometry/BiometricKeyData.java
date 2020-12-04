@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.biometry;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * The {@code BiometricKeyData} class contains result from the biometric authentication in case that

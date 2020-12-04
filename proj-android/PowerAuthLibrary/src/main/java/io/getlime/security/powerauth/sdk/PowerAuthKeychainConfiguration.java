@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.keychain.KeychainProtection;
 

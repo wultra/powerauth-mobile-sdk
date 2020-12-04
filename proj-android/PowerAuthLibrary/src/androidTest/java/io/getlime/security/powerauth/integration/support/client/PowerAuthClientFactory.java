@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.integration.support.client;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestConfig;

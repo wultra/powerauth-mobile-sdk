@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.keychain.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;

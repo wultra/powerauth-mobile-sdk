@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.integration.support;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class Logger {
 

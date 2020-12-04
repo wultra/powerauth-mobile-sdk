@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.interceptors;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.net.HttpURLConnection;
 

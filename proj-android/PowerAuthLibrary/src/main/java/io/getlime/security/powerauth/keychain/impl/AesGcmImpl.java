@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.keychain.impl;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;

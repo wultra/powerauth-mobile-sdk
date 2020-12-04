@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.util.otp;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * The {@code OtpUtil} class provides various set of methods for parsing and validating

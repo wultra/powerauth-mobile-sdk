@@ -16,7 +16,7 @@
 
 package io.getlime.security.powerauth.networking.interfaces;
 
-import android.support.annotation.MainThread;
+import androidx.annotation.MainThread;
 
 /**
  * The {@code INetworkResponseListener} defines callback interface from HTTP client

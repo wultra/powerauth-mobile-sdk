@@ -44,7 +44,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-@LargeTest
 public class RecoveryActivationTest {
 
     private PowerAuthTestHelper testHelper;

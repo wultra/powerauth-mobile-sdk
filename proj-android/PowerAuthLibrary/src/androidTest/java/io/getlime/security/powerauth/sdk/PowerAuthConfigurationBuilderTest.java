@@ -28,7 +28,6 @@ import java.util.Objects;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class PowerAuthConfigurationBuilderTest {
 
     @Test

@@ -40,7 +40,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@LargeTest
 public class EcdsaSignatureTest {
 
     private PowerAuthTestHelper testHelper;

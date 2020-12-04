@@ -31,7 +31,6 @@ import io.getlime.security.powerauth.networking.ssl.PA2ClientSslNoValidationStra
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class PowerAuthClientConfigurationBuilderTest {
 
     @Test

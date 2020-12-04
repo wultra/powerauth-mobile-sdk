@@ -39,7 +39,6 @@ import static org.junit.Assert.*;
  * @author Tomas Kypta, tomas.kypta@wultra.com
  */
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class PowerAuthSDKBuilderTest {
 
     private PowerAuthConfiguration powerAuthConfiguration;

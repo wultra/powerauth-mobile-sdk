@@ -42,7 +42,6 @@ import io.getlime.security.powerauth.system.PA2System;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@LargeTest
 public class StandardActivationTest {
 
     private PowerAuthTestHelper testHelper;

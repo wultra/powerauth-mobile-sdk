@@ -47,7 +47,6 @@ import io.getlime.security.powerauth.sdk.PowerAuthTokenStore;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@LargeTest
 public class TokenStoreTest {
 
     private PowerAuthTestHelper testHelper;

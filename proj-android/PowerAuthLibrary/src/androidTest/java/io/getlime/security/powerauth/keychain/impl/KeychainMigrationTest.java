@@ -34,7 +34,6 @@ import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class KeychainMigrationTest extends BaseKeychainTest {
 
     private Context androidContext;

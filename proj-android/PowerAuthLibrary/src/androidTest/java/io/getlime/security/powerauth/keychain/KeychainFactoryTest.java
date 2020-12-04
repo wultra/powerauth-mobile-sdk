@@ -32,7 +32,6 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class KeychainFactoryTest {
 
     private Context androidContext;

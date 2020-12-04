@@ -34,7 +34,6 @@ import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-@SmallTest
 public class EncryptedKeychainTest extends BaseKeychainTest {
 
     private static final String KEYCHAIN_NAME = "com.wultra.test.encryptedKeychain";

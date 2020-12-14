@@ -21,6 +21,7 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeActivationPending;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable;
@@ -52,7 +53,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
         PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade,
         PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized,
-        PA2ErrorCodeInsufficientKeychainProtection})
+        PA2ErrorCodeInsufficientKeychainProtection, PA2ErrorCodeBiometryLockout})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -157,4 +158,9 @@ public @interface PowerAuthErrorCodes {
      * support the minimum required level of the keychain protection.
      */
     int PA2ErrorCodeInsufficientKeychainProtection = 21;
+
+    /**
+     * The biometric authentication is locked out due to too many failed attempts.
+     */
+    int PA2ErrorCodeBiometryLockout = 22;
 }

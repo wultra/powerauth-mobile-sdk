@@ -1386,6 +1386,14 @@ if (t instanceof PowerAuthErrorException) {
             android.util.Log.d(TAG,"Error code for error that occurs when pending activation is present and work with completed activation is required"); break;
         case PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel:
             android.util.Log.d(TAG,"Error code for Biometry action cancel error"); break;
+        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported:
+            android.util.Log.d(TAG,"The device or operating system doesn't support biometric authentication."); break;
+        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable:
+            android.util.Log.d(TAG,"The biometric authentication is temporarily unavailable."); break;
+        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized:
+            android.util.Log.d(TAG,"The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)"); break;
+        case PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout:
+            android.util.Log.d(TAG,"The biometric authentication is locked out due to too many failed attempts."); break;
         case PowerAuthErrorCodes.PA2ErrorCodeOperationCancelled:
             android.util.Log.d(TAG,"Error code for cancelled operations"); break;
         case PowerAuthErrorCodes.PA2ErrorCodeEncryptionError:

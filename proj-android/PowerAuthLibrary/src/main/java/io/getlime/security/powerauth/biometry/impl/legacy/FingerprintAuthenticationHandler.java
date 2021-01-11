@@ -209,12 +209,17 @@ class FingerprintAuthenticationHandler extends FingerprintManager.Authentication
         } else {
             // Build an error exception based on the error code.
             final PowerAuthErrorException result;
-            if (isLockout && authenticationFailedBefore) {
-                // Too many failed attempts, we should report the "not recognized" error after all.
-                // This is also reported only when authentication failed before, to prevent
-                // situations when user immediately wants to authenticate, while the biometry
-                // is still locked out.
-                result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric image was not recognized.");
+            if (isLockout) {
+                if (authenticationFailedBefore) {
+                    // Too many failed attempts, we should report the "not recognized" error after all.
+                    // If `authenticationFailedBefore` is true, then it means that sensor did a multiple failed attempts
+                    // in this round. So we're pretty sure that biometric authentication dialog was properly displayed.
+                    result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric image was not recognized.");
+                } else {
+                    // Too many failed attempts, but no authentication dialog was displayed in this round. It looks like that
+                    // the error was immediately reported back to us, so we can report "lockout" to the application.
+                    result = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout, "Too many failed attempts.");
+                }
             } else {
                 // Other error, we can use "not available" error code, due to that other
                 // errors are mostly about an internal failures.

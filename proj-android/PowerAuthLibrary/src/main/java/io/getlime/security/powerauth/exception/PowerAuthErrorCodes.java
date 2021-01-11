@@ -21,6 +21,7 @@ import androidx.annotation.IntDef;
 import java.lang.annotation.Retention;
 
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeActivationPending;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel;
 import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable;
@@ -52,7 +53,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         PA2ErrorCodeInvalidToken, PA2ErrorCodeEncryptionError, PA2ErrorCodeWrongParameter,
         PA2ErrorCodeProtocolUpgrade, PA2ErrorCodePendingProtocolUpgrade,
         PA2ErrorCodeBiometryNotSupported, PA2ErrorCodeBiometryNotAvailable, PA2ErrorCodeBiometryNotRecognized,
-        PA2ErrorCodeInsufficientKeychainProtection})
+        PA2ErrorCodeInsufficientKeychainProtection, PA2ErrorCodeBiometryLockout})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -144,11 +145,20 @@ public @interface PowerAuthErrorCodes {
 
     /**
      * The biometric authentication is temporarily unavailable.
+     * <p>
+     * There might be multiple reasons why this error is reported, such as missing biometric
+     * enrollment, internal biometric sensor failure, or other unspecified error.
      */
     int PA2ErrorCodeBiometryNotAvailable = 19;
 
     /**
      * The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)
+     * <p>
+     * Be aware that this error code is reported only during the biometric factor setup, but is never
+     * reported when PowerAuth signature with biometric factor is requested. This is because the
+     * PowerAuth SDK swallows this error code internally and generates a random biometric signature
+     * and pretends that everything is OK. The result is that a counter of failed attempts on the server
+     * is increased, so the attacker has a limited ability to fool the biometric sensor.
      */
     int PA2ErrorCodeBiometryNotRecognized = 20;
 
@@ -157,4 +167,14 @@ public @interface PowerAuthErrorCodes {
      * support the minimum required level of the keychain protection.
      */
     int PA2ErrorCodeInsufficientKeychainProtection = 21;
+
+    /**
+     * The biometric authentication is locked out due to too many failed attempts.
+     * <p>
+     * The error is reported for the temporary and also for the permanent lockout. The temporary
+     * lockout typically occurs after 5 failed attempts, and lasts for 30 seconds. In case of permanent
+     * lockout the biometric authentication is disabled until the user unlocks the device with strong
+     * authentication (PIN, password, pattern).
+     */
+    int PA2ErrorCodeBiometryLockout = 22;
 }

@@ -246,7 +246,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricAuthenticationRequest request = requestData.getRequest();
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
         final CancelableTask cancelableTask = dispatcher.getCancelableTask();
-        final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true, cancelableTask);
 
         // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
         final BiometricPrompt.CryptoObject cryptoObject = wrapCipherToCryptoObject(request.getBiometricKeyEncryptor().initializeCipher(request.isForceGenerateNewKey()));
@@ -315,7 +314,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     }
                     if (shouldDisplayErrorDialog(requestData)) {
                         // The response from API was too quick. We should display our own UI.
-                        showBiometricErrorDialog(errString, exception, fragmentManager, requestData, compositeCancelableTask);
+                        showBiometricErrorDialog(errString, exception, fragmentManager, requestData);
                     } else {
                         // Otherwise dispatch the error.
                         dispatcher.dispatchError(exception);
@@ -374,7 +373,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             }
         });
         // Return the cancellable
-        return compositeCancelableTask;
+        return dispatcher.getCancelableTask();
     }
 
     /**
@@ -475,15 +474,17 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
      * @param exception Exception reported back to the application.
      * @param fragmentManager Fragment manager used to show the dialog.
      * @param requestData Object with all relevant information about the biometric authentication.
-     * @param cancelable Composite cancelable object.
      */
     private void showBiometricErrorDialog(
             @NonNull CharSequence message,
             @NonNull final PowerAuthErrorException exception,
             @NonNull FragmentManager fragmentManager,
-            @NonNull PrivateRequestData requestData,
-            @NonNull CompositeCancelableTask cancelable) {
+            @NonNull PrivateRequestData requestData) {
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
+        if (dispatcher.getCancelableTask().isCancelled()) {
+            // Do nothing. Looks like the whole operation was already canceled from the application.
+            return;
+        }
         final BiometricDialogResources resources = requestData.getResources();
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(resources.strings.errorFingerprintDisabledTitle)
@@ -503,7 +504,13 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dialogFragment.dismiss();
             }
         });
-        cancelable.addCancelable(dialogCancelable);
+        // Handle cancel from the application. Note that this overrides the previous cancel listener.
+        dispatcher.setOnCancelListener(new CancelableTask.OnCancelListener() {
+            @Override
+            public void onCancel() {
+                dialogFragment.dismiss();
+            }
+        });
         dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 

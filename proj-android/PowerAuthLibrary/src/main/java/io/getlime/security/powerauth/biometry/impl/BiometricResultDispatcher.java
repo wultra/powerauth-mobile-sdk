@@ -93,7 +93,10 @@ public class BiometricResultDispatcher {
     }
 
     /**
-     * Set additional on-cancel listener for "cancel" events.
+     * Set additional on-cancel listener for "cancel" events initiated by the application. It's expected
+     * that this listener is altered during the dispatcher's lifetime. For example, if error dialog
+     * has to be displayed after the failed authentication, this callback can be altered to properly
+     * handle the dialog dismiss.
      *
      * @param onCancelListener Additional cancel listener
      */

@@ -498,12 +498,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     }
                 })
                 .build();
-        final CancelableTask dialogCancelable = new CancelableTask(new CancelableTask.OnCancelListener() {
-            @Override
-            public void onCancel() {
-                dialogFragment.dismiss();
-            }
-        });
         // Handle cancel from the application. Note that this overrides the previous cancel listener.
         dispatcher.setOnCancelListener(new CancelableTask.OnCancelListener() {
             @Override

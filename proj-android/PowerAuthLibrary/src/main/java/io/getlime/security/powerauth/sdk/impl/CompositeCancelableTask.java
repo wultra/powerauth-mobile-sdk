@@ -36,7 +36,7 @@ import io.getlime.security.powerauth.system.PA2Log;
  */
 public class CompositeCancelableTask implements ICancelable {
 
-    private boolean exclusiveMode;
+    private final boolean exclusiveMode;
     private boolean isCancelled;
     private final ArrayList<ICancelable> cancelables;
 

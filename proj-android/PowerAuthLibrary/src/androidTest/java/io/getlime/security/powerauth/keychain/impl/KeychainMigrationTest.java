@@ -28,7 +28,9 @@ import org.junit.runner.RunWith;
 
 import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
+import io.getlime.security.powerauth.keychain.StrongBoxSupport;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
+import io.getlime.security.powerauth.keychain.FakeStrongBoxSupport;
 
 import static org.junit.Assert.*;
 
@@ -39,6 +41,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
     private SymmetricKeyProvider symmetricKeyProvider;
     private SharedPreferences backingSharedPreferences;
     private @KeychainProtection int currentProtectionLevel;
+    private StrongBoxSupport strongBoxSupport;
 
     private static final String KEYCHAIN_NAME = "com.wultra.test.migrationTest.keychainId";
 
@@ -54,7 +57,8 @@ public class KeychainMigrationTest extends BaseKeychainTest {
             return;
         }
 
-        symmetricKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider("com.wultra.test.symmetricAesGcmKey", 256, true, null);
+        strongBoxSupport  = new FakeStrongBoxSupport();
+        symmetricKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider("com.wultra.test.symmetricAesGcmKey", true, strongBoxSupport, 256, true, null);
         assertNotNull(symmetricKeyProvider);
         symmetricKeyProvider.deleteSecretKey();
 
@@ -78,6 +82,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
         // Prepare legacy keychain
         final LegacyKeychain legacyKeychain = new LegacyKeychain(androidContext, KEYCHAIN_NAME);
         assertFalse(legacyKeychain.isEncrypted());
+        assertFalse(legacyKeychain.isStrongBoxBacked());
 
         legacyKeychain.removeAll();
 
@@ -86,7 +91,7 @@ public class KeychainMigrationTest extends BaseKeychainTest {
 
         // Now try to migrate the keychain
         assertFalse(EncryptedKeychain.isEncryptedContentInSharedPreferences(backingSharedPreferences));
-        final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(androidContext, KEYCHAIN_NAME, symmetricKeyProvider);
+        final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(androidContext, KEYCHAIN_NAME, symmetricKeyProvider, null);
         assertTrue(encryptedKeychain.importFromLegacyKeychain(backingSharedPreferences));
         assertTrue(symmetricKeyProvider.containsSecretKey());
         assertTrue(EncryptedKeychain.isEncryptedContentInSharedPreferences(backingSharedPreferences));

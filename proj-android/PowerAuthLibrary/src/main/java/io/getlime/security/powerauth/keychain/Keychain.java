@@ -40,6 +40,11 @@ public interface Keychain {
     boolean isEncrypted();
 
     /**
+     * @return {@code true} if keychain is encrypted with StrongBox backed key.
+     */
+    boolean isStrongBoxBacked();
+
+    /**
      * Function tests whether the provided key is reserved by the Keychain implementation. Such key
      * cannot be used to store data to the Keychain. If you try to use such key in Keychain, then
      * {@link IllegalArgumentException} is thrown.

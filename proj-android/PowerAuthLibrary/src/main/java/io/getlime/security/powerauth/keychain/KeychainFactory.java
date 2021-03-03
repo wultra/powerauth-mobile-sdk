@@ -85,6 +85,44 @@ public class KeychainFactory {
     }
 
     /**
+     * Determine whether StrongBox is enabled on this device and Keychain encrypts data with
+     * StrongBox-backed key. By default, StrongBox is disabled on all devices.
+     *
+     * @param context Android context.
+     * @return {@code true} in case that StrongBox is enabled on this device and Keychain encrypts
+     *         data with StrongBox-backed key.
+     */
+    public static boolean isStrongBoxEnabled(@NonNull Context context) {
+        synchronized (SharedData.class) {
+            return getSharedData().getStrongBoxSupport(context).isStrongBoxEnabled();
+        }
+    }
+
+    /**
+     * Enable or disable StrongBox support on this device. By default, StrongBox is disabled on all
+     * devices. It's required to alter the default configuration at application's startup and before
+     * you create any instance of {@link Keychain} or any {@code PowerAuthSDK} class. Otherwise the
+     * {@link PowerAuthErrorException} is produced.
+     *
+     * @param context Android context.
+     * @param enabled {@code true} to enable.
+     * @throws PowerAuthErrorException In case that {@code KeychainFactory} already created some {@link Keychain} instances.
+     */
+    public static void setStrongBoxEnabled(@NonNull Context context, boolean enabled) throws PowerAuthErrorException {
+        synchronized (SharedData.class) {
+            final SharedData sharedData = getSharedData();
+            if (!sharedData.getKeychainMap().isEmpty()) {
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "There are already created keychains in KeychainFactory.");
+            }
+            if (sharedData.getStrongBoxSupport(context).isStrongBoxEnabled() != enabled) {
+                final StrongBoxSupport newStrongBoxSupport = new DefaultStrongBoxSupport(context, enabled);
+                sharedData.setStrongBoxSupportAndResetSharedData(newStrongBoxSupport);
+                PA2Log.d("KeychainFactory: StrongBox support is now " + (enabled ? "enabled." : "disabled."));
+            }
+        }
+    }
+
+    /**
      * Set alternate implementation of {@link StrongBoxSupport} used internally to determine current StrongBox
      * support. The method is useful only for unit testing, so it's not declared as public. Be aware that
      * calling this function also reset internal shared data object, so {@code KeychainFactory} will end
@@ -230,14 +268,17 @@ public class KeychainFactory {
         @NonNull
         StrongBoxSupport getStrongBoxSupport(@NonNull Context context) {
             if (strongBoxSupport == null) {
-                strongBoxSupport = new DefaultStrongBoxSupport(context);
+                // StrongBox is disabled by default.
+                // Check https://github.com/wultra/powerauth-mobile-sdk/issues/354 for more details.
+                strongBoxSupport = new DefaultStrongBoxSupport(context, false);
             }
             return strongBoxSupport;
         }
 
         /**
-         * Change internal {@link StrongBoxSupport} implementation and reset shared data objet
-         * to default, non-initialized state. The method is useful only for unit testing purposes.
+         * Change internal {@link StrongBoxSupport} implementation and reset shared data object
+         * to default, non-initialized state. The method is useful only when application want's
+         * to change default StrongBox support or for an unit testing purposes.
          *
          * @param strongBoxSupport New {@link StrongBoxSupport} implementation.
          */

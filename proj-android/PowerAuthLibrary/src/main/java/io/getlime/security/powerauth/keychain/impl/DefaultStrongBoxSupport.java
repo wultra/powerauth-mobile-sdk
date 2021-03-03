@@ -22,18 +22,32 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 
 import io.getlime.security.powerauth.keychain.StrongBoxSupport;
-import io.getlime.security.powerauth.system.PA2System;
 
+/**
+ * The {@code DefaultStrongBoxSupport} implements {@link StrongBoxSupport} interface and reflects
+ * an actual support of StrongBox on device.
+ */
 public class DefaultStrongBoxSupport implements StrongBoxSupport {
 
-    private final @NonNull Context context;
+    private final boolean isSupported;
+    private final boolean isEnabled;
 
-    public DefaultStrongBoxSupport(@NonNull Context context) {
-        this.context = context;
+    /**
+     * Default object constructor allowing you to configure whether StrongBox is enabled on this device.
+     * @param context Android context
+     * @param enabled Enable or disable StrongBox support.
+     */
+    public DefaultStrongBoxSupport(@NonNull Context context, boolean enabled) {
+        this.isSupported = getIsSupported(context);
+        this.isEnabled = enabled;
     }
 
-    @Override
-    public boolean isStrongBoxSupported() {
+    /**
+     * Get information whether StrongBox is supported on the device.
+     * @param context Android context.
+     * @return {@code true} if StrongBox is supported on this device.
+     */
+    private static boolean getIsSupported(@NonNull Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE);
         }
@@ -41,14 +55,12 @@ public class DefaultStrongBoxSupport implements StrongBoxSupport {
     }
 
     @Override
+    public boolean isStrongBoxSupported() {
+        return isSupported;
+    }
+
+    @Override
     public boolean isStrongBoxEnabled() {
-        if (!isStrongBoxSupported()) {
-            return false;
-        }
-        final String deviceInfo = PA2System.getDeviceInfo().toLowerCase();
-        if (deviceInfo.startsWith("google pixel")) {
-            return false;
-        }
-        return true;
+        return isSupported && isEnabled;
     }
 }

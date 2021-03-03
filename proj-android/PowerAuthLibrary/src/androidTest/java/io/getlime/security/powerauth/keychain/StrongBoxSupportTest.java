@@ -25,6 +25,8 @@ import org.junit.runner.RunWith;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.impl.BaseKeychainTest;
 import io.getlime.security.powerauth.keychain.impl.DefaultStrongBoxSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
@@ -55,7 +57,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
     public void setUp() {
         androidContext = InstrumentationRegistry.getInstrumentation().getContext();
         assertNotNull(androidContext);
-        realStrongBoxSupport = new DefaultStrongBoxSupport(androidContext);
+        realStrongBoxSupport = new DefaultStrongBoxSupport(androidContext, false);
         isLegacyOnly = KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) == KeychainProtection.NONE;
 
         setupTestData();
@@ -70,10 +72,16 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
                 throw new IllegalStateException("Failed to acquire SymmetricKeyProvider for alias " + key);
             }
         }
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Reset possible cached keychains
+        KeychainFactory.setStrongBoxSupport(null);
     }
 
     /**
-     * Test validate whether EncryptedKeychain can select right key provider depending on
+     * Test whether EncryptedKeychain can select right key provider depending on
      * StrongBox support.
      */
     @Test
@@ -103,6 +111,92 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         backupKP = SymmetricKeyProvider.getAesGcmKeyProvider(BACKUP_KEY_NAME, false, strongBoxSupport, 256, true, null);
         determinedKP = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(regularKP, backupKP);
         assertEquals(backupKP, determinedKP);
+    }
+
+    @Test
+    public void testStrongBoxEnabledDisabled() throws Exception {
+        if (isLegacyOnly) {
+            PA2Log.e("testStrongBoxEnabledDisabled - test is not supported on this device.");
+            return;
+        }
+        if (!realStrongBoxSupport.isStrongBoxSupported()) {
+            PA2Log.e("testStrongBoxEnabledDisabled - test require real StrongBox device.");
+            return;
+        }
+
+        // :::::::::
+        // ::  1  ::
+        // :::::::::
+
+        // By default, StrongBox is disabled.
+        assertFalse(KeychainFactory.isStrongBoxEnabled(androidContext));
+        // Setting false should do nothing.
+        KeychainFactory.setStrongBoxEnabled(androidContext, false);
+        // Still false, after change.
+        assertFalse(KeychainFactory.isStrongBoxEnabled(androidContext));
+        // By default, there's HARDWARE level of KeychainProtection
+        assertEquals(KeychainProtection.HARDWARE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+
+        // Now acquire some keychain.
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        assertNotNull(k1);
+
+        try {
+            // The following statement must fail, even when there's no change in configuration.
+            KeychainFactory.setStrongBoxEnabled(androidContext, false);
+            fail("Must fail");
+        } catch (PowerAuthErrorException e) {
+            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+        }
+
+        // :::::::::
+        // ::  2  ::
+        // :::::::::
+
+        // Reset factory to default state and try to turn support ON.
+        KeychainFactory.setStrongBoxSupport(null);
+
+        assertFalse(KeychainFactory.isStrongBoxEnabled(androidContext));
+
+        // Now enable support
+        KeychainFactory.setStrongBoxEnabled(androidContext, true);
+        // Must be true, after change
+        assertTrue(KeychainFactory.isStrongBoxEnabled(androidContext));
+        // After the change, the default keychain protection level must be STRONGBOX
+        assertEquals(KeychainProtection.STRONGBOX, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+
+        // Now acquire some keychain.
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        assertNotNull(k1);
+
+        try {
+            // The following statement must fail, even when there's no change in configuration.
+            KeychainFactory.setStrongBoxEnabled(androidContext, true);
+            fail("Must fail");
+        } catch (PowerAuthErrorException e) {
+            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+        }
+
+        // :::::::::
+        // ::  3  ::
+        // :::::::::
+
+        // Reset factory to default state and test typical scenario, when application wants to
+        // change support, but there's already keychain created.
+
+        KeychainFactory.setStrongBoxSupport(null);
+
+        // Now acquire some keychain.
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        assertNotNull(k1);
+
+        try {
+            // The following statement must fail, even when there's no change in configuration.
+            KeychainFactory.setStrongBoxEnabled(androidContext, true);
+            fail("Must fail");
+        } catch (PowerAuthErrorException e) {
+            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+        }
     }
 
     @Test
@@ -205,10 +299,6 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
 
         // This test simulates data migration between StrongBox support modes. The transparent data
         // migration happens typically when next SDK version adds or removes support for StrongBox.
-
-        // Cleanup keychains
-        eraseAllKeychainData(KEYCHAIN_NAME1);
-        eraseAllKeychainData(KEYCHAIN_NAME2);
 
         // Enable StrongBox support
         KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));

@@ -58,6 +58,11 @@ public class LegacyKeychain implements Keychain {
     }
 
     @Override
+    public boolean isStrongBoxBacked() {
+        return false;
+    }
+
+    @Override
     public boolean isReservedKey(@NonNull String key) {
         return ReservedKeyImpl.isReservedKey(key);
     }

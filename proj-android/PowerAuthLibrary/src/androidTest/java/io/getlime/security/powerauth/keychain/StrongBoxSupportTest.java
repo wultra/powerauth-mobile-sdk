@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.keychain;
 
 import android.content.Context;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,12 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         eraseAllKeychainData(KEYCHAIN_NAME2);
 
         // Reset possible cached keychains
+        KeychainFactory.setStrongBoxSupport(null);
+    }
+
+    @After
+    public void tearDown() {
+        // Reset factory after test.
         KeychainFactory.setStrongBoxSupport(null);
     }
 

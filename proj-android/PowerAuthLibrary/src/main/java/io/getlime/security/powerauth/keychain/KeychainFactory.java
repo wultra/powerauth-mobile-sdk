@@ -350,7 +350,7 @@ public class KeychainFactory {
                                         keychainProtection = KeychainProtection.STRONGBOX;
                                     } else {
                                         // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
-                                        PA2Log.e("KeychainFactory: StrongBox is supported but not reliable on this device.");
+                                        PA2Log.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
                                         keychainProtection = KeychainProtection.HARDWARE;
                                     }
                                 } else {

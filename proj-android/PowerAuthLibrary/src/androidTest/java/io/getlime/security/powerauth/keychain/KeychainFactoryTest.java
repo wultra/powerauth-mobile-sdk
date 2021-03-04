@@ -47,10 +47,10 @@ public class KeychainFactoryTest {
     @Test
     public void testCachedKeychains() throws Exception {
         final Keychain keychain1_a = KeychainFactory.getKeychain(androidContext, KEYCHAIN_1_NAME, KeychainProtection.NONE);
-        final Keychain keychain1_b = KeychainFactory.getKeychain(androidContext, KEYCHAIN_1_NAME, KeychainProtection.NONE);
-        assertEquals(keychain1_a, keychain1_b);
         final Keychain keychain2_a = KeychainFactory.getKeychain(androidContext, KEYCHAIN_2_NAME, KeychainProtection.NONE);
+        final Keychain keychain1_b = KeychainFactory.getKeychain(androidContext, KEYCHAIN_1_NAME, KeychainProtection.NONE);
         final Keychain keychain2_b = KeychainFactory.getKeychain(androidContext, KEYCHAIN_2_NAME, KeychainProtection.NONE);
+        assertEquals(keychain1_a, keychain1_b);
         assertEquals(keychain2_a, keychain2_b);
     }
 

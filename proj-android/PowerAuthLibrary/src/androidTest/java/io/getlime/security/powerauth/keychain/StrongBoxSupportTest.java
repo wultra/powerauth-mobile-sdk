@@ -17,17 +17,22 @@
 package io.getlime.security.powerauth.keychain;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Base64;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.crypto.SecretKey;
+
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.keychain.impl.AesGcmImpl;
 import io.getlime.security.powerauth.keychain.impl.BaseKeychainTest;
 import io.getlime.security.powerauth.keychain.impl.DefaultStrongBoxSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
@@ -147,6 +152,8 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Now acquire some keychain.
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         assertNotNull(k1);
+        fillTestValues(k1);
+        verifyEncryptedData(KEYCHAIN_NAME1, false, "test.string_NotEmpty");
 
         try {
             // The following statement must fail, even when there's no change in configuration.
@@ -175,6 +182,8 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Now acquire some keychain.
         k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         assertNotNull(k1);
+        testFilledValues(k1, false);
+        verifyEncryptedData(KEYCHAIN_NAME1, true, "test.string_NotEmpty");
 
         try {
             // The following statement must fail, even when there's no change in configuration.
@@ -231,6 +240,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Empty string is treated as null after migration.
         runAllStandardValidations(k1, true);
         runAllStandardValidations(k2, true);
+
+        verifyEncryptedData(KEYCHAIN_NAME1, true, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, true, "test.data_NotEmpty");
     }
 
     @Test
@@ -258,6 +270,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Empty string is treated as null after migration.
         runAllStandardValidations(k1, true);
         runAllStandardValidations(k2, true);
+
+        verifyEncryptedData(KEYCHAIN_NAME1, false, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, false, "test.data_NotEmpty");
     }
 
     @Test
@@ -291,6 +306,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Empty string is treated as null after migration.
         runAllStandardValidations(k1, true);
         runAllStandardValidations(k2, true);
+
+        verifyEncryptedData(KEYCHAIN_NAME1, true, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, true, "test.data_NotEmpty");
     }
 
     @Test
@@ -345,6 +363,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         fillTestValues(k1);
         fillTestValues(k2);
 
+        verifyEncryptedData(KEYCHAIN_NAME1, false, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, false, "test.data_NotEmpty");
+
         // Now enable StrongBox support again
         KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));
         // KeychainFactory did reset its cache, so we need to acquire keychains again.
@@ -361,6 +382,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Validate test values again
         runAllStandardValidations(k1, false);
         runAllStandardValidations(k2, false);
+
+        verifyEncryptedData(KEYCHAIN_NAME1, true, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, true, "test.data_NotEmpty");
     }
 
     @Test
@@ -392,6 +416,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         downgradeKeychainToV1(KEYCHAIN_NAME1);
         downgradeKeychainToV1(KEYCHAIN_NAME2);
 
+        verifyEncryptedData(KEYCHAIN_NAME1, true, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, true, "test.data_NotEmpty");
+
         // We have V1 data prepared, so now we can simulate situation when SDK determine that
         // StrongBox is not reliable.
         KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, false));
@@ -410,6 +437,9 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Validate stored values
         runAllStandardValidations(k1, false);
         runAllStandardValidations(k2, false);
+
+        verifyEncryptedData(KEYCHAIN_NAME1, false, "test.string_NotEmpty");
+        verifyEncryptedData(KEYCHAIN_NAME2, false, "test.data_NotEmpty");
     }
 
     /**
@@ -447,5 +477,38 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
                 .edit()
                 .clear()
                 .apply();
+    }
+
+    /**
+     * Verify whether there's value stored in keychain and encrypted with the right key.
+     *
+     * @param keychainIdentifier Keychain identifier.
+     * @param primaryKey Use primary or backup key.
+     * @param dataKey Data to be verified.
+     */
+    void verifyEncryptedData(@NonNull String keychainIdentifier, boolean primaryKey, @NonNull String dataKey) {
+        final String keyIdentifier = primaryKey ? MASTER_KEY_ALIAS : MASTER_BACK_KEY_ALIAS;
+
+        // Get raw data from keychain
+        final SharedPreferences preferences = androidContext.getSharedPreferences(keychainIdentifier, Context.MODE_PRIVATE);
+        assertNotNull(preferences);
+        final String encodedEncryptedData = preferences.getString(dataKey, null);
+        assertNotNull(encodedEncryptedData);
+
+        // Decode from Base64
+        final byte[] encryptedData = Base64.decode(encodedEncryptedData, Base64.NO_WRAP);
+        assertNotNull(encryptedData);
+        assertTrue(encryptedData.length > 0);
+
+        // Acquire secret key
+        final SymmetricKeyProvider keyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(keyIdentifier, primaryKey, realStrongBoxSupport, 256, true, null);
+        assertNotNull(keyProvider);
+        assertTrue(keyProvider.containsSecretKey());
+        final SecretKey secretKey = keyProvider.getOrCreateSecretKey(androidContext, false);
+        assertNotNull(secretKey);
+
+        // Try decrypt data
+        final byte[] plainData = AesGcmImpl.decrypt(encryptedData, secretKey, keychainIdentifier);
+        assertNotNull(plainData);
     }
 }

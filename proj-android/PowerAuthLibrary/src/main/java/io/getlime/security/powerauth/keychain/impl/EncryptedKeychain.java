@@ -528,7 +528,14 @@ public class EncryptedKeychain implements Keychain {
      */
     public static final int STRONGBOX_DISABLED = 3;
 
-
+    /**
+     * Compare the current StrongBox support against the value stored in the shared preferences and
+     * re-encrypt keychain content if needed. The function also upgrade keychain version from V1
+     * to V2, if possible. In case of failure, function remove all data from keychain.
+     *
+     * @param preferences Underlying {@code SharedPreferences} that contains content of keychain.
+     * @return {@code true} in case of success.
+     */
     public boolean updateStrongBoxSupport(@NonNull SharedPreferences preferences) {
         // Determine keychain version
         final int keychainVersion = preferences.getInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V0);
@@ -567,10 +574,12 @@ public class EncryptedKeychain implements Keychain {
                 if (strongBoxEnabled) {
                     // If StrongBox is enabled, then we have to re-encrypt data from the backup key
                     // to the regular one.
+                    PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with StrongBox backed key.");
                     sourceKey = backupKeyProvider.getOrCreateSecretKey(context, false);
                     destinationKey = regularKeyProvider.getOrCreateSecretKey(context, false);
                 } else {
                     // StrongBox is disabled, so we have to re-encrypt data from the regular key to the backup one.
+                    PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with regular key.");
                     sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
                     destinationKey = backupKeyProvider.getOrCreateSecretKey(context, false);
                 }
@@ -601,6 +610,14 @@ public class EncryptedKeychain implements Keychain {
         return result;
     }
 
+    /**
+     * Re-encrypt content of keychain to a different encryption key.
+     *
+     * @param preferences {@link SharedPreferences} containing keychain data.
+     * @param source {@link SecretKey} to decrypt data.
+     * @param destination {@link SecretKey} to encrypt data.
+     * @return {@code true} in case of success.
+     */
     private boolean reEncryptKeychain(@NonNull SharedPreferences preferences, @NonNull SecretKey source, @NonNull SecretKey destination) {
         boolean result = true;
         // Prepare hash map for decrypted content.

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.getlime.security.powerauth.keychain.Keychain;
+import io.getlime.security.powerauth.system.PA2Log;
 
 import static org.junit.Assert.*;
 
@@ -43,16 +44,40 @@ public abstract class BaseKeychainTest {
     public static final Set<String> TEST_SET_NOT_EMPTY_2 = new HashSet<>(Arrays.asList("hash", "set"));
 
     public void setupTestData() {
+        PA2Log.setEnabled(true);
+        PA2Log.setVerbose(true);
     }
 
+    /**
+     * Run all standard tests with provided keychain implementation.
+     * @param keychain Keychain object to test.
+     * @throws Exception In case of failure.
+     */
     public void runAllStandardTests(@NonNull Keychain keychain) throws Exception {
         fillTestValues(keychain);
-        testFilledValues(keychain, false);
+        runAllStandardValidations(keychain, false);
+    }
+
+    /**
+     * Run all standard validations on provided keychain implementation. The keychain must be filled
+     * with {@link #fillTestValues(Keychain)} method.
+     * @param keychain Keychain object to test.
+     * @param emptyStringIsNull Set {@code true} if it's expected that empty string is treated as {@code null}.
+     *                          This is expected for an encrypted keychains.
+     * @throws Exception In case of failure.
+     */
+    public void runAllStandardValidations(@NonNull Keychain keychain, boolean emptyStringIsNull) throws Exception {
+        testFilledValues(keychain, emptyStringIsNull);
         testDefaultValues(keychain);
         testNullValueToRemoveKey(keychain);
         testUpdateData(keychain);
     }
 
+    /**
+     * Fill keychain with test values.
+     * @param keychain Keychain object to fill with data.
+     * @throws Exception In case of failure.
+     */
     public void fillTestValues(@NonNull Keychain keychain) throws Exception {
         keychain.putBoolean(true, "test.true");
         keychain.putBoolean(false, "test.false");

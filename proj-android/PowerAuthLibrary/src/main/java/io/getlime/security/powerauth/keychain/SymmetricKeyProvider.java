@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.keychain;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
@@ -57,6 +56,8 @@ public class SymmetricKeyProvider {
     private final @NonNull KeyStore keyStore;
     private final @NonNull String keyAlias;
     private final @NonNull OnGenerateKey onGenerateKey;
+    private final boolean allowStrongBoxBackedKey;
+    private final @NonNull StrongBoxSupport strongBoxSupport;
 
     /**
      * The {@code SymmetricKeyProvider.OnGenerateKey} interface allows additional key configuration
@@ -74,17 +75,21 @@ public class SymmetricKeyProvider {
      * Create a new instance of this class.
      *
      * @param keyAlias Key alias that identifies the key in Android KeyStore.
+     * @param allowStrongBoxBackedKey If {@code true} then StrongBox backed key will be used if supported by the device.
+     * @param strongBoxSupport Instance of {@link StrongBoxSupport} that determines whether StrongBox is supported on the device.
      * @param onGenerateKey Required key configuration.
      * @return Instance of this class or {@code null} in case that Android KeyStore is not available.
      */
     @Nullable
     public static SymmetricKeyProvider getSymmetricKeyProvider(
             @NonNull final String keyAlias,
+            final boolean allowStrongBoxBackedKey,
+            @NonNull final StrongBoxSupport strongBoxSupport,
             @NonNull final OnGenerateKey onGenerateKey) {
         try {
             final KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
             keyStore.load(null);
-            return new SymmetricKeyProvider(keyStore, keyAlias, onGenerateKey);
+            return new SymmetricKeyProvider(keyStore, keyAlias, allowStrongBoxBackedKey, strongBoxSupport, onGenerateKey);
 
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             PA2Log.e("SymmetricKeyProvider: " + keyAlias + ": Unable to initialize Android KeyStore. Exception: " + e.getMessage());
@@ -105,10 +110,12 @@ public class SymmetricKeyProvider {
     @Nullable
     public static SymmetricKeyProvider getAesGcmKeyProvider(
             @NonNull final String keyAlias,
+            final boolean allowStrongBoxBackedKey,
+            @NonNull final StrongBoxSupport strongBoxSupport,
             final int keySize,
             final boolean randomizedEncryption,
             @Nullable final OnGenerateKey onGenerateKey) {
-        return getSymmetricKeyProvider(keyAlias, new OnGenerateKey() {
+        return getSymmetricKeyProvider(keyAlias, allowStrongBoxBackedKey, strongBoxSupport, new OnGenerateKey() {
             @Override
             public void configureBuilder(@NonNull KeyGenParameterSpec.Builder builder) {
                 builder
@@ -137,10 +144,12 @@ public class SymmetricKeyProvider {
     @Nullable
     public static SymmetricKeyProvider getAesCbcKeyProvider(
             @NonNull final String keyAlias,
+            final boolean allowStrongBoxBackedKey,
+            @NonNull final StrongBoxSupport strongBoxSupport,
             final int keySize,
             final boolean randomizedEncryption,
             @Nullable final OnGenerateKey onGenerateKey) {
-        return getSymmetricKeyProvider(keyAlias, new OnGenerateKey() {
+        return getSymmetricKeyProvider(keyAlias, allowStrongBoxBackedKey, strongBoxSupport, new OnGenerateKey() {
             @Override
             public void configureBuilder(@NonNull KeyGenParameterSpec.Builder builder) {
                 builder
@@ -180,7 +189,7 @@ public class SymmetricKeyProvider {
             }
             final SecretKey newSecretKey;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                if (isStrongBoxSupported(context)) {
+                if (allowStrongBoxBackedKey && strongBoxSupport.isStrongBoxSupported()) {
                     newSecretKey = generateStrongBoxSecretKey(context);
                 } else {
                     newSecretKey = generateSecretKey();
@@ -222,6 +231,14 @@ public class SymmetricKeyProvider {
     @NonNull
     public String getKeyAlias() {
         return keyAlias;
+    }
+
+    /**
+     * @return Instance of {@link StrongBoxSupport} interface assigned to this key provider.
+     */
+    @NonNull
+    public StrongBoxSupport getStrongBoxSupport() {
+        return strongBoxSupport;
     }
 
     /**
@@ -269,12 +286,22 @@ public class SymmetricKeyProvider {
      *
      * @param keyStore Instance of {@link KeyStore} class.
      * @param keyAlias Key alias that identifies the key in Android KeyStore.
+     * @param allowStrongBoxBackedKey Determines whether StrongBox capable device may create a s
+     * @param strongBoxSupport {@link StrongBoxSupport} instance that provides current level of
+     *                         StrongBox support on the device.
      * @param onGenerateKey Required key configuration.
      */
-    private SymmetricKeyProvider(@NonNull KeyStore keyStore, @NonNull String keyAlias, @NonNull OnGenerateKey onGenerateKey) {
+    private SymmetricKeyProvider(
+            @NonNull KeyStore keyStore,
+            @NonNull String keyAlias,
+            boolean allowStrongBoxBackedKey,
+            @NonNull StrongBoxSupport strongBoxSupport,
+            @NonNull OnGenerateKey onGenerateKey) {
         this.keyStore = keyStore;
         this.keyAlias = keyAlias;
         this.onGenerateKey = onGenerateKey;
+        this.allowStrongBoxBackedKey = allowStrongBoxBackedKey;
+        this.strongBoxSupport = strongBoxSupport;
     }
 
     /**
@@ -353,16 +380,6 @@ public class SymmetricKeyProvider {
     }
 
     /**
-     * Determine whether StrongBox hardware is available on the device.
-     * @param context Android context
-     * @return {@code true} if StrongBox is supported on the device.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.P)
-    private boolean isStrongBoxSupported(@NonNull Context context) {
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE);
-    }
-
-    /**
      * Generate a new secret key.
      * @return {@link SecretKey} instance or {@code null} in case of failure.
      */
@@ -371,8 +388,12 @@ public class SymmetricKeyProvider {
         try {
             // Secret key is not created yet, or has been just removed. Try to create a new one.
             final KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-            keyGenerator.init(getSecretKeySpecBuilder()
-                     .build());
+            // Make sure that StrongBox backed key is not created by default.
+            final KeyGenParameterSpec.Builder builder = getSecretKeySpecBuilder();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                builder.setIsStrongBoxBacked(false);
+            }
+            keyGenerator.init(builder.build());
             return keyGenerator.generateKey();
 
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {

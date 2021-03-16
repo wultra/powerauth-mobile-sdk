@@ -31,7 +31,8 @@ class ReservedKeyImpl {
      * @return {@code true} is key is reserved, otherwise {@code false}.
      */
     static boolean isReservedKey(@NonNull String key) {
-        return key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_VERSION_KEY);
+        return key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_VERSION_KEY) ||
+                key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_STRONGBOX_KEY);
     }
 
     /**

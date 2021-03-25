@@ -28,9 +28,9 @@ import org.junit.runner.RunWith;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
-import io.getlime.security.powerauth.keychain.StrongBoxSupport;
+import io.getlime.security.powerauth.keychain.KeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
-import io.getlime.security.powerauth.keychain.FakeStrongBoxSupport;
+import io.getlime.security.powerauth.keychain.FakeKeychainProtectionSupport;
 
 import static org.junit.Assert.*;
 
@@ -55,8 +55,8 @@ public class EncryptedKeychainTest extends BaseKeychainTest {
             return;
         }
 
-        StrongBoxSupport strongBoxSupport = new FakeStrongBoxSupport();
-        SymmetricKeyProvider symmetricKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider("com.wultra.test.symmetricAesGcmKey", true, strongBoxSupport,256, true, null);
+        KeychainProtectionSupport keychainProtectionSupport = FakeKeychainProtectionSupport.NO_STRONGBOX;
+        SymmetricKeyProvider symmetricKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider("com.wultra.test.symmetricAesGcmKey", true, keychainProtectionSupport,256, true, null);
         assertNotNull(symmetricKeyProvider);
         symmetricKeyProvider.deleteSecretKey();
 

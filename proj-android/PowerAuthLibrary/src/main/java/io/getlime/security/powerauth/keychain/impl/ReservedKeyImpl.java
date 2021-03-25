@@ -32,7 +32,7 @@ class ReservedKeyImpl {
      */
     static boolean isReservedKey(@NonNull String key) {
         return key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_VERSION_KEY) ||
-                key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_STRONGBOX_KEY);
+                key.equals(EncryptedKeychain.ENCRYPTED_KEYCHAIN_MODE_KEY);
     }
 
     /**

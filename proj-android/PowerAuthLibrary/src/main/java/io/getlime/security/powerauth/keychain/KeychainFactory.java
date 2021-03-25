@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
-import io.getlime.security.powerauth.keychain.impl.DefaultStrongBoxSupport;
+import io.getlime.security.powerauth.keychain.impl.DefaultKeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
 import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
 import io.getlime.security.powerauth.system.PA2Log;
@@ -115,25 +115,25 @@ public class KeychainFactory {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "There are already created keychains in KeychainFactory.");
             }
             if (sharedData.getStrongBoxSupport(context).isStrongBoxEnabled() != enabled) {
-                final StrongBoxSupport newStrongBoxSupport = new DefaultStrongBoxSupport(context, enabled);
-                sharedData.setStrongBoxSupportAndResetSharedData(newStrongBoxSupport);
+                final KeychainProtectionSupport newKeychainProtectionSupport = new DefaultKeychainProtectionSupport(context, enabled);
+                sharedData.setKeychainProtectionSupportAndResetSharedData(newKeychainProtectionSupport);
                 PA2Log.d("KeychainFactory: StrongBox support is now " + (enabled ? "enabled." : "disabled."));
             }
         }
     }
 
     /**
-     * Set alternate implementation of {@link StrongBoxSupport} used internally to determine current StrongBox
+     * Set alternate implementation of {@link KeychainProtectionSupport} used internally to determine current StrongBox
      * support. The method is useful only for unit testing, so it's not declared as public. Be aware that
      * calling this function also reset internal shared data object, so {@code KeychainFactory} will end
      * in not-initialized state.
      *
-     * @param strongBoxSupport Testing {@link StrongBoxSupport} implementation, or {@code null} if you want
+     * @param keychainProtectionSupport Testing {@link KeychainProtectionSupport} implementation, or {@code null} if you want
      *                         to reset shared data object only.
      */
-    static void setStrongBoxSupport(@Nullable StrongBoxSupport strongBoxSupport) {
+    static void setKeychainProtectionSupport(@Nullable KeychainProtectionSupport keychainProtectionSupport) {
         synchronized (SharedData.class) {
-            getSharedData().setStrongBoxSupportAndResetSharedData(strongBoxSupport);
+            getSharedData().setKeychainProtectionSupportAndResetSharedData(keychainProtectionSupport);
         }
     }
 
@@ -158,17 +158,17 @@ public class KeychainFactory {
         final boolean isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
         final int keychainProtection = sharedData.getKeychainProtection(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (keychainProtection != KeychainProtection.NONE) {
+            if (keychainProtection != KeychainProtection.NONE || isAlreadyEncrypted) {
                 // If Android "M" and later, then create a secret key provider and try to create an encrypted keychain.
                 final SymmetricKeyProvider masterKeyProvider = sharedData.getMasterEncryptionKeyProvider(context);
                 final SymmetricKeyProvider backupKeyProvider = sharedData.getBackupEncryptionKeyProvider(context);
                 if (masterKeyProvider != null) {
                     final EncryptedKeychain encryptedKeychain = new EncryptedKeychain(context, identifier, masterKeyProvider, backupKeyProvider);
                     if (isAlreadyEncrypted) {
-                        // If keychain is already encrypted, then just validate StrongBox support.
+                        // If keychain is already encrypted, then just validate encryption support.
                         // The update function may fail in case that re-encryption did not end well,
                         // and the previously encrypted content was stored back to the legacy keychain.
-                        if (encryptedKeychain.updateStrongBoxSupport(preferences)) {
+                        if (encryptedKeychain.updateEncryptionSupport(preferences)) {
                             return encryptedKeychain;
                         }
                     } else if (encryptedKeychain.importFromLegacyKeychain(preferences)) {
@@ -181,7 +181,7 @@ public class KeychainFactory {
 
         // Otherwise just return the legacy keychain.
         final Keychain keychain =  new LegacyKeychain(context, identifier);
-        if (isAlreadyEncrypted) {
+        if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
             // Print error in case that keychain was previously encrypted and now it's not.
             PA2Log.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
             keychain.removeAll();
@@ -205,10 +205,10 @@ public class KeychainFactory {
         private final Map<String, Keychain> keychainMap = new HashMap<>();
 
         /**
-         * Instance of {@link StrongBoxSupport} that provides information about StrongBox support
+         * Instance of {@link KeychainProtectionSupport} that provides information about StrongBox support
          * on this device.
          */
-        private StrongBoxSupport strongBoxSupport;
+        private KeychainProtectionSupport keychainProtectionSupport;
 
         /**
          * Instance of {@link SymmetricKeyProvider} that provides encryption key for all encrypted keychains.
@@ -255,36 +255,36 @@ public class KeychainFactory {
         private void resetSharedData() {
             keychainMap.clear();
             keychainProtection = 0;
-            strongBoxSupport = null;
+            keychainProtectionSupport = null;
             masterEncryptionKeyProvider = null;
             backupEncryptionKeyProvider = null;
         }
 
         /**
-         * Return shared instance of {@link StrongBoxSupport} interface.
+         * Return shared instance of {@link KeychainProtectionSupport} interface.
          * @param context Android context.
-         * @return Shared instance of {@link StrongBoxSupport} interface.
+         * @return Shared instance of {@link KeychainProtectionSupport} interface.
          */
         @NonNull
-        StrongBoxSupport getStrongBoxSupport(@NonNull Context context) {
-            if (strongBoxSupport == null) {
+        KeychainProtectionSupport getStrongBoxSupport(@NonNull Context context) {
+            if (keychainProtectionSupport == null) {
                 // StrongBox is disabled by default.
                 // Check https://github.com/wultra/powerauth-mobile-sdk/issues/354 for more details.
-                strongBoxSupport = new DefaultStrongBoxSupport(context, false);
+                keychainProtectionSupport = new DefaultKeychainProtectionSupport(context, false);
             }
-            return strongBoxSupport;
+            return keychainProtectionSupport;
         }
 
         /**
-         * Change internal {@link StrongBoxSupport} implementation and reset shared data object
+         * Change internal {@link KeychainProtectionSupport} implementation and reset shared data object
          * to default, non-initialized state. The method is useful only when application want's
          * to change default StrongBox support or for an unit testing purposes.
          *
-         * @param strongBoxSupport New {@link StrongBoxSupport} implementation.
+         * @param keychainProtectionSupport New {@link KeychainProtectionSupport} implementation.
          */
-        void setStrongBoxSupportAndResetSharedData(@Nullable StrongBoxSupport strongBoxSupport) {
+        void setKeychainProtectionSupportAndResetSharedData(@Nullable KeychainProtectionSupport keychainProtectionSupport) {
             resetSharedData();
-            this.strongBoxSupport = strongBoxSupport;
+            this.keychainProtectionSupport = keychainProtectionSupport;
         }
 
         /**
@@ -314,9 +314,9 @@ public class KeychainFactory {
         @RequiresApi(api = Build.VERSION_CODES.M)
         SymmetricKeyProvider getBackupEncryptionKeyProvider(@NonNull Context context) {
             if (backupEncryptionKeyProvider == null) {
-                final StrongBoxSupport strongBoxSupport = getStrongBoxSupport(context);
-                if (strongBoxSupport.isStrongBoxSupported()) {
-                    backupEncryptionKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(MASTER_BACK_KEY_ALIAS, false, strongBoxSupport, MASTER_KEY_SIZE, true, null);
+                final KeychainProtectionSupport keychainProtectionSupport = getStrongBoxSupport(context);
+                if (keychainProtectionSupport.isStrongBoxSupported()) {
+                    backupEncryptionKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(MASTER_BACK_KEY_ALIAS, false, keychainProtectionSupport, MASTER_KEY_SIZE, true, null);
                     if (backupEncryptionKeyProvider == null) {
                         PA2Log.e("KeychainFactory: Unable to acquire common backup key provider for EncryptedKeychain.");
                     }
@@ -340,27 +340,33 @@ public class KeychainFactory {
                     final SecretKey secretKey = keyProvider != null ? keyProvider.getOrCreateSecretKey(context, false) : null;
                     final KeyInfo secretKeyInfo = keyProvider != null ? keyProvider.getSecretKeyInfo(context) : null;
                     if (secretKey != null && secretKeyInfo != null) {
-                        if (EncryptedKeychain.verifyKeystoreEncryption(context, keyProvider)) {
-                            // We can trust KeyStore, just determine the level of protection
-                            if (secretKeyInfo.isInsideSecureHardware()) {
-                                final StrongBoxSupport strongBoxSupport = keyProvider.getStrongBoxSupport();
-                                if (strongBoxSupport.isStrongBoxSupported()) {
-                                    if (strongBoxSupport.isStrongBoxEnabled()) {
-                                        // Keychain encryption key is stored in StrongBox.
-                                        keychainProtection = KeychainProtection.STRONGBOX;
+                        final KeychainProtectionSupport keychainProtectionSupport = keyProvider.getKeychainProtectionSupport();
+                        if (keychainProtectionSupport.isKeyStoreEncryptionEnabled()) {
+                            if (EncryptedKeychain.verifyKeystoreEncryption(context, keyProvider)) {
+                                // We can trust KeyStore, just determine the level of protection
+                                if (secretKeyInfo.isInsideSecureHardware()) {
+                                    if (keychainProtectionSupport.isStrongBoxSupported()) {
+                                        if (keychainProtectionSupport.isStrongBoxEnabled()) {
+                                            // Keychain encryption key is stored in StrongBox.
+                                            keychainProtection = KeychainProtection.STRONGBOX;
+                                        } else {
+                                            // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
+                                            PA2Log.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
+                                            keychainProtection = KeychainProtection.HARDWARE;
+                                        }
                                     } else {
-                                        // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
-                                        PA2Log.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
+                                        // Keychain encryption key is stored in the dedicated secure hardware, but is not StrongBox backed.
                                         keychainProtection = KeychainProtection.HARDWARE;
                                     }
                                 } else {
-                                    // Keychain encryption key is stored in the dedicated secure hardware, but is not StrongBox backed.
-                                    keychainProtection = KeychainProtection.HARDWARE;
+                                    // Keychain encryption key is not stored in the dedicated secure hardware.
+                                    keychainProtection = KeychainProtection.SOFTWARE;
                                 }
-                            } else {
-                                // Keychain encryption key is not stored in the dedicated secure hardware.
-                                keychainProtection = KeychainProtection.SOFTWARE;
                             }
+                        } else if (keychainProtectionSupport.isKeyStoreEncryptionSupported()) {
+                            // Keychain encryption is supported but not enabled for this device de to poor KeyStore reliability.
+                            PA2Log.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
+                            keychainProtection = KeychainProtection.NONE;
                         }
                     }
                 }

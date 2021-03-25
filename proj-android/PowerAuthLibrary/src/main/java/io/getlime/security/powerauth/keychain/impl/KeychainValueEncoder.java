@@ -39,27 +39,27 @@ class KeychainValueEncoder {
     /**
      * Constant for plain data encoded in keychain.
      */
-    private static final byte TYPE_DATA = 1;
+    static final byte TYPE_DATA = 1;
     /**
      * Constant for string encoded in keychain.
      */
-    private static final byte TYPE_STRING = 2;
+    static final byte TYPE_STRING = 2;
     /**
      * Constant for long value encoded in keychain.
      */
-    private static final byte TYPE_BOOLEAN = 3;
+    static final byte TYPE_BOOLEAN = 3;
     /**
      * Constant for long value encoded in keychain.
      */
-    private static final byte TYPE_LONG = 4;
+    static final byte TYPE_LONG = 4;
     /**
      * Constant for float value encoded in keychain.
      */
-    private static final byte TYPE_FLOAT = 5;
+    static final byte TYPE_FLOAT = 5;
     /**
      * Constant for set of strings encoded in keychain.
      */
-    private static final byte TYPE_STRING_SET = 6;
+    static final byte TYPE_STRING_SET = 6;
 
 
     // Encode to bytes
@@ -169,6 +169,18 @@ class KeychainValueEncoder {
     // Decode from bytes
 
     /**
+     * Decode type from given encoded value. You can compare returned byte with {@code TYPE_*} constants.
+     * @param encoded Sequence of bytes containing encoded {@code String} value.
+     * @return Byte representing an encoded value type.
+     */
+    byte decodeValueType(@NonNull byte[] encoded) {
+        if (encoded.length == 0 || encoded[0] < TYPE_DATA || encoded[0] > TYPE_STRING_SET) {
+            throw new IllegalKeychainAccessException("Invalid encoded keychain content");
+        }
+        return encoded[0];
+    }
+
+    /**
      * Decode array of bytes from encoded sequence of bytes. The {@link IllegalKeychainAccessException}
      * is thrown in case that encoded sequence contains a different type of value.
      *
@@ -269,10 +281,8 @@ class KeychainValueEncoder {
      * @param expected Expected value type.
      */
     private void checkEncodedType(@NonNull byte[] encoded, byte expected) {
-        if (encoded.length == 0) {
-            throw new IllegalKeychainAccessException("Invalid encoded keychain content");
-        }
-        if (encoded[0] != expected) {
+        final byte encodedType = decodeValueType(encoded);
+        if (encodedType != expected) {
             throw new IllegalKeychainAccessException("Requesting '" + typeToString(expected) + "' but keychain contains '" + typeToString(encoded[0]) + "' type");
         }
         switch (expected) {

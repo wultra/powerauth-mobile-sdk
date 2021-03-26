@@ -42,6 +42,8 @@ public class KeychainFactoryTest {
     public void setUp() {
         androidContext = InstrumentationRegistry.getInstrumentation().getContext();
         assertNotNull(androidContext);
+        eraseAllKeychainData(KEYCHAIN_1_NAME);
+        eraseAllKeychainData(KEYCHAIN_2_NAME);
     }
 
     @Test
@@ -67,5 +69,16 @@ public class KeychainFactoryTest {
         } catch (PowerAuthErrorException e) {
             assertEquals(PowerAuthErrorCodes.PA2ErrorCodeInsufficientKeychainProtection, e.getPowerAuthErrorCode());
         }
+    }
+
+    /**
+     * Erase all data (including version markers) for given keychain.
+     * @param identifier Keychain identifier.
+     */
+    void eraseAllKeychainData(String identifier) {
+        androidContext.getSharedPreferences(identifier, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
     }
 }

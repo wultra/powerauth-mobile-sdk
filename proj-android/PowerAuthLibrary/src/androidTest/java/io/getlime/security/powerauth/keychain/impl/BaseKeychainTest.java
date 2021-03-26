@@ -63,7 +63,7 @@ public abstract class BaseKeychainTest {
      * with {@link #fillTestValues(Keychain)} method.
      * @param keychain Keychain object to test.
      * @param emptyStringIsNull Set {@code true} if it's expected that empty string is treated as {@code null}.
-     *                          This is expected for an encrypted keychains.
+     *                          This is expected for an encrypted keychains after migration from LegacyKeychain.
      * @throws Exception In case of failure.
      */
     public void runAllStandardValidations(@NonNull Keychain keychain, boolean emptyStringIsNull) throws Exception {

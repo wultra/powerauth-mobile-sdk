@@ -35,7 +35,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.impl.AesGcmImpl;
 import io.getlime.security.powerauth.keychain.impl.BaseKeychainTest;
-import io.getlime.security.powerauth.keychain.impl.DefaultStrongBoxSupport;
+import io.getlime.security.powerauth.keychain.impl.DefaultKeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
 import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
 import io.getlime.security.powerauth.system.PA2Log;
@@ -43,7 +43,7 @@ import io.getlime.security.powerauth.system.PA2Log;
 import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
-public class StrongBoxSupportTest extends BaseKeychainTest {
+public class KeychainProtectionSupportTest extends BaseKeychainTest {
 
     private static final String KEYCHAIN_NAME1 = "com.wultra.test.strongBox.keychain1";
     private static final String KEYCHAIN_NAME2 = "com.wultra.test.strongBox.keychain2";
@@ -57,14 +57,14 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
 
 
     private Context androidContext;
-    private StrongBoxSupport realStrongBoxSupport;
+    private KeychainProtectionSupport realKeychainProtectionSupport;
     private boolean isLegacyOnly;
 
     @Before
     public void setUp() {
         androidContext = InstrumentationRegistry.getInstrumentation().getContext();
         assertNotNull(androidContext);
-        realStrongBoxSupport = new DefaultStrongBoxSupport(androidContext, false);
+        realKeychainProtectionSupport = new DefaultKeychainProtectionSupport(androidContext, false);
         isLegacyOnly = KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) == KeychainProtection.NONE;
 
         setupTestData();
@@ -72,7 +72,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Clear encryption keys
         final String[] keysToRemove = { MASTER_KEY_ALIAS, MASTER_BACK_KEY_ALIAS, PRIMARY_KEY_NAME, BACKUP_KEY_NAME };
         for (String key : keysToRemove) {
-            final SymmetricKeyProvider provider = SymmetricKeyProvider.getAesGcmKeyProvider(key, true, realStrongBoxSupport, 256, true, null);
+            final SymmetricKeyProvider provider = SymmetricKeyProvider.getAesGcmKeyProvider(key, true, realKeychainProtectionSupport, 256, true, null);
             if (provider != null) {
                 provider.deleteSecretKey();
             } else {
@@ -84,13 +84,13 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         eraseAllKeychainData(KEYCHAIN_NAME2);
 
         // Reset possible cached keychains
-        KeychainFactory.setStrongBoxSupport(null);
+        KeychainFactory.setKeychainProtectionSupport(null);
     }
 
     @After
     public void tearDown() {
         // Reset factory after test.
-        KeychainFactory.setStrongBoxSupport(null);
+        KeychainFactory.setKeychainProtectionSupport(null);
     }
 
     /**
@@ -99,29 +99,29 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
      */
     @Test
     public void testSymmetricKeyProviderSelection() {
-        StrongBoxSupport strongBoxSupport;
+        KeychainProtectionSupport keychainProtectionSupport;
         SymmetricKeyProvider regularKP, backupKP, determinedKP;
 
         // null vs null must produce null
         assertNull(EncryptedKeychain.determineEffectiveSymmetricKeyProvider(null, null));
 
         // strongbox support off
-        strongBoxSupport = new FakeStrongBoxSupport(false, false);
-        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, strongBoxSupport, 256, true, null);
+        keychainProtectionSupport = FakeKeychainProtectionSupport.NO_STRONGBOX;
+        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, keychainProtectionSupport, 256, true, null);
         determinedKP = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(regularKP, null);
         assertEquals(regularKP, determinedKP);
 
         // strongbox support on, enabled on
-        strongBoxSupport = new FakeStrongBoxSupport(true, true);
-        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, strongBoxSupport, 256, true, null);
-        backupKP = SymmetricKeyProvider.getAesGcmKeyProvider(BACKUP_KEY_NAME, false, strongBoxSupport, 256, true, null);
+        keychainProtectionSupport = FakeKeychainProtectionSupport.HAS_STRONGBOX;
+        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, keychainProtectionSupport, 256, true, null);
+        backupKP = SymmetricKeyProvider.getAesGcmKeyProvider(BACKUP_KEY_NAME, false, keychainProtectionSupport, 256, true, null);
         determinedKP = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(regularKP, backupKP);
         assertEquals(regularKP, determinedKP);
 
         // strongbox support on, enabled off
-        strongBoxSupport = new FakeStrongBoxSupport(true, false);
-        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, strongBoxSupport, 256, true, null);
-        backupKP = SymmetricKeyProvider.getAesGcmKeyProvider(BACKUP_KEY_NAME, false, strongBoxSupport, 256, true, null);
+        keychainProtectionSupport = FakeKeychainProtectionSupport.HAS_STRONGBOX_DISABLED;
+        regularKP = SymmetricKeyProvider.getAesGcmKeyProvider(PRIMARY_KEY_NAME, true, keychainProtectionSupport, 256, true, null);
+        backupKP = SymmetricKeyProvider.getAesGcmKeyProvider(BACKUP_KEY_NAME, false, keychainProtectionSupport, 256, true, null);
         determinedKP = EncryptedKeychain.determineEffectiveSymmetricKeyProvider(regularKP, backupKP);
         assertEquals(backupKP, determinedKP);
     }
@@ -132,7 +132,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
             PA2Log.e("testStrongBoxEnabledDisabled - test is not supported on this device.");
             return;
         }
-        if (!realStrongBoxSupport.isStrongBoxSupported()) {
+        if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
             PA2Log.e("testStrongBoxEnabledDisabled - test require real StrongBox device.");
             return;
         }
@@ -169,7 +169,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // :::::::::
 
         // Reset factory to default state and try to turn support ON.
-        KeychainFactory.setStrongBoxSupport(null);
+        KeychainFactory.setKeychainProtectionSupport(null);
 
         assertFalse(KeychainFactory.isStrongBoxEnabled(androidContext));
 
@@ -201,7 +201,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // Reset factory to default state and test typical scenario, when application wants to
         // change support, but there's already keychain created.
 
-        KeychainFactory.setStrongBoxSupport(null);
+        KeychainFactory.setKeychainProtectionSupport(null);
 
         // Now acquire some keychain.
         k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
@@ -225,7 +225,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         final Keychain k1_legacy = prepareV0Keychain(KEYCHAIN_NAME1);
         final Keychain k2_legacy = prepareV0Keychain(KEYCHAIN_NAME2);
         // Set StrongBox not supported
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(false, false));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
         // Now get keychains via factory
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
@@ -255,7 +255,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         final Keychain k1_legacy = prepareV0Keychain(KEYCHAIN_NAME1);
         final Keychain k2_legacy = prepareV0Keychain(KEYCHAIN_NAME2);
         // Disable StrongBox support
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, false));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX_DISABLED);
         // Now get keychains via factory
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
@@ -282,7 +282,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
             PA2Log.e("testMigrationFromV0toStrongBoxEnabled - test is not supported on this device.");
             return;
         }
-        if (!realStrongBoxSupport.isStrongBoxSupported()) {
+        if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
             PA2Log.e("testMigrationFromV0toStrongBoxEnabled - test require real StrongBox device.");
             return;
         }
@@ -291,7 +291,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         final Keychain k1_legacy = prepareV0Keychain(KEYCHAIN_NAME1);
         final Keychain k2_legacy = prepareV0Keychain(KEYCHAIN_NAME2);
         // Enable StrongBox support
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX);
         // Now get keychains via factory
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
@@ -318,7 +318,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
             PA2Log.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
             return;
         }
-        if (!realStrongBoxSupport.isStrongBoxSupported()) {
+        if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
             PA2Log.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
             return;
         }
@@ -327,7 +327,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         // migration happens typically when next SDK version adds or removes support for StrongBox.
 
         // Enable StrongBox support
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX);
 
         // Now get keychains via factory
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
@@ -345,7 +345,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         fillTestValues(k2);
 
         // Now switch StrongBox as disabled
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, false));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX_DISABLED);
         // KeychainFactory did reset its cache, so we need to acquire keychains again.
         k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
@@ -368,7 +368,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         verifyEncryptedData(KEYCHAIN_NAME2, false, "test.data_NotEmpty");
 
         // Now enable StrongBox support again
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX);
         // KeychainFactory did reset its cache, so we need to acquire keychains again.
         k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
@@ -394,7 +394,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
             PA2Log.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
             return;
         }
-        if (!realStrongBoxSupport.isStrongBoxSupported()) {
+        if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
             PA2Log.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
             return;
         }
@@ -409,7 +409,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         eraseAllKeychainData(KEYCHAIN_NAME2);
 
         // Enable StrongBox support
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, true));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX);
         Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
         Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
         fillTestValues(k1);
@@ -422,7 +422,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
 
         // We have V1 data prepared, so now we can simulate situation when SDK determine that
         // StrongBox is not reliable.
-        KeychainFactory.setStrongBoxSupport(new FakeStrongBoxSupport(true, false));
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_STRONGBOX_DISABLED);
 
         // Get keychains again
         k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
@@ -442,6 +442,246 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         verifyEncryptedData(KEYCHAIN_NAME1, false, "test.string_NotEmpty");
         verifyEncryptedData(KEYCHAIN_NAME2, false, "test.data_NotEmpty");
     }
+
+
+    @Test
+    public void testMigrationFromV0ToNoEncryption() throws Exception {
+
+        // Simulate SDK upgrade from pre 1.4.2 version, when encryption is not supported.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        prepareV0Keychain(KEYCHAIN_NAME1);
+        prepareV0Keychain(KEYCHAIN_NAME2);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_ENCRYPTION);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        assertFalse(k1.isStrongBoxBacked());
+        assertFalse(k2.isStrongBoxBacked());
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+    }
+
+    @Test
+    public void testMigrationFromV0ToEncryptionDisabled() throws Exception {
+
+        // Simulate SDK upgrade from pre 1.4.2 version when encryption is disabled.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        prepareV0Keychain(KEYCHAIN_NAME1);
+        prepareV0Keychain(KEYCHAIN_NAME2);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        assertFalse(k1.isStrongBoxBacked());
+        assertFalse(k2.isStrongBoxBacked());
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+    }
+
+    @Test
+    public void testMigrationFromV0ToEncryptionEnabled() throws Exception {
+
+        // Simulate SDK upgrade from pre 1.4.2 version when encryption is supported.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        prepareV0Keychain(KEYCHAIN_NAME1);
+        prepareV0Keychain(KEYCHAIN_NAME2);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+        runAllStandardValidations(k1, true);
+        runAllStandardValidations(k2, true);
+    }
+
+    @Test
+    public void testMigrationFromV1ToEncryptionEnabled() throws Exception {
+
+        // Simulate SDK upgrade from V1 keychain data when encryption is supported.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Prepare V1 keychain data
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        fillTestValues(k1);
+        fillTestValues(k2);
+        downgradeKeychainToV1(KEYCHAIN_NAME1);
+        downgradeKeychainToV1(KEYCHAIN_NAME2);
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+    }
+
+    @Test
+    public void testDowngradeEncryptionFromV1() throws Exception {
+
+        // Test downgrade encrypted keychain in V1 format to legacy keychain.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Prepare V1 keychain data
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        fillTestValues(k1);
+        fillTestValues(k2);
+        downgradeKeychainToV1(KEYCHAIN_NAME1);
+        downgradeKeychainToV1(KEYCHAIN_NAME2);
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+
+        // Disable encryption
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+        fillTestValues(k1);
+        fillTestValues(k2);
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+
+        // Run the same test again, to validate whether KeychainFactory will not re-encrypt content later.
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+    }
+
+    @Test
+    public void testDowngradeEncryption() throws Exception {
+
+        // Test downgrade encrypted keychain in current format to legacy keychain.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Prepare keychain data
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        fillTestValues(k1);
+        fillTestValues(k2);
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+
+        // Disable encryption
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+        fillTestValues(k1);
+        fillTestValues(k2);
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+
+        // Run the same test again, to validate whether KeychainFactory will not re-encrypt content later.
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+        assertEquals(KeychainProtection.NONE, KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext));
+    }
+
+    @Test
+    public void testDowngradeUpgradeEncryption() throws Exception {
+
+        // Test downgrade from encrypted keychain to a legacy keychain and then upgrade back
+        // to encrypted keychain.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Prepare keychain data
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        fillTestValues(k1);
+        fillTestValues(k2);
+
+        // Disable encryption
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.HAS_ENCRYPTION_DISABLED);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertFalse(k1.isEncrypted());
+        assertFalse(k2.isEncrypted());
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+        fillTestValues(k1);
+        fillTestValues(k2);
+
+        // Enable encryption
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        runAllStandardValidations(k1, true);
+        runAllStandardValidations(k2, true);
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+    }
+
+
+    // Helper functions
 
     /**
      * Prepare legacy keychain and fill it with test data.
@@ -464,7 +704,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
     void downgradeKeychainToV1(@NonNull String identifier) {
         androidContext.getSharedPreferences(identifier, Context.MODE_PRIVATE)
                 .edit()
-                .remove(EncryptedKeychain.ENCRYPTED_KEYCHAIN_STRONGBOX_KEY)
+                .remove(EncryptedKeychain.ENCRYPTED_KEYCHAIN_MODE_KEY)
                 .putInt(EncryptedKeychain.ENCRYPTED_KEYCHAIN_VERSION_KEY, EncryptedKeychain.KEYCHAIN_V1)
                 .apply();
     }
@@ -502,7 +742,7 @@ public class StrongBoxSupportTest extends BaseKeychainTest {
         assertTrue(encryptedData.length > 0);
 
         // Acquire secret key
-        final SymmetricKeyProvider keyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(keyIdentifier, primaryKey, realStrongBoxSupport, 256, true, null);
+        final SymmetricKeyProvider keyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(keyIdentifier, primaryKey, realKeychainProtectionSupport, 256, true, null);
         assertNotNull(keyProvider);
         assertTrue(keyProvider.containsSecretKey());
         final SecretKey secretKey = keyProvider.getOrCreateSecretKey(androidContext, false);

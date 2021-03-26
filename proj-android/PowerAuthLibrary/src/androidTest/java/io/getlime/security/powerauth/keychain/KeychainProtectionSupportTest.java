@@ -496,6 +496,63 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     }
 
     @Test
+    public void testMigrationFromV0ToEncryptionEnabled() throws Exception {
+
+        // Simulate SDK upgrade from pre 1.4.2 version when encryption is supported.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        prepareV0Keychain(KEYCHAIN_NAME1);
+        prepareV0Keychain(KEYCHAIN_NAME2);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+        runAllStandardValidations(k1, true);
+        runAllStandardValidations(k2, true);
+    }
+
+    @Test
+    public void testMigrationFromV1ToEncryptionEnabled() throws Exception {
+
+        // Simulate SDK upgrade from V1 keychain data when encryption is supported.
+
+        // Cleanup keychains
+        eraseAllKeychainData(KEYCHAIN_NAME1);
+        eraseAllKeychainData(KEYCHAIN_NAME2);
+
+        // Prepare V1 keychain data
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        Keychain k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        Keychain k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        fillTestValues(k1);
+        fillTestValues(k2);
+        downgradeKeychainToV1(KEYCHAIN_NAME1);
+        downgradeKeychainToV1(KEYCHAIN_NAME2);
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+
+        KeychainFactory.setKeychainProtectionSupport(FakeKeychainProtectionSupport.NO_STRONGBOX);
+        k1 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME1, KeychainProtection.NONE);
+        k2 = KeychainFactory.getKeychain(androidContext, KEYCHAIN_NAME2, KeychainProtection.NONE);
+        assertNotNull(k1);
+        assertNotNull(k2);
+        assertTrue(k1.isEncrypted());
+        assertTrue(k2.isEncrypted());
+        assertTrue(KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) > KeychainProtection.NONE);
+        runAllStandardValidations(k1, false);
+        runAllStandardValidations(k2, false);
+    }
+
+    @Test
     public void testDowngradeEncryptionFromV1() throws Exception {
 
         // Test downgrade encrypted keychain in V1 format to legacy keychain.

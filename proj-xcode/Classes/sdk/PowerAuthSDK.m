@@ -617,6 +617,8 @@ static PowerAuthSDK * s_inst;
 		if (biometryKey) {
 			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
 		}
+		// Clear TokenStore
+		[_tokenStore removeAllLocalTokens];
 	}
 	
 	// Return result

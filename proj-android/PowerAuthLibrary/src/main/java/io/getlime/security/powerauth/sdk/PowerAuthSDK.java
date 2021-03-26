@@ -960,8 +960,9 @@ public class PowerAuthSDK {
         final int result = mSession.completeActivation(keys);
 
         if (result == ErrorCode.OK) {
-            // Update state after each successful calculations
+            // Save activation state and clear TokenStore
             saveSerializedState();
+            getTokenStore().removeAllLocalTokens(context);
 
             return PowerAuthErrorCodes.PA2Succeed;
         } else {

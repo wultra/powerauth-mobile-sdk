@@ -17,10 +17,21 @@
 package io.getlime.security.powerauth.keychain;
 
 /**
- * The {@code StrongBoxSupport} interface provides information about StrongBox support available
- * on the device.
+ * The {@code KeychainProtectionSupport} interface provides information about what level of encryption
+ * is available on the device.
  */
-public interface StrongBoxSupport {
+public interface KeychainProtectionSupport {
+
+    /**
+     * Determine whether encryption with KeyStore-backed key is supported on this device.
+     * @return {@code true} if KeyStore-backed key is supported on this device.
+     */
+    boolean isKeyStoreEncryptionSupported();
+    /**
+     * Determine whether encryption with KeyStore-backed key is supported and enabled on this device.
+     * @return {@code true} if KeyStore-backed key is supported and enabled on this device.
+     */
+    boolean isKeyStoreEncryptionEnabled();
     /**
      * Determine whether StrongBox is supported on this device.
      * @return {@code true} if StrongBox is supported on this device.

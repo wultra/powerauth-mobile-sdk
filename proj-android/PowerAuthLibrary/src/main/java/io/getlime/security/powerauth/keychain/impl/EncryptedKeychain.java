@@ -33,8 +33,9 @@ import java.util.Set;
 
 import javax.crypto.SecretKey;
 
+import io.getlime.security.powerauth.keychain.IllegalKeychainAccessException;
 import io.getlime.security.powerauth.keychain.Keychain;
-import io.getlime.security.powerauth.keychain.StrongBoxSupport;
+import io.getlime.security.powerauth.keychain.KeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
 import io.getlime.security.powerauth.system.PA2Log;
 
@@ -73,12 +74,12 @@ public class EncryptedKeychain implements Keychain {
      */
     private final @NonNull SymmetricKeyProvider effectiveKeyProvider;
     /**
-     * Current StrongBox mode (see STRONGBOX_* constants)
+     * Current encryption mode (see ENCRYPTION_MODE_* constants)
      */
-    private final int strongBoxMode;
+    private final int encryptionMode;
 
     /**
-     * * Default constructor, initialize keychain with given identifier and symmetric key provider.
+     * Default constructor, initialize keychain with given identifier and symmetric key provider.
      *
      * @param context Android application context.
      * @param identifier String with the keychain identifier.
@@ -97,45 +98,57 @@ public class EncryptedKeychain implements Keychain {
         this.regularKeyProvider = secretKeyProvider;
         this.backupKeyProvider = backupSecretKeyProvider;
         this.valueEncoder = new KeychainValueEncoder();
-        this.strongBoxMode = determineStrongBoxMode(regularKeyProvider.getStrongBoxSupport());
-        this.effectiveKeyProvider = determineEffectiveKeyProvider(strongBoxMode, secretKeyProvider, backupSecretKeyProvider);
+        this.encryptionMode = determineEncryptionMode(regularKeyProvider.getKeychainProtectionSupport());
+        this.effectiveKeyProvider = determineEffectiveKeyProvider(encryptionMode, secretKeyProvider, backupSecretKeyProvider);
     }
 
 
+    /**
+     * Determine which {@link SymmetricKeyProvider} from two provided objects is the current and
+     * effective key provider depending on the current mode. The function
+     *
+     * @param regular Regular symmetric key provider.
+     * @param backup Backup symmetric key provider.
+     * @return Backup symmetric key provider in case that strongBox mode is {@link #ENCRYPTION_MODE_STRONGBOX_DISABLED}.
+     *         For all other cases the regular symmetric key provider is returned.
+     */
     @Nullable
     public static SymmetricKeyProvider determineEffectiveSymmetricKeyProvider(@Nullable SymmetricKeyProvider regular, @Nullable SymmetricKeyProvider backup) {
         if (regular == null) {
             return null;
         }
-        final StrongBoxSupport support = regular.getStrongBoxSupport();
-        final int strongBoxMode = determineStrongBoxMode(support);
-        return determineEffectiveKeyProvider(strongBoxMode, regular, backup);
+        final KeychainProtectionSupport support = regular.getKeychainProtectionSupport();
+        final int encryptionMode = determineEncryptionMode(support);
+        return determineEffectiveKeyProvider(encryptionMode, regular, backup);
     }
 
     /**
-     * Determine the current level of StrongBox support on the device.
+     * Determine the current level of encryption support on the device.
      *
-     * @return Current level of StrongBox support. One of STRONGBOX_* constant is returned.
+     * @return Current level of StrongBox support. One of {@code ENCRYPTION_MODE_*} constant is returned.
      */
-    private static int determineStrongBoxMode(@NonNull StrongBoxSupport strongBoxSupport) {
-        if (strongBoxSupport.isStrongBoxSupported()) {
-            return strongBoxSupport.isStrongBoxEnabled() ? STRONGBOX_ENABLED : STRONGBOX_DISABLED;
+    private static int determineEncryptionMode(@NonNull KeychainProtectionSupport keychainProtectionSupport) {
+        if (keychainProtectionSupport.isKeyStoreEncryptionEnabled()) {
+            if (keychainProtectionSupport.isStrongBoxSupported()) {
+                return keychainProtectionSupport.isStrongBoxEnabled() ? ENCRYPTION_MODE_STRONGBOX : ENCRYPTION_MODE_STRONGBOX_DISABLED;
+            }
+            return ENCRYPTION_MODE_DEFAULT;
         }
-        return STRONGBOX_NOT_SUPPORTED;
+        return ENCRYPTION_MODE_DISABLED;
     }
 
     /**
-     * Determine effective key provider depending on StrongBox mode and available key providers.
+     * Determine effective key provider depending on encryption mode mode and available key providers.
      *
-     * @param strongBoxMode The current StrongBox mode determined by {@link #determineStrongBoxMode(StrongBoxSupport)} function.
+     * @param encryptionMode The current StrongBox mode determined by {@link #determineEncryptionMode(KeychainProtectionSupport)} function.
      * @param regular Regular symmetric key provider.
      * @param backup Backup symmetric key provider
-     * @return Backup symmetric key provider in case that strongBox mode is {@link #STRONGBOX_DISABLED}. For all other cases
+     * @return Backup symmetric key provider in case that strongBox mode is {@link #ENCRYPTION_MODE_STRONGBOX_DISABLED}. For all other cases
      *         the regular symmetric key provider is returned.
      */
     @NonNull
-    private static SymmetricKeyProvider determineEffectiveKeyProvider(int strongBoxMode, @NonNull SymmetricKeyProvider regular, @Nullable SymmetricKeyProvider backup) {
-        if (strongBoxMode != STRONGBOX_DISABLED) {
+    private static SymmetricKeyProvider determineEffectiveKeyProvider(int encryptionMode, @NonNull SymmetricKeyProvider regular, @Nullable SymmetricKeyProvider backup) {
+        if (encryptionMode != ENCRYPTION_MODE_STRONGBOX_DISABLED) {
             // If mode is not DISABLED, then always use regular key provider. The regular key provider
             // is configured to support StrongBox if device has such support.
             return regular;
@@ -162,7 +175,7 @@ public class EncryptedKeychain implements Keychain {
 
     @Override
     public boolean isStrongBoxBacked() {
-        return strongBoxMode == STRONGBOX_ENABLED;
+        return encryptionMode == ENCRYPTION_MODE_STRONGBOX;
     }
 
     @Override
@@ -173,8 +186,8 @@ public class EncryptedKeychain implements Keychain {
     /**
      * @return Integer constant representing the current support of StrongBox.
      */
-    public int getStrongBoxMode() {
-        return strongBoxMode;
+    public int getEncryptionMode() {
+        return encryptionMode;
     }
 
     // Byte array accessors
@@ -330,7 +343,7 @@ public class EncryptedKeychain implements Keychain {
     /**
      * Constant defines version 2 of {@code EncryptedKeychain}. The difference between V1 and V2 is
      * that V2 contains additional information whether the keychain content is encrypted with StrongBox
-     * backed key.
+     * backed key or not encrypted at all.
      */
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int KEYCHAIN_V2 = 2;
@@ -344,7 +357,14 @@ public class EncryptedKeychain implements Keychain {
      */
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static boolean isEncryptedContentInSharedPreferences(@NonNull SharedPreferences preferences) {
-        return preferences.getInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V0) >= KEYCHAIN_V1;
+        final int version = preferences.getInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V0);
+        if (version >= KEYCHAIN_V1) {
+            if (version >= KEYCHAIN_V2) {
+                return preferences.getInt(ENCRYPTED_KEYCHAIN_MODE_KEY, ENCRYPTION_MODE_NA) != ENCRYPTION_MODE_DISABLED;
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -405,6 +425,10 @@ public class EncryptedKeychain implements Keychain {
         final Set<String> keysToRemove = new HashSet<>();
         // Iterate over all entries stored in the shared preferences.
         for (final Map.Entry<String, ?> entry : preferences.getAll().entrySet()) {
+            final String key = entry.getKey();
+            if (ReservedKeyImpl.isReservedKey(key)) {
+                continue;
+            }
             final Object value = entry.getValue();
             final @NonNull byte[] encodedValue;
             if (value instanceof String) {
@@ -413,7 +437,7 @@ public class EncryptedKeychain implements Keychain {
                     // It's impossible to determine whether the stored value was string or Base64
                     // encoded data. The most safe way to handle this situation is to remove such
                     // value from the keychain.
-                    keysToRemove.add(entry.getKey());
+                    keysToRemove.add(key);
                     continue;
                 }
                 // Test whether the string is Base64 encoded sequence of bytes
@@ -443,19 +467,19 @@ public class EncryptedKeychain implements Keychain {
                 encodedValue = valueEncoder.encode(stringSet);
             } else {
                 // This type of object is not supported by the keychain, so remove it from shared preferences.
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Removing unsupported value from key: " + entry.getKey());
-                keysToRemove.add(entry.getKey());
+                PA2Log.e("EncryptedKeychain: " + identifier + ": Removing unsupported value from key: " + key);
+                keysToRemove.add(key);
                 continue;
             }
 
             // Now encrypt the encoded value
             final byte[] encryptedValue = AesGcmImpl.encrypt(encodedValue, encryptionKey, identifier);
             if (encryptedValue == null) {
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + entry.getKey());
+                PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + key);
                 return false;
             }
             // Keep encrypted value, encoded to Base64, for later save.
-            encryptedContent.put(entry.getKey(), Base64.encodeToString(encryptedValue, Base64.NO_WRAP));
+            encryptedContent.put(key, Base64.encodeToString(encryptedValue, Base64.NO_WRAP));
         }
 
         // Commit all changes to the underlying shared preferences
@@ -498,7 +522,7 @@ public class EncryptedKeychain implements Keychain {
      */
     private void putVersion(@NonNull SharedPreferences.Editor editor) {
         editor.putInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V2);
-        editor.putInt(ENCRYPTED_KEYCHAIN_STRONGBOX_KEY, strongBoxMode);
+        editor.putInt(ENCRYPTED_KEYCHAIN_MODE_KEY, encryptionMode);
     }
 
     // StrongBox workaround
@@ -509,34 +533,45 @@ public class EncryptedKeychain implements Keychain {
      * on some devices, so keychain has to track whether encryption key is StrongBox backed or not.
      */
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public static final String ENCRYPTED_KEYCHAIN_STRONGBOX_KEY = "com.wultra.PowerAuthKeychain.StrongBoxMode";
+    public static final String ENCRYPTED_KEYCHAIN_MODE_KEY = "com.wultra.PowerAuthKeychain.EncryptionMode";
 
     /**
-     * StrongBox support is not yet determined.
+     * Encryption mode is not yet determined.
      */
-    public static final int STRONGBOX_NA = 0;
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static final int ENCRYPTION_MODE_NA = 0;
+    /**
+     * Encryption is not supported on this device at all.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static final int ENCRYPTION_MODE_DISABLED = 1;
     /**
      * StrongBox is supported and enabled on this device.
      */
-    public static final int STRONGBOX_ENABLED = 1;
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static final int ENCRYPTION_MODE_STRONGBOX = 2;
     /**
-     * StrongBox is not supported this device.
+     * StrongBox is not supported this device so keychain will be encrypted with a regular KeyStore
+     * backed key.
      */
-    public static final int STRONGBOX_NOT_SUPPORTED = 2;
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static final int ENCRYPTION_MODE_DEFAULT = 3;
     /**
      * StrongBox is supported but disabled on this device.
      */
-    public static final int STRONGBOX_DISABLED = 3;
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static final int ENCRYPTION_MODE_STRONGBOX_DISABLED = 4;
 
     /**
-     * Compare the current StrongBox support against the value stored in the shared preferences and
-     * re-encrypt keychain content if needed. The function also upgrade keychain version from V1
-     * to V2, if possible. In case of failure, function remove all data from keychain.
+     * Compare the current encryption mode supported on the device against the value stored in
+     * the shared preferences and re-encrypt keychain content if needed. The function also upgrade
+     * keychain version from V1 to V2, if possible. In case of failure, function remove all data
+     * from keychain.
      *
      * @param preferences Underlying {@code SharedPreferences} that contains content of keychain.
      * @return {@code true} in case of success.
      */
-    public boolean updateStrongBoxSupport(@NonNull SharedPreferences preferences) {
+    public boolean updateEncryptionSupport(@NonNull SharedPreferences preferences) {
         // Determine keychain version
         final int keychainVersion = preferences.getInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V0);
         if (keychainVersion == KEYCHAIN_V0) {
@@ -545,53 +580,80 @@ public class EncryptedKeychain implements Keychain {
             return false;
         }
         // Get stored StrongBox support.
-        final int previousDeviceSupport = preferences.getInt(ENCRYPTED_KEYCHAIN_STRONGBOX_KEY, STRONGBOX_NA);
-        if (keychainVersion == KEYCHAIN_V2 && strongBoxMode == previousDeviceSupport) {
+        final int previousDeviceSupport = preferences.getInt(ENCRYPTED_KEYCHAIN_MODE_KEY, ENCRYPTION_MODE_NA);
+        if (keychainVersion == KEYCHAIN_V2 && encryptionMode == previousDeviceSupport) {
             // There's no change in StrongBox support from previous initialization.
             return true;
         }
         // Investigate what was changed since the last keychain initialization.
-        final boolean strongBoxSupported = strongBoxMode != STRONGBOX_NOT_SUPPORTED;
-        final boolean strongBoxEnabled = strongBoxMode == STRONGBOX_ENABLED;
+        final boolean encryptionEnabled = encryptionMode != ENCRYPTION_MODE_DISABLED;
+        final boolean strongBoxSupported = encryptionMode != ENCRYPTION_MODE_DEFAULT && encryptionEnabled;
+        final boolean strongBoxEnabled = encryptionMode == ENCRYPTION_MODE_STRONGBOX;
+
         boolean reEncryptContent = false;
         boolean result = true;
         if (keychainVersion == KEYCHAIN_V1) {
-            // We're still on V1 version of keychain. We need re-encrypt content only if StrongBox
-            // is supported but it's not enabled. Basically, this is required only when app did
-            // upgrade SDK and now StrongBox is considered as unreliable.
-            reEncryptContent = strongBoxSupported && !strongBoxEnabled;
+            if (encryptionEnabled) {
+                // We're still on V1 version of keychain. We need re-encrypt content only if StrongBox
+                // is supported but it's not enabled. Basically, this is required only when app did
+                // upgrade SDK and now StrongBox is considered as unreliable.
+                reEncryptContent = strongBoxSupported && !strongBoxEnabled;
+            } else {
+                // We're still on V1 version of keychain, but the current SDK determined that this
+                // device has unreliable Android KeyStore. We have to decrypt data and store the content
+                // to old legacy format.
+                reEncryptContent = true;
+            }
         } else if (keychainVersion == KEYCHAIN_V2) {
-            // We're on V2 keychain and it seems that StrongBox support was changed. This typically
-            // means that this version of SDK has a different support of StrongBox than previous one.
-            // For example, Google did fix its implementation and we decided to re-enable it on
-            // this device, or vice versa.
+            // We're on V2 keychain and it seems that StrongBox or encryption support was changed.
+            // This typically means that this version of SDK has a different encryption support than
+            // previous one. For example, Google did fix its implementation and we decided to re-enable
+            // it on this device, or vice versa.
             reEncryptContent = true;
         }
         if (reEncryptContent) {
-            if (backupKeyProvider != null) {
-                // Now we have to decide the right direction of data re-encryption.
-                final SecretKey sourceKey, destinationKey;
-                if (strongBoxEnabled) {
-                    // If StrongBox is enabled, then we have to re-encrypt data from the backup key
-                    // to the regular one.
-                    PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with StrongBox backed key.");
-                    sourceKey = backupKeyProvider.getOrCreateSecretKey(context, false);
-                    destinationKey = regularKeyProvider.getOrCreateSecretKey(context, false);
+            if (encryptionEnabled) {
+                // Encryption is still enabled.
+                if (backupKeyProvider != null) {
+                    // Now we have to decide the right direction of data re-encryption.
+                    final SecretKey sourceKey, destinationKey;
+                    if (strongBoxEnabled) {
+                        // If StrongBox is enabled, then we have to re-encrypt data from the backup key
+                        // to the regular one.
+                        PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with StrongBox backed key.");
+                        sourceKey = backupKeyProvider.getOrCreateSecretKey(context, false);
+                        destinationKey = regularKeyProvider.getOrCreateSecretKey(context, false);
+                    } else {
+                        // StrongBox is disabled, so we have to re-encrypt data from the regular key to the backup one.
+                        PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with regular key.");
+                        sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
+                        destinationKey = backupKeyProvider.getOrCreateSecretKey(context, false);
+                    }
+                    if (sourceKey != null && destinationKey != null) {
+                        result = reEncryptKeychain(preferences, sourceKey, destinationKey);
+                    } else {
+                        PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to get source or destination encryption key.");
+                        result = false;
+                    }
                 } else {
-                    // StrongBox is disabled, so we have to re-encrypt data from the regular key to the backup one.
-                    PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with regular key.");
-                    sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
-                    destinationKey = backupKeyProvider.getOrCreateSecretKey(context, false);
-                }
-                if (sourceKey != null && destinationKey != null) {
-                    result = reEncryptKeychain(preferences, sourceKey, destinationKey);
-                } else {
-                    PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to get source or destination encryption key.");
+                    PA2Log.e("EncryptedKeychain: " + identifier + ": Internal error: Backup provider is not set.");
                     result = false;
                 }
             } else {
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Internal error: Backup provider is not set.");
-                result = false;
+                // Encryption is no longer available, so we have to decrypt and store content in legacy format.
+                final SecretKey sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
+                if (sourceKey != null) {
+                    PA2Log.d("EncryptedKeychain: " + identifier + ": Decrypting data with a regular key.");
+                    result = reEncryptKeychain(preferences, sourceKey, null);
+                    if (result) {
+                        // Fallback operation succeeded, so the content is stored in the legacy format. We must return false
+                        // to inform KeychainFactory that LegacyKeychain must be returned back to the application.
+                        return false;
+                    }
+                } else {
+                    PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to get source encryption key.");
+                    result = false;
+                }
             }
             if (!result) {
                 // This is a special cleanup, that leaves data in V0 (e.g. not encrypted) format. It basically remove all
@@ -611,14 +673,16 @@ public class EncryptedKeychain implements Keychain {
     }
 
     /**
-     * Re-encrypt content of keychain to a different encryption key.
+     * Re-encrypt content of keychain to a different encryption key or back to a legacy plaintext
+     * format.
      *
      * @param preferences {@link SharedPreferences} containing keychain data.
      * @param source {@link SecretKey} to decrypt data.
-     * @param destination {@link SecretKey} to encrypt data.
+     * @param destination {@link SecretKey} to encrypt data. If {@code null}, then the function store
+     *                    keychain content in plaintext.
      * @return {@code true} in case of success.
      */
-    private boolean reEncryptKeychain(@NonNull SharedPreferences preferences, @NonNull SecretKey source, @NonNull SecretKey destination) {
+    private boolean reEncryptKeychain(@NonNull SharedPreferences preferences, @NonNull SecretKey source, @Nullable SecretKey destination) {
         boolean result = true;
         // Prepare hash map for decrypted content.
         final Map<String, byte[]> decryptedContent = new HashMap<>();
@@ -640,20 +704,33 @@ public class EncryptedKeychain implements Keychain {
             }
             decryptedContent.put(key, encodedValue);
         }
-        // Now encrypt data with a destination secret key.
+        // Now encrypt data with a destination secret key. If destination key is not available, then
+        // just save data in legacy format.
         SharedPreferences.Editor editor = preferences.edit();
         if (result) {
             // Now try to encrypt all decrypted data.
             for (final Map.Entry<String, byte[]> entry : decryptedContent.entrySet()) {
                 final String key = entry.getKey();
                 final byte[] value = entry.getValue();
-                final String encryptedValue = encryptRawValue(destination, value);
-                if (encryptedValue == null) {
-                    PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to encrypt data for key '" + key + "'. Data migration will fail.");
-                    result = false;
-                    break;
+                if (destination != null) {
+                    // Destination key is available, so encrypt raw value with it. We don't care
+                    // about value's type in this point.
+                    final String encryptedValue = encryptRawValue(destination, value);
+                    if (encryptedValue == null) {
+                        PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to encrypt data for key '" + key + "'. Data migration will fail.");
+                        result = false;
+                        break;
+                    }
+                    editor.putString(key, encryptedValue);
+                } else {
+                    // Key for target encryption is not available. This situation happens when
+                    // a proper fallback to legacy keychain is required.
+                    if (!storeLegacyRawValue(editor, key, value)) {
+                        PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to decode data for key '" + key + "'. Data migration will fail.");
+                        result = false;
+                        break;
+                    }
                 }
-                editor.putString(key, encryptedValue);
             }
             if (result) {
                 // If the result is still OK then store version and the current mode to the preferences.
@@ -749,6 +826,51 @@ public class EncryptedKeychain implements Keychain {
             return Base64.encodeToString(encryptedValue, Base64.NO_WRAP);
         }
         return null;
+    }
+
+    /**
+     * Store encoded raw value in legacy format to given {@link SharedPreferences.Editor} instance.
+     * @param editor {@link SharedPreferences.Editor} instance.
+     * @param key Key to shared preferences.
+     * @param rawValue Encoded raw value.
+     * @return {@code true} if value was properly stored to given editor.
+     */
+    private boolean storeLegacyRawValue(@NonNull SharedPreferences.Editor editor, @NonNull String key, @NonNull byte[] rawValue) {
+        try {
+            switch (valueEncoder.decodeValueType(rawValue)) {
+                case KeychainValueEncoder.TYPE_DATA:
+                    final byte[] dataValue = valueEncoder.decodeBytes(rawValue);
+                    final String serializedData = dataValue.length > 0 ? Base64.encodeToString(dataValue, Base64.DEFAULT) : null;
+                    editor.putString(key, serializedData);
+                    break;
+                case KeychainValueEncoder.TYPE_STRING:
+                    final String stringValue = valueEncoder.decodeString(rawValue);
+                    editor.putString(key, stringValue);
+                    break;
+                case KeychainValueEncoder.TYPE_BOOLEAN:
+                    final boolean boolValue = valueEncoder.decodeBoolean(rawValue);
+                    editor.putBoolean(key, boolValue);
+                    break;
+                case KeychainValueEncoder.TYPE_LONG:
+                    final long longValue = valueEncoder.decodeLong(rawValue);
+                    editor.putLong(key, longValue);
+                    break;
+                case KeychainValueEncoder.TYPE_FLOAT:
+                    final float floatValue = valueEncoder.decodeFloat(rawValue);
+                    editor.putFloat(key, floatValue);
+                    break;
+                case KeychainValueEncoder.TYPE_STRING_SET:
+                    final Set<String> setValue = valueEncoder.decodeStringSet(rawValue);
+                    editor.putStringSet(key, setValue);
+                    break;
+                default:
+                    return false;
+            }
+        } catch (IllegalKeychainAccessException e) {
+            // Failed to decode raw value
+            return false;
+        }
+        return true;
     }
 
     /**

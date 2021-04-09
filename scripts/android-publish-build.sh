@@ -26,8 +26,11 @@ function USAGE
     echo ""
     echo "options:"
     echo ""
+    echo "    -s version | --snapshot version"
+    echo "                      Set version to version-SNAPSHOT and exit"
+    echo ""
     echo "    -nc | --no-clean"
-    echo "                      Don't clean build before publishing."
+    echo "                      Don't clean build before publishing"
     echo ""
     echo "    -v0               turn off all prints to stdout"
     echo "    -v1               print only basic log about build progress"
@@ -35,6 +38,28 @@ function USAGE
     echo "    -h | --help       print this help information"
     echo ""
     exit $1
+}
+
+# -----------------------------------------------------------------------------
+# MAKE_SNAPSHOT_VER sets version-SNAPSHOT to gradle.properties file
+# Parameters:
+#   $1   - version to set
+# -----------------------------------------------------------------------------
+function MAKE_SNAPSHOT_VER
+{
+    local VER=$1
+    local GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
+    
+    VALIDATE_AND_SET_VERSION_STRING "$VER"
+    VER=$VER-SNAPSHOT
+    
+    PUSH_DIR "${SRC_ROOT}"
+    ####
+	LOG "Modifying version to $VER ..."
+	sed -e "s/%DEPLOY_VERSION%/$VER/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
+	git add ${GRADLE_PROP}
+    ####
+    POP_DIR
 }
 
 ###############################################################################
@@ -49,6 +74,10 @@ while [[ $# -gt 0 ]]
 do
     opt="$1"
     case "$opt" in
+        -s | --snapshot)
+            MAKE_SNAPSHOT_VER "$2"
+            EXIT_SUCCESS
+            ;;
         -nc | --no-clean)
             DO_CLEAN='' ;;
         central | local)
@@ -75,7 +104,6 @@ case "$DO_REPO" in
     *)
         FAILURE "You must specify repository where publish to."
 esac
-
 
 if [ $VERBOSE == 2 ]; then
     GRADLE_PARAMS+=' --debug'

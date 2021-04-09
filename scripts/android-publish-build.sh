@@ -7,6 +7,11 @@ source "${TOP}/common-functions.sh"
 SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 # -----------------------------------------------------------------------------
+# Global variables
+
+GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
+
+# -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
 # Parameters:
 #   $1   - error code to be used as return code from the script
@@ -48,7 +53,6 @@ function USAGE
 function MAKE_SNAPSHOT_VER
 {
     local VER=$1
-    local GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
     
     VALIDATE_AND_SET_VERSION_STRING "$VER"
     VER=$VER-SNAPSHOT
@@ -60,6 +64,35 @@ function MAKE_SNAPSHOT_VER
 	git add ${GRADLE_PROP}
     ####
     POP_DIR
+}
+
+# -----------------------------------------------------------------------------
+# LOAD_CURRENT_VERSION loads and prints version from gradle.properties file
+# Parameters:
+#   $1   - target repository (local | central)
+# -----------------------------------------------------------------------------
+function LOAD_CURRENT_VERSION
+{
+    local REPO=$1
+    local PROP_PATH="$SRC_ROOT/${GRADLE_PROP}"
+    
+    [[ ! -f "$PROP_PATH" ]] && FAILURE "gradle.properties file doesn't exist on expected path."
+    
+    source "$PROP_PATH"
+    
+    LOG_LINE
+    if [ $REPO == 'local' ]; then
+        LOG "Going to publish library to local Maven cache"
+    else
+        LOG "Going to publish library to Sonatype Repository"
+    fi
+    LOG " - Version    : ${VERSION_NAME}"
+    LOG " - Dependency : ${GROUP_ID}:${ARTIFACT_ID}:${VERSION_NAME}"
+    LOG_LINE
+    
+    unset VERSION_NAME
+    unset GROUP_ID
+    unset ARTIFACT_ID
 }
 
 ###############################################################################
@@ -94,11 +127,9 @@ done
 
 case "$DO_REPO" in
     local)
-        LOG "Publishing to local maven cache..."
         DO_PUBLISH='publishReleasePublicationToMavenLocal'
         ;;  
     central)
-        LOG "Publishing to maven central..."
         DO_PUBLISH='publishReleasePublicationToSonatypeRepository'
         ;;
     *)
@@ -108,6 +139,8 @@ esac
 if [ $VERBOSE == 2 ]; then
     GRADLE_PARAMS+=' --debug'
 fi
+
+LOAD_CURRENT_VERSION $DO_REPO
 
 # Load signing and releasing credentials
 if [ $DO_REPO == 'central' ]; then    

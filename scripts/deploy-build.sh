@@ -223,13 +223,8 @@ function DEPLOY_ANDROID
 	if [ x$DO_ANDROID == x0 ]; then
 		return
 	fi
-		
-	PUSH_DIR "${SRC_ROOT}/proj-android"
-	####
-	LOG "----- Building android library..."
-	./gradlew clean assembleRelease install bintrayUpload
-	####
-	POP_DIR
+    
+    "${TOP}/android-publish-build.sh" central
 }
 
 # -----------------------------------------------------------------------------

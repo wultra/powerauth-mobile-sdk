@@ -101,6 +101,8 @@ public class SymmetricKeyProvider {
      * Create a new instance of this class, configured to generate keys for AES-GCM cipher.
      *
      * @param keyAlias Key alias that identifies the key in Android KeyStore.
+     * @param allowStrongBoxBackedKey If {@code true} then StrongBox backed key is created if device supports StrongBox.
+     * @param keychainProtectionSupport Object implementing {@link KeychainProtectionSupport} interface.
      * @param keySize Number of bits for generated key.
      * @param randomizedEncryption Whether encryption using this key must be sufficiently randomized
      *                             to produce different ciphertexts for the same plaintext every time.
@@ -135,6 +137,8 @@ public class SymmetricKeyProvider {
     /**
      * Create a new instance of this class, configured to generate keys for AES-CBC cipher.
      * @param keyAlias Key alias that identifies the key in Android KeyStore.
+     * @param allowStrongBoxBackedKey If {@code true} then StrongBox backed key is created if device supports StrongBox.
+     * @param keychainProtectionSupport Object implementing {@link KeychainProtectionSupport} interface.
      * @param keySize Number of bits for generated key.
      * @param randomizedEncryption Whether encryption using this key must be sufficiently randomized
      *                             to produce different ciphertexts for the same plaintext every time.

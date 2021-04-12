@@ -39,11 +39,11 @@ To get PowerAuth SDK for Android up and running in your app, add following depen
 
 ```gradle
 repositories {
-    jcenter() // if not defined elsewhere...
+    mavenCentral() // if not defined elsewhere...
 }
 
 dependencies {
-    compile 'io.getlime.security.powerauth:powerauth-android-sdk:1.x.y'
+    compile 'com.wultra.android.powerauth:powerauth-sdk:1.x.y'
 }
 ```
 Note that this documentation is using version `1.x.y` as an example. You can find the latest version in our [List of Releases](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Releases.md). The Android Studio IDE can also find and offer updates for your application's dependencies.

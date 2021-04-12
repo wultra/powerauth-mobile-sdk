@@ -17,12 +17,22 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-// Load local properties. Be aware, that file should not be included in SCM.
-Properties properties = new Properties()
-def propFile = project.rootProject.file('local.properties')
-if (propFile.canRead()) {
-    properties.load(propFile.newDataInputStream())
-}
+/*
+ * External properties required for proper SDK publishing:
+ *
+ * Credentials to nexus:
+ *   nexus.user              - login / User Token to nexus
+ *   nexus.password          - password to nexus
+ *   nexus.stagingProfileId  - staging profile ID
+ *                             (click on your staging profile and copy ID from browser's URL)
+ *
+ * Signing options:
+ *   signing.gnupg.keyName    - GPG key identifier
+ *   signing.gnupg.passphrase - GPG key passphrase
+ *
+ * If gpg2 executable is not available, then also set
+ *   signing.gnupg.executable=gpg
+ */
 
 ext {
     // Group, artifact & version
@@ -30,13 +40,10 @@ ext {
     ARTIFACT_ID = project.ARTIFACT_ID
     VERSION_NAME = project.VERSION_NAME
 
-    // Nexus credentials & URL
-    NEXUS_USERNAME = properties.getProperty("nexus.user") ?: System.getenv("NEXUS_USERNAME")
-    NEXUS_PASSWORD = properties.getProperty("nexus.password") ?: System.getenv("NEXUS_PASSWORD")
-}
-
-def isReleaseBuild() {
-    return !VERSION_NAME.contains("SNAPSHOT")
+    // Nexus credentials
+    NEXUS_USERNAME = findProperty('nexus.user')
+    NEXUS_PASSWORD = findProperty('nexus.password')
+    NEXUS_STAGING_PROFILE = findProperty('nexus.stagingProfileId')
 }
 
 task androidJavadocs(type: Javadoc) {
@@ -124,8 +131,8 @@ publishing {
         maven {
             name = 'sonatype'
 
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
 
             credentials {
@@ -136,15 +143,24 @@ publishing {
     }
 }
 
-def shouldSignArtifacts() {
-    return isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives")
-}
-
 signing {
     required { shouldSignArtifacts() }
     if (shouldSignArtifacts()) {
-        // useGpgCmd fail when no credentials are provided, so it must be also conditional
+        // This must be also conditional, otherwise developers with no signing capabilities will
+        // not be able to publish library to the local maven.
         useGpgCmd()
     }
     sign publishing.publications
+}
+
+// Helper functions
+
+def isReleaseBuild() {
+    return !VERSION_NAME.contains("SNAPSHOT")
+}
+
+def shouldSignArtifacts() {
+    def keyId = findProperty('signing.gnupg.keyName')
+    def keyPass = findProperty('signing.gnupg.passphrase')
+    return keyId != null && keyPass != null
 }

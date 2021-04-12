@@ -34,6 +34,10 @@ function USAGE
     echo "    -s version | --snapshot version"
     echo "                      Set version to version-SNAPSHOT and exit"
     echo ""
+    echo "    -ns | --no-sign"
+    echo "                      Don't sign artifacts when publishing"
+    echo "                      to local Maven cache"
+    echo ""
     echo "    -nc | --no-clean"
     echo "                      Don't clean build before publishing"
     echo ""
@@ -86,8 +90,19 @@ function LOAD_CURRENT_VERSION
     else
         LOG "Going to publish library to Sonatype Repository"
     fi
-    LOG " - Version    : ${VERSION_NAME}"
-    LOG " - Dependency : ${GROUP_ID}:${ARTIFACT_ID}:${VERSION_NAME}"
+    LOG " - Version     : ${VERSION_NAME}"
+    LOG " - Dependency  : ${GROUP_ID}:${ARTIFACT_ID}:${VERSION_NAME}"
+    if [ x$DO_SIGN == x1 ]; then
+        LOG " - Signed      : YES"
+    else
+        LOG " - Signed      : NO"
+    fi
+    if [ x$DO_CLEAN == x ]; then
+        LOG " - Clean build : NO"
+    else
+        LOG " - Clean build : YES"
+    fi
+        
     LOG_LINE
     
     unset VERSION_NAME
@@ -101,6 +116,7 @@ function LOAD_CURRENT_VERSION
 DO_CLEAN='clean'
 DO_PUBLISH=''
 DO_REPO=''
+DO_SIGN=1
 GRADLE_PARAMS=''
 
 while [[ $# -gt 0 ]]
@@ -113,6 +129,8 @@ do
             ;;
         -nc | --no-clean)
             DO_CLEAN='' ;;
+        -ns | --no-sign)
+            DO_SIGN=0 ;;
         central | local)
             DO_REPO=$opt ;;
         -v*)
@@ -140,31 +158,45 @@ if [ $VERBOSE == 2 ]; then
     GRADLE_PARAMS+=' --debug'
 fi
 
-LOAD_CURRENT_VERSION $DO_REPO
-
 # Load signing and releasing credentials
-if [ $DO_REPO == 'central' ]; then    
-    REQUIRE_COMMAND gpg
-
+if [ x$DO_SIGN == x1 ]; then
+    # Find proper signing tool
+    set +e
+    HAS_GPG=`which gpg`
+    HAS_GPG2=`which gpg2`
+    set -e
+    
+    [[ -z $HAS_GPG ]] && [[ -z $HAS_GPG2 ]] && FAILURE "gpg or gpg2 tool is missing."
+    
     # Load and validate API credentials
     LOAD_API_CREDENTIALS
     [[ x$NEXUS_USER == x ]] && FAILURE "Missing NEXUS_USER variable in API credentials."
     [[ x$NEXUS_PASSWORD == x ]] && FAILURE "Missing NEXUS_PASSWORD variable in API credentials."
     [[ x$SIGN_GPG_KEY_ID == x ]] && FAILURE "Missing SIGN_GPG_KEY_ID variable in API credentials."
     [[ x$SIGN_GPG_KEY_PASS == x ]] && FAILURE "Missing SIGN_GPG_KEY_PASS variable in API credentials."
-    
+    [[ x$NEXUS_STAGING_PROFILE_ID == x ]] && FAILURE "Missing NEXUS_STAGING_PROFILE_ID variable in API credentials."
+
     # Configure gpg for gradle task
-    GRADLE_PARAMS+=" -Psigning.gnupg.executable=gpg"
     GRADLE_PARAMS+=" -Psigning.gnupg.keyName=$SIGN_GPG_KEY_ID"
     GRADLE_PARAMS+=" -Psigning.gnupg.passphrase=$SIGN_GPG_KEY_PASS"
-    
-    export NEXUS_USER=${NEXUS_USER}
-    export NEXUS_PASSWORD=${NEXUS_PASSWORD}
+    if [ ! -z $HAS_GPG ] && [ -z $HAS_GPG2 ]; then
+        GRADLE_PARAMS+=" -Psigning.gnupg.executable=gpg"
+    fi
+    # Configure nexus credentials
+    GRADLE_PARAMS+=" -Pnexus.user=${NEXUS_USER}"
+    GRADLE_PARAMS+=" -Pnexus.password=${NEXUS_PASSWORD}"
+    GRADLE_PARAMS+=" -Pnexus.stagingProfileId=${NEXUS_STAGING_PROFILE_ID}"
+else
+    [[ $DO_REPO == 'central' ]] && FAILURE "Signing is required for publishing to Maven Central."
 fi
+
+LOAD_CURRENT_VERSION $DO_REPO
 
 PUSH_DIR "${SRC_ROOT}/proj-android"
 ####
-./gradlew $GRADLE_PARAMS $DO_CLEAN assembleRelease $DO_PUBLISH
+GRADLE_CMD_LINE="$GRADLE_PARAMS $DO_CLEAN assembleRelease $DO_PUBLISH"
+DEBUG_LOG "Gradle command line >> ./gradlew $GRADLE_CMD_LINE"
+./gradlew $GRADLE_CMD_LINE
 ####
 POP_DIR
 

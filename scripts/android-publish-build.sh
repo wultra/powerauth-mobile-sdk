@@ -63,9 +63,9 @@ function MAKE_SNAPSHOT_VER
     
     PUSH_DIR "${SRC_ROOT}"
     ####
-	LOG "Modifying version to $VER ..."
-	sed -e "s/%DEPLOY_VERSION%/$VER/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
-	git add ${GRADLE_PROP}
+    LOG "Modifying version to $VER ..."
+    sed -e "s/%DEPLOY_VERSION%/$VER/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
+    git add ${GRADLE_PROP}
     ####
     POP_DIR
 }

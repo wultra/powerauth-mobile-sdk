@@ -70,6 +70,7 @@ function WARNING
 #    Prints all parameters to stdout if VERBOSE is greater than 1
 # EXIT_SUCCESS
 #    print dashed line and "Success" text and exit process with code 0
+#    if -l parameter is provided, then always prints dashed line 
 # -----------------------------------------------------------------------------
 function LOG
 {
@@ -94,6 +95,7 @@ function DEBUG_LOG
 }
 function EXIT_SUCCESS
 {
+    [[ x$1 == 'x-l' ]] && LAST_LOG_IS_LINE=0
     LOG_LINE
     LOG "Success"
     exit 0

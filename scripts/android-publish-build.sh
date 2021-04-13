@@ -200,4 +200,4 @@ DEBUG_LOG "Gradle command line >> ./gradlew $GRADLE_CMD_LINE"
 ####
 POP_DIR
 
-EXIT_SUCCESS
+EXIT_SUCCESS -l

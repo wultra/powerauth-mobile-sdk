@@ -23,7 +23,6 @@ NSString *const PA2ErrorDomain					= @"PA2ErrorDomain";
 NSString *const PA2ErrorInfoKey_AdditionalInfo	= @"PA2ErrorInfoKey_AdditionalInfo";
 NSString *const PA2ErrorInfoKey_ResponseData	= @"PA2ErrorInfoKey_ResponseData";
 
-/** Error code for error with network connectivity or download */
 NSInteger const PA2ErrorCodeNetworkError				= 1;
 NSInteger const PA2ErrorCodeSignatureError				= 2;
 NSInteger const PA2ErrorCodeInvalidActivationState		= 3;
@@ -39,3 +38,4 @@ NSInteger const PA2ErrorCodeInvalidToken				= 14;
 NSInteger const PA2ErrorCodeWatchConnectivity			= 15;
 NSInteger const PA2ErrorCodeProtocolUpgrade				= 16;
 NSInteger const PA2ErrorCodePendingProtocolUpgrade		= 17;
+NSInteger const PA2ErrorCodeBiometryFailed				= 18;

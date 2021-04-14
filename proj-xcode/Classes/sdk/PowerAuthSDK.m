@@ -1121,14 +1121,50 @@ static PowerAuthSDK * s_inst;
 	return result;
 }
 
+- (void) authenticateUsingBiometryWithPrompt:(NSString *)prompt
+									callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
+{
+	[self checkForValidSetup];
+	
+	if (!_session.hasValidActivation) {
+		// No activation, just report error
+		dispatch_async(dispatch_get_main_queue(), ^{
+			callback(nil, PA2MakeError(PA2ErrorCodeMissingActivation, nil));
+		});
+	} else {
+		// Delegate operation to the background thread, because access to keychain is blocking.
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+			PowerAuthAuthentication * authentication;
+			NSError * error;
+			// Acquire key to unlock biometric factor
+			BOOL userCancelled = NO;
+			NSData * biometryKey = [self biometryRelatedKeyUserCancelled:&userCancelled prompt:prompt];
+			if (biometryKey) {
+				authentication = [PowerAuthAuthentication possessionWithBiometryWithPrompt:prompt];
+				authentication.overridenBiometryKey = biometryKey;
+				error = nil;
+			} else {
+				authentication = nil;
+				error = PA2MakeError(userCancelled ? PA2ErrorCodeBiometryCancel : PA2ErrorCodeBiometryFailed, nil);
+			}
+			// Report result back to the main thread
+			dispatch_async(dispatch_get_main_queue(), ^{
+				callback(authentication, error);
+			});
+		});
+	}
+}
+
 - (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
-                            withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, bool userCanceled))block
+                            withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
 {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSStatus status;
-        bool userCanceled;
-        NSDictionary *keys = [_biometryOnlyKeychain allItemsWithPrompt:prompt withStatus:&status];
-        userCanceled = status == errSecUserCanceled;
+        __block OSStatus status;
+		__block NSDictionary *keys;
+		BOOL executed = [PA2Keychain tryLockBiometryAndExecuteBlock:^{
+			keys = [_biometryOnlyKeychain allItemsWithPrompt:prompt withStatus:&status];
+		}];
+		BOOL userCanceled = !executed || (status == errSecUserCanceled);
         block(keys, userCanceled);
     });
 }

@@ -45,7 +45,7 @@ static NSString * _GetDefaultErrorDescription(NSInteger errorCode, NSString * me
 	_CODE_DESC(PA2ErrorCodeWrongParameter, @"Invalid parameter provided to method")
 	_CODE_DESC(PA2ErrorCodeInvalidToken, @"Invalid or unknown token")
 	_CODE_DESC(PA2ErrorCodeWatchConnectivity, @"Watch connectivity error")
-	_CODE_DESC(PA2ErrorCodeWatchConnectivity, @"Protocol upgrade error")
+	_CODE_DESC(PA2ErrorCodeProtocolUpgrade, @"Protocol upgrade error")
 	_CODE_DESC(PA2ErrorCodePendingProtocolUpgrade, @"Pending protocol ugprade, try later")
 #undef _CODE_DESC
 	return [NSString stringWithFormat:@"Unknown error %@", @(errorCode)];

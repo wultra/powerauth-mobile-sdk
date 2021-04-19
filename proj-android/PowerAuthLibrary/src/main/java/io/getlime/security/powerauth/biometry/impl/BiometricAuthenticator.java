@@ -413,7 +413,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(resources.strings.errorFingerprintDisabledTitle)
                 .setMessage(message)
-                .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
+                .setCloseButton(resources.strings.ok)
                 .setIcon(resources.drawables.errorIcon)
                 .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
                     @Override
@@ -471,7 +471,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(titleDescription.first)
                 .setMessage(titleDescription.second)
-                .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
+                .setCloseButton(resources.strings.ok)
                 .setIcon(resources.drawables.errorIcon)
                 .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
                     @Override

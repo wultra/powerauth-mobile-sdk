@@ -42,17 +42,10 @@ public class BiometricDialogResources {
      */
     public final @NonNull Drawables drawables;
 
-    /**
-     * Contains object witch colors, required for the fingerprint dialog.
-     */
-    public final @NonNull Colors colors;
-
     private BiometricDialogResources(
             @NonNull Strings strings,
-            @NonNull Drawables drawables,
-            @NonNull Colors colors) {
+            @NonNull Drawables drawables) {
         this.strings = strings;
-        this.colors = colors;
         this.drawables = drawables;
     }
 
@@ -63,7 +56,6 @@ public class BiometricDialogResources {
 
         private Strings strings;
         private Drawables drawables;
-        private Colors colors;
 
         public Builder() {
         }
@@ -75,8 +67,7 @@ public class BiometricDialogResources {
         public BiometricDialogResources build() {
             return new BiometricDialogResources(
                     strings != null ? strings : Strings.getDefaultStrings(),
-                    drawables != null ? drawables : Drawables.getDefaultDrawables(),
-                    colors != null ? colors : Colors.getDefaultColors());
+                    drawables != null ? drawables : Drawables.getDefaultDrawables());
         }
 
         /**
@@ -94,15 +85,6 @@ public class BiometricDialogResources {
          */
         public Builder setDrawables(@NonNull final Drawables drawables) {
             this.drawables = drawables;
-            return this;
-        }
-
-        /**
-         * @param colors Object with color resources required for the future dialog.
-         * @return This value will never be null.
-         */
-        public Builder setColors(@NonNull final Colors colors) {
-            this.colors = colors;
             return this;
         }
     }
@@ -161,7 +143,7 @@ public class BiometricDialogResources {
         /**
          * Deprecated in version 1.6.0. Please review your resources and use new constructor
          * with reduced number of strings.
-         * 
+         *
          * @param ok Resource string still in use.
          * @param close Resource string still in use.
          * @param errorEnrollFingerprintTitle Resource string still in use.
@@ -284,52 +266,6 @@ public class BiometricDialogResources {
         public static @NonNull Drawables getDefaultDrawables() {
             return new Drawables(
                     R.drawable.ic_fingerprint_error);
-        }
-    }
-
-    /**
-     * The nested {@code Colors} class contains colors used in the fingerprint dialog and error
-     * dialogs, created by SDK.
-     */
-    public static class Colors {
-        /**
-         * Close or cancel button text color.
-         */
-        public final @ColorRes int closeButtonText;
-
-        /**
-         * Deprecated in version 1.6.0. Please review your resources and use new constructor
-         * with reduced number of strings.
-         *
-         * @param background Resource is now deprecated.
-         * @param primaryText Resource is now deprecated.
-         * @param secondaryText Resource is now deprecated.
-         * @param successText Resource is now deprecated.
-         * @param failureText Resource is now deprecated.
-         * @param closeButtonText Color of close button in error dialog.
-         */
-        @Deprecated
-        public Colors(
-                @ColorRes int background,
-                @ColorRes int primaryText,
-                @ColorRes int secondaryText,
-                @ColorRes int successText,
-                @ColorRes int failureText,
-                @ColorRes int closeButtonText) {
-            this.closeButtonText = closeButtonText;
-        }
-
-        public Colors(
-                @ColorRes int closeButtonText) {
-            this.closeButtonText = closeButtonText;
-        }
-
-        /**
-         * @return Default color resources provided by the SDK.
-         */
-        public static @NonNull Colors getDefaultColors() {
-            return new Colors(
-                    R.color.color_fingerprint_close_button);
         }
     }
 }

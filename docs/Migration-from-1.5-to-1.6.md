@@ -26,7 +26,7 @@ TODO...
 - The `BiometricDialogResources` class containing resource IDs for the biometric authentication has been heavily reduced. Please review the actual usage of the resources carefuly.
   - The `BiometricDialogResources.Strings` section has been reduced. The old section constructor is now deprecated and you can review what strings are still in use.
   - The `BiometricDialogResources.Drawables` section has been reduced. The old section constructor is now deprecated and you can review what images are still in use. 
-  - The `BiometricDialogResources.Colors` section has been reduced. The old section constructor is now deprecated and you can review what colors are still in use. 
+  - There's no longer `BiometricDialogResources.Colors` section. 
   - There's no longer `BiometricDialogResources.Layout` section.
   
 

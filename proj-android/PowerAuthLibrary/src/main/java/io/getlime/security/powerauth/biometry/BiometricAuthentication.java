@@ -225,7 +225,7 @@ public class BiometricAuthentication {
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(titleDescription.first)
                 .setMessage(titleDescription.second)
-                .setCloseButton(resources.strings.ok, resources.colors.closeButtonText)
+                .setCloseButton(resources.strings.ok)
                 .setIcon(resources.drawables.errorIcon)
                 .setOnCloseListener(new BiometricErrorDialogFragment.OnCloseListener() {
                     @Override

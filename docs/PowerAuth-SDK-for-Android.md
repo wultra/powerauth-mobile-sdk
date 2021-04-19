@@ -373,7 +373,7 @@ This code has created activation with two factors: possession (key stored using 
 
 ```java
 // Commit activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.commitActivation(context, fragmentManager, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new ICommitActivationWithBiometryListener() {
+powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new ICommitActivationWithBiometryListener() {
     @Override
     public void onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
@@ -873,7 +873,7 @@ Use following code to enable biometric authentication using biometric authentica
 
 ```java
 // Establish biometric data using provided password
-powerAuthSDK.addBiometryFactor(context, fragmentManager, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", "1234", new IAddBiometryFactorListener() {
+powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", "1234", new IAddBiometryFactorListener() {
     @Override
     public void onAddBiometryFactorSucceed() {
         // Everything went OK, biometric authentication is ready to be used
@@ -916,7 +916,7 @@ In order to obtain an encrypted biometry factor-related key for the purpose of a
 
 ```java
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragmentManager, "Sign in", "Use the biometric sensor on your device to continue", new IBiometricAuthenticationCallback() {
+powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IBiometricAuthenticationCallback() {
     @Override
     public void onBiometricDialogCancelled() {
         // User cancelled the operation
@@ -968,19 +968,16 @@ In case of [compatibility issues](https://github.com/wultra/powerauth-mobile-sdk
 BiometricAuthentication.setBiometricPromptAuthenticationDisabled(true);
 ```
 
-To customize the legacy fingerprint dialog, you can use `BiometricDialogResources` in following manner:
+To customize the strings used in biometric authentication, you can use `BiometricDialogResources` in following manner:
 
 ```java
 // Prepare new strings, colors, etc...
 final BiometricDialogResources.Strings newStrings = new BiometricDialogResources.Strings(... constructor with string ids ...);
-final BiometricDialogResources.Colors newColors = new BiometricDialogResources.Colors(... constructor with color ids ...);
 
 // Build new resources object. 
 // If you omit some custom resources object, then the Builder will replace that with resources bundled in SDK.
-// For example, you can provide your own strings, but keep the default dialog layout.
 final BiometricDialogResources resources = new BiometricDialogResources.Builder(context)
                                             .setStrings(newStrings)
-                                            .setColors(newColors)
                                             .build();
     
 // Set resources to BiometricAuthentication

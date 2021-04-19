@@ -18,8 +18,6 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
-import androidx.annotation.IdRes;
-import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 
@@ -27,8 +25,7 @@ import io.getlime.security.powerauth.R;
 
 /**
  * The {@code BiometricDialogResources} contains resource identifier of layout, strings, drawables
- * and other information, required for the display of fallback fingerprint dialog. Such dialog is
- * currently needed on the systems API level less than 28 (Android.P).
+ * and other information, required for the display of error dialog after failed biometric authentication.
  *
  * You can construct your own set of resources and use it in {@link BiometricAuthentication#setBiometricDialogResources(BiometricDialogResources)}
  * method, to affect all future biometric authentication requests.
@@ -50,18 +47,10 @@ public class BiometricDialogResources {
      */
     public final @NonNull Colors colors;
 
-    /**
-     * Contains object with dialog layout and constants identifying views inside the layout.
-     */
-    public final @NonNull Layout layout;
-
-
     private BiometricDialogResources(
             @NonNull Strings strings,
             @NonNull Drawables drawables,
-            @NonNull Colors colors,
-            @NonNull Layout layout) {
-        this.layout = layout;
+            @NonNull Colors colors) {
         this.strings = strings;
         this.colors = colors;
         this.drawables = drawables;
@@ -75,7 +64,6 @@ public class BiometricDialogResources {
         private Strings strings;
         private Drawables drawables;
         private Colors colors;
-        private Layout layout;
 
         public Builder() {
         }
@@ -88,8 +76,7 @@ public class BiometricDialogResources {
             return new BiometricDialogResources(
                     strings != null ? strings : Strings.getDefaultStrings(),
                     drawables != null ? drawables : Drawables.getDefaultDrawables(),
-                    colors != null ? colors : Colors.getDefaultColors(),
-                    layout != null ? layout : Layout.getDefaultLayout());
+                    colors != null ? colors : Colors.getDefaultColors());
         }
 
         /**
@@ -118,15 +105,6 @@ public class BiometricDialogResources {
             this.colors = colors;
             return this;
         }
-
-        /**
-         * @param layout Layout definition for the future dialog.
-         * @return This value will never be null.
-         */
-        public Builder setLayout(@NonNull Layout layout) {
-            this.layout = layout;
-            return this;
-        }
     }
 
 
@@ -134,9 +112,6 @@ public class BiometricDialogResources {
      * The nested {@code Strings} class contains all strings resources used by the SDK.
      */
     public static class Strings {
-
-        static final int RESOURCES_COUNT = 18;
-
         /**
          * "OK" button.
          */
@@ -175,19 +150,6 @@ public class BiometricDialogResources {
         public final @StringRes int errorFingerprintDisabledDescription;
 
         /**
-         * Status text that informs user that he has to use the sensor to authenticate.
-         */
-        public final @StringRes int statusTouchSensor;
-        /**
-         * Status text that informs user that image has not been recognized.
-         */
-        public final @StringRes int statusFingerprintNotRecognized;
-        /**
-         * Status text that informs user that authentication did succeed.
-         */
-        public final @StringRes int statusSuccess;
-
-        /**
          * String for error code that instructs user that biometric authentication has been locked out.
          */
         public final @StringRes int errorCodeLockout;
@@ -197,26 +159,29 @@ public class BiometricDialogResources {
         public final @StringRes int errorCodeGeneric;
 
         /**
-         * Accessibility description for fingerprint icon.
+         * Deprecated in version 1.6.0. Please review your resources and use new constructor
+         * with reduced number of strings.
+         * 
+         * @param ok Resource string still in use.
+         * @param close Resource string still in use.
+         * @param errorEnrollFingerprintTitle Resource string still in use.
+         * @param errorEnrollFingerprintDescription Resource string still in use.
+         * @param errorNoFingerprintScannerTitle Resource string still in use.
+         * @param errorNoFingerprintScannerDescription Resource string still in use.
+         * @param errorFingerprintDisabledTitle Resource string still in use.
+         * @param errorFingerprintDisabledDescription Resource string still in use.
+         * @param statusTouchSensor Resource is now deprecated.
+         * @param statusFingerprintNotRecognized Resource is now deprecated.
+         * @param statusSuccess Resource is now deprecated.
+         * @param errorCodeLockout Resource string still in use.
+         * @param errorCodeGeneric Resource string still in use.
+         * @param accessibilityFingerprintIcon Resource is now deprecated.
+         * @param accessibilitySuccessIcon Resource is now deprecated.
+         * @param accessibilityFailureIcon Resource is now deprecated.
+         * @param accessibilityTryAgainAnnouncement Resource is now deprecated.
+         * @param accessibilitySuccessAnnouncement Resource is now deprecated.
          */
-        public final @StringRes int accessibilityFingerprintIcon;
-        /**
-         * Accessibility description for success icon.
-         */
-        public final @StringRes int accessibilitySuccessIcon;
-        /**
-         * Accessibility description for failure icon.
-         */
-        public final @StringRes int accessibilityFailureIcon;
-        /**
-         * Accessibility announcement text instructing user to try again with the biometric authentication.
-         */
-        public final @StringRes int accessibilityTryAgainAnnouncement;
-        /**
-         * Accessibility announcement text for the biometric authentication success.
-         */
-        public final @StringRes int accessibilitySuccessAnnouncement;
-
+        @Deprecated
         public Strings(@StringRes int ok,
                        @StringRes int close,
                        @StringRes int errorEnrollFingerprintTitle,
@@ -235,6 +200,23 @@ public class BiometricDialogResources {
                        @StringRes int accessibilityFailureIcon,
                        @StringRes int accessibilityTryAgainAnnouncement,
                        @StringRes int accessibilitySuccessAnnouncement) {
+            this(ok, close,
+                 errorEnrollFingerprintTitle, errorEnrollFingerprintDescription,
+                 errorNoFingerprintScannerTitle, errorNoFingerprintScannerDescription,
+                 errorFingerprintDisabledTitle, errorFingerprintDisabledDescription,
+                 errorCodeLockout, errorCodeGeneric);
+        }
+
+        public Strings(@StringRes int ok,
+                       @StringRes int close,
+                       @StringRes int errorEnrollFingerprintTitle,
+                       @StringRes int errorEnrollFingerprintDescription,
+                       @StringRes int errorNoFingerprintScannerTitle,
+                       @StringRes int errorNoFingerprintScannerDescription,
+                       @StringRes int errorFingerprintDisabledTitle,
+                       @StringRes int errorFingerprintDisabledDescription,
+                       @StringRes int errorCodeLockout,
+                       @StringRes int errorCodeGeneric) {
             this.ok = ok;
             this.close = close;
             this.errorEnrollFingerprintTitle = errorEnrollFingerprintTitle;
@@ -243,16 +225,8 @@ public class BiometricDialogResources {
             this.errorNoFingerprintScannerDescription = errorNoFingerprintScannerDescription;
             this.errorFingerprintDisabledTitle = errorFingerprintDisabledTitle;
             this.errorFingerprintDisabledDescription = errorFingerprintDisabledDescription;
-            this.statusTouchSensor = statusTouchSensor;
-            this.statusFingerprintNotRecognized = statusFingerprintNotRecognized;
-            this.statusSuccess = statusSuccess;
             this.errorCodeLockout = errorCodeLockout;
             this.errorCodeGeneric = errorCodeGeneric;
-            this.accessibilityFingerprintIcon = accessibilityFingerprintIcon;
-            this.accessibilitySuccessIcon = accessibilitySuccessIcon;
-            this.accessibilityFailureIcon = accessibilityFailureIcon;
-            this.accessibilityTryAgainAnnouncement = accessibilityTryAgainAnnouncement;
-            this.accessibilitySuccessAnnouncement = accessibilitySuccessAnnouncement;
         }
 
         /**
@@ -268,71 +242,9 @@ public class BiometricDialogResources {
                     R.string.fingerprint_dialog_description_no_scanner,
                     R.string.fingerprint_dialog_title_invalidated,
                     R.string.fingerprint_dialog_description_invalidated,
-                    R.string.fingerprint_dialog_touch_sensor,
-                    R.string.fingerprint_dialog_not_recognized,
-                    R.string.fingerprint_dialog_success,
                     R.string.fallback_error_code_lockout,
-                    R.string.fallback_error_code_generic,
-                    R.string.accessibility_icon_fingerprint,
-                    R.string.accessibility_icon_success,
-                    R.string.accessibility_icon_failure,
-                    R.string.accessibility_announcement_try_again,
-                    R.string.accessibility_announcement_success
+                    R.string.fallback_error_code_generic
             );
-        }
-
-        /**
-         * Internal method that pack string resources into array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array to store the resources.
-         */
-        void packTo(@NonNull int[] array, int offset) {
-            array[offset]       = this.ok;
-            array[offset + 1]   = this.close;
-            array[offset + 2]   = this.errorEnrollFingerprintTitle;
-            array[offset + 3]   = this.errorEnrollFingerprintDescription;
-            array[offset + 4]   = this.errorNoFingerprintScannerTitle;
-            array[offset + 5]   = this.errorNoFingerprintScannerDescription;
-            array[offset + 6]   = this.errorFingerprintDisabledTitle;
-            array[offset + 7]   = this.errorFingerprintDisabledDescription;
-            array[offset + 8]   = this.statusTouchSensor;
-            array[offset + 9]   = this.statusFingerprintNotRecognized;
-            array[offset + 10]  = this.statusSuccess;
-            array[offset + 11]  = this.errorCodeLockout;
-            array[offset + 12]  = this.errorCodeGeneric;
-            array[offset + 13]  = this.accessibilityFingerprintIcon;
-            array[offset + 14]  = this.accessibilitySuccessIcon;
-            array[offset + 15]  = this.accessibilityFailureIcon;
-            array[offset + 16]  = this.accessibilityTryAgainAnnouncement;
-            array[offset + 17]  = this.accessibilitySuccessAnnouncement;
-        }
-
-        /**
-         * Internal method that unpacks resources from the provided array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array where resources are located.
-         * @return Unpacked {@link Strings} object.
-         */
-        static @NonNull Strings unpackFrom(@NonNull int[] array, int offset) {
-            return new Strings(
-                    array[offset],
-                    array[offset + 1],
-                    array[offset + 2],
-                    array[offset + 3],
-                    array[offset + 4],
-                    array[offset + 5],
-                    array[offset + 6],
-                    array[offset + 7],
-                    array[offset + 8],
-                    array[offset + 9],
-                    array[offset + 10],
-                    array[offset + 11],
-                    array[offset + 12],
-                    array[offset + 13],
-                    array[offset + 14],
-                    array[offset + 15],
-                    array[offset + 16],
-                    array[offset + 17]);
         }
     }
 
@@ -341,31 +253,29 @@ public class BiometricDialogResources {
      * used by the SDK.
      */
     public static class Drawables {
-
-        static final int RESOURCES_COUNT = 3;
-
-        /**
-         * Fingerprint icon.
-         */
-        public final @DrawableRes int fingerprintIcon;
-
         /**
          * Error icon.
          */
         public final @DrawableRes int errorIcon;
 
         /**
-         * Success icon.
+         * Deprecated in version 1.6.0. Please review your resources and use new constructor
+         * with reduced number of strings.
+         * @param fingerprintIcon Resource is now deprecated.
+         * @param errorIcon Resource ID for error icon.
+         * @param successIcon Resource is now deprecated.
          */
-        public final @DrawableRes int successIcon;
-
+        @Deprecated
         public Drawables(
                 @DrawableRes int fingerprintIcon,
                 @DrawableRes int errorIcon,
                 @DrawableRes int successIcon) {
-            this.fingerprintIcon = fingerprintIcon;
+            this(errorIcon);
+        }
+
+        public Drawables(
+                @DrawableRes int errorIcon) {
             this.errorIcon = errorIcon;
-            this.successIcon = successIcon;
         }
 
         /**
@@ -373,33 +283,7 @@ public class BiometricDialogResources {
          */
         public static @NonNull Drawables getDefaultDrawables() {
             return new Drawables(
-                    R.drawable.ic_fingerprint_default,
-                    R.drawable.ic_fingerprint_error,
-                    R.drawable.ic_fingerprint_success);
-        }
-
-        /**
-         * Internal method that pack drawable resources into array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array to store the resources.
-         */
-        void packTo(@NonNull int[] array, int offset) {
-            array[offset]       = this.fingerprintIcon;
-            array[offset + 1]   = this.errorIcon;
-            array[offset + 2]   = this.successIcon;
-        }
-
-        /**
-         * Internal method that unpacks resources from the provided array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array where resources are located.
-         * @return Unpacked {@link Drawables} object.
-         */
-        static @NonNull Drawables unpackFrom(@NonNull int[] array, int offset) {
-            return new Drawables(
-                    array[offset],
-                    array[offset + 1],
-                    array[offset + 2]);
+                    R.drawable.ic_fingerprint_error);
         }
     }
 
@@ -408,34 +292,23 @@ public class BiometricDialogResources {
      * dialogs, created by SDK.
      */
     public static class Colors {
-
-        static final int RESOURCES_COUNT = 6;
-
-        /**
-         * Fingerprint dialog's background color.
-         */
-        public final @ColorRes int background;
-        /**
-         * Primary text color.
-         */
-        public final @ColorRes int primaryText;
-        /**
-         * Secondary text color.
-         */
-        public final @ColorRes int secondaryText;
-        /**
-         * Success text color.
-         */
-        public final @ColorRes int successText;
-        /**
-         * Failure text color.
-         */
-        public final @ColorRes int failureText;
         /**
          * Close or cancel button text color.
          */
         public final @ColorRes int closeButtonText;
 
+        /**
+         * Deprecated in version 1.6.0. Please review your resources and use new constructor
+         * with reduced number of strings.
+         *
+         * @param background Resource is now deprecated.
+         * @param primaryText Resource is now deprecated.
+         * @param secondaryText Resource is now deprecated.
+         * @param successText Resource is now deprecated.
+         * @param failureText Resource is now deprecated.
+         * @param closeButtonText Color of close button in error dialog.
+         */
+        @Deprecated
         public Colors(
                 @ColorRes int background,
                 @ColorRes int primaryText,
@@ -443,11 +316,11 @@ public class BiometricDialogResources {
                 @ColorRes int successText,
                 @ColorRes int failureText,
                 @ColorRes int closeButtonText) {
-            this.background = background;
-            this.primaryText = primaryText;
-            this.secondaryText = secondaryText;
-            this.successText = successText;
-            this.failureText = failureText;
+            this.closeButtonText = closeButtonText;
+        }
+
+        public Colors(
+                @ColorRes int closeButtonText) {
             this.closeButtonText = closeButtonText;
         }
 
@@ -456,158 +329,7 @@ public class BiometricDialogResources {
          */
         public static @NonNull Colors getDefaultColors() {
             return new Colors(
-                    R.color.color_fingerprint_dialog_background,
-                    R.color.color_fingerprint_text_primary,
-                    R.color.color_fingerprint_text_secondary,
-                    R.color.color_fingerprint_success_text,
-                    R.color.color_fingerprint_failure_text,
                     R.color.color_fingerprint_close_button);
         }
-
-        /**
-         * Internal method that pack drawable resources into array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array to store the resources.
-         */
-        void packTo(@NonNull int[] array, int offset) {
-            array[offset]       = background;
-            array[offset + 1]   = primaryText;
-            array[offset + 2]   = secondaryText;
-            array[offset + 3]   = successText;
-            array[offset + 4]   = failureText;
-            array[offset + 5]   = closeButtonText;
-        }
-
-        /**
-         * Internal method that unpacks resources from the provided array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array where resources are located.
-         * @return Unpacked {@link Colors} object.
-         */
-        static @NonNull Colors unpackFrom(@NonNull int[] array, int offset) {
-            return new Colors(
-                    array[offset],
-                    array[offset + 1],
-                    array[offset + 2],
-                    array[offset + 3],
-                    array[offset + 4],
-                    array[offset + 5]);
-        }
-    }
-
-    /**
-     * The nested {@code Layout} class defines layout for fingerprint dialog. The class also contains
-     * view identifiers which must be valid inside of the layout.
-     */
-    public static class Layout {
-
-        static final int RESOURCES_COUNT = 4;
-
-        /**
-         * Dialog's layout.
-         */
-        public final @LayoutRes int dialogLayout;
-        /**
-         * Identifier for status icon.
-         */
-        public final @IdRes int statusImageView;
-        /**
-         * Identifier for status TextView.
-         */
-        public final @IdRes int statusTextView;
-        /**
-         * Identifier for description TextView.
-         */
-        public final @IdRes int descriptionTextView;
-
-        public Layout(
-                @LayoutRes int dialogLayout,
-                @IdRes int statusImageView,
-                @IdRes int statusTextView,
-                @IdRes int descriptionTextView) {
-            this.dialogLayout = dialogLayout;
-            this.statusImageView = statusImageView;
-            this.statusTextView = statusTextView;
-            this.descriptionTextView = descriptionTextView;
-        }
-
-        /**
-         * @return Default layout resources provided by the SDK.
-         */
-        public static @NonNull Layout getDefaultLayout() {
-            return new Layout(
-                    R.layout.dialog_fingerprint_login,
-                    R.id.fingerprint_icon,
-                    R.id.fingerprint_status,
-                    R.id.fingerprint_description);
-        }
-
-        /**
-         * Internal method that pack drawable resources into array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array to store the resources.
-         */
-        void packTo(@NonNull int[] array, int offset) {
-            array[offset]       = this.dialogLayout;
-            array[offset + 1]   = this.statusImageView;
-            array[offset + 2]   = this.statusTextView;
-            array[offset + 3]   = this.descriptionTextView;
-        }
-
-        /**
-         * Internal method that unpacks resources from the provided array of integers.
-         * @param array Array to hold the resources.
-         * @param offset Offset in the array where resources are located.
-         * @return Unpacked {@link Layout} object.
-         */
-        static @NonNull Layout unpackFrom(@NonNull int[] array, int offset) {
-            return new Layout(
-                    array[offset],
-                    array[offset + 1],
-                    array[offset + 2],
-                    array[offset + 3]);
-        }
-    }
-
-    // Offsets for resources serialization.
-
-    private static final int PACK_STRINGS_OFFSET = 0;
-    private static final int PACK_DRAWABLES_OFFSET = PACK_STRINGS_OFFSET + Strings.RESOURCES_COUNT;
-    private static final int PACK_COLORS_OFFSET = PACK_DRAWABLES_OFFSET + Drawables.RESOURCES_COUNT;
-    private static final int PACK_LAYOUT_OFFSET = PACK_COLORS_OFFSET + Colors.RESOURCES_COUNT;
-    private static final int PACK_DATA_COUNT = PACK_LAYOUT_OFFSET + Layout.RESOURCES_COUNT;
-
-    /**
-     * Method packs {@link BiometricDialogResources} into contiguous array of integers.
-     * @return Array of integers with packed resources.
-     */
-    public @NonNull int[] packResources() {
-        final int[] array = new int[PACK_DATA_COUNT];
-        strings.packTo(array, PACK_STRINGS_OFFSET);
-        drawables.packTo(array, PACK_DRAWABLES_OFFSET);
-        colors.packTo(array, PACK_COLORS_OFFSET);
-        layout.packTo(array, PACK_LAYOUT_OFFSET);
-        return array;
-    }
-
-    /**
-     * Method unpacks {@link BiometricDialogResources} from provided array of integers. The method
-     * throws an exception if array is null or has unexpected size.
-     *
-     * @param array Array with the packed resources.
-     * @return Unpacked {@link BiometricDialogResources} object.
-     */
-    public static @NonNull BiometricDialogResources unpackResources(int[] array) {
-        if (array == null) {
-            throw new IllegalArgumentException("array must not be null");
-        }
-        if (array.length != PACK_DATA_COUNT) {
-            throw new IllegalArgumentException("array has unexpected size.");
-        }
-        return new BiometricDialogResources(
-                Strings.unpackFrom(array, PACK_STRINGS_OFFSET),
-                Drawables.unpackFrom(array, PACK_DRAWABLES_OFFSET),
-                Colors.unpackFrom(array, PACK_COLORS_OFFSET),
-                Layout.unpackFrom(array, PACK_LAYOUT_OFFSET));
     }
 }

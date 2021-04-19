@@ -23,7 +23,8 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -92,14 +93,15 @@ import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyList
 import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
-import io.getlime.security.powerauth.sdk.impl.DefaultCallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
+import io.getlime.security.powerauth.sdk.impl.FragmentHelper;
 import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.system.PA2Log;
 import io.getlime.security.powerauth.system.PA2System;
@@ -132,6 +134,7 @@ public class PowerAuthSDK {
         private PowerAuthClientConfiguration mClientConfiguration;
         private PowerAuthKeychainConfiguration mKeychainConfiguration;
         private ISavePowerAuthStateListener mStateListener;
+        private ICallbackDispatcher mCallbackDispatcher;
 
         /**
          * Creates a builder for {@link PowerAuthSDK}.
@@ -173,6 +176,18 @@ public class PowerAuthSDK {
         }
 
         /**
+         * Set custom callback dispatcher that handle callbacks back to application. If not altered,
+         * then all callbacks will be executed on the main thread.
+         *
+         * @param callbackDispatcher Dispatcher that handle callbacks back to application.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder callbackDispatcher(ICallbackDispatcher callbackDispatcher) {
+            this.mCallbackDispatcher = callbackDispatcher;
+            return this;
+        }
+
+        /**
          * Build instance of {@link PowerAuthSDK}.
          *
          * @param context Android context
@@ -205,6 +220,9 @@ public class PowerAuthSDK {
             if (mClientConfiguration == null) {
                 mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
             }
+            if (mCallbackDispatcher == null) {
+                mCallbackDispatcher = MainThreadExecutor.getInstance();
+            }
 
             // Prepare HTTP client
             final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
@@ -236,7 +254,8 @@ public class PowerAuthSDK {
                     httpClient,
                     stateListener,
                     biometryKeychain,
-                    tokenStoreKeychain);
+                    tokenStoreKeychain,
+                    mCallbackDispatcher);
 
             // Restore state of this SDK instance.
             boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
@@ -254,6 +273,7 @@ public class PowerAuthSDK {
      * @param stateListener             State listener.
      * @param biometryKeychain          Keychain that store biometry-related key.
      * @param tokenStoreKeychain        Keychain that store tokens.
+     * @param callbackDispatcher        Dispatcher that handle callbacks back to application.
      */
     private PowerAuthSDK(
             @NonNull Session session,
@@ -262,7 +282,8 @@ public class PowerAuthSDK {
             @NonNull HttpClient client,
             @NonNull ISavePowerAuthStateListener stateListener,
             @NonNull Keychain biometryKeychain,
-            @NonNull Keychain tokenStoreKeychain) {
+            @NonNull Keychain tokenStoreKeychain,
+            @NonNull ICallbackDispatcher callbackDispatcher) {
         this.mSession = session;
         this.mConfiguration = configuration;
         this.mKeychainConfiguration = keychainConfiguration;
@@ -270,7 +291,7 @@ public class PowerAuthSDK {
         this.mStateListener = stateListener;
         this.mBiometryKeychain = biometryKeychain;
         this.mTokenStoreKeychain = tokenStoreKeychain;
-        this.mCallbackDispatcher = new DefaultCallbackDispatcher();
+        this.mCallbackDispatcher = callbackDispatcher;
     }
 
     /**
@@ -875,7 +896,7 @@ public class PowerAuthSDK {
      * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
-     * @param fragmentManager Fragment manager for the dialog.
+     * @param fragmentActivity Activity of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
      * @param password Password used for activation commit.
@@ -884,8 +905,60 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    public ICancelable commitActivation(final @NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull String title, @NonNull String description, @NonNull final String password, final @NonNull ICommitActivationWithBiometryListener callback) {
-        return authenticateUsingBiometry(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull FragmentActivity fragmentActivity,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final String password,
+            final @NonNull ICommitActivationWithBiometryListener callback) {
+        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
+    }
+
+    /**
+     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragment Fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used for activation commit.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @NonNull
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull Fragment fragment,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final String password,
+            final @NonNull ICommitActivationWithBiometryListener callback) {
+        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
+    }
+
+    /**
+     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragmentHelper Fragment helper for the dialog.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used for activation commit.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @NonNull
+    private ICancelable commitActivationWithBiometryImpl(
+            final @NonNull Context context,
+            @NonNull FragmentHelper fragmentHelper,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final String password,
+            final @NonNull ICommitActivationWithBiometryListener callback) {
+        return authenticateUsingBiometry(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 if (userCancel) {
@@ -1485,7 +1558,7 @@ public class PowerAuthSDK {
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
-     * @param fragmentManager Android {@link FragmentManager}
+     * @param fragment The fragment of the application that will host the prompt.
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
@@ -1494,7 +1567,63 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
-    public ICancelable addBiometryFactor(@NonNull final Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, @NonNull String password, @NonNull final IAddBiometryFactorListener listener) {
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            final @NonNull Fragment fragment,
+            final @NonNull String title,
+            final @NonNull String description,
+            @NonNull String password,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, FragmentHelper.from(fragment), title, description, password, listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
+     * @param fragmentActivity The activity of the client application that will host the prompt.
+     * @param title Title for the biometry alert
+     * @param description Description displayed in the biometry alert
+     * @param password Password used for authentication during vault unlocking call.
+     * @param listener The callback method with the encrypted key.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Nullable
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            final @NonNull FragmentActivity fragmentActivity,
+            final @NonNull String title,
+            final @NonNull String description,
+            @NonNull String password,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
+     * @param fragmentHelper Fragment helper for the dialog.
+     * @param title Title for the biometry alert
+     * @param description Description displayed in the biometry alert
+     * @param password Password used for authentication during vault unlocking call.
+     * @param listener The callback method with the encrypted key.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Nullable
+    private ICancelable addBiometryFactorImpl(
+            @NonNull final Context context,
+            final @NonNull FragmentHelper fragmentHelper,
+            final @NonNull String title,
+            final @NonNull String description,
+            @NonNull String password,
+            @NonNull final IAddBiometryFactorListener listener) {
 
         // Initial authentication object, used for vault unlock call on server
         final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
@@ -1509,7 +1638,7 @@ public class PowerAuthSDK {
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
                     // Authenticate using biometry to generate a key
-                    final ICancelable biometricAuthentication = authenticateUsingBiometry(context, fragmentManager, title, description, true, new IBiometricAuthenticationCallback() {
+                    final ICancelable biometricAuthentication = authenticateUsingBiometry(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
@@ -1703,7 +1832,7 @@ public class PowerAuthSDK {
      * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.
-     * @param fragmentManager Fragment manager for the dialog.
+     * @param fragment The fragment of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
@@ -1711,8 +1840,13 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    public ICancelable authenticateUsingBiometry(@NonNull Context context, @NonNull FragmentManager fragmentManager, @NonNull String title, @NonNull String description, final @NonNull IBiometricAuthenticationCallback callback) {
-        return authenticateUsingBiometry(context, fragmentManager, title, description, false, callback);
+    public ICancelable authenticateUsingBiometry(
+            @NonNull Context context,
+            @NonNull Fragment fragment,
+            @NonNull String title,
+            @NonNull String description,
+            final @NonNull IBiometricAuthenticationCallback callback) {
+        return authenticateUsingBiometry(context, FragmentHelper.from(fragment), title, description, false, callback);
     }
 
     /**
@@ -1720,7 +1854,29 @@ public class PowerAuthSDK {
      * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
      *
      * @param context Context.
-     * @param fragmentManager Fragment manager for the dialog.
+     * @param fragmentActivity The activity of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @NonNull
+    public ICancelable authenticateUsingBiometry(
+            @NonNull Context context,
+            @NonNull FragmentActivity fragmentActivity,
+            @NonNull String title,
+            @NonNull String description,
+            final @NonNull IBiometricAuthenticationCallback callback) {
+        return authenticateUsingBiometry(context, FragmentHelper.from(fragmentActivity), title, description, false, callback);
+    }
+
+    /**
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
+     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
+     *
+     * @param context Context.
+     * @param fragmentHelper Fragment helper for the dialog.
      * @param title Dialog title.
      * @param description Dialog description.
      * @param forceGenerateNewKey Pass true to indicate that a new key should be generated in Keystore
@@ -1729,7 +1885,13 @@ public class PowerAuthSDK {
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
-    private ICancelable authenticateUsingBiometry(final @NonNull Context context, final @NonNull FragmentManager fragmentManager, final @NonNull String title, final @NonNull String description, final boolean forceGenerateNewKey, final @NonNull IBiometricAuthenticationCallback callback) {
+    private ICancelable authenticateUsingBiometry(
+            final @NonNull Context context,
+            final @NonNull FragmentHelper fragmentHelper,
+            final @NonNull String title,
+            final @NonNull String description,
+            final boolean forceGenerateNewKey,
+            final @NonNull IBiometricAuthenticationCallback callback) {
 
         final IBiometricKeyEncryptor encryptor;
         final byte[] rawKeyData;
@@ -1766,15 +1928,20 @@ public class PowerAuthSDK {
         }
 
         // Build a new authentication request.
-        BiometricAuthenticationRequest request = new BiometricAuthenticationRequest.Builder(context)
+        final BiometricAuthenticationRequest.Builder authenticationRequestBuilder = new BiometricAuthenticationRequest.Builder(context)
                 .setTitle(title)
                 .setDescription(description)
                 .setRawKeyData(rawKeyData, encryptor)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
-                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
-                .build();
+                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication());
+        if (fragmentHelper.getFragment() != null) {
+            authenticationRequestBuilder.setFragment(fragmentHelper.getFragment());
+        } else if (fragmentHelper.getFragmentActivity() != null) {
+            authenticationRequestBuilder.setFragmentActivity(fragmentHelper.getFragmentActivity());
+        }
+        final BiometricAuthenticationRequest request = authenticationRequestBuilder.build();
 
-        return BiometricAuthentication.authenticate(context, fragmentManager, request, new IBiometricAuthenticationCallback() {
+        return BiometricAuthentication.authenticate(context, request, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 callback.onBiometricDialogCancelled(userCancel);

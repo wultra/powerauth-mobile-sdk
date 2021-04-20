@@ -10,9 +10,9 @@
    - [Prepare Watch Connectivity](#prepare-watch-connectivity)
    - [Configure PowerAuth for WatchKit](#configure-powerauth-for-watchkit)
 - [Getting Device Activation Status](#getting-device-activation-status)
-- [Token Based Authentication](#token-based-authentication)
-   - [Getting token](#getting-token)
-   - [Getting token from iPhone](#getting-token-from-iphone)
+- [Token-Based Authentication](#token-based-authentication)
+   - [Getting Token](#getting-token)
+   - [Getting Token From iPhone](#getting-token-from-iphone)
    - [Generating Authorization Header](#generating-authorization-header)
    - [Removing Token Locally](#removing-token-locally)
    - [Removing Token From iPhone](#removing-tokenf-from-iphone)
@@ -229,7 +229,7 @@ self.powerAuthWatch.updateActivationStatus { (activationId, error) in
 
 The asynchronous `updateActivationStatus` method can be used only if `WCSession` reports that counterpart device is reachable.
 
-## Token Based Authentication
+## Token-Based Authentication
 
 WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
 

@@ -448,7 +448,7 @@ if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
 }
 ```
 
-#### Validating entered activation code
+#### Validating Entered Activation Code
 
 To validate an activation code at once, you can call `OtpUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:
 

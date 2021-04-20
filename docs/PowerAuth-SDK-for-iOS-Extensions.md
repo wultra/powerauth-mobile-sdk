@@ -10,7 +10,7 @@
    - [Prepare Data Sharing](#prepare-data-sharing)
    - [Configure PowerAuth for Extension](#configure-powerauth-for-extension)
 - [Getting Device Activation Status](#getting-device-activation-status)
-- [Token Based Authentication](#token-based-authentication)
+- [Token-Based Authentication](#token-based-authentication)
    - [Getting token](#getting-token)
    - [Generating Authorization Header](#generating-authorization-header)
    - [Removing Token Locally](#removing-token-locally)
@@ -180,7 +180,7 @@ if this.powerAuthExt.hasValidActivation() {
 ```
 
 
-## Token Based Authentication
+## Token-Based Authentication
 
 <!-- begin box warning -->
 **WARNING:** Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).

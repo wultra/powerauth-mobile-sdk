@@ -23,6 +23,7 @@ TODO...
   - `PowerAuthSDK.addBiometryFactor(Context, FragmentActivity, String, String, String, IAddBiometryFactorListener)`
   - `PowerAuthSDK.authenticateUsingBiometry(Context, Fragment, String, String, IBiometricAuthenticationCallback)`
   - `PowerAuthSDK.authenticateUsingBiometry(Context, FragmentActivity, String, String, IBiometricAuthenticationCallback)`
+  - All above methods must be called from UI thread, otherwise `IllegalStateException` is thrown.
 - The `BiometricDialogResources` class containing resource IDs for the biometric authentication has been heavily reduced. Please review the actual usage of the resources carefuly.
   - The `BiometricDialogResources.Strings` section has been reduced. The old section constructor is now deprecated and you can review what strings are still in use.
   - The `BiometricDialogResources.Drawables` section has been reduced. The old section constructor is now deprecated and you can review what images are still in use. 

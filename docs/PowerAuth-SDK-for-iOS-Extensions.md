@@ -1,18 +1,20 @@
 # PowerAuth Mobile SDK for iOS and tvOS Extensions
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [Installation](#installation)
    - [CocoaPods Installation](#cocoapods)
    - [Manual Installation](#manual)
 - [SDK Configuration](#configuration)
-   - [Prepare data sharing](#prepare-data-sharing)
+   - [Prepare Data Sharing](#prepare-data-sharing)
    - [Configure PowerAuth for Extension](#configure-powerauth-for-extension)
 - [Getting Device Activation Status](#getting-device-activation-status)
 - [Token Based Authentication](#token-based-authentication)
    - [Getting token](#getting-token)
-   - [Generating authorization header](#generating-authorization-header)
-   - [Removing token locally](#removing-token-locally)
+   - [Generating Authorization Header](#generating-authorization-header)
+   - [Removing Token Locally](#removing-token-locally)
+   - [Removing Token From the Server](#removing-tokenf-from-the-server)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Troubleshooting](#troubleshooting)
 
@@ -20,7 +22,7 @@ Related documents:
 
 - [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md)
 - [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
-
+<!-- end -->
 
 ## Installation
 
@@ -60,7 +62,7 @@ $ pod install
 
 If you prefer not to use CocoaPods as dependency manager, you can integrate Extensions SDK into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).
 
-#### Git submodules
+#### Git Submodules
 
 The integration process is quite similar to integration of our IOS library:
 
@@ -83,11 +85,11 @@ The integration process is quite similar to integration of our IOS library:
 
 The Extensions SDK shares several source codes and configuration principles with main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for app extension (for example, you cannot create an activation or calculate a full PowerAuth signature from an extension) and to do that it requires access to an activation data, created in the main application.
 
-### Prepare data sharing
+### Prepare Data Sharing
 
 The App Extension normally doesn't have an access to data created by the main application, so the first step is to setup a data sharing for your project.
 
-#### Keychain sharing
+#### Keychain Sharing
 
 iOS SDK is storing its most sensitive data into the iOS keychain, so you need to configure the keychain sharing first. If you're not familiar with keychain sharing, then don't worry about that, the keychain is shared only between the vendor's applications. So the sensitive information is not exposed to 3rd party applications.
 
@@ -95,7 +97,9 @@ iOS SDK is storing its most sensitive data into the iOS keychain, so you need to
 2. Now select **Capabilities** tab and expand **Keychain Sharing** section.
 3. Turn "ON" **Keychain Sharing** and Xcode will predefine first **Keychain Group** to your application's bundle name. Let's call this value as `KEYCHAIN_GROUP_NAME`
 
-*Note that the predefined group is usually beneficial, because iOS is by default using that group for storing all keychain entries created in the application. So, If your application is already using PowerAuth and you're going to just add a support for extension, then this is the most simple way to setup a keychain sharing.*
+<!-- begin box info -->
+The predefined group is usually beneficial, because iOS is by default using that group for storing all keychain entries created in the application. So, If your application is already using PowerAuth and you're going to just add a support for extension, then this is the most simple way to setup a keychain sharing.
+<!-- end -->
 
 Now you have to do a similar setup for your application's extension:
 
@@ -108,7 +112,7 @@ Now you need to know your **Team ID** (the unique identifier assigned to your te
 
 If you know the Team ID, then the final `KEYCHAIN_GROUP_IDENTIFIER` constant is composed as `TEAM_ID.KEYCHAIN_GROUP_NAME`. So, it should look like: `KTT00000MR.com.powerauth.demo.App`.
 
-#### App groups
+#### App Groups
 
 The PowerAuth SDK for iOS is using one boolean flag stored in the `UserDefaults` facility, to determine whether the application has been reinstalled. Unfortunately, `UserDefaults.standard` created by the application cannot be shared with the app extension, so you have to create a new application group to share that data.
 
@@ -120,7 +124,9 @@ The PowerAuth SDK for iOS is using one boolean flag stored in the `UserDefaults`
 
 You can optionally check a troubleshooting section if you need to [migrate the keychain initialization flag](#userdefaults-migration) from standard user defaults to a shared one.
 
-*Note that all previous steps are optional, but are highly recommended. If the keychain is properly shared, then the Extension SDK can determine the status of the PowerAuth activation just from the content of keychain data. But still this has a drawback, because the keychain data persists between the application's reinstallations. As you can see, in couple of rare usage scenarios the extension may get an inaccurate information about the activation.*
+<!-- begin box info -->
+While all previous steps are optional, they are highly recommended. If the keychain is properly shared, then the Extension SDK can determine the status of the PowerAuth activation just from the content of keychain data. But still this has a drawback, because the keychain data persists between the application's reinstallation. As you can see, in couple of rare usage scenarios the extension may get an inaccurate information about the activation.
+<!-- end -->
 
 ### Configure PowerAuth for Extension
 
@@ -152,11 +158,13 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         return PowerAuthExtensionSDK(configuration: config, keychainConfiguration: keychainConfig)!
     }
 
-    ... the rest of the controller's code ...
+    // ... the rest of the controller's code ...
 }
 ```
 
-**IMPORTANT**: The configuration used above must match configuration used in the application otherwise your extension will never get a proper activation status.
+<!-- begin box warning -->
+**IMPORTANT:** The configuration used above must match configuration used in the application otherwise your extension will never get a proper activation status.
+<!-- end -->
 
 The Extensions SDK doesn't provide a shared instance for `PowerAuthExtensionSDK` class and therefore you have to manage that instance on your own. The example above shows a beginning of simple controller implementing extension for Today Widget. For all other code examples, we're going to use `this.powerAuthExt` as properly initialized instance of `PowerAuthExtensionSDK` object.
 
@@ -174,10 +182,12 @@ if this.powerAuthExt.hasValidActivation() {
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication)
+<!-- begin box warning -->
+**WARNING:** Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
+<!-- end -->
 
 
-### Getting token
+### Getting Token
 
 To get an access token, you can use following code:
 
@@ -189,7 +199,7 @@ if let token = this.powerAuthExt.tokenStore.localToken(withName: "MyToken") {
 
 Note that token store also provides `requestAccessToken()` method, but that always returns `PA2ErrorCodeInvalidToken` error. Unlike the iOS SDK API, you cannot get a token from the server from app extension. Only main application can do that and once the token is available, then it's also available for the app extension. Check PowerAuth SDK for iOS [documentation for more details](./PowerAuth-SDK-for-iOS.md#getting-token).
 
-### Generating authorization header
+### Generating Authorization Header
 
 Once you have a `PowerAuthToken` object, use following code to generate an authorization header:
 
@@ -202,7 +212,7 @@ if let header = token.generateHeader() {
 }
 ```
 
-### Removing token locally
+### Removing Token Locally
 
 To remove token locally, you can simply use following code:
 
@@ -216,11 +226,9 @@ tokenStore.removeAllLocalTokens()
 
 Note that removing tokens locally you'll loose control about tokens stored on the server. This is the same situation as in application.
 
-### Removing token from server
+### Removing Token From the Server
 
 The token store exposes `removeAccessToken()` method, but the implementation always returns `PA2ErrorCodeInvalidToken` error.
-
-
 
 ## Common SDK Tasks
 
@@ -228,8 +236,7 @@ The token store exposes `removeAccessToken()` method, but the implementation alw
 
 You can follow the same practices as for iOS SDK because Extensions SDK codebase is sharing the same error constants with a full PowerAuth SDK for iOS.
 
-
-### Debug build detection
+### Debug Build Detection
 
 It is sometimes useful to switch Extensions SDK to a DEBUG build configuration, to get more logs from the library:
 
@@ -247,12 +254,11 @@ The DEBUG build is usually helpful during the application development, but on ot
 #endif
 ```
 
-
 ## Troubleshooting
 
 This section of document contains a various workarounds and tips for Extensions SDK usage.
 
-### UserDefaults migration
+### UserDefaults Migration
 
 If your previous version of application did not use shared data between application and the extension, then you probably need to migrate keychain status flag from `UserDefaults.standard` to shared one. We recommend to perform this migration at the main application's startup code and **BEFORE** the `PowerAuthSDK` object is configured and used:
 

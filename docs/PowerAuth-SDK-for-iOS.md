@@ -1,5 +1,6 @@
 # PowerAuth Mobile SDK for iOS and tvOS Apps
 
+<!-- begin remove -->
 ## Table of Contents
 
 - [Installation](#installation)
@@ -7,8 +8,8 @@
    - [CocoaPods Installation](#cocoapods)
    - [Manual Installation](#manual)
    - [Carthage Installation](#carthage)
-- [Post-Installation steps](#post-installation-steps)
-   - [Include PowerAuth SDK in your sources](#include-powerauth-sdk-in-your-sources)
+- [Post-Installation Steps](#post-installation-steps)
+   - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
     - [Activation via Activation Code](#activation-via-activation-code)
@@ -16,13 +17,13 @@
     - [Activation via Recovery Code](#activation-via-recovery-code)
     - [Customize Activation](#customize-activation)
     - [Committing Activation Data](#committing-activation-data)
-    - [Validating user inputs](#validating-user-inputs)
+    - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
    - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
    - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
    - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
-   - [Verify server signed data](#verify-server-signed-data)
+   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Biometry Setup](#biometry-setup)
 - [Device Activation Removal](#activation-removal)
@@ -34,7 +35,7 @@
 - [Token Based Authentication](#token-based-authentication)
 - [Apple Watch Support](#apple-watch-support)
    - [Prepare Watch Connectivity](#prepare-watch-connectivity)
-   - [WCSession activation sequence](#wcsession-activation-sequence)
+   - [WCSession Activation Sequence](#wcsession-activation-sequence)
    - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
    - [Sending Token to Watch](#sending-token-to-watch)
    - [Removing Token from Watch](#removing-token-from-watch)
@@ -49,13 +50,13 @@ Related documents:
 
 - [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions.md)
 - [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
-
+<!-- end -->
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. 
+This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration.
 
-### Supported platforms
+### Supported Platforms
 
 The library is available for the following Apple platforms:
 
@@ -73,6 +74,7 @@ $ gem install cocoapods
 ```
 
 To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
+
 ```ruby
 platform :ios, '9.0'
 target '<Your Target App>' do
@@ -81,6 +83,7 @@ end
 ```
 
 Then, run the following command:
+
 ```bash
 $ pod install
 ```
@@ -89,7 +92,7 @@ $ pod install
 
 If you prefer not to use CocoaPods as dependency manager, you can integrate PowerAuth into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).
 
-#### Git submodules
+#### Git Submodules
 
 1. Open up Terminal.app and go to your top-level project directory and add the library as a submodule:
     ```sh
@@ -106,20 +109,15 @@ If you prefer not to use CocoaPods as dependency manager, you can integrate Powe
 
 ### Carthage
 
-We provide a limited and experimental support for [Carthage dependency manager](https://github.com/Carthage/Carthage). The current problem with Carthage is that we cannot specify which Xcode project and which Scheme has to be used for particular library build. It kind of works automatically, but the build process is extremely slow and not reliable. So, if you still want to try integrate our library with Carghate, try following tips:
+We provide limited and experimental support for the [Carthage dependency manager](https://github.com/Carthage/Carthage). The current problem with Carthage is that we cannot specify which Xcode project and which Scheme has to be used for particular library build. It kind of works automatically, but the build process is extremely slow and not reliable. So, if you still want to try integrate our library with Carghate, try the following tips:
 
 - Add `github "wultra/powerauth-mobile-sdk" "feature/carthage-build"` into your `Cartfile`. We're maintaining separate branch for Carthage builds, so if it's not up to date, please let us know. We'll update that branch as soon as possible.
 - It's recommended to force Carthage to use submodules for library code checkouts.
 - It's recommended to update only iOS platform (if possible). So try to run something like this: `carthage update --use-submodules --platform ios`
 
+## Configuration
 
-## Post-installation steps
-
-Following steps are recommended for all types of installations.
-
-### Include PowerAuth SDK in your sources
-
-To use PowerAuth SDK, simply add following imports into your code:
+To use PowerAuth SDK, simply add the following imports into your code:
 
 ```swift
 // swift
@@ -131,11 +129,7 @@ import PowerAuth2
 @import PowerAuth2;
 ```
 
-From now on, you can use `PowerAuthSDK` and other classes in your project.
-
-## Configuration
-
-In order to be able to configure your `PowerAuthSDK` instance, you need following values from the PowerAuth Server:
+From now on, you can use `PowerAuthSDK` and other classes in your project. To configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:
 
 - `APP_KEY` - Application key, that binds activation with specific application.
 - `APP_SECRET` - Application secret, that binds activation with specific application.
@@ -145,7 +139,7 @@ Also, you need to specify your instance ID (by default, this can be for example 
 
 Finally, you need to know the location of your [PowerAuth Standard RESTful API](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Standard-RESTful-API.md) endpoints. That path should contain everything that goes before the `/pa/**` prefix of the API endpoints.
 
-To sum it up, in order to configure `PowerAuthSDK` default instance, add following code to your application delegate:
+To sum it up, in order to configure `PowerAuthSDK` default instance, add the following code to your application delegate:
 
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -173,7 +167,7 @@ After you configure the SDK instance, you are ready to make your first activatio
 
 The original activation method uses a one-time activation code generated in PowerAuth Server. To create an activation using this method, some external application (Internet banking, ATM application, branch / kiosk application) must generate an activation code for you and display it (as a text or in a QR code).
 
-Use following code to create an activation once you have an activation code:
+Use the following code to create an activation once you have an activation code:
 
 ```swift
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
@@ -198,9 +192,9 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 
 If the received activation result also contains recovery data, then you should display that values to the user. To do that, please read [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
-#### Additional activation OTP
+#### Additional Activation OTP
 
-If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure `PowerAuthActivation` object: 
+If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure `PowerAuthActivation` object:
 
 ```swift
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
@@ -215,16 +209,18 @@ guard let activation = PowerAuthActivation(activationCode: activationCode, name:
 // The rest of the activation routine is the same.
 ```
 
-> Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp). 
+<!-- begin box warning -->
+Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
+<!-- end -->
 
 ### Activation via Custom Credentials
 
 You may also create an activation using any custom login data - it can be anything that server can use to obtain user ID to associate with a new activation. Since the credentials are custom, the server's implementation must be able to process such request. Unlike the previous versions of SDK, the custom activation no longer requires a custom activation endpoint.
 
-Use following code to create an activation using custom credentials:
+Use the following code to create an activation using custom credentials:
 
 ```swift
-// Create a new activation with given device name and custom login credentials
+// Create a new activation with a given device name and custom login credentials
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let credentials = [
     "username": "john.doe@example.com",
@@ -253,14 +249,14 @@ Note that by using weak identity attributes to create an activation, the resulti
 
 ### Activation via Recovery Code
 
-If PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then also you can create an activation via the recovery code and PUK. 
+If PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then also you can create an activation via the recovery code and PUK.
 
-Use following code to create an activation using recovery code:
+Use the following code to create an activation using recovery code:
 
 ```swift
 let deviceName = "John Tramonta" // or UIDevice.current.name
 let recoveryCode = "55555-55555-55555-55YMA" // User's input
-let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil 
+let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil
 
 // Create activation object with recovery code and PUK
 guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
@@ -276,7 +272,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
         if let responseError = (error.userInfo[PA2ErrorDomain] as? PA2ErrorResponse)?.responseObject {
             let currentRecoveryPukIndex = responseError.currentRecoveryPukIndex
             if currentRecoveryPukIndex > 0 {
-                // The PUK index is known, you should inform user that it has to rewrite PUK from a specific position. 
+                // The PUK index is known, you should inform user that it has to rewrite PUK from a specific position.
             }
         }
     } else {
@@ -285,7 +281,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
         // If server supports recovery codes for activations, then `activationRecovery` property contains object with information about activation recovery.
     }
 }
-``` 
+```
 
 ### Customize Activation
 
@@ -296,8 +292,8 @@ You can set an additional properties to `PowerAuthActivation` object, before any
 // The dictionary may contain only values that can be serialized to JSON.
 let customAttributes: [String:Any] = [
     "isNowPrimaryActivation" : true,
-    "otherActivationIds" : [ 
-        "e43f5f99-e2e9-49f2-bcae-5e32a5e96d22", 
+    "otherActivationIds" : [
+        "e43f5f99-e2e9-49f2-bcae-5e32a5e96d22",
         "41dd704c-65e6-4d4b-b28f-0bc0e4eb9715"
     ]
 ]
@@ -311,16 +307,16 @@ guard let activation = PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-AB
     .with(customAttributes: customAttributes) else {
         // Invalid activation code...
     }
-    
+
 // Create a new activation as usual
 PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
-    // 
+    //
 }
 ```  
 
 ### Committing Activation Data
 
-After you create an activation using one of the methods mentioned above, you need to commit the activation - to use provided user credentials to store the activation data on the device. Use following code to do this.
+After you create an activation using one of the methods mentioned above, you need to commit the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this:
 
 ```swift
 do {
@@ -330,7 +326,7 @@ do {
 }
 ```
 
-This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case a simple PIN code). If you would like to enable Touch or Face ID support at this moment, use following code instead of the one above:
+This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case a simple PIN code). If you would like to enable Touch or Face ID support at this moment, use the following code instead of the one above:
 
 ```swift
 do {
@@ -346,7 +342,7 @@ do {
 ```
 
 
-### Validating user inputs
+### Validating User Inputs
 
 The mobile SDK is providing a couple of functions in `PA2OtpUtil` interface, helping with user input validation. You can:
 
@@ -355,7 +351,7 @@ The mobile SDK is providing a couple of functions in `PA2OtpUtil` interface, hel
 - Validate recovery code or PUK
 - Auto-correct characters typed on the fly
 
-#### Validating scanned QR code
+#### Validating Scanned QR Code
 
 To validate an activation code scanned from QR code, you can use `PA2OtpUtil.parse(fromActivationCode:)` function. You have to provide the code, with or without the signature part. For example:
 
@@ -382,7 +378,7 @@ if !PowerAuthSDK.sharedInstance().verifyServerSignedData(otp.activationCode.data
 }
 ```
 
-#### Validating entered activation code
+#### Validating Entered Activation Code
 
 To validate an activation code at once, you can call `PA2OtpUtil.validateActivationCode()` function. You have to provide the code, without the signature part. For example:
 
@@ -393,7 +389,7 @@ let isInvalid = PA2OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsb
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contains a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
-#### Validating recovery code and PUK
+#### Validating Recovery Code and PUK
 
 To validate a recovery code at once, you can call `PA2OtpUtil.validateRecoveryCode()` function. You can provide the whole code, which may, or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
 
@@ -408,9 +404,9 @@ To validate PUK at once, you can call `PA2OtpUtil.validateRecoveryPuk()` functio
 let isValid   = PA2OtpUtil.validateRecoveryPuk("0123456789")
 ```
 
-#### Auto-correcting typed characters
+#### Auto-Correcting Typed Characters
 
-You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user is suppose to enter an activation or recovery code. This technique is possible due to fact, that Base32 is specially constructed that doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that provided function can correct typed `1` and translate it to `I`. 
+You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user is supposed to enter an activation or recovery code. This technique is possible due to fact, that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -431,14 +427,9 @@ func validateAndCorrectCharacters(_ string: String) -> String? {
 }
 ```
 
-You can also check our [LimeAuth](https://github.com/wultra/swift-lime-auth) library, where we have a complete view controller showing this auto-correction technique. Check [EnterActivationCodeViewController.swift](https://github.com/wultra/swift-lime-auth/blob/develop/Source/UI/Activation/Scenes/EnterCode/EnterActivationCodeViewController.swift#L187) file for more details.
-
-
-
-
 ## Requesting Activation Status
 
-To obtain a detailed activation status information, use following code:
+To obtain a detailed activation status information, use the following code:
 
 ```swift
 // Check if there is some activation on the device
@@ -468,9 +459,9 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
                 print("Activation is no longer valid")
                 PowerAuthSDK.sharedInstance().removeActivationLocal()
             case .deadlock:
-                // Local activation is technically blocked and no longer 
+                // Local activation is technically blocked and no longer
                 // can be used for the signature calculations. You can inform
-                // user about this situation and remove activation locally. 
+                // user about this situation and remove activation locally.
                 print("Activation is technically blocked")
                 PowerAuthSDK.sharedInstance().removeActivationLocal()
             case .created:
@@ -481,7 +472,7 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
             default:
                 print("Unknown state")
             }
-            
+
             // Failed login attempts, remaining = max - current
             let currentFailCount = status.failCount
             let maxAllowedFailCount = status.maxFailCount
@@ -503,14 +494,14 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
 
 Note that the status fetch may fail at an unrecoverable error `PA2ErrorCodeProtocolUpgrade`, meaning that it's not possible to upgrade PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
-To get more information about activation states, check [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository. 
+To get more information about activation states, check [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
 ## Data Signing
 
 The main feature of PowerAuth protocol is data signing. PowerAuth has three types of signatures:
 
 - **Symmetric Multi-Factor Signature**: Suitable for most operations, such as login, new payment or confirming changes in settings.
-- **Asymmetric Private Key Signarture**: Suitable for documents, where strong one sided signature is desired.
+- **Asymmetric Private Key Signature**: Suitable for documents, where strong one sided signature is desired.
 - **Symmetric Offline Multi-Factor Signature**: Suitable for very secure operations, where the signature is validated over the out-of-band channel.
 - **Verify server signed data**: Suitable for receiving arbitrary data from the server.
 
@@ -526,7 +517,7 @@ auth.usePassword   = "1234"
 auth.useBiometry   = false
 ```
 
-When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and following code:
+When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -571,7 +562,7 @@ do {
 
 #### Request Synchronization
 
-It is recommended that your application executes only one signed request at the time. The reason for that is that our signature scheme is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more that one signed request at the same time, then the order is not guaranteed and therefore one from the requests may fail. On top of that, Mobile SDK itself is using this type of signatures for its own purposes. For example, if you ask for token, then the SDK is using signed request to obtain the token's data. To deal with this problem, Mobile SDK is providing a few methods which helps with the signed requests synchronization. 
+It is recommended that your application executes only one signed request at the time. The reason for that is that our signature scheme is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more that one signed request at the same time, then the order is not guaranteed and therefore one from the requests may fail. On top of that, Mobile SDK itself is using this type of signatures for its own purposes. For example, if you ask for token, then the SDK is using signed request to obtain the token's data. To deal with this problem, Mobile SDK is providing a few methods which helps with the signed requests synchronization.
 
 If your networking is based on `OperationQueue`, then you can add your own `Operation` objects directly to the internal queue. Be aware that PowerAuth signature, must be calculated as a part of operation's execution. For example:
 
@@ -583,6 +574,7 @@ guard PowerAuthSDK.sharedInstance().executeOperation(onSerialQueue: httpOperatio
 ```
 
 In case of custom networking, you can use method to execute any block on the serial queue. In this case, PowerAuth signature must be calculated as a part of block's execution. For example:
+
 ```swift
 PowerAuthSDK.sharedInstance().executeBlock(onSerialQueue: { internalTask in
     yourNetworking.post(yourRequest, completionHandler: { (data, response, error) in
@@ -601,7 +593,7 @@ PowerAuthSDK.sharedInstance().executeBlock(onSerialQueue: { internalTask in
 
 Asymmetric Private Key Signature uses a private key stored in the PowerAuth secure vault. In order to unlock the secure vault and retrieve the private key, user has to be first authenticated using a symmetric multi-factor signature with at least two factors. This mechanism protects the private key on the device - server plays a role of a "doorkeeper" and holds the vault unlock key.
 
-This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN) and use following code:
+This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN) and use the following code:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -641,7 +633,7 @@ do {
 
 Now the application has to show that calculated signature to the user and user has to re-type that code into the web application for the verification.
 
-### Verify server signed data
+### Verify Server-Signed data
 
 This task is useful when you need to receive an arbitrary data from the server and you need to be sure that data has has been issued by the server. The PowerAuthSDK is providing a high level method for validating data and associated signature:  
 
@@ -660,7 +652,7 @@ if PowerAuthSDK.sharedInstance().verifyServerSignedData(data, signature: signatu
 
 Since the device does not know the password and is unable to verify the password without the help of the server side, you need to first call an endpoint that verifies a signature computed with the password. SDK offers two ways to do that.
 
-The safe, but typically slower way is to use following code:
+The safe, but typically slower way is to use the following code:
 
 ```swift
 // Change password from "oldPassword" to "newPassword".
@@ -680,9 +672,9 @@ However, using this method does not usually fit to the typical UI workflow of a 
 1. Show a screen to enter old password.
 2. Check old password on the server.
 3. If the old password is OK, then let user chose and confirm a new one.
-4. Change the password by "recrypting" the activation data.
+4. Change the password by re-encrypting the activation data.
 
-For this purpose, you can use following code:
+For this purpose, you can use the following code:
 
 ```swift
 // Ask for old password
@@ -706,7 +698,9 @@ let newPassword = "2468"
 PowerAuthSDK.sharedInstance().unsafeChangePassword(from: oldPassword, to: newPassword)
 ```
 
+<!-- begin box warning -->
 **Now, beware!** Since the device does not know the actual old password, you need to make sure that the old password is validated before you use it in `unsafeChangePassword`. In case you provide a wrong old password, it will be used to decrypt the original data and these data will be encrypted using a new password. As a result, the activation data will be broken and irreversibly lost.
+<!-- end -->
 
 ## Biometry Setup
 
@@ -724,7 +718,7 @@ You have to check for biometry on three levels:
 
 PowerAuth SDK for iOS provides code for first two of these checks.
 
-To check if you can use biometry on the system, use following code from `PA2Keychain` class:
+To check if you can use biometry on the system, use the following code from `PA2Keychain` class:
 
 ```swift
 // Is biometry available and is enrolled on the system?
@@ -754,7 +748,7 @@ switch biometryInfo.currentStatus {
 }
 ```
 
-To check if given activation has biometry factor related data available, use following code:
+To check if given activation has biometry factor related data available, use the following code:
 
 ```swift
 // Does activation have biometric factor related data in place?
@@ -767,7 +761,7 @@ The last check is fully under your control. By keeping the biometry settings fla
 
 In case an activation does not yet have biometry related factor data and you would like to enable Touch or Face ID support, device must first retrieve the original private key from the secure vault for the purpose of key derivation. As a result, you have to use successful 2FA with password to enable biometry support.
 
-Use following code to enable biometric authentication:
+Use the following code to enable biometric authentication:
 
 ```swift
 // Establish biometric data using provided password
@@ -789,7 +783,7 @@ You can remove biometry related factor data used by Touch or Face ID support by 
 PowerAuthSDK.sharedInstance().removeBiometryFactor()
 ```
 
-### Biometry factor-related key lifetime
+### Biometry Factor-Related Key Lifetime
 
 By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enroll with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PA2KeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
@@ -828,7 +822,7 @@ PowerAuthSDK.sharedInstance().removeActivationLocal()
 
 ### Removal via Authenticated Session
 
-In case your server uses an authenticated session for keeping user logged in, you can combine the previous method with calling your proprietary endpoint that removes activation for currently logged in user. The advantage of this method is that activation does not remain active on the server. The issue is that user has to be logged in (the session must be active and must have activation ID stored) and that you have to publish your own method for the purpose of this use case.
+Suppose your server uses an authenticated session for keeping the users logged in. In that case, you can combine the previous method with calling your proprietary endpoint to remove activation for the currently logged-in user. The advantage of this method is that activation does not remain active on the server. The issue is that user has to be logged in (the session must be active and must have activation ID stored) and that you have to publish your own method for the purpose of this use case.
 
 The code for this activation removal method is as follows:
 
@@ -850,7 +844,7 @@ self.httpClient.post(null, "/custom/activation/remove") { (error) in
 
 PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for iOS and PowerAuth Standard RESTful API - nothing has to be programmed. Also, user does not have to be logged in to use it. However, user has to authenticate using 2FA with either password or biometry.
 
-Use following code for an activation removal using signed request:
+Use the following code for an activation removal using signed request:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -871,12 +865,12 @@ PowerAuthSDK.sharedInstance().removeActivation(with: auth) { (error) in
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on ECIES scheme:
 
 - In "application" scope, the encryptor can be acquired and used during the whole lifetime of the application. We used to call this mode as "non-personalized encryption" in the previous versions of SDK.
-- In "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters, agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), in "sign-then-encrypt" mode. 
+- In "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters, agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), in "sign-then-encrypt" mode.
 
 
 For both scenarios, you need to acquire `PA2ECIESEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently provides only low level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 
-Following steps are typically required for a full E2EE request and response processing:
+The following steps are typically required for a full E2EE request and response processing:
 
 1. Acquire the right encryptor from `PowerAuthSDK` instance. For example:
    ```swift
@@ -893,12 +887,12 @@ Following steps are typically required for a full E2EE request and response proc
    guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
    ```
 
-4. Construct a JSON from provided cryptogram object. The dictionary with following keys is expected:
+4. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
    - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
    - `encryptedData` property fill with `cryptogram.bodyBase64`
    - `mac` property fill with `cryptogram.macBase64`
    - `nonce` property fill with `cryptogram.nonceBase64`
-   
+
    So, the final request JSON should looks like:
    ```json
    {
@@ -908,16 +902,16 @@ Following steps are typically required for a full E2EE request and response proc
       "nonce" : "BASE64-NONCE"
    }
    ```
-   
-5. Add following HTTP header (for signed requests, see note below):
+
+5. Add the following HTTP header (for signed requests, see note below):
    ```swift
    // Acquire a "metadata" object, which contains an additional information for the request construction
    guard let metadata = encryptor.associatedMetaData else { ...should never happen... }
    let httpHeaderName = metadata.httpHeaderKey
    let httpHeaderValue = metadata.httpHeaderValue
    ```
-   *Note, that if "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.* 
-   
+   Note that if "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.
+
 6. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response, defined in our protocol. So, you can expect JSON object with `"error"` and `"message"` properties in the response.
 
@@ -933,7 +927,7 @@ Following steps are typically required for a full E2EE request and response proc
    let responseCryptogram = PA2ECIESCryptogram()
    responseCryptogram.bodyBase64 = response.getEncryptedData()
    responseCryptogram.macBase64 = response.getMac()
-   
+
    guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
    ```
 
@@ -943,13 +937,13 @@ As you can see, the E2EE is quite non-trivial task. We recommend you to contact 
 
 ## Secure Vault
 
-PowerAuth SDK for iOS has a basic support for an encrypted secure vault. At this moment, the only supported method allows application to establish an encryption / decryption key with given index. Index represents a "key number" - your identifier for given key. Different business logic purposes should have encryption keys with different index value.
+PowerAuth SDK for iOS has a basic support for an encrypted secure vault. At this moment, the only supported method allows application to establish an encryption / decryption key with given index. Index represents a "key number" - your identifier for a given key. Different business logic purposes should have encryption keys with different index value.
 
 On a server side, all secure vault related work is concentrated in a `/pa/v3/vault/unlock` endpoint of PowerAuth Standard RESTful API. In order to receive data from this response, call must be authenticated with at least 2FA (using password or PIN).
 
 ### Obtaining Encryption Key
 
-In order to obtain an encryption key with given index, use following code:
+In order to obtain an encryption key with given index, use the following code:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
@@ -974,8 +968,8 @@ The recovery codes allows your users to recover their activation in case that mo
 
 To recover an activation, the user has to re-type two separate values:
 
-1. Recovery Code itself, which is very similar to an activation code. So you can detect typing errors before you submit such code to the server. 
-1. PUK, which is an additional numeric value and acts as an one time password in the scheme.
+1. Recovery Code itself, which is very similar to an activation code. So you can detect typing errors before you submit such code to the server.
+1. PUK, which is an additional numeric value and acts as a one-time password in the scheme.
 
 PowerAuth currently supports two basic types of recovery codes:
 
@@ -983,7 +977,7 @@ PowerAuth currently supports two basic types of recovery codes:
    - This type of code can be obtained only in an already activated application.
    - This type of code has only one PUK available, so only one recovery operation is possible.
    - The activation associated with the code is removed once the recovery operation succeeds.
-  
+
 2. Recovery Code delivered via OOB channel, typically in form of securely printed postcard, delivered by a post service.
    - This type of code has typically more than one PUK associated with the code, so it can be used for multiple times.
    - User has to keep that postcard at safe and secure place and mark already used PUKs.
@@ -993,10 +987,10 @@ The feature is not automatically available, but must be enabled and configured o
 
 ### Getting Recovery Data
 
-If the recovery data was received during the activation process, then you can later display that information to the user. To check existence of recovery data and get that information, use following code:
+If the recovery data was received during the activation process, then you can later display that information to the user. To check existence of recovery data and get that information, use the following code:
 
 ```swift
-let powerAuthSdk = PowerAuthSDK.sharedInstance() 
+let powerAuthSdk = PowerAuthSDK.sharedInstance()
 guard !powerAuthSdk.hasActivationRecoveryData() else {
     // Recovery information is not available
     return
@@ -1005,7 +999,7 @@ guard !powerAuthSdk.hasActivationRecoveryData() else {
 // 2FA signature, uses device related key and user PIN code
 let auth = PowerAuthAuthentication.possession(withPassword: "1234")
 
-powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in 
+powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in
     if let recoveryData = recoveryData {
         let recoveryCode = recoveryData.recoveryCode
         let puk = recoveryData.puk
@@ -1016,7 +1010,9 @@ powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in
 }
 ```
 
-WARNING: The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
+<!-- begin box warning -->
+**WARNING:** The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
+<!-- end -->
 
 - You should never store `recoveryCode` or `puk` on the device.
 - You should never print that values to the debug log.
@@ -1034,7 +1030,7 @@ You should inform user that:
 
 ### Confirm Recovery Postcard
 
-The recovery postcard can contain the recovery code and multiple PUK values on one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before user confirms its physical delivery. To confirm such recovery code, use following code:
+The recovery postcard can contain the recovery code and multiple PUK values on one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before user confirms its physical delivery. To confirm such recovery code, use the following code:
 
 ```swift
 // 2FA signature with possession factor is required
@@ -1046,7 +1042,7 @@ PowerAuthSDK.sharedInstance().confirmRecoveryCode(recoveryCode, authentication: 
         // Process error
     } else {
         if alreadyConfirmed {
-           print("Recovery code has been already confirmed. This is not an error, just information.") 
+           print("Recovery code has been already confirmed. This is not an error, just information.")
         } else {
            print("Recovery code has been successfully confirmed.")
         }
@@ -1058,9 +1054,11 @@ The `alreadyConfirmed` boolean indicates that code was already confirmed in past
 
 ## Token Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature.
+<!-- begin box warning -->
+**WARNING:** Before you start using access tokens, please visit our [documentation for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature.
+<!-- end -->
 
-The tokens are simple, locally cached objects, producing timestamp-based authorization headers. Be aware that tokens are NOT a replacement for general PowerAuth signatures, but are helpful in situations, when the signatures are too heavy or too complicated for implementation. Each token has following properties:
+The tokens are simple, locally cached objects, producing timestamp-based authorization headers. Be aware that tokens are NOT a replacement for general PowerAuth signatures, but are helpful in situations, when the signatures are too heavy or too complicated for implementation. Each token has the following properties:
 
 - It needs PowerAuth signature for its creation (e.g. you need to provide `PowerAuthAuthentication` object)
 - It has unique identifier on the server. This identifier is not exposed to the public API, but DEBUG version of SDK can reveal that identifier in the debugger (e.g. you can use `po tokenObject` to print object's description)
@@ -1071,9 +1069,9 @@ The tokens are simple, locally cached objects, producing timestamp-based authori
 - Tokens are persisted in the keychain and cached in the memory.
 - Once the parent `PowerAuthSDK` instance loose its activation, then all its tokens are removed from the local database.
 
-### Getting token
+### Getting Token
 
-To get an access token, you can use following code:
+To get an access token, you can use the following code:
 
 ```swift
 // 1FA signature, uses device related key
@@ -1123,11 +1121,12 @@ func acquireToken(_ completion: @escaping (PowerAuthToken?, Error?)->Void) {
 }
 
 ```
+
 The complex example above is trying to hide that problematic asynchronous requesting with remembering completion blocks when the underlying HTTP request is already on the fly. Be aware that the code is still very simple PoC and for example, doesn't solve cancelation and thread safety.
 
-### Generating authorization header
+### Generating Authorization Header
 
-Once you have a `PowerAuthToken` object, use following code to generate an authorization header:
+Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
 
 ```swift
 if let header = token.generateHeader() {
@@ -1138,9 +1137,9 @@ if let header = token.generateHeader() {
 }
 ```
 
-### Removing token from server
+### Removing Token From the Server
 
-To remove token from the server, you can use following code:
+To remove the token from the server, you can use the following code:
 
 ```swift
 let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
@@ -1153,9 +1152,9 @@ tokenStore.removeAccessToken(withName: "MyToken") { (removed, error) in
 }
 ```
 
-### Removing token locally
+### Removing Token Locally
 
-To remove token locally, you can simply use following code:
+To remove token locally, you can simply use the following code:
 
 ```swift
 let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
@@ -1165,12 +1164,12 @@ tokenStore.removeLocalToken(withName: "MyToken")
 tokenStore.removeAllLocalTokens()
 ```
 
-Note that removing tokens locally you'll loose control about tokens stored on the server.
+Note that removing tokens locally you will loose control about tokens stored on the server.
 
 
 ## Apple Watch Support
 
-This part of the documentation describes how to add support for Apple Watch into your PowerAuth powered IOS application. This part of the documentation is not relevant for **tvOS** platform. 
+This part of the documentation describes how to add support for Apple Watch into your PowerAuth powered iOS application. This part of the documentation is not relevant for **tvOS** platform.
 
 ### Prepare Watch Connectivity
 
@@ -1242,16 +1241,18 @@ class SessionManager: NSObject, WCSessionDelegate {
 }
 ```
 
-*Note that the code above is very similar to its [watchOS counterpart](./PowerAuth-SDK-for-watchOS.md#prepare-watch-connectivity)*
+<!-- begin box info -->
+The code above is very similar to its [watchOS counterpart](./PowerAuth-SDK-for-watchOS.md#prepare-watch-connectivity).
+<!-- end -->
 
-The example is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. The important is, that at some point, your both (iOS & watchOS) applications has to call `SessionManager.shared.activateSession()` to make transfers possible. Once you activate your session on the device, then you can use all APIs related to the communication.
+The example is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. The important part is that at some point, both applications (iOS and watchOS) have to call `SessionManager.shared.activateSession()` to make the transfers possible. Once you activate your session on the device, you can use all APIs related to the communication.
 
 
-### WCSession activation sequence
+### WCSession Activation Sequence
 
 In this chapter we will discuss right initialization sequence for various interoperating objects during your application's startup. It's recommended to follow those rules to make communication between iOS & watchOS reliable.
 
-#### tl;dr
+#### Implementation Summary
 
 On the application's startup:
 
@@ -1260,21 +1261,20 @@ On the application's startup:
 3. Wait for session's activation in your delegate
 4. Now you can use watch related methods from PowerAuth SDK for iOS. For example, you can use lazy method to send status of activation to the watch device.
 
-#### Implementation details
+#### Implementation Details
 
 Due to our internal implementation details, each `PowerAuthSDK` instance is registered to `PA2WCSessionManager` for incoming message processing. The registration is done in object's designated init method and the de-registration is automatic, after the SDK object is destroyed. This technique works great, but depends on existence of right object at the right time.
 
-So, once you activate `WCSession`, your `WCSessionDelegate` is going to get messages (on the background thread), received from the counterpart watch device. The reason why we're highlighting importance of right activation sequence is fact, that your watchOS application can wake up its iOS counterpart, so it's highly possible, that some messages will be available right at the application's startup. If you don't follow our rules and you'll not prepare your `PowerAuthSDK` instances before the `WCSession` is activated, then a couple of messages may be lost.
+Once you activate `WCSession`, your `WCSessionDelegate` is going to receive messages (on the background thread) from the counterpart watch application. The reason we are highlighting the importance of the right activation sequence is the fact that your watchOS application can wake up its iOS counterpart. Therefore, it is highly possible, that some messages will be available right at the application's startup. If you don't follow the guidelines and forget to prepare your `PowerAuthSDK` instances before the `WCSession` is activated, then a couple of messages may be lost.
 
 Fortunately, the situation on watchOS side is much easier, because all incoming messages are processed in one special service class, which is always available.
 
 
-
 ### Sending Activation Status to Watch
 
-Before you start using PowerAuth on watchOS, it's recommended to send information about PowerAuth activation from iPhone to Apple Watch. The information transmitted to the watch is very limited. In fact, on watchOS side, you can check only whether the activation on iPhone is locally present or not. It is recommended to keep this status up to date as much as possible. That typically means that you may send status every time you complete or remove the activation.
+Before you start using PowerAuth on watchOS, it is recommended to send information about PowerAuth activation from iPhone to Apple Watch. The information transmitted to the watch is very limited. In fact, on watchOS side, you can check only whether the activation on iPhone is locally present or not. It is recommended to keep this status up to date as much as possible. That typically means that you may send status every time you complete or remove the activation.
 
-To send current status of the activation, use following code:
+To send current status of the activation, use the following code:
 
 ```swift
 if !PowerAuthSDK.sharedInstance().sendActivationStatusToWatch() {
@@ -1285,6 +1285,7 @@ if !PowerAuthSDK.sharedInstance().sendActivationStatusToWatch() {
 ```
 
 There's also asynchronous version, but watch device has to be reachable at the time of the call:
+
 ```swift
 PowerAuthSDK.sharedInstance().sendActivationStatusToWatch { (error) in
     if let error = error {
@@ -1293,13 +1294,13 @@ PowerAuthSDK.sharedInstance().sendActivationStatusToWatch { (error) in
 }
 ```
 
-*Note that sending status of `PowerAuthSDK` instance which is currently without activation also effectively remove all associated tokens from Apple Watch.*
-
-
+<!-- begin box warning -->
+Sending status of `PowerAuthSDK` instance which is currently without activation also effectively remove all associated tokens from Apple Watch.
+<!-- end -->
 
 ### Sending Token to Watch
 
-Once you have a `PowerAuthToken` object, use following code to send it to the Apple Watch:
+Once you have a `PowerAuthToken` object, use the following code to send it to the Apple Watch:
 
 ```swift
 if let token = tokenStore.localToken(withName: "MyToken") {
@@ -1325,7 +1326,7 @@ if let token = tokenStore.localToken(withName: "MyToken") {
 
 ### Removing Token from Watch
 
-You can remotely remove token from paired Apple Watch:
+You can remotely remove token from a paired Apple Watch:
 
 ```swift
 if let token = tokenStore.localToken(withName: "MyToken") {
@@ -1337,7 +1338,7 @@ if let token = tokenStore.localToken(withName: "MyToken") {
 }
 ```
 
-There's also asynchronous version, but paired watch has to be reachable at the time of the call:
+There is also an asynchronous version, but paired watch has to be reachable at the time of the call:
 
 ```swift
 if let token = tokenStore.localToken(withName: "MyToken") {
@@ -1348,7 +1349,6 @@ if let token = tokenStore.localToken(withName: "MyToken") {
     }
 }
 ```
-
 
 ## Common SDK Tasks
 
@@ -1374,7 +1374,9 @@ do {
 }
 ```
 
-_Note: The original Objective-C code uses method with `BOOL` return type that passes `NSError**` (pointer to error object) as a method parameter. This syntax is automatically converted to exceptions when using code in Swift._
+<!-- begin box info -->
+The original Objective-C code uses method with `BOOL` return type that passes `NSError**` (pointer to error object) as a method parameter. This syntax is automatically converted to exceptions when using code in Swift.
+<!-- end -->
 
 Errors that are caused by PowerAuth SDK for iOS use `PA2ErrorDomain` and one of the codes listed in `PA2ErrorConstants.h` file. Use these values to determine the type of an error. In principle, all errors should be in principle handled in a very similar manner. Use this code snippet for an inspiration:
 
@@ -1413,7 +1415,7 @@ if error == nil {
                 print("Error code for error that occurs when pending activation is present and work with completed activation is required")
 
             case PA2ErrorCodeKeychain:
-                print("Error code for keychanin related errors")
+                print("Error code for keychain related errors")
 
             case PA2ErrorCodeBiometryNotAvailable:
                 print("Error code for TouchID/FaceID not available error")
@@ -1431,13 +1433,13 @@ if error == nil {
                 print("Error code for errors related to token based auth.")
 
             case PA2ErrorCodeWatchConnectivity:
-                print("Error code for errors related to synchronization between ios and watchos.")
-            
+                print("Error code for errors related to synchronization between iOS and watchOS.")
+
             case PA2ErrorCodeProtocolUpgrade:
                 print("Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
-                
+
             case PA2ErrorCodePendingProtocolUpgrade:
-                print("The operation is temporarily unavaiable, due to pending protocol upgrade.")
+                print("The operation is temporarily unavailable, due to pending protocol upgrade.")
 
             default:
                 print("Unknown error")
@@ -1447,7 +1449,7 @@ if error == nil {
 }
 ```
 
-Note that you typically don't need to handle all error codes reported in `Error` object, or report all that situations to the user. Most of the codes are informational and helps the developers properly integrate SDK to the application. The good example is `PA2ErrorCodeInvalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way. 
+Note that you typically don't need to handle all error codes reported in `Error` object, or report all that situations to the user. Most of the codes are informational and helps the developers properly integrate SDK to the application. The good example is `PA2ErrorCodeInvalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way.
 
 Here's the list of an important error codes, which should be properly handled by the application:
 
@@ -1460,53 +1462,39 @@ Here's the list of an important error codes, which should be properly handled by
 Sometimes, you may need to develop or test your application against a service that runs over HTTPS protocol with an invalid (self-signed) SSL certificate. By default, HTTP client used in PowerAuth SDK communication validates the certificate. To disable the certificate validation, add the following code just before your `PowerAuthSDK` instance configuration:
 
 ```swift
-// Set `PA2ClientSslNoValidationStrategy as the defauld client SSL certificate validation strategy`
+// Set `PA2ClientSslNoValidationStrategy as the default client SSL certificate validation strategy`
 PA2ClientConfiguration.sharedInstance().sslValidationStrategy = PA2ClientSslNoValidationStrategy()
 ```
 
-*Note that since SDK version `0.18.0`, changing `PA2ClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.*
+<!-- begin box info -->
+Note that since SDK version `0.18.0`, changing `PA2ClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.
+<!-- end -->
 
 ### Debugging
 
-The debug log is by default turned-off. To turn it on, use following code:
+The debug log is by default turned-off. To turn it on, use the following code:
 ```swift
 PA2LogSetEnabled(true)
 ```
 
-To turn-on even more detailed log, use following code:
+To turn-on even more detailed log, use the following code:
 ```swift
 PA2LogSetVerbose(true)
 ```
 
-> Note that the functions above are effective only if PowerAuth SDK is compiled in `DEBUG` build configuration.
-
-
+<!-- begin box warning -->
+Note that the functions above are effective only if PowerAuth SDK is compiled in `DEBUG` build configuration.
+<!-- end -->
 
 ## Additional Features
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
 
-### Root Detection
-
-You can easily detect if the device is jailbroken using following code:
-
-```swift
-// Check if the device is jailbroken using best effort attempt
-let isJailbroken = PA2System.isJailbroken()
-```
-
-In case you would like to rely on a slightly more secure inline C code, use this way to perform the check:
-
-```swift
-// Check if the device is jailbroken using best effort attempt
-let isJailbroken = pa_isJailbroken()
-```
-
 ### Password Strength Indicator
 
-Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate strenght of the passphrase and warn the user when he tries to use such passphrase in your application.
+Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate strength of the passphrase and warn the user when he tries to use such passphrase in your application.
 
-### Debug build detection
+### Debug Build Detection
 
 It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration, to get more logs from the library:
 
@@ -1526,12 +1514,12 @@ The DEBUG build is usually helpful during the application development, but on ot
 
 ### Request Interceptors
 
-The `PA2ClientConfiguration` can contain a multiple request interceptor objects, allowing you to adjust all HTTP requests created by SDK, before execution. Currently, you can use following two classes:
+The `PA2ClientConfiguration` can contain a multiple request interceptor objects, allowing you to adjust all HTTP requests created by the SDK before their execution. Currently, you can use the following two classes:
 
 - `PA2BasicHttpAuthenticationRequestInterceptor` to add basic HTTP authentication header to all requests
 - `PA2CustomHeaderRequestInterceptor` to add a custom HTTP header to all requests
 
-For example: 
+For example:
 
 ```swift
 let basicAuth = PA2BasicHttpAuthenticationRequestInterceptor(username: "gateway-user", password: "gateway-password")
@@ -1540,5 +1528,4 @@ let clientConfig = PA2ClientConfiguration()
 clientConfig.requestInterceptors = [ basicAuth, customHeader ]
 ```
 
-We don't recommend you to implement `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor, try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also keep in mind, that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of interface itself.
-
+We don't recommend you to implement `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK`, but also gives you an opportunity to break the things. So, rather than create your own interceptor, contact us and describe what use-case is missing. Also keep in mind, that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of interface itself.

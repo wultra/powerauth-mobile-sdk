@@ -151,7 +151,9 @@ class SessionManager: NSObject, WCSessionDelegate {
 }
 ```
 
-*Note that the code above is very similar to its [iOS counterpart](./PowerAuth-SDK-for-iOS.md#prepare-watch-connectivity)*
+<!-- begin box info -->
+The code above is very similar to its [iOS counterpart](./PowerAuth-SDK-for-iOS.md#prepare-watch-connectivity).
+<!-- end -->
 
 The example above is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. You also have to implement a very similar class for your IOS application. The important part is that at some point, both applications (iOS and watchOS) have to call `SessionManager.shared.activateSession()` to make the transfers possible. Once you activate your session on the device, you can use all APIs related to the communication.
 
@@ -320,7 +322,7 @@ This section of document contains a various workarounds and tips for Watch SDK u
 
 ### WCSession Activation Sequence on iOS
 
-You should check recommendations about [WCSession's activation sequence on IOS](./PowerAuth-SDK-for-iOS.md#wcsession-activation-sequence).
+You should check recommendations about [WCSession's activation sequence on iOS](./PowerAuth-SDK-for-iOS.md#wcsession-activation-sequence).
 
 ### Cocoapods Integration Fails
 

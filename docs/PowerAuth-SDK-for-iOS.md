@@ -1068,7 +1068,7 @@ The tokens are simple, locally cached objects, producing timestamp-based authori
 - It can be used concurrently. Token's private data doesn't change in time.
 - The token is associated with the `PowerAuthSDK` instance. So, you can use the same symbolic name in multiple SDK instances, and each created token will be unique.
 - Tokens are persisted in the keychain and cached in the memory.
-- Once the parent `PowerAuthSDK` instance loses its activation, then all its tokens are removed from the local database.
+- Once the parent `PowerAuthSDK` instance loses its activation, all its tokens are removed from the local database.
 
 ### Getting Token
 
@@ -1165,7 +1165,7 @@ tokenStore.removeLocalToken(withName: "MyToken")
 tokenStore.removeAllLocalTokens()
 ```
 
-Note that by removing tokens locally, you will lose control about tokens stored on the server.
+Note that by removing tokens locally, you will lose control of the tokens stored on the server.
 
 
 ## Apple Watch Support
@@ -1504,7 +1504,7 @@ It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration to
 - **CocoaPods:** a majority of the SDK is distributed as source codes, so it will match your application's build configuration. Only a low-level C++ codes and several wrapper classes on top of those are precompiled into a static library.
 - **Manual installation:** Xcode is matching build configuration across all nested projects, so you usually don't need to care about the configuration switching.
 
-The DEBUG build is usually helpful during the application development, but on the other side, it's highly unwanted in production applications. For this purpose, the `PA2System.isInDebug()` method provides information whether the PowerAuth library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG PowerAuth:
+The DEBUG build is usually helpful during the application development, but on the other hand, it's highly unwanted in production applications. For this purpose, the `PA2System.isInDebug()` method provides information whether the PowerAuth library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG PowerAuth:
 
 ```swift
 #if YOUR_APPSTORE_BUILD_FLAG

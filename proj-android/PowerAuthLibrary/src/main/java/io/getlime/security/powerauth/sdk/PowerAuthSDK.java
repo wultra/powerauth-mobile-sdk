@@ -23,6 +23,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.UiThread;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -903,6 +904,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
@@ -926,6 +928,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
@@ -949,6 +952,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     private ICancelable commitActivationWithBiometryImpl(
@@ -1565,6 +1569,7 @@ public class PowerAuthSDK {
      * @param listener The callback method with the encrypted key.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
@@ -1590,6 +1595,7 @@ public class PowerAuthSDK {
      * @param listener The callback method with the encrypted key.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
@@ -1615,6 +1621,7 @@ public class PowerAuthSDK {
      * @param listener The callback method with the encrypted key.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     private ICancelable addBiometryFactorImpl(
@@ -1838,6 +1845,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable authenticateUsingBiometry(
@@ -1860,6 +1868,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable authenticateUsingBiometry(
@@ -1883,6 +1892,7 @@ public class PowerAuthSDK {
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
+    @UiThread
     @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     private ICancelable authenticateUsingBiometry(

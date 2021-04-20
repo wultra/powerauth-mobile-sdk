@@ -791,7 +791,11 @@ PowerAuthSDK.sharedInstance().removeBiometryFactor()
 
 ### Fetch biometry credentials in advance
 
-In order to obtain a biometry credentials for the purpose of future signature calculation, call the following code:
+You can acquire biometry credentials in advance in case that business processes require computing two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created `PowerAuthAuthentication` object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+
+Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
+
+In order to obtain biometry credentials for the future signature calculation, call the following code:
 
 ```swift
 // Authenticate user with biometry and obtain PowerAuthAuthentication credentials for future signature calculation.
@@ -810,10 +814,6 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticat
     }
 }
 ```
-
-The method above is also useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
- 
-Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
 
 ### Biometry factor-related key lifetime
 

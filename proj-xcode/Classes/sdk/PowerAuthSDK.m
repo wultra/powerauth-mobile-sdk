@@ -1144,10 +1144,14 @@ static PowerAuthSDK * s_inst;
 		BOOL userCancelled = NO;
 		NSData * biometryKey = [self biometryRelatedKeyUserCancelled:&userCancelled prompt:prompt];
 		if (biometryKey) {
+			// The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
+			// with possession+biometry factors. The prompt is not needed for rhw future usage of this
+			// authentication object, but it could be useful for debugging purposes.
 			authentication = [PowerAuthAuthentication possessionWithBiometryWithPrompt:prompt];
 			authentication.overridenBiometryKey = biometryKey;
 			error = nil;
 		} else {
+			// Otherwise report an error depending on whether the operation was canceled by the user.
 			authentication = nil;
 			error = PA2MakeError(userCancelled ? PA2ErrorCodeBiometryCancel : PA2ErrorCodeBiometryFailed, nil);
 		}
@@ -1160,17 +1164,17 @@ static PowerAuthSDK * s_inst;
 }
 
 - (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
-                            withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
+							withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
 {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        __block OSStatus status;
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		__block OSStatus status;
 		__block NSDictionary *keys;
 		BOOL executed = [PA2Keychain tryLockBiometryAndExecuteBlock:^{
 			keys = [_biometryOnlyKeychain allItemsWithPrompt:prompt withStatus:&status];
 		}];
 		BOOL userCanceled = !executed || (status == errSecUserCanceled);
-        block(keys, userCanceled);
-    });
+		block(keys, userCanceled);
+	});
 }
 
 #pragma mark - Secure vault support

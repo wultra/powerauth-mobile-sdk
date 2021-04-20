@@ -197,7 +197,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                     // just to do not crash on null pointer later.
                     errString = getFallbackErrorMessage(errorCode, requestData.getResources());
                 }
-                final boolean isCancel = errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode == BiometricPrompt.ERROR_CANCELED;
+                final boolean isCancel = errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode == BiometricPrompt.ERROR_CANCELED ||
+                                         errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON;
                 final boolean isLockout = errorCode == BiometricPrompt.ERROR_LOCKOUT || errorCode == BiometricPrompt.ERROR_LOCKOUT_PERMANENT;
                 if (isCancel) {
                     // User pressed the cancel button, or authentication was canceled by the system.

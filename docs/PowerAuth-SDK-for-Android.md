@@ -1235,22 +1235,20 @@ powerAuthSDK.getActivationRecoveryData(context, authentication, new IGetRecovery
 });
 ```
 
-<!-- begin box warning -->
-**WARNING:** The obtained information is very sensitive, so you should be very careful how your application manipulate with that received values:
-<!-- end -->
+The obtained information is very sensitive, so you should be very careful how your application manipulates the received values:
 
 - You should never store `recoveryCode` or `puk` on the device.
-- You should never print that values to the debug log.
-- You should never send that values over the network.
-- You should never copy that values to the clipboard.
-- Do not cache that values in RAM.
-- Your UI logic should require PIN every time the vales are going to display on the screen.
-- Your application should not allow taking screenshots when values are displayed on the screen.
+- You should never print the values to the debug log.
+- You should never send the values over the network.
+- You should never copy the values to the clipboard.
+- You should require PIN code every time to display the values on the screen.
+- You should warn user that taking screenshot of the values is not recommended.
+- Do not cache the values in RAM.
 
-You should inform user that:
+You should inform the user that:
 
-- Making screenshot when values are displayed on the screen is dangerous (in case that you did not disable taking screenshots).
-- User should write down that values on paper and keep it as much safe as possible for future use.
+- Making a screenshot when values are displayed on the screen is dangerous.
+- The user should write down that values on paper and keep it as much safe as possible for future use.
 
 
 ### Confirm Recovery Postcard
@@ -1522,7 +1520,7 @@ PowerAuth SDK for Android contains multiple additional features that are useful 
 
 ### Password Strength Indicator
 
-Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate strenght of the passphrase and warn the user when he tries to use such passphrase in your application.
+Choosing a weak passphrase in applications with high-security demands can be potentially dangerous. You can use our [Wultra Passphrase Meter](https://github.com/wultra/passphrase-meter) library to estimate the strength of the passphrase and warn the user when he tries to use such a passphrase in your application.
 
 ### Debug Build Detection
 

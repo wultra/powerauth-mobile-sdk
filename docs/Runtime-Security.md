@@ -54,7 +54,9 @@ There are several attack vectors that you should take into account:
 
 Of course, the attacker can combine the vectors above quite creatively (for example, device cloning with PIN code theft) to amplify the damage.
 
-_Note: Rooting and jailbreaking are generally terms used for a complete replacement of a legitimate OS with an OS that removes all protective mechanisms. However, the attacker does not need to do a full rooting or jailbreaking to gain access to some system permissions. Instead, the attacker can merely misuse some system vulnerability to escalate user permissions. In such a case, the result is in principle the same as if the attacker performed a full jailbreak or rooting: complete control over the end user's system._
+<!-- begin box info -->
+Rooting and jailbreaking are generally terms used for a complete replacement of a legitimate OS with an OS that removes all protective mechanisms. However, the attacker does not need to do a full rooting or jailbreaking to gain access to some system permissions. Instead, the attacker can merely misuse some system vulnerability to escalate user permissions. In such a case, the result is in principle the same as if the attacker performed a full jailbreak or rooting: complete control over the end user's system.
+<!-- end -->
 
 ## Typical Remedies
 
@@ -66,7 +68,7 @@ Unless you are looking for a strictly formal fix (meaning "making the pen-tester
 
 We encourage you to use any system provided protection measures as much as possible while coding your application, such as:
 
-- Built-in secure storage (iOS Keychain with Secure Enclave, Android Keystore with StrongBox).
+- Built-in secure storage (iOS Keychain with Secure Enclave, Android KeyStore with StrongBox).
 - App transport security to enforce newer TLS standards, check for the correctness of the certificate, and disallow any HTTP connections.
 
 However, please note that on a compromised device, these features may be disabled or bypassed, and therefore, they will not help to make your application secure.

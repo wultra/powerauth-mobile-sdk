@@ -346,7 +346,7 @@
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
 							   to:(nonnull NSString*)newPassword;
 
-/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/vault/unlock'.
+/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
@@ -383,11 +383,24 @@
  */
 - (BOOL) removeBiometryFactor;
 
+/** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
+ 
+ The method is useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+  
+ Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
+ 
+ @param prompt A prompt displayed in TouchID or FaceID authentication dialog.
+ @param callback A callback with result, always executed on the main thread.
+ */
+- (void) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
+									callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback;
+
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
- There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger Touch ID twice. To avoid that, all Touch ID related keys are fetched at once and cached for a limited amount of time.
+ There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
-- (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, bool userCanceled))block;
+- (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt
+							withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block;
 
 /** Generate an derived encryption key with given index.
  
@@ -417,7 +430,7 @@
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to validate the signature value.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.

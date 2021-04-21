@@ -660,7 +660,7 @@ namespace powerAuth
 		protocol::CalculateNextCounterValue(*_pd);
 		
 		// Fill the rest of values to out structure
-		out.version			= _pd->isV3() ? protocol::PA_VERSION_V3 : protocol::PA_VERSION_V2;
+		out.version			= maxSupportedHttpProtocolVersion(_pd->protocolVersion());
 		out.activationId	= _pd->activationId;
 		out.applicationKey	= request.isOfflineRequest() ? protocol::PA_OFFLINE_APP_SECRET : _setup.applicationKey;
 		
@@ -1189,7 +1189,23 @@ namespace powerAuth
 		}
 		return EC_WrongState;
 	}
-	
+
+
+	std::string Session::maxSupportedHttpProtocolVersion(Version protocolVersion)
+	{
+		if (protocolVersion == Version_NA) {
+			protocolVersion = Version_Latest;
+		}
+		switch (protocolVersion) {
+			case Version_V2: return protocol::PA_VERSION_V2;
+			case Version_V3: return protocol::PA_VERSION_V3;
+			default: break;
+		}
+		CC7_ASSERT(false, "Invalid protocol version");
+		return protocol::PA_VERSION_V3;
+	}
+
+
 	// MARK: - Recovery code -
 	
 	bool Session::hasActivationRecoveryData() const

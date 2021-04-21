@@ -614,6 +614,29 @@ public class Session {
     @ErrorCode
     public native int finishProtocolUpgrade();
 
+    /**
+     * Return textual representation for given protocol version. For example, for {@link ProtocolVersion#V3}
+     * returns {@code "3.1"}. You can use {@link ProtocolVersion#NA} to get the latest supported version.
+     *
+     * @param version Version to convert to string
+     * @return Textual representation for given protocol version.
+     */
+    @NonNull
+    public static String getMaxSupportedHttpProtocolVersion(ProtocolVersion version) {
+        return getMaxSupportedHttpProtocolVersion(version.numericValue);
+    }
+
+    /**
+     * Return textual representation for given integer value of protocol version. For example,
+     * for {@link ProtocolVersion#V3} returns {@code "3.1"}. You can use {@link ProtocolVersion#NA}
+     * to get the latest supported version.
+     *
+     * @param protocolVersionValue Integer value from {@link ProtocolVersion} enum.
+     * @return Textual representation for given protocol version.
+     */
+    @NonNull
+    private static native String getMaxSupportedHttpProtocolVersion(int protocolVersionValue);
+
     //
     // Recovery codes
     //

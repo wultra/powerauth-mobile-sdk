@@ -583,6 +583,12 @@ namespace powerAuth
 		 */
 		ErrorCode finishProtocolUpgrade();
 		
+		/**
+		 Returns textual representation for given protocol version. For example, for `Version_V3` returns "3.1".
+		 You can use `Version_NA` to get the lastest supported version.
+		 */
+		static std::string maxSupportedHttpProtocolVersion(Version protocolVersion);
+		
 	public:
 		
 		// MARK: - Recovery code -

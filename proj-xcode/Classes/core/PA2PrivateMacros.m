@@ -25,8 +25,34 @@ id PA2CastToImpl(id instance, Class desiredClass)
 	return nil;
 }
 
+static NSString * _GetDefaultErrorDescription(NSInteger errorCode, NSString * message)
+{
+	if (message) {
+		return message;	// Use message if it's already available.
+	}
+#define _CODE_DESC(ec, text) if (errorCode == ec) return text;
+	_CODE_DESC(PA2ErrorCodeNetworkError, @"Network error")
+	_CODE_DESC(PA2ErrorCodeSignatureError, @"Signature error")
+	_CODE_DESC(PA2ErrorCodeInvalidActivationState, @"Invalid activation state")
+	_CODE_DESC(PA2ErrorCodeInvalidActivationData, @"Invalid activation data")
+	_CODE_DESC(PA2ErrorCodeMissingActivation, @"Missing activation")
+	_CODE_DESC(PA2ErrorCodeActivationPending, @"Pending activation")
+	_CODE_DESC(PA2ErrorCodeBiometryNotAvailable, @"Biometry is not supported or is unavailable")
+	_CODE_DESC(PA2ErrorCodeBiometryCancel, @"User did cancel biometry authentication dialog")
+	_CODE_DESC(PA2ErrorCodeBiometryFailed, @"Biometry authentication failed")
+	_CODE_DESC(PA2ErrorCodeOperationCancelled, @"Operation was cancelled by SDK")
+	_CODE_DESC(PA2ErrorCodeEncryption, @"General encryption failure")
+	_CODE_DESC(PA2ErrorCodeWrongParameter, @"Invalid parameter provided to method")
+	_CODE_DESC(PA2ErrorCodeInvalidToken, @"Invalid or unknown token")
+	_CODE_DESC(PA2ErrorCodeWatchConnectivity, @"Watch connectivity error")
+	_CODE_DESC(PA2ErrorCodeProtocolUpgrade, @"Protocol upgrade error")
+	_CODE_DESC(PA2ErrorCodePendingProtocolUpgrade, @"Pending protocol ugprade, try later")
+#undef _CODE_DESC
+	return [NSString stringWithFormat:@"Unknown error %@", @(errorCode)];
+}
+
 NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 {
-	NSDictionary * info = message ? @{ NSLocalizedDescriptionKey: message} : nil;
+	NSDictionary * info = @{ NSLocalizedDescriptionKey:  _GetDefaultErrorDescription(errorCode, message)};
 	return [NSError errorWithDomain:PA2ErrorDomain code:errorCode userInfo:info];
 }

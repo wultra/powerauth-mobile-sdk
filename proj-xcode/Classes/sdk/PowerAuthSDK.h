@@ -346,7 +346,7 @@
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
 							   to:(nonnull NSString*)newPassword;
 
-/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/vault/unlock'.
+/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
@@ -430,7 +430,7 @@
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to validate the signature value.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.

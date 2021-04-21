@@ -91,6 +91,15 @@
 	return auth;
 }
 
++ (PowerAuthAuthentication*) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
+{
+	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
+	auth.usePossession = YES;
+	auth.useBiometry = YES;
+	auth.biometryPrompt = biometryPrompt;
+	return auth;
+}
+
 + (PowerAuthAuthentication*) possessionWithPassword:(NSString *)password
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];

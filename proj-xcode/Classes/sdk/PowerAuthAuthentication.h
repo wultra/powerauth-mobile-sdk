@@ -62,6 +62,12 @@
  */
 + (nonnull PowerAuthAuthentication*) possessionWithBiometry;
 /**
+ Returns a new instance of authentication object preconfigured for a combination of
+ possession and biometry factors and with prompt, displayed in the system biometric
+ authentication dialog.
+ */
++ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithPrompt:(nonnull NSString*)biometryPrompt;
+/**
  Returns a new instance of authentication object preconfigured for combination of possesion
  and knowledge factor.
  */

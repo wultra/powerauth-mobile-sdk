@@ -57,6 +57,12 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryNotAvailable;
 PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryCancel;
 
 /**
+ Error code for biometric authentication failure. This can happen when biometric authentication is requested
+ and is not configured, or when failed to acquire biometry key from the keychain.
+ */
+PA2_EXTERN_C NSInteger const PA2ErrorCodeBiometryFailed;
+
+/**
  Error code for canceled operation. This kind of error may occur in situations, when SDK
  needs to cancel an asynchronous operation, but the cancel is not initiated by the application
  itself. For example, if you reset the state of `PowerAuthSDK` during the pending

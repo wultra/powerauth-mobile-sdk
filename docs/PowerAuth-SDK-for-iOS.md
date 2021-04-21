@@ -783,6 +783,32 @@ You can remove biometry related factor data used by Touch or Face ID support by 
 PowerAuthSDK.sharedInstance().removeBiometryFactor()
 ```
 
+### Fetch Biometry Credentials In Advance
+
+You can acquire biometry credentials in advance in case that business processes require computing two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created `PowerAuthAuthentication` object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+
+Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
+
+In order to obtain biometry credentials for the future signature calculation, call the following code:
+
+```swift
+// Authenticate user with biometry and obtain PowerAuthAuthentication credentials for future signature calculation.
+PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
+    if let authentication = authentication {
+        // Success, you can use provided PowerAuthAuthentication object for the signature calculation.
+        // The provided authentication object is preconfigured for possession+biometry factors
+    }
+    guard let error = error as NSError?, error.domain == PA2ErrorDomain else {
+        return // should never happen
+    }
+    if error.code == PA2ErrorCodeBiometryCancel {
+        // User did cancel the operation
+    } else {
+        // Other error
+    }
+}
+```
+
 ### Biometry Factor-Related Key Lifetime
 
 By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PA2KeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
@@ -1386,7 +1412,7 @@ if error == nil {
     // No error happened
 } else {
     // Handle the error
-    if let error = error as? NSError {
+    if let error = error as NSError? {
 
         // Is this a PowerAuth SDK for iOS error?
         if error.domain == PA2ErrorDomain {
@@ -1423,6 +1449,9 @@ if error == nil {
 
             case PA2ErrorCodeBiometryCancel:
                 print("Error code for TouchID/FaceID action cancel error")
+
+            case PA2ErrorCodeBiometryFailed:
+                print("Error code for TouchID/FaceID action failure")
 
             case PA2ErrorCodeOperationCancelled:
                 print("Error code for cancelled operations")

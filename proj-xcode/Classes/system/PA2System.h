@@ -16,13 +16,6 @@
 
 #import <Foundation/Foundation.h>
 
-/**
- Checks if the device is jailbroken.
- 
- @return YES if the device is jailbroken, NO otherwise.
- */
-extern BOOL pa_isJailbroken(void);
-
 @interface PA2System : NSObject
 
 /**
@@ -31,21 +24,6 @@ extern BOOL pa_isJailbroken(void);
  @return YES if library uses debug features, NO otherwise.
  */
 + (BOOL) isInDebug;
-
-/**
- Checks if the device is jailbroken.
- 
- Please not that this method is exposed as an Objective-C method and as such, it can be very easily detected and bypassed.
- As a result, this method is very good for basic checks for example for educational purpose (to tell users that jailbreaking
- is a bad idea) but it will not stop a skilled attacker from bypassing the check.
- 
- If this is an issue for you and if you use Objective-C, you can use `pa_isJailbroken()` inline method which is slightly
- stronger in this aspect. Generally speaking, there is no way to aviod jailbreak detection alltogether, so you shoudl stick
- with using this method for "educational check".
- 
- @return YES if the device is jailbroken, NO otherwise.
- */
-+ (BOOL) isJailbroken;
 
 /**
  Returns string representing the current device's platform (e.g. "ios", "tvos", etc.)

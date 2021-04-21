@@ -18,47 +18,8 @@
 #import "PA2Session.h"
 #import "PA2Log.h"
 
-#import <UIKit/UIKit.h>
-
 #include <sys/utsname.h>
 #include "TargetConditionals.h"
-
-BOOL pa_isJailbroken() {
-#if !(TARGET_IPHONE_SIMULATOR)
-	
-	if ([[NSFileManager defaultManager] fileExistsAtPath:@"/Applications/Cydia.app"]
-		|| [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/MobileSubstrate.dylib"]
-		|| [[NSFileManager defaultManager] fileExistsAtPath:@"/bin/bash"]
-		|| [[NSFileManager defaultManager] fileExistsAtPath:@"/usr/sbin/sshd"]
-		|| [[NSFileManager defaultManager] fileExistsAtPath:@"/etc/apt"]
-		|| [[NSFileManager defaultManager] fileExistsAtPath:@"/private/var/lib/apt/"]
-		|| [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"cydia://package/com.example.package"]])  {
-		return YES;
-	}
-	
-	FILE *f = NULL ;
-	if ((f = fopen("/bin/bash", "r"))
-		|| (f = fopen("/Applications/Cydia.app", "r"))
-		|| (f = fopen("/Library/MobileSubstrate/MobileSubstrate.dylib", "r"))
-		|| (f = fopen("/usr/sbin/sshd", "r"))
-		|| (f = fopen("/etc/apt", "r")))  {
-		fclose(f);
-		return YES;
-	}
-	fclose(f);
-	
-	NSError *error;
-	NSString *stringToBeWritten = @"This is a test.";
-	[stringToBeWritten writeToFile:@"/private/jailbreak.txt" atomically:YES encoding:NSUTF8StringEncoding error:&error];
-	[[NSFileManager defaultManager] removeItemAtPath:@"/private/jailbreak.txt" error:nil];
-	if(error == nil) {
-		return YES;
-	}
-	
-#endif
-	
-	return NO;
-}
 
 @implementation PA2System
 
@@ -68,21 +29,6 @@ BOOL pa_isJailbroken() {
 	result |= YES;
 #endif
 	return result;
-}
-
-// TODO: We should remove this objc method. The public documentation says that if you want to slow down the attacker, then
-//       you should use the C function. But the fun fact is, that we're actually helping find that function. Look at
-//       the assembly code, produced for the release build:
-//
-//		 +[PA2System isJailbroken]:
-//    	     0x126222f8d <+0>: pushq  %rbp
-//    	     0x126222f8e <+1>: movq   %rsp, %rbp
-//		 ->  0x126222f91 <+4>: popq   %rbp
-//           0x126222f92 <+5>: jmp    0x126222bd4               ; pa_isJailbroken at PA2System.m:21
-//
-//       So, the long term plan is to remove this feature from the SDK and have a separate library for jailbreak detection.
-+ (BOOL) isJailbroken {
-	return pa_isJailbroken();
 }
 
 + (NSString*) platform

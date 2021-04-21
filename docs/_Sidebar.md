@@ -1,3 +1,9 @@
+**Introduction**
+
+- [Home](./Readme.md)
+- [Supported Versions](./Supported-Versions.md)
+- [Migration Guides](./Readme.md#migration-guides)
+
 **Integration Tutorials**
 
 - [iOS Applications](./PowerAuth-SDK-for-iOS.md)
@@ -7,9 +13,4 @@
 
 **Other Links**
 
-- [SDK home](./Readme.md)
-- [Migration Guides](./Readme.md#migration-guides)
-- [Supported Versions](./Supported-Versions.md)
 - [Mobile Runtime Security](./Runtime-Security.md)
-- [License](./Readme.md#license)
-- [Contact](./Readme.md#contact)

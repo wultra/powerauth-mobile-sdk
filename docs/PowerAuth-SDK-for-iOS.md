@@ -41,7 +41,6 @@
    - [Removing Token from Watch](#removing-token-from-watch)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-   - [Root Detection](#root-detection)
    - [Password Strength Indicator](#password-strength-indicator)
    - [Debug Build Detection](#debug-build-detection)
    - [Request Interceptors](#request-interceptors)   

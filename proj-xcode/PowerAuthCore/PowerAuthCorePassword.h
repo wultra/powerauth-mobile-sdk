@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
 
 #pragma mark Password -
 
@@ -155,3 +155,5 @@
 
 @end
 
+// Deprecated type
+typedef PowerAuthCorePassword PA2Password POWERAUTH_DEPRECATED(1.6.0);

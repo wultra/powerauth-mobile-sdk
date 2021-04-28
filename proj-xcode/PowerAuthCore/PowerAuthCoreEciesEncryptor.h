@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
 
 @class PowerAuthCoreEciesCryptogram;
 @class PowerAuthCoreEciesMetaData;
@@ -213,3 +213,8 @@
 @property (nonatomic, strong, readonly, nonnull) NSString * httpHeaderValue;
 
 @end
+
+#pragma mark - Deprecated -
+typedef PowerAuthCoreEciesEncryptor PA2ECIESEncryptor POWERAUTH_DEPRECATED(1.6.0);
+typedef PowerAuthCoreEciesCryptogram PA2ECIESCryptogram POWERAUTH_DEPRECATED(1.6.0);
+typedef PowerAuthCoreEciesMetaData PA2ECIESMetaData POWERAUTH_DEPRECATED(1.6.0);

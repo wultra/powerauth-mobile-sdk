@@ -56,6 +56,15 @@
 		BF6ADDAF24C84FF5001B3E5E /* libPowerAuthCoreLib-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */; };
 		BF6ADDB024C85005001B3E5E /* libcc7tests-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A892485250D001F46BA /* libcc7tests-tvos.a */; };
 		BF6ADDB124C85014001B3E5E /* libcc7-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A852485250D001F46BA /* libcc7-tvos.a */; };
+		BF86E65E26395AD3004C8AE5 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD1524C8486D001B3E5E /* PowerAuthCore.framework */; };
+		BF86E68E26395BA1004C8AE5 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = BF86E68D26395BA1004C8AE5 /* libc++.tbd */; };
+		BF86E6B626395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */; };
+		BF86E6B726395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */; };
+		BF86E6D426395F12004C8AE5 /* libPowerAuthCoreLibTests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF99D9152073E17000735ED2 /* libPowerAuthCoreLibTests-ios.a */; };
+		BF86E6E226395F2C004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */; };
+		BF86E6E326395F2C004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */; };
+		BF86E75A26395FF4004C8AE5 /* libPowerAuthCoreLibTests-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADDAE24C84FE0001B3E5E /* libPowerAuthCoreLibTests-tvos.a */; };
+		BF86E75B26395FF9004C8AE5 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD6024C84A3D001B3E5E /* PowerAuthCore.framework */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
 		BF99D9022073E14100735ED2 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
@@ -208,6 +217,34 @@
 			remoteGlobalIDString = BFFE8ADF2449B5820032821F;
 			remoteInfo = "CC7TestsWrapper-tvos";
 		};
+		BF86E65F26395AD3004C8AE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF6ADD1424C8486D001B3E5E;
+			remoteInfo = "PowerAuthCore-ios";
+		};
+		BF86E69D26395BD7004C8AE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF99D9142073E17000735ED2;
+			remoteInfo = "PowerAuthCoreLibTests-ios";
+		};
+		BF86E6FE26395F48004C8AE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF6ADD3A24C84A3D001B3E5E;
+			remoteInfo = "PowerAuthCore-tvos";
+		};
+		BF86E70026395F4E004C8AE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF3ACC7D2073DBA500B8107E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF6ADD8E24C84FE0001B3E5E;
+			remoteInfo = "PowerAuthCoreLibTests-tvos";
+		};
 		BFB47D4420753444008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
@@ -295,6 +332,12 @@
 		BF6ADD6024C84A3D001B3E5E /* PowerAuthCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuthCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLib-tvos.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF6ADDAE24C84FE0001B3E5E /* libPowerAuthCoreLibTests-tvos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLibTests-tvos.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF86E65926395AD3004C8AE5 /* PowerAuthCoreTests-ios.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PowerAuthCoreTests-ios.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF86E67626395B78004C8AE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BF86E68D26395BA1004C8AE5 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
+		BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreTestsWrapper.mm; sourceTree = "<group>"; };
+		BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCorePublicObjectsTests.mm; sourceTree = "<group>"; };
+		BF86E6EC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PowerAuthCoreTests-tvos.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF8BFBD5215A8EB6001D6852 /* signatures-v3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v3.json"; sourceTree = "<group>"; };
 		BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
 		BF99D8B02073E00D00735ED2 /* verify-encrypted-server-public-key-signature.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "verify-encrypted-server-public-key-signature.json"; sourceTree = "<group>"; };
@@ -428,6 +471,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BF86E65626395AD3004C8AE5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF86E6D426395F12004C8AE5 /* libPowerAuthCoreLibTests-ios.a in Frameworks */,
+				BF86E68E26395BA1004C8AE5 /* libc++.tbd in Frameworks */,
+				BF86E65E26395AD3004C8AE5 /* PowerAuthCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF86E6E426395F2C004C8AE5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF86E75B26395FF9004C8AE5 /* PowerAuthCore.framework in Frameworks */,
+				BF86E75A26395FF4004C8AE5 /* libPowerAuthCoreLibTests-tvos.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF99D9122073E17000735ED2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -459,6 +521,8 @@
 				BF6ADD6024C84A3D001B3E5E /* PowerAuthCore.framework */,
 				BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */,
 				BF6ADDAE24C84FE0001B3E5E /* libPowerAuthCoreLibTests-tvos.a */,
+				BF86E65926395AD3004C8AE5 /* PowerAuthCoreTests-ios.xctest */,
+				BF86E6EC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -518,6 +582,16 @@
 				BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */,
 			);
 			name = Protocol;
+			sourceTree = "<group>";
+		};
+		BF86E67526395B78004C8AE5 /* PowerAuthCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */,
+				BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */,
+				BF86E67626395B78004C8AE5 /* Info.plist */,
+			);
+			path = PowerAuthCoreTests;
 			sourceTree = "<group>";
 		};
 		BF99D8AA2073E00D00735ED2 /* src */ = {
@@ -719,6 +793,7 @@
 			isa = PBXGroup;
 			children = (
 				BFA98079253DA559004D2CF9 /* PowerAuthCore */,
+				BF86E67526395B78004C8AE5 /* PowerAuthCoreTests */,
 			);
 			name = objc;
 			sourceTree = "<group>";
@@ -739,6 +814,7 @@
 		BFB47D502075347E008A6A52 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BF86E68D26395BA1004C8AE5 /* libc++.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -878,6 +954,44 @@
 			productReference = BF6ADDAE24C84FE0001B3E5E /* libPowerAuthCoreLibTests-tvos.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		BF86E65826395AD3004C8AE5 /* PowerAuthCoreTests-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF86E66626395AD3004C8AE5 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-ios" */;
+			buildPhases = (
+				BF86E65526395AD3004C8AE5 /* Sources */,
+				BF86E65626395AD3004C8AE5 /* Frameworks */,
+				BF86E65726395AD3004C8AE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF86E69E26395BD7004C8AE5 /* PBXTargetDependency */,
+				BF86E66026395AD3004C8AE5 /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCoreTests-ios";
+			productName = "XCTests-ios";
+			productReference = BF86E65926395AD3004C8AE5 /* PowerAuthCoreTests-ios.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BF86E6DC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF86E6E926395F2C004C8AE5 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-tvos" */;
+			buildPhases = (
+				BF86E6E126395F2C004C8AE5 /* Sources */,
+				BF86E6E426395F2C004C8AE5 /* Frameworks */,
+				BF86E6E826395F2C004C8AE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF86E70126395F4E004C8AE5 /* PBXTargetDependency */,
+				BF86E6FF26395F48004C8AE5 /* PBXTargetDependency */,
+			);
+			name = "PowerAuthCoreTests-tvos";
+			productName = "XCTests-ios";
+			productReference = BF86E6EC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		BF99D9142073E17000735ED2 /* PowerAuthCoreLibTests-ios */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BF99D91B2073E17000735ED2 /* Build configuration list for PBXNativeTarget "PowerAuthCoreLibTests-ios" */;
@@ -903,7 +1017,7 @@
 		BF3ACC7D2073DBA500B8107E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1210;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {
@@ -911,6 +1025,9 @@
 					};
 					BF6ADD1424C8486D001B3E5E = {
 						CreatedOnToolsVersion = 11.6;
+					};
+					BF86E65826395AD3004C8AE5 = {
+						CreatedOnToolsVersion = 12.4;
 					};
 					BF99D9142073E17000735ED2 = {
 						CreatedOnToolsVersion = 9.3;
@@ -942,6 +1059,8 @@
 				BF6ADD8E24C84FE0001B3E5E /* PowerAuthCoreLibTests-tvos */,
 				BF6ADD1424C8486D001B3E5E /* PowerAuthCore-ios */,
 				BF6ADD3A24C84A3D001B3E5E /* PowerAuthCore-tvos */,
+				BF86E65826395AD3004C8AE5 /* PowerAuthCoreTests-ios */,
+				BF86E6DC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos */,
 			);
 		};
 /* End PBXProject section */
@@ -1000,6 +1119,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BF6ADD5C24C84A3D001B3E5E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF86E65726395AD3004C8AE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF86E6E826395F2C004C8AE5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1123,6 +1256,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BF86E65526395AD3004C8AE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF86E6B626395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */,
+				BF86E6B726395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF86E6E126395F2C004C8AE5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF86E6E226395F2C004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */,
+				BF86E6E326395F2C004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF99D9112073E17000735ED2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1186,6 +1337,26 @@
 			isa = PBXTargetDependency;
 			target = BF6ADD6724C84C0C001B3E5E /* PowerAuthCoreLib-tvos */;
 			targetProxy = BF5EB58B24C865E900F9DDB2 /* PBXContainerItemProxy */;
+		};
+		BF86E66026395AD3004C8AE5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF6ADD1424C8486D001B3E5E /* PowerAuthCore-ios */;
+			targetProxy = BF86E65F26395AD3004C8AE5 /* PBXContainerItemProxy */;
+		};
+		BF86E69E26395BD7004C8AE5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF99D9142073E17000735ED2 /* PowerAuthCoreLibTests-ios */;
+			targetProxy = BF86E69D26395BD7004C8AE5 /* PBXContainerItemProxy */;
+		};
+		BF86E6FF26395F48004C8AE5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF6ADD3A24C84A3D001B3E5E /* PowerAuthCore-tvos */;
+			targetProxy = BF86E6FE26395F48004C8AE5 /* PBXContainerItemProxy */;
+		};
+		BF86E70126395F4E004C8AE5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF6ADD8E24C84FE0001B3E5E /* PowerAuthCoreLibTests-tvos */;
+			targetProxy = BF86E70026395F4E004C8AE5 /* PBXContainerItemProxy */;
 		};
 		BFB47D5320753487008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1355,6 +1526,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1392,6 +1564,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1429,6 +1602,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1466,6 +1640,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1548,6 +1723,102 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		BF86E66126395AD3004C8AE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BF86E66226395AD3004C8AE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BF86E6EA26395F2C004C8AE5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-tvos";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+			};
+			name = Debug;
+		};
+		BF86E6EB26395F2C004C8AE5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				INFOPLIST_FILE = PowerAuthCoreTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wultra.lib.PowerAuthCoreTests-tvos";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
 			};
 			name = Release;
 		};
@@ -1638,6 +1909,24 @@
 			buildConfigurations = (
 				BF6ADDAC24C84FE0001B3E5E /* Debug */,
 				BF6ADDAD24C84FE0001B3E5E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF86E66626395AD3004C8AE5 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF86E66126395AD3004C8AE5 /* Debug */,
+				BF86E66226395AD3004C8AE5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF86E6E926395F2C004C8AE5 /* Build configuration list for PBXNativeTarget "PowerAuthCoreTests-tvos" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF86E6EA26395F2C004C8AE5 /* Debug */,
+				BF86E6EB26395F2C004C8AE5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

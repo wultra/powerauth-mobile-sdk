@@ -2,12 +2,12 @@
 ###############################################################################
 # PowerAuth2 build for Apple platforms
 #
-# The main purpose of this script is build and prepare PA2 "fat" libraries for
+# The main purpose of this script is build and prepare PowerAuth xcframeworks for
 # library distribution. Typically, this script is used for CocoaPods integration.
 # 
 # The result of the build process is:
 #    PowerAuthCore.xcframework:
-#      multi-architecture, multi-platform static framework (also called as "fat") 
+#      multi-architecture, multi-platform dynamic framework (also called as "fat") 
 #      with all core functionality of PowerAuth2 SDK. The library contains all C++
 #      code, plus thin ObjC wrapper written on top of that codes.
 #
@@ -38,7 +38,7 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 # Source headers & Xcode project location
 #
 XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthCore.xcodeproj"
-SOURCE_FILES="${SRC_ROOT}/proj-xcode/Classes"
+SOURCE_FILES="${SRC_ROOT}/proj-xcode/PowerAuth2"
 XCODE_SCHEME_IOS="PowerAuthCore_iOS"
 XCODE_SCHEME_TVOS="PowerAuthCore_tvOS"
 
@@ -65,6 +65,8 @@ FULL_REBUILD=1
 CLEANUP_AFTER=1
 OUT_DIR=''
 TMP_DIR=''
+DO_BUILDCORE=0
+DO_COPYSDK=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -74,8 +76,13 @@ TMP_DIR=''
 function USAGE
 {
 	echo ""
-	echo "Usage:  $CMD  [options]"
-	echo ""
+	echo "Usage:  $CMD  [options] command"
+    echo ""
+    echo "commands are:"
+    echo ""
+    echo "  copySdk           Copy SDK files to output directory"
+    echo "  buildCore         Build PowerAuthCore.xcframework to out directory"
+    echo ""
 	echo "options are:"
 	echo "  -nc | --no-clean  disable 'clean' before 'build'"
 	echo "                    also disables temporary data cleanup after build"
@@ -163,64 +170,6 @@ function GET_PLATFORM_SCHEME
 }
 
 # -----------------------------------------------------------------------------
-# Copy file from $1 to $2. 
-#   If $1 is header and contains "Private" or "private" in path, 
-#   then copy to $2/Private
-# Parameters:
-#   $1   - source file
-#   $2   - destination directory
-# -----------------------------------------------------------------------------
-function COPY_SRC_FILE
-{
-	local SRC=$1
-	local DST=$2
-	case "$SRC" in 
-	  *Private* | *private*)
-		[[ "$SRC" == *.h ]] && DST="$DST/Private"
-	    ;;
-	esac
-	$CP "${SRC}" "${DST}"
-}
-
-# -----------------------------------------------------------------------------
-# Copy all source files from $1 directory to $2. 
-#   If $3 contains "1" then only headers will be copied
-# Parameters:
-#   $1   - SDK folder (relative)
-#   $2   - SDK folder base
-#   $3   - destination directory
-#   $4   - only headers if equal to 1
-# -----------------------------------------------------------------------------
-function COPY_SRC_DIR
-{
-	local SRC="$1"
-	local BASE="$2"
-	local DST="$3"
-	local ONLY_HEADERS="$4"
-	
-	local SRC_FULL="${BASE}/$SRC"
-	local SRC_DIR_FULL="`( cd \"$SRC_FULL\" && pwd )`"
-	
-	LOG "Copying $SRC ..."
-	
-	PUSH_DIR "${SRC_DIR_FULL}"	
-	####
-	if [ x$ONLY_HEADERS == x1 ]; then
-		local files=(`grep -R -null --include "*.h" "" .`)
-	else
-		local files=(`grep -R -null --include "*.h" --include "*.m" "" .`)
-	fi
-	# Do for each file we found...
-	for ix in ${!files[*]}
-	do
-		local FILE="${files[$ix]}"
-		COPY_SRC_FILE "${FILE}" "${DST}"
-	done
-	####
-	POP_DIR
-}
-
-# -----------------------------------------------------------------------------
 # Copy all source files in SDK to destination directory
 # Parameters:
 #   $1   - source directory
@@ -231,28 +180,32 @@ function COPY_SOURCE_FILES
 	local SRC="$1"
 	local DST="$2"
 	
-	LOG_LINE
-	LOG "Copying SDK folders ..."
-	LOG_LINE
-	
 	# Prepare dirs in output directory
 	DST="`( cd \"$DST\" && pwd )`"
 	$MD "${DST}"
 	$MD "${DST}/Private"
 	
-	# Copy each SDK folder
-	COPY_SRC_DIR "sdk"        	"$SRC" "$DST" 0
-	COPY_SRC_DIR "sdk-private"	"$SRC" "$DST" 0
-	COPY_SRC_DIR "core"       	"$SRC" "$DST" 1
-	COPY_SRC_DIR "networking" 	"$SRC" "$DST" 0
-	COPY_SRC_DIR "keychain"   	"$SRC" "$DST" 0
-	COPY_SRC_DIR "token"      	"$SRC" "$DST" 0
-	COPY_SRC_DIR "system"     	"$SRC" "$DST" 0
-	COPY_SRC_DIR "watch"      	"$SRC" "$DST" 0
-	
-	# And finally, top level header..
-	# Disabled, CocoaPods generates it own umbrella header. 
-	#$CP "${SRC}/PowerAuth2.h" "$DST" 
+	# Copy public / private SDK folders
+    PUSH_DIR "$SRC"
+    ####
+    local FILES=(`grep -R -null --include "*.h" --include "*.m" "" .`)
+	# Do for each file we found...
+	for ix in ${!FILES[*]}
+	do
+		local FILE="${FILES[$ix]}"
+        local DEST_DIR="$DST"
+    	case "$FILE" in 
+    	  ./private/*)
+    		DEST_DIR="$DST/Private"
+    	    ;;
+    	esac
+        $CP "${FILE}" "${DEST_DIR}"
+	done
+    ####
+    POP_DIR
+    
+	# Remove umbrella header, because CocoaPods generates its own.
+	$RM "${DST}/PowerAuth2.h"
 }
 
 # -----------------------------------------------------------------------------
@@ -297,11 +250,9 @@ function BUILD_COMMAND
 }
 
 # -----------------------------------------------------------------------------
-# Build scheme for both plaforms and create FAT libraries
-# Parameters:
-#   $1   - build configuration (e.g. Debug | Release)
+# Build core library for all plaforms and create xcframework
 # -----------------------------------------------------------------------------
-function BUILD_PLATFORMS
+function BUILD_CORE_LIB
 {
 	LOG_LINE
 	LOG "Building platforms..."
@@ -320,7 +271,7 @@ function BUILD_PLATFORMS
 	
 	LOG_LINE
 	LOG "Creating final ${OUT_FW}.xcframework..."
-	local XCFW_PATH="${OUT_DIR}/Frameworks/${OUT_FW}.xcframework"
+	local XCFW_PATH="${OUT_DIR}/${OUT_FW}.xcframework"
 	local XCFW_ARGS=
     for ARG in ${ALL_FAT_LIBS[@]}; do
         XCFW_ARGS+="-framework ${ARG} "
@@ -328,16 +279,20 @@ function BUILD_PLATFORMS
     done
 	DEBUG_LOG "  - target fw: ${XCFW_PATH}"
 	
-	$MD "${OUT_DIR}/Frameworks"
-    xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"
-		
-	# Copy source files...
-	$MD "${OUT_DIR}/Src"
-	COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}/Src"
-	
+    xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"    
+}
+
+# -----------------------------------------------------------------------------
+# Copy PowerAuth2 SDK sources to destination folder.
+# -----------------------------------------------------------------------------
+function COPY_SDK_SOURCES
+{
 	LOG_LINE
-	LOG "Copying openssl.xcframework ..."
-	$CP -r "${SRC_ROOT}/cc7/openssl-lib/apple/openssl.xcframework" "${OUT_DIR}/Frameworks"
+	LOG "Copying SDK files ..."
+	LOG_LINE
+    
+	# Copy source files...
+    COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
 }
 
 # -----------------------------------------------------------------------------
@@ -392,9 +347,12 @@ while [[ $# -gt 0 ]]
 do
 	opt="$1"
 	case "$opt" in
-		debug | release)
-			WARNING "debug or release option is now deprecated."
+        buildCore)
+            DO_BUILDCORE=1
 			;;
+        copySdk)
+            DO_COPYSDK=1
+            ;;
 		-nc | --no-clean)
 			FULL_REBUILD=0 
 			CLEANUP_AFTER=0
@@ -420,6 +378,10 @@ do
 	shift
 done
 
+if [ x$DO_BUILDCORE$DO_COPYSDK == x00 ]; then
+    FAILURE "No command specified. Use 'buildCore' or 'copySdk' parameter."
+fi
+
 # Defaulting target & temporary folders
 if [ -z "$OUT_DIR" ]; then
 	OUT_DIR="${TOP}/Lib"
@@ -444,9 +406,10 @@ $MD "${OUT_DIR}"
 $MD "${TMP_DIR}"
 
 #
-# Build
+# Build core or copy SDK
 #
-BUILD_PLATFORMS
+[[ x$DO_BUILDCORE == x1 ]] && BUILD_CORE_LIB
+[[ x$DO_COPYSDK == x1 ]] && COPY_SDK_SOURCES
 
 #
 # Remove temporary data

@@ -48,9 +48,11 @@ function USAGE
 ###############################################################################
 # Config
 PODSPEC="PowerAuth2.podspec"
+PODSPEC_COR="PowerAuthCore.podspec"
 PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
 PODSPEC_WOS="PowerAuth2ForWatch.podspec"
-INFO_PLIST="proj-xcode/Classes/Info.plist"
+INFO_PLIST="proj-xcode/PowerAuth2/Info.plist"
+INFO_PLIST_COR="proj-xcode/PowerAuthCore/Info.plist"
 INFO_PLIST_EXT="proj-xcode/Extensions/IOS/Info.plist"
 INFO_PLIST_WOS="proj-xcode/Extensions/WatchOS/Info.plist"
 
@@ -113,26 +115,32 @@ function PREPARE_VERSIONING_FILES
 	PUSH_DIR "${SRC_ROOT}"
 	####
 	if [ x$DO_IOS == x1 ]; then
-		# ios, ios-debug
+		# PowerAuth2
 		LOG "----- Generating ${PODSPEC}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
 		git add ${PODSPEC}
-		# watchos
+		# PowerAuthCore
+		LOG "----- Generating ${PODSPEC_COR}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_COR}" > "$SRC_ROOT/${PODSPEC_COR}" 
+		git add ${PODSPEC_COR}
+		# PowerAuth2ForWatch
 		LOG "----- Generating ${PODSPEC_WOS}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
 		git add ${PODSPEC_WOS}
-		# ios app extensions
+		# PowerAuth2ForExtensions
 		LOG "----- Generating ${PODSPEC_EXT}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
 		git add ${PODSPEC_EXT}
 		# Info.plist files
 		LOG "----- Generating ${INFO_PLIST}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
+		LOG "----- Generating ${INFO_PLIST_COR}..."
+		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PAC-Info.plist" > "$SRC_ROOT/${INFO_PLIST_COR}"
 		LOG "----- Generating ${INFO_PLIST_WOS}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Watch-Info.plist" > "$SRC_ROOT/${INFO_PLIST_WOS}"
 		LOG "----- Generating ${INFO_PLIST_EXT}..."
 		sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Ext-Info.plist" > "$SRC_ROOT/${INFO_PLIST_EXT}"
-		git add ${INFO_PLIST} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
+		git add ${INFO_PLIST} ${INFO_PLIST_COR} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
 	fi
 	if [ x$DO_ANDROID == x1 ]; then
 		LOG "----- Generating gradle.properties..."

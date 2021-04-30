@@ -14,91 +14,11 @@
  * limitations under the License.
  */
 
-// This header contains all deprecated PA2* interfaces
-
-//
-// MARK: - 1.6.0 deprecated -
-//
-
-#import <PowerAuth2/PowerAuthClientConfiguration.h>
-#import <PowerAuth2/PowerAuthActivationCode.h>
-#import <PowerAuth2/PowerAuthActivationStatus.h>
-#import <PowerAuth2/PowerAuthActivationResult.h>
-#import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
-#import <PowerAuth2/PowerAuthActivationRecoveryData.h>
-#import <PowerAuth2/PowerAuthErrorConstants.h>
-#import <PowerAuth2/PowerAuthKeychainConfiguration.h>
-#import <PowerAuth2/PowerAuthKeychain.h>
-#import <PowerAuth2/PowerAuthSystem.h>
-#import <PowerAuth2/PowerAuthWCSessionManager.h>
-
-#import <PowerAuth2/PowerAuthOperationTask.h>
-#import <PowerAuth2/PowerAuthCustomHeaderRequestInterceptor.h>
-#import <PowerAuth2/PowerAuthClientSslNoValidationStrategy.h>
-#import <PowerAuth2/PowerAuthBasicHttpAuthenticationRequestInterceptor.h>
-
-/**
- The PA2ClientConfiguration is now deprecated, please use PowerAuthClientConfiguration as a replacement.
- */
-typedef PowerAuthClientConfiguration PA2ClientConfiguration PA2_DEPRECATED(1.6.0);
-/**
- The PA2HttpRequestInterceptor protocol is now deprecated, please use PowerAuthHttpRequestInterceptor as a replacement.
- */
-PA2_DEPRECATED(1.6.0)
-@protocol PA2HttpRequestInterceptor <PowerAuthHttpRequestInterceptor>
-@end
-/**
- The PA2ClientSslValidationStrategy protocol is now deprecated, please use PowerAuthClientSslValidationStrategy as a replacement.
- */
-PA2_DEPRECATED(1.6.0)
-@protocol PA2ClientSslValidationStrategy <PowerAuthClientSslValidationStrategy>
-@end
-/**
- PA2OperationTask is now deprecated, please use PowerAuthOperationTask
- */
-PA2_DEPRECATED(1.6.0)
-@protocol PA2OperationTask <PowerAuthOperationTask>
-@end
-/**
- The PA2AuthorizationHttpHeader class is deprecated, please use PowerAuthAuthorizationHttpHeader as a replacement.
- */
-typedef PowerAuthAuthorizationHttpHeader PA2AuthorizationHttpHeader PA2_DEPRECATED(1.6.0);
-/**
- The PA2Otp class is deprecated, please use PowerAuthActivationCode as a replacement.
- */
-typedef PowerAuthActivationCode PA2Otp PA2_DEPRECATED(1.6.0);
-/**
- The PA2OtpUtil is deprecated, please use PowerAuthActivationCodeUtil as a replacement.
- */
-typedef PowerAuthActivationCodeUtil PA2OtpUtil PA2_DEPRECATED(1.6.0);
-/**
- PA2ActivationStatus is deprecated, please use PowerAuthActivationStatus as a replacement.
- */
-typedef PowerAuthActivationStatus PA2ActivationStatus PA2_DEPRECATED(1.6.0);
-/**
- PA2ActivationState is deprecated, please use PowerAuthActivationState as a replacement.
- */
-typedef PowerAuthActivationState PA2ActivationState PA2_DEPRECATED(1.6.0);
-/**
- PA2ActivationRecoveryData is now deprecated. You can use PowerAuthActivationRecoveryData as a direct replacement.
- */
-typedef PowerAuthActivationRecoveryData PA2ActivationRecoveryData PA2_DEPRECATED(1.6.0);
-/**
- PA2ActivationResult is deprecated, please use PowerAuthActivationResult as a replacement.
- */
-typedef PowerAuthActivationResult PA2ActivationResult PA2_DEPRECATED(1.6.0);
-/**
- The PA2CustomHeaderRequestInterceptor is deprecated, please use PowerAuthCustomHeaderRequestInterceptor instead.
- */
-typedef PowerAuthCustomHeaderRequestInterceptor PA2CustomHeaderRequestInterceptor PA2_DEPRECATED(1.6.0);
-/**
- The PA2BasicHttpAuthenticationRequestInterceptor is deprecated, please use PowerAuthBasicHttpAuthenticationRequestInterceptor instead.
- */
-typedef PowerAuthBasicHttpAuthenticationRequestInterceptor PA2BasicHttpAuthenticationRequestInterceptor PA2_DEPRECATED(1.6.0);
-/**
- The PowerAuthClientSslNoValidationStrategy is deprecated, please use PA2ClientSslNoValidationStrategy instead.
- */
-typedef PowerAuthClientSslNoValidationStrategy PA2ClientSslNoValidationStrategy PA2_DEPRECATED(1.6.0);
+#import <PowerAuth2ForExtensions/PowerAuthErrorConstants.h>
+#import <PowerAuth2ForExtensions/PowerAuthKeychain.h>
+#import <PowerAuth2ForExtensions/PowerAuthKeychainConfiguration.h>
+#import <PowerAuth2ForExtensions/PowerAuthLog.h>
+#import <PowerAuth2ForExtensions/PowerAuthSystem.h>
 
 // PA2Error*
 
@@ -181,9 +101,9 @@ typedef PowerAuthBiometricAuthenticationType PA2BiometricAuthenticationType PA2_
 // PA2System
 
 /**
- The PA2System class is now deprecated, please use PowerAuthSystem as a replacement.
+ The PA2ExtensionLibrary class is now deprecated, please use PowerAuthSystem as a replacement.
  */
-typedef PowerAuthSystem PA2System PA2_DEPRECATED(1.6.0);
+typedef PowerAuthSystem PA2ExtensionLibrary PA2_DEPRECATED(1.6.0);
 
 // PA2Log
 
@@ -203,12 +123,3 @@ PA2_DEPRECATED(1.6.0) PA2_EXTERN_C void PA2LogSetVerbose(BOOL verbose);
  The PA2LogIsVerbose() function is deprecated, please use PowerAuthLogIsVerbose() instead.
  */
 PA2_DEPRECATED(1.6.0) PA2_EXTERN_C BOOL PA2LogIsVerbose(void);
-
-// watch
-
-#if defined(PA2_WATCH_SUPPORT)
-/**
- The PA2WCSessionManager class is deprecated, please use PowerAuthWCSessionManager instead.
- */
-typedef PowerAuthWCSessionManager PA2WCSessionManager PA2_DEPRECATED(1.6.0);
-#endif //defined(PA2_WATCH_SUPPORT)

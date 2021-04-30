@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthToken.h>
-#import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
-#import <PowerAuth2/PowerAuthLog.h>
+#import <PowerAuth2ForWatch/PowerAuthToken.h>
+#import <PowerAuth2ForWatch/PowerAuthAuthorizationHttpHeader.h>
+#import <PowerAuth2ForWatch/PowerAuthLog.h>
 
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateTokenData.h"

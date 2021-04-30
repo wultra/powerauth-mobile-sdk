@@ -208,11 +208,13 @@ function DEPLOY_IOS
 		return
 	fi
 	
+    # Validate shared sources before publishing
+    "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh"
+    
 	PUSH_DIR "${SRC_ROOT}"
 	####
-	LOG "----- Validating IOS build..."
-	pod lib lint ${PODSPEC}
-	pod lib lint ${PODSPEC_EXT}
+	LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
+	pod trunk push ${PODSPEC_COR}
 	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
 	LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."

@@ -304,8 +304,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 }
 
 - (id<PowerAuthOperationTask>) fetchEncryptedVaultUnlockKey:(PowerAuthAuthentication*)authentication
-											   reason:(PA2VaultUnlockReason)reason
-											 callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback
+													 reason:(PA2VaultUnlockReason)reason
+												   callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback
 {
 	[self checkForValidSetup];
 	// Check if there is an activation present
@@ -432,7 +432,7 @@ static PowerAuthSDK * s_inst;
 #pragma mark Creating a new activation
 
 - (id<PowerAuthOperationTask>) createActivation:(PowerAuthActivation*)activation
-								 callback:(void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback
+									   callback:(void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback
 {
 	// Input parameters check
 	[self checkForValidSetup];
@@ -513,16 +513,16 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) createActivationWithName:(NSString*)name
-								   activationCode:(NSString*)activationCode
-										 callback:(void(^)(PowerAuthActivationResult *result, NSError *error))callback
+										 activationCode:(NSString*)activationCode
+											   callback:(void(^)(PowerAuthActivationResult *result, NSError *error))callback
 {
 	return [self createActivationWithName:name activationCode:activationCode extras:nil callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) createActivationWithName:(NSString*)name
-								   activationCode:(NSString*)activationCode
-										   extras:(NSString*)extras
-										 callback:(void(^)(PowerAuthActivationResult *result, NSError *error))callback
+										 activationCode:(NSString*)activationCode
+												 extras:(NSString*)extras
+											   callback:(void(^)(PowerAuthActivationResult *result, NSError *error))callback
 {
 	PowerAuthActivation * activation = [[PowerAuthActivation activationWithActivationCode:activationCode name:name] withExtras:extras];
 	if (!activation && callback) {
@@ -534,9 +534,9 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) createActivationWithName:(NSString*)name
-							   identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
-										   extras:(NSString*)extras
-										 callback:(void(^)(PowerAuthActivationResult * result, NSError * error))callback
+									 identityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
+												 extras:(NSString*)extras
+											   callback:(void(^)(PowerAuthActivationResult * result, NSError * error))callback
 {
 	PowerAuthActivation * activation = [[PowerAuthActivation activationWithIdentityAttributes:identityAttributes name:name] withExtras:extras];
 	if (!activation && callback) {
@@ -548,10 +548,10 @@ static PowerAuthSDK * s_inst;
 }
 
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
-											  recoveryCode:(nonnull NSString*)recoveryCode
-													   puk:(nonnull NSString*)puk
-													extras:(nullable NSString*)extras
-												  callback:(nonnull void(^)(PowerAuthActivationResult * result, NSError * error))callback
+													recoveryCode:(nonnull NSString*)recoveryCode
+															 puk:(nonnull NSString*)puk
+														  extras:(nullable NSString*)extras
+														callback:(nonnull void(^)(PowerAuthActivationResult * result, NSError * error))callback
 {
 	PowerAuthActivation * activation = [[PowerAuthActivation activationWithRecoveryCode:recoveryCode recoveryPuk:puk name:name] withExtras:extras];
 	if (!activation && callback) {
@@ -859,7 +859,7 @@ static PowerAuthSDK * s_inst;
 #pragma mark Removing an activation
 
 - (id<PowerAuthOperationTask>) removeActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-												   callback:(void(^)(NSError *error))callback
+														 callback:(void(^)(NSError *error))callback
 {
 	[self checkForValidSetup];
 	return [_client postObject:nil
@@ -1038,8 +1038,8 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword
-										 to:(NSString*)newPassword
-								   callback:(void(^)(NSError *error))callback
+											   to:(NSString*)newPassword
+										 callback:(void(^)(NSError *error))callback
 {
 	return [self validatePasswordCorrect:oldPassword callback:^(NSError * _Nullable error) {
 		if (!error) {
@@ -1071,7 +1071,7 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Biometry
 
 - (id<PowerAuthOperationTask>) addBiometryFactor:(NSString*)password
-								  callback:(void(^)(NSError *error))callback
+										callback:(void(^)(NSError *error))callback
 {
 	// Check if biometry can be used
 	if (![PowerAuthKeychain canUseBiometricAuthentication]) {
@@ -1182,8 +1182,8 @@ static PowerAuthSDK * s_inst;
 
 
 - (id<PowerAuthOperationTask>) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
-									  index:(UInt64)index
-								   callback:(void(^)(NSData *encryptionKey, NSError *error))callback
+											index:(UInt64)index
+										 callback:(void(^)(NSData *encryptionKey, NSError *error))callback
 {
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		NSData * encryptionKey = nil;
@@ -1206,8 +1206,8 @@ static PowerAuthSDK * s_inst;
 #pragma mark - Asymmetric signatures
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
-												 data:(NSData*)data
-											 callback:(void(^)(NSData *signature, NSError *error))callback
+													   data:(NSData*)data
+												   callback:(void(^)(NSData *signature, NSError *error))callback
 {
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		NSData *signature = nil;
@@ -1292,7 +1292,7 @@ static PowerAuthSDK * s_inst;
 }
 
 - (nullable id<PowerAuthOperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
-												callback:(nonnull void(^)(PowerAuthActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback
+													  callback:(nonnull void(^)(PowerAuthActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback
 {
 	if (!_session.hasActivationRecoveryData) {
 		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Session has no recovery data available."));
@@ -1318,8 +1318,8 @@ static PowerAuthSDK * s_inst;
 }
 
 - (nullable id<PowerAuthOperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
-									   authentication:(nonnull PowerAuthAuthentication*)authentication
-											 callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback
+											 authentication:(nonnull PowerAuthAuthentication*)authentication
+												   callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback
 {
 	[self checkForValidSetup];
 	

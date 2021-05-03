@@ -58,6 +58,8 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 	return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:info];
 }
 
+#pragma mark - NSError extension
+
 @implementation NSError (PowerAuthErrorCode)
 
 - (PowerAuthErrorCode) powerAuthErrorCode

@@ -33,10 +33,10 @@ TODO...
 
 ## iOS
 
-The main change in this SDK version is that SDK it's now composed from two dynamic frameworks:
-- `PowerAuth2` - module contains all high level SDK source codes.
-- `PowerAuthCore` - module contains low level implementation and has embedded OpenSSL.
+The main change in this SDK version is that SDK is now composed from two dynamic frameworks:
 
+- `PowerAuthCore` - module contains low level implementation and has embedded OpenSSL.
+- `PowerAuth2` - module contains all high level SDK source codes and depends on `PowerAuthCore`
 
 ### API changes
 
@@ -66,11 +66,11 @@ List of renamed interfaces:
   - `PA2AuthorizationHttpHeader` is now `PowerAuthAuthorizationHttpHeader`
 
 - Error handling
-  - `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our NSError domain)
+  - `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our `NSError` domain)
   - `PA2ErrorCode*` constants are now replaced by `PowerAuthErrorCode` enum.
     - You can use `NSError.powerAuthErrorCode` to acquire a fully typed error code from `NSError` object.
-  - `PA2ErrorInfoKey_AdditionalInfo` constant is now `PowerAuthErrorInfoKey_AdditionalInfo` (key to custom NSError additional info dictionary)
-  - `PA2ErrorInfoKey_ResponseData` constant is now `PowerAuthErrorInfoKey_ResponseData` (key to custom NSError additional info dictionary) 
+  - `PA2ErrorInfoKey_AdditionalInfo` constant is now `PowerAuthErrorInfoKey_AdditionalInfo` (key to `NSError.userInfo` additional info dictionary)
+  - `PA2ErrorInfoKey_ResponseData` constant is now `PowerAuthErrorInfoKey_ResponseData` (key to `NSError.userInfo` additional info dictionary)
   - `PA2Error` is now `PowerAuthRestApiError` (REST API object received in case of error)
   - `PA2ErrorResponse` is now `PowerAuthRestApiErrorResponse` (REST API response object, containing full information about failure)
   - `PA2RestResponseStatus` enum is now `PowerAuthRestApiResponseStatus` (enum contains `OK` or `ERROR` constants)
@@ -126,11 +126,13 @@ The `PowerAuth2ForExtensions` is now distributed as a dynamic module, instead of
 List of renamed interfaces:
 
 - `PA2ExtensionLibrary` is now `PowerAuthSystem`
-- `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our NSError domain)
+- `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our `NSError` domain)
 - `PA2ErrorCode*` constants are now replaced by `PowerAuthErrorCode` enum.
   - You can use `NSError.powerAuthErrorCode` to acquire a fully typed error code from `NSError` object.
-- `PA2Keychain` is now `PowerAuthKeychain`
-- `PA2KeychainConfiguration` is now `PowerAuthKeychainConfiguration` (for other keychain-related changes deprecated interfaces on iOS)
+- `PA2ErrorInfoKey_AdditionalInfo` constant is now `PowerAuthErrorInfoKey_AdditionalInfo` (key to `NSError.userInfo` additional info dictionary)
+- `PA2ErrorInfoKey_ResponseData` constant is now `PowerAuthErrorInfoKey_ResponseData` (key to `NSError.userInfo` additional info dictionary)
+- `PA2KeychainConfiguration` is now `PowerAuthKeychainConfiguration`
+- `PA2Keychain` is now `PowerAuthKeychain` (see iOS migration note for the rest of changes in keychain-related interfaces)
 - `PA2LogSetEnabled()` function is now `PowerAuthLogSetEnabled()`
 - `PA2LogIsEnabled()` function is now `PowerAuthLogIsEnabled()`
 - `PA2LogSetVerbose()` function is now `PowerAuthLogSetVerbose()`
@@ -148,11 +150,13 @@ List of renamed interfaces:
 
 - `PA2ExtensionLibrary` is now `PowerAuthSystem`
 - `PA2WCSessionManager` is now `PowerAuthWCSessionManager`
-- `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our NSError domain)
+- `PA2ErrorDomain` constant is now `PowerAuthErrorDomain` (our `NSError` domain)
 - `PA2ErrorCode*` constants are now replaced by `PowerAuthErrorCode` enum.
   - You can use `NSError.powerAuthErrorCode` to acquire a fully typed error code from `NSError` object.
-- `PA2Keychain` is now `PowerAuthKeychain`
-- `PA2KeychainConfiguration` is now `PowerAuthKeychainConfiguration` (for other keychain-related changes deprecated interfaces on iOS)
+- `PA2ErrorInfoKey_AdditionalInfo` constant is now `PowerAuthErrorInfoKey_AdditionalInfo` (key to `NSError.userInfo` additional info dictionary)
+- `PA2ErrorInfoKey_ResponseData` constant is now `PowerAuthErrorInfoKey_ResponseData` (key to `NSError.userInfo` additional info dictionary)
+- `PA2KeychainConfiguration` is now `PowerAuthKeychainConfiguration`
+- `PA2Keychain` is now `PowerAuthKeychain` (see iOS migration note for the rest of changes in keychain-related interfaces)
 - `PA2LogSetEnabled()` function is now `PowerAuthLogSetEnabled()`
 - `PA2LogIsEnabled()` function is now `PowerAuthLogIsEnabled()`
 - `PA2LogSetVerbose()` function is now `PowerAuthLogSetVerbose()`

@@ -474,6 +474,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	XCTAssertNotNil(result);
 	XCTAssertTrue([result.domain isEqualToString:PowerAuthErrorDomain]);
 	XCTAssertTrue(result.code == PowerAuthErrorCode_PendingProtocolUpgrade);
+	XCTAssertTrue(result.powerAuthErrorCode == PowerAuthErrorCode_PendingProtocolUpgrade);
 	
 	PowerAuthActivationStatus * status = [self fetchActivationStatus];
 	XCTAssertTrue(status.state == PowerAuthActivationState_Active);

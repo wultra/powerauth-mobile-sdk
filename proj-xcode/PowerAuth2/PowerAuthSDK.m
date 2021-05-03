@@ -41,7 +41,7 @@
 #pragma mark - Constants
 
 /** In case a config is missing, exception with this identifier is thrown. */
-NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
+NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingConfig";
 
 #pragma mark - PowerAuth SDK implementation
 
@@ -165,7 +165,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 
 
 + (void) throwInvalidConfigurationException {
-	[NSException raise:PA2ExceptionMissingConfig
+	[NSException raise:PowerAuthExceptionMissingConfig
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
 }
 
@@ -191,7 +191,7 @@ NSString *const PA2ExceptionMissingConfig		= @"PA2ExceptionMissingConfig";
 }
 
 /**
- This private method checks for valid PA2SessionSetup and throws a PA2ExceptionMissingConfig exception when the provided configuration
+ This private method checks for valid PowerAuthCoreSessionSetup and throws a PowerAuthExceptionMissingConfig exception when the provided configuration
  is not correct or is missing.
  */
 - (void) checkForValidSetup

@@ -31,3 +31,4 @@ FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
 #import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
+#import <PowerAuthCore/PowerAuthCoreDeprecated.h>

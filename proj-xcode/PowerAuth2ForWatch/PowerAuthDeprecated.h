@@ -98,6 +98,10 @@ typedef PowerAuthBiometricAuthenticationStatus PA2BiometricAuthenticationStatus 
  The PA2BiometricAuthenticationType is now deprecated, please use PowerAuthBiometricAuthenticationType as a replacement.
  */
 typedef PowerAuthBiometricAuthenticationType PA2BiometricAuthenticationType PA2_DEPRECATED(1.6.0);
+/**
+ The PA2KeychainStoreItemResult is now deprecated, please use PowerAuthKeychainStoreItemResult as a replacement.
+ */
+typedef PowerAuthKeychainStoreItemResult PA2KeychainStoreItemResult PA2_DEPRECATED(1.6.0);
 
 // PA2ExtensionLibrary
 

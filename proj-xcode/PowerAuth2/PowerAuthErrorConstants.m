@@ -57,3 +57,15 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 	NSDictionary * info = @{ NSLocalizedDescriptionKey: PA2MakeDefaultErrorDescription(errorCode, message)};
 	return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:info];
 }
+
+@implementation NSError (PowerAuthErrorCode)
+
+- (PowerAuthErrorCode) powerAuthErrorCode
+{
+	if ([self.domain isEqualToString:PowerAuthErrorDomain]) {
+		return (PowerAuthErrorCode)self.code;
+	}
+	return PowerAuthErrorCode_NA;
+}
+
+@end

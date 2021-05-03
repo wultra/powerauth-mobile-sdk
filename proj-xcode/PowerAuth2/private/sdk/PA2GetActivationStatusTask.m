@@ -89,7 +89,7 @@
 
 
 /**
- Helper funcion, serializes PA2Session's state to keychain. This is done via the
+ Helper funcion, serializes PowerAuthCoreSession's state to keychain. This is done via the
  '_sessionChange' closure.
  */
 - (void) serializeSessionState
@@ -327,7 +327,7 @@
 											 [self commitUpgradeToV3];
 											 
 										 } else {
-											 // The PA2Session did reject our upgrade data.
+											 // The PowerAuthCoreSession did reject our upgrade data.
 											 NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to apply protocol upgrade data.");
 											 [self reportCompletionWithStatus:nil customObject:nil error:error];
 										 }

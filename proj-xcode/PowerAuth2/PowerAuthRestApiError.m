@@ -25,7 +25,7 @@
 	NSString * info = _additionalInfo ? [@", info=" stringByAppendingString:[_additionalInfo description]] : @"";
 	NSString * code = _code ? _code : @"<null>";
 	NSString * message = _message ? _message : @"<null>";
-	return [NSString stringWithFormat:@"<PA2Error code=%@, message=%@%@>", code, message, info];
+	return [NSString stringWithFormat:@"<PowerAuthRestApiError code=%@, message=%@%@>", code, message, info];
 }
 #endif
 

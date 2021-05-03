@@ -1388,7 +1388,7 @@ static NSString * PA_Ver = @"3.1";
 		XCTAssertNil(header);
 		XCTAssertNotNil(error);
 		XCTAssertEqualObjects(error.domain,PowerAuthErrorDomain);
-		XCTAssertEqual(error.code, PowerAuthErrorCode_WrongParameter);
+		XCTAssertEqual(error.powerAuthErrorCode, PowerAuthErrorCode_WrongParameter);
 	}
 	
 	// Cleanup

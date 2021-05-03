@@ -39,6 +39,12 @@ PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_ResponseData;
  Error codes returned for PowerAuthErrorDomain errors
  */
 typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
+	
+	/**
+	 Error code is not determined. This constant is returned in `NSError.powerAuthErrorCode`
+	 when the NSError object has different than `PowerAuthErrorDomain` domain.
+	 */
+	PowerAuthErrorCode_NA							= 0,
 	/**
 	 Error code for error with network connectivity or download
 	 */
@@ -113,3 +119,11 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
 	PowerAuthErrorCode_PendingProtocolUpgrade		= 16,
 };
 
+@interface NSError (PowerAuthErrorCode)
+/**
+ Contains `PowerAuthErrorCode` in case that NSError object has `PowerAuthErrorDomain`. If error object
+ has different domain, then property contains `PowerAuthErrorCode_NA`.
+ */
+@property (nonatomic, readonly) PowerAuthErrorCode powerAuthErrorCode;
+
+@end

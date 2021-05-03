@@ -448,12 +448,6 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
 	 for the signature calculations.
 	 */
 	PowerAuthCoreActivationState_Deadlock	= 128,
-	
-	/**
-	 The activation is not completed yet on the server. The enumeration is deprecated
-	 and you should use PowerAuthCoreActivationState_PendingCommit as a replacement.
-	 */
-	PowerAuthCoreActivationState_OTP_Used POWERAUTH_DEPRECATED(1.4.0) = 2,
 };
 
 /**

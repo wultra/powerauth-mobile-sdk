@@ -31,7 +31,7 @@
 #import <PowerAuth2/PowerAuthKeychain.h>
 #import <PowerAuth2/PowerAuthSystem.h>
 #import <PowerAuth2/PowerAuthWCSessionManager.h>
-
+#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
 #import <PowerAuth2/PowerAuthCustomHeaderRequestInterceptor.h>
 #import <PowerAuth2/PowerAuthClientSslNoValidationStrategy.h>
@@ -87,6 +87,7 @@ typedef PowerAuthActivationRecoveryData PA2ActivationRecoveryData PA2_DEPRECATED
  PA2ActivationResult is deprecated, please use PowerAuthActivationResult as a replacement.
  */
 typedef PowerAuthActivationResult PA2ActivationResult PA2_DEPRECATED(1.6.0);
+
 /**
  The PA2CustomHeaderRequestInterceptor is deprecated, please use PowerAuthCustomHeaderRequestInterceptor instead.
  */
@@ -142,6 +143,18 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodeProtocolUpgrade PA2_DEPRECATED(1.6.0);
 /** Deprecated, use PowerAuthErrorCode_PendingProtocolUpgrade enum instead. */
 PA2_EXTERN_C NSInteger const PA2ErrorCodePendingProtocolUpgrade PA2_DEPRECATED(1.6.0);
 
+/**
+ The PA2ErrorResponse is deprecated, please use PowerAuthRestApiErrorResponse instead.
+ */
+typedef PowerAuthRestApiErrorResponse PA2ErrorResponse PA2_DEPRECATED(1.6.0);
+/**
+ The PA2Error is deprecated, please use PowerAuthRestApiError instead.
+ */
+typedef PowerAuthRestApiError PA2Error PA2_DEPRECATED(1.6.0);
+/**
+ The PA2RestResponseStatus is deprecated, please use PowerAuthRestApiResponseStatus instead.
+ */
+typedef PowerAuthRestApiResponseStatus PA2RestResponseStatus PA2_DEPRECATED(1.6.0);
 
 // PA2Keychain*
 
@@ -177,6 +190,10 @@ typedef PowerAuthBiometricAuthenticationStatus PA2BiometricAuthenticationStatus 
  The PA2BiometricAuthenticationType is now deprecated, please use PowerAuthBiometricAuthenticationType as a replacement.
  */
 typedef PowerAuthBiometricAuthenticationType PA2BiometricAuthenticationType PA2_DEPRECATED(1.6.0);
+/**
+ The PA2KeychainStoreItemResult is now deprecated, please use PowerAuthKeychainStoreItemResult as a replacement.
+ */
+typedef PowerAuthKeychainStoreItemResult PA2KeychainStoreItemResult PA2_DEPRECATED(1.6.0);
 
 // PA2System
 

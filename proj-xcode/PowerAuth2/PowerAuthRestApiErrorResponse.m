@@ -25,7 +25,7 @@
 	NSString * status_str = _status == PowerAuthRestApiResponseStatus_OK ? @"OK" : @"ERROR";
 	NSString * code_str = [@(_httpStatusCode) stringValue];
 	NSString * ro = _responseObject ? [_responseObject description] : @"<null>";
-	return [NSString stringWithFormat:@"<PA2ErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
+	return [NSString stringWithFormat:@"<PowerAuthRestApiErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
 }
 #endif
 

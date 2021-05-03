@@ -33,8 +33,8 @@
 
  @param httpClient HTTP client for communicating with the server
  @param deviceRelatedKey key for unlocking possession factor
- @param session PA2Session object providing low level protocol tasks
- @param sessionChange closure called, when the state of PA2Session needs to be serialized.
+ @param session PowerAuthCoreSession object providing low level protocol tasks
+ @param sessionChange closure called, when the state of PowerAuthCoreSession needs to be serialized.
  @param completion closure called at the end of operation
  @return initialized object
  */

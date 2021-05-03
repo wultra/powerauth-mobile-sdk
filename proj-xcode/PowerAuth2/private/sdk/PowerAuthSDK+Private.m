@@ -23,7 +23,7 @@
 
 - (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
 {
-	// The encryptors factory requires PA2Session & possesion unlock key for a proper operation.
+	// The encryptors factory requires PowerAuthCoreSession & possesion unlock key for a proper operation.
 	// After the enctyptor is created, we can destroy it.
 	return [[[PA2PrivateEncryptorFactory alloc] initWithSession:self.session deviceRelatedKey:[self deviceRelatedKey]]
 			encryptorWithId:encryptorId];

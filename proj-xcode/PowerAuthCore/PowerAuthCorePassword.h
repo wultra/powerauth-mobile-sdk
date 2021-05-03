@@ -154,6 +154,3 @@
 - (BOOL) removeCharacterAtIndex:(NSUInteger)index;
 
 @end
-
-// Deprecated type
-typedef PowerAuthCorePassword PA2Password POWERAUTH_DEPRECATED(1.6.0);

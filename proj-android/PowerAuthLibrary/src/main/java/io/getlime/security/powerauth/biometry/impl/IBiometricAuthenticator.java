@@ -65,7 +65,6 @@ public interface IBiometricAuthenticator {
      * Perform biometric authentication defined by the {@link PrivateRequestData}.
      *
      * @param context Android {@link Context} object
-     * @param fragmentManager {@link FragmentManager} that manages possible created fragments.
      * @param privateRequestData Private request data.
      * @return {@link ICancelable} object that allows you to cancel that authentication request.
      * @throws PowerAuthErrorException In case that cannot perform the biometric authentication.
@@ -74,7 +73,6 @@ public interface IBiometricAuthenticator {
     @NonNull
     ICancelable authenticate(
             @NonNull final Context context,
-            @NonNull final FragmentManager fragmentManager,
             @NonNull final PrivateRequestData privateRequestData) throws PowerAuthErrorException;
 
 }

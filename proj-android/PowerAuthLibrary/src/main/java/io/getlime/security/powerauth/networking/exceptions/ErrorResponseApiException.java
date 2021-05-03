@@ -31,7 +31,7 @@ public class ErrorResponseApiException extends FailedApiException {
     /**
      * Error response received from the server
      */
-    private Error errorResponse;
+    private final Error errorResponse;
 
     /**
      * Constructs an exception with {@link Error} model object, response code and response body.

@@ -255,7 +255,7 @@ Use the following code to create an activation using recovery code:
 ```swift
 let deviceName = "John Tramonta" // or UIDevice.current.name
 let recoveryCode = "55555-55555-55555-55YMA" // User's input
-let puk = "0123456789" // User's input. You should validate RC & PUK with using PA2OtpUtil
+let puk = "0123456789" // User's input. You should validate RC & PUK with using PowerAuthActivationCodeUtil
 
 // Create activation object with recovery code and PUK
 guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
@@ -268,7 +268,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
         // Error occurred, report it to the user
         // On top of a regular error processing, you should handle a special situation, when server gives an additional information
         // about which PUK must be used for the recovery. The information is valid only when recovery code from a postcard is applied.
-        if let responseError = (error.userInfo[PA2ErrorDomain] as? PA2ErrorResponse)?.responseObject {
+        if let responseError = (error.userInfo[PowerAuthErrorDomain] as? PowerAuthRestApiErrorResponse)?.responseObject {
             let currentRecoveryPukIndex = responseError.currentRecoveryPukIndex
             if currentRecoveryPukIndex > 0 {
                 // The PUK index is known, you should inform user that it has to rewrite PUK from a specific position.
@@ -343,7 +343,7 @@ do {
 
 ### Validating User Inputs
 
-The mobile SDK is providing a couple of functions in `PA2OtpUtil` interface, helping with user input validation. You can:
+The mobile SDK is providing a couple of functions in `PowerAuthActivationCodeUtil` interface, helping with user input validation. You can:
 
 - Parse activation code when it's scanned from QR code
 - Validate a whole code at once
@@ -352,11 +352,11 @@ The mobile SDK is providing a couple of functions in `PA2OtpUtil` interface, hel
 
 #### Validating Scanned QR Code
 
-To validate an activation code scanned from QR code, you can use `PA2OtpUtil.parse(fromActivationCode:)` function. You have to provide the code with or without the signature part. For example:
+To validate an activation code scanned from QR code, you can use `PowerAuthActivationCodeUtil.parse(fromActivationCode:)` function. You have to provide the code with or without the signature part. For example:
 
 ```swift
 let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
-guard let otp = PA2OtpUtil.parse(fromActivationCode: scannedCode) else {
+guard let otp = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else {
     // Invalid code
     return
 }
@@ -370,7 +370,7 @@ Note that the signature is only formally validated in the function above. The ac
 
 ```swift
 let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
-guard let otp = PA2OtpUtil.parse(fromActivationCode: scannedCode) else { return }
+guard let otp = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else { return }
 guard let signature = otp.activationSignature else { return }
 if !PowerAuthSDK.sharedInstance().verifyServerSignedData(otp.activationCode.data(using: .utf8)!, signature: signature, masterKey: true) {
     // Invalid signature
@@ -379,33 +379,33 @@ if !PowerAuthSDK.sharedInstance().verifyServerSignedData(otp.activationCode.data
 
 #### Validating Entered Activation Code
 
-To validate an activation code at once, you can call `PA2OtpUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:
+To validate an activation code at once, you can call `PowerAuthActivationCodeUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:
 
 ```swift
-let isValid   = PA2OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA")
-let isInvalid = PA2OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=")
+let isValid   = PowerAuthActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA")
+let isInvalid = PowerAuthActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=")
 ```
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contain a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
 #### Validating Recovery Code and PUK
 
-To validate a recovery code at once, you can call `PA2OtpUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
+To validate a recovery code at once, you can call `PowerAuthActivationCodeUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
 
 ```swift
-let isValid1 = PA2OtpUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA")
-let isValid2 = PA2OtpUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA")
+let isValid1 = PowerAuthActivationCodeUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA")
+let isValid2 = PowerAuthActivationCodeUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA")
 ```
 
-To validate PUK at once, you can call `PA2OtpUtil.validateRecoveryPuk()` function:
+To validate PUK at once, you can call `PowerAuthActivationCodeUtil.validateRecoveryPuk()` function:
 
 ```swift
-let isValid   = PA2OtpUtil.validateRecoveryPuk("0123456789")
+let isValid   = PowerAuthActivationCodeUtil.validateRecoveryPuk("0123456789")
 ```
 
 #### Auto-Correcting Typed Characters
 
-You can implement auto-correcting of typed characters with using `PA2OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user is supposed to enter an activation or recovery code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
+You can implement auto-correcting of typed characters with using `PowerAuthActivationCodeUtil.validateAndCorrectTypedCharacter()` function in screens, where user is supposed to enter an activation or recovery code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -414,7 +414,7 @@ Here's an example how to iterate over the string and validate it character by ch
 func validateAndCorrectCharacters(_ string: String) -> String? {
     var result : String = ""
     for codepoint in string.unicodeScalars {
-        let newCodepoint = PA2OtpUtil.validateAndCorrectTypedCharacter(codepoint.value)
+        let newCodepoint = PowerAuthActivationCodeUtil.validateAndCorrectTypedCharacter(codepoint.value)
         if newCodepoint != 0 {
             // Valid, or corrected character
             result.append(Character(UnicodeScalar(newCodepoint)!))
@@ -491,7 +491,7 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
 }
 ```
 
-Note that the status fetch may fail at an unrecoverable error `PA2ErrorCodeProtocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
+Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCode.protocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
 To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
@@ -717,14 +717,14 @@ You have to check for biometry on three levels:
 
 PowerAuth SDK for iOS provides code for the first two of these checks.
 
-To check if you can use biometry on the system, use the following code from the `PA2Keychain` class:
+To check if you can use biometry on the system, use the following code from the `PowerAuthKeychain` class:
 
 ```swift
 // Is biometry available and is enrolled on the system?
-let canUseBiometry = PA2Keychain.canUseBiometricAuthentication
+let canUseBiometry = PowerAuthKeychain.canUseBiometricAuthentication
 
 // Or alternative, to get supported biometry type
-let supportedBiometry = PA2Keychain.supportedBiometricAuthentication
+let supportedBiometry = PowerAuthKeychain.supportedBiometricAuthentication
 switch supportedBiometry {
     case .touchID: print("You can use Touch ID")
     case .faceID: print("You can use Face ID")
@@ -732,7 +732,7 @@ switch supportedBiometry {
 }
 
 // Or more complex, with full information about type and current status
-let biometryInfo = PA2Keychain.biometricAuthenticationInfo
+let biometryInfo = PowerAuthKeychain.biometricAuthenticationInfo
 switch biometryInfo.biometryType {
     case .touchID: print("Touch ID is available on device.")
     case .faceID: print("Face ID is available on device.")
@@ -797,10 +797,10 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticat
         // Success, you can use provided PowerAuthAuthentication object for the signature calculation.
         // The provided authentication object is preconfigured for possession+biometry factors
     }
-    guard let error = error as NSError?, error.domain == PA2ErrorDomain else {
+    guard let error = error as NSError?, error.domain == PowerAuthErrorDomain else {
         return // should never happen
     }
-    if error.code == PA2ErrorCodeBiometryCancel {
+    if error.powerAuthErrorCode == .biometryCancel {
         // User did cancel the operation
     } else {
         // Other error
@@ -810,16 +810,16 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticat
 
 ### Biometry Factor-Related Key Lifetime
 
-By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PA2KeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
 ```swift
 // Prepare your PA config
 let configuration = PowerAuthConfiguration()
 // ...
 
-// Prepare PA2KeychainConfiguration
+// Prepare PowerAuthKeychainConfiguration
 // Set false to 'linkBiometricItemsToCurrentSet' property.
-let keychainConfiguration = PA2KeychainConfiguration()
+let keychainConfiguration = PowerAuthKeychainConfiguration()
 keychainConfiguration.linkBiometricItemsToCurrentSet = true
 
 // Init shared PowerAuthSDK instance
@@ -839,7 +839,7 @@ You can remove activation using several ways - the choice depends on the desired
 
 You can clear activation data anytime from the Keychain. The benefit of this method is that it does not require help from the server, and the user does not have to be logged in. The issue with this removal method is simple: The activation still remains active on the server-side. This, however, does not have to be an issue in your case.
 
-To remove only data related to PowerAuth SDK for iOS, use the `PA2Keychain` class:
+To remove only data related to PowerAuth SDK for iOS, use the `PowerAuthKeychain` class:
 
 ```swift
 PowerAuthSDK.sharedInstance().removeActivationLocal()
@@ -892,12 +892,15 @@ Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, base
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.
 - In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) in "sign-then-encrypt" mode.
 
-For both scenarios, you need to acquire the `PA2ECIESEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
+For both scenarios, you need to acquire the `PowerAuthCoreEciesEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 
 The following steps are typically required for a full E2EE request and response processing:
 
 1. Acquire the right encryptor from the `PowerAuthSDK` instance. For example:
    ```swift
+   // Import PowerAuthCore to access ECIES implementation
+   import PowerAuthCore
+   
    // Encryptor for "application" scope.
    guard let encryptor = powerAuthSDK.eciesEncryptorForApplicationScope() else { ...failure... }
    // ...or similar, for an "activation" scope.
@@ -948,7 +951,7 @@ The following steps are typically required for a full E2EE request and response 
    ```
    So, you need to create yet another "cryptogram" object, but with only two properties set:
    ```swift
-   let responseCryptogram = PA2ECIESCryptogram()
+   let responseCryptogram = PowerAuthCoreEciesCryptogram()
    responseCryptogram.bodyBase64 = response.getEncryptedData()
    responseCryptogram.macBase64 = response.getMac()
 
@@ -1201,7 +1204,7 @@ This part of the documentation describes how to add support for Apple Watch into
 
 The PowerAuth SDK for iOS is using the [WatchConnectivity framework](https://developer.apple.com/documentation/watchconnectivity) to achieve data synchronization between iPhone and Apple Watch devices. If you're not familiar with this framework, take a look at least at [WCSession](https://developer.apple.com/documentation/watchconnectivity/wcsession) and [WCSessionDelegate](https://developer.apple.com/documentation/watchconnectivity/wcsessiondelegate) interfaces before you start.
 
-The PowerAuth SDK doesn't manage the state of the `WCSession` and it doesn't set the delegate to the session's singleton instance. It's up to you to properly configure and activate the default session, but the application has to cooperate with PowerAuth SDK to process the messages received from the counterpart device. To do this, PowerAuth SDKs on both sides are providing `PA2WCSessionManager` class which can help you process all incoming messages. Here's an example, how you can implement simple `SessionManager` for IOS:
+The PowerAuth SDK doesn't manage the state of the `WCSession` and it doesn't set the delegate to the session's singleton instance. It's up to you to properly configure and activate the default session, but the application has to cooperate with PowerAuth SDK to process the messages received from the counterpart device. To do this, PowerAuth SDKs on both sides are providing `PowerAuthWCSessionManager` class which can help you process all incoming messages. Here's an example, how you can implement simple `SessionManager` for IOS:
 
 ```swift
 import Foundation
@@ -1239,7 +1242,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: nil) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: nil) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -1248,7 +1251,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessageData messageData: Data, replyHandler: @escaping (Data) -> Void) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: replyHandler) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: replyHandler) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -1258,7 +1261,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedUserInfo(userInfo) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedUserInfo(userInfo) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -1289,7 +1292,7 @@ On the application's startup:
 
 #### Implementation Details
 
-Due to our internal implementation details, each `PowerAuthSDK` instance is registered to `PA2WCSessionManager` for incoming message processing. The registration is done in the object's designated init method, and the de-registration is automatic after the SDK object is destroyed. This technique works great but depends on the existence of the right object at the right time.
+Due to our internal implementation details, each `PowerAuthSDK` instance is registered to `PowerAuthWCSessionManager` for incoming message processing. The registration is done in the object's designated init method, and the de-registration is automatic after the SDK object is destroyed. This technique works great but depends on the existence of the right object at the right time.
 
 Once you activate `WCSession`, your `WCSessionDelegate` is going to receive messages (on the background thread) from the counterpart watch application. We are highlighting the importance of the right activation sequence because your watchOS application can wake up its iOS counterpart. Therefore, it is highly possible that some messages will be available right at the application's startup. If you don't follow the guidelines and forget to prepare your `PowerAuthSDK` instances before the `WCSession` is activated, then a couple of messages may be lost.
 
@@ -1404,7 +1407,7 @@ do {
 The original Objective-C code uses a method with the `BOOL` return type that passes `NSError**` (pointer to error object) as a method parameter. This syntax is automatically converted to exceptions when using code in Swift.
 <!-- end -->
 
-Errors that are caused by PowerAuth SDK for iOS use `PA2ErrorDomain` and one of the codes listed in `PA2ErrorConstants.h` file. Use these values to determine the type of error. In principle, all errors should be in principle handled in a very similar manner. Use this code snippet for inspiration:
+Errors that are caused by PowerAuth SDK for iOS use `PowerAuthErrorDomain` and `PowerAuthErrorCode` enumeration available via `NSError.powerAuthErrorCode` property. Use these values to determine the type of error. In principle, all errors should be handled in a very similar manner. Use this code snippet for inspiration:
 
 ```swift
 if error == nil {
@@ -1413,90 +1416,86 @@ if error == nil {
     // Handle the error
     if let error = error as NSError? {
 
-        // Is this a PowerAuth SDK for iOS error?
-        if error.domain == PA2ErrorDomain {
+        // If yes, handle the error based on the error code
+        switch error.powerAuthErrorCode {
+        
+        case .NA:
+            print("Error has different domain than PowerAuthErrorDomain")
+            
+        case .networkError:
+            print("Error code for error with network connectivity or download")
 
-            // If yes, handle the error based on the error code
-            switch (error.code) {
+        case .signatureError:
+            print("Error code for error in signature calculation")
 
-            case PA2ErrorCodeNetworkError:
-                print("Error code for error with network connectivity or download")
+        case .invalidActivationState:
+            print("Error code for error that occurs when activation state is invalid")
 
-            case PA2ErrorCodeSignatureError:
-                print("Error code for error in signature calculation")
+        case .invalidActivationData:
+            print("Error code for error that occurs when activation data is invalid")
 
-            case PA2ErrorCodeInvalidActivationState:
-                print("Error code for error that occurs when activation state is invalid")
+        case .missingActivation:
+            print("Error code for error that occurs when activation is required but missing")
 
-            case PA2ErrorCodeInvalidActivationData:
-                print("Error code for error that occurs when activation data is invalid")
+        case .activationPending:
+            print("Error code for error that occurs when pending activation is present and work with completed activation is required")
 
-            case PA2ErrorCodeMissingActivation:
-                print("Error code for error that occurs when activation is required but missing")
+        case .biometryNotAvailable:
+            print("Error code for TouchID/FaceID not available error")
 
-            case PA2ErrorCodeAuthenticationFailed:
-                print("Error code for error that occurs when authentication using PowerAuth signature fails")
+        case .biometryCancel:
+            print("Error code for TouchID/FaceID action cancel error")
 
-            case PA2ErrorCodeActivationPending:
-                print("Error code for error that occurs when pending activation is present and work with completed activation is required")
+        case .biometryFailed:
+            print("Error code for TouchID/FaceID action failure")
 
-            case PA2ErrorCodeKeychain:
-                print("Error code for keychain related errors")
+        case .operationCancelled:
+            print("Error code for cancelled operations")
 
-            case PA2ErrorCodeBiometryNotAvailable:
-                print("Error code for TouchID/FaceID not available error")
+        case .encryption:
+            print("Error code for errors related to end-to-end encryption")
+            
+        case .wrongParameter:
+            print("Error code for general API misuse")
 
-            case PA2ErrorCodeBiometryCancel:
-                print("Error code for TouchID/FaceID action cancel error")
+        case .invalidToken:
+            print("Error code for errors related to token based auth.")
 
-            case PA2ErrorCodeBiometryFailed:
-                print("Error code for TouchID/FaceID action failure")
+        case .watchConnectivity:
+            print("Error code for errors related to synchronization between iOS and watchOS.")
 
-            case PA2ErrorCodeOperationCancelled:
-                print("Error code for cancelled operations")
+        case .protocolUpgrade:
+            print("Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
 
-            case PA2ErrorCodeEncryption:
-                print("Error code for errors related to end-to-end encryption")
+        case .pendingProtocolUpgrade:
+            print("The operation is temporarily unavailable, due to pending protocol upgrade.")
 
-            case PA2ErrorCodeInvalidToken:
-                print("Error code for errors related to token based auth.")
-
-            case PA2ErrorCodeWatchConnectivity:
-                print("Error code for errors related to synchronization between iOS and watchOS.")
-
-            case PA2ErrorCodeProtocolUpgrade:
-                print("Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
-
-            case PA2ErrorCodePendingProtocolUpgrade:
-                print("The operation is temporarily unavailable, due to pending protocol upgrade.")
-
-            default:
-                print("Unknown error")
-            }
+        default:
+            print("Unknown error")
         }
     }
 }
 ```
 
-Note that you typically don't need to handle all error codes reported in the `Error` object, or report all that situations to the user. Most of the codes are informational and help the developers properly integrate SDK into the application. A good example is `PA2ErrorCodeInvalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way.
+Note that you typically don't need to handle all error codes reported in the `Error` object, or report all that situations to the user. Most of the codes are informational and help the developers properly integrate SDK into the application. A good example is `PowerAuthErrorCode.invalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way.
 
 Here's the list of important error codes, which the application should properly handle:
 
-- `PA2ErrorCodeBiometryCancel` is reported when the user cancels the biometric authentication dialog
-- `PA2ErrorCodeProtocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
-- `PA2ErrorCodePendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
+- `PowerAuthErrorCode.biometryCancel` is reported when the user cancels the biometric authentication dialog
+- `PowerAuthErrorCode.protocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
+- `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 
 ### Working with Invalid SSL Certificates
 
 Sometimes, you may need to develop or test your application against a service that runs over HTTPS protocol with an invalid (self-signed) SSL certificate. By default, the HTTP client used in PowerAuth SDK communication validates the certificate. To disable the certificate validation, add the following code just before your `PowerAuthSDK` instance configuration:
 
 ```swift
-// Set `PA2ClientSslNoValidationStrategy as the default client SSL certificate validation strategy`
-PA2ClientConfiguration.sharedInstance().sslValidationStrategy = PA2ClientSslNoValidationStrategy()
+// Set `PowerAuthClientSslNoValidationStrategy as the default client SSL certificate validation strategy`
+PowerAuthClientConfiguration.sharedInstance().sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
 ```
 
 <!-- begin box info -->
-Note that since SDK version `0.18.0`, changing `PA2ClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.
+Note that since SDK version `0.18.0`, changing `PowerAuthClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.
 <!-- end -->
 
 ### Debugging
@@ -1504,13 +1503,13 @@ Note that since SDK version `0.18.0`, changing `PA2ClientConfiguration` no longe
 The debug log is by default turned off. To turn it on, use the following code:
 
 ```swift
-PA2LogSetEnabled(true)
+PowerAuthLogSetEnabled(true)
 ```
 
 To turn-on even more detailed log, use the following code:
 
 ```swift
-PA2LogSetVerbose(true)
+PowerAuthLogSetVerbose(true)
 ```
 
 <!-- begin box warning -->
@@ -1532,12 +1531,12 @@ It is sometimes useful to switch PowerAuth SDK to a DEBUG build configuration to
 - **CocoaPods:** a majority of the SDK is distributed as source codes, so it will match your application's build configuration. Only a low-level C++ codes and several wrapper classes on top of those are precompiled into a static library.
 - **Manual installation:** Xcode is matching build configuration across all nested projects, so you usually don't need to care about the configuration switching.
 
-The DEBUG build is usually helpful during the application development, but on the other hand, it's highly unwanted in production applications. For this purpose, the `PA2System.isInDebug()` method provides information whether the PowerAuth library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG PowerAuth:
+The DEBUG build is usually helpful during the application development, but on the other hand, it's highly unwanted in production applications. For this purpose, the `PowerAuthSystem.isInDebug()` method provides information whether the PowerAuth library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG PowerAuth:
 
 ```swift
 #if YOUR_APPSTORE_BUILD_FLAG
     // Final vs Debug library trap
-    if PA2System.isInDebug() {
+    if PowerAuthSystem.isInDebug() {
         fatalError("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
     }
 #endif
@@ -1545,18 +1544,18 @@ The DEBUG build is usually helpful during the application development, but on th
 
 ### Request Interceptors
 
-The `PA2ClientConfiguration` can contain multiple request interceptor objects, allowing you to adjust all HTTP requests created by the SDK before their execution. Currently, you can use the following two classes:
+The `PowerAuthClientConfiguration` can contain multiple request interceptor objects, allowing you to adjust all HTTP requests created by the SDK before their execution. Currently, you can use the following two classes:
 
-- `PA2BasicHttpAuthenticationRequestInterceptor` to add basic HTTP authentication header to all requests
-- `PA2CustomHeaderRequestInterceptor` to add a custom HTTP header to all requests
+- `PowerAuthBasicHttpAuthenticationRequestInterceptor` to add basic HTTP authentication header to all requests
+- `PowerAuthCustomHeaderRequestInterceptor` to add a custom HTTP header to all requests
 
 For example:
 
 ```swift
-let basicAuth = PA2BasicHttpAuthenticationRequestInterceptor(username: "gateway-user", password: "gateway-password")
-let customHeader = PA2CustomHeaderRequestInterceptor(headerKey: "X-CustomHeader", value: "123456")
-let clientConfig = PA2ClientConfiguration()
+let basicAuth = PowerAuthBasicHttpAuthenticationRequestInterceptor(username: "gateway-user", password: "gateway-password")
+let customHeader = PowerAuthCustomHeaderRequestInterceptor(headerKey: "X-CustomHeader", value: "123456")
+let clientConfig = PowerAuthClientConfiguration()
 clientConfig.requestInterceptors = [ basicAuth, customHeader ]
 ```
 
-We don't recommend implementing the `PA2HttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK` but also gives you an opportunity to break things. So, rather than create your own interceptor, contact us and describe what use-case is missing. Also, keep in mind that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of the interface itself.
+We don't recommend implementing the `PowerAuthHttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK` but also gives you an opportunity to break things. So, rather than create your own interceptor, contact us and describe what use-case is missing. Also, keep in mind that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of the interface itself.

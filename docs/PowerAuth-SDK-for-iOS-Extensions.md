@@ -151,7 +151,7 @@ class TodayViewController: UIViewController, NCWidgetProviding {
         // URL is optional, current version of Extensions SDK doesn't perform own networking.
         config.baseEndpointUrl = "https://localhost:8080/demo-server"
 
-        let keychainConfig = PA2KeychainConfiguration.sharedInstance()
+        let keychainConfig = PowerAuthKeychainConfiguration.sharedInstance()
         keychainConfig.keychainAttribute_AccessGroup = "KEYCHAIN_GROUP_IDENTIFIER"
         keychainConfig.keychainAttribute_UserDefaultsSuiteName = "APP_GROUP_IDENTIFIER"
 
@@ -197,7 +197,7 @@ if let token = this.powerAuthExt.tokenStore.localToken(withName: "MyToken") {
 }
 ```
 
-Note that token store also provides `requestAccessToken()` method, but that always returns `PA2ErrorCodeInvalidToken` error. Unlike the iOS SDK API, you cannot get a token from the server from app extension. Only main application can do that and once the token is available, then it's also available for the app extension. Check PowerAuth SDK for iOS [documentation for more details](./PowerAuth-SDK-for-iOS.md#getting-token).
+Note that token store also provides `requestAccessToken()` method, but that always returns `PowerAuthErrorCode.invalidToken` error. Unlike the iOS SDK API, you cannot get a token from the server from app extension. Only main application can do that and once the token is available, then it's also available for the app extension. Check PowerAuth SDK for iOS [documentation for more details](./PowerAuth-SDK-for-iOS.md#getting-token).
 
 ### Generating Authorization Header
 
@@ -228,7 +228,7 @@ Note that removing tokens locally you'll loose control about tokens stored on th
 
 ### Removing Token From the Server
 
-The token store exposes `removeAccessToken()` method, but the implementation always returns `PA2ErrorCodeInvalidToken` error.
+The token store exposes `removeAccessToken()` method, but the implementation always returns `PowerAuthErrorCode.invalidToken` error.
 
 ## Common SDK Tasks
 
@@ -243,12 +243,12 @@ It is sometimes useful to switch Extensions SDK to a DEBUG build configuration, 
 - **CocoaPods:** we currently don't provide DEBUG pod. This will be resolved in some future versions of Extensions SDK.
 - **Manual installation:** Xcode is matching build configuration across all nested projects, so you usually don't need to care about the configuration switching.
 
-The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PA2ExtensionLibrary.isInDebug()` method provides an information, whether the PowerAuth for Extensions library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
+The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PowerAuthSystem.isInDebug()` method provides an information, whether the PowerAuth for Extensions library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
 
 ```swift
 #if YOUR_APPSTORE_BUILD_FLAG
     // Final vs Debug library trap
-    if PA2ExtensionLibrary.isInDebug() {
+    if PowerAuthSystem.isInDebug() {
         fatalError("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
     }
 #endif
@@ -264,19 +264,19 @@ If your previous version of application did not use shared data between applicat
 
 ```swift
 private func migrateUserDefaults() {
-    let keychainConfig = PA2KeychainConfiguration.sharedInstance()
+    let keychainConfig = PowerAuthKeychainConfiguration.sharedInstance()
     let suiteName = keychainConfig.keychainAttribute_UserDefaultsSuiteName
     guard let shared = UserDefaults(suiteName: suiteName) else {
         return // data sharing is probably not configured properly
     }
-    if shared.bool(forKey: PA2Keychain_Initialized) {
+    if shared.bool(forKey: PowerAuthKeychain_Initialized) {
         return // migration is not required
     }
     let standard = UserDefaults.standard
-    if standard.bool(forKey: PA2Keychain_Initialized) {
-        standard.removeObject(forKey: PA2Keychain_Initialized)
+    if standard.bool(forKey: PowerAuthKeychain_Initialized) {
+        standard.removeObject(forKey: PowerAuthKeychain_Initialized)
         standard.synchronize()
-        shared.set(true, forKey: PA2Keychain_Initialized)
+        shared.set(true, forKey: PowerAuthKeychain_Initialized)
         shared.synchronize()
     }
 }

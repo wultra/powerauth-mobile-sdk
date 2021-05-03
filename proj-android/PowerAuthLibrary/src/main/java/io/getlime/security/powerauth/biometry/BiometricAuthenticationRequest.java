@@ -20,6 +20,9 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 import android.text.TextUtils;
 
 import java.util.Arrays;
@@ -29,6 +32,8 @@ import java.util.Arrays;
  */
 public class BiometricAuthenticationRequest {
 
+    private final @Nullable Fragment fragment;
+    private final @Nullable FragmentActivity fragmentActivity;
     private final @NonNull CharSequence title;
     private final @Nullable CharSequence subtitle;
     private final @NonNull CharSequence description;
@@ -43,6 +48,8 @@ public class BiometricAuthenticationRequest {
             @NonNull CharSequence title,
             @Nullable CharSequence subtitle,
             @NonNull CharSequence description,
+            @Nullable Fragment fragment,
+            @Nullable FragmentActivity fragmentActivity,
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
@@ -52,6 +59,8 @@ public class BiometricAuthenticationRequest {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
+        this.fragment = fragment;
+        this.fragmentActivity = fragmentActivity;
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
@@ -79,6 +88,20 @@ public class BiometricAuthenticationRequest {
      */
     public @NonNull CharSequence getDescription() {
         return description;
+    }
+
+    /**
+     * @return {@link Fragment} to present biometric prompt or {@code null} if {@link #getFragmentActivity()} is valid.
+     */
+    public @Nullable Fragment getFragment() {
+        return fragment;
+    }
+
+    /**
+     * @return {@link FragmentActivity} to present biometric prompt or {@code null} if {@link #getFragment()} is valid.
+     */
+    public @Nullable FragmentActivity getFragmentActivity() {
+        return fragmentActivity;
     }
 
     /**
@@ -136,6 +159,9 @@ public class BiometricAuthenticationRequest {
         private CharSequence subtitle;
         private CharSequence description;
 
+        private Fragment fragment;
+        private FragmentActivity fragmentActivity;
+
         private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
@@ -171,10 +197,18 @@ public class BiometricAuthenticationRequest {
             if (biometricKeyEncryptor == null) {
                 throw new IllegalArgumentException("BiometricKeyEncryptor is required.");
             }
+            if (fragment == null && fragmentActivity == null) {
+                throw new IllegalArgumentException("Fragment or FragmentActivity must be set.");
+            }
+            if (fragment != null && fragmentActivity != null) {
+                throw new IllegalArgumentException("Both Fragment and FragmentActivity are set.");
+            }
             return new BiometricAuthenticationRequest(
                     title,
                     subtitle,
                     description,
+                    fragment,
+                    fragmentActivity,
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
                     userConfirmationRequired,
@@ -243,6 +277,34 @@ public class BiometricAuthenticationRequest {
          */
         public Builder setDescription(@StringRes int descriptionId) {
             return setDescription(context.getText(descriptionId));
+        }
+
+        /**
+         * Required: Set fragment to display the biometric prompt. The option is required, but may
+         * be omitted if you decide to use {@link #setFragmentActivity(FragmentActivity)} instead.
+         * If you set both, fragment and fragment activity, then the {@code IllegalArgumentException}
+         * will be raised in the {@link #build()} method.
+         *
+         * @param fragment Fragment to display the biometric prompt.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setFragment(@NonNull Fragment fragment) {
+            this.fragment = fragment;
+            return this;
+        }
+
+        /**
+         * Required: Set fragment activity to display the biometric prompt. The option is required,
+         * but may be omitted if you decide to use {@link #setFragment(Fragment)} instead. If you set
+         * both, fragment and fragment activity, then the {@code IllegalArgumentException} will be raised
+         * in the {@link #build()} method.
+         *
+         * @param fragmentActivity Fragment activity to display the biometric prompt.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setFragmentActivity(@NonNull FragmentActivity fragmentActivity) {
+            this.fragmentActivity = fragmentActivity;
+            return this;
         }
 
         /**

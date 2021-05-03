@@ -16,13 +16,10 @@
 
 package io.getlime.security.powerauth.biometry.impl;
 
-import android.content.Context;
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import android.util.Pair;
 
-import io.getlime.security.powerauth.R;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -83,100 +80,5 @@ public class BiometricHelper {
             errorDescription = resources.strings.errorFingerprintDisabledDescription;
         }
         return Pair.create(errorTitle, errorDescription);
-    }
-
-    /**
-     * Determine if the current device should explicitly fallback to {@code FingerprintManager} based
-     * authentication. This may happen on devices that incorrectly provide a weak biometric authenticator
-     * that doesn't support crypto-based authentication. The function checks the following conditions:
-     * <ul>
-     *     <li>Device has API level 28 (Android "P"). Other Android versions doesn't require this workaround.</li>
-     *     <li>Device's manufacturer is on the list of problematic vendors (see {@code R.array.crypto_fingerprint_fallback_vendors}).</li>
-     *     <li>Model is on the list of problematic devices (see {@code R.array.crypto_fingerprint_fallback_prefixes}).</li>
-     * </ul>
-     * The {@code devices.xml} resource file contains both lists.
-     *
-     * @param context Android context object.
-     * @return {@code true} in case that fallback to {@code FingerprintManager} is required.
-     */
-    public static boolean shouldFallbackToFingerprintManager(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.P) {
-            return false;
-        }
-        if (!isVendorInFallbackList(context)) {
-            return false;
-        }
-        return isModelInPrefixList(context.getResources().getStringArray(R.array.crypto_fingerprint_fallback_prefixes));
-    }
-
-    /**
-     * Determine if the current device should hide a fingerprint dialog immediately. This is intended
-     * to improve the experience on devices for which this dialog is needed as a workaround but which
-     * display a custom UI, such as an overlay, when {@code FingerprintManager} is invoked. The function
-     * checks the following conditions:
-     * <ul>
-     *     <li>Device has API level 28 (Android "P"). Other Android versions doesn't require this workaround.</li>
-     *     <li>Device's manufacturer is on the list of problematic vendors (see {@code R.array.crypto_fingerprint_fallback_vendors}).</li>
-     *     <li>Model is on the list of devices that should not display fingerprint dialog (see {@code R.array.hide_fingerprint_instantly_prefixes}).</li>
-     * </ul>
-     * The {@code devices.xml} resource file contains both lists.
-     *
-     * @param context Android context object.
-     * @return {@code true} in case that the fingerprint dialog should be dismissed immediately.
-     */
-    public static boolean shouldHideFingerprintDialog(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.P) {
-            return false;
-        }
-        if (!isVendorInFallbackList(context)) {
-            return false;
-        }
-        return isModelInPrefixList(context.getResources().getStringArray(R.array.hide_fingerprint_instantly_prefixes));
-    }
-
-    /**
-     * Determine whether device manufacturer is in the list of problematic vendors and potentially
-     * require some workaround for the biometric authentication. The function simply looks whether
-     * {@code Build.MANUFACTURER} is mentioned in the {@code R.array.crypto_fingerprint_fallback_vendors}
-     * list.
-     *
-     * @param context Android context object.
-     * @return {@code true} in case that vendor of the current device is problematic and needs.
-     */
-    private static boolean isVendorInFallbackList(@NonNull Context context) {
-        final String[] vendorNames = context.getResources().getStringArray(R.array.crypto_fingerprint_fallback_vendors);
-        final String vendor = Build.MANUFACTURER;
-        if (vendor == null) {
-            return false;
-        }
-        for (String vendorName : vendorNames) {
-            if (vendor.equalsIgnoreCase(vendorName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Check whether {@code Build.MODEL} matches one in the given string array.
-     * <p>
-     * Note that the string array should contain the model prefixes rather than exact model identifiers.
-     * For example, if device's model is "Android SDK built for x86", then the prefix list should
-     * contain only "Android SDK", to match more simulator variants.
-     *
-     * @param modelPrefixes String array with model prefixes.
-     * @return {@code true} if the model matches one in the given string array, or {@code false} otherwise.
-     */
-    private static boolean isModelInPrefixList(String[] modelPrefixes) {
-        final String model = Build.MODEL;
-        if (model == null) {
-            return false;
-        }
-        for (String modelPrefix : modelPrefixes) {
-            if (model.startsWith(modelPrefix)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

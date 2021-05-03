@@ -18,25 +18,16 @@
 <resources>
     <!-- dialog texts -->
     <string name="fingerprint_dialog_description">Fingerprint Authentication</string>
-    <string name="fingerprint_dialog_touch_sensor">Touch sensor</string>
     <string name="fingerprint_dialog_title_new_fingerprint">Add New Fingerprint</string>
     <string name="fingerprint_dialog_description_new_fingerprint">You need to register at least one fingerprint in system settings to use fingerprint authentication.</string>
     <string name="fingerprint_dialog_title_no_scanner">No Fingerprint Scanner</string>
     <string name="fingerprint_dialog_description_no_scanner">No fingerprint scanner was found on this device.</string>
     <string name="fingerprint_dialog_title_invalidated">Fingerprint Disabled</string>
     <string name="fingerprint_dialog_description_invalidated">The fingerprint authentication was disabled, probably because someone modified your fingerprints in settings.</string>
-    <string name="fingerprint_dialog_success">Success!</string>
-    <string name="fingerprint_dialog_not_recognized">Fingerprint not recognized.</string>
     <!-- generic strings -->
     <string name="ok">OK</string>
     <string name="close">Close</string>
     <!-- error codes -->
     <string name="fallback_error_code_lockout">Image not recognized, please try again later.</string>
     <string name="fallback_error_code_generic">The biometric authentication failed.</string>
-    <!-- accessibility -->
-    <string name="accessibility_icon_fingerprint">Fingerprint icon</string>
-    <string name="accessibility_icon_success">Success icon</string>
-    <string name="accessibility_icon_failure">Failure icon</string>
-    <string name="accessibility_announcement_try_again">Touch the sensor again.</string>
-    <string name="accessibility_announcement_success">Fingerprint authentication succeeded.</string>
 </resources>

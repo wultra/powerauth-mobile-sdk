@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.os.SystemClock;
 import androidx.annotation.NonNull;
 
+import androidx.fragment.app.FragmentManager;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 
@@ -75,5 +76,21 @@ public class PrivateRequestData {
      */
     public long getElapsedTime() {
         return SystemClock.elapsedRealtime() - creationTime;
+    }
+
+    /**
+     * This helper method return {@link FragmentManager} from Fragment or FragmentActivity
+     * provided in {@link BiometricAuthenticationRequest}. The method throws {@code IllegalStateException}
+     * in case that Fragment is not attached yet, or the request is mis-configured.
+     *
+     * @return {@link FragmentManager} object acquired from request's Fragment or FragmentActivity.
+     */
+    public @NonNull FragmentManager getFragmentManager() {
+        if (request.getFragment() != null) {
+            return request.getFragment().getChildFragmentManager();
+        } else if (request.getFragmentActivity() != null) {
+            return request.getFragmentActivity().getSupportFragmentManager();
+        }
+        throw new IllegalStateException("Fragment or FragmentActivity is missing.");
     }
 }

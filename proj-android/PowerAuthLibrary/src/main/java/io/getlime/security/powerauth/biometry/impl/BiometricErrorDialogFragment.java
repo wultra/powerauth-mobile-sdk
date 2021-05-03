@@ -37,7 +37,6 @@ public class BiometricErrorDialogFragment extends DialogFragment {
     private static final String ARG_TITLE = "arg_title";
     private static final String ARG_MESSAGE = "arg_message";
     private static final String ARG_CLOSE_BUTTON_TEXT = "arg_close_btn_text";
-    private static final String ARG_CLOSE_BUTTON_COLOR = "arg_close_btn_color";
     private static final String ARG_ERROR_ICON = "arg_error_icon";
 
     public static final String FRAGMENT_DEFAULT_TAG = "BIOMETRIC_ERROR_DEFAULT_TAG";
@@ -61,7 +60,6 @@ public class BiometricErrorDialogFragment extends DialogFragment {
         private CharSequence title;
         private CharSequence message;
         private CharSequence closeButton;
-        private @ColorRes int closeButtonColor;
         private @DrawableRes int errorIcon;
         private OnCloseListener onCloseListener;
 
@@ -126,24 +124,20 @@ public class BiometricErrorDialogFragment extends DialogFragment {
         /**
          * Set close button text and color.
          * @param closeButton Close button text
-         * @param colorId Close button color
          * @return Self-reference.
          */
-        public Builder setCloseButton(@NonNull CharSequence closeButton, @ColorRes int colorId) {
+        public Builder setCloseButton(@NonNull CharSequence closeButton) {
             this.closeButton = closeButton;
-            this.closeButtonColor = colorId;
             return this;
         }
 
         /**
          * Set close button text and color.
          * @param closeButtonId Close button text
-         * @param colorId Close button color
          * @return Self-reference.
          */
-        public Builder setCloseButton(@StringRes int closeButtonId, @ColorRes int colorId) {
+        public Builder setCloseButton(@StringRes int closeButtonId) {
             this.closeButton = context.getText(closeButtonId);
-            this.closeButtonColor = colorId;
             return this;
         }
 
@@ -165,8 +159,8 @@ public class BiometricErrorDialogFragment extends DialogFragment {
             if (title == null || message == null || closeButton == null) {
                 throw new IllegalArgumentException("Required string is missing.");
             }
-            if (errorIcon == 0 || closeButtonColor == 0) {
-                throw new IllegalArgumentException("Icon or Button color resource is missing.");
+            if (errorIcon == 0) {
+                throw new IllegalArgumentException("Icon resource is missing.");
             }
             if (onCloseListener == null) {
                 throw new IllegalArgumentException("OnCloseListener is not set.");
@@ -178,7 +172,6 @@ public class BiometricErrorDialogFragment extends DialogFragment {
             arguments.putCharSequence(ARG_TITLE, title);
             arguments.putCharSequence(ARG_MESSAGE, message);
             arguments.putCharSequence(ARG_CLOSE_BUTTON_TEXT, closeButton);
-            arguments.putInt(ARG_CLOSE_BUTTON_COLOR, closeButtonColor);
             arguments.putInt(ARG_ERROR_ICON, errorIcon);
             fragment.setArguments(arguments);
 
@@ -207,26 +200,13 @@ public class BiometricErrorDialogFragment extends DialogFragment {
                 dismissAllowingStateLoss();
             }
         });
-        final @ColorRes int closeButtonColor = arguments.getInt(ARG_CLOSE_BUTTON_COLOR);
 
         // Create the dialog.
-        final AlertDialog alertDialog = alertBuilder.create();
-        alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                if (BiometricErrorDialogFragment.this.isAdded()) {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                        @ColorInt int color = alertDialog.getContext().getColor(closeButtonColor);
-                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(color);
-                    }
-                }
-            }
-        });
-        return alertDialog;
+        return alertBuilder.create();
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
+    public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
         reportClose();
     }

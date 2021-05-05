@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+
 #import "PA2WCSessionPacket_Success.h"
 #import "PowerAuthErrorConstants.h"
 #import "PA2PrivateMacros.h"
@@ -79,8 +81,6 @@
 		}
 		NSNumber * errorCode = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ERROR_CODE], NSNumber);
 		if (errorCode != nil) {
-			// Check PowerAuthErrorDomain constant definition, still contains PA2ErrorDomain string constant.
-#warning TODO: deserialize from packet require watchOS counterpart to be fully compatible with PA-SDK
 			NSInteger ec = [errorCode integerValue];
 			NSString * domain = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ERROR_DOM], NSString);
 			if (!domain) {

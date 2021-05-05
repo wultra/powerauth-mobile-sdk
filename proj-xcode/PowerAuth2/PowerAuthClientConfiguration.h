@@ -84,6 +84,6 @@
  
  @return Shared instance of a client configuration.
  */
-+ (nonnull PowerAuthClientConfiguration*) sharedInstance;
++ (nonnull instancetype) sharedInstance;
 
 @end

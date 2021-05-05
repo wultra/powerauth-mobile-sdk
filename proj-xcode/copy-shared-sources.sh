@@ -36,6 +36,7 @@ function USAGE
     echo "                    all targets."
     echo ""
     echo "options are:"
+    echo "  -f | --force      do not compare dates and always copy files"
     echo "  -v0               turn off all prints to stdout"
     echo "  -v1               print only basic log about build progress"
     echo "  -v2               print full build log with rich debug info"
@@ -50,12 +51,14 @@ function USAGE
 # SP - source base path, SI - source import (to be replaced)
 # TP - target base path, TI - target import
 # DT - do test only
+# FC - if 1, then always copy files
 
 SP=
 SI=
 TP=
 TI=
 DT=0
+FC=0
 
 # -----------------------------------------------------------------------------
 # Copy file from source relative path to the destination relative path and then
@@ -73,7 +76,7 @@ function PATCH
     
     if [ x$DT == x0 ]; then
         # Regular PATCH operation
-        if [ "$SRC_FILE" -nt "$DST_FILE" ]; then
+        if [ x$FC == x1 ] || [ "$SRC_FILE" -nt "$DST_FILE" ]; then
             LOG "  - $SRC   ->   $DST"
             sed -e "s/#import <$SI\//#import <$TI\//g" "$SRC_FILE" > "$DST_FILE"
             # Set modification date equal on both files
@@ -89,156 +92,94 @@ function PATCH
 }
 
 # -----------------------------------------------------------------------------
+# Find all files in $SP that contain PA2_SHARED_SOURCE marker and copy
+# that file to the target project.
+# -----------------------------------------------------------------------------
+function PATCH_ALL_MARKED_FILES
+{
+    LOG_LINE
+    [[ x$DT == x1 ]] && LOG "Testing shared files between $SI and $TI"
+    [[ x$DT == x0 ]] && LOG "Copying shared files from $SI to $TI"
+    
+    PUSH_DIR "$SP"
+    
+    # Find all files containing PA2_SHARED_SOURCE    
+    local LOOKUP="PA2_SHARED_SOURCE $TI"
+    local FILES=(`grep -R -null --include "*.h" --include "*.m" "$LOOKUP" .`)
+	
+    # Do for each file we found...
+	for ix in ${!FILES[*]}
+	do
+		local SRC_LOCAL_PATH="${FILES[$ix]}"
+        local SRC_FILE=$(basename $SRC_LOCAL_PATH)
+        # Look for a whole marker in this file
+        local MARKER=(`grep "$LOOKUP" "$SRC_LOCAL_PATH"`)
+        local DST_DIR=${MARKER[3]}
+        [[ -z "$DST_DIR" ]] && FAILURE "$SRC_LOCAL_PATH contains '$LOOKUP' marker with no destination path."
+        # Prepare params for PATCH
+        local SRC_PATH=${SRC_LOCAL_PATH:2}
+        if [ $DST_DIR == "." ]; then
+            local DST_PATH="$SRC_FILE"
+        else
+            local DST_PATH="$DST_DIR/$SRC_FILE"
+        fi
+        #echo "PATCH $SRC_PATH $DST_PATH"
+        PATCH $SRC_PATH $DST_PATH 
+	done
+    
+    POP_DIR
+}
+
+# -----------------------------------------------------------------------------
 # Copy and patch all shared files in PowerAuth2ForWatch project.
 # -----------------------------------------------------------------------------
 function PATCH_WATCH_SOURCES
-{
-    LOG_LINE
-    [[ x$DT == x1 ]] && LOG 'Testing shared files between PowerAuth2 and PowerAuth2ForWatch'
-    [[ x$DT == x0 ]] && LOG 'Copying shared files from PowerAuth2 to PowerAuth2ForWatch'
-    
+{    
     SP="${PROJ_ROOT}/PowerAuth2"
     SI='PowerAuth2'
     TP="${PROJ_ROOT}/PowerAuth2ForWatch"    
     TI='PowerAuth2ForWatch'
     
-    # Public files
-    
-    PATCH 'PowerAuthAuthentication.h'
-    PATCH 'PowerAuthAuthentication.m'
-    PATCH 'PowerAuthAuthorizationHttpHeader.h'
-    PATCH 'PowerAuthAuthorizationHttpHeader.m'
-    PATCH 'PowerAuthConfiguration.h'
-    PATCH 'PowerAuthConfiguration.m'
-    PATCH 'PowerAuthErrorConstants.h'
-    PATCH 'PowerAuthErrorConstants.m'
-    PATCH 'PowerAuthKeychain.h'
-    PATCH 'PowerAuthKeychain.m'
-    PATCH 'PowerAuthKeychainConfiguration.h'
-    PATCH 'PowerAuthKeychainConfiguration.m'
-    PATCH 'PowerAuthLog.h'
-    PATCH 'PowerAuthLog.m'
-    PATCH 'PowerAuthMacros.h'
-    PATCH 'PowerAuthSessionStatusProvider.h'
-    PATCH 'PowerAuthSystem.h'
-    PATCH 'PowerAuthSystem.m'
-    PATCH 'PowerAuthWCSessionManager.h'
-    PATCH 'PowerAuthWCSessionManager.m'
-	PATCH 'PowerAuthToken.h'
-    PATCH 'PowerAuthToken.m'
-    
-    # Private files
-    
-    PATCH 'private/token/PA2PrivateRemoteTokenProvider.h' 'private/PA2PrivateRemoteTokenProvider.h'
-    PATCH 'private/token/PA2PrivateTokenData.h' 'private/PA2PrivateTokenData.h'
-    PATCH 'private/token/PA2PrivateTokenData.m' 'private/PA2PrivateTokenData.m'
-    PATCH 'private/token/PA2PrivateTokenInterfaces.h' 'private/PA2PrivateTokenInterfaces.h'
-    PATCH 'private/token/PA2PrivateTokenKeychainStore.h' 'private/PA2PrivateTokenKeychainStore.h'
-    PATCH 'private/token/PA2PrivateTokenKeychainStore.m' 'private/PA2PrivateTokenKeychainStore.m'
-    
-    PATCH 'private/watch/PA2WCSessionDataHandler.h' 'private/PA2WCSessionDataHandler.h'
-    PATCH 'private/watch/PowerAuthWCSessionManager+Private.h' 'private/PowerAuthWCSessionManager+Private.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket.h' 'private/PA2WCSessionPacket.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket.m' 'private/PA2WCSessionPacket.m'
-    PATCH 'private/watch/model/PA2WCSessionPacket_Constants.h' 'private/PA2WCSessionPacket_Constants.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket_Constants.m' 'private/PA2WCSessionPacket_Constants.m'
-    PATCH 'private/watch/model/PA2WCSessionPacket_ActivationStatus.h' 'private/PA2WCSessionPacket_ActivationStatus.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket_ActivationStatus.m' 'private/PA2WCSessionPacket_ActivationStatus.m'
-    PATCH 'private/watch/model/PA2WCSessionPacket_Success.h' 'private/PA2WCSessionPacket_Success.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket_Success.m' 'private/PA2WCSessionPacket_Success.m'
-    PATCH 'private/watch/model/PA2WCSessionPacket_TokenData.h' 'private/PA2WCSessionPacket_TokenData.h'
-    PATCH 'private/watch/model/PA2WCSessionPacket_TokenData.m' 'private/PA2WCSessionPacket_TokenData.m'
-    
-    PATCH 'private/system/PA2WeakArray.h' 'private/PA2WeakArray.h'
-    PATCH 'private/system/PA2WeakArray.m' 'private/PA2WeakArray.m'
-    PATCH 'private/system/PA2PrivateMacros.h' 'private/PA2PrivateMacros.h'
-    PATCH 'private/system/PA2PrivateMacros.m' 'private/PA2PrivateMacros.m'
-	PATCH 'private/system/PA2PrivateConstants.h' 'private/PA2PrivateConstants.h'
+    PATCH_ALL_MARKED_FILES
     
     if [ x$DT == x1 ]; then
         return
     fi
     
     # Shared between PowerAuth2ForExtensions and PowerAuth2ForWatch
-    # We'll copy only newer files
-    
-    LOG 'Copying shared files between PowerAuth2ForExtensions to PowerAuth2ForWatch'
-        
+           
     SP="${PROJ_ROOT}/PowerAuth2ForExtensions"
     SI='PowerAuth2ForExtensions'
     TP="${PROJ_ROOT}/PowerAuth2ForWatch"    
     TI='PowerAuth2ForWatch'
     
-    PATCH 'private/PA2CoreCryptoUtils.h' 'private/PA2CoreCryptoUtils.h'
-    PATCH 'private/PA2CoreCryptoUtils.m' 'private/PA2CoreCryptoUtils.m'
+    PATCH_ALL_MARKED_FILES
 }
 
 # -----------------------------------------------------------------------------
 # Copy and patch all shared files in PowerAuth2ForExtensions project.
 # -----------------------------------------------------------------------------
 function PATCH_EXTENSIONS_SOURCES
-{
-    LOG_LINE
-    [[ x$DT == x1 ]] && LOG 'Testing shared files between PowerAuth2 and PowerAuth2ForExtensions'
-    [[ x$DT == x0 ]] && LOG 'Copying shared files from PowerAuth2 to PowerAuth2ForExtensions'
-    
+{    
     SP="${PROJ_ROOT}/PowerAuth2"
     SI='PowerAuth2'
     TP="${PROJ_ROOT}/PowerAuth2ForExtensions"    
     TI='PowerAuth2ForExtensions'
-    
-    # Public files
-    
-    PATCH 'PowerAuthAuthentication.h'
-    PATCH 'PowerAuthAuthentication.m'
-    PATCH 'PowerAuthAuthorizationHttpHeader.h'
-    PATCH 'PowerAuthAuthorizationHttpHeader.m'
-    PATCH 'PowerAuthConfiguration.h'
-    PATCH 'PowerAuthConfiguration.m'
-    PATCH 'PowerAuthErrorConstants.h'
-    PATCH 'PowerAuthErrorConstants.m'
-    PATCH 'PowerAuthKeychain.h'
-    PATCH 'PowerAuthKeychain.m'
-    PATCH 'PowerAuthKeychainConfiguration.h'
-    PATCH 'PowerAuthKeychainConfiguration.m'
-    PATCH 'PowerAuthLog.h'
-    PATCH 'PowerAuthLog.m'
-    PATCH 'PowerAuthMacros.h'
-    PATCH 'PowerAuthSessionStatusProvider.h'
-    PATCH 'PowerAuthSystem.h'
-    PATCH 'PowerAuthSystem.m'
-	PATCH 'PowerAuthToken.h'
-    PATCH 'PowerAuthToken.m'
-    
-    # Private files
-    
-    PATCH 'private/token/PA2PrivateRemoteTokenProvider.h' 'private/PA2PrivateRemoteTokenProvider.h'
-    PATCH 'private/token/PA2PrivateTokenData.h' 'private/PA2PrivateTokenData.h'
-    PATCH 'private/token/PA2PrivateTokenData.m' 'private/PA2PrivateTokenData.m'
-    PATCH 'private/token/PA2PrivateTokenInterfaces.h' 'private/PA2PrivateTokenInterfaces.h'
-    PATCH 'private/token/PA2PrivateTokenKeychainStore.h' 'private/PA2PrivateTokenKeychainStore.h'
-    PATCH 'private/token/PA2PrivateTokenKeychainStore.m' 'private/PA2PrivateTokenKeychainStore.m'
-    
-    PATCH 'private/system/PA2PrivateMacros.h' 'private/PA2PrivateMacros.h'
-    PATCH 'private/system/PA2PrivateMacros.m' 'private/PA2PrivateMacros.m'
-	PATCH 'private/system/PA2PrivateConstants.h' 'private/PA2PrivateConstants.h'
+
+    PATCH_ALL_MARKED_FILES
     
     if [ x$DT == x1 ]; then
         return
     fi
     
     # Shared between PowerAuth2ForExtensions and PowerAuth2ForWatch
-    # We'll copy only newer files
-    
-    LOG 'Copying shared files between PowerAuth2ForExtensions to PowerAuth2ForWatch'
     
     SP="${PROJ_ROOT}/PowerAuth2ForWatch"
     SI='PowerAuth2ForWatch'
     TP="${PROJ_ROOT}/PowerAuth2ForExtensions"    
     TI='PowerAuth2ForExtensions'
     
-    PATCH 'private/PA2CoreCryptoUtils.h' 'private/PA2CoreCryptoUtils.h'
-    PATCH 'private/PA2CoreCryptoUtils.m' 'private/PA2CoreCryptoUtils.m'
+    PATCH_ALL_MARKED_FILES
 }
 
 # -----------------------------------------------------------------------------
@@ -271,6 +212,9 @@ do
             ;;
         sdktest)
             DO_SDK_TEST=1
+            ;;
+        -f | --force)
+            FC=1
             ;;
 		-v*)
 			SET_VERBOSE_LEVEL_FROM_SWITCH $opt

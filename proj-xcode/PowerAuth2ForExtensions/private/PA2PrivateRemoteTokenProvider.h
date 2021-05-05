@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions private
+
 #import <PowerAuth2ForExtensions/PowerAuthToken.h>
 
 @class PowerAuthConfiguration;

@@ -68,3 +68,28 @@ BOOL PA2LogIsVerbose(void)
 {
 	return PowerAuthLogIsVerbose();
 }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ClientConfiguration, PowerAuthClientConfiguration)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2AuthorizationHttpHeader, PowerAuthAuthorizationHttpHeader)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2Otp, PowerAuthActivationCode)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2OtpUtil, PowerAuthActivationCodeUtil)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ActivationStatus, PowerAuthActivationStatus)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ActivationRecoveryData, PowerAuthActivationRecoveryData)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ActivationResult, PowerAuthActivationResult)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2CustomHeaderRequestInterceptor, PowerAuthCustomHeaderRequestInterceptor)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2BasicHttpAuthenticationRequestInterceptor, PowerAuthBasicHttpAuthenticationRequestInterceptor)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ClientSslNoValidationStrategy, PowerAuthClientSslNoValidationStrategy)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ErrorResponse, PowerAuthRestApiErrorResponse)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2Error, PowerAuthRestApiError)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2Keychain, PowerAuthKeychain)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2KeychainConfiguration, PowerAuthKeychainConfiguration)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2System, PowerAuthSystem)
+
+#if defined(PA2_WATCH_SUPPORT)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2WCSessionManager, PowerAuthWCSessionManager)
+#endif
+
+#pragma clang diagnostic pop

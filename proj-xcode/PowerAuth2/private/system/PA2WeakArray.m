@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+
 #import "PA2WeakArray.h"
 
 @interface PA2WeakObject : NSObject

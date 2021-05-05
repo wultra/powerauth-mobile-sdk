@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+
 #import "PA2WCSessionPacket_Constants.h"
 
 NSString * const PA2WCSessionPacket_USER_INFO_KEY		= @"io.getlime.PowerAuth.PA2WCSessionPacket";

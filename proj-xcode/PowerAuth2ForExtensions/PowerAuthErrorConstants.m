@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
+
 #import <PowerAuth2ForExtensions/PowerAuthErrorConstants.h>
 #import "PA2PrivateConstants.h"
 
@@ -57,6 +60,8 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 	NSDictionary * info = @{ NSLocalizedDescriptionKey: PA2MakeDefaultErrorDescription(errorCode, message)};
 	return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:info];
 }
+
+#pragma mark - NSError extension
 
 @implementation NSError (PowerAuthErrorCode)
 

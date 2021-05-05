@@ -14,49 +14,56 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCoreMacros.h>
+#import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCorePassword.h>
 #import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
+
+// Session
+
+/**
+ The `PA2Session` is now deprecated, please use `PowerAuthCoreSession` instead.
+ */
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2Session, PowerAuthCoreSession)
 
 // Password
 
 /**
  The `PA2Password` is now deprecated, please use `PowerAuthCorePassword` instead.
  */
-typedef PowerAuthCorePassword PA2Password POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2Password, PowerAuthCorePassword)
 /**
  The `PA2MutablePassword` is now deprecated, please use `PowerAuthCoreMutablePassword` instead.
  */
-typedef PowerAuthCoreMutablePassword PA2MutablePassword POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2MutablePassword, PowerAuthCoreMutablePassword)
 
 // ECIES
 
 /**
  The `PA2ECIESEncryptor` is now deprecated, please use `PowerAuthCoreEciesEncryptor` instead.
  */
-typedef PowerAuthCoreEciesEncryptor PA2ECIESEncryptor POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESEncryptor, PowerAuthCoreEciesEncryptor)
 /**
  The `PA2ECIESCryptogram` is now deprecated, please use `PowerAuthCoreEciesCryptogram` instead.
  */
-typedef PowerAuthCoreEciesCryptogram PA2ECIESCryptogram POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESCryptogram, PowerAuthCoreEciesCryptogram)
 /**
  The `PA2ECIESMetaData` is now deprecated, please use `PowerAuthCoreEciesMetaData` instead.
  */
-typedef PowerAuthCoreEciesMetaData PA2ECIESMetaData POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESMetaData, PowerAuthCoreEciesMetaData)
 /**
  The `PA2ECIESEncryptorScope` is now deprecated, please use `PowerAuthCoreEciesEncryptorScope` instead.
  */
-typedef PowerAuthCoreEciesEncryptorScope PA2ECIESEncryptorScope POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_TYPE(1.6.0, PA2ECIESEncryptorScope, PowerAuthCoreEciesEncryptorScope)
 
 // Crypto utils
 
 /**
  The `PA2CryptoUtils` is now deprecated, please use `PowerAuthCoreCryptoUtils` instead.
  */
-typedef PowerAuthCoreCryptoUtils PA2CryptoUtils POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2CryptoUtils, PowerAuthCoreCryptoUtils)
 /**
  The `PA2ECPublicKey` is now deprecated, please use `PowerAuthCoreECPublicKey` instead.
  */
-typedef PowerAuthCoreECPublicKey PA2ECPublicKey POWERAUTH_DEPRECATED(1.6.0);
+POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECPublicKey, PowerAuthCoreECPublicKey)

@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions private
+
 #ifndef PA2PrivateConstants_Included
 #define PA2PrivateConstants_Included
 
-// The following constants still contains "PA2Error*" codes, to maintain a full compatibility with watchOS.
-#define PA2Def_PowerAuthErrorDomain					@"PA2ErrorDomain"
-#define PA2Def_PowerAuthErrorInfoKey_AdditionalInfo	@"PA2ErrorInfoKey_AdditionalInfo"
-#define PA2Def_PowerAuthErrorInfoKey_ResponseData	@"PA2ErrorInfoKey_ResponseData"
+// Error constants
 
-// PA2Keychain constants
+#define PA2Def_PowerAuthErrorDomain					@"PowerAuthErrorDomain"
+#define PA2Def_PowerAuthErrorInfoKey_AdditionalInfo	@"PowerAuthErrorInfoKey_AdditionalInfo"
+#define PA2Def_PowerAuthErrorInfoKey_ResponseData	@"PowerAuthErrorInfoKey_ResponseData"
+
+// Keychain constants, must keep PA2* naming to maintaing a compatibility with older SDK versions
 
 #define PA2Def_PowerAuthKeychainKey_Possession		@"PA2KeychainKey_Possession"
 #define PA2Def_PowerAuthKeychain_Initialized		@"io.getlime.PowerAuthKeychain.Initialized"

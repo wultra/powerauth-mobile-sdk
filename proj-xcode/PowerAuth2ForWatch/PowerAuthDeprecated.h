@@ -17,9 +17,14 @@
 #import <PowerAuth2ForWatch/PowerAuthErrorConstants.h>
 #import <PowerAuth2ForWatch/PowerAuthKeychain.h>
 #import <PowerAuth2ForWatch/PowerAuthKeychainConfiguration.h>
+#import <PowerAuth2ForWatch/PowerAuthAuthorizationHttpHeader.h>
 #import <PowerAuth2ForWatch/PowerAuthLog.h>
 #import <PowerAuth2ForWatch/PowerAuthSystem.h>
 #import <PowerAuth2ForWatch/PowerAuthWCSessionManager.h>
+
+// SDK classes
+
+PA2_DEPRECATED_CLASS(1.6.0, PA2AuthorizationHttpHeader, PowerAuthAuthorizationHttpHeader)
 
 // PA2Error*
 
@@ -69,7 +74,7 @@ PA2_EXTERN_C NSInteger const PA2ErrorCodePendingProtocolUpgrade PA2_DEPRECATED(1
 /**
  The PA2KeychainConfiguration class is now deprecated, please use PowerAuthKeychainConfiguration as a replacement.
  */
-typedef PowerAuthKeychainConfiguration PA2KeychainConfiguration PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_CLASS(1.6.0, PA2KeychainConfiguration, PowerAuthKeychainConfiguration)
 
 PA2_EXTERN_C NSString * __nonnull const PA2Keychain_Initialized PA2_DEPRECATED(1.6.0);
 PA2_EXTERN_C NSString * __nonnull const PA2Keychain_Status PA2_DEPRECATED(1.6.0);
@@ -81,34 +86,34 @@ PA2_EXTERN_C NSString * __nonnull const PA2KeychainKey_Possession PA2_DEPRECATED
 /**
  The PA2Keychain class is now deprecated, please use PowerAuthKeychain as a replacement.
  */
-typedef PowerAuthKeychain PA2Keychain PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_CLASS(1.6.0, PA2Keychain, PowerAuthKeychain)
 /**
  The PA2KeychainItemAccess is now deprecated, please use PowerAuthKeychainItemAccess as a replacement.
  */
-typedef PowerAuthKeychainItemAccess PA2KeychainItemAccess PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_TYPE(1.6.0, PA2KeychainItemAccess, PowerAuthKeychainItemAccess)
 /**
  The PA2BiometricAuthenticationInfo is now deprecated, please use PowerAuthBiometricAuthenticationInfo as a replacement.
  */
-typedef PowerAuthBiometricAuthenticationInfo PA2BiometricAuthenticationInfo PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_TYPE(1.6.0, PA2BiometricAuthenticationInfo, PowerAuthBiometricAuthenticationInfo)
 /**
  The PA2BiometricAuthenticationStatus is now deprecated, please use PowerAuthBiometricAuthenticationStatus as a replacement.
  */
-typedef PowerAuthBiometricAuthenticationStatus PA2BiometricAuthenticationStatus PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_TYPE(1.6.0, PA2BiometricAuthenticationStatus, PowerAuthBiometricAuthenticationStatus)
 /**
  The PA2BiometricAuthenticationType is now deprecated, please use PowerAuthBiometricAuthenticationType as a replacement.
  */
-typedef PowerAuthBiometricAuthenticationType PA2BiometricAuthenticationType PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_TYPE(1.6.0, PA2BiometricAuthenticationType, PowerAuthBiometricAuthenticationType)
 /**
  The PA2KeychainStoreItemResult is now deprecated, please use PowerAuthKeychainStoreItemResult as a replacement.
  */
-typedef PowerAuthKeychainStoreItemResult PA2KeychainStoreItemResult PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_TYPE(1.6.0, PA2KeychainStoreItemResult, PowerAuthKeychainStoreItemResult)
 
 // PA2ExtensionLibrary
 
 /**
  The PA2ExtensionLibrary class is now deprecated, please use PowerAuthSystem as a replacement.
  */
-typedef PowerAuthSystem PA2ExtensionLibrary PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_CLASS(1.6.0, PA2ExtensionLibrary, PowerAuthSystem)
 
 // PA2Log
 
@@ -134,4 +139,4 @@ PA2_DEPRECATED(1.6.0) PA2_EXTERN_C BOOL PA2LogIsVerbose(void);
 /**
  The PA2WCSessionManager class is deprecated, please use PowerAuthWCSessionManager instead.
  */
-typedef PowerAuthWCSessionManager PA2WCSessionManager PA2_DEPRECATED(1.6.0);
+PA2_DEPRECATED_CLASS(1.6.0, PA2WCSessionManager, PowerAuthWCSessionManager)

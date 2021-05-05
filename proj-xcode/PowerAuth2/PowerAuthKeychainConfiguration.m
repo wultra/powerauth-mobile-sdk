@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
+
 #import "PowerAuthKeychainConfiguration.h"
 #import "PA2PrivateConstants.h"
 
@@ -60,7 +63,7 @@ NSString *const PowerAuthKeychainKey_Possession		= PA2Def_PowerAuthKeychainKey_P
 	return c;
 }
 
-+ (PowerAuthKeychainConfiguration *)sharedInstance
++ (instancetype)sharedInstance
 {
 	static dispatch_once_t onceToken;
 	static PowerAuthKeychainConfiguration *inst;

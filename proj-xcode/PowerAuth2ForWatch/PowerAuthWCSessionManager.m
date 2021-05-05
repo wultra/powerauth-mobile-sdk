@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+
 #import <PowerAuth2ForWatch/PowerAuthWCSessionManager.h>
 #import <PowerAuth2ForWatch/PowerAuthErrorConstants.h>
 #import <PowerAuth2ForWatch/PowerAuthLog.h>

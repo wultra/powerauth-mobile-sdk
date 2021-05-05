@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+
 #import <PowerAuth2ForWatch/PowerAuthMacros.h>
 
 // Key used in userInfo, transmitted over the

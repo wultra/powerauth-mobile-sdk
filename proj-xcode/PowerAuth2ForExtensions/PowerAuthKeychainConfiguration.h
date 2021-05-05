@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
+
 #import <PowerAuth2ForExtensions/PowerAuthMacros.h>
 
 /**
@@ -102,6 +105,6 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
  
  @return Shared instance of a Keychain configuration.
  */
-+ (nonnull PowerAuthKeychainConfiguration*) sharedInstance;
++ (nonnull instancetype) sharedInstance;
 
 @end

@@ -38,7 +38,7 @@
 	return c;
 }
 
-+ (PowerAuthClientConfiguration *) sharedInstance
++ (instancetype) sharedInstance
 {
 	static dispatch_once_t onceToken;
 	static PowerAuthClientConfiguration *inst;

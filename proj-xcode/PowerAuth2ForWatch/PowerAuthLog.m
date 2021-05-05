@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
+
 #import "PowerAuthLog.h"
 
 #if PA2_HAS_CORE_MODULE

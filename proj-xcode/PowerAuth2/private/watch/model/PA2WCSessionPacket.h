@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#import "PA2WCSessionPacket_Constants.h"
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
 
+#import "PA2WCSessionPacket_Constants.h"
 
 /**
  The PA2WCSessionPacketData protocol defines payload transmitted in

@@ -108,11 +108,14 @@ If you prefer not to use CocoaPods as a dependency manager, you can integrate Po
 
 ### Carthage
 
-We provide limited and experimental support for the [Carthage dependency manager](https://github.com/Carthage/Carthage). The current problem with Carthage is that we cannot specify which Xcode project and which scheme has to be used for a particular library build. It kind of works automatically, but the build process is extremely slow and not reliable. So, if you still want to try to integrate our library with Carthage, try the following tips:
+We provide limited and experimental support for the [Carthage dependency manager](https://github.com/Carthage/Carthage). The current problem with Carthage is that we cannot specify which Xcode project and which scheme has to be used for a particular library build. It kind of works automatically, but the build process is extremely slow. So, if you still want to try to integrate our library with Carthage, try the following tips:
 
-- Add `github "wultra/powerauth-mobile-sdk" "feature/carthage-build"` into your `Cartfile`. We're maintaining a separate branch for Carthage builds, so if it's not up to date, please let us know. We'll update that branch as soon as possible.
-- It's recommended to force Carthage to use submodules for library code checkouts.
-- It's recommended to update only iOS platform (if possible). So try to run something like this: `carthage update --use-submodules --platform ios`
+- Add `github "wultra/powerauth-mobile-sdk" "develop"` into your `Cartfile`. You can alternatively use any `release/X.Y.x` branch, greater or equal than `release/1.6.x`.
+- It's recommended to force Carthage to use submodules for the library code checkouts.
+- It's recommended to force Carthage to use XCFrameworks.
+- It's recommended to update only iOS platform (if possible). So try to run something like this: `carthage update --use-xcframeworks --use-submodules --platform ios`
+- If build fails on broken project `PowerAuthLib.xcodeproj` then go to `{your_project}/Carthage/Checkouts/powerauth-mobile-sdk/proj-xcode` and delete `PowerAuthLib.xcodeproj` folder. This is because git doesn't delete empty folders by default and we have removed that XCode project from the source control. 
+- Drop `PowerAuth2.xcframework` and `PowerAuthCore.xcframework` into your project.
 
 ## Configuration
 

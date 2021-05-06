@@ -573,7 +573,7 @@ if (powerAuthSDK.hasValidActivation()) {
 }
 ```
 
-Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCodes.PA2ErrorCodeProtocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
+Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCodes.PROTOCOL_UPGRADE`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
 To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
@@ -1391,37 +1391,39 @@ Here's an example for a typical error handling procedure:
 Throwable t; // reported in asynchronous callback
 if (t instanceof PowerAuthErrorException) {
     switch (((PowerAuthErrorException) t).getPowerAuthErrorCode()) {
-        case PowerAuthErrorCodes.PA2ErrorCodeNetworkError:
+        case PowerAuthErrorCodes.NETWORK_ERROR:
             android.util.Log.d(TAG, "Error code for error with network connectivity or download"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeSignatureError:
+        case PowerAuthErrorCodes.SIGNATURE_ERROR:
             android.util.Log.d(TAG,"Error code for error in signature calculation"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState:
+        case PowerAuthErrorCodes.INVALID_ACTIVATION_STATE:
             android.util.Log.d(TAG,"Error code for error that occurs when activation state is invalid"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData:
+        case PowerAuthErrorCodes.INVALID_ACTIVATION_DATA:
             android.util.Log.d(TAG,"Error code for error that occurs when activation data is invalid"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeMissingActivation:
+        case PowerAuthErrorCodes.MISSING_ACTIVATION:
             android.util.Log.d(TAG,"Error code for error that occurs when activation is required but missing"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeActivationPending:
+        case PowerAuthErrorCodes.PENDING_ACTIVATION:
             android.util.Log.d(TAG,"Error code for error that occurs when pending activation is present and work with completed activation is required"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel:
+        case PowerAuthErrorCodes.INVALID_ACTIVATION_CODE:
+            android.util.Log.d(TAG,"Error code for error that occurs when invalid activation code is provided."); break;
+        case PowerAuthErrorCodes.BIOMETRY_CANCEL:
             android.util.Log.d(TAG,"Error code for Biometry action cancel error"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported:
+        case PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED:
             android.util.Log.d(TAG,"The device or operating system doesn't support biometric authentication."); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable:
+        case PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE:
             android.util.Log.d(TAG,"The biometric authentication is temporarily unavailable."); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized:
+        case PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED:
             android.util.Log.d(TAG,"The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout:
+        case PowerAuthErrorCodes.BIOMETRY_LOCKOUT:
             android.util.Log.d(TAG,"The biometric authentication is locked out due to too many failed attempts."); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeOperationCancelled:
+        case PowerAuthErrorCodes.OPERATION_CANCELED:
             android.util.Log.d(TAG,"Error code for cancelled operations"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeEncryptionError:
+        case PowerAuthErrorCodes.ENCRYPTION_ERROR:
             android.util.Log.d(TAG,"Error code for errors related to end-to-end encryption"); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeInvalidToken:
+        case PowerAuthErrorCodes.INVALID_TOKEN:
             android.util.Log.d(TAG,"Error code for errors related to token based auth."); break;
-        case PowerAuthErrorCodes.PA2ErrorCodeProtocolUpgrade:
+        case PowerAuthErrorCodes.PROTOCOL_UPGRADE:
             android.util.Log.d(TAG,"Error code for error that occurs when protocol upgrade fails at unrecoverable error."); break;
-        case PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade:
+        case PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE:
             android.util.Log.d(TAG,"The operation is temporarily unavailable, due to pending protocol upgrade."); break;
     }
 } else if (t instanceof ErrorResponseApiException) {
@@ -1441,13 +1443,13 @@ if (t instanceof PowerAuthErrorException) {
 
 ```
 
-Note that you typically don't need to handle all error codes reported in the `PowerAuthErrorException`, or report all that situations to the user. Most of the codes are informational and help the developers properly integrate SDK into the application. A good example is `PA2ErrorCodeInvalidActivationState`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way.
+Note that you typically don't need to handle all error codes reported in the `PowerAuthErrorException`, or report all that situations to the user. Most of the codes are informational and help the developers properly integrate SDK into the application. A good example is `INVALID_ACTIVATION_STATE`, which typically means that your application's logic is broken and you're using PowerAuthSDK in an unexpected way.
 
 Here's the list of important error codes, which the application should properly handle:
 
-- `PA2ErrorCodeBiometryCancel` is reported when the user cancels the biometric authentication dialog
-- `PA2ErrorCodeProtocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatusWithCallback()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform user about the situation and remove the activation locally.
-- `PA2ErrorCodePendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
+- `BIOMETRY_CANCEL` is reported when the user cancels the biometric authentication dialog
+- `PROTOCOL_UPGRADE` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatusWithCallback()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform user about the situation and remove the activation locally.
+- `PENDING_PROTOCOL_UPGRADE` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 
 
 ### Working with Invalid SSL Certificates

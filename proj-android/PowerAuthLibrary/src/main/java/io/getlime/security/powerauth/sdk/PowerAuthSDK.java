@@ -211,7 +211,7 @@ public class PowerAuthSDK {
             final Context appContext = context.getApplicationContext();
 
             if (!mConfiguration.validateConfiguration()) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid PowerAuthConfiguration.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid PowerAuthConfiguration.");
             }
 
             // Create default configuration objects
@@ -316,7 +316,7 @@ public class PowerAuthSDK {
             public PowerAuthAuthorizationHttpHeader getAuthorizationHeader(boolean availableInProtocolUpgrade, @NonNull byte[] body, @NonNull String method, @NonNull String uriIdentifier, @NonNull PowerAuthAuthentication authentication) throws PowerAuthErrorException {
                 if (context == null) {
                     // This is mostly internal error. We should not call this crypto helper's method, when the context is not available.
-                    throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Context object is not set.");
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Context object is not set.");
                 }
                 // Prepare request
                 final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null);
@@ -450,7 +450,7 @@ public class PowerAuthSDK {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                    listener.onFetchEncryptedVaultUnlockKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION));
                 }
             });
             return null;
@@ -627,7 +627,7 @@ public class PowerAuthSDK {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                 }
             });
             return null;
@@ -654,8 +654,8 @@ public class PowerAuthSDK {
             if (step1Result.errorCode != ErrorCode.OK) {
                 // Looks like create activation failed
                 final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-                        ? PowerAuthErrorCodes.PA2ErrorCodeSignatureError
-                        : PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData;
+                        ? PowerAuthErrorCodes.SIGNATURE_ERROR
+                        : PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
                 dispatchCallback(new Runnable() {
                     @Override
                     public void run() {
@@ -711,7 +711,7 @@ public class PowerAuthSDK {
                                     listener.onActivationCreateSucceed(result);
                                     return;
                                 }
-                                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Invalid activation data received from the server.");
+                                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Invalid activation data received from the server.");
 
                             } catch (PowerAuthErrorException e) {
                                 // In case of error, reset the session & report that exception
@@ -973,7 +973,7 @@ public class PowerAuthSDK {
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 final int errorCode = commitActivationWithPassword(context, password, biometricKeyData.getDerivedData());
-                if (errorCode == PowerAuthErrorCodes.PA2Succeed) {
+                if (errorCode == PowerAuthErrorCodes.SUCCEED) {
                     callback.onBiometricDialogSuccess();
                 } else {
                     callback.onBiometricDialogFailed(new PowerAuthErrorException(errorCode));
@@ -1025,7 +1025,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
         // Check if there is a pending activation present and not an already existing valid activation
         if (!mSession.hasPendingActivation()) {
-            return PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState;
+            return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
         }
 
         // Prepare key encryption keys
@@ -1044,9 +1044,9 @@ public class PowerAuthSDK {
             saveSerializedState();
             getTokenStore().removeAllLocalTokens(context);
 
-            return PowerAuthErrorCodes.PA2Succeed;
+            return PowerAuthErrorCodes.SUCCEED;
         } else {
-            return PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState;
+            return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
         }
     }
 
@@ -1098,8 +1098,8 @@ public class PowerAuthSDK {
         // Check if there is an activation present, valid or pending
         if (!mSession.hasValidActivation()) {
             final int errorCode = mSession.hasPendingActivation()
-                                    ? PowerAuthErrorCodes.PA2ErrorCodeActivationPending
-                                    : PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
+                                    ? PowerAuthErrorCodes.PENDING_ACTIVATION
+                                    : PowerAuthErrorCodes.MISSING_ACTIVATION;
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
@@ -1214,7 +1214,7 @@ public class PowerAuthSDK {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation));
+                    listener.onActivationRemoveFailed(new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION));
                 }
             });
             return null;
@@ -1390,20 +1390,20 @@ public class PowerAuthSDK {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation, "Missing activation.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION, "Missing activation.");
         }
 
         // Check protocol upgrade
         if (mSession.hasPendingProtocolUpgrade() || mSession.hasProtocolUpgradeAvailable()) {
             if (!allowInUpgrade) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade, "Data signing is temporarily unavailable, due to required or pending protocol upgrade.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE, "Data signing is temporarily unavailable, due to required or pending protocol upgrade.");
             }
         }
 
         // Determine authentication factor type
         @SignatureFactor final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
         if (signatureFactor == 0) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Invalid combination of signature factors.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid combination of signature factors.");
         }
 
         // Generate signature key encryption keys
@@ -1413,7 +1413,7 @@ public class PowerAuthSDK {
         final SignatureResult signatureResult = mSession.signHTTPRequest(signatureRequest, keys, signatureFactor);
         if (signatureResult == null) {
             // Should never happen, except that Session was just recently destroyed.
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Session is no longer valid.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Session is no longer valid.");
         }
 
         // Update state after each successful calculation
@@ -1421,7 +1421,7 @@ public class PowerAuthSDK {
 
         // Check the result
         if (signatureResult.errorCode != ErrorCode.OK) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeSignatureError, "Signature calculation failed on error " +  signatureResult.errorCode);
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR, "Signature calculation failed on error " +  signatureResult.errorCode);
         }
 
         return signatureResult;
@@ -1468,10 +1468,10 @@ public class PowerAuthSDK {
                     if (signature != null) {
                         listener.onDataSignedSucceed(signature);
                     } else {
-                        listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+                        listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
                     }
                 } else {
-                    listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                    listener.onDataSignedFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                 }
             }
 
@@ -1526,7 +1526,7 @@ public class PowerAuthSDK {
                     saveSerializedState();
                     listener.onPasswordChangeSucceed();
                 } else {
-                    listener.onPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                    listener.onPasswordChangeFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                 }
             }
 
@@ -1649,7 +1649,7 @@ public class PowerAuthSDK {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryCancel));
+                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
                             }
                         }
 
@@ -1663,7 +1663,7 @@ public class PowerAuthSDK {
                                 saveSerializedState();
                                 listener.onAddBiometryFactorSucceed();
                             } else {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                             }
                         }
 
@@ -1674,13 +1674,13 @@ public class PowerAuthSDK {
                     });
                     compositeCancelableTask.addCancelable(biometricAuthentication);
                 } else {
-                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
                 }
             }
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.PA2ErrorCodeNetworkError, t));
+                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
             }
         });
         if (httpRequest != null) {
@@ -1720,16 +1720,16 @@ public class PowerAuthSDK {
                         saveSerializedState();
                         listener.onAddBiometryFactorSucceed();
                     } else {
-                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                     }
                 } else {
-                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState));
+                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
                 }
             }
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.PA2ErrorCodeNetworkError, t));
+                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
             }
         });
     }
@@ -1780,7 +1780,7 @@ public class PowerAuthSDK {
                     listener.onFetchEncryptionKeySucceed(key);
                 } else {
                     // Propagate error
-                    listener.onFetchEncryptionKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+                    listener.onFetchEncryptionKeyFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
                 }
 
             }
@@ -1912,21 +1912,21 @@ public class PowerAuthSDK {
             rawKeyData = mSession.generateSignatureUnlockKey();
             encryptor = BiometricAuthentication.getBiometricKeystore().createBiometricKeyEncryptor(mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup());
             if (encryptor == null) {
-                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Keystore failed to generate a new biometric key.");
+                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Keystore failed to generate a new biometric key.");
             }
         } else {
             // old key should be used, if present
             rawKeyData = mBiometryKeychain.getData(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             encryptor = BiometricAuthentication.getBiometricKeystore().getBiometricKeyEncryptor();
             if (encryptor == null) {
-                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Cannot get biometric key from the keystore.");
+                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Cannot get biometric key from the keystore.");
             }
         }
 
         if (rawKeyData == null || encryptor == null) {
             final PowerAuthErrorException failure = initialFailure != null
                     ? initialFailure
-                    : new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Biometric authentication failed due to missing biometric key.");
+                    : new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric authentication failed due to missing biometric key.");
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
@@ -1970,7 +1970,7 @@ public class PowerAuthSDK {
             @Override
             public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
                 final @PowerAuthErrorCodes int errorCode = error.getPowerAuthErrorCode();
-                if (!forceGenerateNewKey && errorCode == PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized) {
+                if (!forceGenerateNewKey && errorCode == PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED) {
                     // The "PA2ErrorCodeBiometryNotRecognized" code is reported in case that biometry
                     // failed at lockout (e.g. too many failed attempts). In this case, we should
                     // generate a fake signature unlock key and pretend that everything's OK.
@@ -2052,7 +2052,7 @@ public class PowerAuthSDK {
      */
     public @NonNull Executor getSerialExecutor() throws PowerAuthErrorException {
         if (!hasValidActivation()) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Missing activation");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Missing activation");
         }
         return mClient.getExecutorProvider().getSerialExecutor();
     }
@@ -2095,7 +2095,7 @@ public class PowerAuthSDK {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationState, "Session has no recovery data available."));
+                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Session has no recovery data available."));
                 }
             });
             return null;
@@ -2109,7 +2109,7 @@ public class PowerAuthSDK {
                 if (recoveryData != null) {
                     listener.onGetRecoveryDataSucceeded(recoveryData);
                 } else {
-                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Cannot decrypt recovery data."));
+                    listener.onGetRecoveryDataFailed(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Cannot decrypt recovery data."));
                 }
             }
 
@@ -2145,7 +2145,7 @@ public class PowerAuthSDK {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onRecoveryCodeConfirmFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode));
+                    listener.onRecoveryCodeConfirmFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE));
                 }
             });
             return null;

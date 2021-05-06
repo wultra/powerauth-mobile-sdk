@@ -139,7 +139,7 @@ public class SymmetricSignatureTest {
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
             final PowerAuthAuthorizationHttpHeader onlineSignature = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, method, uriId, dataToSign);
             assertNotNull(onlineSignature);
-            assertEquals(PowerAuthErrorCodes.PA2Succeed, onlineSignature.powerAuthErrorCode);
+            assertEquals(PowerAuthErrorCodes.SUCCEED, onlineSignature.powerAuthErrorCode);
             assertEquals("X-PowerAuth-Authorization", onlineSignature.getKey());
 
             // Parse header value

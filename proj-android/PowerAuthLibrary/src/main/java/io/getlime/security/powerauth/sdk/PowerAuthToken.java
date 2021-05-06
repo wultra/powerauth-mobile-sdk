@@ -117,13 +117,13 @@ public class PowerAuthToken {
                 if (headerValue != null) {
                     return PowerAuthAuthorizationHttpHeader.createTokenHeader(headerValue);
                 } else {
-                    errorCode = PowerAuthErrorCodes.PA2ErrorCodeSignatureError;
+                    errorCode = PowerAuthErrorCodes.SIGNATURE_ERROR;
                 }
             } else {
-                errorCode = PowerAuthErrorCodes.PA2ErrorCodeMissingActivation;
+                errorCode = PowerAuthErrorCodes.MISSING_ACTIVATION;
             }
         } else {
-            errorCode = PowerAuthErrorCodes.PA2ErrorCodeInvalidToken;
+            errorCode = PowerAuthErrorCodes.INVALID_TOKEN;
         }
         // In case of error, create an object with error.
         return PowerAuthAuthorizationHttpHeader.createError(errorCode);

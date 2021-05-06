@@ -60,7 +60,7 @@ public class KeychainFactory {
             final SharedData sharedData = getSharedData();
             final Context appContext = context.getApplicationContext();
             if (minimumKeychainProtection > sharedData.getKeychainProtection(context)) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInsufficientKeychainProtection, "Device doesn't support required level of keychain protection.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION, "Device doesn't support required level of keychain protection.");
             }
             Keychain keychain = sharedData.getKeychainMap().get(identifier);
             if (keychain == null) {
@@ -112,7 +112,7 @@ public class KeychainFactory {
         synchronized (SharedData.class) {
             final SharedData sharedData = getSharedData();
             if (!sharedData.getKeychainMap().isEmpty()) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "There are already created keychains in KeychainFactory.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "There are already created keychains in KeychainFactory.");
             }
             if (sharedData.getStrongBoxSupport(context).isStrongBoxEnabled() != enabled) {
                 final KeychainProtectionSupport newKeychainProtectionSupport = new DefaultKeychainProtectionSupport(context, enabled);

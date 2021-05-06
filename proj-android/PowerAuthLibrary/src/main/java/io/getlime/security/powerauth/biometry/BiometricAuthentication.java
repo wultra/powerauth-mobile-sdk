@@ -158,7 +158,7 @@ public class BiometricAuthentication {
                 } catch (IllegalArgumentException e) {
                     // Failed to authenticate due to a wrong configuration.
                     PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
-                    exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getMessage());
+                    exception = new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, e.getMessage());
                     status = BiometricStatus.NOT_AVAILABLE;
                 }
             }
@@ -193,7 +193,7 @@ public class BiometricAuthentication {
         // Encrypt the key
         final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
         if (keyData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
         }
         // In case of success, just dispatch the result back to the application
         dispatcher.dispatchSuccess(keyData);

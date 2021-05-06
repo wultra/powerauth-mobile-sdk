@@ -118,7 +118,7 @@ public class PowerAuthActivation {
         public static @NonNull Builder activation(@NonNull String activationCode, @Nullable String activationName) throws PowerAuthErrorException {
             final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
             if (otp == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode, "Invalid activation code");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid activation code");
             }
             final Map<String, String> identityAttributes = new HashMap<>(1);
             identityAttributes.put("code", otp.activationCode);
@@ -139,7 +139,7 @@ public class PowerAuthActivation {
          */
         public static @NonNull Builder customActivation(@NonNull Map<String, String> identityAttributes, @Nullable String activationName) throws PowerAuthErrorException {
             if (identityAttributes.isEmpty()) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode, "Empty identity attributes");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Empty identity attributes");
             }
             return new Builder(ActivationType.CUSTOM, identityAttributes, activationName, null);
         }
@@ -160,10 +160,10 @@ public class PowerAuthActivation {
         public static @NonNull Builder recoveryActivation(@NonNull String recoveryCode, @NonNull String puk, @Nullable String activationName) throws PowerAuthErrorException {
             final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
             if (otp == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode, "Invalid recovery code");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery code");
             }
             if (!OtpUtil.validateRecoveryPuk(puk)) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationCode, "Invalid recovery PUK");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery PUK");
             }
             final Map<String, String> identityAttributes = new HashMap<>(2);
             identityAttributes.put("recoveryCode", otp.activationCode);
@@ -216,10 +216,10 @@ public class PowerAuthActivation {
             // Check whether an additional activation OTP is used for the right activation type.
             if (additionalActivationOtp != null) {
                 if (additionalActivationOtp.isEmpty()) {
-                    throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Additional activation OTP is empty");
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Additional activation OTP is empty");
                 }
                 if (activationType != ActivationType.CODE) {
-                    throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData, "Only regular activation can be used with additional activation OTP");
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Only regular activation can be used with additional activation OTP");
                 }
             }
             // Construct PowerAuthActivation object.

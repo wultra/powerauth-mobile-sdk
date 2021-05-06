@@ -160,7 +160,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
             KeychainFactory.setStrongBoxEnabled(androidContext, false);
             fail("Must fail");
         } catch (PowerAuthErrorException e) {
-            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, e.getPowerAuthErrorCode());
         }
 
         // :::::::::
@@ -190,7 +190,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
             KeychainFactory.setStrongBoxEnabled(androidContext, true);
             fail("Must fail");
         } catch (PowerAuthErrorException e) {
-            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, e.getPowerAuthErrorCode());
         }
 
         // :::::::::
@@ -211,7 +211,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
             KeychainFactory.setStrongBoxEnabled(androidContext, true);
             fail("Must fail");
         } catch (PowerAuthErrorException e) {
-            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, e.getPowerAuthErrorCode());
+            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, e.getPowerAuthErrorCode());
         }
     }
 

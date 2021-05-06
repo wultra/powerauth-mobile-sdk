@@ -184,7 +184,7 @@ public class JsonSerialization {
         // 3. Decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to decrypt object data.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to decrypt object data.");
         }
         return plainData;
     }
@@ -227,7 +227,7 @@ public class JsonSerialization {
         // 2. Encrypt serialized JSON data
         final EciesCryptogram cryptogram = encryptor.encryptRequest(plainData);
         if (cryptogram == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to encrypt object data.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to encrypt object data.");
         }
         // 3. Construct final request object from the cryptogram
         final EciesEncryptedRequest request = new EciesEncryptedRequest();
@@ -253,14 +253,14 @@ public class JsonSerialization {
     public <TResponse> TResponse decryptObjectFromResponse(@Nullable EciesEncryptedResponse response, @NonNull EciesEncryptor decryptor, @NonNull TypeToken<TResponse> type) throws PowerAuthErrorException {
         // Sanity checks
         if (response == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Empty response cannot be decrypted.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Empty response cannot be decrypted.");
         }
         // 1. Convert response into cryptogram object
         final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac());
         // 2. Try to decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to decrypt object data.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to decrypt object data.");
         }
         // 3. Deserialize the object
         return deserializeObject(plainData, type);

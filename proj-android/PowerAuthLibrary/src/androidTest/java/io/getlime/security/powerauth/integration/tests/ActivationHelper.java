@@ -248,7 +248,7 @@ public class ActivationHelper {
 
         // Commit activation locally
         int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
-        if (resultCode != PowerAuthErrorCodes.PA2Succeed) {
+        if (resultCode != PowerAuthErrorCodes.SUCCEED) {
             throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
         }
 
@@ -297,7 +297,7 @@ public class ActivationHelper {
         final List<String> passwords = prepareAuthentications();
         // Commit activation locally
         int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
-        if (resultCode != PowerAuthErrorCodes.PA2Succeed) {
+        if (resultCode != PowerAuthErrorCodes.SUCCEED) {
             throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
         }
         // Now we can get an activation identifier

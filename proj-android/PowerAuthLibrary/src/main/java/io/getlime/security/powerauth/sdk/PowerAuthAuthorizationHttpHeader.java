@@ -44,7 +44,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @return a new instance of header object created for token based authorization
      */
     public static @NonNull PowerAuthAuthorizationHttpHeader createAuthorizationHeader(@NonNull String value) {
-        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Authorization", value, PowerAuthErrorCodes.PA2Succeed);
+        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Authorization", value, PowerAuthErrorCodes.SUCCEED);
     }
 
     /**
@@ -54,7 +54,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @return a new instance of header object created for token based authorization
      */
     public static @NonNull PowerAuthAuthorizationHttpHeader createTokenHeader(@NonNull String value) {
-        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Token", value, PowerAuthErrorCodes.PA2Succeed);
+        return new PowerAuthAuthorizationHttpHeader("X-PowerAuth-Token", value, PowerAuthErrorCodes.SUCCEED);
     }
 
     /**
@@ -71,7 +71,7 @@ public class PowerAuthAuthorizationHttpHeader {
      * @return true if object contains a valid HTTP header.
      */
     public boolean isValid() {
-        return powerAuthErrorCode == PowerAuthErrorCodes.PA2Succeed &&
+        return powerAuthErrorCode == PowerAuthErrorCodes.SUCCEED &&
                 key != null &&
                 value != null;
     }

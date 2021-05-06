@@ -67,7 +67,7 @@ public class KeychainFactoryTest {
             final Keychain keychain = KeychainFactory.getKeychain(androidContext, KEYCHAIN_2_NAME, KeychainProtection.STRONGBOX);
             fail();
         } catch (PowerAuthErrorException e) {
-            assertEquals(PowerAuthErrorCodes.PA2ErrorCodeInsufficientKeychainProtection, e.getPowerAuthErrorCode());
+            assertEquals(PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION, e.getPowerAuthErrorCode());
         }
     }
 

@@ -42,7 +42,6 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
-import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 import io.getlime.security.powerauth.system.PA2Log;
 
@@ -168,7 +167,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
         final BiometricPrompt.CryptoObject cryptoObject = wrapCipherToCryptoObject(request.getBiometricKeyEncryptor().initializeCipher(request.isForceGenerateNewKey()));
         if (cryptoObject == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Cannot create CryptoObject for biometric authentication.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Cannot create CryptoObject for biometric authentication.");
         }
 
         final BiometricDialogResources resources = requestData.getResources();
@@ -212,16 +211,16 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                             // Too many failed attempts, we should report the "not recognized" error after all.
                             // If `authenticationFailedBefore` is true, then it means that sensor did a multiple failed attempts
                             // in this round. So we're pretty sure that biometric authentication dialog was properly displayed.
-                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotRecognized, "Biometric image was not recognized.");
+                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED, "Biometric image was not recognized.");
                         } else {
                             // Too many failed attempts, but no authentication dialog was displayed in this round. It looks like that
                             // the error was immediately reported back to us, so we can report "lockout" to the application.
-                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryLockout, "Too many failed attempts.");
+                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_LOCKOUT, "Too many failed attempts.");
                         }
                     } else {
                         // Other error, we can use "not available" error code, due to that other
                         // errors are mostly about an internal failures.
-                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, errString.toString());
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, errString.toString());
                     }
                     if (shouldDisplayErrorDialog(requestData)) {
                         // The response from API was too quick. We should display our own UI.
@@ -264,7 +263,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dispatcher.dispatchRunnable(new Runnable() {
                     @Override
                     public void run() {
-                        final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Failed to encrypt biometric key.");
+                        final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
                         showErrorDialogAfterSuccess(requestData, exception);
                     }
                 });
@@ -285,7 +284,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         } else if (request.getFragmentActivity() != null) {
             prompt = new BiometricPrompt(request.getFragmentActivity(), MainThreadExecutor.getInstance(), authenticationCallback);
         } else {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Both Fragment and FragmentActivity for biometric prompt presentation are set.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Both Fragment and FragmentActivity for biometric prompt presentation are set.");
         }
         // Authenticate with the prompt
         prompt.authenticate(builder.build(), cryptoObject);

@@ -40,11 +40,11 @@ public class BiometricHelper {
     public static @NonNull PowerAuthErrorException getExceptionForBiometricStatus(@BiometricStatus int status) {
         switch (status) {
             case BiometricStatus.NOT_ENROLLED:
-                return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Biometric data is not enrolled on the device.");
+                return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric data is not enrolled on the device.");
             case BiometricStatus.NOT_SUPPORTED:
-                return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Biometry is not supported on the device.");
+                return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometry is not supported on the device.");
             case BiometricStatus.NOT_AVAILABLE:
-                return new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotAvailable, "Biometry is not available. Try again later.");
+                return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometry is not available. Try again later.");
             case BiometricStatus.OK:
                 throw new IllegalArgumentException("Cannot get exception for success status.");
             default:

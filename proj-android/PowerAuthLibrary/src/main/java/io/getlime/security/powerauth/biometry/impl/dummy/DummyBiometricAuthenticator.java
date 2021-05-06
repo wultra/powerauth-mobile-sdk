@@ -60,6 +60,6 @@ public class DummyBiometricAuthenticator implements IBiometricAuthenticator {
     @Override
     public ICancelable authenticate(@NonNull final Context context,
                                     @NonNull final PrivateRequestData requestData) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Biometric authentication is not supported on this device.");
+        throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometric authentication is not supported on this device.");
     }
 }

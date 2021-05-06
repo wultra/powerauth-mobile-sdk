@@ -684,7 +684,7 @@
 				BF77510C1FC4876B008455A6 /* PA2EncryptedRequest.h */,
 				BF7751081FC4876B008455A6 /* PA2EncryptedRequest.m */,
 			);
-			path = request;
+			name = request;
 			sourceTree = "<group>";
 		};
 		1B2EEF601D662C960039D92A /* response */ = {
@@ -713,7 +713,7 @@
 				BF5344662163D0BF003C201C /* PA2Error+Decodable.h */,
 				BF5344682163D4C9003C201C /* PA2ErrorResponse+Decodable.h */,
 			);
-			path = response;
+			name = response;
 			sourceTree = "<group>";
 		};
 		BF02103C2164C5C7009745A2 /* serialization */ = {
@@ -723,7 +723,7 @@
 				BF585FC3215BC12D00DE49C3 /* PA2ObjectSerialization.h */,
 				BF585FC4215BC12D00DE49C3 /* PA2ObjectSerialization.m */,
 			);
-			path = serialization;
+			name = serialization;
 			sourceTree = "<group>";
 		};
 		BF0824872630492900B34E24 /* PowerAuth2Tests */ = {
@@ -864,7 +864,7 @@
 				BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */,
 				BFCEE09B216E280600B41201 /* PA2GetActivationStatusTask.m */,
 			);
-			path = sdk;
+			name = sdk;
 			sourceTree = "<group>";
 		};
 		BF0824CB26304D8D00B34E24 /* networking */ = {
@@ -875,7 +875,7 @@
 				1B2EEF5B1D662C960039D92A /* request */,
 				1B2EEF601D662C960039D92A /* response */,
 			);
-			path = networking;
+			name = networking;
 			sourceTree = "<group>";
 		};
 		BF0824CC26304E5A00B34E24 /* system */ = {
@@ -899,7 +899,7 @@
 				BF4017F82636CC3D00C1E65C /* PA2PrivateMacros.m */,
 				BFFECECD2638449D001DA7A9 /* PA2PrivateConstants.h */,
 			);
-			path = system;
+			name = system;
 			sourceTree = "<group>";
 		};
 		BF20EA6B1EACB17600733D91 /* TouchXML */ = {
@@ -987,7 +987,7 @@
 				BF30176A1FE026F80099B253 /* PA2PrivateHttpTokenProvider.h */,
 				BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */,
 			);
-			path = token;
+			name = token;
 			sourceTree = "<group>";
 		};
 		BF8BFBE1215B8736001D6852 /* client */ = {
@@ -1003,7 +1003,7 @@
 				BF0210412164D403009745A2 /* PA2AsyncOperation.h */,
 				BF0210422164D403009745A2 /* PA2AsyncOperation.m */,
 			);
-			path = client;
+			name = client;
 			sourceTree = "<group>";
 		};
 		BFA0E29F200D12420011F0A6 /* watch */ = {
@@ -1014,7 +1014,7 @@
 				BFA0E2AA200D2B2A0011F0A6 /* PowerAuthWCSessionManager+Private.h */,
 				BFA0E2DB200FCEC20011F0A6 /* PowerAuthWCSessionManager_IOSServices.m */,
 			);
-			path = watch;
+			name = watch;
 			sourceTree = "<group>";
 		};
 		BFA0E2AE200D3CB80011F0A6 /* model */ = {
@@ -1031,7 +1031,7 @@
 				BFA0E2B5200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.h */,
 				BFA0E2B6200D3FB70011F0A6 /* PA2WCSessionPacket_TokenData.m */,
 			);
-			path = model;
+			name = model;
 			sourceTree = "<group>";
 		};
 		BFA585C7201F9CEE000DCD22 /* Frameworks */ = {

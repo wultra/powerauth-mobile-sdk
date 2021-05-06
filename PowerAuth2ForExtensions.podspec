@@ -29,10 +29,10 @@ Pod::Spec.new do |s|
     s.tvos.deployment_target = '9.0'
     
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-extensions.sh --out-dir Build extensions
+        ./scripts/ios-build-extensions.sh --out-dir Build/PowerAuth2ForExtensions extensions
     CMD
     
     # Produced files
-    s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions.xcframework'
+    s.vendored_frameworks   = 'Build/PowerAuth2ForExtensions/PowerAuth2ForExtensions.xcframework'
     
 end

@@ -27,10 +27,10 @@ Pod::Spec.new do |s|
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-sdk.sh buildCore --out-dir Lib/Frameworks
+        ./scripts/ios-build-sdk.sh buildCore --out-dir Build/PowerAuthCore
     CMD
     
     # Produced files
-    s.vendored_frameworks   = 'Lib/Frameworks/PowerAuthCore.xcframework'
+    s.vendored_frameworks   = 'Build/PowerAuthCore/PowerAuthCore.xcframework'
 
 end

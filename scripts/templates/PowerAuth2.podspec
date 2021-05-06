@@ -28,17 +28,17 @@ Pod::Spec.new do |s|
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-sdk.sh copySdk --out-dir Lib/Src
+        ./scripts/ios-build-sdk.sh copySdk --out-dir Build/PowerAuth2
     CMD
     
     # Produced files
-    s.source_files          = 'Lib/Src/**/*.{h,m}'
-    s.private_header_files  = 'Lib/Src/Private/*.h'
+    s.source_files          = 'Build/PowerAuth2/**/*.{h,m}'
+    s.private_header_files  = 'Build/PowerAuth2/Private/*.h'
     s.tvos.exclude_files    = [
-        'Lib/Src/PowerAuthWC*.{h,m}',
-        'Lib/Src/Private/PA2WC*.{h,m}',
-        'Lib/Src/PowerAuthSDK+WatchSupport.m',
-        'Lib/Src/PowerAuthToken+WatchSupport.{h,m}'
+        'Build/PowerAuth2/PowerAuthWC*.{h,m}',
+        'Build/PowerAuth2/Private/PA2WC*.{h,m}',
+        'Build/PowerAuth2/PowerAuthSDK+WatchSupport.m',
+        'Build/PowerAuth2/PowerAuthToken+WatchSupport.{h,m}'
     ]
     s.requires_arc          = true
     

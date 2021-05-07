@@ -55,7 +55,7 @@ using namespace io::getlime::powerAuth;
 						   key:(nonnull NSData*)key
 {
 	auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), 0);
-	return cc7::objc::CopyToNSData(result);
+	return cc7::objc::CopyToNullableNSData(result);
 }
 
 
@@ -64,7 +64,7 @@ using namespace io::getlime::powerAuth;
 						length:(NSUInteger)length
 {
 	auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), length);
-	return cc7::objc::CopyToNSData(result);
+	return cc7::objc::CopyToNullableNSData(result);
 }
 
 

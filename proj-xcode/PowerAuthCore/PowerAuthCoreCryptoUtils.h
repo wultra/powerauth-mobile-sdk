@@ -37,13 +37,15 @@
 + (nonnull NSData*) hashSha256:(nonnull NSData*)data;
 
 /**
- Computes HMAC-SHA-256 for given data and key.
+ Computes HMAC-SHA-256 for given data and key. Returns nil in case that underlying
+ implementation fail.
  */
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data 
 						   key:(nonnull NSData*)key;
 
 /**
- Computes HMAC-SHA-256 with requested length for given data and key.
+ Computes HMAC-SHA-256 with requested length for given data and key. Returns nil in
+ case that underlying implementation fail.
  */
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data
 						   key:(nonnull NSData*)key

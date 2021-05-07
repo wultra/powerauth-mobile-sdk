@@ -35,15 +35,13 @@ public class MainThreadExecutor implements Executor, ICallbackDispatcher {
 
     private MainThreadExecutor() {}
 
-    private static class InstanceHolder {
-        private static final MainThreadExecutor INSTANCE = new MainThreadExecutor();
-    }
+    private static final MainThreadExecutor INSTANCE = new MainThreadExecutor();
 
     /**
      * @return Shared instance of this class.
      */
     public static MainThreadExecutor getInstance() {
-        return InstanceHolder.INSTANCE;
+        return INSTANCE;
     }
 
     // Executor & ICallbackDispatcher implementation.

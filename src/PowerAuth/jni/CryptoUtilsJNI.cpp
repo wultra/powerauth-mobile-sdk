@@ -33,7 +33,7 @@ extern "C" {
 //
 CC7_JNI_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, jbyteArray signature, jbyteArray publicKeyData)
 {
-	if (data == NULL || signature == NULL || publicKeyData == NULL || env == NULL) {
+	if (data == nullptr || signature == nullptr || publicKeyData == nullptr || env == nullptr) {
 		CC7_ASSERT(false, "Missing required parameter.");
 		return false;
 	}
@@ -62,15 +62,53 @@ CC7_JNI_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, jbyteAr
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, hashSha256, jbyteArray data)
 {
-	if (data == NULL || env == NULL) {
+	if (data == nullptr || env == nullptr) {
 		CC7_ASSERT(false, "Missing required parameter.");
-		return NULL;
+		return nullptr;
 	}
 
 	// Convert data objects & calculate hash
 	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
 	auto hash = crypto::SHA256(cpp_data);
 	return cc7::jni::CopyToJavaByteArray(env, hash);
+}
+
+//
+// public static native byte[] hmacSha256(byte[] data, byte[] key, int outputLength)
+//
+CC7_JNI_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray key, jint outputLength)
+{
+	if (data == nullptr || key == nullptr || env == nullptr) {
+		CC7_ASSERT(false, "Missing required parameter.");
+		return nullptr;
+	}
+	if (outputLength < 0) {
+		CC7_ASSERT(false, "Invalid 'outputLength' parameter.");
+		return nullptr;
+	}
+	// Convert data objects
+	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
+	auto cpp_key = cc7::jni::CopyFromJavaByteArray(env, key);
+	auto mac = crypto::HMAC_SHA256(cpp_data, cpp_key, (size_t)outputLength);
+	return cc7::jni::CopyToJavaByteArray(env, mac);
+}
+
+//
+// public static native byte[] randomBytes(int count);
+//
+CC7_JNI_METHOD_PARAMS(jbyteArray, randomBytes, jint count)
+{
+	if (env == nullptr) {
+		CC7_ASSERT(false, "Missing required parameter.");
+		return nullptr;
+	}
+	if (count < 0) {
+		CC7_ASSERT(false, "Invalid 'count' parameter.");
+		return nullptr;
+	}
+	// Generate random data
+	auto random_bytes = crypto::GetRandomData((size_t)count, true);
+	return cc7::jni::CopyToNullableJavaByteArray(env, random_bytes);
 }
 
 } // extern "C"

@@ -109,6 +109,16 @@ public class CryptoUtilsTest {
             byte[] mac = CryptoUtils.hmacSha256(data.data, data.key, outputLength);
             assertArrayEquals(data.hmac, mac);
         }
+
+        // Test default impl.
+        for (HmacTestData data : testData) {
+            int outputLength = data.hmac == null ? 0 : data.hmac.length;
+            if (outputLength != 32) {
+                continue;
+            }
+            byte[] mac = CryptoUtils.hmacSha256(data.data, data.key);
+            assertArrayEquals(data.hmac, mac);
+        }
     }
 
     private static class ShaTestData {

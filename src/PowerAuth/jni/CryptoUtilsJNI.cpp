@@ -90,7 +90,7 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray key, j
 	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
 	auto cpp_key = cc7::jni::CopyFromJavaByteArray(env, key);
 	auto mac = crypto::HMAC_SHA256(cpp_data, cpp_key, (size_t)outputLength);
-	return cc7::jni::CopyToJavaByteArray(env, mac);
+	return cc7::jni::CopyToNullableJavaByteArray(env, mac);
 }
 
 //

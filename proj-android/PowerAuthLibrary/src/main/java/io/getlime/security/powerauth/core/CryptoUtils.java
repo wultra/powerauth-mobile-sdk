@@ -50,7 +50,7 @@ public class CryptoUtils {
      * @param data bytes with message
      * @param key bytes with key
      * @param outputLength Length of output MAC. If 0, then default length is used.
-     * @return bytes with HMAC-SHA-256 result.
+     * @return bytes with HMAC-SHA-256 result or {@code null} in case of failure.
      */
     public static native byte[] hmacSha256(byte[] data, byte[] key, int outputLength);
 
@@ -58,7 +58,7 @@ public class CryptoUtils {
      * Compute HMAC-SHA-256 for given data and key.
      * @param data bytes with message
      * @param key bytes with key
-     * @return bytes with HMAC-SHA-256 result.
+     * @return bytes with HMAC-SHA-256 result or {@code null} in case of failure.
      */
     public static byte[] hmacSha256(byte[] data, byte[] key) {
         return hmacSha256(data, key, 0);

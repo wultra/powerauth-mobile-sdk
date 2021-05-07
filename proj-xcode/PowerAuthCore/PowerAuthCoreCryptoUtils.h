@@ -43,6 +43,13 @@
 						   key:(nonnull NSData*)key;
 
 /**
+ Computes HMAC-SHA-256 with requested length for given data and key.
+ */
++ (nonnull NSData*) hmacSha256:(nonnull NSData*)data
+						   key:(nonnull NSData*)key
+						length:(NSUInteger)length;
+
+/**
  Generates a required amount of random bytes. Returns nil in case that 
  underlying random generator is broken.
  */

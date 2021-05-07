@@ -59,6 +59,15 @@ using namespace io::getlime::powerAuth;
 }
 
 
++ (nonnull NSData*) hmacSha256:(nonnull NSData*)data
+						   key:(nonnull NSData*)key
+						length:(NSUInteger)length
+{
+	auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), length);
+	return cc7::objc::CopyToNSData(result);
+}
+
+
 + (nullable NSData*) randomBytes:(NSUInteger)count
 {
 	return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));

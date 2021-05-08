@@ -16,8 +16,6 @@
 
 package io.getlime.security.powerauth.core;
 
-import android.util.Base64;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,6 +25,65 @@ import static org.junit.Assert.*;
 
 @RunWith(AndroidJUnit4.class)
 public class CryptoUtilsTest {
+
+    //
+    // CryptoUtils.ecdsaValidateSignature(...)
+    //
+
+    private static class EcdsaTestData {
+        final byte[] data;
+        final byte[] signature;
+        final byte[] publicKey;
+        final boolean result;
+        EcdsaTestData(String data, String signature, String publicKey, boolean result) {
+            this.data = hexStringToByteArray(data);
+            this.signature = hexStringToByteArray(signature);
+            this.publicKey = hexStringToByteArray(publicKey);
+            this.result = result;
+        }
+    }
+
+    @Test
+    public void testEcdsaSignatureValidation() throws Exception {
+        EcdsaTestData[] testData = new EcdsaTestData[] {
+                new EcdsaTestData(
+                        "108101B78FC2DC3119EFFC470099",
+                        "3044022100F754ADB4855A5053FB089E1675E91C4F593E1DD237F57A1BE77F5275EB2872F2021F1D2D6526184F26FE95302179F76EB18C8762832D1C48C0A11DD2AB0BBAC783",
+                        "03109BEED74DEA497F7B97EDA5953567170ED201F44E65D7B839F6D611AB35F971",
+                        true),
+                new EcdsaTestData(
+                        "CCD13602DD3B68AA461A889F263CE2365C8D5B5D2B6EAC2C82C5C839A96829CFF98560C6FE",
+                        "3045022100F434EC655071E6F46DEA4EF501DE1A8F48B9D411202B2FB29C1E079B4D65B3170220175298B1B132F3A2AE49DC39747E535475CE70D415F6DD6943788131E36F45DC",
+                        "0358BD34E1BCD60B52D7298CE0BAB046DC2970070724D38C2122210874B8DE1F90",
+                        true),
+                new EcdsaTestData(
+                        "5D219A60B57A8A2234B28D2DF80C54E0CB48C3E5",
+                        "3045022100F2F48A70EDF692EEB270D3FC9C22A6B6FD84538CCFB8A3DC562537EBAEF98786022031BC8AAFCCD9774D366A5964F38D5B9276CD8B56A529B03442BF1D524DAA1D0D",
+                        "02D4617423CDCBCA9906E61F187A40B58EB1256133657795353CA0707774D4D437",
+                        true),
+                new EcdsaTestData(
+                        "B43C198B6312425F6807BF63997B02E81448",
+                        "304402201B1D910736253777248EE836838AB09336A05D0E9693DA337EDC37B2C95F835B02201D14FA621B3E9833D88C970015615A07D48547BD029B9D485B47E90841BC3350",
+                        "03866A7799BE9651AB480795745486C97B444EC90E1B64D3029E4B6B014E986759",
+                        true),
+                new EcdsaTestData(
+                        "B43C198B6312425F6807BF63997B02E81418",
+                        "304402201B1D910736253777248EE836838AB09336A05D0E9693DA337EDC37B2C95F835B02201D14FA621B3E9833D88C970015615A07D48547BD029B9D485B47E90841BC3350",
+                        "03866A7799BE9651AB480795745486C97B444EC90E1B64D3029E4B6B014E986759",
+                        false),
+                new EcdsaTestData(null, "00", "00", false),
+                new EcdsaTestData("00", "00", null, false),
+                new EcdsaTestData("00", "00", null, false)
+        };
+        for (EcdsaTestData data : testData) {
+            boolean result = CryptoUtils.ecdsaValidateSignature(data.data, data.signature, data.publicKey);
+            assertEquals(data.result, result);
+        }
+    }
+
+    //
+    // CryptoUtils.randomBytes(...)
+    //
 
     public void testRandomBytes() throws Exception {
         byte[] randomBytes;
@@ -57,6 +114,10 @@ public class CryptoUtilsTest {
             this.hmac = hexStringToByteArray(hmac);
         }
     }
+
+    //
+    // CryptoUtils.hmacSha256(...)
+    //
 
     @Test
     public void testHmacSha256() throws Exception {
@@ -120,6 +181,10 @@ public class CryptoUtilsTest {
             assertArrayEquals(data.hmac, mac);
         }
     }
+
+    //
+    // CryptoUtils.hashSha256(...)
+    //
 
     private static class ShaTestData {
         final byte[] message;

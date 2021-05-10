@@ -59,7 +59,7 @@
 		BF86E889263C1EBE004C8AE5 /* PowerAuthKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E854263C1EBE004C8AE5 /* PowerAuthKeychain.m */; };
 		BF86E8B0263C231B004C8AE5 /* PowerAuthToken.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E8AE263C231B004C8AE5 /* PowerAuthToken.m */; };
 		BF86E8B1263C231B004C8AE5 /* PowerAuthToken.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8AF263C231B004C8AE5 /* PowerAuthToken.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF86E8B8263C2512004C8AE5 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8B6263C2512004C8AE5 /* PowerAuthDeprecated.h */; };
+		BF86E8B8263C2512004C8AE5 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8B6263C2512004C8AE5 /* PowerAuthDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF86E8B9263C2512004C8AE5 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E8B7263C2512004C8AE5 /* PowerAuthDeprecated.m */; };
 		BF86E8C0263C2707004C8AE5 /* PA2PrivateConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8BF263C2706004C8AE5 /* PA2PrivateConstants.h */; };
 		BF86E8D6263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8D4263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h */; };

@@ -79,8 +79,8 @@
 		BF44F301263C403600F3D498 /* PowerAuthAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F2B3263C3C7000F3D498 /* PowerAuthAuthentication.m */; };
 		BF44F302263C403600F3D498 /* PowerAuthErrorConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F2A2263C3C6F00F3D498 /* PowerAuthErrorConstants.m */; };
 		BF44F303263C403600F3D498 /* PowerAuthAuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F2B0263C3C6F00F3D498 /* PowerAuthAuthorizationHttpHeader.m */; };
-		BF44F317263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; };
-		BF44F318263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; };
+		BF44F317263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF44F318263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F319263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
 		BF44F31A263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
 /* End PBXBuildFile section */

@@ -67,3 +67,13 @@ BOOL PA2LogIsVerbose(void)
 {
 	return PowerAuthLogIsVerbose();
 }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2AuthorizationHttpHeader, PowerAuthAuthorizationHttpHeader)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2Keychain, PowerAuthKeychain)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2KeychainConfiguration, PowerAuthKeychainConfiguration)
+PA2_DEPRECATED_CLASS_IMPL(1.6.0, PA2ExtensionLibrary, PowerAuthSystem)
+
+#pragma clang diagnostic pop

@@ -24,6 +24,8 @@ import androidx.annotation.UiThread;
 import androidx.fragment.app.FragmentManager;
 import android.util.Pair;
 
+import java.util.concurrent.Executor;
+
 import io.getlime.security.powerauth.biometry.impl.BiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
@@ -181,22 +183,34 @@ public class BiometricAuthentication {
      * @param request Request object containing raw key data and encryptor.
      * @param dispatcher Biometric result dispatcher.
      * @return Result from {@link BiometricResultDispatcher#getCancelableTask()}.
-     * @throws PowerAuthErrorException If cannot encrypt biometric key.
      */
     private static @NonNull ICancelable justEncryptBiometricKey(
-            @NonNull BiometricAuthenticationRequest request,
-            @NonNull BiometricResultDispatcher dispatcher) throws PowerAuthErrorException {
-
-        // Initialize encryptor's cipher
-        final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
-        final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
-        // Encrypt the key
-        final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
-        if (keyData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
+            @NonNull final BiometricAuthenticationRequest request,
+            @NonNull final BiometricResultDispatcher dispatcher) {
+        // Prepare an encryption task
+        final Runnable encryptTask = new Runnable() {
+            @Override
+            public void run() {
+                // Initialize encryptor's cipher
+                final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
+                final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
+                // Encrypt the key
+                final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
+                if (keyData == null) {
+                    dispatcher.dispatchError(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key."));
+                } else {
+                    // In case of success, just dispatch the result back to the application
+                    dispatcher.dispatchSuccess(keyData);
+                }
+            }
+        };
+        // Execute the task on the background or on the current thread.
+        final Executor executor = request.getBackgroundTaskExecutor();
+        if (executor != null) {
+            executor.execute(encryptTask);
+        } else {
+            encryptTask.run();
         }
-        // In case of success, just dispatch the result back to the application
-        dispatcher.dispatchSuccess(keyData);
         return dispatcher.getCancelableTask();
     }
 

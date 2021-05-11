@@ -72,6 +72,7 @@ import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoi
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.entity.ActivationRecovery;
 import io.getlime.security.powerauth.networking.model.request.ActivationLayer1Request;
@@ -119,6 +120,7 @@ public class PowerAuthSDK {
     private final @NonNull Session mSession;
     private final @NonNull PowerAuthConfiguration mConfiguration;
     private final @NonNull PowerAuthKeychainConfiguration mKeychainConfiguration;
+    private final @NonNull IExecutorProvider mExecutorProvider;
     private final @NonNull HttpClient mClient;
     private final @NonNull ISavePowerAuthStateListener mStateListener;
     private final @NonNull Keychain mBiometryKeychain;
@@ -226,7 +228,8 @@ public class PowerAuthSDK {
             }
 
             // Prepare HTTP client
-            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), new DefaultExecutorProvider());
+            final IExecutorProvider executorProvider = new DefaultExecutorProvider();
+            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), executorProvider);
 
             // Prepare keychains
             final @KeychainProtection int minRequiredKeychainProtection = mKeychainConfiguration.getMinimalRequiredKeychainProtection();
@@ -252,6 +255,7 @@ public class PowerAuthSDK {
                     session,
                     mConfiguration,
                     mKeychainConfiguration,
+                    executorProvider,
                     httpClient,
                     stateListener,
                     biometryKeychain,
@@ -270,6 +274,7 @@ public class PowerAuthSDK {
      * @param session                   Low-level {@link Session} instance.
      * @param configuration             Main {@link PowerAuthConfiguration}.
      * @param keychainConfiguration     Keychain configuration.
+     * @param executorProvider          Thread executor provider.
      * @param client                    HTTP client implementation.
      * @param stateListener             State listener.
      * @param biometryKeychain          Keychain that store biometry-related key.
@@ -280,6 +285,7 @@ public class PowerAuthSDK {
             @NonNull Session session,
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
+            @NonNull IExecutorProvider executorProvider,
             @NonNull HttpClient client,
             @NonNull ISavePowerAuthStateListener stateListener,
             @NonNull Keychain biometryKeychain,
@@ -288,6 +294,7 @@ public class PowerAuthSDK {
         this.mSession = session;
         this.mConfiguration = configuration;
         this.mKeychainConfiguration = keychainConfiguration;
+        this.mExecutorProvider = executorProvider;
         this.mClient = client;
         this.mStateListener = stateListener;
         this.mBiometryKeychain = biometryKeychain;
@@ -1943,7 +1950,8 @@ public class PowerAuthSDK {
                 .setDescription(description)
                 .setRawKeyData(rawKeyData, encryptor)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
-                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication());
+                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
+                .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
         if (fragmentHelper.getFragment() != null) {
             authenticationRequestBuilder.setFragment(fragmentHelper.getFragment());
         } else if (fragmentHelper.getFragmentActivity() != null) {

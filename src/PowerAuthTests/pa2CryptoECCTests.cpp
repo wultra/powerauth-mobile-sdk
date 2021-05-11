@@ -15,6 +15,7 @@
  */
 
 #include <cc7tests/CC7Tests.h>
+#include <cc7tests/PerformanceTimer.h>
 #include <cc7/HexString.h>
 #include <cc7/Base64.h>
 #include "crypto/CryptoUtils.h"
@@ -38,6 +39,7 @@ namespace powerAuthTests
 		{
 			CC7_REGISTER_TEST_METHOD(testKeyImportExport)
 			CC7_REGISTER_TEST_METHOD(testPubKeyImport)
+			//CC7_REGISTER_TEST_METHOD(testImportPerformance)
 		}
 
 		struct test_data {
@@ -127,6 +129,40 @@ namespace powerAuthTests
 				}
 				EC_KEY_free(pub_key);
 			}
+		}
+		
+		void testImportPerformance()
+		{
+			const test_data test_vectors[] = {
+				{ "ApwBezqIdwCdmcjfysfrCaWZ5h9LttqP2RvCjapdKrLd", true },
+				{ "A/CR2dXXwpj+Y2Kb3eytxmbBEv4/mqQxYW7N5oNg+iea", true },
+				{ "Ag0TRAqRbD/KVDVeFDhhZX49Wk2X+NitEx7Au7KWMTWi", true },
+				{ "A5kU3PmJii+kdPVoqtufs9apFbeum43Pz2WnqMyrb2Hp", true },
+				{ "AxAR3xlwvz9BiFEtRkXx7unhQ5/BmEfrtkM+Z0zzpe8U", true },
+				{ "AlasqZKRDyk+VUtdrQzSGbF1ATHZ3PYvyUdx3X+rdQsB", true },
+				{ "A+zDDUcBMErVtKLGT3wrqssQPWgBIlfqZ8cOsU2LARRo", true },
+				{ "AwOmvwWIIsvPTDcRzz9ZCEOd/CorfSE0AWIJlacCl/NO", true },
+				{ "Ah6xT4mYIAa5eRRThVFwu5DH5PfWHApOUV/O46EfqKfU", true },
+				{ "A83L0L6idMpdFbPsB6Btolaa33y1SztWLeE/LoYbI8Ih", true },
+			};
+			printf("EC import testPerformance start\n");
+			auto timer = PerformanceTimer();
+			for (int test_run = 1; test_run <= 5; test_run++) {
+				int iterations = 0;
+				timer.start();
+				for (int iter = 0; iter < 1000; iter++) {
+					for (int index = 0; index < 10; index++) {
+						const char * test_key = test_vectors[index].point;
+						auto imported_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, test_key);
+						ccstAssertNotNull(imported_key);
+						iterations++;
+					}
+				}
+				auto elapsed = timer.elapsedTime();
+				auto elapsed_per_import = elapsed / (double)iterations;
+				printf("- %d: elapsed time: %s (%s per import)\n", test_run, timer.humanReadableTime(elapsed).c_str(), timer.humanReadableTime(elapsed_per_import).c_str());
+			}
+			printf("EC import testPerformance end\n");
 		}
 	};
 	

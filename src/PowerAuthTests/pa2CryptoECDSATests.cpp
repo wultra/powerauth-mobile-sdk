@@ -37,7 +37,7 @@ namespace powerAuthTests
 		pa2CryptoECDSATests()
 		{
 			CC7_REGISTER_TEST_METHOD(testEcdsaSignVerify)
-			CC7_REGISTER_TEST_METHOD(ecdsaTestDataGenerator)
+			//CC7_REGISTER_TEST_METHOD(ecdsaTestDataGenerator)
 		}
 		
 		void testEcdsaSignVerify()

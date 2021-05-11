@@ -15,7 +15,6 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include <cc7tests/PerformanceTimer.h>
 #include <cc7/HexString.h>
 #include <cc7/Base64.h>
 #include "crypto/CryptoUtils.h"
@@ -160,7 +159,9 @@ namespace powerAuthTests
 				}
 				auto elapsed = timer.elapsedTime();
 				auto elapsed_per_import = elapsed / (double)iterations;
-				printf("- %d: elapsed time: %s (%s per import)\n", test_run, timer.humanReadableTime(elapsed).c_str(), timer.humanReadableTime(elapsed_per_import).c_str());
+				auto elapsed_str = PerformanceTimer::humanReadableTime(elapsed);
+				auto elapsed_per_import_str = PerformanceTimer::humanReadableTime(elapsed_per_import);
+				printf("- %d: elapsed time: %s (%s per import)\n", test_run, elapsed_str.c_str(), elapsed_per_import_str.c_str());
 			}
 			printf("EC import testPerformance end\n");
 		}

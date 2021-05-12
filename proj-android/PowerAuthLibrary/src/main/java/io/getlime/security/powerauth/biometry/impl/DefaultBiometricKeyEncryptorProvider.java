@@ -25,7 +25,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
  * The {@code DefaultBiometricKeyEncryptorProvider} class provides a default {@link IBiometricKeyEncryptor}
- * implementation.
+ * implementation based on Android KeyStore.
  */
 public class DefaultBiometricKeyEncryptorProvider implements IBiometricKeyEncryptorProvider {
 
@@ -33,6 +33,11 @@ public class DefaultBiometricKeyEncryptorProvider implements IBiometricKeyEncryp
     private final @NonNull IBiometricKeystore keystore;
     private IBiometricKeyEncryptor encryptor;
 
+    /**
+     * Construct object with request and keystore
+     * @param request Authentication request.
+     * @param keystore Keystore implementation.
+     */
     public DefaultBiometricKeyEncryptorProvider(@NonNull BiometricAuthenticationRequest request, @NonNull IBiometricKeystore keystore) {
         this.request = request;
         this.keystore = keystore;

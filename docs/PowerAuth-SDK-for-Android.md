@@ -903,7 +903,7 @@ PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
 ```
 
 <!-- begin box info -->
-Note that the RSA key-pair is internally generated for the configuration above. That may take more time on older devices than the default configuration.
+Note that the RSA key-pair is internally generated for the configuration above. That may take more time on older devices than the default configuration. Your application should display a waiting indicator on its own, because SDK doesn't display an authentication dialog during the key-pair generation.
 <!-- end -->
 
 ### Disable Biometric Authentication

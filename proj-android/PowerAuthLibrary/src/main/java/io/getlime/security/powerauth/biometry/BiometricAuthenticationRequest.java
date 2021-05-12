@@ -43,7 +43,7 @@ public class BiometricAuthenticationRequest {
     private final boolean userConfirmationRequired;
     private final boolean useSymmetricCipher;
     private final @NonNull byte[] rawKeyData;
-    private final @NonNull IBiometricKeyEncryptor biometricKeyEncryptor;
+    private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
     private final @Nullable Executor backgroundTaskExecutor;
 
     private BiometricAuthenticationRequest(
@@ -57,7 +57,7 @@ public class BiometricAuthenticationRequest {
             boolean userConfirmationRequired,
             boolean useSymmetricCipher,
             @NonNull byte[] rawKeyData,
-            @NonNull IBiometricKeyEncryptor biometricKeyEncryptor,
+            @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
             @Nullable Executor backgroundTaskExecutor) {
         this.title = title;
         this.subtitle = subtitle;
@@ -148,7 +148,7 @@ public class BiometricAuthenticationRequest {
     /**
      * @return Object that encrypt or decrypt raw key data.
      */
-    public @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+    public @Nullable IBiometricKeyEncryptor getBiometricKeyEncryptor() {
         return biometricKeyEncryptor;
     }
 
@@ -205,9 +205,6 @@ public class BiometricAuthenticationRequest {
             }
             if (rawKeyData.length < 16) {
                 throw new IllegalArgumentException("RawKeyData length is insufficient.");
-            }
-            if (biometricKeyEncryptor == null) {
-                throw new IllegalArgumentException("BiometricKeyEncryptor is required.");
             }
             if (fragment == null && fragmentActivity == null) {
                 throw new IllegalArgumentException("Fragment or FragmentActivity must be set.");
@@ -355,15 +352,23 @@ public class BiometricAuthenticationRequest {
          * Required: Sets sequence of bytes that will be encrypted or decrypted with using biometric authentication.
          *
          * @param keyData Array of bytes containing a key, which will be encrypted by the biometric key.
-         * @param biometricKeyEncryptor Object that perform biometric key encryption and decryption.
          * @return This value will never be {@code null}.
          */
-        public Builder setRawKeyData(@NonNull byte[] keyData, @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
+        public Builder setRawKeyData(@NonNull byte[] keyData) {
             this.rawKeyData = keyData;
-            this.biometricKeyEncryptor = biometricKeyEncryptor;
             return this;
         }
 
+        /**
+         * Optional: Sets biometric key enryptor that encrypt or decrypt raw key data.
+         *
+         * @param biometricKeyEncryptor Object that perform biometric key encryption and decryption.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setBiometricKeyEncryptor(@NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
+            this.biometricKeyEncryptor = biometricKeyEncryptor;
+            return this;
+        }
 
         /**
          * Optional: An executor that execute heavy computational tasks. If not provided, then the

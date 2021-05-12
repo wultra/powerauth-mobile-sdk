@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricDialogResources;
+import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 
 /**
  * The {@code PrivateRequestData} class contains various temporary data required for the biometric
@@ -32,19 +33,23 @@ public class PrivateRequestData {
     private final @NonNull BiometricAuthenticationRequest request;
     private final @NonNull BiometricResultDispatcher dispatcher;
     private final @NonNull BiometricDialogResources resources;
+    private final @NonNull IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider;
     private final long creationTime;
 
     /**
      * Construct private request data object.
      *
      * @param request Original, application provided request object.
+     * @param biometricKeyEncryptorProvider Object that provide {@link IBiometricKeyEncryptor} on demand.
      * @param dispatcher Dispatcher that holds completion callback and callback dispatcher.
      * @param resources Resources required for the legacy implementation.
      */
     public PrivateRequestData(@NonNull BiometricAuthenticationRequest request,
+                              @NonNull IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider,
                               @NonNull BiometricResultDispatcher dispatcher,
                               @NonNull BiometricDialogResources resources) {
         this.request = request;
+        this.biometricKeyEncryptorProvider = biometricKeyEncryptorProvider;
         this.dispatcher = dispatcher;
         this.resources = resources;
         this.creationTime = SystemClock.elapsedRealtime();
@@ -55,6 +60,13 @@ public class PrivateRequestData {
      */
     public @NonNull BiometricAuthenticationRequest getRequest() {
         return request;
+    }
+
+    /**
+     * @return {@link IBiometricKeyEncryptorProvider} that can provide {@link IBiometricKeyEncryptor} on demand.
+     */
+    public @NonNull IBiometricKeyEncryptorProvider getBiometricKeyEncryptorProvider() {
+        return biometricKeyEncryptorProvider;
     }
 
     /**

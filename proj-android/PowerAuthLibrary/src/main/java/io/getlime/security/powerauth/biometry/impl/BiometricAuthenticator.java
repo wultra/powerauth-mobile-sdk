@@ -165,7 +165,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final BiometricResultDispatcher dispatcher = requestData.getDispatcher();
 
         // Now construct appropriate cipher with the biometric key, wrapped in the crypto object.
-        final BiometricPrompt.CryptoObject cryptoObject = wrapCipherToCryptoObject(request.getBiometricKeyEncryptor().initializeCipher(request.isForceGenerateNewKey()));
+        final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
+        final BiometricPrompt.CryptoObject cryptoObject = wrapCipherToCryptoObject(encryptor.initializeCipher(request.isForceGenerateNewKey()));
         if (cryptoObject == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Cannot create CryptoObject for biometric authentication.");
         }
@@ -246,7 +247,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 }
                 if (cipher != null) {
                     // Let's try to encrypt or decrypt the biometric key
-                    final BiometricKeyData biometricKeyData = encryptOrDecryptRawKeyData(request);
+                    final BiometricKeyData biometricKeyData = encryptOrDecryptRawKeyData(requestData);
                     if (biometricKeyData != null) {
                         dispatcher.dispatchSuccess(biometricKeyData);
                         return;
@@ -313,20 +314,25 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     /**
      * Encrypt or decrypt raw key data from biometric request.
      *
-     * @param request Biometric request data.
+     * @param requestData Biometric request data.
      * @return Encrypted bytes or {@code null} in case that encryption fails.
      */
-    private @Nullable BiometricKeyData encryptOrDecryptRawKeyData( @NonNull BiometricAuthenticationRequest request) {
+    private @Nullable BiometricKeyData encryptOrDecryptRawKeyData(@NonNull PrivateRequestData requestData) {
         synchronized (this) {
+            final BiometricAuthenticationRequest request = requestData.getRequest();
             if (!hasAlreadyProcessedBiometricKeyData) {
                 hasAlreadyProcessedBiometricKeyData = true;
-                // Let's try to encrypt or decrypt the biometric key
-                final byte[] rawKeyData = request.getRawKeyData();
-                final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
-                if (request.isForceGenerateNewKey()) {
-                    processedBiometricKeyData = encryptor.encryptBiometricKey(rawKeyData);
-                } else {
-                    processedBiometricKeyData = encryptor.decryptBiometricKey(rawKeyData);
+                try {
+                    // Let's try to encrypt or decrypt the biometric key
+                    final byte[] rawKeyData = request.getRawKeyData();
+                    final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
+                    if (request.isForceGenerateNewKey()) {
+                        processedBiometricKeyData = encryptor.encryptBiometricKey(rawKeyData);
+                    } else {
+                        processedBiometricKeyData = encryptor.decryptBiometricKey(rawKeyData);
+                    }
+                } catch (PowerAuthErrorException e) {
+                    processedBiometricKeyData = null;
                 }
             }
             return processedBiometricKeyData;

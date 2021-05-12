@@ -1910,34 +1910,20 @@ public class PowerAuthSDK {
             final boolean forceGenerateNewKey,
             final @NonNull IBiometricAuthenticationCallback callback) {
 
-        final IBiometricKeyEncryptor encryptor;
         final byte[] rawKeyData;
-        PowerAuthErrorException initialFailure = null;
-
         if (forceGenerateNewKey) {
             // new key has to be generated
             rawKeyData = mSession.generateSignatureUnlockKey();
-            encryptor = BiometricAuthentication.getBiometricKeystore().createBiometricKeyEncryptor(mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup());
-            if (encryptor == null) {
-                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Keystore failed to generate a new biometric key.");
-            }
         } else {
             // old key should be used, if present
             rawKeyData = mBiometryKeychain.getData(mKeychainConfiguration.getKeychainBiometryDefaultKey());
-            encryptor = BiometricAuthentication.getBiometricKeystore().getBiometricKeyEncryptor();
-            if (encryptor == null) {
-                initialFailure = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Cannot get biometric key from the keystore.");
-            }
         }
 
-        if (rawKeyData == null || encryptor == null) {
-            final PowerAuthErrorException failure = initialFailure != null
-                    ? initialFailure
-                    : new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric authentication failed due to missing biometric key.");
+        if (rawKeyData == null) {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    callback.onBiometricDialogFailed(failure);
+                    callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric authentication failed due to missing biometric key."));
                 }
             });
             // Return dummy cancelable object.
@@ -1948,7 +1934,7 @@ public class PowerAuthSDK {
         final BiometricAuthenticationRequest.Builder authenticationRequestBuilder = new BiometricAuthenticationRequest.Builder(context)
                 .setTitle(title)
                 .setDescription(description)
-                .setRawKeyData(rawKeyData, encryptor)
+                .setRawKeyData(rawKeyData)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
                 .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());

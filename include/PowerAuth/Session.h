@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 Wultra s.r.o.
+ * Copyright 2021 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -582,6 +582,12 @@ namespace powerAuth
 		 						if upgrade was not completed properly.
 		 */
 		ErrorCode finishProtocolUpgrade();
+		
+		/**
+		 Returns textual representation for given protocol version. For example, for `Version_V3` returns "3.1".
+		 You can use `Version_NA` to get the lastest supported version.
+		 */
+		static std::string maxSupportedHttpProtocolVersion(Version protocolVersion);
 		
 	public:
 		

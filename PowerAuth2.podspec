@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
         :type => 'Apache License, Version 2.0', 
         :file => 'LICENSE' 
     }
+    s.dependency 'PowerAuthCore', '~> 1.5.2'
         
     # Source files
     s.source = { 
@@ -27,27 +28,24 @@ Pod::Spec.new do |s|
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-libraries.sh --out-dir Lib
+        ./scripts/ios-build-sdk.sh copySdk --out-dir Build/PowerAuth2
     CMD
     
     # Produced files
-    s.source_files          = 'Lib/Src/**/*.{h,m}'
-    s.private_header_files  = 'Lib/Src/Private/*.h'
-    s.vendored_frameworks   = 'Lib/Frameworks/*'
+    s.source_files          = 'Build/PowerAuth2/**/*.{h,m}'
+    s.private_header_files  = 'Build/PowerAuth2/Private/*.h'
     s.tvos.exclude_files    = [
-        'Lib/Src/PA2WC*.{h,m}',
-        'Lib/Src/Private/PA2WC*.{h,m}',
-        'Lib/Src/PowerAuthSDK+WatchSupport.m',
-        'Lib/Src/PowerAuthToken+WatchSupport.{h,m}'
+        'Build/PowerAuth2/PowerAuthWC*.{h,m}',
+        'Build/PowerAuth2/Private/PA2WC*.{h,m}',
+        'Build/PowerAuth2/PowerAuthSDK+WatchSupport.m',
+        'Build/PowerAuth2/PowerAuthToken+WatchSupport.{h,m}'
     ]
     s.requires_arc          = true
-    s.libraries             = 'c++'
     
     # Tweaks
     s.pod_target_xcconfig   = {
         'OTHER_LDFLAGS' => '-ObjC',
-        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO',
-        'CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER' => 'NO'
+        'CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF' => 'NO'
     }
 
 end

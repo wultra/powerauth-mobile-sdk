@@ -95,7 +95,7 @@ The Watch SDK shares several source codes and configuration principles with main
 
 The PowerAuth SDK for watchOS is using [WatchConnectivity framework](https://developer.apple.com/documentation/watchconnectivity) to achieve data synchronization between iPhone and Apple Watch devices. If you're not familiar with this framework, then please take a look at least at [WCSession](https://developer.apple.com/documentation/watchconnectivity/wcsession) and [WCSessionDelegate](https://developer.apple.com/documentation/watchconnectivity/wcsessiondelegate) interfaces, before you start.
 
-The Watch SDK doesn't manage state of `WCSession` and doesn't set delegate to the session's singleton instance. It's up to you to properly configure and activate the session, but the application has to cooperate with our SDK to process the messages received from counterpart device. To do this, PowerAuth SDKs on both sides are providing `PA2WCSessionManager` class which can process all incoming messages. Here's an example, how you can implement your simple `SessionManager` for watchOS:
+The Watch SDK doesn't manage state of `WCSession` and doesn't set delegate to the session's singleton instance. It's up to you to properly configure and activate the session, but the application has to cooperate with our SDK to process the messages received from counterpart device. To do this, PowerAuth SDKs on both sides are providing `PowerAuthWCSessionManager` class which can process all incoming messages. Here's an example, how you can implement your simple `SessionManager` for watchOS:
 
 ```swift
 import Foundation
@@ -123,7 +123,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: nil) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: nil) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -132,7 +132,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessageData messageData: Data, replyHandler: @escaping (Data) -> Void) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: replyHandler) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: replyHandler) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -142,7 +142,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
         // Try to process PowerAuth messages...
-        if PA2WCSessionManager.sharedInstance.processReceivedUserInfo(userInfo) {
+        if PowerAuthWCSessionManager.sharedInstance.processReceivedUserInfo(userInfo) {
             return // processed...
         }
         // Other SDKs, or your own messages can be handler here...
@@ -290,7 +290,7 @@ Note that removing tokens locally on watch device has no effect on the same toke
 
 ### Removing Token From iPhone
 
-The token store available on watchOS exposes `removeAccessToken()` method, but the implementation always returns `PA2ErrorCodeInvalidToken` error. This kind of operation is not supported.
+The token store available on watchOS exposes `removeAccessToken()` method, but the implementation always returns `PowerAuthErrorCode.invalidToken` error. This kind of operation is not supported.
 
 ## Common SDK Tasks
 
@@ -305,12 +305,12 @@ It is sometimes useful to switch Watch SDK to a DEBUG build configuration, to ge
 - **CocoaPods:** we currently don't provide DEBUG pod. This will be resolved in some future versions of Watch SDK.
 - **Manual installation:** Xcode is matching build configuration across all nested projects, so you usually don't need to care about the configuration switching.
 
-The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PA2ExtensionLibrary.isInDebug()` method provides an information, whether the PowerAuth for watchOS library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
+The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PowerAuthSystem.isInDebug()` method provides an information, whether the PowerAuth for watchOS library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
 
 ```swift
 #if YOUR_APPSTORE_BUILD_FLAG
     // Final vs Debug library trap
-    if PA2ExtensionLibrary.isInDebug() {
+    if PowerAuthSystem.isInDebug() {
         fatalError("CRITICAL ERROR: You're using Debug PowerAuth library in production build.")
     }
 #endif

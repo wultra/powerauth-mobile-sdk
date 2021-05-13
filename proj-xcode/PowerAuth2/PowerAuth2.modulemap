@@ -1,0 +1,67 @@
+framework module PowerAuth2 {
+  umbrella header "PowerAuth2.h"
+
+  export *
+  module * { export * }
+
+  /*
+  // sdk
+  private header "PowerAuthSDK+Private.h"
+  private header "PowerAuthActivationCode+Private.h"
+  private header "PowerAuthActivationStatus+Private.h"
+  private header "PA2PrivateCryptoHelper.h"
+  private header "PA2PrivateEncryptorFactory.h"
+  private header "PA2GetActivationStatusTask.h"
+  // system
+  private header "PA2WeakArray.h"
+  private header "PA2PrivateMacros.h"
+  private header "PA2PrivateConstants.h"
+  // networking / client
+  private header "PA2HttpClient.h"
+  private header "PA2HttpRequest.h"
+  private header "PA2RestApiObjects.h"
+  private header "PA2RestApiEndpoint.h"
+  private header "PA2AsyncOperation.h"
+  // networking / serialization
+  private header "PA2Codable.h"
+  private header "PA2ObjectSerialization.h"
+  // networking / request
+  private header "PA2Request.h"
+  private header "PA2CreateActivationRequest.h"
+  private header "PA2CreateActivationRequestData.h"
+  private header "PA2GetActivationStatusRequest.h"
+  private header "PA2ValidateSignatureRequest.h"
+  private header "PA2VaultUnlockRequest.h"
+  private header "PA2RemoveTokenRequest.h"
+  private header "PA2ConfirmRecoveryCodeRequest.h"
+  private header "PA2EncryptedRequest.h"
+  // networking / response
+  private header "PA2Response.h"
+  private header "PA2CreateActivationResponse.h"
+  private header "PA2CreateActivationResponseData.h"
+  private header "PA2CreateActivationRecoveryData.h"
+  private header "PA2GetActivationStatusResponse.h"
+  private header "PA2VaultUnlockResponse.h"
+  private header "PA2GetTokenResponse.h"
+  private header "PA2UpgradeStartV3Response.h"
+  private header "PA2ConfirmRecoveryCodeResponse.h"
+  private header "PA2EncryptedResponse.h"
+  private header "PA2Error+Decodable.h"
+  private header "PA2ErrorResponse+Decodable.h"
+  // token
+  private header "PA2PrivateTokenInterfaces.h"
+  private header "PA2PrivateTokenData.h"
+  private header "PA2PrivateTokenKeychainStore.h"
+  private header "PA2PrivateRemoteTokenProvider.h"
+  private header "PA2PrivateHttpTokenProvider.h"
+  // watch / model
+  private header "PA2WCSessionPacket.h"
+  private header "PA2WCSessionPacket_Constants.h"
+  private header "PA2WCSessionPacket_Success.h"
+  private header "PA2WCSessionPacket_ActivationStatus.h"
+  private header "PA2WCSessionPacket_TokenData.h"
+  // watch
+  private header "PA2WCSessionDataHandler.h"
+  private header "PowerAuthWCSessionManager+Private.h"
+   */
+}

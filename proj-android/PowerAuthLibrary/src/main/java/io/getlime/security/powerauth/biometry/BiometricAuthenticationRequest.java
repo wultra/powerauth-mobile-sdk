@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.text.TextUtils;
 
 import java.util.Arrays;
+import java.util.concurrent.Executor;
 
 /**
  * The {@code BiometricAuthenticationRequest} class contains information required for biometric authentication.
@@ -42,7 +43,8 @@ public class BiometricAuthenticationRequest {
     private final boolean userConfirmationRequired;
     private final boolean useSymmetricCipher;
     private final @NonNull byte[] rawKeyData;
-    private final @NonNull IBiometricKeyEncryptor biometricKeyEncryptor;
+    private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
+    private final @Nullable Executor backgroundTaskExecutor;
 
     private BiometricAuthenticationRequest(
             @NonNull CharSequence title,
@@ -55,7 +57,8 @@ public class BiometricAuthenticationRequest {
             boolean userConfirmationRequired,
             boolean useSymmetricCipher,
             @NonNull byte[] rawKeyData,
-            @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
+            @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
+            @Nullable Executor backgroundTaskExecutor) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
@@ -67,6 +70,7 @@ public class BiometricAuthenticationRequest {
         this.useSymmetricCipher = useSymmetricCipher;
         this.rawKeyData = Arrays.copyOf(rawKeyData, rawKeyData.length);
         this.biometricKeyEncryptor = biometricKeyEncryptor;
+        this.backgroundTaskExecutor = backgroundTaskExecutor;
     }
 
     /**
@@ -144,8 +148,15 @@ public class BiometricAuthenticationRequest {
     /**
      * @return Object that encrypt or decrypt raw key data.
      */
-    public @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+    public @Nullable IBiometricKeyEncryptor getBiometricKeyEncryptor() {
         return biometricKeyEncryptor;
+    }
+
+    /**
+     * @return {@link Executor} that can execute computational heavy tasks on background thread.
+     */
+    public @Nullable Executor getBackgroundTaskExecutor() {
+        return backgroundTaskExecutor;
     }
 
     /**
@@ -168,6 +179,7 @@ public class BiometricAuthenticationRequest {
         private boolean useSymmetricCipher = true;
         private byte[] rawKeyData;
         private IBiometricKeyEncryptor biometricKeyEncryptor;
+        private Executor backgroundTaskExecutor;
 
         /**
          * Creates a builder for a biometric dialog.
@@ -194,9 +206,6 @@ public class BiometricAuthenticationRequest {
             if (rawKeyData.length < 16) {
                 throw new IllegalArgumentException("RawKeyData length is insufficient.");
             }
-            if (biometricKeyEncryptor == null) {
-                throw new IllegalArgumentException("BiometricKeyEncryptor is required.");
-            }
             if (fragment == null && fragmentActivity == null) {
                 throw new IllegalArgumentException("Fragment or FragmentActivity must be set.");
             }
@@ -214,7 +223,8 @@ public class BiometricAuthenticationRequest {
                     userConfirmationRequired,
                     useSymmetricCipher,
                     rawKeyData,
-                    biometricKeyEncryptor);
+                    biometricKeyEncryptor,
+                    backgroundTaskExecutor);
         }
 
         /**
@@ -342,12 +352,33 @@ public class BiometricAuthenticationRequest {
          * Required: Sets sequence of bytes that will be encrypted or decrypted with using biometric authentication.
          *
          * @param keyData Array of bytes containing a key, which will be encrypted by the biometric key.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setRawKeyData(@NonNull byte[] keyData) {
+            this.rawKeyData = keyData;
+            return this;
+        }
+
+        /**
+         * Optional: Sets biometric key enryptor that encrypt or decrypt raw key data.
+         *
          * @param biometricKeyEncryptor Object that perform biometric key encryption and decryption.
          * @return This value will never be {@code null}.
          */
-        public Builder setRawKeyData(@NonNull byte[] keyData, @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
-            this.rawKeyData = keyData;
+        public Builder setBiometricKeyEncryptor(@NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
             this.biometricKeyEncryptor = biometricKeyEncryptor;
+            return this;
+        }
+
+        /**
+         * Optional: An executor that execute heavy computational tasks. If not provided, then the
+         * computational heavy operations will be executed on the UI thread.
+         *
+         * @param executor {@link Executor} to use for background tasks.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setBackgroundTaskExecutor(@NonNull Executor executor) {
+            this.backgroundTaskExecutor = executor;
             return this;
         }
     }

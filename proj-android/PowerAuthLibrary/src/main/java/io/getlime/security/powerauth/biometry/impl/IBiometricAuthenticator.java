@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
-import androidx.fragment.app.FragmentManager;
 
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.biometry.BiometryType;

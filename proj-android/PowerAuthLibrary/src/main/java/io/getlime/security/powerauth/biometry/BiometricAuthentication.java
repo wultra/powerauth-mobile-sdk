@@ -24,12 +24,16 @@ import androidx.annotation.UiThread;
 import androidx.fragment.app.FragmentManager;
 import android.util.Pair;
 
+import java.util.concurrent.Executor;
+
 import io.getlime.security.powerauth.biometry.impl.BiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.BiometricErrorDialogFragment;
 import io.getlime.security.powerauth.biometry.impl.BiometricHelper;
 import io.getlime.security.powerauth.biometry.impl.BiometricKeystore;
 import io.getlime.security.powerauth.biometry.impl.BiometricResultDispatcher;
+import io.getlime.security.powerauth.biometry.impl.DefaultBiometricKeyEncryptorProvider;
 import io.getlime.security.powerauth.biometry.impl.IBiometricAuthenticator;
+import io.getlime.security.powerauth.biometry.impl.IBiometricKeyEncryptorProvider;
 import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
 import io.getlime.security.powerauth.biometry.impl.dummy.DummyBiometricAuthenticator;
 import io.getlime.security.powerauth.biometry.impl.dummy.DummyBiometricKeystore;
@@ -133,17 +137,18 @@ public class BiometricAuthentication {
                     device.getBiometricKeystore().removeBiometricKeyEncryptor();
                 }
             });
-            final PrivateRequestData requestData = new PrivateRequestData(request, dispatcher, ctx.getBiometricDialogResources());
+            final IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider = new DefaultBiometricKeyEncryptorProvider(request, getBiometricKeystore());
+            final PrivateRequestData requestData = new PrivateRequestData(request, biometricKeyEncryptorProvider, dispatcher, ctx.getBiometricDialogResources());
 
             // Validate request status
             @BiometricStatus int status = device.canAuthenticate();
             PowerAuthErrorException exception = null;
             if (status == BiometricStatus.OK) {
                 try {
-                    if (request.isForceGenerateNewKey() && !request.getBiometricKeyEncryptor().isAuthenticationRequiredOnEncryption()) {
+                    if (request.isForceGenerateNewKey() && !biometricKeyEncryptorProvider.isAuthenticationRequiredOnEncryption()) {
                         // Biometric authentication is not actually required, because we're generating (e.g encrypting) the key
                         // and the encryptor doesn't require authentication for such task.
-                        return justEncryptBiometricKey(request, dispatcher);
+                        return justEncryptBiometricKey(requestData, dispatcher);
                     } else {
                         // Authenticate with device
                         return device.authenticate(context, requestData);
@@ -178,25 +183,41 @@ public class BiometricAuthentication {
      * This helper method only encrypts a raw key data with encryptor and dispatch result back to the
      * application. The encryptor should not require the biometric authentication on it's encrypt task.
      *
-     * @param request Request object containing raw key data and encryptor.
+     * @param requestData Private request data.
      * @param dispatcher Biometric result dispatcher.
      * @return Result from {@link BiometricResultDispatcher#getCancelableTask()}.
-     * @throws PowerAuthErrorException If cannot encrypt biometric key.
      */
     private static @NonNull ICancelable justEncryptBiometricKey(
-            @NonNull BiometricAuthenticationRequest request,
-            @NonNull BiometricResultDispatcher dispatcher) throws PowerAuthErrorException {
-
-        // Initialize encryptor's cipher
-        final IBiometricKeyEncryptor encryptor = request.getBiometricKeyEncryptor();
-        final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
-        // Encrypt the key
-        final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(request.getRawKeyData()) : null;
-        if (keyData == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
+            @NonNull final PrivateRequestData requestData,
+            @NonNull final BiometricResultDispatcher dispatcher) {
+        // Prepare an encryption task
+        final Runnable encryptTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Acquire encryptor and initialize the cipher
+                    final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
+                    final boolean initializationSuccess = encryptor.initializeCipher(true) != null;
+                    // Encrypt the key
+                    final BiometricKeyData keyData = initializationSuccess ? encryptor.encryptBiometricKey(requestData.getRequest().getRawKeyData()) : null;
+                    if (keyData == null) {
+                        throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.");
+                    }
+                    // Success, just dispatch the result back to the application
+                    dispatcher.dispatchSuccess(keyData);
+                } catch (PowerAuthErrorException e) {
+                    // Failure, dispatch error back to the application
+                    dispatcher.dispatchError(e);
+                }
+            }
+        };
+        // Execute the task on the background or on the current thread.
+        final Executor executor = requestData.getRequest().getBackgroundTaskExecutor();
+        if (executor != null) {
+            executor.execute(encryptTask);
+        } else {
+            encryptTask.run();
         }
-        // In case of success, just dispatch the result back to the application
-        dispatcher.dispatchSuccess(keyData);
         return dispatcher.getCancelableTask();
     }
 

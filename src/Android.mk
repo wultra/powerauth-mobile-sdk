@@ -89,6 +89,8 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2CryptoAESTests.cpp \
 	PowerAuthTests/pa2CryptoHMACTests.cpp \
 	PowerAuthTests/pa2CryptoPKCS7PaddingTests.cpp \
+	PowerAuthTests/pa2CryptoECCTests.cpp \
+	PowerAuthTests/pa2CryptoECDSATests.cpp \
 	PowerAuthTests/pa2CryptoECDHKDFTests.cpp \
 	PowerAuthTests/pa2DataWriterReaderTests.cpp \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \

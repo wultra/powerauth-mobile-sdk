@@ -55,6 +55,8 @@ namespace crypto
 		if (point && (1 == EC_POINT_oct2point(group, point, publicKey.data(), publicKey.size(), ctx))) {
 			// Set makes copy of key and therefore we have to cleanup point later
 			result = (1 == EC_KEY_set_public_key(key, point));
+			// Validate imported public key.
+			result = result && (1 == EC_KEY_check_key(key));
 		}
 		
 		if (point) {

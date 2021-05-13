@@ -123,7 +123,7 @@ public class PowerAuthTokenStore {
             if (this.canRequestForAccessToken()) {
                 tokenData = this.getTokenData(context, tokenName);
             } else {
-                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeMissingActivation);
+                error = new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION);
             }
         }
 
@@ -166,7 +166,7 @@ public class PowerAuthTokenStore {
                             listener.onGetTokenSucceeded(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
                         } else {
                             // Report encryption error
-                            listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError));
+                            listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
                         }
                     }
 
@@ -203,7 +203,7 @@ public class PowerAuthTokenStore {
         synchronized (this) {
             tokenData = getTokenData(context, tokenName);
             if (tokenData == null) {
-                error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidToken);
+                error = new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_TOKEN);
             }
         }
 

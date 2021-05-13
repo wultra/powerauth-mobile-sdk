@@ -1,0 +1,6 @@
+framework module PowerAuth2ForExtensions {
+  umbrella header "PowerAuth2ForExtensions.h"
+
+  export *
+  module * { export * }
+}

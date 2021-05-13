@@ -213,7 +213,7 @@ public class GetActivationStatusTask implements ICancelable {
                             listener.onActivationStatusSucceed(activationStatus);
                         } else {
                             // Error occurred when decoding status
-                            listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeInvalidActivationData));
+                            listener.onActivationStatusFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
                         }
                     }
 
@@ -315,7 +315,7 @@ public class GetActivationStatusTask implements ICancelable {
             // Simply continue to V3 upgrade
             continueWithUpgradeToV3(status);
         } else {
-            final Throwable error = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeNetworkError, "Number of upgrade attempts reached its maximum.");
+            final Throwable error = new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Number of upgrade attempts reached its maximum.");
             completeTask(null, error);
         }
     }
@@ -535,7 +535,7 @@ public class GetActivationStatusTask implements ICancelable {
 
     /**
      * Complete the task with status or with error. If both objects are not provided, then the
-     * {@link PowerAuthErrorCodes#PA2ErrorCodeOperationCancelled} exception is created.
+     * {@link PowerAuthErrorCodes#OPERATION_CANCELED} exception is created.
      *
      * @param status status to be reported
      * @param throwable error to be reported
@@ -549,7 +549,7 @@ public class GetActivationStatusTask implements ICancelable {
 
         // If both parameters are null, then it's
         if (status == null && throwable == null) {
-            throwable = new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeOperationCancelled, "Operation was canceled from elsewhere.");
+            throwable = new PowerAuthErrorException(PowerAuthErrorCodes.OPERATION_CANCELED, "Operation was canceled from elsewhere.");
         }
 
         final ArrayList<ChildTask> tasksToReport;
@@ -572,13 +572,13 @@ public class GetActivationStatusTask implements ICancelable {
 
 
     /**
-     * Complete task with {@link PowerAuthErrorException} and with {@link PowerAuthErrorCodes#PA2ErrorCodeProtocolUpgrade}
+     * Complete task with {@link PowerAuthErrorException} and with {@link PowerAuthErrorCodes#PROTOCOL_UPGRADE}
      * error code.
      *
      * @param message additional message describing the reason why the task failed.
      */
     private void completeTaskWithUpgradeError(@NonNull String message) {
-        completeTask(null, new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeProtocolUpgrade, message));
+        completeTask(null, new PowerAuthErrorException(PowerAuthErrorCodes.PROTOCOL_UPGRADE, message));
     }
 
 

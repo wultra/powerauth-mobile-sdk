@@ -20,15 +20,21 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 import android.text.TextUtils;
 
 import java.util.Arrays;
+import java.util.concurrent.Executor;
 
 /**
  * The {@code BiometricAuthenticationRequest} class contains information required for biometric authentication.
  */
 public class BiometricAuthenticationRequest {
 
+    private final @Nullable Fragment fragment;
+    private final @Nullable FragmentActivity fragmentActivity;
     private final @NonNull CharSequence title;
     private final @Nullable CharSequence subtitle;
     private final @NonNull CharSequence description;
@@ -37,27 +43,34 @@ public class BiometricAuthenticationRequest {
     private final boolean userConfirmationRequired;
     private final boolean useSymmetricCipher;
     private final @NonNull byte[] rawKeyData;
-    private final @NonNull IBiometricKeyEncryptor biometricKeyEncryptor;
+    private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
+    private final @Nullable Executor backgroundTaskExecutor;
 
     private BiometricAuthenticationRequest(
             @NonNull CharSequence title,
             @Nullable CharSequence subtitle,
             @NonNull CharSequence description,
+            @Nullable Fragment fragment,
+            @Nullable FragmentActivity fragmentActivity,
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
             boolean useSymmetricCipher,
             @NonNull byte[] rawKeyData,
-            @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
+            @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
+            @Nullable Executor backgroundTaskExecutor) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
+        this.fragment = fragment;
+        this.fragmentActivity = fragmentActivity;
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
         this.useSymmetricCipher = useSymmetricCipher;
         this.rawKeyData = Arrays.copyOf(rawKeyData, rawKeyData.length);
         this.biometricKeyEncryptor = biometricKeyEncryptor;
+        this.backgroundTaskExecutor = backgroundTaskExecutor;
     }
 
     /**
@@ -79,6 +92,20 @@ public class BiometricAuthenticationRequest {
      */
     public @NonNull CharSequence getDescription() {
         return description;
+    }
+
+    /**
+     * @return {@link Fragment} to present biometric prompt or {@code null} if {@link #getFragmentActivity()} is valid.
+     */
+    public @Nullable Fragment getFragment() {
+        return fragment;
+    }
+
+    /**
+     * @return {@link FragmentActivity} to present biometric prompt or {@code null} if {@link #getFragment()} is valid.
+     */
+    public @Nullable FragmentActivity getFragmentActivity() {
+        return fragmentActivity;
     }
 
     /**
@@ -121,8 +148,15 @@ public class BiometricAuthenticationRequest {
     /**
      * @return Object that encrypt or decrypt raw key data.
      */
-    public @NonNull IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+    public @Nullable IBiometricKeyEncryptor getBiometricKeyEncryptor() {
         return biometricKeyEncryptor;
+    }
+
+    /**
+     * @return {@link Executor} that can execute computational heavy tasks on background thread.
+     */
+    public @Nullable Executor getBackgroundTaskExecutor() {
+        return backgroundTaskExecutor;
     }
 
     /**
@@ -136,12 +170,16 @@ public class BiometricAuthenticationRequest {
         private CharSequence subtitle;
         private CharSequence description;
 
+        private Fragment fragment;
+        private FragmentActivity fragmentActivity;
+
         private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
         private boolean useSymmetricCipher = true;
         private byte[] rawKeyData;
         private IBiometricKeyEncryptor biometricKeyEncryptor;
+        private Executor backgroundTaskExecutor;
 
         /**
          * Creates a builder for a biometric dialog.
@@ -168,19 +206,25 @@ public class BiometricAuthenticationRequest {
             if (rawKeyData.length < 16) {
                 throw new IllegalArgumentException("RawKeyData length is insufficient.");
             }
-            if (biometricKeyEncryptor == null) {
-                throw new IllegalArgumentException("BiometricKeyEncryptor is required.");
+            if (fragment == null && fragmentActivity == null) {
+                throw new IllegalArgumentException("Fragment or FragmentActivity must be set.");
+            }
+            if (fragment != null && fragmentActivity != null) {
+                throw new IllegalArgumentException("Both Fragment and FragmentActivity are set.");
             }
             return new BiometricAuthenticationRequest(
                     title,
                     subtitle,
                     description,
+                    fragment,
+                    fragmentActivity,
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
                     userConfirmationRequired,
                     useSymmetricCipher,
                     rawKeyData,
-                    biometricKeyEncryptor);
+                    biometricKeyEncryptor,
+                    backgroundTaskExecutor);
         }
 
         /**
@@ -246,6 +290,34 @@ public class BiometricAuthenticationRequest {
         }
 
         /**
+         * Required: Set fragment to display the biometric prompt. The option is required, but may
+         * be omitted if you decide to use {@link #setFragmentActivity(FragmentActivity)} instead.
+         * If you set both, fragment and fragment activity, then the {@code IllegalArgumentException}
+         * will be raised in the {@link #build()} method.
+         *
+         * @param fragment Fragment to display the biometric prompt.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setFragment(@NonNull Fragment fragment) {
+            this.fragment = fragment;
+            return this;
+        }
+
+        /**
+         * Required: Set fragment activity to display the biometric prompt. The option is required,
+         * but may be omitted if you decide to use {@link #setFragment(Fragment)} instead. If you set
+         * both, fragment and fragment activity, then the {@code IllegalArgumentException} will be raised
+         * in the {@link #build()} method.
+         *
+         * @param fragmentActivity Fragment activity to display the biometric prompt.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setFragmentActivity(@NonNull FragmentActivity fragmentActivity) {
+            this.fragmentActivity = fragmentActivity;
+            return this;
+        }
+
+        /**
          * @param forceGenerateNewKey             If true then the new biometric key will be generated as a
          *                                        part of the process.
          * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on
@@ -280,12 +352,33 @@ public class BiometricAuthenticationRequest {
          * Required: Sets sequence of bytes that will be encrypted or decrypted with using biometric authentication.
          *
          * @param keyData Array of bytes containing a key, which will be encrypted by the biometric key.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setRawKeyData(@NonNull byte[] keyData) {
+            this.rawKeyData = keyData;
+            return this;
+        }
+
+        /**
+         * Optional: Sets biometric key enryptor that encrypt or decrypt raw key data.
+         *
          * @param biometricKeyEncryptor Object that perform biometric key encryption and decryption.
          * @return This value will never be {@code null}.
          */
-        public Builder setRawKeyData(@NonNull byte[] keyData, @NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
-            this.rawKeyData = keyData;
+        public Builder setBiometricKeyEncryptor(@NonNull IBiometricKeyEncryptor biometricKeyEncryptor) {
             this.biometricKeyEncryptor = biometricKeyEncryptor;
+            return this;
+        }
+
+        /**
+         * Optional: An executor that execute heavy computational tasks. If not provided, then the
+         * computational heavy operations will be executed on the UI thread.
+         *
+         * @param executor {@link Executor} to use for background tasks.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setBackgroundTaskExecutor(@NonNull Executor executor) {
+            this.backgroundTaskExecutor = executor;
             return this;
         }
     }

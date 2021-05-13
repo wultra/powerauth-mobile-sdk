@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.biometry.impl;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
-import androidx.fragment.app.FragmentManager;
 
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.biometry.BiometryType;
@@ -65,7 +64,6 @@ public interface IBiometricAuthenticator {
      * Perform biometric authentication defined by the {@link PrivateRequestData}.
      *
      * @param context Android {@link Context} object
-     * @param fragmentManager {@link FragmentManager} that manages possible created fragments.
      * @param privateRequestData Private request data.
      * @return {@link ICancelable} object that allows you to cancel that authentication request.
      * @throws PowerAuthErrorException In case that cannot perform the biometric authentication.
@@ -74,7 +72,6 @@ public interface IBiometricAuthenticator {
     @NonNull
     ICancelable authenticate(
             @NonNull final Context context,
-            @NonNull final FragmentManager fragmentManager,
             @NonNull final PrivateRequestData privateRequestData) throws PowerAuthErrorException;
 
 }

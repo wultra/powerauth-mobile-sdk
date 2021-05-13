@@ -18,7 +18,6 @@ package io.getlime.security.powerauth.biometry.impl.dummy;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentManager;
 
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.biometry.BiometryType;
@@ -28,7 +27,6 @@ import io.getlime.security.powerauth.biometry.impl.PrivateRequestData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
 
 /**
  * The {@code DummyBiometricAuthenticator} class provides a dummy implementation of {@link IBiometricAuthenticator}
@@ -36,8 +34,6 @@ import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
  * doesn't have biometric device available or on devices with Android lesser than version 6.0.
  */
 public class DummyBiometricAuthenticator implements IBiometricAuthenticator {
-
-    private ICallbackDispatcher callbackDispatcher;
 
     @Override
     public boolean isAvailable() {
@@ -63,8 +59,7 @@ public class DummyBiometricAuthenticator implements IBiometricAuthenticator {
     @NonNull
     @Override
     public ICancelable authenticate(@NonNull final Context context,
-                                    @NonNull final FragmentManager fragmentManager,
                                     @NonNull final PrivateRequestData requestData) throws PowerAuthErrorException {
-        throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeBiometryNotSupported, "Biometric authentication is not supported on this device.");
+        throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometric authentication is not supported on this device.");
     }
 }

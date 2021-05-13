@@ -834,6 +834,14 @@ CC7_JNI_METHOD(jint, finishProtocolUpgrade)
 	return (jint) session->finishProtocolUpgrade();
 }
 
+//
+// private static native String getMaxSupportedHttpProtocolVersion(int protocolVersionValue)
+//
+CC7_JNI_METHOD_PARAMS(jstring, getMaxSupportedHttpProtocolVersion, jint protocolVersionValue)
+{
+	return cc7::jni::CopyToJavaString(env, Session::maxSupportedHttpProtocolVersion((Version)protocolVersionValue));
+}
+
 // ----------------------------------------------------------------------------
 // Recovery codes
 // ----------------------------------------------------------------------------

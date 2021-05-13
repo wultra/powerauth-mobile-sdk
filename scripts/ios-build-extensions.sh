@@ -27,7 +27,6 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 # Source headers & Xcode project location
 #
 XCODE_DIR="${SRC_ROOT}/proj-xcode"
-XCODE_PROJECT="${XCODE_DIR}/PowerAuthExtensionSdk.xcodeproj"
 
 #
 # Platforms & CPU architectures
@@ -36,9 +35,11 @@ XCODE_PROJECT="${XCODE_DIR}/PowerAuthExtensionSdk.xcodeproj"
 # iOS / tvOS
 EXT_FRAMEWORK="PowerAuth2ForExtensions"
 EXT_PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
+EXT_PROJECT="${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj"
 # WatchOS
 WOS_FRAMEWORK="PowerAuth2ForWatch"
 WOS_PLATFORMS="watchOS watchOS_Simulator"
+WOS_PROJECT="${XCODE_DIR}/PowerAuth2ForWatch.xcodeproj"
 
 # Platform CPU architectures
 ARCH_IOS="armv7 armv7s arm64 arm64e"
@@ -105,6 +106,10 @@ function USAGE
 #   Print a build target for given build platform. For example, for 'iOS'
 #   function prints 'PowerAuth2ForExtensions_iOS'.
 #
+# GET_PLATFORM_PROJECT
+#   Print a path to xcode project for given build platform. For example, for 'iOS'
+#   function prints '.../PowerAuth2ForExtensions.xcodeproj'.
+#
 # GET_PLATFORM_MIN_OS_VER
 #   Print a minimum supported OS version for given build platform. For example, 
 #   for 'iOS' function prints '${MIN_VER_IOS}'.
@@ -145,10 +150,19 @@ function GET_PLATFORM_SDK
 function GET_PLATFORM_TARGET
 {
     case $1 in
-        iOS | iOS_Simulator | macOS_Catalyst)   echo 'PowerAuth2ForExtensions_iOS' ;;
-        tvOS | tvOS_Simulator)                  echo 'PowerAuth2ForExtensions_tvOS' ;;
+        iOS | iOS_Simulator | macOS_Catalyst)   echo 'PowerAuth2ForExtensions_ios' ;;
+        tvOS | tvOS_Simulator)                  echo 'PowerAuth2ForExtensions_tvos' ;;
         watchOS | watchOS_Simulator)            echo 'PowerAuth2ForWatch' ;;
         *) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
+    esac
+}
+function GET_PLATFORM_PROJECT
+{
+    case $1 in
+        iOS | iOS_Simulator | macOS_Catalyst)   echo "${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj" ;;
+        tvOS | tvOS_Simulator)                  echo "${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj" ;;
+        watchOS | watchOS_Simulator)            echo "${XCODE_DIR}/PowerAuth2ForWatch.xcodeproj" ;;
+        *) FAILURE "Cannot determine platform project. Unsupported platform: '$1'" ;;
     esac
 }
 function GET_PLATFORM_MIN_OS_VER
@@ -190,6 +204,7 @@ function BUILD_COMMAND
     local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
     local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
     local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
+    local PROJECT="$(GET_PLATFORM_PROJECT $PLATFORM)"
     local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
     
     LOG_LINE
@@ -197,7 +212,7 @@ function BUILD_COMMAND
     
     DEBUG_LOG "Executing 'archive' for target ${PLATFORM_TARGET} ${PLATFORM_TARGET} :: ${PLATFORM_ARCHS}"
     
-    local COMMAND_LINE="xcodebuild archive -project \"${XCODE_PROJECT}\" -scheme ${SCHEME}"
+    local COMMAND_LINE="xcodebuild archive -project \"${PROJECT}\" -scheme ${SCHEME}"
     COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
     COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
     COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
@@ -290,7 +305,8 @@ function CLEAN_COMMAND
     fi
     local ALL_PLATFORMS=( $PLATFORMS )
     local SCHEME=$(GET_PLATFORM_SCHEME ${ALL_PLATFORMS[0]})
-    local COMMAND_LINE="xcodebuild clean -project \"${XCODE_PROJECT}\" -scheme ${SCHEME} ${QUIET}"
+    local PROJECT=$(GET_PLATFORM_PROJECT ${ALL_PLATFORMS[0]})
+    local COMMAND_LINE="xcodebuild clean -project \"${PROJECT}\" -scheme ${SCHEME} ${QUIET}"
     
     DEBUG_LOG $COMMAND_LINE
     eval $COMMAND_LINE
@@ -356,6 +372,11 @@ REQUIRE_COMMAND otool
 # -----------------------------------------------------------------------------
 # Real job starts here :) 
 # -----------------------------------------------------------------------------
+#
+# Test shared sources
+#
+"${XCODE_DIR}/copy-shared-sources.sh"
+
 #
 # Prepare target directories
 #

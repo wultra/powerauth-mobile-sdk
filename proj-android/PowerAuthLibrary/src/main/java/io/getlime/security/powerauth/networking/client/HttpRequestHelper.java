@@ -160,7 +160,7 @@ class HttpRequestHelper<TRequest, TResponse> {
         final boolean needsEncryption = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
 
         if (needsSignature && authentication == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Authentication object is missing.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Authentication object is missing.");
         }
 
         // Prepare data for a new RequestData object
@@ -196,8 +196,8 @@ class HttpRequestHelper<TRequest, TResponse> {
         if (needsSignature) {
             final boolean available = endpoint.isAvailableInProtocolUpgrade();
             final PowerAuthAuthorizationHttpHeader header = helper.getAuthorizationHeader(available, requestData, requestMethod, endpoint.getAuthorizationUriId(), authentication);
-            if (header.getPowerAuthErrorCode() != PowerAuthErrorCodes.PA2Succeed) {
-                if (header.getPowerAuthErrorCode() == PowerAuthErrorCodes.PA2ErrorCodePendingProtocolUpgrade) {
+            if (header.getPowerAuthErrorCode() != PowerAuthErrorCodes.SUCCEED) {
+                if (header.getPowerAuthErrorCode() == PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE) {
                     throw new PowerAuthErrorException(header.getPowerAuthErrorCode(), "Request is temporarily unavailable, due to pending protocol upgrade.");
                 }
                 throw new PowerAuthErrorException(header.getPowerAuthErrorCode());

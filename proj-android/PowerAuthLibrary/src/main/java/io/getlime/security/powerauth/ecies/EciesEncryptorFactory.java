@@ -62,7 +62,7 @@ public class EciesEncryptorFactory {
      */
     public @NonNull EciesEncryptor getEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
         if (identifier == EciesEncryptorId.NONE) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "'NONE' encryptor cannot be created.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "'NONE' encryptor cannot be created.");
         }
         return getEncryptor(identifier.scope, identifier.sharedInfo1, identifier.hasMetadata);
     }
@@ -83,7 +83,7 @@ public class EciesEncryptorFactory {
         final String activationId;
         if (scope == EciesEncryptorScope.ACTIVATION) {
             if (mPossessionUnlockKey == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeWrongParameter, "Device related key is missing for activation scoped encryptor.");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Device related key is missing for activation scoped encryptor.");
             }
             activationId = mSession.getActivationIdentifier();
             unlockKeys = new SignatureUnlockKeys(mPossessionUnlockKey, null, null);
@@ -93,7 +93,7 @@ public class EciesEncryptorFactory {
         }
         EciesEncryptor encryptor = mSession.getEciesEncryptor(scope, unlockKeys, sharedInfo1Bytes);
         if (encryptor == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.PA2ErrorCodeEncryptionError, "Failed to create ECIES encryptor.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to create ECIES encryptor.");
         }
         if (addMetaData) {
             encryptor.setMetadata(new EciesMetadata(mSession.getSessionSetup().applicationKey, activationId));

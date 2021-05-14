@@ -29,7 +29,14 @@ TODO...
   - The `BiometricDialogResources.Drawables` section has been reduced. The old section constructor is now deprecated and you can review what images are still in use. 
   - There's no longer `BiometricDialogResources.Colors` section. 
   - There's no longer `BiometricDialogResources.Layout` section.
-- SDK no longer provide functions to detect root on device. 
+- SDK no longer provide functions to detect root on device.
+- All `PowerAuthErrorCodes.PA2ErrorCode*` constants are now deprecated. You can use a new constants with a standard naming for a replacement. For example `PA2ErrorCodeNetworkError` is now `NETWORK_ERROR`.
+
+### Other changes
+
+- If your application is using an asymmetric cipher protecting the biometric key (e.g. `PowerAuthKeychainConfiguration.isAuthenticateOnBiometricKeySetup` is `false`), then the methods configuring new biometric key may take a longer time calculating the key-pair on the background thread. The PowerAuth mobile SDK doesn't display any biometric authentication dialog in this case, so your application's UI should display some activity indicator. The following methods are affected by this change:
+  - `PowerAuthSDK.commitActivation(Context, Fragment | FragmentActivity, String, String, String, ICommitActivationWithBiometryListener)`
+  - `PowerAuthSDK.addBiometryFactor(Context, Fragment | FragmentActivity, String, String, String, IAddBiometryFactorListener)`
 
 ## iOS
 
@@ -37,7 +44,6 @@ The main change in this SDK version is that SDK is now composed from two dynamic
 
 - `PowerAuthCore` - module contains low level implementation and has embedded OpenSSL.
 - `PowerAuth2` - module contains all high level SDK source codes and depends on `PowerAuthCore`
-
 
 
 ### API changes

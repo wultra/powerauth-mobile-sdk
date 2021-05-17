@@ -34,11 +34,13 @@
 
 #pragma mark - Initializer
 
-- (instancetype) initWithIdentifier:(NSString*)identifier {
+- (instancetype) initWithIdentifier:(NSString*)identifier
+{
 	return [self initWithIdentifier:identifier accessGroup:nil];
 }
 
-- (instancetype) initWithIdentifier:(NSString*)identifier accessGroup:(NSString*)accessGroup {
+- (instancetype) initWithIdentifier:(NSString*)identifier accessGroup:(NSString*)accessGroup
+{
 	self = [super init];
 	if (self) {
 		_identifier = identifier;
@@ -87,7 +89,8 @@
 
 #pragma mark - Updating existing records
 
-- (PowerAuthKeychainStoreItemResult)updateValue:(NSData *)data forKey:(NSString *)key {
+- (PowerAuthKeychainStoreItemResult)updateValue:(NSData *)data forKey:(NSString *)key
+{
 	if ([self containsDataForKey:key]) {
 		return [self implUpdateValue:data forKey:key];
 	} else {
@@ -95,7 +98,8 @@
 	}
 }
 
-- (void)updateValue:(NSData *)data forKey:(NSString *)key completion:(void (^)(PowerAuthKeychainStoreItemResult))completion {
+- (void)updateValue:(NSData *)data forKey:(NSString *)key completion:(void (^)(PowerAuthKeychainStoreItemResult))completion
+{
 	[self containsDataForKey:key completion:^(BOOL containsValue) {
 		if (containsValue) {
 			completion([self implUpdateValue:data forKey:key]);
@@ -107,19 +111,22 @@
 
 #pragma mark - Removing records
 
-- (BOOL)deleteDataForKey:(NSString *)key {
+- (BOOL)deleteDataForKey:(NSString *)key
+{
 	NSMutableDictionary *query = [_baseQuery mutableCopy];
 	[query setValue:key forKey:(__bridge id)kSecAttrAccount];
 	return SecItemDelete((__bridge CFDictionaryRef)(query)) == errSecSuccess;
 }
 
-- (void) deleteDataForKey:(NSString*)key completion:(void(^)(BOOL deleted))completion {
+- (void) deleteDataForKey:(NSString*)key completion:(void(^)(BOOL deleted))completion
+{
 	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		completion([self deleteDataForKey:key]);
 	});
 }
 
-+ (void) deleteAllData {
++ (void) deleteAllData
+{
     NSArray *secItemClasses = @[(__bridge id)kSecClassGenericPassword,
                                 (__bridge id)kSecClassInternetPassword,
                                 (__bridge id)kSecClassCertificate,
@@ -131,7 +138,8 @@
     }
 }
 
-- (void) deleteAllData {
+- (void) deleteAllData
+{
 	NSMutableDictionary *query = [NSMutableDictionary dictionary];
 	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
@@ -140,12 +148,13 @@
 
 #pragma mark - Obtaining record information
 
-- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status {
+- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status
+{
 	return [self dataForKey:key status:status prompt:nil];
 }
 
-- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status prompt:(NSString*)prompt {
-	
+- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status prompt:(NSString*)prompt
+{
 	// Build query
 	NSMutableDictionary *query = [_baseQuery mutableCopy];
 	[query setValue:key forKey:(__bridge id)kSecAttrAccount];
@@ -169,7 +178,8 @@
 	}
 }
 
-- (void) dataForKey:(NSString*)key prompt:(NSString*)prompt completion:(void(^)(NSData *data, OSStatus status))completion {
+- (void) dataForKey:(NSString*)key prompt:(NSString*)prompt completion:(void(^)(NSData *data, OSStatus status))completion
+{
 	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		OSStatus status;
 		NSData *value = [self dataForKey:key status:&status prompt:prompt];
@@ -177,7 +187,8 @@
 	});
 }
 
-- (void) dataForKey:(NSString*)key completion:(void(^)(NSData *data, OSStatus status))completion {
+- (void) dataForKey:(NSString*)key completion:(void(^)(NSData *data, OSStatus status))completion
+{
 	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		OSStatus status;
 		NSData *value = [self dataForKey:key status:&status];
@@ -199,7 +210,8 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	}
 }
 
-- (BOOL) containsDataForKey:(NSString *)key {
+- (BOOL) containsDataForKey:(NSString *)key
+{
 	NSMutableDictionary *query = [NSMutableDictionary dictionary];
 	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
@@ -224,7 +236,8 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	}
 }
 
-- (void) containsDataForKey:(NSString*)key completion:(void(^)(BOOL containsValue))completion {
+- (void) containsDataForKey:(NSString*)key completion:(void(^)(BOOL containsValue))completion
+{
 	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		BOOL containsValue = [self containsDataForKey:key];
 		completion(containsValue);
@@ -233,11 +246,13 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 #pragma mark - Data in-memory caching
 
-- (NSDictionary*) allItems {
+- (NSDictionary*) allItems
+{
     return [self allItemsWithPrompt:nil withStatus:nil];
 }
 
-- (NSDictionary*) allItemsWithPrompt:(NSString*)prompt withStatus: (OSStatus *)status {
+- (NSDictionary*) allItemsWithPrompt:(NSString*)prompt withStatus: (OSStatus *)status
+{
     // Build query to return all results
     NSMutableDictionary *query = [_baseQuery mutableCopy];
     [query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
@@ -383,13 +398,18 @@ static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
 static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeychainItemAccess access)
 {
 	if (access != PowerAuthKeychainItemAccess_None) {
-		// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
-		// or use kNilOptions.
 		if (@available(iOS 9, *)) {
-			if (access == PowerAuthKeychainItemAccess_AnyBiometricSet) {
-				return __kSecAccessControlBiometryAny;
-			} else {
-				return __kSecAccessControlBiometryCurrentSet;
+			// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
+			// or use kNilOptions.
+			switch (access) {
+				case PowerAuthKeychainItemAccess_AnyBiometricSet:
+					return __kSecAccessControlBiometryAny;
+				case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
+					return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
+				case PowerAuthKeychainItemAccess_CurrentBiometricSet:
+					return __kSecAccessControlBiometryCurrentSet;
+				default:
+					break;
 			}
 		}
 	}

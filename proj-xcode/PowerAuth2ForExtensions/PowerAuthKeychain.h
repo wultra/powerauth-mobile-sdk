@@ -111,6 +111,10 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 	 Constraint to access an item with Touch ID for any enrolled fingers, or Face ID.
 	 */
 	PowerAuthKeychainItemAccess_AnyBiometricSet,
+	/**
+	 Constraint to access an item with any enrolled biometry or device's passcode.
+	 */
+	PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode,
 };
 
 /** Simple wrapper on top of an iOS Keychain.

@@ -40,7 +40,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code BiometricKeyEncryptorAes} implements {@link IBiometricKeyEncryptor} and provides
@@ -109,7 +109,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
                 this.encryptMode = encryptMode;
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            PA2Log.e("BiometricKeyEncryptorAes.initializeCipher failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorAes.initializeCipher failed: " + e.getMessage());
             this.cipher = null;
         } finally {
             this.cipherIsInitialized = true;
@@ -162,7 +162,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             // Derive the key
             return cipher.doFinal(keyToDerive);
         } catch (BadPaddingException | IllegalBlockSizeException e) {
-            PA2Log.e("BiometricKeyEncryptorAes.aesKdf failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorAes.aesKdf failed: " + e.getMessage());
             return null;
         }
     }
@@ -196,7 +196,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             // Create a new instance of encryptor.
             return new BiometricKeyEncryptorAes(key);
         } catch (InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchProviderException | ProviderException e) {
-            PA2Log.e("BiometricKeyEncryptorAes.createAesEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorAes.createAesEncryptor failed: " + e.getMessage());
             return null;
         }
     }

@@ -39,10 +39,10 @@ import io.getlime.security.powerauth.networking.interceptors.HttpRequestIntercep
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
-import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
+import io.getlime.security.powerauth.networking.ssl.HttpClientValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code ClientTask} class implements an actual HTTP request & response processing, with using
@@ -135,7 +135,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
 
             // ssl validation strategy
             if (securedUrlConnection) {
-                final PA2ClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
+                final HttpClientValidationStrategy clientValidationStrategy = clientConfiguration.getClientValidationStrategy();
                 if (clientValidationStrategy != null) {
                     final HttpsURLConnection sslConnection = (HttpsURLConnection) urlConnection;
                     final SSLSocketFactory sslSocketFactory = clientValidationStrategy.getSSLSocketFactory();
@@ -250,13 +250,13 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
     }
 
     /**
-     * Print information about HTTP request to {@link PA2Log}.
+     * Print information about HTTP request to {@link PowerAuthLog}.
      *
      * @param connection prepared connection object.
      * @param requestData (optional) byte array with request data.
      */
     private void logRequest(HttpURLConnection connection, byte[] requestData) {
-        if (!PA2Log.isEnabled()) {
+        if (!PowerAuthLog.isEnabled()) {
             return;
         }
         // Endpoint
@@ -268,31 +268,31 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         final boolean signature = endpoint.getAuthorizationUriId() != null;
         final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
         final String signedEncrypted = (signature ? (encrypted ? " (sig+enc)" : " (sig)") : (encrypted ? " (enc)" : ""));
-        if (!PA2Log.isVerbose()) {
+        if (!PowerAuthLog.isVerbose()) {
             // Not verbose -> put a simple log
-            PA2Log.d("HTTP %s request%s: -> %s", method, signedEncrypted, url);
+            PowerAuthLog.d("HTTP %s request%s: -> %s", method, signedEncrypted, url);
         } else {
             // Verbose, put headers and body (if not encrypted) into the log.
             final Map<String,List<String>> prop = connection.getRequestProperties();
             final String propStr = prop == null ? "<empty>" : prop.toString();
             if (encrypted) {
-                PA2Log.d("HTTP %s request%s: %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
+                PowerAuthLog.d("HTTP %s request%s: %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
             } else {
                 final String bodyStr = requestData == null ? "<empty>" : new String(requestData, Charset.defaultCharset());
-                PA2Log.d("HTTP %s request%s: %s\n- Headers: %s\n- Body: %s", method, signedEncrypted, url, propStr, bodyStr);
+                PowerAuthLog.d("HTTP %s request%s: %s\n- Headers: %s\n- Body: %s", method, signedEncrypted, url, propStr, bodyStr);
             }
         }
     }
 
     /**
-     * Prints information about HTTP response to {@link PA2Log}.
+     * Prints information about HTTP response to {@link PowerAuthLog}.
      *
      * @param connection connection object.
      * @param responseData (optional) data returned in HTTP request.
      * @param error (optional) error produced during the request.
      */
     private void logResponse(HttpURLConnection connection, byte[] responseData, Throwable error) {
-        if (!PA2Log.isEnabled()) {
+        if (!PowerAuthLog.isEnabled()) {
             return;
         }
         // Endpoint
@@ -319,12 +319,12 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         } catch (IOException e) {
             responseCode = 0;
         }
-        if (!PA2Log.isVerbose()) {
+        if (!PowerAuthLog.isVerbose()) {
             // Not verbose -> put a simple log
             if (error == null) {
-                PA2Log.d("HTTP %s response %d: <- %s", method, responseCode, url);
+                PowerAuthLog.d("HTTP %s response %d: <- %s", method, responseCode, url);
             } else {
-                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, errorMessage);
+                PowerAuthLog.d("HTTP %s response %d: <- %s\n- Error: %s", method, responseCode, url, errorMessage);
             }
         } else {
             final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
@@ -339,9 +339,9 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
                 responseBody = encrypted ? "<encrypted>" : responseBodyTmp;
             }
             if (error == null) {
-                PA2Log.d("HTTP %s response %d: <- %s\n- Headers: %s\n- Data: %s", method, responseCode, url, responseHeaders, responseBody);
+                PowerAuthLog.d("HTTP %s response %d: <- %s\n- Headers: %s\n- Data: %s", method, responseCode, url, responseHeaders, responseBody);
             } else {
-                PA2Log.d("HTTP %s response %d: <- %s\n- Error: %s\n- Headers: %s\n- Data: %s", method, responseCode, url, errorMessage, responseHeaders, responseBody);
+                PowerAuthLog.d("HTTP %s response %d: <- %s\n- Error: %s\n- Headers: %s\n- Data: %s", method, responseCode, url, errorMessage, responseHeaders, responseBody);
             }
         }
     }

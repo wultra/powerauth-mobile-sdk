@@ -36,7 +36,7 @@ import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
-import io.getlime.security.powerauth.system.PA2System;
+import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
@@ -91,7 +91,7 @@ public class StandardActivationTest {
         assertEquals(extras, activationDetail.getExtras());
         // Validate platform & device info
         assertEquals("android", activationDetail.getPlatform());
-        assertEquals(PA2System.getDeviceInfo(), activationDetail.getDeviceInfo());
+        assertEquals(PowerAuthSystem.getDeviceInfo(), activationDetail.getDeviceInfo());
     }
 
     // Using legacy method

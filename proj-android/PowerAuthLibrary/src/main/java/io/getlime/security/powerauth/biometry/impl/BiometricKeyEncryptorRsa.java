@@ -45,7 +45,7 @@ import javax.crypto.spec.PSource;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code BiometricKeyEncryptorRsa} implements {@link IBiometricKeyEncryptor} and provides
@@ -141,7 +141,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
                 this.encryptMode = encryptMode;
             }
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeySpecException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            PA2Log.e("BiometricKeyEncryptorRsa.initializeCipher failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorRsa.initializeCipher failed: " + e.getMessage());
             this.cipher = null;
         } finally {
             cipherIsInitialized = true;
@@ -172,7 +172,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
             return new BiometricKeyData(encryptedBiometricKey, key, true);
 
         } catch (BadPaddingException | IllegalBlockSizeException e) {
-            PA2Log.e("BiometricKeyEncryptorRsa.encryptBiometricKey failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorRsa.encryptBiometricKey failed: " + e.getMessage());
             return null;
         }
     }
@@ -200,7 +200,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
             return new BiometricKeyData(encryptedKey, decryptedKey, false);
 
         } catch (BadPaddingException | IllegalBlockSizeException e) {
-            PA2Log.e("BiometricKeyEncryptorRsa.decryptBiometricKey failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorRsa.decryptBiometricKey failed: " + e.getMessage());
             return null;
         }
     }
@@ -231,7 +231,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
             final PublicKey publicKey = keyPair.getPublic();
             return new BiometricKeyEncryptorRsa(publicKey);
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            PA2Log.e("BiometricKeyEncryptorRsa.createRsaEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeyEncryptorRsa.createRsaEncryptor failed: " + e.getMessage());
             return null;
         }
     }

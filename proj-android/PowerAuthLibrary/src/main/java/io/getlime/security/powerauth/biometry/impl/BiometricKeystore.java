@@ -33,7 +33,7 @@ import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * Class representing a Keystore used to store biometry related key.
@@ -51,7 +51,7 @@ public class BiometricKeystore implements IBiometricKeystore {
             mKeyStore = KeyStore.getInstance(PROVIDER_NAME);
             mKeyStore.load(null);
         } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException e) {
-            PA2Log.e("BiometricKeystore constructor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeystore constructor failed: " + e.getMessage());
             mKeyStore = null;
         }
     }
@@ -78,7 +78,7 @@ public class BiometricKeystore implements IBiometricKeystore {
         try {
             return mKeyStore.containsAlias(KEY_NAME);
         } catch (KeyStoreException e) {
-            PA2Log.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
             return false;
         }
     }
@@ -113,7 +113,7 @@ public class BiometricKeystore implements IBiometricKeystore {
                 mKeyStore.deleteEntry(KEY_NAME);
             }
         } catch (KeyStoreException e) {
-            PA2Log.e("BiometricKeystore.removeBiometricKeyEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeystore.removeBiometricKeyEncryptor failed: " + e.getMessage());
         }
     }
 
@@ -136,11 +136,11 @@ public class BiometricKeystore implements IBiometricKeystore {
                 // RSA private key
                 return new BiometricKeyEncryptorRsa((PrivateKey)key);
             } else if (key != null) {
-                PA2Log.e("BiometricKeystore.getBiometricKeyEncryptor unknown key type: " + key.toString());
+                PowerAuthLog.e("BiometricKeystore.getBiometricKeyEncryptor unknown key type: " + key.toString());
             }
             return null;
         } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | IOException e) {
-            PA2Log.e("BiometricKeystore.getBiometricKeyEncryptor failed: " + e.getMessage());
+            PowerAuthLog.e("BiometricKeystore.getBiometricKeyEncryptor failed: " + e.getMessage());
             return null;
         }
     }

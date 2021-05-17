@@ -24,13 +24,13 @@ import io.getlime.security.powerauth.integration.support.client.PowerAuthClientF
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
-import io.getlime.security.powerauth.networking.ssl.PA2ClientSslNoValidationStrategy;
+import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
-import io.getlime.security.powerauth.system.PA2Log;
-import io.getlime.security.powerauth.system.PA2System;
+import io.getlime.security.powerauth.system.PowerAuthLog;
+import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 /**
  * The {@code PowerAuthTestHelper} class helps with Android Integration tests. The class provides
@@ -130,8 +130,8 @@ public class PowerAuthTestHelper {
          */
         public @NonNull PowerAuthTestHelper build() throws Exception {
             // Prepare logger
-            PA2Log.setEnabled(true);
-            PA2Log.setVerbose(true);
+            PowerAuthLog.setEnabled(true);
+            PowerAuthLog.setVerbose(true);
             // Prepare PowerAuthSDK configurations.
             final PowerAuthConfiguration configuration = prepareConfiguration();
             final PowerAuthClientConfiguration clientConfiguration = prepareClientConfiguration();
@@ -179,7 +179,7 @@ public class PowerAuthTestHelper {
                 if (testConfig.getRestApiUrl().startsWith("http://")) {
                     builder.allowUnsecuredConnection(true);
                 } else if (testConfig.getRestApiUrl().startsWith("https://")) {
-                    builder.clientValidationStrategy(new PA2ClientSslNoValidationStrategy());
+                    builder.clientValidationStrategy(new HttpClientSslNoValidationStrategy());
                 }
                 return builder.build();
             }
@@ -341,7 +341,7 @@ public class PowerAuthTestHelper {
      * @return Testing device name.
      */
     public @NonNull String getDeviceInfo() {
-        return "Testing on " + PA2System.getDeviceInfo();
+        return "Testing on " + PowerAuthSystem.getDeviceInfo();
     }
 
     /**

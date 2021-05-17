@@ -43,7 +43,7 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code BiometricAuthentication} class is a high level interface that provides interfaces related
@@ -156,13 +156,13 @@ public class BiometricAuthentication {
 
                 } catch (PowerAuthErrorException e) {
                     // Failed to authenticate. Show an error dialog and report that exception to the callback.
-                    PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
+                    PowerAuthLog.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
                     exception = e;
                     status = BiometricStatus.NOT_AVAILABLE;
 
                 } catch (IllegalArgumentException e) {
                     // Failed to authenticate due to a wrong configuration.
-                    PA2Log.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
+                    PowerAuthLog.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
                     exception = new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, e.getMessage());
                     status = BiometricStatus.NOT_AVAILABLE;
                 }
@@ -275,7 +275,7 @@ public class BiometricAuthentication {
      * @return Dummy {@link ICancelable} object that does nothing.
      */
     private static ICancelable reportSimultaneousRequest(@NonNull final IBiometricAuthenticationCallback callback) {
-        PA2Log.e("Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
+        PowerAuthLog.e("Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
         // Report cancel to the main thread.
         MainThreadExecutor.getInstance().dispatchCallback(new Runnable() {
             @Override

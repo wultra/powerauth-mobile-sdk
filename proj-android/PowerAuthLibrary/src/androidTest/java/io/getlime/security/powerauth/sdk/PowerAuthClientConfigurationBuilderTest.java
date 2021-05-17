@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 import java.net.HttpURLConnection;
 
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
-import io.getlime.security.powerauth.networking.ssl.PA2ClientSslNoValidationStrategy;
+import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
 
 import static org.junit.Assert.*;
 
@@ -60,7 +60,7 @@ public class PowerAuthClientConfigurationBuilderTest {
                         // Empty
                     }
                 })
-                .clientValidationStrategy(new PA2ClientSslNoValidationStrategy())
+                .clientValidationStrategy(new HttpClientSslNoValidationStrategy())
                 .build();
         assertTrue(configuration.isUnsecuredConnectionAllowed());
         assertEquals(200, configuration.getConnectionTimeout());

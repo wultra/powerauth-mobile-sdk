@@ -37,7 +37,6 @@ import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
-import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.biometry.ICommitActivationWithBiometryListener;
 import io.getlime.security.powerauth.core.ActivationStatus;
@@ -105,8 +104,8 @@ import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
-import io.getlime.security.powerauth.system.PA2Log;
-import io.getlime.security.powerauth.system.PA2System;
+import io.getlime.security.powerauth.system.PowerAuthLog;
+import io.getlime.security.powerauth.system.PowerAuthSystem;
 import io.getlime.security.powerauth.util.otp.Otp;
 import io.getlime.security.powerauth.util.otp.OtpUtil;
 
@@ -678,8 +677,8 @@ public class PowerAuthSDK {
             privateData.setExtras(activation.extras);
             privateData.setActivationOtp(activation.additionalActivationOtp);
             privateData.setDevicePublicKey(step1Result.devicePublicKey);
-            privateData.setPlatform(PA2System.getPlatform());
-            privateData.setDeviceInfo(PA2System.getDeviceInfo());
+            privateData.setPlatform(PowerAuthSystem.getPlatform());
+            privateData.setDeviceInfo(PowerAuthSystem.getDeviceInfo());
 
             // Prepare level 1 payload
             final ActivationLayer1Request request = new ActivationLayer1Request();
@@ -1362,7 +1361,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         if (nonce == null) {
-            PA2Log.e("offlineSignatureWithAuthentication: 'nonce' parameter is required.");
+            PowerAuthLog.e("offlineSignatureWithAuthentication: 'nonce' parameter is required.");
             return null;
         }
 
@@ -1373,7 +1372,7 @@ public class PowerAuthSDK {
             return signatureResult.signatureCode;
 
         } catch (PowerAuthErrorException e) {
-            PA2Log.e("offlineSignatureWithAuthentication: Failed at: " + e.getMessage());
+            PowerAuthLog.e("offlineSignatureWithAuthentication: Failed at: " + e.getMessage());
             return null;
         }
     }

@@ -26,7 +26,6 @@ import java.security.KeyStoreException;
 import androidx.annotation.NonNull;
 import io.getlime.security.powerauth.keychain.KeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
-import io.getlime.security.powerauth.system.PA2System;
 
 /**
  * The {@code DefaultStrongBoxSupport} implements {@link KeychainProtectionSupport} interface and reflects

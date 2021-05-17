@@ -43,6 +43,7 @@ NSString *const PowerAuthKeychainKey_Possession		= PA2Def_PowerAuthKeychainKey_P
 		_keychainKey_Possession				= PowerAuthKeychainKey_Possession;
 		// Default config for biometry protected items
 		_linkBiometricItemsToCurrentSet = NO;
+		_allowBiometricAuthenticationFallbackToDevicePasscode = NO;
 	}
 	return self;
 }
@@ -59,6 +60,7 @@ NSString *const PowerAuthKeychainKey_Possession		= PA2Def_PowerAuthKeychainKey_P
 		c->_keychainInstanceName_TokenStore = _keychainInstanceName_TokenStore;
 		c->_keychainKey_Possession = _keychainKey_Possession;
 		c->_linkBiometricItemsToCurrentSet = _linkBiometricItemsToCurrentSet;
+		c->_allowBiometricAuthenticationFallbackToDevicePasscode = _allowBiometricAuthenticationFallbackToDevicePasscode;
 	}
 	return c;
 }

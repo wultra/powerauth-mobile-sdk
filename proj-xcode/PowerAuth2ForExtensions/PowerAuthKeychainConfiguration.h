@@ -101,6 +101,13 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
  */
 @property (nonatomic, assign) BOOL linkBiometricItemsToCurrentSet;
 
+/**
+ If set to YES, then the item protected with the biometry can be accessed also with a device passcode.
+ If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is NO, so fallback
+ to device's passcode is not enabled.
+ */
+@property (nonatomic, assign) BOOL allowBiometricAuthenticationFallbackToDevicePasscode;
+
 /** Return the shared in stance of a Keychain configuration object.
  
  @return Shared instance of a Keychain configuration.

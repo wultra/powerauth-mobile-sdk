@@ -821,7 +821,7 @@ let configuration = PowerAuthConfiguration()
 // ...
 
 // Prepare PowerAuthKeychainConfiguration
-// Set false to 'linkBiometricItemsToCurrentSet' property.
+// Set true to 'linkBiometricItemsToCurrentSet' property.
 let keychainConfiguration = PowerAuthKeychainConfiguration()
 keychainConfiguration.linkBiometricItemsToCurrentSet = true
 
@@ -831,8 +831,35 @@ PowerAuthSDK.initSharedInstance(configuration, keychainConfiguration: keychainCo
 let sdk = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
 ```
 
+<!-- begin box warning -->
 Be aware that the configuration above is effective only for the new keys. So, if your application is already using the biometry factor-related key with a different configuration, then the configuration change doesn't change the existing key. You have to [disable](#disable-biometry) and [enable](#enable-biometry) biometry to apply the change.
+<!-- end -->
 
+### Fallback biometry to device passcode
+
+By default, the fallback from biometric authentication to authenticate with device's passcode is not allowed. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `allowBiometricAuthenticationFallbackToDevicePasscode` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+
+```swift
+// Prepare your PA config
+let configuration = PowerAuthConfiguration()
+// ...
+
+// Prepare PowerAuthKeychainConfiguration
+// Set true to 'allowBiometricAuthenticationFallbackToDevicePasscode' property.
+let keychainConfiguration = PowerAuthKeychainConfiguration()
+keychainConfiguration.allowBiometricAuthenticationFallbackToDevicePasscode = true
+
+// Init shared PowerAuthSDK instance
+PowerAuthSDK.initSharedInstance(configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+// ...or create your own
+let sdk = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+``` 
+
+Once the configuration above is used, then `linkBiometricItemsToCurrentSet` option has no effect on the biometry factor-related key lifetime. 
+
+<!-- begin box warning -->
+It's not recommended to allow fallback to device passcode if your application falls under EU banking regulations or your application needs to distinguish between the biometric and the knowledge-factor based signatures. This is due to the fact that if the biometry factor-related key is unlocked with the device's passcode, then it's no longer a biometric signature.
+<!-- end -->
 
 ## Activation Removal
 

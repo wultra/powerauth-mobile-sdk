@@ -43,7 +43,7 @@ import javax.crypto.SecretKeyFactory;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code SymmetricKeyProvider} class manages symmetric encryption key stored in Android KeyStore.
@@ -92,7 +92,7 @@ public class SymmetricKeyProvider {
             return new SymmetricKeyProvider(keyStore, keyAlias, allowStrongBoxBackedKey, keychainProtectionSupport, onGenerateKey);
 
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
-            PA2Log.e("SymmetricKeyProvider: " + keyAlias + ": Unable to initialize Android KeyStore. Exception: " + e.getMessage());
+            PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + ": Unable to initialize Android KeyStore. Exception: " + e.getMessage());
             return null;
         }
     }
@@ -184,7 +184,7 @@ public class SymmetricKeyProvider {
                 try {
                     return (SecretKey) keyStore.getKey(keyAlias, null);
                 } catch (KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-                    PA2Log.e("SymmetricKeyProvider: " + keyAlias + "Failed to get key. Exception: " + e.getMessage());
+                    PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + "Failed to get key. Exception: " + e.getMessage());
                     if (!forceCreateOnFailure) {
                         return null;
                     }
@@ -203,7 +203,7 @@ public class SymmetricKeyProvider {
             }
             if (newSecretKey != null) {
                 final KeyInfo newKeyInfo = getKeyInfoForSecretKey(newSecretKey);
-                PA2Log.d("SymmetricKeyProvider: " + keyAlias + ": Created key with attributes: " + getSecretKeyAttributes(newKeyInfo));
+                PowerAuthLog.d("SymmetricKeyProvider: " + keyAlias + ": Created key with attributes: " + getSecretKeyAttributes(newKeyInfo));
             }
             return newSecretKey;
         }
@@ -259,7 +259,7 @@ public class SymmetricKeyProvider {
     }
 
     /**
-     * Dump information about key into {@link PA2Log} debug log.
+     * Dump information about key into {@link PowerAuthLog} debug log.
      *
      * @param context Android context.
      * @return {@link KeyInfo} acquired for key, or {@code null} if information is not available.
@@ -271,13 +271,13 @@ public class SymmetricKeyProvider {
                 final SecretKey secretKey = getOrCreateSecretKey(context, false);
                 final KeyInfo secretKeyInfo = getKeyInfoForSecretKey(secretKey);
                 if (secretKey != null) {
-                    PA2Log.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Key is available and has attributes: " + getSecretKeyAttributes(secretKeyInfo));
+                    PowerAuthLog.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Key is available and has attributes: " + getSecretKeyAttributes(secretKeyInfo));
                 } else {
-                    PA2Log.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Failed to get key.");
+                    PowerAuthLog.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Failed to get key.");
                 }
                 return secretKeyInfo;
             } else {
-                PA2Log.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Key is not created yet.");
+                PowerAuthLog.d("SymmetricKeyProvider.dumpSecretKeyInfo: " + keyAlias + ": Key is not created yet.");
                 return null;
             }
         }
@@ -323,7 +323,7 @@ public class SymmetricKeyProvider {
             final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(secretKey.getAlgorithm(), ANDROID_KEY_STORE);
             return (KeyInfo) keyFactory.getKeySpec(secretKey, KeyInfo.class);
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
-            PA2Log.e("SymmetricKeyProvider: " + keyAlias + ": Failed to acquire KeyInfo: Exception: " + e.getMessage());
+            PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + ": Failed to acquire KeyInfo: Exception: " + e.getMessage());
             return null;
         }
     }
@@ -378,7 +378,7 @@ public class SymmetricKeyProvider {
             return keyGenerator.generateKey();
 
         } catch (StrongBoxUnavailableException | NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            PA2Log.d("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new StrongBox backed key. Exception: " + e.getMessage());
+            PowerAuthLog.d("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new StrongBox backed key. Exception: " + e.getMessage());
             return null;
         }
     }
@@ -401,7 +401,7 @@ public class SymmetricKeyProvider {
             return keyGenerator.generateKey();
 
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            PA2Log.e("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new key. Exception: " + e.getMessage());
+            PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new key. Exception: " + e.getMessage());
             return null;
         }
     }
@@ -436,9 +436,9 @@ public class SymmetricKeyProvider {
     private void removeSecretKey() {
         try {
             keyStore.deleteEntry(keyAlias);
-            PA2Log.d("SymmetricKeyProvider: " + keyAlias + ": Key has been deleted.");
+            PowerAuthLog.d("SymmetricKeyProvider: " + keyAlias + ": Key has been deleted.");
         } catch (KeyStoreException e) {
-            PA2Log.e("SymmetricKeyProvider: " + keyAlias + ": Failed to remove secret key. Exception: " + e.getMessage());
+            PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + ": Failed to remove secret key. Exception: " + e.getMessage());
         }
     }
 }

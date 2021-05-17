@@ -37,7 +37,7 @@ import io.getlime.security.powerauth.keychain.impl.BaseKeychainTest;
 import io.getlime.security.powerauth.keychain.impl.DefaultKeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
 import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import static org.junit.Assert.*;
 
@@ -128,11 +128,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testStrongBoxEnabledDisabled() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testStrongBoxEnabledDisabled - test is not supported on this device.");
+            PowerAuthLog.e("testStrongBoxEnabledDisabled - test is not supported on this device.");
             return;
         }
         if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
-            PA2Log.e("testStrongBoxEnabledDisabled - test require real StrongBox device.");
+            PowerAuthLog.e("testStrongBoxEnabledDisabled - test require real StrongBox device.");
             return;
         }
 
@@ -218,7 +218,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testMigrationFromV0toStrongBoxNotSupported() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testMigrationFromV0toStrongBoxNotSupported - test is not supported on this device.");
+            PowerAuthLog.e("testMigrationFromV0toStrongBoxNotSupported - test is not supported on this device.");
             return;
         }
         final Keychain k1_legacy = prepareV0Keychain(KEYCHAIN_NAME1);
@@ -248,7 +248,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testMigrationFromV0toStrongBoxDisabled() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testMigrationFromV0toStrongBoxDisabled - test is not supported on this device.");
+            PowerAuthLog.e("testMigrationFromV0toStrongBoxDisabled - test is not supported on this device.");
             return;
         }
         final Keychain k1_legacy = prepareV0Keychain(KEYCHAIN_NAME1);
@@ -278,11 +278,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testMigrationFromV0toStrongBoxEnabled() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testMigrationFromV0toStrongBoxEnabled - test is not supported on this device.");
+            PowerAuthLog.e("testMigrationFromV0toStrongBoxEnabled - test is not supported on this device.");
             return;
         }
         if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
-            PA2Log.e("testMigrationFromV0toStrongBoxEnabled - test require real StrongBox device.");
+            PowerAuthLog.e("testMigrationFromV0toStrongBoxEnabled - test require real StrongBox device.");
             return;
         }
 
@@ -314,11 +314,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testStrongBoxSupportChange() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
+            PowerAuthLog.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
             return;
         }
         if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
-            PA2Log.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
+            PowerAuthLog.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
             return;
         }
 
@@ -390,11 +390,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     @Test
     public void testStrongBoxSupportChangeFromV1() throws Exception {
         if (isLegacyOnly) {
-            PA2Log.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
+            PowerAuthLog.e("testMigrationBetweenStrongBoxModes - test is not supported on this device.");
             return;
         }
         if (!realKeychainProtectionSupport.isStrongBoxSupported()) {
-            PA2Log.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
+            PowerAuthLog.e("testMigrationBetweenStrongBoxModes - test require real StrongBox device.");
             return;
         }
 

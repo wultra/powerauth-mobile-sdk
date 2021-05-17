@@ -34,7 +34,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.impl.DefaultKeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.impl.EncryptedKeychain;
 import io.getlime.security.powerauth.keychain.impl.LegacyKeychain;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code KeychainFactory} provides an instances of {@link Keychain} objects that implements
@@ -65,7 +65,7 @@ public class KeychainFactory {
             Keychain keychain = sharedData.getKeychainMap().get(identifier);
             if (keychain == null) {
                 keychain = createKeychain(appContext, sharedData, identifier);
-                PA2Log.d("KeychainFactory: " + identifier + ": Created " + (keychain.isEncrypted() ? "encrypted keychain." : "legacy keychain."));
+                PowerAuthLog.d("KeychainFactory: " + identifier + ": Created " + (keychain.isEncrypted() ? "encrypted keychain." : "legacy keychain."));
                 sharedData.getKeychainMap().put(identifier, keychain);
             }
             return keychain;
@@ -117,7 +117,7 @@ public class KeychainFactory {
             if (sharedData.getStrongBoxSupport(context).isStrongBoxEnabled() != enabled) {
                 final KeychainProtectionSupport newKeychainProtectionSupport = new DefaultKeychainProtectionSupport(context, enabled);
                 sharedData.setKeychainProtectionSupportAndResetSharedData(newKeychainProtectionSupport);
-                PA2Log.d("KeychainFactory: StrongBox support is now " + (enabled ? "enabled." : "disabled."));
+                PowerAuthLog.d("KeychainFactory: StrongBox support is now " + (enabled ? "enabled." : "disabled."));
             }
         }
     }
@@ -183,7 +183,7 @@ public class KeychainFactory {
         final Keychain keychain =  new LegacyKeychain(context, identifier);
         if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
             // Print error in case that keychain was previously encrypted and now it's not.
-            PA2Log.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
+            PowerAuthLog.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
             keychain.removeAll();
         }
         return keychain;
@@ -298,7 +298,7 @@ public class KeychainFactory {
             if (masterEncryptionKeyProvider == null) {
                 masterEncryptionKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(MASTER_KEY_ALIAS, true, getStrongBoxSupport(context), MASTER_KEY_SIZE, true,null);
                 if (masterEncryptionKeyProvider == null) {
-                    PA2Log.e("KeychainFactory: Unable to acquire common master key provider for EncryptedKeychain.");
+                    PowerAuthLog.e("KeychainFactory: Unable to acquire common master key provider for EncryptedKeychain.");
                 }
             }
             return masterEncryptionKeyProvider;
@@ -318,7 +318,7 @@ public class KeychainFactory {
                 if (keychainProtectionSupport.isStrongBoxSupported()) {
                     backupEncryptionKeyProvider = SymmetricKeyProvider.getAesGcmKeyProvider(MASTER_BACK_KEY_ALIAS, false, keychainProtectionSupport, MASTER_KEY_SIZE, true, null);
                     if (backupEncryptionKeyProvider == null) {
-                        PA2Log.e("KeychainFactory: Unable to acquire common backup key provider for EncryptedKeychain.");
+                        PowerAuthLog.e("KeychainFactory: Unable to acquire common backup key provider for EncryptedKeychain.");
                     }
                 }
             }
@@ -351,7 +351,7 @@ public class KeychainFactory {
                                             keychainProtection = KeychainProtection.STRONGBOX;
                                         } else {
                                             // Keychain encryption key should not be stored in StrongBox due to its poor reliability.
-                                            PA2Log.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
+                                            PowerAuthLog.e("KeychainFactory: StrongBox is supported but not enabled on this device.");
                                             keychainProtection = KeychainProtection.HARDWARE;
                                         }
                                     } else {
@@ -365,7 +365,7 @@ public class KeychainFactory {
                             }
                         } else if (keychainProtectionSupport.isKeyStoreEncryptionSupported()) {
                             // Keychain encryption is supported but not enabled for this device de to poor KeyStore reliability.
-                            PA2Log.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
+                            PowerAuthLog.e("KeychainFactory: Android KeyStore is supported but not enabled on this device.");
                             keychainProtection = KeychainProtection.NONE;
                         }
                     }

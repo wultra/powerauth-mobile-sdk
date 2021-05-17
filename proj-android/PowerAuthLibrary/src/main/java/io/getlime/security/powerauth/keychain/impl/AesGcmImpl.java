@@ -32,7 +32,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.GCMParameterSpec;
 
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code AesGcmImpl} class implements AES-GCM encryption and decryption.
@@ -64,7 +64,7 @@ public class AesGcmImpl {
     public static byte[] encrypt(@NonNull byte[] plaintext, @NonNull SecretKey key, @NonNull String identifier) {
         try {
             if (plaintext.length > Integer.MAX_VALUE - IV_SIZE_IN_BYTES - TAG_SIZE_IN_BYTES) {
-                PA2Log.e("AesGcmImpl: " + identifier + ": Plaintext is too long.");
+                PowerAuthLog.e("AesGcmImpl: " + identifier + ": Plaintext is too long.");
                 return null;
             }
             final byte[] ciphertext = new byte[IV_SIZE_IN_BYTES + plaintext.length + TAG_SIZE_IN_BYTES];
@@ -78,7 +78,7 @@ public class AesGcmImpl {
             return ciphertext;
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | ShortBufferException e) {
-            PA2Log.e("AesGcmImpl: " + identifier + ": Failed to encrypt keychain value. Exception: " + e.getMessage());
+            PowerAuthLog.e("AesGcmImpl: " + identifier + ": Failed to encrypt keychain value. Exception: " + e.getMessage());
             return null;
         }
     }
@@ -95,7 +95,7 @@ public class AesGcmImpl {
     public static byte[] decrypt(@NonNull byte[] ciphertext, @NonNull SecretKey key, @NonNull String identifier) {
         try {
             if (ciphertext.length < IV_SIZE_IN_BYTES + TAG_SIZE_IN_BYTES) {
-                PA2Log.e("AesGcmImpl: " + identifier + ": Ciphertext is too short.");
+                PowerAuthLog.e("AesGcmImpl: " + identifier + ": Ciphertext is too short.");
                 return null;
             }
             final byte[] aad = identifier.getBytes(Charset.defaultCharset());
@@ -106,7 +106,7 @@ public class AesGcmImpl {
             return cipher.doFinal(ciphertext, IV_SIZE_IN_BYTES, ciphertext.length - IV_SIZE_IN_BYTES);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-            PA2Log.e("AesGcmImpl: " + identifier + ": Failed to decrypt keychain value. Exception: " + e.getMessage());
+            PowerAuthLog.e("AesGcmImpl: " + identifier + ": Failed to decrypt keychain value. Exception: " + e.getMessage());
             return null;
         }
     }

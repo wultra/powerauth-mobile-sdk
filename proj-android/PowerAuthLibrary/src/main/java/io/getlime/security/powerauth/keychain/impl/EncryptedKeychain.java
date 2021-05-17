@@ -37,7 +37,7 @@ import io.getlime.security.powerauth.keychain.IllegalKeychainAccessException;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainProtectionSupport;
 import io.getlime.security.powerauth.keychain.SymmetricKeyProvider;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code EncryptedKeychain} class implements {@link Keychain} interface with content
@@ -156,7 +156,7 @@ public class EncryptedKeychain implements Keychain {
         // StrongBox is supported by device, but disabled. The backup key provider must be used
         // because it's always configured as NOT-StrongBox backed.
         if (backup == null) {
-            PA2Log.e("EncryptedKeychain: Backup key provider is required but not provided.");
+            PowerAuthLog.e("EncryptedKeychain: Backup key provider is required but not provided.");
             return regular;
         }
         return backup;
@@ -376,30 +376,30 @@ public class EncryptedKeychain implements Keychain {
     public static boolean verifyKeystoreEncryption(@NonNull Context context, @NonNull SymmetricKeyProvider keyProvider) {
         final SecretKey secretKey = keyProvider.getOrCreateSecretKey(context,false);
         if (secretKey == null) {
-            PA2Log.e("verifyKeystoreEncryption: Failed to acquire secret key.");
+            PowerAuthLog.e("verifyKeystoreEncryption: Failed to acquire secret key.");
             return false;
         }
         final String identifier = "TestIdentifier";
         byte[] testData = new byte[0];
         byte[] encrypted = AesGcmImpl.encrypt(testData, secretKey, identifier);
         if (encrypted == null) {
-            PA2Log.e("verifyKeystoreEncryption: Empty data encryption failed.");
+            PowerAuthLog.e("verifyKeystoreEncryption: Empty data encryption failed.");
             return false;
         }
         byte[] decrypted = AesGcmImpl.decrypt(encrypted, secretKey, identifier);
         if (decrypted == null || !Arrays.equals(testData, decrypted)) {
-            PA2Log.e("verifyKeystoreEncryption: Empty data decryption failed.");
+            PowerAuthLog.e("verifyKeystoreEncryption: Empty data decryption failed.");
             return false;
         }
         testData = ENCRYPTED_KEYCHAIN_VERSION_KEY.getBytes(Charset.defaultCharset());
         encrypted = AesGcmImpl.encrypt(testData, secretKey, identifier);
         if (encrypted == null) {
-            PA2Log.e("verifyKeystoreEncryption: Non-empty data encryption failed.");
+            PowerAuthLog.e("verifyKeystoreEncryption: Non-empty data encryption failed.");
             return false;
         }
         decrypted = AesGcmImpl.decrypt(encrypted, secretKey, identifier);
         if (decrypted == null || !Arrays.equals(testData, decrypted)) {
-            PA2Log.e("verifyKeystoreEncryption: Non-empty data decryption failed.");
+            PowerAuthLog.e("verifyKeystoreEncryption: Non-empty data decryption failed.");
             return false;
         }
         return true;
@@ -467,7 +467,7 @@ public class EncryptedKeychain implements Keychain {
                 encodedValue = valueEncoder.encode(stringSet);
             } else {
                 // This type of object is not supported by the keychain, so remove it from shared preferences.
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Removing unsupported value from key: " + key);
+                PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Removing unsupported value from key: " + key);
                 keysToRemove.add(key);
                 continue;
             }
@@ -475,7 +475,7 @@ public class EncryptedKeychain implements Keychain {
             // Now encrypt the encoded value
             final byte[] encryptedValue = AesGcmImpl.encrypt(encodedValue, encryptionKey, identifier);
             if (encryptedValue == null) {
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + key);
+                PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Failed to import value from key: " + key);
                 return false;
             }
             // Keep encrypted value, encoded to Base64, for later save.
@@ -620,30 +620,30 @@ public class EncryptedKeychain implements Keychain {
                     if (strongBoxEnabled) {
                         // If StrongBox is enabled, then we have to re-encrypt data from the backup key
                         // to the regular one.
-                        PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with StrongBox backed key.");
+                        PowerAuthLog.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with StrongBox backed key.");
                         sourceKey = backupKeyProvider.getOrCreateSecretKey(context, false);
                         destinationKey = regularKeyProvider.getOrCreateSecretKey(context, false);
                     } else {
                         // StrongBox is disabled, so we have to re-encrypt data from the regular key to the backup one.
-                        PA2Log.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with regular key.");
+                        PowerAuthLog.d("EncryptedKeychain: " + identifier + ": Re-encrypting data with regular key.");
                         sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
                         destinationKey = backupKeyProvider.getOrCreateSecretKey(context, false);
                     }
                     if (sourceKey != null && destinationKey != null) {
                         result = reEncryptKeychain(preferences, sourceKey, destinationKey);
                     } else {
-                        PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to get source or destination encryption key.");
+                        PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Unable to get source or destination encryption key.");
                         result = false;
                     }
                 } else {
-                    PA2Log.e("EncryptedKeychain: " + identifier + ": Internal error: Backup provider is not set.");
+                    PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Internal error: Backup provider is not set.");
                     result = false;
                 }
             } else {
                 // Encryption is no longer available, so we have to decrypt and store content in legacy format.
                 final SecretKey sourceKey = regularKeyProvider.getOrCreateSecretKey(context, false);
                 if (sourceKey != null) {
-                    PA2Log.d("EncryptedKeychain: " + identifier + ": Decrypting data with a regular key.");
+                    PowerAuthLog.d("EncryptedKeychain: " + identifier + ": Decrypting data with a regular key.");
                     result = reEncryptKeychain(preferences, sourceKey, null);
                     if (result) {
                         // Fallback operation succeeded, so the content is stored in the legacy format. We must return false
@@ -651,14 +651,14 @@ public class EncryptedKeychain implements Keychain {
                         return false;
                     }
                 } else {
-                    PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to get source encryption key.");
+                    PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Unable to get source encryption key.");
                     result = false;
                 }
             }
             if (!result) {
                 // This is a special cleanup, that leaves data in V0 (e.g. not encrypted) format. It basically remove all
                 // the content from the preferences file.
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Data migration failed. Removing all remaining content.");
+                PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Data migration failed. Removing all remaining content.");
                 preferences.edit()
                         .clear()
                         .apply();
@@ -698,7 +698,7 @@ public class EncryptedKeychain implements Keychain {
             }
             final byte[] encodedValue = decryptRawValue(source, (String)value);
             if (encodedValue == null) {
-                PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to decrypt data for key '" + key + "'. Data migration will fail.");
+                PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Failed to decrypt data for key '" + key + "'. Data migration will fail.");
                 result = false;
                 break;
             }
@@ -717,7 +717,7 @@ public class EncryptedKeychain implements Keychain {
                     // about value's type in this point.
                     final String encryptedValue = encryptRawValue(destination, value);
                     if (encryptedValue == null) {
-                        PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to encrypt data for key '" + key + "'. Data migration will fail.");
+                        PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Failed to encrypt data for key '" + key + "'. Data migration will fail.");
                         result = false;
                         break;
                     }
@@ -726,7 +726,7 @@ public class EncryptedKeychain implements Keychain {
                     // Key for target encryption is not available. This situation happens when
                     // a proper fallback to legacy keychain is required.
                     if (!storeLegacyRawValue(editor, key, value)) {
-                        PA2Log.e("EncryptedKeychain: " + identifier + ": Failed to decode data for key '" + key + "'. Data migration will fail.");
+                        PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Failed to decode data for key '" + key + "'. Data migration will fail.");
                         result = false;
                         break;
                     }
@@ -882,7 +882,7 @@ public class EncryptedKeychain implements Keychain {
         final SecretKey masterSecretKey;
         masterSecretKey = effectiveKeyProvider.getOrCreateSecretKey(context, false);
         if (masterSecretKey == null) {
-            PA2Log.e("EncryptedKeychain: " + identifier + ": Unable to acquire master key.");
+            PowerAuthLog.e("EncryptedKeychain: " + identifier + ": Unable to acquire master key.");
         }
         return masterSecretKey;
     }

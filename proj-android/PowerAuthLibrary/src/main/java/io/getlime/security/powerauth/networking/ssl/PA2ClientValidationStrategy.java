@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2021 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,10 @@
 
 package io.getlime.security.powerauth.networking.ssl;
 
-import androidx.annotation.Nullable;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
-
 /**
- * Created by miroslavmichalec on 21/10/2016.
+ * {@code PA2ClientValidationStrategy} is now deprecated, please use {@link HttpClientValidationStrategy}
+ * as a replacement.
  */
-
-/**
- * Interface to be used for optional custom implementation of HostnameVerifier and X509TrustManager.
- */
-public interface PA2ClientValidationStrategy {
-
-    @Nullable SSLSocketFactory getSSLSocketFactory();
-    @Nullable HostnameVerifier getHostnameVerifier();
+@Deprecated
+public interface PA2ClientValidationStrategy extends HttpClientValidationStrategy {
 }

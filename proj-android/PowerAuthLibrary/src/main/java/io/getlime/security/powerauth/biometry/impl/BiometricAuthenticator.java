@@ -43,7 +43,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.sdk.impl.CancelableTask;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code BiometricAuthenticator} implements {@link IBiometricAuthenticator} interface with using new
@@ -145,7 +145,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 return BiometricStatus.NOT_SUPPORTED;
 
             default:
-                PA2Log.e("BiometricManager returned unknown status " + status);
+                PowerAuthLog.e("BiometricManager returned unknown status " + status);
                 return BiometricStatus.NOT_SUPPORTED;
         }
     }
@@ -252,9 +252,9 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                         dispatcher.dispatchSuccess(biometricKeyData);
                         return;
                     }
-                    PA2Log.e("Failed to encrypt biometric key.");
+                    PowerAuthLog.e("Failed to encrypt biometric key.");
                 } else {
-                    PA2Log.e("Failed to get Cipher from CryptoObject.");
+                    PowerAuthLog.e("Failed to get Cipher from CryptoObject.");
                 }
                 // If the code ends here, it mostly means that the vendor's implementation is quite off the standard.
                 // The device reports success, but we're unable to derive our cryptographic key, due to malfunction in cipher

@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.getlime.security.powerauth.keychain.Keychain;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import static org.junit.Assert.*;
 
@@ -44,8 +44,8 @@ public abstract class BaseKeychainTest {
     public static final Set<String> TEST_SET_NOT_EMPTY_2 = new HashSet<>(Arrays.asList("hash", "set"));
 
     public void setupTestData() {
-        PA2Log.setEnabled(true);
-        PA2Log.setVerbose(true);
+        PowerAuthLog.setEnabled(true);
+        PowerAuthLog.setVerbose(true);
     }
 
     /**

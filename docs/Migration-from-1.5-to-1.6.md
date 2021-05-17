@@ -31,6 +31,11 @@ TODO...
   - There's no longer `BiometricDialogResources.Layout` section.
 - SDK no longer provide functions to detect root on device.
 - All `PowerAuthErrorCodes.PA2ErrorCode*` constants are now deprecated. You can use a new constants with a standard naming for a replacement. For example `PA2ErrorCodeNetworkError` is now `NETWORK_ERROR`.
+- The following classes and interfaces are now deprecated:
+  - `PA2System` class is now `PowerAuthSystem`
+  - `PA2Log` class is now `PowerAuthLog`
+  - `PA2ClientValidationStrategy` interface is now `HttpClientValidationStrategy`
+  - `PA2ClientSslNoValidationStrategy` class is now `HttpClientSslNoValidationStrategy`
 
 ### Other changes
 

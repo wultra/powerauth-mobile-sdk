@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
-import io.getlime.security.powerauth.networking.ssl.PA2ClientValidationStrategy;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.networking.ssl.HttpClientValidationStrategy;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * Class that is used to provide RESTful API client configuration.
@@ -67,7 +67,7 @@ public class PowerAuthClientConfiguration {
     /**
      * Property that specifies the SSL validation strategy applied by the client.
      */
-    private final PA2ClientValidationStrategy clientValidationStrategy;
+    private final HttpClientValidationStrategy clientValidationStrategy;
 
     /**
      * Property that specifies the list of request interceptors used by the client before the request is executed.
@@ -94,9 +94,9 @@ public class PowerAuthClientConfiguration {
     public boolean isUnsecuredConnectionAllowed() { return allowUnsecuredConnection; }
 
     /**
-     * @return {@link PA2ClientValidationStrategy} object that implements TLS validation strategy.
+     * @return {@link HttpClientValidationStrategy} object that implements TLS validation strategy.
      */
-    public PA2ClientValidationStrategy getClientValidationStrategy() {
+    public HttpClientValidationStrategy getClientValidationStrategy() {
         return clientValidationStrategy;
     }
 
@@ -113,14 +113,14 @@ public class PowerAuthClientConfiguration {
      * @param connectionTimeout Connection timeout in ms.
      * @param readTimeout Read timeout in ms.
      * @param allowUnsecuredConnection Defines whether unsecured connection is allowed.
-     * @param clientValidationStrategy {@link PA2ClientValidationStrategy} object that implements TLS validation strategy.
+     * @param clientValidationStrategy {@link HttpClientValidationStrategy} object that implements TLS validation strategy.
      * @param requestInterceptors Array of {@link HttpRequestInterceptor} objects or {@code null} if there's none.
      */
     private PowerAuthClientConfiguration(
             int connectionTimeout,
             int readTimeout,
             boolean allowUnsecuredConnection,
-            PA2ClientValidationStrategy clientValidationStrategy,
+            HttpClientValidationStrategy clientValidationStrategy,
             List<HttpRequestInterceptor> requestInterceptors) {
         this.connectionTimeout = connectionTimeout;
         this.readTimeout = readTimeout;
@@ -136,7 +136,7 @@ public class PowerAuthClientConfiguration {
         private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
         private int readTimeout = DEFAULT_READ_TIMEOUT;
         private boolean allowUnsecuredConnection = DEFAULT_ALLOW_UNSECURED_CONNECTION;
-        private PA2ClientValidationStrategy clientValidationStrategy;
+        private HttpClientValidationStrategy clientValidationStrategy;
         private ArrayList<HttpRequestInterceptor> requestInterceptors;
 
         /**
@@ -167,7 +167,7 @@ public class PowerAuthClientConfiguration {
         public Builder allowUnsecuredConnection(boolean allow) {
             this.allowUnsecuredConnection = allow;
             if (allow) {
-                 PA2Log.e("Unsecured connection is dangerous for production application.");
+                 PowerAuthLog.e("Unsecured connection is dangerous for production application.");
             }
             return this;
         }
@@ -178,7 +178,7 @@ public class PowerAuthClientConfiguration {
          * @param clientValidationStrategy strategy to be set
          * @return The same {@link Builder} object instance
          */
-        public Builder clientValidationStrategy(PA2ClientValidationStrategy clientValidationStrategy) {
+        public Builder clientValidationStrategy(HttpClientValidationStrategy clientValidationStrategy) {
             this.clientValidationStrategy = clientValidationStrategy;
             return this;
         }

@@ -21,7 +21,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code CompositeCancelableTask} is a simple implementation of {@link ICancelable} interface
@@ -74,7 +74,7 @@ public class CompositeCancelableTask implements ICancelable {
                 }
                 cancelables.add(cancelable);
             } else {
-                PA2Log.d("CompositeCancelableTask is already canceled.");
+                PowerAuthLog.d("CompositeCancelableTask is already canceled.");
                 cancelable.cancel();
             }
         }

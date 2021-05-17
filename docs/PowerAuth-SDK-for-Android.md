@@ -368,7 +368,7 @@ After you create an activation using one of the methods mentioned above, you nee
 ```java
 // Commit activation using given PIN
 int result = powerAuthSDK.commitActivationWithPassword(context, pin);
-if (result != PowerAuthErrorCodes.PA2Succeed) {
+if (result != PowerAuthErrorCodes.SUCCEED) {
     // happens only in case SDK was not configured or activation is not in state to be committed
 }
 ```
@@ -404,7 +404,7 @@ authentication.usePassword = "1234";
 authentication.useBiometry = encryptedBiometryKey;
 
 int result =  powerAuthSDK.commitActivationWithAuthentication(context, authentication);
-if (result != PowerAuthErrorCodes.PA2Succeed) {
+if (result != PowerAuthErrorCodes.SUCCEED) {
     // happens only in case SDK was not configured or activation is not in state to be committed
 }
 ```
@@ -1457,9 +1457,9 @@ Here's the list of important error codes, which the application should properly 
 Sometimes, you may need to develop or test your application against a service that runs over HTTPS protocol with an invalid (self-signed) SSL certificate. By default, the HTTP client used in PowerAuth SDK communication validates the certificate. To disable the certificate validation, use a `PowerAuthSDK` initializer with a custom client configuration to initialize your PowerAuth SDK instance, like so:
 
 ```java
-// Set `PA2ClientSslNoValidationStrategy as the defauld client SSL certificate validation strategy`
+// Set `HttpClientSslNoValidationStrategy as the defauld client SSL certificate validation strategy`
 final PowerAuthClientConfiguration clientConfiguration = new PowerAuthClientConfiguration.Builder()
-                .clientValidationStrategy(new PA2ClientSslNoValidationStrategy())
+                .clientValidationStrategy(new HttpClientSslNoValidationStrategy())
                 .build();
 
 // Prepare the configuration, see above...
@@ -1492,7 +1492,7 @@ How to solve this problem for debug/production flavours in the Gradle build scri
    ```java
    PowerAuthClientConfiguration.Builder clientBuilder = new PowerAuthClientConfiguration.Builder();
    if (BuildConfig.TRUST_ALL_SSL_HOSTS) {
-       clientBuilder.clientValidationStrategy(new PA2ClientSslNoValidationStrategy());
+       clientBuilder.clientValidationStrategy(new HttpClientSslNoValidationStrategy());
    }
    ```
 
@@ -1504,20 +1504,20 @@ How to solve this problem for debug/production flavours in the Gradle build scri
 The debug log is by default turned off. To turn it on, use the following code:
 
 ```java
-PA2Log.setEnabled(true);
+PowerAuthLog.setEnabled(true);
 ```
 
 To turn-on even more detailed log, use the following code:
 
 ```java
-PA2Log.setVerbose(true);
+PowerAuthLog.setVerbose(true);
 ```
 
 Note that it's highly recommended to turn-on this feature only for `DEBUG` build of your application. For example:
 
 ```java
 if (BuildConfig.DEBUG) {
-    PA2Log.setEnabled(true);
+    PowerAuthLog.setEnabled(true);
 }
 ```
 

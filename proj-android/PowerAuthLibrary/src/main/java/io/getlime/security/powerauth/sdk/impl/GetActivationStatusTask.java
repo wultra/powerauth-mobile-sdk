@@ -44,7 +44,7 @@ import io.getlime.security.powerauth.networking.model.response.ActivationStatusR
 import io.getlime.security.powerauth.networking.model.response.UpgradeResponsePayload;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
-import io.getlime.security.powerauth.system.PA2Log;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  *  The {@code GetActivationStatusTask} class implements getting activation status from the server
@@ -160,7 +160,7 @@ public class GetActivationStatusTask implements ICancelable {
                         continueWithUpgrade(status);
                         return;
                     }
-                    PA2Log.e("WARNING: Upgrade to newer protocol version is disabled.");
+                    PowerAuthLog.e("WARNING: Upgrade to newer protocol version is disabled.");
                 }
                 // Now test whether the counter should be synchronized on the server.
                 if (status.isSignatureCalculationRecommended) {
@@ -342,7 +342,7 @@ public class GetActivationStatusTask implements ICancelable {
 
             if (session.getPendingProtocolUpgradeVersion() == ProtocolVersion.NA) {
                 // Upgrade has not been started yet
-                PA2Log.d("ProtocolUpgrade: Starting activation upgrade to protocol V3");
+                PowerAuthLog.d("ProtocolUpgrade: Starting activation upgrade to protocol V3");
                 if (session.startProtocolUpgrade() != ErrorCode.OK) {
                     completeTaskWithUpgradeError("Protocol upgrade start failed.");
                     return;
@@ -495,7 +495,7 @@ public class GetActivationStatusTask implements ICancelable {
     private void finishUpgradeToV3() {
         // Try to complete the process
         if (session.finishProtocolUpgrade() == ErrorCode.OK) {
-            PA2Log.d("ProtocolUpgrade: Activation was successfully upgraded to protocol V3.");
+            PowerAuthLog.d("ProtocolUpgrade: Activation was successfully upgraded to protocol V3.");
             // Everything looks fine, we can report previously cached status
             serializeSessionState();
             completeTask(lastFetchedStatus, null);

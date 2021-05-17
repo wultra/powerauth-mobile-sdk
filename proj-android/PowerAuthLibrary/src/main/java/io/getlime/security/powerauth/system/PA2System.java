@@ -16,53 +16,9 @@
 
 package io.getlime.security.powerauth.system;
 
-import android.os.Build;
-import androidx.annotation.NonNull;
-
 /**
- * Class that provides information about system and runtime.
- *
- * @author Petr Dvorak, petr@wultra.com
- * @author Tomas Kypta
+ * {@code PA2System} class is now deprecated, please use {@link PowerAuthSystem} as a replacement.
  */
-public class PA2System {
-
-    /**
-     * Return platform name.
-     *
-     * @return "Android" constant as a platform name.
-     */
-    public static @NonNull String getPlatform() {
-        return "Android";
-    }
-
-    /**
-     * Return device model information.
-     *
-     * @return Combination of device's manufacturer and model.
-     */
-    public static @NonNull String getDeviceInfo() {
-        String manufacturer = Build.MANUFACTURER;
-        String model = Build.MODEL;
-        if (model.toLowerCase().startsWith(manufacturer.toLowerCase())) {
-            return capitalizeString(model);
-        }
-        return capitalizeString(manufacturer) + " " + model;
-    }
-
-    /**
-     * Helper method that capitalize given string.
-     * @param s String to capitalize.
-     * @return Capitalized string.
-     */
-    private static String capitalizeString(String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
-        char first = s.charAt(0);
-        if (Character.isUpperCase(first)) {
-            return s;
-        }
-        return Character.toUpperCase(first) + s.substring(1);
-    }
+@Deprecated
+public class PA2System extends PowerAuthSystem {
 }

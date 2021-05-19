@@ -4,7 +4,11 @@ This guide contains instructions for migration from PowerAuth Mobile SDK version
 
 ## Introduction
 
-TODO...
+PowerAuth Mobile SDK in version `1.6.0` is a maintenance release that brings multiple enhancements to both platforms:
+
+- Android SDK now depends on Android Jetpack libraries instead of the deprecated support library. This is most important for biometric authentication. 
+- iOS SDK is no longer in conflict with 3rd party OpenSSL libraries. Our implementation still depends on OpenSSL, but the dependency is now hidden in precompiled `PowerAuthCore` dynamic framework.
+- iOS SDK has now unified class naming. So, no longer `PA2` vs `PowerAuth` class prefixes.  
 
 ### Compatibility with PowerAuth Server
 
@@ -14,7 +18,7 @@ TODO...
 
 ### API changes
 
-- PowerAuth mobile SDK now uses libraries from `androidx` namespace as a replacement for old support library. If your application is still using the support library, then we highly recommend you to [migrate your code to AndroidX](https://developer.android.com/jetpack/androidx/migrate).
+- PowerAuth mobile SDK now uses Jetpack libraries from `androidx` namespace as a replacement for old support library. If your application is still using the support library, then we highly recommend you to [migrate your code to AndroidX](https://developer.android.com/jetpack/androidx/migrate).
 - PowerAuth mobile SDK now uses `androidx.biometry` for a biometric authentication, so you can upgrade this support library independently to PowerAuth mobile SDK. This is useful in case your users encounter a various device specific incompatibilities.
 - All biometry-related API calls no longer accept `FragmentManager` as a parameter. You can now choose between variants with `Fragment` or `FragmentActivity` at input:
   - `PowerAuthSDK.commitActivation(Context, Fragment, String, String, String, ICommitActivationWithBiometryListener)`
@@ -43,13 +47,12 @@ TODO...
   - `PowerAuthSDK.commitActivation(Context, Fragment | FragmentActivity, String, String, String, ICommitActivationWithBiometryListener)`
   - `PowerAuthSDK.addBiometryFactor(Context, Fragment | FragmentActivity, String, String, String, IAddBiometryFactorListener)`
 
-## iOS
+## iOS & tvOS
 
 The main change in this SDK version is that SDK is now composed from two dynamic frameworks:
 
 - `PowerAuthCore` - module contains low level implementation and has embedded OpenSSL.
 - `PowerAuth2` - module contains all high level SDK source codes and depends on `PowerAuthCore`
-
 
 ### API changes
 
@@ -120,7 +123,7 @@ List of renamed interfaces:
   - `PA2CryptoUtils` is now `PowerAuthCoreCryptoUtils`
   - `PA2ECPublicKey` is now `PowerAuthCoreECPublicKey`
     
-## iOS App Extensions
+## iOS & tvOS App Extensions
 
 The `PowerAuth2ForExtensions` is now distributed as a dynamic module, instead of static framework.
 

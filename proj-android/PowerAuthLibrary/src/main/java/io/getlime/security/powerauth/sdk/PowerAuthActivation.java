@@ -22,11 +22,11 @@ import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.getlime.security.powerauth.core.ActivationCode;
+import io.getlime.security.powerauth.core.ActivationCodeUtil;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.model.entity.ActivationType;
-import io.getlime.security.powerauth.util.otp.Otp;
-import io.getlime.security.powerauth.util.otp.OtpUtil;
 
 /**
  * The {@code PowerAuthActivation} class contains activation data required for the activation creation.
@@ -40,7 +40,7 @@ public class PowerAuthActivation {
     final @Nullable String activationName;
     final @Nullable String extras;
     final @Nullable Map<String, Object> customAttributes;
-    final @Nullable Otp activationCode;
+    final @Nullable ActivationCode activationCode;
 
     /**
      * Private object constructor. Use {@link Builder} to construct an instance of the object.
@@ -51,7 +51,7 @@ public class PowerAuthActivation {
      * @param activationName Optional name of activation.
      * @param extras Optional extras.
      * @param customAttributes Optional custom attributes.
-     * @param activationCode {@link Otp} object, valid in case of regular activation.
+     * @param activationCode {@link ActivationCode} object, valid in case of regular activation.
      */
     private PowerAuthActivation(@NonNull ActivationType activationType,
                                 @NonNull Map<String, String> identityAttributes,
@@ -59,7 +59,7 @@ public class PowerAuthActivation {
                                 @Nullable String activationName,
                                 @Nullable String extras,
                                 @Nullable Map<String, Object> customAttributes,
-                                @Nullable Otp activationCode) {
+                                @Nullable ActivationCode activationCode) {
         this.activationType = activationType;
         this.identityAttributes = identityAttributes;
         this.additionalActivationOtp = additionalActivationOtp;
@@ -77,7 +77,7 @@ public class PowerAuthActivation {
         private final @NonNull ActivationType activationType;
         private final @NonNull Map<String, String> identityAttributes;
         private final @Nullable String activationName;
-        private final @Nullable Otp activationCode;
+        private final @Nullable ActivationCode activationCode;
 
         private @Nullable String extras;
         private @Nullable Map<String, Object> customAttributes;
@@ -89,12 +89,12 @@ public class PowerAuthActivation {
          * @param activationType Type of activation.
          * @param identityAttributes Identity attributes.
          * @param activationName Optional name of activation.
-         * @param activationCode {@link Otp} object, valid in case of regular activation.
+         * @param activationCode {@link ActivationCode} object, valid in case of regular activation.
          */
         private Builder(@NonNull ActivationType activationType,
                         @NonNull Map<String, String> identityAttributes,
                         @Nullable String activationName,
-                        @Nullable Otp activationCode) {
+                        @Nullable ActivationCode activationCode) {
             this.activationType = activationType;
             this.identityAttributes = identityAttributes;
             this.activationName = activationName;
@@ -116,13 +116,13 @@ public class PowerAuthActivation {
          * @throws PowerAuthErrorException In case that activation code is invalid.
          */
         public static @NonNull Builder activation(@NonNull String activationCode, @Nullable String activationName) throws PowerAuthErrorException {
-            final Otp otp = OtpUtil.parseFromActivationCode(activationCode);
-            if (otp == null) {
+            final ActivationCode code = ActivationCodeUtil.parseFromActivationCode(activationCode);
+            if (code == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid activation code");
             }
             final Map<String, String> identityAttributes = new HashMap<>(1);
-            identityAttributes.put("code", otp.activationCode);
-            return new Builder(ActivationType.CODE, identityAttributes, activationName, otp);
+            identityAttributes.put("code", code.activationCode);
+            return new Builder(ActivationType.CODE, identityAttributes, activationName, code);
         }
 
         /**
@@ -158,15 +158,15 @@ public class PowerAuthActivation {
          * @throws PowerAuthErrorException In case that recovery code or PUK is invalid.
          */
         public static @NonNull Builder recoveryActivation(@NonNull String recoveryCode, @NonNull String puk, @Nullable String activationName) throws PowerAuthErrorException {
-            final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
-            if (otp == null) {
+            final ActivationCode code = ActivationCodeUtil.parseFromRecoveryCode(recoveryCode);
+            if (code == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery code");
             }
-            if (!OtpUtil.validateRecoveryPuk(puk)) {
+            if (!ActivationCodeUtil.validateRecoveryPuk(puk)) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery PUK");
             }
             final Map<String, String> identityAttributes = new HashMap<>(2);
-            identityAttributes.put("recoveryCode", otp.activationCode);
+            identityAttributes.put("recoveryCode", code.activationCode);
             identityAttributes.put("puk", puk);
             return new Builder(ActivationType.RECOVERY, identityAttributes, activationName, null);
         }

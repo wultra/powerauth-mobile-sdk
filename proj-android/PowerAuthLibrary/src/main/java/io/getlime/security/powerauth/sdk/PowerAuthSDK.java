@@ -39,6 +39,8 @@ import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.biometry.ICommitActivationWithBiometryListener;
+import io.getlime.security.powerauth.core.ActivationCode;
+import io.getlime.security.powerauth.core.ActivationCodeUtil;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.ActivationStep1Param;
 import io.getlime.security.powerauth.core.ActivationStep1Result;
@@ -106,8 +108,6 @@ import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
-import io.getlime.security.powerauth.util.otp.Otp;
-import io.getlime.security.powerauth.util.otp.OtpUtil;
 
 /**
  * Class used for the main interaction with the PowerAuth SDK components.
@@ -2133,8 +2133,8 @@ public class PowerAuthSDK {
     ICancelable confirmRecoveryCode(@NonNull final Context context, @NonNull final PowerAuthAuthentication authentication, @NonNull String recoveryCode, @NonNull final IConfirmRecoveryCodeListener listener) {
 
         // Validate recovery code
-        final Otp otp = OtpUtil.parseFromRecoveryCode(recoveryCode);
-        if (otp == null) {
+        final ActivationCode code = ActivationCodeUtil.parseFromRecoveryCode(recoveryCode);
+        if (code == null) {
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
@@ -2146,7 +2146,7 @@ public class PowerAuthSDK {
 
         // Execute HTTP request
         final ConfirmRecoveryRequestPayload request = new ConfirmRecoveryRequestPayload();
-        request.setRecoveryCode(otp.activationCode);
+        request.setRecoveryCode(code.activationCode);
         return mClient.post(
                 request,
                 new ConfirmRecoveryCodeEndpoint(),

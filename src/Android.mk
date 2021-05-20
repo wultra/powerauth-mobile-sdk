@@ -141,7 +141,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
 	PowerAuth/jni/SessionJNI.cpp \
 	PowerAuth/jni/PasswordJNI.cpp \
-	PowerAuth/jni/OtpUtilJNI.cpp \
+	PowerAuth/jni/ActivationCodeUtilJNI.cpp \
 	PowerAuth/jni/ECIESEncryptorJNI.cpp \
 	PowerAuth/jni/TokenCalculatorJNI.cpp \
 	PowerAuth/jni/CryptoUtilsJNI.cpp \

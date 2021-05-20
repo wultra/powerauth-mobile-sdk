@@ -40,6 +40,8 @@ PowerAuth Mobile SDK in version `1.6.0` is a maintenance release that brings mul
   - `PA2Log` class is now `PowerAuthLog`
   - `PA2ClientValidationStrategy` interface is now `HttpClientValidationStrategy`
   - `PA2ClientSslNoValidationStrategy` class is now `HttpClientSslNoValidationStrategy`
+  - `Otp` class is now `ActivationCode` available in package `io.getlime.security.powerauth.core`
+  - `OtpUtil` class is now `ActivationCodeUtil` available in package `io.getlime.security.powerauth.core`
 
 ### Other changes
 

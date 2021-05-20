@@ -287,7 +287,7 @@ Use the following code to create an activation using recovery code:
 ```java
 final String deviceName = "John Tramonta"
 final String recoveryCode = "55555-55555-55555-55YMA" // User's input
-final String puk = "0123456789" // User's input. You should validate RC & PUK with using OtpUtil
+final String puk = "0123456789" // User's input. You should validate RC & PUK with using ActivationCodeUtil
 
 // Create activation object with given recovery code and PUK.
 final PowerAuthActivation activation;
@@ -413,7 +413,7 @@ Note that you currently need to obtain the encrypted biometry key yourself - you
 
 ### Validating User Inputs
 
-The mobile SDK is providing a couple of functions in `OtpUtil` class, helping with user input validation. You can:
+The mobile SDK is providing a couple of functions in `ActivationCodeUtil` class, helping with user input validation. You can:
 
 - Parse activation code when it's scanned from QR code
 - Validate a whole code at once
@@ -422,12 +422,12 @@ The mobile SDK is providing a couple of functions in `OtpUtil` class, helping wi
 
 #### Validating Scanned QR Code
 
-To validate an activation code scanned from QR code, you can use `OtpUtil.parseFromActivationCode()` function. You have to provide the code with or without the signature part. For example:
+To validate an activation code scanned from QR code, you can use `ActivationCodeUtil.parseFromActivationCode()` function. You have to provide the code with or without the signature part. For example:
 
 ```java
 final String scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8.....gd29ybGQ=";
-final Otp otp = OtpUtil.parseFromActivationCode(scannedCode);
-if (otp == null || otp.activationCode == null) {
+final ActivationCode code = ActivationCodeUtil.parseFromActivationCode(scannedCode);
+if (code == null || code.activationCode == null) {
     // Invalid code, QR code should contain a signature
     return;
 }
@@ -437,12 +437,12 @@ Note that the signature is only formally validated in the function above. The ac
 
 ```java
 final String scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ=";
-final Otp otp = OtpUtil.parseFromActivationCode(scannedCode);
-if (otp == null || otp.activationCode == null) {
+final ActivationCode code = ActivationCodeUtil.parseFromActivationCode(scannedCode);
+if (code == null || code.activationCode == null) {
     return;
 }
-final byte[] codeBytes = otp.activationCode.getBytes(Charset.defaultCharset());
-final byte[] signatureBytes = Base64.decode(otp.activationSignature, Base64.NO_WRAP);
+final byte[] codeBytes = code.activationCode.getBytes(Charset.defaultCharset());
+final byte[] signatureBytes = Base64.decode(code.activationSignature, Base64.NO_WRAP);
 if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
     // Invalid signature
 }
@@ -450,33 +450,33 @@ if (!powerAuthSDK.verifyServerSignedData(codeBytes, signatureBytes, true)) {
 
 #### Validating Entered Activation Code
 
-To validate an activation code at once, you can call `OtpUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:
+To validate an activation code at once, you can call `ActivationCodeUtil.validateActivationCode()` function. You have to provide the code without the signature part. For example:
 
 ```java
-boolean isValid   = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA");
-boolean isInvalid = OtpUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=");
+boolean isValid   = ActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA");
+boolean isInvalid = ActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8gd29ybGQ=");
 ```
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contain a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
 #### Validating Recovery Code and PUK
 
-To validate a recovery code at once, you can call `OtpUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
+To validate a recovery code at once, you can call `ActivationCodeUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
 
 ```java
-boolean isValid1 = OtpUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA");
-boolean isValid2 = OtpUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA");
+boolean isValid1 = ActivationCodeUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA");
+boolean isValid2 = ActivationCodeUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA");
 ```
 
-To validate PUK at once, you can call `OtpUtil.validateRecoveryPuk()` function:
+To validate PUK at once, you can call `ActivationCodeUtil.validateRecoveryPuk()` function:
 
 ```java
-boolean isValid   = OtpUtil.validateRecoveryPuk("0123456789");
+boolean isValid   = ActivationCodeUtil.validateRecoveryPuk("0123456789");
 ```
 
 #### Auto-Correcting Typed Characters
 
-You can implement auto-correcting of typed characters with using `OtpUtil.validateAndCorrectTypedCharacter()` function in screens, where user is supposed to enter an activation or recovery code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
+You can implement auto-correcting of typed characters with using `ActivationCodeUtil.validateAndCorrectTypedCharacter()` function in screens, where user is supposed to enter an activation or recovery code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -488,7 +488,7 @@ Here's an example how to iterate over the string and validate it character by ch
     for (int offset = 0; offset < length; ) {
         final int codepoint = input.codePointAt(offset);
         offset += Character.charCount(codepoint);
-        final int corrected = OtpUtil.validateAndCorrectTypedCharacter(codepoint);
+        final int corrected = ActivationCodeUtil.validateAndCorrectTypedCharacter(codepoint);
         if (corrected == 0) {
             return null;
         }

@@ -54,7 +54,7 @@ CC7_JNI_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
 }
 
 //
-// public native static Otp parseFromRecoveryCode(String recoveryCode)
+// public native static ActivationCode parseFromRecoveryCode(String recoveryCode)
 //
 CC7_JNI_METHOD_PARAMS(jobject, parseFromRecoveryCode, jstring activationCode)
 {

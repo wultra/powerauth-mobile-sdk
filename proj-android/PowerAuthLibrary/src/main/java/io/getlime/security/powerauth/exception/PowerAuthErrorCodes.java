@@ -106,7 +106,7 @@ public @interface PowerAuthErrorCodes {
     int OPERATION_CANCELED = 11;
 
     /**
-     * Error code for error that occurs when invalid activation code is provided.
+     * Error code for error that occurs when invalid activation or invalid recovery code is provided.
      */
     int INVALID_ACTIVATION_CODE = 12;
 

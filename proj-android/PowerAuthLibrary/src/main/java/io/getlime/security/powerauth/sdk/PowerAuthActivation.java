@@ -139,7 +139,7 @@ public class PowerAuthActivation {
          */
         public static @NonNull Builder customActivation(@NonNull Map<String, String> identityAttributes, @Nullable String activationName) throws PowerAuthErrorException {
             if (identityAttributes.isEmpty()) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Empty identity attributes");
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Empty identity attributes");
             }
             return new Builder(ActivationType.CUSTOM, identityAttributes, activationName, null);
         }

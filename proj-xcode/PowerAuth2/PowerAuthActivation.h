@@ -37,10 +37,12 @@
  
  @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
  @param name Activation name to be used for the activation.
+ @param error Error reference in case some error occurs.
  @return New instance of `PowerAuthActivation` or `nil` in case that activation code is invalid.
  */
 + (nullable instancetype) activationWithActivationCode:(nonnull NSString*)activationCode
-												  name:(nullable NSString*)name;
+												  name:(nullable NSString*)name
+												 error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Creates an instance of `PowerAuthActivation` with an identity attributes for the custom activation purposes.
@@ -51,10 +53,12 @@
  
  @param identityAttributes Custom activation parameters that are used to prove identity of a user.
  @param name Activation name to be used for the activation.
+ @param error Error reference in case some error occurs.
  @return New instance of `PowerAuthActivation` or `nil` in case that identity attributes are empty.
  */
 + (nullable instancetype) activationWithIdentityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-													  name:(nullable NSString*)name;
+													  name:(nullable NSString*)name
+													 error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
@@ -66,11 +70,13 @@
  @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
  @param recoveryPuk PUK obtained by manual entry.
  @param name Activation name to be used for the activation.
+ @param error Error reference in case some error occurs.
  @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
  */
 + (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
 										 recoveryPuk:(nonnull NSString*)recoveryPuk
-												name:(nullable NSString*)name;
+												name:(nullable NSString*)name
+											   error:(NSError * _Nullable * _Nullable)error;
 
 
 #pragma mark - Activation customization
@@ -150,6 +156,13 @@
  @return `YES` in case that object contains valid activation data.
  */
 - (BOOL) validate;
+
+/**
+ Validates activation data and returns error if data is not valid.
+ 
+ @return `NSError` in case that object contains invalid activation data.
+ */
+- (nullable NSError*) validateAndGetError;
 
 @end
 

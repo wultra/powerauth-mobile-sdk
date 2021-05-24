@@ -439,7 +439,7 @@ static NSString * PA_Ver = @"3.1";
 	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		
 		NSString * activationName = _testServerConfig.userActivationName;
-		PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:activationCode name:activationName];
+		PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:activationCode name:activationName error:nil];
 		if (activationOtp) {
 			[activation withAdditionalActivationOtp:activationOtp];
 		}

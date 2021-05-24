@@ -49,6 +49,8 @@ PowerAuth Mobile SDK in version `1.6.0` is a maintenance release that brings mul
   - `PowerAuthSDK.commitActivation(Context, Fragment | FragmentActivity, String, String, String, ICommitActivationWithBiometryListener)`
   - `PowerAuthSDK.addBiometryFactor(Context, Fragment | FragmentActivity, String, String, String, IAddBiometryFactorListener)`
 
+- `PowerAuthSDK.createActivation(...)` methods now reprots a slightly different error codes when invalid activation or recovery code is provided. If your application properly validate input data with using `ActivationCodeUtil`, then this change should not affect your code.
+
 ## iOS & tvOS
 
 The main change in this SDK version is that SDK is now composed from two dynamic frameworks:
@@ -64,6 +66,7 @@ The main change in this SDK version is that SDK is now composed from two dynamic
   - You may encounter a several compilation errors at the beginning. If so, then it's recommended to fix the deprecation warnings first, because that may also solve that compilation errors.  
 - ECIES routines are now provided by new `PowerAuthCore` module, so in case your application depends on our E2E encryption scheme, then you have add `import PowerAuthCore` first and then fix the deprecated warnings.
 - SDK no longer provide functions to detect jailbreak on device.
+- `PowerAuthActivation` object constructor now throws an error in Swift. If you don't care about the error, then use `try?` statement to achieve previous constructor behavior.
 
 List of renamed interfaces:
 
@@ -125,6 +128,11 @@ List of renamed interfaces:
   - `PA2CryptoUtils` is now `PowerAuthCoreCryptoUtils`
   - `PA2ECPublicKey` is now `PowerAuthCoreECPublicKey`
     
+### Other changes
+
+- `PowerAuthErrorCodes` contains new `.invalidActivationCode` constant, reported in case that invalid activation or recovery code is provided to `PowerAuthSDK.createActivation(...)` method. If your application properly validate input data with using `PowerAuthActivationCodeUtil`, then this change should not affect your code.
+
+
 ## iOS & tvOS App Extensions
 
 The `PowerAuth2ForExtensions` is now distributed as a dynamic module, instead of static framework.

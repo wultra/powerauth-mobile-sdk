@@ -16,6 +16,7 @@
 
 #import <PowerAuth2/PowerAuthActivation.h>
 #import <PowerAuth2/PowerAuthLog.h>
+#import "PA2PrivateMacros.h"
 
 #if defined(DEBUG)
 #import "PA2ObjectSerialization.h"
@@ -61,10 +62,13 @@
 
 + (instancetype) activationWithActivationCode:(NSString*)activationCode
 										 name:(NSString*)name
+										error:(NSError**)error
 {
 	PowerAuthActivationCode * otp = [PowerAuthActivationCodeUtil parseFromActivationCode:activationCode];
 	if (!otp) {
-		PowerAuthLog(@"PowerAuthActivation: Invalid activation code '%@'", activationCode);
+		if (error) {
+			*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, nil); // nil - we're OK with default error message
+		}
 		return nil;
 	}
 	NSDictionary * identityAttributes = @{ @"code" : otp.activationCode };
@@ -76,9 +80,12 @@
 
 + (instancetype) activationWithIdentityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
 											 name:(NSString*)name
+											error:(NSError**)error
 {
 	if (!identityAttributes || identityAttributes.count == 0) {
-		PowerAuthLog(@"PowerAuthActivation: Missing identity attributes.");
+		if (error) {
+			*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Empty identity attributes");
+		}
 		return nil;
 	}
 	return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
@@ -90,14 +97,19 @@
 + (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
 								recoveryPuk:(NSString*)recoveryPuk
 									   name:(NSString*)name
+									  error:(NSError**)error
 {
 	PowerAuthActivationCode * otp = [PowerAuthActivationCodeUtil parseFromRecoveryCode:recoveryCode];
 	if (!otp) {
-		PowerAuthLog(@"PowerAuthActivation: Invalid recovery code.");
+		if (error) {
+			*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, @"Invalid recovery code");
+		}
 		return nil;
 	}
 	if (![PowerAuthActivationCodeUtil validateRecoveryPuk:recoveryPuk]) {
-		PowerAuthLog(@"PowerAuthActivation: Invalid recovery PUK.");
+		if (error) {
+			*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, @"Invalid recovery PUK");
+		}
 		return nil;
 	}
 	NSDictionary * identityAttributes = @{ @"recoveryCode" : otp.activationCode, @"puk" : recoveryPuk };
@@ -132,20 +144,22 @@
 
 - (BOOL) validate
 {
+	return [self validateAndGetError] == nil;
+}
+
+- (NSError*) validateAndGetError
+{
 	if (!_activationType || !_identityAttributes) {
 		// May happen from swift, if object is constructed with default objc constructor.
-		PowerAuthLog(@"PowerAuthActivation: Missing activation type or identity attributes.");
-		return NO;
+		return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Missing activation type or identity attributes.");
 	}
 	
 	if (_additionalActivationOtp) {
 		if (![_activationType isEqualToString:@"CODE"]) {
-			PowerAuthLog(@"PowerAuthActivation: Only regular activation can be used with additional activation OTP.");
-			return NO;
+			return PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Only regular activation can be used with additional activation OTP.");
 		}
 		if (_additionalActivationOtp.length == 0) {
-			PowerAuthLog(@"PowerAuthActivation: Empty additional activation OTP.");
-			return NO;
+			return PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Additional activation OTP is empty.");
 		}
 	}
 #if defined(DEBUG)
@@ -156,16 +170,15 @@
 		@try {
 			NSData * serializedData = [PA2ObjectSerialization serializeObject:request];
 			if (!serializedData) {
-				PowerAuthLog(@"PowerAuthActivation: Failed to serialize customAttributes.");
-				return NO;
+				return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Failed to serialize customAttributes in PowerAuthActivation");
 			}
 		} @catch (NSException *exception) {
-			PowerAuthLog(@"PowerAuthActivation: Failed to serialize customAttributes: %@", exception.description);
-			return NO;
+			NSString * message = [NSString stringWithFormat:@"Failed to serialize customAttributes in PowerAuthActivation: %@", exception.description];
+			return PA2MakeError(PowerAuthErrorCode_WrongParameter, message);
 		}
 	}
 #endif
-	return YES;
+	return nil;
 }
 
 #pragma mark - Debug

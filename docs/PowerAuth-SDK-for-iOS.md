@@ -176,7 +176,7 @@ let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create activation object with given activation code.
-guard let activation = PowerAuthActivation(activationCode: activationCode, name: deviceName) else {
+guard let activation = try? PowerAuthActivation(activationCode: activationCode, name: deviceName) else {
     // Activation code is invalid
 }
 
@@ -204,7 +204,7 @@ let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this 
 let activationOtp = "12345"
 
 // Create activation object with given activation code.
-guard let activation = PowerAuthActivation(activationCode: activationCode, name: deviceName)?
+guard let activation = try? PowerAuthActivation(activationCode: activationCode, name: deviceName)?
     .with(additionalActivationOtp: activationOtp) else {
         // Activation code is invalid
 }
@@ -230,7 +230,7 @@ let credentials = [
 ]
 
 // Create activation object with given credentials.
-guard let activation = PowerAuthActivation(identityAttributes: credentials, name: deviceName) else {
+guard let activation = try? PowerAuthActivation(identityAttributes: credentials, name: deviceName) else {
     // Activation credentials are empty
 }
 
@@ -261,7 +261,7 @@ let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PowerAuthActivationCodeUtil
 
 // Create activation object with recovery code and PUK
-guard let activation = PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
+guard let activation = try? PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
     // Recovery code or PUK is not valid.
 }
 
@@ -304,7 +304,7 @@ let customAttributes: [String:Any] = [
 let extraFlags = "EXTRA_FLAGS"
 
 // Now create the activation object with all that extra data
-guard let activation = PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-ABANA", name: activationName)?
+guard let activation = try? PowerAuthActivation(activationCode: "45AWJ-BVACS-SBWHS-ABANA", name: activationName)?
     .with(extras: extraFlags)
     .with(customAttributes: customAttributes) else {
         // Invalid activation code...
@@ -1460,7 +1460,10 @@ if error == nil {
 
         case .invalidActivationState:
             print("Error code for error that occurs when activation state is invalid")
-
+        
+        case .invalidActivationCode:
+            print("Error code for error that occurs when activation or recovery code is invalid")
+            
         case .invalidActivationData:
             print("Error code for error that occurs when activation data is invalid")
 

@@ -445,8 +445,9 @@ static PowerAuthSDK * s_inst;
 		callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, nil));
 		return nil;
 	}
-	if (![activation validate]) {
-		callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, nil));
+	NSError * validationError = [activation validateAndGetError];
+	if (validationError) {
+		callback(nil, validationError);
 		return nil;
 	}
 	
@@ -524,10 +525,11 @@ static PowerAuthSDK * s_inst;
 												 extras:(NSString*)extras
 											   callback:(void(^)(PowerAuthActivationResult *result, NSError *error))callback
 {
-	PowerAuthActivation * activation = [[PowerAuthActivation activationWithActivationCode:activationCode name:name] withExtras:extras];
+	NSError * error = nil;
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithActivationCode:activationCode name:name error:&error] withExtras:extras];
 	if (!activation && callback) {
 		// Invalid activation code
-		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
+		callback(nil, error ? error : PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
 		return nil;
 	}
 	return [self createActivation:activation callback:callback];
@@ -538,10 +540,11 @@ static PowerAuthSDK * s_inst;
 												 extras:(NSString*)extras
 											   callback:(void(^)(PowerAuthActivationResult * result, NSError * error))callback
 {
-	PowerAuthActivation * activation = [[PowerAuthActivation activationWithIdentityAttributes:identityAttributes name:name] withExtras:extras];
+	NSError * error = nil;
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithIdentityAttributes:identityAttributes name:name error:&error] withExtras:extras];
 	if (!activation && callback) {
 		// Missing identity attributes
-		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
+		callback(nil, error ? error : PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
 		return nil;
 	}
 	return [self createActivation:activation callback:callback];
@@ -553,10 +556,11 @@ static PowerAuthSDK * s_inst;
 														  extras:(nullable NSString*)extras
 														callback:(nonnull void(^)(PowerAuthActivationResult * result, NSError * error))callback
 {
-	PowerAuthActivation * activation = [[PowerAuthActivation activationWithRecoveryCode:recoveryCode recoveryPuk:puk name:name] withExtras:extras];
+	NSError * error = nil;
+	PowerAuthActivation * activation = [[PowerAuthActivation activationWithRecoveryCode:recoveryCode recoveryPuk:puk name:name error:&error] withExtras:extras];
 	if (!activation && callback) {
 		// Wrong recovery code or PUK
-		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
+		callback(nil, error ? error : PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil));
 		return nil;
 	}
 	return [self createActivation:activation callback:callback];

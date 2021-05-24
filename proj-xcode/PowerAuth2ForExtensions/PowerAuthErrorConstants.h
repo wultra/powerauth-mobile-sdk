@@ -61,65 +61,69 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
 	 */
 	PowerAuthErrorCode_InvalidActivationState		= 3,
 	/**
+	 Error code for error that occurs when activation code or recovery code is invalid
+	 */
+	PowerAuthErrorCode_InvalidActivationCode		= 4,
+	/**
 	 Error code for error that occurs when activation data is invalid
 	 */
-	PowerAuthErrorCode_InvalidActivationData		= 4,
+	PowerAuthErrorCode_InvalidActivationData		= 5,
 	/**
 	 Error code for error that occurs when activation is required but missing
 	 */
-	PowerAuthErrorCode_MissingActivation			= 5,
+	PowerAuthErrorCode_MissingActivation			= 6,
 	/**
 	 Error code for error that occurs when pending activation is present and work
 	 with completed activation is required
 	 */
-	PowerAuthErrorCode_ActivationPending			= 6,
+	PowerAuthErrorCode_ActivationPending			= 7,
 	/**
 	 Error code for TouchID or FaceID not available error
 	 */
-	PowerAuthErrorCode_BiometryNotAvailable			= 7,
+	PowerAuthErrorCode_BiometryNotAvailable			= 8,
 	/**
 	 Error code for TouchID or FaceID action cancel error
 	 */
-	PowerAuthErrorCode_BiometryCancel				= 8,
+	PowerAuthErrorCode_BiometryCancel				= 9,
 	/**
 	 Error code for biometric authentication failure. This can happen when biometric
 	 authentication is requested and is not configured, or when failed to acquire
 	 biometry key from the keychain.
 	 */
-	PowerAuthErrorCode_BiometryFailed				= 9,
+	PowerAuthErrorCode_BiometryFailed				= 10,
 	/**
 	 Error code for canceled operation. This kind of error may occur in situations, when SDK
 	 needs to cancel an asynchronous operation, but the cancel is not initiated by the application
 	 itself. For example, if you reset the state of `PowerAuthSDK` during the pending
 	 fetch for activation status, then the application gets an exception, with this error code.
 	 */
-	PowerAuthErrorCode_OperationCancelled			= 10,
+	PowerAuthErrorCode_OperationCancelled			= 11,
 	/**
 	 Error code for errors related to end-to-end encryption or general encryption failure.
 	 */
-	PowerAuthErrorCode_Encryption					= 11,
+	PowerAuthErrorCode_Encryption					= 12,
 	/**
 	 Error code for a general API misuse
 	 */
-	PowerAuthErrorCode_WrongParameter				= 12,
+	PowerAuthErrorCode_WrongParameter				= 13,
 	/**
 	 Error code for accessing an unknown token
 	 */
-	PowerAuthErrorCode_InvalidToken					= 13,
+	PowerAuthErrorCode_InvalidToken					= 14,
 	/**
 	 Error code for a general error related to WatchConnectivity
 	 */
-	PowerAuthErrorCode_WatchConnectivity			= 14,
+	PowerAuthErrorCode_WatchConnectivity			= 15,
 	/**
 	 Error code for protocol upgrade failure.
 	 The recommended action is to retry the status fetch operation, or locally remove the activation.
 	 */
-	PowerAuthErrorCode_ProtocolUpgrade				= 15,
+	PowerAuthErrorCode_ProtocolUpgrade				= 16,
 	/**
 	 The requested function is not available during the protocol upgrade. You can retry the operation,
 	 after the upgrade is finished.
 	 */
-	PowerAuthErrorCode_PendingProtocolUpgrade		= 16,
+	PowerAuthErrorCode_PendingProtocolUpgrade		= 17,
 };
 
 @interface NSError (PowerAuthErrorCode)

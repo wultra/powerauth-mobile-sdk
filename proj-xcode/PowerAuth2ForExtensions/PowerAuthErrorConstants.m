@@ -36,6 +36,7 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
 		_CODE_DESC(PowerAuthErrorCode_NetworkError, @"Network error")
 		_CODE_DESC(PowerAuthErrorCode_SignatureError, @"Signature error")
 		_CODE_DESC(PowerAuthErrorCode_InvalidActivationState, @"Invalid activation state")
+		_CODE_DESC(PowerAuthErrorCode_InvalidActivationCode, @"Invalid activation code")
 		_CODE_DESC(PowerAuthErrorCode_InvalidActivationData, @"Invalid activation data")
 		_CODE_DESC(PowerAuthErrorCode_MissingActivation, @"Missing activation")
 		_CODE_DESC(PowerAuthErrorCode_ActivationPending, @"Pending activation")

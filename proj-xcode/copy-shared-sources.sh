@@ -36,11 +36,15 @@ function USAGE
     echo "                    all targets."
     echo ""
     echo "options are:"
-    echo "  -f | --force      do not compare dates and always copy files"
-    echo "  -v0               turn off all prints to stdout"
-    echo "  -v1               print only basic log about build progress"
-    echo "  -v2               print full build log with rich debug info"
-    echo "  -h | --help       prints this help information"
+    echo "  -f | --force      Do not compare dates and always copy files"
+    echo "  -t | --test       Do not copy files, only test for the changes."
+    echo "                    Script will fail at the end in case there are"
+    echo "                    differences between shared files."
+    echo ""
+    echo "  -v0               Turn off all prints to stdout"
+    echo "  -v1               Print only basic log about build progress"
+    echo "  -v2               Print full build log with rich debug info"
+    echo "  -h | --help       Prints this help information"
     echo ""
     exit $1
 }
@@ -52,6 +56,7 @@ function USAGE
 # TP - target base path, TI - target import
 # DT - do test only
 # FC - if 1, then always copy files
+# CC - number of copied files
 
 SP=
 SI=
@@ -59,6 +64,7 @@ TP=
 TI=
 DT=0
 FC=0
+CC=0
 
 # -----------------------------------------------------------------------------
 # Copy file from source relative path to the destination relative path and then
@@ -78,9 +84,12 @@ function PATCH
         # Regular PATCH operation
         if [ x$FC == x1 ] || [ "$SRC_FILE" -nt "$DST_FILE" ]; then
             LOG "  - $SRC   ->   $DST"
-            sed -e "s/#import <$SI\//#import <$TI\//g" "$SRC_FILE" > "$DST_FILE"
-            # Set modification date equal on both files
-            touch -r "$SRC_FILE" "$DST_FILE"
+            if [ x$DO_TEST_ONLY == x0 ]; then
+                sed -e "s/#import <$SI\//#import <$TI\//g" "$SRC_FILE" > "$DST_FILE"
+                # Set modification date equal on both files
+                touch -r "$SRC_FILE" "$DST_FILE"
+            fi
+            CC=$((CC + 1))
         else
             DEBUG_LOG "  - $SRC   ==   $DST"
         fi
@@ -99,7 +108,8 @@ function PATCH_ALL_MARKED_FILES
 {
     LOG_LINE
     [[ x$DT == x1 ]] && LOG "Testing shared files between $SI and $TI"
-    [[ x$DT == x0 ]] && LOG "Copying shared files from $SI to $TI"
+    [[ x$DT$DO_TEST_ONLY == x00 ]] && LOG "Copying shared files from $SI to $TI"
+    [[ x$DT$DO_TEST_ONLY == x01 ]] && LOG "Testing shared files between $SI and $TI"
     
     PUSH_DIR "$SP"
     
@@ -199,6 +209,7 @@ function TEST_SDK_SOURCES
 DO_WATCH=0
 DO_EXTENSIONS=0
 DO_SDK_TEST=0
+DO_TEST_ONLY=0
 
 while [[ $# -gt 0 ]]
 do
@@ -212,6 +223,9 @@ do
             ;;
         sdktest)
             DO_SDK_TEST=1
+            ;;
+        -t | --test)
+            DO_TEST_ONLY=1
             ;;
         -f | --force)
             FC=1
@@ -235,8 +249,10 @@ if [ x$DO_WATCH$DO_EXTENSIONS$DO_SDK_TEST == x000 ]; then
     DO_SDK_TEST=1
 fi
 
-[[ x$DO_SDK_TEST == x1 ]] && TEST_SDK_SOURCES
-[[ x$DO_WATCH == x1 ]] && PATCH_WATCH_SOURCES
+[[ x$DO_SDK_TEST == x1   ]] && TEST_SDK_SOURCES
+[[ x$DO_WATCH == x1      ]] && PATCH_WATCH_SOURCES
 [[ x$DO_EXTENSIONS == x1 ]] && PATCH_EXTENSIONS_SOURCES
+
+[[ x$DO_TEST_ONLY == x1  ]] && [[ x$CC != x0 ]] && FAILURE "There are differences in shared files. This script will fail due to '--test' option."
 
 EXIT_SUCCESS

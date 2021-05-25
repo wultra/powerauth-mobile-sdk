@@ -20,7 +20,7 @@ function USAGE
 	echo "                      Only X.Y.Z format is accepted"
 	echo ""
 	echo "platform            is at least one supported platform:"
-	echo "    android           for deployment to jcenter"
+	echo "    android           for deployment to Maven Central"
 	echo "    ios               for deployment to CocoaPods"
 	echo ""
 	echo "options are:"
@@ -209,7 +209,7 @@ function DEPLOY_IOS
 	fi
 	
     # Validate shared sources before publishing
-    "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh"
+    "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
     
 	PUSH_DIR "${SRC_ROOT}"
 	####

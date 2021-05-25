@@ -17,6 +17,11 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 
 #import <PowerAuth2/PowerAuthWCSessionManager.h>
+
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
+
 #import <PowerAuth2/PowerAuthErrorConstants.h>
 #import <PowerAuth2/PowerAuthLog.h>
 
@@ -500,3 +505,6 @@ static WCSession * _ValidateSession(WCSession * session)
 
 #pragma clang diagnostic pop	// pop "-Wunguarded-availability"
 
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

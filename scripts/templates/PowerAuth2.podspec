@@ -35,10 +35,8 @@ Pod::Spec.new do |s|
     s.source_files          = 'Build/PowerAuth2/**/*.{h,m}'
     s.private_header_files  = 'Build/PowerAuth2/Private/*.h'
     s.tvos.exclude_files    = [
-        'Build/PowerAuth2/PowerAuthWC*.{h,m}',
         'Build/PowerAuth2/Private/PA2WC*.{h,m}',
-        'Build/PowerAuth2/PowerAuthSDK+WatchSupport.m',
-        'Build/PowerAuth2/PowerAuthToken+WatchSupport.{h,m}'
+        'Build/PowerAuth2/Private/PowerAuthWC*.{h,m}'
     ]
     s.requires_arc          = true
     

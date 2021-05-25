@@ -21,8 +21,6 @@
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 
-#import "PA2WCSessionDataHandler.h"
-
 @import PowerAuthCore;
 
 // Exposing several private interfaces
@@ -56,6 +54,7 @@
 // -----------------------------------------------------------------------
 #if defined(PA2_WATCH_SUPPORT)
 // -----------------------------------------------------------------------
+#import "PA2WCSessionDataHandler.h"
 // Declaration required by watchSDK integration (see PowerAuthSDK+WatchSupport.m)
 @interface PowerAuthSDK (WatchSupportPrivate) <PA2WCSessionDataHandler>
 @end

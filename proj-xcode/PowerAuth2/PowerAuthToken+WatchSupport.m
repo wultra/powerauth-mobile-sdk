@@ -18,6 +18,10 @@
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthLog.h>
 
+// -----------------------------------------------------------------------
+#if defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------
+
 #import "PA2PrivateTokenInterfaces.h"
 #import "PowerAuthWCSessionManager+Private.h"
 #import "PA2WCSessionPacket_TokenData.h"
@@ -130,3 +134,7 @@
 }
 
 @end
+
+// -----------------------------------------------------------------------
+#endif // defined(PA2_WATCH_SUPPORT)
+// -----------------------------------------------------------------------

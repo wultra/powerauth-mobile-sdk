@@ -320,6 +320,9 @@
 		BFEC963E21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFEC963C21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFF6716B243376B0009279CA /* PowerAuthActivation.h in Headers */ = {isa = PBXBuildFile; fileRef = BFF67169243376B0009279CA /* PowerAuthActivation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFF6716C243376B0009279CA /* PowerAuthActivation.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF6716A243376B0009279CA /* PowerAuthActivation.m */; };
+		BFF711DE265D4FC800DB696A /* PowerAuthWCSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2A1200D12420011F0A6 /* PowerAuthWCSessionManager.m */; };
+		BFF711E5265D500300DB696A /* PowerAuthSDK+WatchSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BF462B7B201112E200529EFC /* PowerAuthSDK+WatchSupport.m */; };
+		BFF711E6265D505E00DB696A /* PowerAuthToken+WatchSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BF462B752011013800529EFC /* PowerAuthToken+WatchSupport.m */; };
 		BFFB0B9D2167A541004A06E2 /* PA2CreateActivationRequestData.h in Headers */ = {isa = PBXBuildFile; fileRef = BFFB0B9B2167A541004A06E2 /* PA2CreateActivationRequestData.h */; };
 		BFFB0B9E2167A541004A06E2 /* PA2CreateActivationRequestData.m in Sources */ = {isa = PBXBuildFile; fileRef = BFFB0B9C2167A541004A06E2 /* PA2CreateActivationRequestData.m */; };
 		BFFB0BA12167A9B4004A06E2 /* PA2CreateActivationResponseData.h in Headers */ = {isa = PBXBuildFile; fileRef = BFFB0B9F2167A9B4004A06E2 /* PA2CreateActivationResponseData.h */; };
@@ -1548,6 +1551,7 @@
 				BF5EB4B624C85FE200F9DDB2 /* PA2Request.m in Sources */,
 				BF5EB4B724C85FE200F9DDB2 /* PA2VaultUnlockResponse.m in Sources */,
 				BF5EB4B824C85FE200F9DDB2 /* PA2PrivateTokenData.m in Sources */,
+				BFF711E6265D505E00DB696A /* PowerAuthToken+WatchSupport.m in Sources */,
 				BF5EB4BA24C85FE200F9DDB2 /* PA2CreateActivationRequest.m in Sources */,
 				BF5EB4BC24C85FE200F9DDB2 /* PA2ValidateSignatureRequest.m in Sources */,
 				BF08251C2630514D00B34E24 /* PowerAuthErrorConstants.m in Sources */,
@@ -1574,9 +1578,11 @@
 				BF5EB4D424C85FE200F9DDB2 /* PA2HttpClient.m in Sources */,
 				BF5EB4D524C85FE200F9DDB2 /* PA2VaultUnlockRequest.m in Sources */,
 				BF5EB4D624C85FE200F9DDB2 /* PowerAuthLog.m in Sources */,
+				BFF711DE265D4FC800DB696A /* PowerAuthWCSessionManager.m in Sources */,
 				BF5EB4D924C85FE200F9DDB2 /* PowerAuthActivation.m in Sources */,
 				BF5EB4DA24C85FE200F9DDB2 /* PA2CreateActivationRecoveryData.m in Sources */,
 				BF5EB4DB24C85FE200F9DDB2 /* PowerAuthAuthorizationHttpHeader.m in Sources */,
+				BFF711E5265D500300DB696A /* PowerAuthSDK+WatchSupport.m in Sources */,
 				BF5EB4DC24C85FE200F9DDB2 /* PowerAuthAuthentication.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

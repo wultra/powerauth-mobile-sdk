@@ -215,7 +215,22 @@ function DEPLOY_IOS
 	####
 	LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
 	pod trunk push ${PODSPEC_COR}
-	LOG "----- Publishing ${PODSPEC} to CocoaPods..."
+    
+    # There's now way to test whether core has been really published.
+    #
+    # We can use --synchronized option, but it will clone the gigantic
+    # git repository with all specs, so update will take the same time
+    # as a plain wait.
+    
+    LOG_LINE
+    LOG "Waiting for several minutes to propagate ${PODSPEC_COR} to trunk..."
+    for c in {20..1}; do
+        LOG " - $c minute(s) to go..."
+        sleep 60
+    done
+    LOG_LINE
+	
+    LOG "----- Publishing ${PODSPEC} to CocoaPods..."
 	pod trunk push ${PODSPEC}
 	LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
 	pod trunk push ${PODSPEC_WOS}

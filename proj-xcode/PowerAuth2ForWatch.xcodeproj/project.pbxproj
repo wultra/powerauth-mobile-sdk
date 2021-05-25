@@ -120,7 +120,6 @@
 		BF86E852263C1EBE004C8AE5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF86E853263C1EBE004C8AE5 /* PowerAuthConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthConfiguration.m; sourceTree = "<group>"; };
 		BF86E854263C1EBE004C8AE5 /* PowerAuthKeychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthKeychain.m; sourceTree = "<group>"; };
-		BF86E8A8263C2192004C8AE5 /* copy-shared-sources.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "copy-shared-sources.sh"; sourceTree = SOURCE_ROOT; };
 		BF86E8AE263C231B004C8AE5 /* PowerAuthToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthToken.m; sourceTree = "<group>"; };
 		BF86E8AF263C231B004C8AE5 /* PowerAuthToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthToken.h; sourceTree = "<group>"; };
 		BF86E8B6263C2512004C8AE5 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
@@ -265,7 +264,6 @@
 		BF86E8A4263C20D4004C8AE5 /* support */ = {
 			isa = PBXGroup;
 			children = (
-				BF86E8A8263C2192004C8AE5 /* copy-shared-sources.sh */,
 				BF86E84D263C1EBD004C8AE5 /* PowerAuth2ForWatch.modulemap */,
 				BF86E852263C1EBE004C8AE5 /* Info.plist */,
 			);

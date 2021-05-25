@@ -128,7 +128,6 @@
 		BF44F309263C403600F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
 		BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthDeprecated.m; sourceTree = "<group>"; };
-		BF44F31D263C43D200F3D498 /* copy-shared-sources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "copy-shared-sources.sh"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,7 +202,6 @@
 		BF44F27F263C3BDD00F3D498 /* support */ = {
 			isa = PBXGroup;
 			children = (
-				BF44F31D263C43D200F3D498 /* copy-shared-sources.sh */,
 				BF44F2A5263C3C6F00F3D498 /* PowerAuth2ForExtensions.modulemap */,
 				BF44F276263C3B0F00F3D498 /* Info.plist */,
 			);

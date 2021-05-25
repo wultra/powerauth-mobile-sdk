@@ -372,10 +372,6 @@ REQUIRE_COMMAND otool
 # -----------------------------------------------------------------------------
 # Real job starts here :) 
 # -----------------------------------------------------------------------------
-#
-# Test shared sources
-#
-"${XCODE_DIR}/copy-shared-sources.sh"
 
 #
 # Prepare target directories

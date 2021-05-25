@@ -1,5 +1,6 @@
 Pod::Spec.new do |s|
     # General information
+    s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2ForWatch'
     s.version           = '%DEPLOY_VERSION%'
     s.summary           = 'PowerAuth Mobile SDK for watchOS'

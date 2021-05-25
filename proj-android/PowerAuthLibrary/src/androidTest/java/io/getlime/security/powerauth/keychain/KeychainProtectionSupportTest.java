@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.keychain;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Base64;
 
 import org.junit.After;
@@ -58,6 +59,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     private Context androidContext;
     private KeychainProtectionSupport realKeychainProtectionSupport;
     private boolean isLegacyOnly;
+    private boolean isTooOldSystem;
 
     @Before
     public void setUp() {
@@ -65,6 +67,7 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
         assertNotNull(androidContext);
         realKeychainProtectionSupport = new DefaultKeychainProtectionSupport(androidContext, false);
         isLegacyOnly = KeychainFactory.getKeychainProtectionSupportedOnDevice(androidContext) == KeychainProtection.NONE;
+        isTooOldSystem = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
 
         setupTestData();
 
@@ -500,6 +503,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
 
         // Simulate SDK upgrade from pre 1.4.2 version when encryption is supported.
 
+        if (isTooOldSystem) {
+            PowerAuthLog.e("testMigrationFromV0ToEncryptionEnabled - test is not supported on this device.");
+            return;
+        }
+
         // Cleanup keychains
         eraseAllKeychainData(KEYCHAIN_NAME1);
         eraseAllKeychainData(KEYCHAIN_NAME2);
@@ -523,6 +531,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     public void testMigrationFromV1ToEncryptionEnabled() throws Exception {
 
         // Simulate SDK upgrade from V1 keychain data when encryption is supported.
+
+        if (isTooOldSystem) {
+            PowerAuthLog.e("testMigrationFromV1ToEncryptionEnabled - test is not supported on this device.");
+            return;
+        }
 
         // Cleanup keychains
         eraseAllKeychainData(KEYCHAIN_NAME1);
@@ -556,6 +569,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
     public void testDowngradeEncryptionFromV1() throws Exception {
 
         // Test downgrade encrypted keychain in V1 format to legacy keychain.
+
+        if (isTooOldSystem) {
+            PowerAuthLog.e("testDowngradeEncryptionFromV1 - test is not supported on this device.");
+            return;
+        }
 
         // Cleanup keychains
         eraseAllKeychainData(KEYCHAIN_NAME1);
@@ -601,6 +619,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
 
         // Test downgrade encrypted keychain in current format to legacy keychain.
 
+        if (isTooOldSystem) {
+            PowerAuthLog.e("testDowngradeEncryption - test is not supported on this device.");
+            return;
+        }
+
         // Cleanup keychains
         eraseAllKeychainData(KEYCHAIN_NAME1);
         eraseAllKeychainData(KEYCHAIN_NAME2);
@@ -643,6 +666,11 @@ public class KeychainProtectionSupportTest extends BaseKeychainTest {
 
         // Test downgrade from encrypted keychain to a legacy keychain and then upgrade back
         // to encrypted keychain.
+
+        if (isTooOldSystem) {
+            PowerAuthLog.e("testDowngradeUpgradeEncryption - test is not supported on this device.");
+            return;
+        }
 
         // Cleanup keychains
         eraseAllKeychainData(KEYCHAIN_NAME1);

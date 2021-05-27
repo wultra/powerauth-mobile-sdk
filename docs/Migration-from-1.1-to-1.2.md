@@ -1,9 +1,5 @@
 # Migration from 1.1.x to 1.2.x
 
-This guide contains instructions for migration from PowerAuth Mobile SDK version `1.1.x` to version `1.2.x`.
-
-## Introduction
-
 PowerAuth Mobile SDK in version `1.2.0` introduces following important changes: 
 
 - **Android:** Complete reworked support for biometric authentication.

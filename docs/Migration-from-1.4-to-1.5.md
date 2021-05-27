@@ -1,9 +1,5 @@
 # Migration from 1.4.x to 1.5.x
 
-This guide contains instructions for migration from PowerAuth Mobile SDK version `1.4.x` to version `1.5.x`.
-
-## Introduction
-
 PowerAuth Mobile SDK in version `1.5.0` is a maintenance release that brings few enhancements to Android and adds support for more Apple platforms.
 
 ### Compatibility with PowerAuth Server

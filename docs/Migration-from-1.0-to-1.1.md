@@ -1,9 +1,5 @@
 # Migration from 1.0.x to 1.1.x
 
-This guide contains instructions for migration from PowerAuth Mobile SDK version `1.0.x` to version `1.1.x`.
-
-## Introduction
-
 PowerAuth Mobile SDK in version `1.1.0` doesn't require any specific migration steps. This release contains the following changes:
 
 - Adds support for [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature.

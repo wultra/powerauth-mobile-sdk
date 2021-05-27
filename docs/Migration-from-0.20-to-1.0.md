@@ -1,8 +1,4 @@
-# Migration from 0.20.x to 1.0.0
-
-This guide contains instructions for migration from PowerAuth Mobile SDK version 0.20.x to version 1.0.0.
-
-## Introduction
+# Migration from 0.20.x to 1.0.x
 
 In PowerAuth Release `2018.12`, we have introduced a few cryptographic improvements in PowerAuth protocol, which unfortunately led to few API breaking changes. We're calling all this changes in our documentation as "Crypto 3.0", or "PowerAuth protocol V3". Similarly, the old, legacy crypto, is now called as "PowerAuth protocol V2". Unfortunately, all this means that "V3" clients, cannot work with "V2" servers. So, we need to keep, for a limited time, two separate versions of SDK:
 

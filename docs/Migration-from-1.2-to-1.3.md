@@ -1,9 +1,5 @@
 # Migration from 1.2.x to 1.3.x
 
-This guide contains instructions for migration from PowerAuth Mobile SDK version `1.2.x` to version `1.3.x`.
-
-## Introduction
-
 PowerAuth Mobile SDK in version `1.3.0` introduces support for latest PowerAuth protocol version `3.1`. The main changes in PowerAuth protocol are following:
 
 - Improved information entropy in PowerAuth online signatures. The signature is now encoded into BASE64 instead of decimal string.

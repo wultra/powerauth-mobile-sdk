@@ -1,9 +1,5 @@
 # Migration from 1.5.x to 1.6.x
 
-This guide contains instructions for migration from PowerAuth Mobile SDK version `1.5.x` to version `1.6.x`.
-
-## Introduction
-
 PowerAuth Mobile SDK in version `1.6.0` is a maintenance release that brings multiple enhancements to both platforms:
 
 - Android SDK now depends on Android Jetpack libraries instead of the deprecated support library. This is most important for biometric authentication. 

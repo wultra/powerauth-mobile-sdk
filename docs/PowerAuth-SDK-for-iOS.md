@@ -1052,7 +1052,7 @@ If the recovery data was received during the activation process, then you can la
 
 ```swift
 let powerAuthSdk = PowerAuthSDK.sharedInstance()
-guard !powerAuthSdk.hasActivationRecoveryData() else {
+guard powerAuthSdk.hasActivationRecoveryData() else {
     // Recovery information is not available
     return
 }

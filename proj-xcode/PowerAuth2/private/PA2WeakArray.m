@@ -131,12 +131,10 @@
 			}
 		}
 	}];
-	if (cleanupIndexes.count > 0) {
-		// Remove victims in reverese order.
-		[cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
-			[_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
-		}];
-	}
+	// Remove victims in reverese order.
+	[cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
+		[_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
+	}];
 	return strongArray;
 }
 

@@ -118,14 +118,25 @@
 - (NSArray*) allNonnullObjects
 {
 	NSMutableArray * strongArray = [NSMutableArray arrayWithCapacity:_array.count];
-	[[_array copy] enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
+	__block NSMutableArray * cleanupIndexes = nil;
+	[_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
 		id strongInstance = weakObj.instance;
 		if (strongInstance) {
 			[strongArray addObject:strongInstance];
 		} else {
-			[_array removeObjectAtIndex:idx];
+			if (cleanupIndexes == nil) {
+				cleanupIndexes = [NSMutableArray arrayWithObject:@(idx)];
+			} else {
+				[cleanupIndexes addObject:@(idx)];
+			}
 		}
 	}];
+	if (cleanupIndexes.count > 0) {
+		// Remove victims in reverese order.
+		[cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
+			[_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
+		}];
+	}
 	return strongArray;
 }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2021 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
 
 #import "PA2WeakArray.h"
 
@@ -116,13 +118,22 @@
 - (NSArray*) allNonnullObjects
 {
 	NSMutableArray * strongArray = [NSMutableArray arrayWithCapacity:_array.count];
-	[[_array copy] enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
+	__block NSMutableArray * cleanupIndexes = nil;
+	[_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
 		id strongInstance = weakObj.instance;
 		if (strongInstance) {
 			[strongArray addObject:strongInstance];
 		} else {
-			[_array removeObjectAtIndex:idx];
+			if (cleanupIndexes == nil) {
+				cleanupIndexes = [NSMutableArray arrayWithObject:@(idx)];
+			} else {
+				[cleanupIndexes addObject:@(idx)];
+			}
 		}
+	}];
+	// Remove victims in reverese order.
+	[cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
+		[_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
 	}];
 	return strongArray;
 }

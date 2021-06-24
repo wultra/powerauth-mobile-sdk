@@ -164,6 +164,7 @@
 		BFB47D6720753675008A6A52 /* libPowerAuthCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D6220753640008A6A52 /* libPowerAuthCore.a */; };
 		BFB47D6C207536B1008A6A52 /* libPowerAuthCoreTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D6420753640008A6A52 /* libPowerAuthCoreTests.a */; };
 		BFBB36E72437679A00E2D741 /* PowerAuthActivationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBB36E62437679A00E2D741 /* PowerAuthActivationTests.m */; };
+		BFC079012684B2790090583B /* PA2WeakArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC079002684B2790090583B /* PA2WeakArrayTests.m */; };
 		BFC581052316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */; };
 		BFCEE09C216E280600B41201 /* PA2GetActivationStatusTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */; };
 		BFCEE09D216E280600B41201 /* PA2GetActivationStatusTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BFCEE09B216E280600B41201 /* PA2GetActivationStatusTask.m */; };
@@ -400,6 +401,7 @@
 		BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = SoapRequests.bundle; sourceTree = "<group>"; };
 		BFB47D5B20753640008A6A52 /* PowerAuthCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = PowerAuthCore.xcodeproj; sourceTree = "<group>"; };
 		BFBB36E62437679A00E2D741 /* PowerAuthActivationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthActivationTests.m; sourceTree = "<group>"; };
+		BFC079002684B2790090583B /* PA2WeakArrayTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArrayTests.m; sourceTree = "<group>"; };
 		BFC581022316C4BC004FFFF7 /* PA2ValidateSignatureRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ValidateSignatureRequest.h; sourceTree = "<group>"; };
 		BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ValidateSignatureRequest.m; sourceTree = "<group>"; };
 		BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2GetActivationStatusTask.h; sourceTree = "<group>"; };
@@ -696,6 +698,7 @@
 				BF4DBCCF1CDF9CDE008F3A47 /* PA2CoreTestsWrapper.mm */,
 				BF2347271F6C13CC0040FD0F /* PA2PublicObjectsTests.mm */,
 				BFDE2246242A1F0800D4FEB2 /* PA2AsyncOperationTests.m */,
+				BFC079002684B2790090583B /* PA2WeakArrayTests.m */,
 				BFAF73071EAA83AD005E7572 /* PowerAuthSDKTests.m */,
 				BF3C3FF324938A9A0062D739 /* PowerAuthSDKProtocolUpgradeTests.m */,
 				BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */,
@@ -1105,6 +1108,7 @@
 				BFAF73131EAA8986005E7572 /* SoapHelper.m in Sources */,
 				BFD386671F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m in Sources */,
 				BF20EA8F1EACB17600733D91 /* CXMLNode_XPathExtensions.m in Sources */,
+				BFC079012684B2790090583B /* PA2WeakArrayTests.m in Sources */,
 				BF20EA901EACB17600733D91 /* CXMLUnsupportedNode.m in Sources */,
 				BFAF73101EAA84CA005E7572 /* PowerAuthTestServerModel.m in Sources */,
 				BFAF730D1EAA84A2005E7572 /* PowerAuthTestServerAPI.m in Sources */,

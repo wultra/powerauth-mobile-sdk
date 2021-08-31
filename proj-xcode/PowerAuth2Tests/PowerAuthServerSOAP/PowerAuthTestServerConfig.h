@@ -27,6 +27,8 @@ typedef NS_ENUM(int, PowerAuthTestServerVersion) {
 	PATS_V0_23,		// V3.1 crypto
 	PATS_V0_23_2,	// V3.1 crypto + revoke RC on removeActivation
 	PATS_V0_24,		// V3.1 crypto + Activation OTP
+	PATS_V1_0,		// V3.1 crypto + Activation OTP
+	PATS_V1_1,		// V3.1 crypto + Activation OTP
 };
 
 /**

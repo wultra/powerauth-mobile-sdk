@@ -38,7 +38,9 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
-		if (_version == PATS_V0_24) {
+		if (_version == PATS_V0_24 ||
+			_version == PATS_V1_0 ||
+			_version == PATS_V1_1) {
 			_templateMapping = [SoapHelper mappingForV0_24];
 		} else {
 			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to older servers is not supported." userInfo:nil];

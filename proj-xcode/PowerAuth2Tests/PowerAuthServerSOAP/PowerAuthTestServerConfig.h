@@ -60,6 +60,14 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
  */
 @property (nonatomic, strong, readonly) NSString * soapApiUrl;
 /**
+ If set, then WS-Security header will be added to SOAP requests.
+ */
+@property (nonatomic, strong, readonly) NSString * soapAuthUsername;
+/**
+ If set, then WS-Security header will be added to SOAP requests.
+ */
+@property (nonatomic, strong, readonly) NSString * soapAuthPassword;
+/**
  String with version of SOAP API. "V2" & "V3" is expected in JSON config.
  "V2" is the default value.
  */

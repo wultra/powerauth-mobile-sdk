@@ -17,28 +17,15 @@
 #import "PowerAuthTestServerConfig.h"
 #import <UIKit/UIDevice.h>
 
-/**
- The `POWERAUTH_BASE_URL` macro defines a base URL where are the running server instances
- located. The default config expects that the SOAP & REST servers are running at "http://paserver"
- domain. If you're using a locally installed docker, then more common for you
- will be set the base URL to "http://localhost". 
- 
- NOTE: You should create a local configuration file instead of changing this source file.
-        Check TestConfig/Readme.md for details.
- */
-#ifndef POWERAUTH_BASE_URL
-#define POWERAUTH_BASE_URL @"http://localhost"
-#endif
-
 @implementation PowerAuthTestServerConfig
 
 + (instancetype) defaultConfig
 {
 	NSDictionary * dict =
 	@{
-	  @"restApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-webauth",
-	  @"soapApiUrl"           : POWERAUTH_BASE_URL @":8080/powerauth-java-server/soap",
-	  @"soapApiVersion"       : @"0.24",
+	  @"restApiUrl"           : @"http://localhost:8080/powerauth-webauth",
+	  @"soapApiUrl"           : @"http://localhost:8080/powerauth-java-server/soap",
+	  @"soapApiVersion"       : @"1.1",
 	  @"powerAuthAppName"     : @"AutomaticTest-IOS",
 	  @"powerAuthAppVersion"  : @"default"
 	  
@@ -127,6 +114,8 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 	if (instance) {
 		instance->_restApiUrl = dict[@"restApiUrl"];
 		instance->_soapApiUrl = dict[@"soapApiUrl"];
+		instance->_soapAuthUsername = dict[@"soapAuthUsername"];
+		instance->_soapAuthPassword = dict[@"soapAuthPassword"];
 		instance->_soapApiVersion = [self soapApiVersionFromString:dict[@"soapApiVersion"]];
 		instance->_powerAuthAppName = dict[@"powerAuthAppName"];
 		instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];

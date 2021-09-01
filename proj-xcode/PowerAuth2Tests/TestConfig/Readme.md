@@ -9,7 +9,7 @@ To do this, please follow these simple steps:
    {
 		"restApiUrl"           : "http://localhost:8080/powerauth-webflow",
 		"soapApiUrl"           : "http://localhost:8080/powerauth-java-server/soap",
-		"soapApiVersion"       : "0.24",
+		"soapApiVersion"       : "1.1",
 		"powerAuthAppName"     : "AutomaticTest-IOS",
 		"powerAuthAppVersion"  : "default"
    }
@@ -26,3 +26,5 @@ To do this, please follow these simple steps:
 6. Optional: You can devifine following additional keys in the dictionary:
    - `userIdentifier` - an user's identifier. It's recommended to set your own value when another developer is running tests against the same server.
    - `userActivationName` - a name will be used for newly created activations
+   - `soapAuthUsername` - an username in case that SOAP service needs authentication
+   - `soapAuthPassword` - a password in case that SOAP service needs authentication

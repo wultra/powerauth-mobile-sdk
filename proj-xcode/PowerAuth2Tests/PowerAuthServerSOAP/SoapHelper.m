@@ -25,6 +25,7 @@
 	NSURL * _url;
 	NSMutableDictionary * _cache;
 	PowerAuthTestServerVersion _version;
+	NSString * _headers;
 	NSDictionary<NSString*, SoapHelperMapping*>* _templateMapping;
 }
 
@@ -38,6 +39,7 @@
 		_version = config.soapApiVersion;
 		_cache = [NSMutableDictionary dictionary];
 		_session = [NSURLSession sharedSession];
+		_headers = [self prepareFixedHeaders:config];
 		if (_version == PATS_V0_24 ||
 			_version == PATS_V1_0 ||
 			_version == PATS_V1_1) {
@@ -167,15 +169,8 @@
 	NSString * templateString = [_cache objectForKey:templateName];
 	if (!templateString) {
 		// Load XML template from bundle
-		NSString * path = [_bundle pathForResource:mapping.envelopePath ofType:@"xml"];
-		if (!path) {
-			NSLog(@"Requested SOAP template doesn't exist");
-			return nil;
-		}
-		NSData * templateData = [[NSData alloc] initWithContentsOfFile:path];
-		templateString = [[NSString alloc] initWithData:templateData encoding:NSUTF8StringEncoding];
-		if (!templateData || !templateString) {
-			NSLog(@"Can't load data for SOAP template: %@", path);
+		templateString = [self loadTemplate:mapping.envelopePath];
+		if (!templateString) {
 			return nil;
 		}
 		// Store to cache
@@ -184,9 +179,57 @@
 	// 2) Remplace $XMLNS with xmlns value
 	templateString = [templateString stringByReplacingOccurrencesOfString:@"$XMLNS" withString:mapping.xmlns];
 	
-	// 3) Replace all $X placeholders with values from params array
-	for (NSUInteger index = 0; index < params.count; index++) {
-		id pobj = params[index];
+	// 3) Replace $HDR with headers
+	templateString = [templateString stringByReplacingOccurrencesOfString:@"$HDR" withString:_headers];
+	
+	// 4) Replace all $X placeholders with values from params array
+	return [self replaceParameters:params in:templateString];
+}
+
+/*
+ Returns string with content of XML SOAP headers, valid for all requests
+ */
+- (NSString*) prepareFixedHeaders:(PowerAuthTestServerConfig*)config
+{
+	if (config.soapAuthPassword && config.soapAuthUsername) {
+		NSString * templateString = [self loadTemplate:@"WS-Security"];
+		if (!templateString) {
+			@throw [NSException exceptionWithName:@"SoapError" reason:@"Failed to load WS-Security template" userInfo:nil];
+		}
+		return [self replaceParameters:@[config.soapAuthUsername, config.soapAuthPassword] in:templateString];
+	} else {
+		// Empty headers
+		return @"<soapenv:Header/>";
+	}
+}
+
+/*
+ Loads template string from bundle.
+ */
+- (NSString*) loadTemplate:(NSString*)templateName
+{
+	// Load XML template from bundle
+	NSString * path = [_bundle pathForResource:templateName ofType:@"xml"];
+	if (!path) {
+		NSLog(@"Requested SOAP template '%@' doesn't exist", templateName);
+		return nil;
+	}
+	NSData * templateData = [[NSData alloc] initWithContentsOfFile:path];
+	NSString * templateString = [[NSString alloc] initWithData:templateData encoding:NSUTF8StringEncoding];
+	if (!templateData || !templateString) {
+		NSLog(@"Can't load data for SOAP template: %@", path);
+		return nil;
+	}
+	return templateString;
+}
+
+/*
+ Replace parameters in template string.
+ */
+- (NSString*) replaceParameters:(NSArray*)parameters in:(NSString*)templateString
+{
+	for (NSUInteger index = 0; index < parameters.count; index++) {
+		id pobj = parameters[index];
 		NSString * pstr;
 		if ([pobj isKindOfClass:[NSString class]]) {
 			pstr = pobj;

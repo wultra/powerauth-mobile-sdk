@@ -1,5 +1,5 @@
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
-	<soapenv:Header/>
+	$HDR
 	<soapenv:Body>
 		<pow:VerifySignatureRequest>
 			<pow:activationId>$1</pow:activationId>

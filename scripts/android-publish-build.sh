@@ -148,7 +148,7 @@ case "$DO_REPO" in
         DO_PUBLISH='publishReleasePublicationToMavenLocal'
         ;;  
     central)
-        DO_PUBLISH='publishReleasePublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository'
+        DO_PUBLISH='publishReleasePublicationToSonatypeRepository'
         ;;
     *)
         FAILURE "You must specify repository where publish to."

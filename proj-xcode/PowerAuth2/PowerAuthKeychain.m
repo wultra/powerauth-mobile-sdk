@@ -22,7 +22,7 @@
 
 #import "PA2PrivateMacros.h"
 
-#if !defined(PA2_EXTENSION_SDK)
+#if !defined(PA2_EXTENSION_SDK) && defined(PA2_BIOMETRY_SUPPORT)
 // LA is not available for watchOS or Extensions
 #import <LocalAuthentication/LocalAuthentication.h>
 #include <pthread.h>

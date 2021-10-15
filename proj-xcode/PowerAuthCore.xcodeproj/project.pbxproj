@@ -1035,7 +1035,7 @@
 		BF3ACC7D2073DBA500B8107E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {

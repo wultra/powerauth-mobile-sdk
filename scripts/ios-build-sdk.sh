@@ -6,7 +6,7 @@
 # library distribution. Typically, this script is used for CocoaPods integration.
 # 
 # The result of the build process is:
-#    PowerAuthCore.xcframework:
+#    PowerAuthCore.xcframework or PowerAuth2.xcframework:
 #      multi-architecture, multi-platform dynamic framework (also called as "fat") 
 #      with all core functionality of PowerAuth2 SDK. The library contains all C++
 #      code, plus thin ObjC wrapper written on top of that codes.
@@ -37,10 +37,7 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 #
 # Source headers & Xcode project location
 #
-XCODE_PROJECT="${SRC_ROOT}/proj-xcode/PowerAuthCore.xcodeproj"
 SOURCE_FILES="${SRC_ROOT}/proj-xcode/PowerAuth2"
-XCODE_SCHEME_IOS="PowerAuthCore_iOS"
-XCODE_SCHEME_TVOS="PowerAuthCore_tvOS"
 
 #
 # Platforms & CPU architectures
@@ -57,8 +54,6 @@ MIN_VER_IOS="9.0"
 MIN_VER_TVOS="9.0"
 MIN_VER_CATALYST="10.15"
 
-OUT_FW="PowerAuthCore"
-
 # Variables loaded from command line
 VERBOSE=1
 FULL_REBUILD=1
@@ -66,6 +61,7 @@ CLEANUP_AFTER=1
 OUT_DIR=''
 TMP_DIR=''
 DO_BUILDCORE=0
+DO_BUILDSDK=0
 DO_COPYSDK=0
 
 # -----------------------------------------------------------------------------
@@ -82,6 +78,7 @@ function USAGE
     echo ""
     echo "  copySdk           Copy SDK files to output directory"
     echo "  buildCore         Build PowerAuthCore.xcframework to out directory"
+    echo "  buildSdk          Build PowerAuth2.xcframework to out directory"
     echo ""
 	echo "options are:"
 	echo "  -nc | --no-clean  disable 'clean' before 'build'"
@@ -108,7 +105,7 @@ function USAGE
 #
 # GET_PLATFORM_TARGET
 #   Print a build target for given build platform. For example, for 'iOS'
-#   function prints 'PowerAuthCore-ios'.
+#   function prints ${XCODE_TARGET_IOS}.
 #
 # GET_PLATFORM_MIN_OS_VER
 #   Print a minimum supported OS version for given build platform. For example, 
@@ -146,8 +143,8 @@ function GET_PLATFORM_SDK
 function GET_PLATFORM_TARGET
 {
 	case $1 in
-		iOS | iOS_Simulator | macOS_Catalyst)	echo 'PowerAuthCore-ios' ;;
-		tvOS | tvOS_Simulator)					echo 'PowerAuthCore-tvos' ;;
+		iOS | iOS_Simulator | macOS_Catalyst)	echo ${XCODE_TARGET_IOS} ;;
+		tvOS | tvOS_Simulator)					echo ${XCODE_TARGET_TVOS} ;;
 		*) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
 	esac
 }
@@ -251,11 +248,23 @@ function BUILD_COMMAND
 
 # -----------------------------------------------------------------------------
 # Build core library for all plaforms and create xcframework
+# Parameters:
+#   $1   - library name (PowerAuthCore, PowerAuth2)
 # -----------------------------------------------------------------------------
-function BUILD_CORE_LIB
+function BUILD_LIB
 {
+    local LIB_NAME=$1
+
+    # Setup global variables
+    XCODE_PROJECT="${SRC_ROOT}/proj-xcode/${LIB_NAME}.xcodeproj"
+    XCODE_SCHEME_IOS="${LIB_NAME}_iOS"
+    XCODE_SCHEME_TVOS="${LIB_NAME}_tvOS"
+    XCODE_TARGET_IOS="${LIB_NAME}-ios"
+    XCODE_TARGET_TVOS="${LIB_NAME}-tvos"
+    OUT_FW=${LIB_NAME}
+    
 	LOG_LINE
-	LOG "Building platforms..."
+	LOG "Building $LIB_NAME for supported platforms..."
 	LOG_LINE
 
 	ALL_FAT_LIBS=()
@@ -350,6 +359,9 @@ do
         buildCore)
             DO_BUILDCORE=1
 			;;
+        buildSdk)
+            DO_BUILDSDK=1
+			;;
         copySdk)
             DO_COPYSDK=1
             ;;
@@ -378,8 +390,8 @@ do
 	shift
 done
 
-if [ x$DO_BUILDCORE$DO_COPYSDK == x00 ]; then
-    FAILURE "No command specified. Use 'buildCore' or 'copySdk' parameter."
+if [ x$DO_BUILDCORE$DO_BUILDSDK$DO_COPYSDK == x000 ]; then
+    FAILURE "No command specified. Use 'buildCore', 'buildSdk' or 'copySdk' parameter."
 fi
 
 # Defaulting target & temporary folders
@@ -408,7 +420,8 @@ $MD "${TMP_DIR}"
 #
 # Build core or copy SDK
 #
-[[ x$DO_BUILDCORE == x1 ]] && BUILD_CORE_LIB
+[[ x$DO_BUILDCORE == x1 ]] && BUILD_LIB PowerAuthCore
+[[ x$DO_BUILDSDK == x1 ]] && BUILD_LIB PowerAuth2
 [[ x$DO_COPYSDK == x1 ]] && COPY_SDK_SOURCES
 
 #

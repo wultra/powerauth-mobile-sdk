@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.ProviderException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -77,7 +78,8 @@ public class AesGcmImpl {
             System.arraycopy(cipher.getIV(), 0, ciphertext, 0, IV_SIZE_IN_BYTES);
             return ciphertext;
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | ShortBufferException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | BadPaddingException |
+                IllegalBlockSizeException | ShortBufferException | ProviderException e) {
             PowerAuthLog.e("AesGcmImpl: " + identifier + ": Failed to encrypt keychain value. Exception: " + e.getMessage());
             return null;
         }
@@ -105,7 +107,8 @@ public class AesGcmImpl {
             cipher.updateAAD(aad);
             return cipher.doFinal(ciphertext, IV_SIZE_IN_BYTES, ciphertext.length - IV_SIZE_IN_BYTES);
 
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException |
+                InvalidKeyException | BadPaddingException | IllegalBlockSizeException | ProviderException e) {
             PowerAuthLog.e("AesGcmImpl: " + identifier + ": Failed to decrypt keychain value. Exception: " + e.getMessage());
             return null;
         }

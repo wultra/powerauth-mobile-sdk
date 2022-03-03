@@ -108,7 +108,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
                 // Keep encrypt mode flag to be validated later in encrypt / decrypt methods.
                 this.encryptMode = encryptMode;
             }
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
+        } catch (ProviderException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException e) {
             PowerAuthLog.e("BiometricKeyEncryptorAes.initializeCipher failed: " + e.getMessage());
             this.cipher = null;
         } finally {
@@ -161,7 +161,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
             // Derive the key
             return cipher.doFinal(keyToDerive);
-        } catch (BadPaddingException | IllegalBlockSizeException e) {
+        } catch (ProviderException | BadPaddingException | IllegalBlockSizeException e) {
             PowerAuthLog.e("BiometricKeyEncryptorAes.aesKdf failed: " + e.getMessage());
             return null;
         }

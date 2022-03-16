@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * Listener for password validation.
@@ -35,5 +36,5 @@ public interface IValidatePasswordListener {
      * @param t error that occurred during the validation.
      */
     @MainThread
-    void onPasswordValidationFailed(Throwable t);
+    void onPasswordValidationFailed(@NonNull Throwable t);
 }

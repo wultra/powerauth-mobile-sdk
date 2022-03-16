@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * Listener for password change.
@@ -35,5 +36,5 @@ public interface IChangePasswordListener {
      * @param t error that occurred during the password change.
      */
     @MainThread
-    void onPasswordChangeFailed(Throwable t);
+    void onPasswordChangeFailed(@NonNull Throwable t);
 }

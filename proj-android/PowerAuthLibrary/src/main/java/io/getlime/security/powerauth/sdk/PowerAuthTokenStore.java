@@ -156,7 +156,7 @@ public class PowerAuthTokenStore {
                 authentication,
                 new INetworkResponseListener<TokenResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(TokenResponsePayload response) {
+                    public void onNetworkResponse(@NonNull TokenResponsePayload response) {
                         // Success, try to construct a new PowerAuthPrivateTokenData object.
                         final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
                         final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes);
@@ -171,7 +171,7 @@ public class PowerAuthTokenStore {
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onGetTokenFailed(t);
                     }
 
@@ -232,14 +232,14 @@ public class PowerAuthTokenStore {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         // On success, remove local token data & notify listener
                         removeLocalToken(context, tokenName);
                         listener.onRemoveTokenSucceeded();
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onRemoveTokenFailed(t);
                     }
 

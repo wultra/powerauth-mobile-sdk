@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * Listener for activation removal.
@@ -35,5 +36,5 @@ public interface IActivationRemoveListener {
      * @param t error that occurred during the activation removal.
      */
     @MainThread
-    void onActivationRemoveFailed(Throwable t);
+    void onActivationRemoveFailed(@NonNull Throwable t);
 }

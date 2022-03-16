@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+import java.util.Arrays;
+
 /**
  * The CryptoUtils class provides a several general cryptographic primitives
  * required in our other open source libraries.
@@ -44,6 +46,18 @@ public class CryptoUtils {
      * @return bytes with SHA-256 result
      */
     public static native byte[] hashSha256(byte[] data);
+
+    /**
+     * Computes SHA-256 from given data and resize the result required length.
+     *
+     * @param data bytes to be hashed
+     * @param resultLength Size of the returned array.
+     * @return bytes with SHA-256 result. If new length is greater than 32, then returned array is padded with zeros.
+     */
+    public static byte[] hashSha256(byte[] data, int resultLength) {
+        byte[] hash = hashSha256(data);
+        return Arrays.copyOf(hash, resultLength);
+    }
 
     /**
      * Compute HMAC-SHA-256 for given data and key.

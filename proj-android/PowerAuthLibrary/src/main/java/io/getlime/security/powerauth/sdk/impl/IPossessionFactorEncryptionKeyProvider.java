@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.response;
+package io.getlime.security.powerauth.sdk.impl;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 /**
- * Strategy for getting encryption key that protects possession factor key. The provided key
+ * Interface for getting encryption key that protects possession factor key. The provided key
  * should be calculated from data unique for the device, such as ANDROID_ID.
- *
- * The interface is deprecated since 1.7.0. If you still use it, then please contact us that
- * we can provide a new solution for you.
  */
-@Deprecated
-public interface IFetchKeysStrategy {
-
+public interface IPossessionFactorEncryptionKeyProvider {
     /**
      * Return encryption key that protects possession factor key.
      * @param context Android context.
-     * @return String that will be reinterpret into encryption key that protects possession factor key.
+     * @return 16 bytes long encryption key that protects possession factor key.
      */
-    @NonNull String getPossessionUnlockKey(@NonNull Context context);
+    @NonNull byte[] getPossessionFactorEncryptionKey(@NonNull Context context);
 }

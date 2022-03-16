@@ -20,6 +20,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
   - `IFetchEncryptionKeyListener`
   - `IValidatePasswordListener`
   
+- Interface `IFetchKeysStrategy` is now deprecated and will be removed in the next major SDK release.
+  - There's `IPossessionFactorEncryptionKeyProvider` that SDK is using internally as a replacement. If your application depends on `IFetchKeysStrategy`, then please contact us to find a proper solution for you.
 
 ### Other changes
 

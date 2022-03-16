@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.interfaces;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * The {@code INetworkResponseListener} defines callback interface from HTTP client
@@ -27,14 +28,14 @@ public interface INetworkResponseListener<TResponse> {
      * @param response response object returned from the server
      */
     @MainThread
-    void onNetworkResponse(TResponse response);
+    void onNetworkResponse(@NonNull TResponse response);
 
     /**
      * Called when HTTP request failed with an error.
      * @param throwable exception with an error
      */
     @MainThread
-    void onNetworkError(Throwable throwable);
+    void onNetworkError(@NonNull Throwable throwable);
 
     /**
      * Called when HTTP request was cancelled.

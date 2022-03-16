@@ -172,7 +172,7 @@ public class GetActivationStatusTask implements ICancelable {
             }
 
             @Override
-            public void onActivationStatusFailed(Throwable t) {
+            public void onActivationStatusFailed(@NonNull Throwable t) {
                 // In case of error, just complete the task with error.
                 completeTask(null, t);
             }
@@ -198,7 +198,7 @@ public class GetActivationStatusTask implements ICancelable {
                 cryptoHelper,
                 new INetworkResponseListener<ActivationStatusResponse>() {
                     @Override
-                    public void onNetworkResponse(ActivationStatusResponse response) {
+                    public void onNetworkResponse(@NonNull ActivationStatusResponse response) {
                         // Network communication completed correctly
                         pendingOperation = null;
                         // Prepare object with encryped status
@@ -218,7 +218,7 @@ public class GetActivationStatusTask implements ICancelable {
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         pendingOperation = null;
                         listener.onActivationStatusFailed(t);
                     }
@@ -258,13 +258,13 @@ public class GetActivationStatusTask implements ICancelable {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         pendingOperation = null;
                         completeTask(status, null);
                     }
 
                     @Override
-                    public void onNetworkError(Throwable throwable) {
+                    public void onNetworkError(@NonNull Throwable throwable) {
                         pendingOperation = null;
                         completeTask(null, throwable);
                     }
@@ -422,7 +422,7 @@ public class GetActivationStatusTask implements ICancelable {
                 cryptoHelper,
                 new INetworkResponseListener<UpgradeResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(UpgradeResponsePayload response) {
+                    public void onNetworkResponse(@NonNull UpgradeResponsePayload response) {
                         // Http request succeeded.
                         pendingOperation = null;
                         // Prepare and apply the upgrade data.
@@ -440,7 +440,7 @@ public class GetActivationStatusTask implements ICancelable {
                     }
 
                     @Override
-                    public void onNetworkError(Throwable throwable) {
+                    public void onNetworkError(@NonNull Throwable throwable) {
                         // In case of error, try to repeat the operation
                         pendingOperation = null;
                         fetchActivationStatusAndTestUpgrade();
@@ -468,7 +468,7 @@ public class GetActivationStatusTask implements ICancelable {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void o) {
+                    public void onNetworkResponse(@NonNull Void o) {
                         // Http request succeeded.
                         pendingOperation = null;
                         // Everything looks fine, just finish the operation
@@ -476,7 +476,7 @@ public class GetActivationStatusTask implements ICancelable {
                     }
 
                     @Override
-                    public void onNetworkError(Throwable throwable) {
+                    public void onNetworkError(@NonNull Throwable throwable) {
                         // In case of error, try to repeat the operation
                         pendingOperation = null;
                         fetchActivationStatusAndTestUpgrade();

@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * Listener for encryption key retrieval.
@@ -29,7 +30,7 @@ public interface IFetchEncryptionKeyListener {
      * @param encryptedEncryptionKey the retrieved encryption key.
      */
     @MainThread
-    void onFetchEncryptionKeySucceed(byte[] encryptedEncryptionKey);
+    void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey);
 
     /**
      * Called when encryption key retrieval fails.
@@ -37,5 +38,5 @@ public interface IFetchEncryptionKeyListener {
      * @param t error that occurred during the encryption key retrieval.
      */
     @MainThread
-    void onFetchEncryptionKeyFailed(Throwable t);
+    void onFetchEncryptionKeyFailed(@NonNull Throwable t);
 }

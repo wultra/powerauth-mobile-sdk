@@ -358,6 +358,7 @@ public class PowerAuthSDK {
      * @param context Context.
      * @return Default device related key.
      */
+    @NonNull
     private byte[] deviceRelatedKey(@NonNull Context context) {
         return mSession.normalizeSignatureUnlockKeyFromData(mConfiguration.getFetchKeysStrategy().getPossessionUnlockKey(context).getBytes());
     }
@@ -471,12 +472,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<VaultUnlockResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(VaultUnlockResponsePayload response) {
+                    public void onNetworkResponse(@NonNull VaultUnlockResponsePayload response) {
                         listener.onFetchEncryptedVaultUnlockKeySucceed(response.getEncryptedVaultEncryptionKey());
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onFetchEncryptedVaultUnlockKeyFailed(t);
                     }
 
@@ -695,7 +696,7 @@ public class PowerAuthSDK {
                     cryptoHelper,
                     new INetworkResponseListener<ActivationLayer1Response>() {
                         @Override
-                        public void onNetworkResponse(ActivationLayer1Response response) {
+                        public void onNetworkResponse(@NonNull ActivationLayer1Response response) {
                             // Process response from the server
                             try {
                                 // Try to decrypt Layer2 object from response
@@ -727,7 +728,7 @@ public class PowerAuthSDK {
                         }
 
                         @Override
-                        public void onNetworkError(Throwable throwable) {
+                        public void onNetworkError(@NonNull Throwable throwable) {
                             // In case of error, reset the session & report that exception
                             mSession.resetSession();
                             listener.onActivationCreateFailed(throwable);
@@ -1234,13 +1235,13 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         removeActivationLocal(context);
                         listener.onActivationRemoveSucceed();
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onActivationRemoveFailed(t);
                     }
 
@@ -1537,7 +1538,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onPasswordValidationFailed(Throwable t) {
+            public void onPasswordValidationFailed(@NonNull Throwable t) {
                 listener.onPasswordChangeFailed(t);
             }
         });
@@ -1825,12 +1826,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         listener.onPasswordValid();
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onPasswordValidationFailed(t);
                     }
 
@@ -2154,12 +2155,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<ConfirmRecoveryResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(ConfirmRecoveryResponsePayload confirmRecoveryResponsePayload) {
+                    public void onNetworkResponse(@NonNull ConfirmRecoveryResponsePayload confirmRecoveryResponsePayload) {
                         listener.onRecoveryCodeConfirmed(confirmRecoveryResponsePayload.getAlreadyConfirmed());
                     }
 
                     @Override
-                    public void onNetworkError(Throwable throwable) {
+                    public void onNetworkError(@NonNull Throwable throwable) {
                         listener.onRecoveryCodeConfirmFailed(throwable);
                     }
 

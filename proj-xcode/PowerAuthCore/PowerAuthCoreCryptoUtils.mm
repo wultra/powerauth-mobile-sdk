@@ -27,7 +27,9 @@ using namespace io::getlime::powerAuth;
 @property (nonatomic, readonly) EC_KEY * ecKeyRef;
 @end
 
-
+@interface PowerAuthCoreECPrivateKey (Private)
+@property (nonatomic, readonly) EC_KEY * ecKeyRef;
+@end
 
 #pragma mark -
 
@@ -42,6 +44,43 @@ using namespace io::getlime::powerAuth;
 	return (BOOL) crypto::ECDSA_ValidateSignature(cpp_data, cpp_signature, publicKey.ecKeyRef);
 }
 
++ (nullable NSData*) ecdsaComputeSignature:(nonnull NSData*)data
+                            withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
+{
+    auto cpp_data = cc7::objc::CopyFromNSData(data);
+    cc7::ByteArray cpp_signature;
+    if (crypto::ECDSA_ComputeSignature(cpp_data, privateKey.ecKeyRef, cpp_signature)) {
+        return cc7::objc::CopyToNSData(cpp_signature);
+    }
+    return nil;
+}
+
++ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
+{
+    auto shared_secret = crypto::ECDH_SharedSecret(publicKey.ecKeyRef, privateKey.ecKeyRef);
+    if (shared_secret.empty()) {
+        return nil;
+    }
+    return cc7::objc::CopyToNSData(shared_secret);
+}
+
++ (nullable PowerAuthCoreECKeyPair*) ecGenerateKeyPair
+{
+    EC_KEY * key_pair = crypto::ECC_GenerateKeyPair();
+    if (key_pair == nullptr) {
+        return nil;
+    }
+    crypto::BNContext context;
+    auto public_key_bytes = crypto::ECC_ExportPublicKey(key_pair, context);
+    auto private_key_bytes = crypto::ECC_ExportPrivateKey(key_pair, context);
+    if (public_key_bytes.empty() || private_key_bytes.empty()) {
+        return nil;
+    }
+    PowerAuthCoreECPublicKey * public_key = [[PowerAuthCoreECPublicKey alloc] initWithData:cc7::objc::CopyToNSData(public_key_bytes)];
+    PowerAuthCoreECPrivateKey * private_key = [[PowerAuthCoreECPrivateKey alloc] initWithData:cc7::objc::CopyToNSData(private_key_bytes)];
+    return [[PowerAuthCoreECKeyPair alloc] initWithPrivateKey:private_key withPublicKey:public_key];
+}
 
 + (NSData*) hashSha256:(NSData *)data
 {
@@ -84,8 +123,6 @@ using namespace io::getlime::powerAuth;
 	EC_KEY * _key;
 }
 
-#pragma mark - Init & Dealloc
-
 - (void) dealloc
 {
 	EC_KEY_free(_key);
@@ -104,11 +141,69 @@ using namespace io::getlime::powerAuth;
 	return self;
 }
 
-#pragma mark - Getters
-
 - (EC_KEY*) ecKeyRef
 {
 	return _key;
+}
+
+- (NSData*) publicKeyBytes
+{
+    return cc7::objc::CopyToNSData(crypto::ECC_ExportPublicKey(_key));
+}
+
+@end
+
+
+#pragma mark -
+
+@implementation PowerAuthCoreECPrivateKey
+{
+    EC_KEY * _key;
+}
+
+- (void) dealloc
+{
+    EC_KEY_free(_key);
+    _key = nullptr;
+}
+
+- (id) initWithData:(NSData *)privateKeyData
+{
+    self = [super init];
+    if (self) {
+        _key = crypto::ECC_ImportPrivateKey(nullptr, cc7::objc::CopyFromNSData(privateKeyData));
+        if (!_key) {
+            return nil;
+        }
+    }
+    return self;
+}
+
+- (EC_KEY*) ecKeyRef
+{
+    return _key;
+}
+
+- (NSData*) privateKeyBytes
+{
+    return cc7::objc::CopyToNSData(crypto::ECC_ExportPrivateKey(_key));
+}
+
+@end
+
+#pragma mark -
+
+@implementation PowerAuthCoreECKeyPair
+
+- (instancetype) initWithPrivateKey:(PowerAuthCoreECPrivateKey *)privateKey
+                      withPublicKey:(PowerAuthCoreECPublicKey *)publicKey
+{
+    self = [super init];
+    if (self) {
+        _privateKey = privateKey;
+        _publicKey = publicKey;
+    }
+    return self;
 }
 
 @end

@@ -16,6 +16,9 @@
 
 package io.getlime.security.powerauth.core;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 /**
  * The CryptoUtils class provides a several general cryptographic primitives
  * required in our other open source libraries.
@@ -26,16 +29,54 @@ public class CryptoUtils {
         System.loadLibrary("PowerAuth2Module");
     }
 
+    /**
+     * Generate new EcKeyPair for Elliptic Curve cryptography routines. NIST P-256 curve is used under the hood.
+     * @return New key-pair or null in case of failure.
+     */
+    public static native EcKeyPair ecGenerateKeyPair();
 
     /**
      * Validates ECDSA signature for given data and EC public key.
+     *
+     * This method is now deprecated. As a replacement you can use {@link #ecdsaValidateSignature(byte[], byte[], EcPublicKey)}
+     * variant that provides a better performance.
      *
      * @param data signed data
      * @param signature signature calculated for data
      * @param publicKeyData EC public key
      * @return true if signature is valid
      */
-    public static native boolean ecdsaValidateSignature(byte[] data, byte[] signature, byte[] publicKeyData);
+    @Deprecated
+    public static boolean ecdsaValidateSignature(byte[] data, byte[] signature, byte[] publicKeyData) {
+        return ecdsaValidateSignature(data, signature, new EcPublicKey(publicKeyData));
+    }
+
+    /**
+     * Validates ECDSA signature for given data and EC public key.
+     *
+     * @param data signed data
+     * @param signature signature calculated for data
+     * @param publicKey EC public key
+     * @return true if signature is valid
+     */
+    public static native boolean ecdsaValidateSignature(byte[] data, byte[] signature, EcPublicKey publicKey);
+
+    /**
+     * Create ECDSA signature for given data and EC private key.
+     *
+     * @param data data to sign.
+     * @param privateKey EC public key
+     * @return Array of bytes with signature or null in case of failure.
+     */
+    public static native byte[] ecdsaComputeSignature(byte[] data, EcPrivateKey privateKey);
+
+    /**
+     * Compute shared secret with using ECDH key-agreement.
+     * @param publicKey Public key.
+     * @param privateKey Private key.
+     * @return Bytes with shared secret or null in case of failure.
+     */
+    public static native byte[] ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey);
 
     /**
      * Computes SHA-256 from given data.

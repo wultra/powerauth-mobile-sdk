@@ -16,19 +16,112 @@
 
 #import "PA2SharedReadWriteLock.h"
 #import <PowerAuth2/PowerAuthLog.h>
+#include <pthread.h>
 
 @import PowerAuthCore;
 
+/**
+ Internal structure keeping lock data.
+ */
+typedef struct LockData {
+	/**
+	 Pointer to function that implements lock function.
+	 */
+	void (*lockFunc)(struct LockData * data, BOOL isWrite);
+	/**
+	 Pointer to function that implements unlock function.
+	 */
+	void (*unlockFunc)(struct LockData * data, BOOL isWrite);
+	/**
+	 Pointer to function that implements close lock function.
+	 */
+	void (*closeFunc)(struct LockData * data);
+	/**
+	 File descriptor. If -1, then no file is opened.
+	 */
+	int fileDescriptor;
+	
+	/**
+	 Flag indicates that mutex property is initialized and needs to be destroyed.
+	 */
+	BOOL mutexInitialized;
+	/**
+	 mutex implementation.
+	 */
+	pthread_mutex_t mutex;
+	/**
+	 How many read locks has been acquired for this thread.
+	 */
+	int readLockCount;
+	/**
+	 How many write locks has been acquired for this thread.
+	 */
+	int writeLockCount;
+	
+} LockData;
+
+
 @implementation PA2SharedReadWriteLock
 {
-	NSString * _fileName;
-	int _fd;
+	LockData _lockData;
 }
+
+static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
+
+#pragma mark - Public interface
+
+- (instancetype) initWithPath:(NSString *)path recursive:(BOOL)recursive
+{
+	self = [super init];
+	if (self) {
+		if (_LockInit(path, recursive, &_lockData) == NO) {
+			PowerAuthLog(@"PA2SharedReadWriteLock: Failed to initialize lock");
+			return nil;
+		}
+	}
+	return self;
+}
+
+- (void) dealloc
+{
+	_lockData.closeFunc(&_lockData);
+}
+
+- (void) readLock
+{
+	_lockData.lockFunc(&_lockData, NO);
+}
+
+- (void) readUnlock
+{
+	_lockData.unlockFunc(&_lockData, NO);
+}
+
+- (void) writeLock
+{
+	_lockData.lockFunc(&_lockData, YES);
+}
+
+- (void) writeUnlock
+{
+	_lockData.unlockFunc(&_lockData, YES);
+}
+
+- (void) lock
+{
+	_lockData.lockFunc(&_lockData, YES);
+}
+
+- (void) unlock
+{
+	_lockData.unlockFunc(&_lockData, YES);
+}
+
 
 #pragma mark - Private
 
 #if DEBUG
-static int _PrintErrno(NSString * functionName)
+static void _PrintErrno(NSString * functionName)
 {
 	char buffer[256];
 	strerror_r(errno, buffer, sizeof(buffer));
@@ -39,103 +132,165 @@ static int _PrintErrno(NSString * functionName)
 #define _PrintErrno(functionName)
 #endif
 
-static NSString * _LockPreparePath(NSString * appGroup, NSString * identifier)
+static void _LockSimple(LockData *, BOOL);
+static void _UnlockSimple(LockData *, BOOL);
+static void _CloseSimple(LockData *);
+static void _LockRecursive(LockData *, BOOL);
+static void _UnlockRecursive(LockData *, BOOL);
+static void _CloseRecursive(LockData *);
+
+/**
+ Initialize LockData structure for given file and lock type.
+ */
+static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 {
-	// Acquire URL to shared directory.
-	NSURL * containerUrl = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:appGroup];
-	if (!containerUrl) {
-		PowerAuthLog(@"PA2SharedReadWriteLock: Failed to get container URL for app group '%@'", appGroup);
-		return nil;
+	memset(lockData, 0, sizeof(LockData));
+	lockData->fileDescriptor = -1;
+
+	if (recursive) {
+		lockData->lockFunc   = _LockRecursive;
+		lockData->unlockFunc = _UnlockRecursive;
+		lockData->closeFunc  = _CloseRecursive;
+	} else {
+		lockData->lockFunc   = _LockSimple;
+		lockData->unlockFunc = _UnlockSimple;
+		lockData->closeFunc  = _CloseSimple;
 	}
-	// Calculate hash from identifier.
-	NSString * fullIdentifier = [[PowerAuthCoreCryptoUtils hashSha256:[identifier dataUsingEncoding:NSUTF8StringEncoding]] base64EncodedStringWithOptions:0];
-	NSString * lockFile = [@"PowerAuthSharedLock-" stringByAppendingString:fullIdentifier];
-	NSURL * fileUrl = [containerUrl	URLByAppendingPathComponent:lockFile isDirectory:NO];
-	if (!fileUrl) {
-		PowerAuthLog(@"PA2SharedReadWriteLock: Failed to build lock file path. App group '%@', lockFile '%@'", appGroup, lockFile);
-		return nil;
+	
+	BOOL result = NO;
+	do {
+		// Open file for locking
+		lockData->fileDescriptor = open(lockPath.UTF8String, O_CREAT | O_TRUNC | O_RDWR, 0666);
+		if (lockData->fileDescriptor == -1) {
+			_PrintErrno(@"PA2SharedReadWriteLock: open()");
+			break;
+		}
+		// If lock is recursive, then also initialize pthread mutex.
+		if (recursive) {
+			pthread_mutexattr_t attr;
+			pthread_mutexattr_init(&attr);
+			pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+			int int_result = pthread_mutex_init(&lockData->mutex, &attr);
+			pthread_mutexattr_destroy(&attr);
+			if (int_result != 0) {
+				_PrintErrno(@"PA2SharedReadWriteLock: pthread_mutex_init()");
+				break;
+			}
+			lockData->mutexInitialized = YES;
+		}
+		
+		// Everything looks OK
+		result = YES;
+
+	} while (false);
+	
+	if (result == NO) {
+		// Cleanup failed initialized lock
+		lockData->closeFunc(lockData);
 	}
-	return fileUrl.path;
+	return result;
 }
 
-static int _LockInit(NSString * lockPath)
+static void _LockOperation(LockData * ld, int operation)
 {
-	if (!lockPath) {
-		return -1;
-	}
-	// Open file for locking
-	int fd = open(lockPath.UTF8String, O_CREAT | O_TRUNC | O_RDWR, 0666);
-	if (fd == -1) {
-		_PrintErrno(@"PA2SharedReadWriteLock: open()");
-	}
-	return fd;
-}
-
-static void _LockClose(int fd)
-{
-	if (fd != -1) {
-		close(fd);
-	}
-}
-
-static void _LockOperation(int fd, int operation)
-{
-	if (fd != -1) {
-		int result = flock(fd, operation);
+	if (ld->fileDescriptor != -1) {
+		int result = flock(ld->fileDescriptor, operation);
 		if (result != 0) {
 			_PrintErrno([NSString stringWithFormat:@"PA2SharedReadWriteLock: flock(_, %d)", operation]);
 		}
-	} else {
-		PowerAuthLog(@"PA2SharedReadWriteLock: Invalid file descriptor");
 	}
 }
 
-#pragma mark - Public
+#pragma mark - Simple lock
 
-- (instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-					   identifier:(nonnull NSString*)identifier
+static void _LockSimple(LockData * ld, BOOL isWrite)
 {
-	self = [super init];
-	if (self) {
-		_fileName = _LockPreparePath(appGroup, identifier);
-		_fd = _LockInit(_fileName);
-		if (_fd == -1) {
-			return nil;
+	// The simple implementation just try to acquire file lock.
+	_LockOperation(ld, isWrite ? LOCK_EX : LOCK_SH);
+}
+
+static void _UnlockSimple(LockData * ld, BOOL isWrite)
+{
+	// The simple implementation just release an acquired lock.
+	_LockOperation(ld, LOCK_UN);
+}
+
+static void _CloseSimple(LockData * ld)
+{
+	// Close file if we're still have the file descriptor.
+	if (ld->fileDescriptor != -1) {
+		close(ld->fileDescriptor);
+		ld->fileDescriptor = -1;
+	}
+}
+
+#pragma mark - Recursive lock
+
+static void _LockRecursive(LockData * ld, BOOL isWrite)
+{
+	// At first, acquire recursive mutex for this thread.
+	if (!ld->mutexInitialized) {
+		return;
+	}
+	if (pthread_mutex_lock(&ld->mutex) != 0) {
+		_PrintErrno(@"PA2SharedReadWriteLock: pthread_mutex_lock()");
+		return;
+	}
+	
+	int sharedLockOperation = 0;
+	if (isWrite) {
+		// Increase number of write locks. If count is 1, then we have to acquire
+		// exclusive lock on the underlying file.
+		ld->writeLockCount++;
+		if (ld->writeLockCount == 1) {
+			sharedLockOperation = LOCK_EX;
+		}
+	} else {
+		// Increase number of read locks. If count is 1 and there's no write lock,
+		// then we have to acquire an exclusive lock on the underlying file.
+		ld->readLockCount++;
+		if (ld->readLockCount == 1 && ld->writeLockCount == 0) {
+			sharedLockOperation = LOCK_SH;
 		}
 	}
-	return self;
+	if (sharedLockOperation != 0) {
+		_LockOperation(ld, sharedLockOperation);
+	}
 }
 
-- (void) dealloc
+static void _UnlockRecursive(LockData * ld, BOOL isWrite)
 {
-	_LockClose(fd);
+	if (!ld->mutexInitialized) {
+		return;
+	}
+	// At first, decrement appropriate counter.
+	if (isWrite) {
+		ld->writeLockCount--;
+	} else {
+		ld->readLockCount--;
+	}
+	// If both counters are equal to 0, then we can also release the underlying file lock.
+	if (ld->readLockCount == 0 && ld->writeLockCount == 0) {
+		_LockOperation(ld, LOCK_UN);
+	}
+	if (ld->readLockCount < 0 || ld->writeLockCount < 0) {
+		PowerAuthLog(@"PA2SharedReadWriteLock: lock* - unlock* functions are not in pair.");
+	}
+	// And finally, release recursive pthread mutex.
+	if (pthread_mutex_unlock(&ld->mutex) != 0) {
+		_PrintErrno(@"PA2SharedReadWriteLock: pthread_mutex_unlock()");
+	}
 }
 
-- (void) readLock
+static void _CloseRecursive(LockData * ld)
 {
-	_LockOperation(_fd, LOCK_SH);
-}
-
-- (void) writeLock
-{
-	_LockOperation(_fd, LOCK_EX);
-}
-
-- (void) lock
-{
-	_LockOperation(_fd, LOCK_EX);
-}
-
-- (void) unlock
-{
-	_LockOperation(_fd, LOCK_UN);
-}
-
-- (void) eraseUnderlyingFile
-{
-	_LockClose(_fd);
-	_fd = -1;
-	[[NSFileManager defaultManager] removeItemAtPath:_fileName error:NULL];
+	// Destroy mutex if it's still initialized.
+	if (ld->mutexInitialized == YES) {
+		pthread_mutex_destroy(&ld->mutex);
+		ld->mutexInitialized = NO;
+	}
+	// Close file descriptor
+	_CloseSimple(ld);
 }
 
 @end

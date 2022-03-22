@@ -52,6 +52,10 @@
 		BF20EA901EACB17600733D91 /* CXMLUnsupportedNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */; };
 		BF20EA991EACB21E00733D91 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */; };
 		BF20EA9A1EACB21E00733D91 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */; };
+		BF28A9FC27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
+		BF28A9FD27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
+		BF28A9FE27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */; };
+		BF28A9FF27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */; };
 		BF30DB5C206CEAE900430C12 /* PA2VaultUnlockRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BF30DB5A206CEAE900430C12 /* PA2VaultUnlockRequest.h */; };
 		BF30DB5D206CEAE900430C12 /* PA2VaultUnlockRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF30DB5B206CEAE900430C12 /* PA2VaultUnlockRequest.m */; };
 		BF31607527E895DD00EDA287 /* PA2SharedReadWriteLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF31607327E895DD00EDA287 /* PA2SharedReadWriteLock.h */; };
@@ -519,6 +523,8 @@
 		BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_CreationExtensions.m; sourceTree = "<group>"; };
 		BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_CreationExtensions.h; sourceTree = "<group>"; };
 		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
+		BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AppGroupContainer.h; sourceTree = "<group>"; };
+		BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AppGroupContainer.m; sourceTree = "<group>"; };
 		BF3017681FE0252E0099B253 /* PA2PrivateRemoteTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateRemoteTokenProvider.h; sourceTree = "<group>"; };
 		BF30176A1FE026F80099B253 /* PA2PrivateHttpTokenProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateHttpTokenProvider.h; sourceTree = "<group>"; };
 		BF30176B1FE026F80099B253 /* PA2PrivateHttpTokenProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateHttpTokenProvider.m; sourceTree = "<group>"; };
@@ -913,6 +919,8 @@
 				BFFECECD2638449D001DA7A9 /* PA2PrivateConstants.h */,
 				BF31607327E895DD00EDA287 /* PA2SharedReadWriteLock.h */,
 				BF31607427E895DD00EDA287 /* PA2SharedReadWriteLock.m */,
+				BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */,
+				BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */,
 			);
 			name = system;
 			sourceTree = "<group>";
@@ -1152,6 +1160,7 @@
 				BF5EB50924C85FE200F9DDB2 /* PowerAuthSDK+Private.h in Headers */,
 				BF5EB50A24C85FE200F9DDB2 /* PA2EncryptedRequest.h in Headers */,
 				BF5EB50C24C85FE200F9DDB2 /* PA2VaultUnlockResponse.h in Headers */,
+				BF28A9FD27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */,
 				BF31607627E895DD00EDA287 /* PA2SharedReadWriteLock.h in Headers */,
 				BF5EB50E24C85FE200F9DDB2 /* PA2PrivateHttpTokenProvider.h in Headers */,
 				BF5EB50F24C85FE200F9DDB2 /* PA2ValidateSignatureRequest.h in Headers */,
@@ -1215,6 +1224,7 @@
 				BF8D4BF721661AA400AD896C /* PA2RestApiObjects.h in Headers */,
 				BFFECECE263844AA001DA7A9 /* PA2PrivateConstants.h in Headers */,
 				BF0825192630514D00B34E24 /* PowerAuthErrorConstants.h in Headers */,
+				BF28A9FC27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */,
 				BF8CF4DE2032EB41002A6B6E /* PA2PrivateTokenKeychainStore.h in Headers */,
 				BF585FC5215BC12D00DE49C3 /* PA2ObjectSerialization.h in Headers */,
 				BF8CF4E02032EB41002A6B6E /* PA2Response.h in Headers */,
@@ -1596,6 +1606,7 @@
 				BF5EB4D524C85FE200F9DDB2 /* PA2VaultUnlockRequest.m in Sources */,
 				BF5EB4D624C85FE200F9DDB2 /* PowerAuthLog.m in Sources */,
 				BFF711DE265D4FC800DB696A /* PowerAuthWCSessionManager.m in Sources */,
+				BF28A9FF27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */,
 				BF5EB4D924C85FE200F9DDB2 /* PowerAuthActivation.m in Sources */,
 				BF5EB4DA24C85FE200F9DDB2 /* PA2CreateActivationRecoveryData.m in Sources */,
 				BF5EB4DB24C85FE200F9DDB2 /* PowerAuthAuthorizationHttpHeader.m in Sources */,
@@ -1643,6 +1654,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF28A9FE27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */,
 				BF8BFBE5215B8760001D6852 /* PA2HttpRequest.m in Sources */,
 				BF8CF4812032EB41002A6B6E /* PA2PrivateTokenKeychainStore.m in Sources */,
 				BF8CF4822032EB41002A6B6E /* PowerAuthClientSslNoValidationStrategy.m in Sources */,

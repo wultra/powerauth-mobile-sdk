@@ -17,15 +17,18 @@
 
 /**
  The `PA2SharedReadWriteLock` implements Read-Write interprocess locking.
- The object also implements `NSLocking` protocol where "lock" is equal to "writeLock".
+ The object also implements `NSLocking` protocol where "lock" is equal to "writeLock"
+ and "unlock" to "writeUnlock".
  */
 @interface PA2SharedReadWriteLock : NSObject<NSLocking>
 
 /**
- Initialize read-write interprocess lock with app group and lock identifier.
+ Initialize read-write interprocess lock with full path to file used for locking.
+ If recursive parameter is YES, then reentrant lock is created, so you can acquire lock
+ for multiple times from the same thread.
  */
-- (nullable instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-                                identifier:(nonnull NSString*)identifier;
+- (nullable instancetype) initWithPath:(nonnull NSString*)path
+							 recursive:(BOOL)recursive;
 
 /**
  Acquire read lock.
@@ -33,15 +36,18 @@
 - (void) readLock;
 
 /**
+ Release read lock.
+ */
+- (void) readUnlock;
+
+/**
  Acquire write lock.
  */
 - (void) writeLock;
 
 /**
- Erase underlying lock file.
- 
- This is helpful only for cleanup or debugging purposes.
+ Release write lock.
  */
-- (void) eraseUnderlyingFile;
+- (void) writeUnlock;
 
 @end

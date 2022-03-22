@@ -72,12 +72,12 @@ public class EcdsaSignatureTest {
             public void execute(@NonNull final AsyncHelper.ResultCatcher<byte[]> resultCatcher) throws Exception {
                 powerAuthSDK.signDataWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), dataToSign, new IDataSignatureListener() {
                     @Override
-                    public void onDataSignedSucceed(byte[] signature) {
+                    public void onDataSignedSucceed(@NonNull byte[] signature) {
                         resultCatcher.completeWithResult(signature);
                     }
 
                     @Override
-                    public void onDataSignedFailed(Throwable t) {
+                    public void onDataSignedFailed(@NonNull Throwable t) {
                         resultCatcher.completeWithError(t);
                     }
                 });

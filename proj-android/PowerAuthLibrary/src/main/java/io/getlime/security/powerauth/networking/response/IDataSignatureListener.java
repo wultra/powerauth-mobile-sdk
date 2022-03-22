@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 
 /**
  * Listener for data signature.
@@ -31,7 +32,7 @@ public interface IDataSignatureListener {
      * @param signature the data signature.
      */
     @MainThread
-    void onDataSignedSucceed(byte[] signature);
+    void onDataSignedSucceed(@NonNull byte[] signature);
 
     /**
      * Called when data signature fails.
@@ -39,5 +40,5 @@ public interface IDataSignatureListener {
      * @param t error that occurred during the data signature.
      */
     @MainThread
-    void onDataSignedFailed(Throwable t);
+    void onDataSignedFailed(@NonNull Throwable t);
 }

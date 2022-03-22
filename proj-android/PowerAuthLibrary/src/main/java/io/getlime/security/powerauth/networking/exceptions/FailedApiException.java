@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.networking.exceptions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import androidx.annotation.Nullable;
+
 /**
  * Signals that a REST connection failed with an unknown response from the server.
  * You can investigate a received HTTP response code and response body string
@@ -29,16 +31,16 @@ public class FailedApiException extends Exception {
     /**
      * HTTP response code
      */
-    private int responseCode;
+    private final int responseCode;
     /**
      * HTTP response body. The value may be null.
      */
-    private String responseBody;
+    private final String responseBody;
 
     /**
      * JSON parsed from response body or null if received content is not JSON
      */
-    private JsonObject responseJson;
+    private final JsonObject responseJson;
 
     /**
      * Constructs an exception with response code and response body.
@@ -47,7 +49,7 @@ public class FailedApiException extends Exception {
      * @param responseBody HTTP response body
      * @param responseJson JsonObject parsed from responseBody
      */
-    public FailedApiException(int responseCode, String responseBody, JsonObject responseJson) {
+    public FailedApiException(int responseCode, @Nullable String responseBody, @Nullable JsonObject responseJson) {
         this.responseCode = responseCode;
         this.responseBody = responseBody;
         this.responseJson = responseJson;
@@ -62,7 +64,7 @@ public class FailedApiException extends Exception {
      * @param responseBody HTTP response body
      * @param responseJson JsonObject parsed from responseBody
      */
-    public FailedApiException(String message, int responseCode, String responseBody, JsonObject responseJson) {
+    public FailedApiException(@Nullable String message, int responseCode, @Nullable String responseBody, @Nullable JsonObject responseJson) {
         super(message);
         this.responseCode = responseCode;
         this.responseBody = responseBody;
@@ -79,6 +81,7 @@ public class FailedApiException extends Exception {
     /**
      * @return HTTP response body. The returned value may be null.
      */
+    @Nullable
     public String getResponseBody() {
         return responseBody;
     }
@@ -86,6 +89,7 @@ public class FailedApiException extends Exception {
     /**
      * @return {@link JsonObject} parsed from response body or null if received content is not JSON
      */
+    @Nullable
     public JsonObject getResponseJson() {
         return responseJson;
     }
@@ -95,6 +99,7 @@ public class FailedApiException extends Exception {
      *         at "responseObject" path. Returns null if response content is not JSON, or if there's
      *         no {@link JsonObject} type available at required path.
      */
+    @Nullable
     public JsonObject getResponseObjectFromResponseJson() {
         if (responseJson != null) {
             final JsonElement element = responseJson.get("responseObject");

@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.networking.response;
 
 import androidx.annotation.MainThread;
 
+import androidx.annotation.NonNull;
 import io.getlime.security.powerauth.core.ActivationStatus;
 
 /**
@@ -39,5 +40,5 @@ public interface IActivationStatusListener {
      * @param t error that occurred during the activation status retrieval.
      */
     @MainThread
-    void onActivationStatusFailed(Throwable t);
+    void onActivationStatusFailed(@NonNull Throwable t);
 }

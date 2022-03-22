@@ -167,7 +167,7 @@ public class ActivationHelper {
                     }
 
                     @Override
-                    public void onActivationStatusFailed(Throwable t) {
+                    public void onActivationStatusFailed(@NonNull Throwable t) {
                         resultCatcher.completeWithError(t);
                     }
                 });
@@ -327,7 +327,7 @@ public class ActivationHelper {
                     }
 
                     @Override
-                    public void onPasswordValidationFailed(Throwable t) {
+                    public void onPasswordValidationFailed(@NonNull Throwable t) {
                         if (t instanceof ErrorResponseApiException) {
                             final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
                             if (apiException.getResponseCode() == 401) {

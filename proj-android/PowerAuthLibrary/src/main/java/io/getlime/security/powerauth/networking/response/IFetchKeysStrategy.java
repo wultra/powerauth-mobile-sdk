@@ -20,10 +20,19 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 /**
- * Created by miroslavmichalec on 03/11/2016.
+ * Strategy for getting encryption key that protects possession factor key. The provided key
+ * should be calculated from data unique for the device, such as ANDROID_ID.
+ *
+ * The interface is deprecated since 1.7.0. If you still use it, then please contact us that
+ * we can provide a new solution for you.
  */
-
+@Deprecated
 public interface IFetchKeysStrategy {
 
+    /**
+     * Return encryption key that protects possession factor key.
+     * @param context Android context.
+     * @return String that will be reinterpret into encryption key that protects possession factor key.
+     */
     @NonNull String getPossessionUnlockKey(@NonNull Context context);
 }

@@ -16,13 +16,16 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
 import io.getlime.security.powerauth.networking.response.IFetchKeysStrategy;
-import io.getlime.security.powerauth.sdk.impl.DefaultFetchKeysStrategy;
+import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
+import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
 
 /**
  * Class representing a configuration of a single PowerAuthSDK instance.
@@ -86,9 +89,9 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * @return {@link IFetchKeysStrategy} interface for key providing strategy.
+     * @return {@link IPossessionFactorEncryptionKeyProvider} provider for possession factor encryption key.
      */
-    public @NonNull IFetchKeysStrategy getFetchKeysStrategy() {
+    public @Nullable IFetchKeysStrategy getFetchKeysStrategy() {
         return fetchKeysStrategy;
     }
 
@@ -110,9 +113,7 @@ public class PowerAuthConfiguration {
      */
     public boolean validateConfiguration() {
         if (externalEncryptionKey != null) {
-            if (externalEncryptionKey.length != 16) {
-                return false;
-            }
+            return externalEncryptionKey.length == 16;
         }
         return true;
     }
@@ -136,7 +137,7 @@ public class PowerAuthConfiguration {
             @NonNull String appSecret,
             @NonNull String masterServerPublicKey,
             @Nullable byte[] externalEncryptionKey,
-            @NonNull IFetchKeysStrategy fetchKeysStrategy,
+            @Nullable IFetchKeysStrategy fetchKeysStrategy,
             boolean disableAutomaticProtocolUpgrade) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
@@ -195,10 +196,15 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Set
+         * Set application's provided implementation of {@link IFetchKeysStrategy}.
+         *
+         * The interface is deprecated since 1.7.0. If you still use this method, then please contact
+         * us that we can provide a new solution for you.
+         *
          * @param fetchKeysStrategy {@link IFetchKeysStrategy} interface for key providing strategy.
          * @return {@link Builder}
          */
+        @Deprecated
         public @NonNull Builder fetchKeysStrategy(@NonNull IFetchKeysStrategy fetchKeysStrategy) {
             this.fetchKeysStrategy = fetchKeysStrategy;
             return this;
@@ -235,7 +241,7 @@ public class PowerAuthConfiguration {
                     appSecret,
                     masterServerPublicKey,
                     externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null,
-                    fetchKeysStrategy != null ? fetchKeysStrategy : new DefaultFetchKeysStrategy(),
+                    fetchKeysStrategy,
                     disableAutomaticProtocolUpgrade);
         }
     }

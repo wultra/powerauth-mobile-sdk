@@ -16,7 +16,9 @@
 
 #import <Foundation/Foundation.h>
 
+@class PowerAuthCoreECKeyPair;
 @class PowerAuthCoreECPublicKey;
+@class PowerAuthCoreECPrivateKey;
 
 /**
  The `PowerAuthCoreCryptoUtils` class provides a several general cryptographic primitives
@@ -30,6 +32,22 @@
 + (BOOL) ecdsaValidateSignature:(nonnull NSData*)signature
 						forData:(nonnull NSData*)data
 				   forPublicKey:(nonnull PowerAuthCoreECPublicKey*)publicKey;
+/**
+ Compute ECDSA siganture for given data with using EC private key.
+ */
++ (nullable NSData*) ecdsaComputeSignature:(nonnull NSData*)data
+                            withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
+
+/**
+ Generate new EC key-pair.
+ */
++ (nullable PowerAuthCoreECKeyPair*) ecGenerateKeyPair;
+
+/**
+ Compute ECDH shared secret.
+ */
++ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
 
 /**
  Computes SHA-256 from given data.
@@ -71,5 +89,53 @@
  Returns nil if invalid data is provided.
  */
 - (nullable id) initWithData:(nonnull NSData*)publicKeyData;
+
+/**
+ Contains public key bytes.
+ */
+@property (nonatomic, readonly, strong, nonnull) NSData * publicKeyBytes;
+
+@end
+
+/**
+ The `PowerAuthCoreECPrivateKey` is an object representing private key in cryptography
+ based on elliptic curves.
+ */
+@interface PowerAuthCoreECPrivateKey: NSObject
+
+/**
+ Initializes object with EC private key data.
+ Returns nil if invalid data is provided.
+ */
+- (nullable id) initWithData:(nonnull NSData*)privateKeyData;
+
+/**
+ Contains private key bytes.
+ */
+@property (nonatomic, readonly, strong, nonnull) NSData * privateKeyBytes;
+
+@end
+
+/**
+ The `PowerAuthCoreECKeyPair` represents pair of public and private keys for elliptic
+ curve based cryptography routines.
+ */
+@interface PowerAuthCoreECKeyPair: NSObject
+
+/**
+ Initialize object with private and public key.
+ */
+- (nonnull instancetype) initWithPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
+                              withPublicKey:(nonnull PowerAuthCoreECPublicKey*)publicKey;
+
+/**
+ Contains private key part.
+ */
+@property (nonatomic, strong, readonly, nonnull) PowerAuthCoreECPrivateKey * privateKey;
+
+/**
+ Contains public key part.
+ */
+@property (nonatomic, strong, readonly, nonnull) PowerAuthCoreECPublicKey * publicKey;
 
 @end

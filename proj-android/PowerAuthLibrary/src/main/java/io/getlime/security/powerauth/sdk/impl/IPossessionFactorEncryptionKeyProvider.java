@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Wultra s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.response;
+package io.getlime.security.powerauth.sdk.impl;
 
-import androidx.annotation.MainThread;
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 /**
- * Listener for password validation.
+ * Interface for getting encryption key that protects possession factor key. The provided key
+ * should be calculated from data unique for the device, such as ANDROID_ID.
  */
-public interface IValidatePasswordListener {
-
+public interface IPossessionFactorEncryptionKeyProvider {
     /**
-     * Called when validation succeeds.
+     * Return encryption key that protects possession factor key.
+     * @param context Android context.
+     * @return 16 bytes long encryption key that protects possession factor key.
      */
-    @MainThread
-    void onPasswordValid();
-
-    /**
-     * Called when validation fails.
-     *
-     * @param t error that occurred during the validation.
-     */
-    @MainThread
-    void onPasswordValidationFailed(@NonNull Throwable t);
+    @NonNull byte[] getPossessionFactorEncryptionKey(@NonNull Context context);
 }

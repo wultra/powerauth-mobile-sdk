@@ -224,7 +224,7 @@ public class StandardActivationTest {
                     }
 
                     @Override
-                    public void onActivationRemoveFailed(Throwable t) {
+                    public void onActivationRemoveFailed(@NonNull Throwable t) {
                         resultCatcher.completeWithError(t);
                     }
                 });

@@ -44,7 +44,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("aaa", configuration.getAppKey());
         assertEquals("bbb", configuration.getAppSecret());
         assertEquals("ccc", configuration.getMasterServerPublicKey());
-        assertNotNull(configuration.getFetchKeysStrategy());
+        assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
     }
@@ -64,7 +64,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("aaa", configuration.getAppKey());
         assertEquals("bbb", configuration.getAppSecret());
         assertEquals("ccc", configuration.getMasterServerPublicKey());
-        assertNotNull(configuration.getFetchKeysStrategy());
+        assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
     }
@@ -86,7 +86,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("aaa", configuration.getAppKey());
         assertEquals("bbb", configuration.getAppSecret());
         assertEquals("ccc", configuration.getMasterServerPublicKey());
-        assertNotNull(configuration.getFetchKeysStrategy());
+        assertNull(configuration.getFetchKeysStrategy());
         assertArrayEquals(expectedEEK, configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
         // Test EEK after modify

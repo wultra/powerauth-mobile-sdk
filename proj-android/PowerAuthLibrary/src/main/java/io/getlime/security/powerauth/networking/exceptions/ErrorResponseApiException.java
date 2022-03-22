@@ -20,6 +20,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.getlime.core.rest.model.base.entity.Error;
 
 /**
@@ -31,6 +33,7 @@ public class ErrorResponseApiException extends FailedApiException {
     /**
      * Error response received from the server
      */
+    @NonNull
     private final Error errorResponse;
 
     /**
@@ -42,7 +45,7 @@ public class ErrorResponseApiException extends FailedApiException {
      * @param responseJson {@link JsonObject} with JSON root, received from the server. May be null if response
      *                     is not in JSON format.
      */
-    public ErrorResponseApiException(Error errorResponse, int responseCode, String responseBody, JsonObject responseJson) {
+    public ErrorResponseApiException(@NonNull Error errorResponse, int responseCode, @Nullable String responseBody, @Nullable JsonObject responseJson) {
         super(responseCode, responseBody, responseJson);
         this.errorResponse = errorResponse;
     }
@@ -50,6 +53,7 @@ public class ErrorResponseApiException extends FailedApiException {
     /**
      * @return {@link Error} model object with failure reason
      */
+    @NonNull
     public Error getErrorResponse() {
         return errorResponse;
     }

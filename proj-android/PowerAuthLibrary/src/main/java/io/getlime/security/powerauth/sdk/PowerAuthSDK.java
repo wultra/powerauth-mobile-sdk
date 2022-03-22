@@ -97,11 +97,13 @@ import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListene
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
+import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
 import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
 import io.getlime.security.powerauth.sdk.impl.FragmentHelper;
 import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
 import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
+import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
@@ -122,6 +124,7 @@ public class PowerAuthSDK {
     private final @NonNull IExecutorProvider mExecutorProvider;
     private final @NonNull HttpClient mClient;
     private final @NonNull ISavePowerAuthStateListener mStateListener;
+    private final @NonNull IPossessionFactorEncryptionKeyProvider mPossessionFactorEncryptionKeyProvider;
     private final @NonNull Keychain mBiometryKeychain;
     private final @NonNull Keychain mTokenStoreKeychain;
     private final @NonNull ICallbackDispatcher mCallbackDispatcher;
@@ -236,8 +239,16 @@ public class PowerAuthSDK {
             final Keychain biometryKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainBiometryId(), minRequiredKeychainProtection);
             final Keychain tokenStoreKeychain = KeychainFactory.getKeychain(appContext, mKeychainConfiguration.getKeychainTokenStoreId(), minRequiredKeychainProtection);
 
-            // Prepare state listener and callback dispatcher
+            // Prepare state listener
             final ISavePowerAuthStateListener stateListener = mStateListener != null ? mStateListener : new DefaultSavePowerAuthStateListener(statusKeychain);
+
+            // Prepare possession factor encryption key provider
+            final IPossessionFactorEncryptionKeyProvider possessionEncryptionKeyProvider;
+            if (mConfiguration.getFetchKeysStrategy() == null) {
+                possessionEncryptionKeyProvider = new DefaultPossessionFactorEncryptionKeyProvider();
+            } else {
+                possessionEncryptionKeyProvider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(mConfiguration.getFetchKeysStrategy());
+            }
 
             // Prepare low-level Session object.
             final SessionSetup sessionSetup = new SessionSetup(
@@ -257,6 +268,7 @@ public class PowerAuthSDK {
                     executorProvider,
                     httpClient,
                     stateListener,
+                    possessionEncryptionKeyProvider,
                     biometryKeychain,
                     tokenStoreKeychain,
                     mCallbackDispatcher);
@@ -276,6 +288,7 @@ public class PowerAuthSDK {
      * @param executorProvider          Thread executor provider.
      * @param client                    HTTP client implementation.
      * @param stateListener             State listener.
+     * @param possessionKeyProvider     Possession factor encryption key provider.
      * @param biometryKeychain          Keychain that store biometry-related key.
      * @param tokenStoreKeychain        Keychain that store tokens.
      * @param callbackDispatcher        Dispatcher that handle callbacks back to application.
@@ -287,6 +300,7 @@ public class PowerAuthSDK {
             @NonNull IExecutorProvider executorProvider,
             @NonNull HttpClient client,
             @NonNull ISavePowerAuthStateListener stateListener,
+            @NonNull IPossessionFactorEncryptionKeyProvider possessionKeyProvider,
             @NonNull Keychain biometryKeychain,
             @NonNull Keychain tokenStoreKeychain,
             @NonNull ICallbackDispatcher callbackDispatcher) {
@@ -296,6 +310,7 @@ public class PowerAuthSDK {
         this.mExecutorProvider = executorProvider;
         this.mClient = client;
         this.mStateListener = stateListener;
+        this.mPossessionFactorEncryptionKeyProvider = possessionKeyProvider;
         this.mBiometryKeychain = biometryKeychain;
         this.mTokenStoreKeychain = tokenStoreKeychain;
         this.mCallbackDispatcher = callbackDispatcher;
@@ -358,8 +373,9 @@ public class PowerAuthSDK {
      * @param context Context.
      * @return Default device related key.
      */
+    @NonNull
     private byte[] deviceRelatedKey(@NonNull Context context) {
-        return mSession.normalizeSignatureUnlockKeyFromData(mConfiguration.getFetchKeysStrategy().getPossessionUnlockKey(context).getBytes());
+        return mPossessionFactorEncryptionKeyProvider.getPossessionFactorEncryptionKey(context);
     }
 
     /**
@@ -471,12 +487,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<VaultUnlockResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(VaultUnlockResponsePayload response) {
+                    public void onNetworkResponse(@NonNull VaultUnlockResponsePayload response) {
                         listener.onFetchEncryptedVaultUnlockKeySucceed(response.getEncryptedVaultEncryptionKey());
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onFetchEncryptedVaultUnlockKeyFailed(t);
                     }
 
@@ -695,7 +711,7 @@ public class PowerAuthSDK {
                     cryptoHelper,
                     new INetworkResponseListener<ActivationLayer1Response>() {
                         @Override
-                        public void onNetworkResponse(ActivationLayer1Response response) {
+                        public void onNetworkResponse(@NonNull ActivationLayer1Response response) {
                             // Process response from the server
                             try {
                                 // Try to decrypt Layer2 object from response
@@ -727,7 +743,7 @@ public class PowerAuthSDK {
                         }
 
                         @Override
-                        public void onNetworkError(Throwable throwable) {
+                        public void onNetworkError(@NonNull Throwable throwable) {
                             // In case of error, reset the session & report that exception
                             mSession.resetSession();
                             listener.onActivationCreateFailed(throwable);
@@ -1234,13 +1250,13 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         removeActivationLocal(context);
                         listener.onActivationRemoveSucceed();
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onActivationRemoveFailed(t);
                     }
 
@@ -1537,7 +1553,7 @@ public class PowerAuthSDK {
             }
 
             @Override
-            public void onPasswordValidationFailed(Throwable t) {
+            public void onPasswordValidationFailed(@NonNull Throwable t) {
                 listener.onPasswordChangeFailed(t);
             }
         });
@@ -1825,12 +1841,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<Void>() {
                     @Override
-                    public void onNetworkResponse(Void aVoid) {
+                    public void onNetworkResponse(@NonNull Void aVoid) {
                         listener.onPasswordValid();
                     }
 
                     @Override
-                    public void onNetworkError(Throwable t) {
+                    public void onNetworkError(@NonNull Throwable t) {
                         listener.onPasswordValidationFailed(t);
                     }
 
@@ -2154,12 +2170,12 @@ public class PowerAuthSDK {
                 authentication,
                 new INetworkResponseListener<ConfirmRecoveryResponsePayload>() {
                     @Override
-                    public void onNetworkResponse(ConfirmRecoveryResponsePayload confirmRecoveryResponsePayload) {
+                    public void onNetworkResponse(@NonNull ConfirmRecoveryResponsePayload confirmRecoveryResponsePayload) {
                         listener.onRecoveryCodeConfirmed(confirmRecoveryResponsePayload.getAlreadyConfirmed());
                     }
 
                     @Override
-                    public void onNetworkError(Throwable throwable) {
+                    public void onNetworkError(@NonNull Throwable throwable) {
                         listener.onRecoveryCodeConfirmFailed(throwable);
                     }
 

@@ -76,9 +76,72 @@ public class CryptoUtilsTest {
                 new EcdsaTestData("00", "00", null, false)
         };
         for (EcdsaTestData data : testData) {
-            boolean result = CryptoUtils.ecdsaValidateSignature(data.data, data.signature, data.publicKey);
+            boolean result = CryptoUtils.ecdsaValidateSignature(data.data, data.signature, new EcPublicKey(data.publicKey));
             assertEquals(data.result, result);
         }
+    }
+
+    @Test
+    public void testEcdsaComputeSignature() throws Exception {
+        final EcKeyPair keyPair = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(keyPair);
+        byte[] testData = CryptoUtils.randomBytes(128);
+        assertNotNull(testData);
+        byte[] signature = CryptoUtils.ecdsaComputeSignature(testData, keyPair.getPrivateKey());
+        boolean validation = CryptoUtils.ecdsaValidateSignature(testData, signature, keyPair.getPublicKey());
+        assertTrue(validation);
+        testData[33] = (byte)(testData[33] + 1 & 0xFF);
+        validation = CryptoUtils.ecdsaValidateSignature(testData, signature, keyPair.getPublicKey());
+        assertFalse(validation);
+    }
+
+    @Test
+    public void testEcdhComputeSharedSecret() throws Exception {
+        final EcKeyPair alice = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(alice);
+        final EcKeyPair bob = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(bob);
+
+        final byte[] aliceSharedSecret = CryptoUtils.ecdhComputeSharedSecret(bob.getPublicKey(), alice.getPrivateKey());
+        final byte[] bobSharedSecret = CryptoUtils.ecdhComputeSharedSecret(alice.getPublicKey(), bob.getPrivateKey());
+
+        assertEquals(32, aliceSharedSecret.length);
+        assertArrayEquals(aliceSharedSecret, bobSharedSecret);
+    }
+
+    @Test
+    public void testDestroyedEcObjects() throws Exception {
+        // ECDSA
+        EcKeyPair keyPair = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(keyPair);
+        byte[] testData = CryptoUtils.randomBytes(128);
+        assertNotNull(testData);
+
+        final byte[] validSignature = CryptoUtils.ecdsaComputeSignature(testData, keyPair.getPrivateKey());
+        assertNotNull(validSignature);
+
+        keyPair.getPrivateKey().destroy();
+        assertNull(keyPair.getPrivateKey().getPrivateKeyData());
+
+        final byte[] emptySignature = CryptoUtils.ecdsaComputeSignature(testData, keyPair.getPrivateKey());
+        assertNull(emptySignature);
+
+        assertTrue(CryptoUtils.ecdsaValidateSignature(testData, validSignature, keyPair.getPublicKey()));
+        keyPair.getPublicKey().destroy();
+        assertNull(keyPair.getPublicKey().getPublicKeyData());
+        assertFalse(CryptoUtils.ecdsaValidateSignature(testData, validSignature, keyPair.getPublicKey()));
+
+        // ECDH
+        final EcKeyPair alice = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(alice);
+        final EcKeyPair bob = CryptoUtils.ecGenerateKeyPair();
+        assertNotNull(bob);
+
+        bob.getPublicKey().destroy();
+        bob.getPrivateKey().destroy();
+
+        assertNull(CryptoUtils.ecdhComputeSharedSecret(bob.getPublicKey(), alice.getPrivateKey()));
+        assertNull(CryptoUtils.ecdhComputeSharedSecret(alice.getPublicKey(), bob.getPrivateKey()));
     }
 
     //

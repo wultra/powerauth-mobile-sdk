@@ -31,6 +31,9 @@
 #import "PA2PrivateMacros.h"
 #import "PA2PrivateEncryptorFactory.h"
 #import "PA2GetActivationStatusTask.h"
+#import "PA2DefaultSessionProvider.h"
+#import "PA2SessionDataProvider.h"
+#import "PA2Result.h"
 
 #if defined(PA2_WATCH_SUPPORT)
 #import "PowerAuthWCSessionManager+Private.h"
@@ -49,6 +52,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 {
 	id<NSLocking> _lock;
 	
+	PowerAuthCoreSession * _coreSession;
 	PowerAuthConfiguration * _configuration;
 	PowerAuthKeychainConfiguration * _keychainConfiguration;
 	PowerAuthClientConfiguration * _clientConfiguration;
@@ -100,8 +104,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	setup.externalEncryptionKey = _configuration.externalEncryptionKey;
 	
 	// Create a new session
-	_session = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup];
-	if (_session == nil) {
+	_coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup];
+	if (_coreSession == nil) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
 	
@@ -125,7 +129,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 																	 keychain:tokenStoreKeychain
 															   statusProvider:self
 															   remoteProvider:_remoteHttpTokenProvider];
-
+	
 	// Make sure to reset keychain data after app re-install.
 	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
 	// By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
@@ -144,8 +148,9 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 		[userDefaults synchronize];
 	}
 	
-	// Attempt to restore session state
-	[self restoreState];
+	// Finally, initialize session data provider and session provider.
+	PA2SessionDataProvider * sessionDataProvider = [[PA2SessionDataProvider alloc] initWithKeychain:_statusKeychain statusKey:_configuration.instanceId];
+	_sessionProvider = [[PA2DefaultSessionProvider alloc] initWithSession:_coreSession dataProvider:sessionDataProvider];
 	
 #if defined(PA2_WATCH_SUPPORT)
 	// Register this instance to handle messages
@@ -196,7 +201,9 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
  */
 - (void) checkForValidSetup
 {
-	if (!_session.hasValidSetup) {
+	// This is OK to directly access _coreSession without a proper locking. Setup depends on runtime configuration,
+	// so it's not affected by persistent data.
+	if (!_coreSession.hasValidSetup) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
 }
@@ -309,7 +316,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 {
 	[self checkForValidSetup];
 	// Check if there is an activation present
-	if (!_session.hasValidActivation) {
+	if (!_sessionProvider.hasValidActivation) {
 		callback(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
 		return nil;
 	}
@@ -383,48 +390,38 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) restoreState
 {
-	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];
-	if (sessionData) {
-		[_session resetSession];
-		return [_session deserializeState:sessionData];
-	} else {
-		return NO;
-	}
-}
-
-- (void) saveSessionState
-{
-	[_statusKeychain updateValue:[_session serializedState] forKey:_configuration.instanceId];
+	PowerAuthLog(@"PowerAuthSDK.restoreState() is deprecated.");
+	return YES;
 }
 
 - (BOOL) canStartActivation
 {
 	[self checkForValidSetup];
-	return _session.canStartActivation;
+	return _sessionProvider.canStartActivation;
 }
 
 - (BOOL) hasPendingActivation
 {
 	[self checkForValidSetup];
-	return _session.hasPendingActivation;
+	return _sessionProvider.hasPendingActivation;
 }
 
 - (BOOL) hasValidActivation
 {
 	[self checkForValidSetup];
-	return _session.hasValidActivation;
+	return _sessionProvider.hasValidActivation;
 }
 
 - (BOOL) hasProtocolUpgradeAvailable
 {
 	[self checkForValidSetup];
-	return _session.hasProtocolUpgradeAvailable;
+	return _sessionProvider.hasProtocolUpgradeAvailable;
 }
 
 - (BOOL) hasPendingProtocolUpgrade
 {
 	[self checkForValidSetup];
-	return _session.hasPendingProtocolUpgrade;
+	return _sessionProvider.hasPendingProtocolUpgrade;
 }
 
 
@@ -445,15 +442,9 @@ static PowerAuthSDK * s_inst;
 		callback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, nil));
 		return nil;
 	}
-	NSError * validationError = [activation validateAndGetError];
-	if (validationError) {
-		callback(nil, validationError);
-		return nil;
-	}
-	
-	// Check if activation can be started
-	if (![self canStartActivation]) {
-		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil));
+	NSError * error = [activation validateAndGetError];
+	if (error) {
+		callback(nil, error);
 		return nil;
 	}
 	
@@ -470,12 +461,13 @@ static PowerAuthSDK * s_inst;
 	requestData.platform = [PowerAuthSystem platform];
 	requestData.deviceInfo = [PowerAuthSystem deviceInfo];
 	
-	// Start activation and encrypt both layers of the request data.
-	NSError * error = nil;
-	PowerAuthCoreEciesEncryptor * decryptor = [self prepareActivation:activation
-														   forRequest:request
-														  requestData:requestData
-																error:&error];
+	PowerAuthCoreEciesEncryptor * decryptor = [[_sessionProvider writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		return [self prepareActivation:activation
+							forRequest:request
+						   requestData:requestData
+							   session:session];
+	}] extractResult:&error];
+	
 	if (!decryptor) {
 		callback(nil, error);
 		return nil;
@@ -487,19 +479,22 @@ static PowerAuthSDK * s_inst;
 						  auth:nil
 					completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
 						// HTTP request completion
+						NSError * localError = error;
 						PowerAuthActivationResult * result = nil;
 						if (status == PowerAuthRestApiResponseStatus_OK) {
 							// Validate response from the server
-							result = [self validateActivationResponse:response
-															decryptor:decryptor
-																error:&error];
+							result = [[_sessionProvider writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+								return [self validateActivationResponse:response
+															  decryptor:decryptor
+																session:session];
+							}] extractResult:&localError];
 						}
-						if (!result && !error) {
+						if (!result && !localError) {
 							// Fallback, to produce at least some error
-							error = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
+							localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
 						}
-						if (error) {
-							[_session resetSession];
+						if (localError) {
+							[_sessionProvider resetSession];
 						}
 						// Now call back to the application
 						callback(result, error);
@@ -508,7 +503,7 @@ static PowerAuthSDK * s_inst;
 						// In case of cancel, we need to reset the session. The reset itself is
 						// thread safe, but it's good to issue that to the main thread.
 						dispatch_async(dispatch_get_main_queue(), ^{
-							[_session resetSession];
+							[_sessionProvider resetSession];
 						});
 					}];
 }
@@ -585,7 +580,7 @@ static PowerAuthSDK * s_inst;
 	[self checkForValidSetup];
 	
 	// Check if there is a pending activation present and not an already existing valid activation
-	if (!_session.hasPendingActivation) {
+	if (!_sessionProvider.hasPendingActivation) {
 		if (error) {
 			*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
 		}
@@ -612,39 +607,36 @@ static PowerAuthSDK * s_inst;
 	keys.biometryUnlockKey = biometryKey;
 	keys.userPassword = knowledgeKey;
 	
-	// Complete the activation
-	BOOL result = [_session completeActivation:keys];
-	
-	// Propagate error
-	if (!result && error) {
-		*error = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-	}
-	
-	// Store keys and session state in Keychain
-	if (result) {
-		[_statusKeychain deleteDataForKey:_configuration.instanceId];
-		[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-		
-		[_statusKeychain addValue:_session.serializedState forKey:_configuration.instanceId];
-		if (biometryKey) {
-			[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
+	NSError * reportedError = [_sessionProvider writeTaskWithSession:^id (PowerAuthCoreSession * session) {
+		// Complete the activation
+		BOOL result = [session completeActivation:keys];
+		// Store keys in Keychain
+		if (result) {
+			[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+			if (biometryKey) {
+				[_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
+			}
+			// Clear TokenStore
+			[_tokenStore removeAllLocalTokens];
 		}
-		// Clear TokenStore
-		[_tokenStore removeAllLocalTokens];
+		return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
+	}];
+	if (reportedError && error) {
+		*error = reportedError;
 	}
-	
-	// Return result
-	return result;
+	return !reportedError;
 }
 
 - (NSString*) activationIdentifier
 {
-	return _session.activationIdentifier;
+	return _sessionProvider.activationIdentifier;
 }
 
 - (NSString*) activationFingerprint
 {
-	return _session.activationFingerprint;
+	return [_sessionProvider readTaskWithSession:^id (PowerAuthCoreSession * session) {
+		return session.activationFingerprint;
+	}];
 }
 
 
@@ -656,54 +648,55 @@ static PowerAuthSDK * s_inst;
  The method requires request & request data and if everything's right, then request.activationData
  is prepared and metods returns a new decryptor, required for response decryption.
  */
-- (PowerAuthCoreEciesEncryptor*) prepareActivation:(PowerAuthActivation*)activation
-										forRequest:(PA2CreateActivationRequest*)request
-									   requestData:(PA2CreateActivationRequestData*)requestData
-											 error:(NSError**)error
+- (PA2Result<PowerAuthCoreEciesEncryptor*>*) prepareActivation:(PowerAuthActivation*)activation
+													forRequest:(PA2CreateActivationRequest*)request
+												   requestData:(PA2CreateActivationRequestData*)requestData
+													   session:(PowerAuthCoreSession*)session
 {
-	PowerAuthCoreEciesEncryptor * decryptor = nil;
 	NSError * localError = nil;
-	
-	// Prepare data for low level code. Note that "activationCode" is optional and may be nil.
-	PowerAuthCoreActivationStep1Param * paramStep1 = [[PowerAuthCoreActivationStep1Param alloc] init];
-	paramStep1.activationCode = activation.activationCode.coreActivationCode;
+	// Check if activation can be started
+	if ([session canStartActivation]) {
+		// Prepare data for low level code. Note that "activationCode" is optional and may be nil.
+		PowerAuthCoreActivationStep1Param * paramStep1 = [[PowerAuthCoreActivationStep1Param alloc] init];
+		paramStep1.activationCode = activation.activationCode.coreActivationCode;
 
-	// Begin with the activation
-	PowerAuthCoreActivationStep1Result * resultStep1 = [_session startActivation:paramStep1];
-	if (resultStep1) {
-		// Keep device's public key in requestData
-		requestData.devicePublicKey = resultStep1.devicePublicKey;
+		// Begin with the activation
+		PowerAuthCoreActivationStep1Result * resultStep1 = [session startActivation:paramStep1];
+		if (resultStep1) {
+			// Keep device's public key in requestData
+			requestData.devicePublicKey = resultStep1.devicePublicKey;
 
-		// Now we need to ecrypt request data with the Layer2 encryptor.
-		PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:[self deviceRelatedKey]];
-		PowerAuthCoreEciesEncryptor * privateEncryptor = [factory encryptorWithId:PA2EncryptorId_ActivationPayload];
-		
-		// Encrypt payload and put it directly to the request object.
-		request.activationData = [PA2ObjectSerialization encryptObject:requestData
-															 encryptor:privateEncryptor
-																 error:&localError];
-		if (!localError) {
-			decryptor = privateEncryptor;
+			// Now we need to ecrypt request data with the Layer2 encryptor.
+			PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload];
+			
+			// Encrypt payload and put it directly to the request object.
+			request.activationData = [PA2ObjectSerialization encryptObject:requestData
+																 encryptor:privateEncryptor
+																	 error:&localError];
+			if (!localError) {
+				// Everything looks OS, so finally, try notify other apps that this instance started the activation.
+				localError = [_sessionProvider startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
+				if (!localError) {
+					return [PA2Result success:privateEncryptor];
+				}
+			}
+		} else {
+			localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
 		}
 	} else {
-		localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
+		localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
 	}
-	// Return result & error
-	if (error) {
-		*error = localError;
-	}
-	return decryptor;
+	return [PA2Result failure:localError];
 }
 
 /**
  Private method validates response received from the server.
  In case of success, returns a full activation result object.
  */
-- (PowerAuthActivationResult*) validateActivationResponse:(PA2CreateActivationResponse*)response
-												decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
-													error:(NSError**)error
+- (PA2Result<PowerAuthActivationResult*>*) validateActivationResponse:(PA2CreateActivationResponse*)response
+															decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
+															  session:(PowerAuthCoreSession*)session
 {
-	PowerAuthActivationResult * result = nil;
 	NSError * localError = nil;
 	PA2CreateActivationResponseData * responseData = [PA2ObjectSerialization decryptObject:response.activationData
 																				  forClass:[PA2CreateActivationResponseData class]
@@ -723,22 +716,19 @@ static PowerAuthSDK * s_inst;
 			paramStep2.activationRecovery = recoveryData;
 			activationRecoveryData = [[PowerAuthActivationRecoveryData alloc] initWithRecoveryData:recoveryData];
 		}
-		PowerAuthCoreActivationStep2Result * resultStep2 = [_session validateActivationResponse:paramStep2];
+		PowerAuthCoreActivationStep2Result * resultStep2 = [session validateActivationResponse:paramStep2];
 		if (resultStep2) {
 			// Everything looks OK, we can construct result object.
-			result = [[PowerAuthActivationResult alloc] init];
+			PowerAuthActivationResult * result = [[PowerAuthActivationResult alloc] init];
 			result.activationFingerprint = resultStep2.activationFingerprint;
 			result.customAttributes = response.customAttributes;
 			result.activationRecovery = activationRecoveryData;
+			return [PA2Result success:result];
 		} else {
-			localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
+			localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Failed to verify response from the server");
 		}
 	}
-	// Return result & error
-	if (error) {
-		*error = localError;
-	}
-	return result;
+	return [PA2Result failure:localError];
 }
 
 
@@ -749,8 +739,8 @@ static PowerAuthSDK * s_inst;
 	[self checkForValidSetup];
 	
 	// Check for activation
-	if (!_session.hasValidActivation) {
-		NSInteger errorCode = _session.hasPendingActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
+	if (!_sessionProvider.hasValidActivation) {
+		NSInteger errorCode = _sessionProvider.hasPendingActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
 		callback(nil, nil, PA2MakeError(errorCode, nil));
 		return nil;
 	}
@@ -779,12 +769,10 @@ static PowerAuthSDK * s_inst;
 			__weak PowerAuthSDK * weakSelf = self;
 			_getStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
 																   deviceRelatedKey:[self deviceRelatedKey]
-																			session:_session
-																	  sessionChange:^(PowerAuthCoreSession * session) {
-																		  [weakSelf saveSessionState];
-																	  } completion:^(PA2GetActivationStatusTask * task, PowerAuthActivationStatus* status, NSDictionary* customObject, NSError* error) {
-																		  [weakSelf completeActivationStatusTask:task status:status customObject:customObject error:error];
-																	  }];
+																	sessionProvider:_sessionProvider
+																		 completion:^(PA2GetActivationStatusTask * task, PowerAuthActivationStatus* status, NSDictionary* customObject, NSError* error) {
+																			[weakSelf completeActivationStatusTask:task status:status customObject:customObject error:error];
+																		 }];
 			_getStatusTask.disableUpgrade = _configuration.disableAutomaticProtocolUpgrade;
 			[_getStatusTask addChildTask:childTask];
 			[_getStatusTask execute];
@@ -826,7 +814,7 @@ static PowerAuthSDK * s_inst;
 			_getStatusTask = nil;
 			updateObjects = YES;
 		} else {
-			// If _getStatusTask is nil, then it menas that last status task has been cancelled.
+			// If _getStatusTask is nil, then it means that last status task has been cancelled.
 			// In this case, we should not update the objects.
 			// If there's a different PA2GetActivationStatusTask object, then that means
 			// that during the finishing our batch, was scheduled the next one. In this situation
@@ -881,19 +869,18 @@ static PowerAuthSDK * s_inst;
 - (void) removeActivationLocal
 {
 	[self checkForValidSetup];
-	BOOL error = NO;
-	if ([_statusKeychain containsDataForKey:_configuration.instanceId]) {
-		error = error || ![_statusKeychain deleteDataForKey:_configuration.instanceId];
-	}
-	if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
-		error = error || ![_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-	}
-	if (error) {
-		PowerAuthLog(@"Removing activaton data from keychain failed. We can't recover from this error.");
-	}
 	[self cancelActivationStatusTask];
-	[_tokenStore removeAllLocalTokens];
-	[_session resetSession];
+	[_sessionProvider writeVoidTaskWithSession:^(PowerAuthCoreSession * _Nonnull session) {
+		BOOL error = NO;
+		if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
+			error = ![_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+		}
+		if (error) {
+			PowerAuthLog(@"Removing activaton data from keychain failed. We can't recover from this error.");
+		}
+		[_tokenStore removeAllLocalTokens];
+		[session resetSession];
+	}];
 }
 
 
@@ -904,7 +891,7 @@ static PowerAuthSDK * s_inst;
 																	 params:(NSDictionary<NSString*, NSString*>*)params
 																	  error:(NSError**)error
 {
-	NSData *data = [_session prepareKeyValueDictionaryForDataSigning:params];
+	NSData *data = [PowerAuthCoreSession prepareKeyValueDictionaryForDataSigning:params];
 	return [self requestSignatureWithAuthentication:authentication
 											 method:@"GET"
 											  uriId:uriId
@@ -973,43 +960,33 @@ static PowerAuthSDK * s_inst;
 {
 	[self checkForValidSetup];
 	
-	// Check if there is an activation present
-	if (!_session.hasValidActivation) {
-		if (error) {
-			*error = PA2MakeError(PowerAuthErrorCode_MissingActivation, nil);
+	return [[_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthCoreHTTPRequestDataSignature*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		// Check if there is an activation present
+		if (!session.hasValidActivation) {
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_MissingActivation, nil)];
 		}
-		return nil;
-	}
-	
-	// Determine authentication factor type
-	PowerAuthCoreSignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication];
-	if (factor == 0) {
-		if (error) {
-			*error = PA2MakeError(PowerAuthErrorCode_WrongParameter, nil);
+		
+		// Determine authentication factor type
+		PowerAuthCoreSignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication];
+		if (factor == 0) {
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_WrongParameter, nil)];
 		}
-		return nil;
-	}
-	
-	// Generate signature key encryption keys
-	BOOL userCancelled = NO;
-	PowerAuthCoreSignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication userCancelled:&userCancelled];
-	if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
-		if (error) {
-			*error = PA2MakeError(PowerAuthErrorCode_BiometryCancel, nil);
+		
+		// Generate signature key encryption keys
+		BOOL userCancelled = NO;
+		PowerAuthCoreSignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication userCancelled:&userCancelled];
+		if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_BiometryCancel, nil)];
 		}
-		return nil;
-	}
-	
-	// Compute signature for provided values and return result.
-	PowerAuthCoreHTTPRequestDataSignature * signature = [_session signHttpRequestData:requestData keys:keys factor:factor];
-	
-	// Update keychain values after each successful calculations
-	[self saveSessionState];
-	
-	if (signature == nil && error) {
-		*error = PA2MakeError(PowerAuthErrorCode_SignatureError, nil);
-	}
-	return signature;
+		
+		// Compute signature for provided values and return result.
+		PowerAuthCoreHTTPRequestDataSignature * signature = [session signHttpRequestData:requestData keys:keys factor:factor];
+		if (signature == nil) {
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_SignatureError, nil)];
+		}
+		return [PA2Result success:signature];
+		
+	}] extractResult:error];
 }
 
 
@@ -1018,13 +995,13 @@ static PowerAuthSDK * s_inst;
 					  masterKey:(BOOL)masterKey
 {
 	[self checkForValidSetup];
-	
-	PowerAuthCoreSignedData * signedData = [[PowerAuthCoreSignedData alloc] init];
-	signedData.signingDataKey = masterKey ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
-	signedData.data = data;
-	signedData.signatureBase64 = signature;
-
-	return [_session verifyServerSignedData: signedData];
+	return [_sessionProvider readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		PowerAuthCoreSignedData * signedData = [[PowerAuthCoreSignedData alloc] init];
+		signedData.signingDataKey = masterKey ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
+		signedData.data = data;
+		signedData.signatureBase64 = signature;
+		return [session verifyServerSignedData: signedData];
+	}];
 }
 
 
@@ -1033,12 +1010,10 @@ static PowerAuthSDK * s_inst;
 - (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
 							   to:(NSString*)newPassword
 {
-	BOOL result = [_session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
-								   newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
-	if (result) {
-		[self saveSessionState];
-	}
-	return result;
+	return [_sessionProvider writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		return [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
+							   newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
+	}];
 }
 
 - (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword
@@ -1047,14 +1022,12 @@ static PowerAuthSDK * s_inst;
 {
 	return [self validatePasswordCorrect:oldPassword callback:^(NSError * _Nullable error) {
 		if (!error) {
-			// Let's change the password
-			BOOL result = [_session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
-										   newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
-			if (result) {
-				[self saveSessionState];
-			} else {
-				error = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-			}
+			error = [_sessionProvider writeTaskWithSession:^NSError* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+				// Let's change the password
+				BOOL result = [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
+											  newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
+				return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
+			}];
 		}
 		// Call back to application
 		callback(error);
@@ -1089,17 +1062,17 @@ static PowerAuthSDK * s_inst;
 			PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
 			keys.possessionUnlockKey = [self deviceRelatedKey];
 			keys.biometryUnlockKey = [PowerAuthCoreSession generateSignatureUnlockKey];
-
-			BOOL result = [_session addBiometryFactor:encryptedEncryptionKey
-												 keys:keys];
-			if (result) {
-				// Update keychain values after each successful calculations
-				[self saveSessionState];
-				[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-				[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
-			} else {
-				error = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-			}
+			// Setup biometric factor in session
+			error = [_sessionProvider writeTaskWithSession:^NSError* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+				if ([session addBiometryFactor:encryptedEncryptionKey keys:keys]) {
+					// Update keychain values after each successful calculations
+					[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+					[_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
+					return nil;
+				} else {
+					return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
+				}
+			}];
 		}
 		// Call back to application
 		callback(error);
@@ -1110,20 +1083,23 @@ static PowerAuthSDK * s_inst;
 {
 	[self checkForValidSetup];
 	BOOL hasValue = [_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier];
-	hasValue = hasValue && [_session hasBiometryFactor];
+	hasValue = hasValue && [_sessionProvider readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		return [session hasBiometryFactor];
+	}];
 	return hasValue;
 }
 
 - (BOOL) removeBiometryFactor
 {
 	[self checkForValidSetup];
-	BOOL result = [_session removeBiometryFactor];
-	if (result) {
-		// Update keychain values after each successful calculations
-		[self saveSessionState];
-		[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-	}
-	return result;
+	return [_sessionProvider writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		BOOL result = [session removeBiometryFactor];
+		if (result) {
+			// Update keychain values after each successful calculations
+			[_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+		}
+		return result;
+	}];
 }
 
 - (void) authenticateUsingBiometryWithPrompt:(NSString *)prompt
@@ -1131,7 +1107,7 @@ static PowerAuthSDK * s_inst;
 {
 	[self checkForValidSetup];
 	// Check if activation is present
-	if (!_session.hasValidActivation) {
+	if (!_sessionProvider.hasValidActivation) {
 		callback(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
 		return;
 	}
@@ -1195,11 +1171,13 @@ static PowerAuthSDK * s_inst;
 			// Let's unlock encryption key
 			PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
 			keys.possessionUnlockKey = [self deviceRelatedKey];
-			encryptionKey = [_session deriveCryptographicKeyFromVaultKey:encryptedEncryptionKey
-																	keys:keys
-																keyIndex:index];
+			encryptionKey = [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+				return [session deriveCryptographicKeyFromVaultKey:encryptedEncryptionKey
+															  keys:keys
+														  keyIndex:index];
+			}];
 			if (!encryptionKey) {
-				error = PA2MakeError(PowerAuthErrorCode_Encryption, nil);
+				error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to derive encryption key");
 			}
 		}
 		// Call back to application
@@ -1219,12 +1197,14 @@ static PowerAuthSDK * s_inst;
 			// Let's sign the data
 			PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
 			keys.possessionUnlockKey = [self deviceRelatedKey];
-			signature = [_session signDataWithDevicePrivateKey:encryptedEncryptionKey
-														  keys:keys
-														  data:data];
+			signature = [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+				return [session signDataWithDevicePrivateKey:encryptedEncryptionKey
+														keys:keys
+														data:data];
+			}];
 			// Propagate error
 			if (!signature) {
-				error = PA2MakeError(PowerAuthErrorCode_Encryption, nil);
+				error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to calculate signature");
 			}
 		}
 		// Call back to application
@@ -1240,19 +1220,21 @@ static PowerAuthSDK * s_inst;
 
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
 {
-	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:nil];
+	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionProvider deviceRelatedKey:nil];
 	return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope];
 }
 
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
 {
-	if (![self hasValidActivation]) {
-		PowerAuthLog(@"eciesEncryptorForActivation: There's no activation.");
-		return nil;
-	}
-	NSData * deviceKey = [self deviceRelatedKey];
-	PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSession:_session deviceRelatedKey:deviceKey];
-	return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+	return [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		if (!session.hasValidActivation) {
+			PowerAuthLog(@"eciesEncryptorForActivation: There's no activation.");
+			return nil;
+		}
+		NSData * deviceKey = [self deviceRelatedKey];
+		PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionProvider deviceRelatedKey:deviceKey];
+		return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+	}];
 }
 
 @end
@@ -1292,23 +1274,27 @@ static PowerAuthSDK * s_inst;
 
 - (BOOL) hasActivationRecoveryData
 {
-	return _session.hasActivationRecoveryData;
+	return [_sessionProvider readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		return session.hasActivationRecoveryData;
+	}];
 }
 
 - (nullable id<PowerAuthOperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
 													  callback:(nonnull void(^)(PowerAuthActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback
 {
-	if (!_session.hasActivationRecoveryData) {
+	if (![self hasActivationRecoveryData]) {
 		callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Session has no recovery data available."));
 		return nil;
 	}
 	return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_RECOVERY_CODE callback:^(NSString *encryptedEncryptionKey, NSError *error) {
 		PowerAuthActivationRecoveryData * activationRecovery = nil;
 		if (!error) {
-			// Let's sign the data
+			// Let's extract the data
 			PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
 			keys.possessionUnlockKey = [self deviceRelatedKey];
-			PowerAuthCoreRecoveryData * recoveryData = [_session activationRecoveryData:encryptedEncryptionKey keys:keys];
+			PowerAuthCoreRecoveryData * recoveryData = [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+				return [session activationRecoveryData:encryptedEncryptionKey keys:keys];
+			}];
 			// Propagate error
 			if (recoveryData) {
 				activationRecovery = [[PowerAuthActivationRecoveryData alloc] initWithRecoveryData:recoveryData];
@@ -1328,7 +1314,7 @@ static PowerAuthSDK * s_inst;
 	[self checkForValidSetup];
 	
 	// Check if there is an activation present
-	if (!_session.hasValidActivation) {
+	if (![self hasValidActivation]) {
 		callback(NO, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
 		return nil;
 	}
@@ -1357,5 +1343,16 @@ static PowerAuthSDK * s_inst;
 					}];
 }
 
+@end
+
+#pragma mark - Activation data sharing
+
+@implementation PowerAuthSDK (ActivationDataSharing)
+
+- (PowerAuthExternalPendingOperation*) externalPendingOperation
+{
+	return _sessionProvider.externalPendingOperation;
+}
 
 @end
+

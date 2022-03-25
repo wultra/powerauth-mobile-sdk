@@ -18,8 +18,6 @@
 #import <PowerAuth2/PowerAuthLog.h>
 #include <pthread.h>
 
-@import PowerAuthCore;
-
 /**
  Internal structure keeping lock data.
  */
@@ -129,24 +127,20 @@ static void _PrintErrno(NSString * functionName)
 	PowerAuthLog(@"%@ failed: %@", functionName, error);
 }
 #else
-#define _PrintErrno(functionName)
+#define _PrintErrno(...)
 #endif
 
-static void _LockSimple(LockData *, BOOL);
-static void _UnlockSimple(LockData *, BOOL);
-static void _CloseSimple(LockData *);
-static void _LockRecursive(LockData *, BOOL);
-static void _UnlockRecursive(LockData *, BOOL);
-static void _CloseRecursive(LockData *);
+#pragma mark -
 
 /**
  Initialize LockData structure for given file and lock type.
+ Returns NO if initialization failed.
  */
 static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 {
 	memset(lockData, 0, sizeof(LockData));
 	lockData->fileDescriptor = -1;
-
+		
 	if (recursive) {
 		lockData->lockFunc   = _LockRecursive;
 		lockData->unlockFunc = _UnlockRecursive;
@@ -191,6 +185,12 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 	return result;
 }
 
+/**
+ Acquire or release file lock. The operation parameter must be:
+ - `LOCK_SH` to acquire read lock.
+ - `LOCK_EX` to acquire write lock.
+ - `LOCK_UN` to release previously acquired lock.
+ */
 static void _LockOperation(LockData * ld, int operation)
 {
 	if (ld->fileDescriptor != -1) {
@@ -228,10 +228,10 @@ static void _CloseSimple(LockData * ld)
 
 static void _LockRecursive(LockData * ld, BOOL isWrite)
 {
-	// At first, acquire recursive mutex for this thread.
 	if (!ld->mutexInitialized) {
 		return;
 	}
+	// At first, acquire recursive mutex for this thread.
 	if (pthread_mutex_lock(&ld->mutex) != 0) {
 		_PrintErrno(@"PA2SharedReadWriteLock: pthread_mutex_lock()");
 		return;
@@ -253,6 +253,7 @@ static void _LockRecursive(LockData * ld, BOOL isWrite)
 			sharedLockOperation = LOCK_SH;
 		}
 	}
+	// Apply change on shared lock, if required.
 	if (sharedLockOperation != 0) {
 		_LockOperation(ld, sharedLockOperation);
 	}
@@ -289,7 +290,7 @@ static void _CloseRecursive(LockData * ld)
 		pthread_mutex_destroy(&ld->mutex);
 		ld->mutexInitialized = NO;
 	}
-	// Close file descriptor
+	// Close also file descriptor
 	_CloseSimple(ld);
 }
 

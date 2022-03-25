@@ -374,14 +374,14 @@ static NSString * PA_Ver = @"3.1";
 	NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:method uriId:uriId nonce:local_nonce data:data];
 	PATSVerifySignatureResponse * response;
 	if (online) {
-		response = [_testServerApi verifySignature:_sdk.session.activationIdentifier
+		response = [_testServerApi verifySignature:_sdk.activationIdentifier
 											   data:normalized_data
 										  signature:local_signature
 									  signatureType:[self authToString:auth]
 								  signatureVersion:signature_version];
 		XCTAssertNotNil(response, @"Online response must be received");
 	} else {
-		response = [_testServerApi verifyOfflineSignature:_sdk.session.activationIdentifier
+		response = [_testServerApi verifyOfflineSignature:_sdk.activationIdentifier
 													 data:normalized_data
 												signature:local_signature
 											allowBiometry:NO];
@@ -396,6 +396,20 @@ static NSString * PA_Ver = @"3.1";
 		}
 	}
 	return result;
+}
+
+- (NSData*) sessionCoreSerializedState
+{
+	return [_sdk.sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		return [session serializedState];
+	}];
+}
+
+- (BOOL) sessionCoreDeserializeState:(NSData*)state
+{
+	return  [_sdk.sessionProvider writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		return [session deserializeState:state];
+	}];
 }
 
 #pragma mark - Integration tests
@@ -499,7 +513,7 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
 	
 	// Post activation steps...
-	result = [_sdk.session.activationIdentifier isEqualToString:activationData.activationId];
+	result = [_sdk.activationIdentifier isEqualToString:activationData.activationId];
 	XCTAssertTrue(result, @"Activation identifier in session is different to identifier generated on the server.");
 	CHECK_RESULT_RET(preliminaryResult);
 	
@@ -537,10 +551,10 @@ static NSString * PA_Ver = @"3.1";
 	NSString * activationId;
 	if (activationData) {
 		// If we have activation data, prefer that id.
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
 		NSLog(@"WARNING: Unable to remove activation. This is not an error, but you'll see a lot of unfinished activations.");
@@ -1087,7 +1101,7 @@ static NSString * PA_Ver = @"3.1";
 	// This is a little bit tricky, because we need to calculate a valid signature, to move server's counter forward. To do that,
 	// we have to calculate also a local signature, but that moves also local counter forward.
 	// To trick the system, we need to keep old persistent data and restore it later.
-	NSData * previous_state = [_sdk.session serializedState];
+	NSData * previous_state = [self sessionCoreSerializedState];
 	for (int i = 0; i < CTR_LOOKAHEAD/2; i++) {
 		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
 		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
@@ -1096,7 +1110,7 @@ static NSString * PA_Ver = @"3.1";
 		XCTAssertTrue(response.signatureValid);
 	}
 	// Rollback counter to some previous state.
-	[_sdk.session deserializeState:previous_state];
+	[self sessionCoreDeserializeState:previous_state];
 	// Fetch the status. This should move local counter forward, so the next calculation will succeed.
 	status = [self fetchActivationStatus];
 	XCTAssertNotNil(status);
@@ -1106,7 +1120,7 @@ static NSString * PA_Ver = @"3.1";
 	
 	// Negative
 	// Now try to calculate too many signatures that client will never catch the server.
-	previous_state = [_sdk.session serializedState];
+	previous_state = [self sessionCoreSerializedState];
 	for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
 		NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
 		NSString * normalized_data = [_testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
@@ -1115,7 +1129,7 @@ static NSString * PA_Ver = @"3.1";
 		XCTAssertTrue(response.signatureValid);
 	}
 	// Rollback counter to some previous state.
-	[_sdk.session deserializeState:previous_state];
+	[self sessionCoreDeserializeState:previous_state];
 	
 	// Now get the status. It should be a deadlocked.
 	status = [self fetchActivationStatus];

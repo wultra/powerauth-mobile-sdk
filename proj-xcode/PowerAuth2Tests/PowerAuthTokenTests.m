@@ -307,7 +307,7 @@ static NSString * PA_Ver = @"3.1";
 	XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
 	
 	// Post activation steps...
-	result = [_sdk.session.activationIdentifier isEqualToString:activationData.activationId];
+	result = [_sdk.activationIdentifier isEqualToString:activationData.activationId];
 	XCTAssertTrue(result, @"Activation identifier in session is different to identifier generated on the server.");
 	CHECK_RESULT_RET(preliminaryResult);
 	
@@ -339,10 +339,10 @@ static NSString * PA_Ver = @"3.1";
 	NSString * activationId;
 	if (activationData) {
 		// If we have activation data, prefer that id.
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
 		NSLog(@"WARNING: Unable to remove activation. This is not an error, but you'll see a lot of unfinished activations.");

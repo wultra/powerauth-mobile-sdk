@@ -258,6 +258,20 @@
 	return result;
 }
 
+- (NSData*) sessionCoreSerializedState
+{
+	return [_sdk.sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		return [session serializedState];
+	}];
+}
+
+- (BOOL) sessionCoreDeserializeState:(NSData*)state
+{
+	return  [_sdk.sessionProvider writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
+		return [session deserializeState:state];
+	}];
+}
+
 #pragma mark - Integration tests
 
 #pragma mark - Activation
@@ -341,7 +355,7 @@
 	XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
 	
 	// Post activation steps...
-	result = [_sdk.session.activationIdentifier isEqualToString:activationData.activationId];
+	result = [_sdk.activationIdentifier isEqualToString:activationData.activationId];
 	XCTAssertTrue(result, @"Activation identifier in session is different to identifier generated on the server.");
 	CHECK_RESULT_RET(preliminaryResult);
 	
@@ -373,10 +387,10 @@
 	NSString * activationId;
 	if (activationData) {
 		// If we have activation data, prefer that id.
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
-		activationId = _sdk.session.activationIdentifier;
+		activationId = _sdk.activationIdentifier;
 	}
 	if (!activationId) {
 		NSLog(@"WARNING: Unable to remove activation. This is not an error, but you'll see a lot of unfinished activations.");
@@ -416,7 +430,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	PATSInitActivationResponse * activationData = activation[0];
 	PowerAuthAuthentication * auth = activation[1];
 	
-	NSString * activationStateData = [_sdk.session.serializedState base64EncodedStringWithOptions:0];
+	NSString * activationStateData = [[self sessionCoreSerializedState] base64EncodedStringWithOptions:0];
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
 	[defaults setObject:auth.usePassword forKey:s_PossessionFactorKey];
 	[defaults setObject:activationData.activationId forKey:s_ActivationIdKey];
@@ -451,7 +465,8 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 		[_sdk removeActivationLocal];
 	}
 	NSData * stateData = [[NSData alloc] initWithBase64EncodedString:activationStateData options:0];
-	if (![_sdk.session deserializeState: stateData]) {
+	BOOL stateDeserialization = [self sessionCoreDeserializeState:stateData];
+	if (!stateDeserialization) {
 		XCTFail(@"Failed to restore state.");
 		return;
 	}

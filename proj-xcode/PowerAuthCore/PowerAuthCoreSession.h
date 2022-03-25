@@ -16,7 +16,12 @@
 
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
+#import <PowerAuthCore/PowerAuthCoreDebugMonitor.h>
 
+/**
+ The `PowerAuthCoreSession` provides Objective-C interface to the low-level
+ C++ Session implementation.
+ */
 @interface PowerAuthCoreSession : NSObject
 
 #pragma mark -  Initialization / Reset
@@ -29,6 +34,8 @@
 /**
  Resets session into its initial state. The existing session's setup and EEK is preserved
  after the call.
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (void) resetSession;
 
@@ -39,6 +46,13 @@
  */
 + (BOOL) hasDebugFeatures;
 
+/**
+ If set, then the sesison will use methods from `PowerAuthCoreDebugMonitor` protocol to
+ report type of access (read, write) required for particular method.
+ 
+ The property nas no functionality if library is compiled for Release configuration.
+ */
+@property (nonatomic, weak, nullable) id<PowerAuthCoreDebugMonitor> debugMonitor;
 
 /**
  Returns pointer to an internal SessionSetup object. Returns nil if
@@ -47,11 +61,15 @@
  Note that internal implementation always creates a new instance of PowerAuthCoreSessionSetup object.
  If you want to get just a sessionIdentifier, then you can use the dedicated read only
  property, which is much faster than accessing the whole setup object.
+ 
+ This property doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, strong, readonly, nullable) PowerAuthCoreSessionSetup * sessionSetup;
 
 /**
  Returns value of [self sessionSetup].sessionIdentifier if the setup object is present or 0 if not.
+ 
+ This property doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, assign, readonly) UInt32 sessionIdentifier;
 
@@ -62,34 +80,48 @@
  Contains YES if the internal SessionSetup object is valid.
  Note that the method doesn't validate whether the provided master key is valid
  or not.
+ 
+ This property doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, assign, readonly) BOOL hasValidSetup;
 /**
  Contains YES if the session is in state where it's possible to start a new activation.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL canStartActivation;
 /**
  Contains YES if the session has pending and unfinished activation.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasPendingActivation;
 /**
  Contains YES if the session has valid activation and the shared secret between the client and
  the server has been estabilished. You can sign data in this state.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasValidActivation;
 /**
  Checks if there's a valid activation that requires a protocol upgrade. Contains NO once the upgrade
  process is started. The application should fetch the activation's status to do the upgrade.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasProtocolUpgradeAvailable;
 /**
  Contains YES if the session has pending upgrade to newer protocol version.
  Some operations may be temporarily blocked during the upgrade process.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasPendingProtocolUpgrade;
 /**
  Contains version of protocol in which the session currently operates. If session has no activation,
  then the most up to date version is returned.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion protocolVersion;
 
@@ -102,6 +134,8 @@
  
  Note that saving a state during the pending activation has no effect. In this case,
  the returned byte sequence represents the state of the session before the activation started.
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nonnull NSData*) serializedState;
 
@@ -111,6 +145,8 @@
  
  Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
  DEBUG log.
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) deserializeState:(nonnull NSData *)state;
 
@@ -120,12 +156,16 @@
 /**
  If the session has valid activation, then returns the activation identifier.
  Otherwise returns nil.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
 
 /**
  If the session has valid activation, then returns decimalized fingerprint, calculated
  from device's public key. Otherwise returns nil.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, strong, readonly, nullable) NSString * activationFingerprint;
 
@@ -141,6 +181,8 @@
 	EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
 	EC_WrongState, if called in wrong session's state
 	EC_WrongParam, if some required parameter is missing
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (nullable PowerAuthCoreActivationStep1Result*) startActivation:(nonnull PowerAuthCoreActivationStep1Param*)param;
 
@@ -168,6 +210,8 @@
 				   If this error occurs then the session resets its state.
 	EC_WrongState, if called in wrong session's state
 	EC_WrongParam, if required parameter is missing
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (nullable PowerAuthCoreActivationStep2Result*) validateActivationResponse:(nonnull PowerAuthCoreActivationStep2Param*)param;
 
@@ -188,6 +232,8 @@
 					if this error occurs, then the session resets its state
 	EC_WrongState,  if called in wrong session's state
 	EC_WrongParam,  if required parameter is missing
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) completeActivation:(nonnull PowerAuthCoreSignatureUnlockKeys*)keys;
 
@@ -201,6 +247,8 @@
  
  If the returned object is nil then the error occured and you can determine the failure reason from
  DEBUG log.
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreActivationStatus*) decodeActivationStatus:(nonnull PowerAuthCoreEncryptedActivationStatus *)encryptedStatus
 															  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
@@ -221,7 +269,7 @@
  underlying std::map<> doesn't allow duplicit keys. The arrays in GET requests are so rare that I've decided to do not support
  them. You can still implement your own data normalization, if this is your situation.
  */
-- (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
++ (nullable NSData*) prepareKeyValueDictionaryForDataSigning:(nonnull NSDictionary<NSString*, NSString*>*)dictionary;
 
 /**
  Calculates signature from given data. You have to provide all involved unlock keys in |unlockKeys| object,
@@ -243,6 +291,8 @@
 	EC_Encryption, if some cryptographic operation failed
 	EC_WrongState, if the session has no valid activation
 	EC_WrongParam, if some required parameter is missing
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (nullable PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(nonnull PowerAuthCoreHTTPRequestData*)requestData
 																   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
@@ -250,6 +300,8 @@
 /**
  Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
  You can calculate appropriate value with using 'httpAuthHeaderValueForBody:...' method.
+ 
+ This property doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * httpAuthHeaderName;
 
@@ -260,6 +312,8 @@
 	 EC_Encryption	if signature is not valid or some cryptographic operation failed
 	 EC_WrongState	if session contains invalid setup
 	 EC_WrongParam	if signedData object doesn't contain signature
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData;
 
@@ -292,6 +346,8 @@
 	EC_Encryption,  if underlying cryptograhic operation did fail or
 					if you provided too short passwords.
 	EC_WrongState,  if the session has no valid activation
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) changeUserPassword:(nonnull PowerAuthCorePassword *)old_password newPassword:(nonnull PowerAuthCorePassword*)new_password;
 
@@ -306,11 +362,15 @@
 	 EC_Encryption, if general encryption error occurs
 	 EC_WrongState, if the session has no valid activation
 	 EC_WrongParam, if some required parameter is missing
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
 					  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
 
 /** Checks if there is a biometry factor present in a current session.
+ 
+ This function access the session's state, so read access must be guaranteed.
  
  @return YES if there is a biometry factor related key present, NO otherwise.
  */
@@ -321,6 +381,8 @@
  after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
  the failure reason from DEBUG log:
 	EC_WrongState, if the session has no valid activation
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) removeBiometryFactor;
 
@@ -346,6 +408,8 @@
 	EC_Encryption,	if general encryption error occurs
 	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
 												   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
@@ -364,6 +428,8 @@
 	EC_Encryption,	if general encryption error occurs
 	EC_WrongState,	if the session has no valid activation
 	EC_WrongParam,	if some required parameter is missing
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
 											 keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
@@ -373,6 +439,8 @@
 
 /**
  Returns YES if EEK (external encryption key) is set.
+ 
+ This function doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, assign, readonly) BOOL hasExternalEncryptionKey;
 
@@ -388,6 +456,8 @@
 	 EC_WrongParam	if key is already set and new EEK is different, or
 					if provided key has invalid length.
 	 EC_WrongState	if you're setting key to activated session which doesn't use EEK
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
 
@@ -404,6 +474,8 @@
 	EC_WrongState	if session has no valid activation, or
 					if the EEK is already set.
 	EC_Encryption	if internal cryptographic operation failed
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
 
@@ -419,6 +491,8 @@
 	EC_WrongState	if session has no valid activation, or
 					if session has no EEK set
 	EC_Encryption	if internal cryptographic operation failed
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) removeExternalEncryptionKey;
 
@@ -428,6 +502,8 @@
  Constructs the `PowerAuthCoreEciesEncryptor` object for the required `scope` and for optional `sharedInfo1`.
  The `keys` parameter must contain valid `possessionUnlockKey` in case that the "activation" scope is requested.
  For "application" scope, the `keys` object may be nil.
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
 															keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
@@ -468,7 +544,7 @@
  Internally, method only generates 16 bytes long random data encoded to Base64 and therefore
  is also suitable for all other situations, when the generated random key is required.
  */
-- (nonnull NSString*) generateActivationStatusChallenge;
++ (nonnull NSString*) generateActivationStatusChallenge;
 
 
 #pragma mark - Protocol upgrade
@@ -479,6 +555,8 @@
  after this call.
  
  Returns YES if upgrade has been started.
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) startProtocolUpgrade;
 
@@ -487,6 +565,8 @@
  
  Retuns protocol version or `PowerAuthCoreProtocolVersion_NA` if there's no upgrade, or session
  has no activation.
+ 
+ This property access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) PowerAuthCoreProtocolVersion pendingProtocolUpgradeVersion;
 
@@ -495,6 +575,8 @@
  object you provide. Currently, only `PowerAuthCoreProtocolUpgradeDataV3` is supported.
  
  Returns YES if session has been successfully upgraded.
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) applyProtocolUpgradeData:(nonnull id<PowerAuthCoreProtocolUpgradeData>)upgradeData;
 
@@ -507,6 +589,8 @@
  You should serialize an activation status ater this call.
  
  Returns YES if upgrade has been finished successfully.
+ 
+ This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) finishProtocolUpgrade;
 
@@ -527,6 +611,8 @@
 /**
  Returns an activation recovery data. You have to provide encrypted vault key |c_vault_key| and
  |keys| structure where the valid possessionUnlockKey is set.
+ 
+ This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreRecoveryData*) activationRecoveryData:(nonnull NSString*)cVaultKey
 														  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;

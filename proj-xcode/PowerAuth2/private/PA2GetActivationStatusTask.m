@@ -20,6 +20,7 @@
 #import "PA2RestApiObjects.h"
 #import "PA2RestApiEndpoint.h"
 #import "PA2HttpClient.h"
+#import "PA2Result.h"
 
 #import <PowerAuth2/PowerAuthLog.h>
 #import <PowerAuth2/PowerAuthAuthentication.h>
@@ -52,10 +53,9 @@
 	id<NSLocking> _lock;
 	
 	NSData * _deviceRelatedKey;
-	PowerAuthCoreSession * _session;
+	id<PowerAuthCoreSessionProvider> _sessionProvider;
 	PA2HttpClient * _client;
 	void(^_completion)(PA2GetActivationStatusTask*, PowerAuthActivationStatus*, NSDictionary*, NSError*);
-	void(^_sessionChange)(PowerAuthCoreSession*);
 	
 	__weak NSOperation * _currentOperation;
 	NSMutableArray<PA2GetActivationStatusChildTask*>* _childOperations;
@@ -69,35 +69,22 @@
 
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
 		 deviceRelatedKey:(NSData*)deviceRelatedKey
-				  session:(PowerAuthCoreSession*)session
-			sessionChange:(void(^)(PowerAuthCoreSession*))sessionChange
+		  sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
 			   completion:(void(^)(PA2GetActivationStatusTask*, PowerAuthActivationStatus*, NSDictionary*, NSError*))completion
 {
 	self = [super init];
 	if (self) {
 		_lock = [[NSRecursiveLock alloc] init];
 		_deviceRelatedKey = deviceRelatedKey;
-		_session = session;
+		_sessionProvider = sessionProvider;
 		_client = httpClient;
 		_childOperations = [NSMutableArray array];
-		_sessionChange = sessionChange;
 		_completion = completion;
 		_upgradeAttempts = 3;
 	}
 	return self;
 }
 
-
-/**
- Helper funcion, serializes PowerAuthCoreSession's state to keychain. This is done via the
- '_sessionChange' closure.
- */
-- (void) serializeSessionState
-{
-	if (_sessionChange) {
-		_sessionChange(_session);
-	}
-}
 
 #pragma mark - Execution
 
@@ -113,12 +100,8 @@
 - (void) fetchActivationStatusAndTestUpgrade
 {
 	[self fetchActivationStatus:^(PowerAuthActivationStatus *status, NSDictionary *customObject, NSError *error) {
-		// Test whether we have to serialize session's persistent data.
-		if (status.needsSerializeSessionState) {
-			[self serializeSessionState];
-		}
 		// We have status. Test for protocol upgrade.
-		if (status.isProtocolUpgradeAvailable || _session.hasPendingProtocolUpgrade) {
+		if (status.isProtocolUpgradeAvailable || _sessionProvider.hasPendingProtocolUpgrade) {
 			if (!_disableUpgrade) {
 				// If protocol upgrade is available, then simply switch to upgrade code.
 				[self continueUpgradeWith:status customObject:customObject];
@@ -145,8 +128,8 @@
 {
 	// Perform the server request
 	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
-	request.activationId = _session.activationIdentifier;
-	request.challenge    = [_session generateActivationStatusChallenge];
+	request.activationId = _sessionProvider.activationIdentifier;
+	request.challenge    = [PowerAuthCoreSession generateActivationStatusChallenge];
 	//
 	_currentOperation = [_client postObject:request
 										 to:[PA2RestApiEndpoint getActivationStatus]
@@ -166,7 +149,9 @@
 										 encryptedStatus.challenge				= request.challenge;
 										 encryptedStatus.encryptedStatusBlob	= ro.encryptedStatusBlob;
 										 encryptedStatus.nonce					= ro.nonce;
-										 PowerAuthCoreActivationStatus * coreStatusObject = [_session decodeActivationStatus:encryptedStatus keys:keys];
+										 PowerAuthCoreActivationStatus * coreStatusObject = [_sessionProvider writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+											 return [session decodeActivationStatus:encryptedStatus keys:keys];
+										 }];
 										 customObject = ro.customObject;
 										 if (coreStatusObject) {
 											 statusObject = [[PowerAuthActivationStatus alloc] initWithCoreStatus: coreStatusObject];
@@ -226,84 +211,77 @@
  */
 - (void) continueUpgradeToV3:(PowerAuthActivationStatus*)status
 {
-	PowerAuthCoreProtocolVersion serverVersion = status.currentActivationVersion;
-	PowerAuthCoreProtocolVersion localVersion = _session.protocolVersion;
+	PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		PowerAuthCoreProtocolVersion serverVersion = status.currentActivationVersion;
+		PowerAuthCoreProtocolVersion localVersion = session.protocolVersion;
 
-	if (serverVersion == PowerAuthCoreProtocolVersion_V2) {
-		
-		// Server is still on V2 version, so we need to determine how to continue.
-		// At first, we should check whether the upgrade was started, because this
-		// continue method must handle all possible upgrade states.
-		
-		if (_session.pendingProtocolUpgradeVersion == PowerAuthCoreProtocolVersion_NA) {
-			// Upgrade has not been started yet.
-			PowerAuthLog(@"Upgrade: Starting upgrade to protocol V3.");
-			if (NO == [_session startProtocolUpgrade]) {
-				NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to start protocol upgrade.");
-				[self reportCompletionWithStatus:nil customObject:nil error:error];
-				return;
+		if (serverVersion == PowerAuthCoreProtocolVersion_V2) {
+			
+			// Server is still on V2 version, so we need to determine how to continue.
+			// At first, we should check whether the upgrade was started, because this
+			// continue method must handle all possible upgrade states.
+			
+			if (session.pendingProtocolUpgradeVersion == PowerAuthCoreProtocolVersion_NA) {
+				// Upgrade has not been started yet.
+				PowerAuthLog(@"Upgrade: Starting upgrade to protocol V3.");
+				if (NO == [session startProtocolUpgrade]) {
+					return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to start protocol upgrade.")];
+				}
 			}
-			[self serializeSessionState];
-		}
-		
-		// Now lets test current local protocol version
-		if (localVersion == PowerAuthCoreProtocolVersion_V2) {
-			// Looks like we didn't start upgrade on the server, or the request
-			// didn't finish. In other words, we still don't have the CTR_DATA locally.
-			[self startUpgradeToV3];
-			return;
 			
-		} else if (localVersion == PowerAuthCoreProtocolVersion_V3) {
-			// We already have CTR_DATA, but looks like server didn't receive our "commit" message.
-			// This is because server's version is still in V2.
-			[self commitUpgradeToV3];
-			return;
-			
-		}
-		
-		// Current local version is unknown. This should never happen, unless there's
-		// a new protocol version and upgrade routine is not updated.
-		// This branch will report "Internal protocol upgrade error"
-		
-	} else if (serverVersion == PowerAuthCoreProtocolVersion_V3) {
-		
-		// Server is already on V3 version, check the local version
-		if (localVersion == PowerAuthCoreProtocolVersion_V2) {
-			// This makes no sense. Server is in V3, but the client is still in V2.
-			NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Server-Client protocol version mishmash.");
-			[self reportCompletionWithStatus:nil customObject:nil error:error];
-			return;
-			
-		} else if (localVersion == PowerAuthCoreProtocolVersion_V3) {
-			// Server is in V3, local version is in V3
-			PowerAuthCoreProtocolVersion pendingUpgradeVersion = _session.pendingProtocolUpgradeVersion;
-			if (pendingUpgradeVersion == PowerAuthCoreProtocolVersion_V3) {
-				// Looks like we need to just finish the upgrade. Server and our local session
-				// are already on V3, but pending flag indicates, that we're still in upgrade.
-				[self finishUpgradeToV3];
-				return;
+			// Now lets test current local protocol version
+			if (localVersion == PowerAuthCoreProtocolVersion_V2) {
+				// Looks like we didn't start upgrade on the server, or the request
+				// didn't finish. In other words, we still don't have the CTR_DATA locally.
+				[self startUpgradeToV3];
+				return nil;
 				
-			} else if (pendingUpgradeVersion == PowerAuthCoreProtocolVersion_NA) {
-				// Server's in V3, client's in V3, no pending upgrade.
-				// This is weird, but we can just report the result.
-				[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
-				return;
+			} else if (localVersion == PowerAuthCoreProtocolVersion_V3) {
+				// We already have CTR_DATA, but looks like server didn't receive our "commit" message.
+				// This is because server's version is still in V2.
+				[self commitUpgradeToV3];
+				return nil;
 			}
+			
+			// Current local version is unknown. This should never happen, unless there's
+			// a new protocol version and upgrade routine is not updated.
+			// This branch will report "Internal protocol upgrade error"
+			
+		} else if (serverVersion == PowerAuthCoreProtocolVersion_V3) {
+			
+			// Server is already on V3 version, check the local version
+			if (localVersion == PowerAuthCoreProtocolVersion_V2) {
+				// This makes no sense. Server is in V3, but the client is still in V2.
+				return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Server-Client protocol version mishmash.")];
+				
+			} else if (localVersion == PowerAuthCoreProtocolVersion_V3) {
+				// Server is in V3, local version is in V3
+				PowerAuthCoreProtocolVersion pendingUpgradeVersion = session.pendingProtocolUpgradeVersion;
+				if (pendingUpgradeVersion == PowerAuthCoreProtocolVersion_V3) {
+					// Looks like we need to just finish the upgrade. Server and our local session
+					// are already on V3, but pending flag indicates, that we're still in upgrade.
+					[self finishUpgradeToV3];
+					return nil;
+					
+				} else if (pendingUpgradeVersion == PowerAuthCoreProtocolVersion_NA) {
+					// Server's in V3, client's in V3, no pending upgrade.
+					// This is weird, but we can just report the result.
+					return [[PA2Result success:_receivedStatus] withAssociatedData:_receivedCustomObject];
+				}
+			}
+			
+			// Current local version is unknown. This should never happen, unless there's
+			// a new protocol version and upgrade routine is not updated.
+			// This branch will also report "Internal protocol upgrade error"
+			
+		} else {
+			// Server's version is unknown.
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Unknown server version.")];
 		}
-		
-		// Current local version is unknown. This should never happen, unless there's
-		// a new protocol version and upgrade routine is not updated.
-		// This branch will also report "Internal protocol upgrade error"
-		
-	} else {
-		// Server's version is unknown.
-		NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Unknown server version.");
-		[self reportCompletionWithStatus:nil customObject:nil error:error];
-		return;
-	}
-	
-	NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Internal protocol upgrade error.");
-	[self reportCompletionWithStatus:nil customObject:nil error:error];
+		// Otherwise report an upgrade error.
+		return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Internal protocol upgrade error.")];
+	}];
+	[self reportCompletionWithResult:result];
 }
 
 /**
@@ -314,29 +292,31 @@
 	_currentOperation = [_client postObject:nil
 										 to:[PA2RestApiEndpoint upgradeStartV3]
 								 completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-									 // Response from start upgrade request
-									 if (status == PowerAuthRestApiResponseStatus_OK) {
-										 PA2UpgradeStartV3Response * ro = response;
-										 PowerAuthCoreProtocolUpgradeDataV3 * v3data = [[PowerAuthCoreProtocolUpgradeDataV3 alloc] init];
-										 v3data.ctrData = ro.ctrData;
-										 if ([_session applyProtocolUpgradeData:v3data]) {
-											 // Everything looks fine, we can continue with commit on server.
-											 // Since this change, we can sign requests with V3 signatures
-											 // and local protocol version is bumped to V3.
-											 [self serializeSessionState];
-											 [self commitUpgradeToV3];
-											 
-										 } else {
-											 // The PowerAuthCoreSession did reject our upgrade data.
-											 NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to apply protocol upgrade data.");
-											 [self reportCompletionWithStatus:nil customObject:nil error:error];
-										 }
-									 } else {
-										 // Upgrade start failed. This might be a temporary problem with the network,
-										 // so try to repeat everything.
-										 [self fetchActivationStatusAndTestUpgrade];
-									 }
-								 }];
+									PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* (PowerAuthCoreSession * _Nonnull session) {
+										// Response from start upgrade request
+										if (status == PowerAuthRestApiResponseStatus_OK) {
+											PA2UpgradeStartV3Response * ro = response;
+											PowerAuthCoreProtocolUpgradeDataV3 * v3data = [[PowerAuthCoreProtocolUpgradeDataV3 alloc] init];
+											v3data.ctrData = ro.ctrData;
+											if ([session applyProtocolUpgradeData:v3data]) {
+												// Everything looks fine, we can continue with commit on server.
+												// Since this change, we can sign requests with V3 signatures
+												// and local protocol version is bumped to V3.
+												[self commitUpgradeToV3];
+												
+											} else {
+												// The PowerAuthCoreSession did reject our upgrade data.
+												return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to apply protocol upgrade data.")];
+											}
+										} else {
+											// Upgrade start failed. This might be a temporary problem with the network,
+											// so try to repeat everything.
+											[self fetchActivationStatusAndTestUpgrade];
+										}
+										return nil;
+									}];
+									[self reportCompletionWithResult:result];
+								}];
 }
 
 /**
@@ -365,16 +345,16 @@
  */
 - (void) finishUpgradeToV3
 {
-	if ([_session finishProtocolUpgrade]) {
-		PowerAuthLog(@"Upgrade: Activation was successfully upgraded to protocol V3.");
-		// Everything looks fine, we can report previously cached status
-		[self serializeSessionState];
-		[self reportCompletionWithStatus:_receivedStatus customObject:_receivedCustomObject error:nil];
-		
-	} else {
-		NSError * error = PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to finish protocol upgrade process.");
-		[self reportCompletionWithStatus:nil customObject:nil error:error];
-	}
+	PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		if ([session finishProtocolUpgrade]) {
+			PowerAuthLog(@"Upgrade: Activation was successfully upgraded to protocol V3.");
+			// Everything looks fine, we can report previously cached status
+			return [[PA2Result success:_receivedStatus] withAssociatedData:_receivedCustomObject];
+		} else {
+			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to finish protocol upgrade process.")];
+		}
+	}];
+	[self reportCompletionWithResult: result];
 }
 
 #pragma mark - PowerAuthOperationTask
@@ -454,12 +434,19 @@
 		_completion(self, status, customObject, error);
 		_completion = nil;
 	}
-	_sessionChange = nil;
 	
 	// Complete child tasks with result.
 	[childTasks enumerateObjectsUsingBlock:^(PA2GetActivationStatusChildTask * task, NSUInteger idx, BOOL * stop) {
 		[task completeWithStatus:status customObject:customObject error:error];
 	}];
+}
+
+- (void) reportCompletionWithResult:(PA2Result<PowerAuthActivationStatus*>*)result
+{
+	// Report only when result is available. If not available, then the task is not finished yet.
+	if (result) {
+		[self reportCompletionWithStatus:result.result customObject:result.associatedData error:result.error];
+	}
 }
 
 @end

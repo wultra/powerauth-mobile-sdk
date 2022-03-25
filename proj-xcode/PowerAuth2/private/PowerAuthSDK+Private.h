@@ -71,3 +71,9 @@
 @interface PowerAuthKeychainConfiguration (BiometricAccess)
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end
+
+// Reveal private init in PowerAuthExternalPendingOperation
+@interface PowerAuthExternalPendingOperation (Private)
+- (instancetype) initWithOperationType:(PowerAuthExternalPendingOperationType)operationType
+						 applicationId:(NSString*)applicationId;
+@end

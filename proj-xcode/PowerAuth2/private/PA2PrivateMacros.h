@@ -46,6 +46,8 @@ PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);
 
 /// Returns NSError with PA2ErrorDomain with given errorCode & message.
 PA2_EXTERN_C NSError * PA2MakeError(PowerAuthErrorCode errorCode, NSString * message);
+/// Returns NSError with PA2ErrorDomain with given errorCode, message and additional info.
+PA2_EXTERN_C NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary * info);
 /// Returns the default textual representation for given error code.
 /// If message is provided, then returns this message instead of default string.
 PA2_EXTERN_C NSString * PA2MakeDefaultErrorDescription(PowerAuthErrorCode errorCode, NSString * message);

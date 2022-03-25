@@ -19,6 +19,8 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
+@class PowerAuthExternalPendingOperation;
+
 #pragma mark - Error codes
 
 /**
@@ -37,6 +39,12 @@ PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_AdditionalInfo;
  is stored.
  */
 PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_ResponseData;
+
+/**
+ A key to NSError.userInfo dicionary where the optional `PowerAuthExternalPendingOperation`
+ object is stored.
+ */
+PA2_EXTERN_C NSString * __nonnull const PowerAuthErrorInfoKey_ExternalPendingOperation;
 
 /**
  Error codes returned for PowerAuthErrorDomain errors
@@ -124,6 +132,13 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
 	 after the upgrade is finished.
 	 */
 	PowerAuthErrorCode_PendingProtocolUpgrade		= 17,
+	/**
+	 The requested function is not available due to an external application is doing the sensitive operation
+	 at the same time. The recommended action is to instruct the user to switch to the application that started
+	 the sensitive operation. You can investigate the type of operation in associated `PowerAuthExternalPendingOperation`
+	 object available via `NSError.powerAuthExternalPendingOperation` property.
+	 */
+	PowerAuthErrorCode_ExternalPendingOperation		= 18,
 };
 
 @interface NSError (PowerAuthErrorCode)
@@ -132,5 +147,10 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
  has different domain, then property contains `PowerAuthErrorCode_NA`.
  */
 @property (nonatomic, readonly) PowerAuthErrorCode powerAuthErrorCode;
+/**
+ Contains `PowerAuthExternalPendingOperation` object in case that NSError object has `PowerAuthErrorDomain`
+ and error code is `PowerAuthErrorCode_ExternalPendingOperation`.
+ */
+@property (nonatomic, strong, nullable, readonly) PowerAuthExternalPendingOperation * powerAuthExternalPendingOperation;
 
 @end

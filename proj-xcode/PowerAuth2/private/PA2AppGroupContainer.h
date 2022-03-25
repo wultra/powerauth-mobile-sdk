@@ -43,4 +43,20 @@
  */
 - (nullable NSString*) pathToFileLockWithIdentifier:(nonnull NSString*)lockIdentifier;
 
+/**
+ Return full identifier for shared memory calculated from short identifier.
+ Return nil in case that shortIdentifier is not valid.
+ */
+- (nullable NSString*) sharedMemoryIdentifier:(nonnull NSString*)shortIdentifier;
+
+/**
+ Return short shared memory identifier calculated from instance identifier.
+ */
++ (nonnull NSString*) shortSharedMemoryIdentifier:(nonnull NSString*)instanceIdentifier;
+
+/**
+ Validate short shared memory identifier.
+ */
++ (BOOL) validateShortSharedMemoryIdentifier:(nonnull NSString*)shortIdentifier;
+
 @end

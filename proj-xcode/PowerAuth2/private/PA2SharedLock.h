@@ -16,38 +16,18 @@
 #import <Foundation/Foundation.h>
 
 /**
- The `PA2SharedReadWriteLock` implements Read-Write interprocess locking.
- The object also implements `NSLocking` protocol where "lock" is equal to "writeLock"
- and "unlock" to "writeUnlock".
+ The `PA2SharedLock` implements `NSLocking` protocol and allows you
+ to acquire an exclusive access to the resources shared between the multiple
+ apps.
  */
-@interface PA2SharedReadWriteLock : NSObject<NSLocking>
+@interface PA2SharedLock : NSObject<NSLocking>
 
 /**
- Initialize read-write interprocess lock with full path to file used for locking.
+ Initialize  interprocess lock with full path to file used for locking.
  If recursive parameter is YES, then reentrant lock is created, so you can acquire lock
  for multiple times from the same thread.
  */
 - (nullable instancetype) initWithPath:(nonnull NSString*)path
 							 recursive:(BOOL)recursive;
-
-/**
- Acquire read lock.
- */
-- (void) readLock;
-
-/**
- Release read lock.
- */
-- (void) readUnlock;
-
-/**
- Acquire write lock.
- */
-- (void) writeLock;
-
-/**
- Release write lock.
- */
-- (void) writeUnlock;
 
 @end

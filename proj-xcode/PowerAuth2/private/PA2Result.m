@@ -18,30 +18,35 @@
 
 @implementation PA2Result
 
-- (id) initWithResult:(id)result error:(NSError*)error
+- (id) initWithResult:(id)result error:(NSError*)error data:(id)data
 {
 	self = [super init];
 	if (self) {
 		_result = result;
 		_error = error;
+		_associatedData = data;
 	}
 	return self;
 }
 
 + (id) success:(id)result
 {
-	return [[PA2Result alloc] initWithResult:result error:nil];
+	return [[PA2Result alloc] initWithResult:result error:nil data:nil];
+}
+
++ (id) success:(id)result withData:(id)data
+{
+	return [[PA2Result alloc] initWithResult:result error:nil data:data];
 }
 
 + (id) failure:(NSError*)failure
 {
-	return [[PA2Result alloc] initWithResult:nil error:failure];
+	return [[PA2Result alloc] initWithResult:nil error:failure data:nil];
 }
 
-- (id) withAssociatedData:(id)associatedData
++ (id) failure:(NSError*)failure withData:(id)data
 {
-	_associatedData = associatedData;
-	return self;
+	return [[PA2Result alloc] initWithResult:nil error:failure data:data];
 }
 
 - (id) extractResult:(NSError**)error

@@ -51,3 +51,11 @@ PA2_EXTERN_C NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message,
 /// Returns the default textual representation for given error code.
 /// If message is provided, then returns this message instead of default string.
 PA2_EXTERN_C NSString * PA2MakeDefaultErrorDescription(PowerAuthErrorCode errorCode, NSString * message);
+
+
+#if DEBUG
+/// Print error based on errno constant. Function is implemented only for DEBUG builds.
+PA2_EXTERN_C void PA2PrintErrno(NSString * location);
+#else
+#define PA2PrintErrno(...)
+#endif

@@ -15,8 +15,15 @@
  */
 
 #import "PA2SharedLock.h"
+#import "PA2PrivateMacros.h"
 #import <PowerAuth2/PowerAuthLog.h>
 #include <pthread.h>
+
+#pragma mark - Internal objects
+
+@interface PA2InternalLock : NSObject<NSLocking>
+- (id) initWithSharedLock:(PA2SharedLock*)sharedLock;
+@end
 
 /**
  Internal structure containing lock data.
@@ -54,10 +61,10 @@ typedef struct LockData {
 	
 } LockData;
 
-
 @implementation PA2SharedLock
 {
 	LockData _lockData;
+	BOOL _recursive;
 }
 
 static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
@@ -72,6 +79,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 			PowerAuthLog(@"PA2SharedLock: Failed to initialize %@ lock", recursive ? @"recursive" : @"simple");
 			return nil;
 		}
+		_recursive = recursive;
 	}
 	return self;
 }
@@ -91,22 +99,22 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 	_lockData.unlockFunc(&_lockData, LOCK_UN);
 }
 
+- (void) localLock
+{
+	_LockRecursive(&_lockData, 0);
+}
+
+- (void) localUnlock
+{
+	_UnlockRecursive(&_lockData, 0);
+}
+
+- (id<NSLocking>) createLocalRecusiveLock
+{
+	return _recursive ? [[PA2InternalLock alloc] initWithSharedLock:self] : nil;
+}
 
 #pragma mark - Private
-
-#if DEBUG
-static void _PrintErrno(NSString * functionName)
-{
-	char buffer[256];
-	strerror_r(errno, buffer, sizeof(buffer));
-	NSString * error = [NSString stringWithUTF8String:buffer];
-	PowerAuthLog(@"PA2SharedLock: %@ failed: %@", functionName, error);
-}
-#else
-#define _PrintErrno(...)
-#endif
-
-#pragma mark -
 
 /**
  Initialize LockData structure for given file and lock type.
@@ -132,7 +140,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 		// Open file for locking
 		lockData->fileDescriptor = open(lockPath.UTF8String, O_CREAT | O_TRUNC | O_RDWR, 0666);
 		if (lockData->fileDescriptor == -1) {
-			_PrintErrno(@"PA2SharedLock: open()");
+			PA2PrintErrno(@"PA2SharedLock: open()");
 			break;
 		}
 		// If lock is recursive, then also initialize pthread mutex.
@@ -143,7 +151,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 			int int_result = pthread_mutex_init(&lockData->mutex, &attr);
 			pthread_mutexattr_destroy(&attr);
 			if (int_result != 0) {
-				_PrintErrno(@"PA2SharedLock: pthread_mutex_init()");
+				PA2PrintErrno(@"PA2SharedLock: pthread_mutex_init()");
 				break;
 			}
 			lockData->mutexInitialized = YES;
@@ -172,7 +180,7 @@ static void _LockOperation(LockData * ld, int operation)
 	if (ld->fileDescriptor != -1) {
 		int result = flock(ld->fileDescriptor, operation);
 		if (result != 0) {
-			_PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
+			PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
 		}
 	}
 }
@@ -197,8 +205,11 @@ static void _LockRecursive(LockData * ld, int operation)
 	}
 	// At first, acquire recursive mutex for this thread.
 	if (pthread_mutex_lock(&ld->mutex) != 0) {
-		_PrintErrno(@"PA2SharedLock: pthread_mutex_lock()");
+		PA2PrintErrno(@"PA2SharedLock: pthread_mutex_lock()");
 		return;
+	}
+	if (operation == 0) {
+		return; // lock only pthread_mutex
 	}
 	
 	// Increase number of acquired locks. If count is 1, then we have to acquire
@@ -214,19 +225,22 @@ static void _UnlockRecursive(LockData * ld, int operation)
 	if (!ld->mutexInitialized) {
 		return;
 	}
-	// At first, decrement lock counter.
-	if (ld->lockCount > 0) {
-		ld->lockCount--;
-		// If both counters are equal to 0, then we can also release the underlying file lock.
-		if (ld->lockCount == 0) {
-			_LockOperation(ld, operation);
+	if (operation != 0) {
+		// At first, decrement lock counter.
+		if (ld->lockCount > 0) {
+			ld->lockCount--;
+			// If both counters are equal to 0, then we can also release the underlying file lock.
+			if (ld->lockCount == 0) {
+				_LockOperation(ld, operation);
+			}
+		} else {
+			PowerAuthLog(@"PA2SharedLock: lock - unlock calls are not in pair.");
 		}
-	} else {
-		PowerAuthLog(@"PA2SharedLock: lock - unlock calls are not in pair.");
 	}
+	
 	// And finally, release recursive pthread mutex.
 	if (pthread_mutex_unlock(&ld->mutex) != 0) {
-		_PrintErrno(@"PA2SharedLock: pthread_mutex_unlock()");
+		PA2PrintErrno(@"PA2SharedLock: pthread_mutex_unlock()");
 	}
 }
 
@@ -239,6 +253,33 @@ static void _CloseRecursive(LockData * ld)
 	}
 	// Close also file descriptor
 	_CloseSimple(ld);
+}
+
+@end
+
+
+@implementation PA2InternalLock
+{
+	PA2SharedLock * _lock;
+}
+
+- (id) initWithSharedLock:(PA2SharedLock *)sharedLock
+{
+	self = [super init];
+	if (self) {
+		_lock = sharedLock;
+	}
+	return self;
+}
+
+- (void) lock
+{
+	[_lock localLock];
+}
+
+- (void) unlock
+{
+	[_lock localUnlock];
 }
 
 @end

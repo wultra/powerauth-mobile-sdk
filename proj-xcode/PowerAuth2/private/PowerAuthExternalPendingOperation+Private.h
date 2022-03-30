@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-// PA2_SHARED_SOURCE PowerAuth2ForWatch private
-// PA2_SHARED_SOURCE PowerAuth2ForExtensions private
+#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
 
-#import "PA2PrivateMacros.h"
-#import <PowerAuth2/PowerAuthLog.h>
-
-id PA2CastToImpl(id instance, Class desiredClass)
-{
-	if ([instance isKindOfClass:desiredClass]) {
-		return instance;
-	}
-	return nil;
-}
-
-#if DEBUG
-void PA2PrintErrno(NSString * location)
-{
-	char buffer[256];
-	strerror_r(errno, buffer, sizeof(buffer));
-	NSString * error = [NSString stringWithUTF8String:buffer];
-	PowerAuthLog(@"%@ failed: %@", location, error);
-}
-#endif // DEBUG
+@interface PowerAuthExternalPendingOperation (Private)
+/**
+ Initialize object with operation type and application id.
+ */
+- (instancetype) initWithOperationType:(PowerAuthExternalPendingOperationType)operationType
+						 applicationId:(NSString*)applicationId;
+@end

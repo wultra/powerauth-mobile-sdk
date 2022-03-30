@@ -166,10 +166,6 @@
 	return nil;
 }
 
-- (void) stopExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
-{
-}
-
 
 #pragma mark - PowerAuthSessionStatusProvider
 
@@ -219,7 +215,15 @@
 
 - (void) reportErrorCode:(PowerAuthCoreErrorCode)errorCode forOperation:(nullable NSString *)operationName
 {
-	// Empty...
+	NSString * errorCodeStr;
+	switch (errorCode) {
+		case PowerAuthCoreErrorCode_Ok: return;
+		case PowerAuthCoreErrorCode_WrongParam: errorCodeStr = @"Wrong Param"; break;
+		case PowerAuthCoreErrorCode_Encryption: errorCodeStr = @"Encryption failure"; break;
+		case PowerAuthCoreErrorCode_WrongState: errorCodeStr = @"Wrong State"; break;
+		default: errorCodeStr = [NSString stringWithFormat:@"Code %@", @(errorCode)]; break;
+	}
+	PowerAuthLog(@"ERROR: PowerAuthCoreSession operation failed with error %@", errorCodeStr);
 }
 
 - (void) requireReadAccess

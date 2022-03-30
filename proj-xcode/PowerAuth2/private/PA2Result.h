@@ -16,17 +16,49 @@
 
 #import <PowerAuth2/PowerAuthMacros.h>
 
+/**
+ The `PA2Result` object wraps ResultType and NSError into one object.
+ On top of that it allows you to associate any other object type to
+ the arbitrary result.
+ */
 @interface PA2Result<ResultType> : NSObject
-
-@property (nonatomic, readonly, strong, nullable) NSError * error;
+/**
+ Contains result object in case that operation succeeded.
+ */
 @property (nonatomic, readonly, strong, nullable) ResultType result;
+/**
+ Contains error in case that operation failed.
+ */
+@property (nonatomic, readonly, strong, nullable) NSError * error;
+/**
+ Contains additional associated data.
+ */
 @property (nonatomic, readonly, strong, nullable) id associatedData;
 
+/**
+ Create result object with success.
+ */
 + (nonnull PA2Result<ResultType>*) success:(nonnull ResultType)result;
+
+/**
+ Create result object with success and associated data.
+ */
++ (nonnull PA2Result<ResultType>*) success:(nonnull ResultType)result
+								  withData:(nonnull id)data;
+/**
+ Create result object with failure.
+ */
 + (nonnull PA2Result<ResultType>*) failure:(nonnull NSError*)failure;
 
-- (nonnull PA2Result<ResultType>*) withAssociatedData:(id _Nullable)associatedData;
+/**
+ Create result object with failure and associated data.
+ */
++ (nonnull PA2Result<ResultType>*) failure:(nonnull ResultType)result
+								  withData:(nonnull id)data;
 
+/**
+ Return result and set error to provided NSError pointer in case result is failure.
+ */
 - (nullable ResultType) extractResult:(NSError* _Nullable* _Nullable)error;
 
 @end

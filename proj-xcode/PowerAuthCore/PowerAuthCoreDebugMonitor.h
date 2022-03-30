@@ -18,7 +18,7 @@
 
 #if DEBUG
 /**
- The `PowerAuthCoreDebugMonitor` is a helper class that can detect and debug
+ The `PowerAuthCoreDebugMonitor` is a helper protocol that allows you detect and debug
  various low-level interface misuses. The interface is not used if core is compiled
  for the release configuration.
  */

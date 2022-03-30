@@ -30,4 +30,13 @@
 - (nullable instancetype) initWithPath:(nonnull NSString*)path
 							 recursive:(BOOL)recursive;
 
+
+/**
+ If shared lock was initialized with the recursive flag, then this function instantiate
+ a new object implementing NSLocking protocol that allows you acquire the same recursive
+ lock that use PA2SharedLock internally. By calling lock and unlock on this object, you can
+ synchronize the access to shared resources, but only for this process.
+ */
+- (nullable id<NSLocking>) createLocalRecusiveLock;
+
 @end

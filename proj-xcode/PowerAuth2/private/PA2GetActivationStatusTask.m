@@ -266,7 +266,7 @@
 				} else if (pendingUpgradeVersion == PowerAuthCoreProtocolVersion_NA) {
 					// Server's in V3, client's in V3, no pending upgrade.
 					// This is weird, but we can just report the result.
-					return [[PA2Result success:_receivedStatus] withAssociatedData:_receivedCustomObject];
+					return [PA2Result success:_receivedStatus withData:_receivedCustomObject];
 				}
 			}
 			
@@ -349,7 +349,7 @@
 		if ([session finishProtocolUpgrade]) {
 			PowerAuthLog(@"Upgrade: Activation was successfully upgraded to protocol V3.");
 			// Everything looks fine, we can report previously cached status
-			return [[PA2Result success:_receivedStatus] withAssociatedData:_receivedCustomObject];
+			return [PA2Result success:_receivedStatus withData:_receivedCustomObject];
 		} else {
 			return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to finish protocol upgrade process.")];
 		}

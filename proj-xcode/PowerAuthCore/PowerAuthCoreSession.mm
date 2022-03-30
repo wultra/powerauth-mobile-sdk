@@ -24,11 +24,16 @@
 using namespace io::getlime::powerAuth;
 
 #if defined(DEBUG)
-#define REQUIRE_WRITE_ACCESS()  [_debugMonitor requireWriteAccess]
-#define REQUIRE_READ_ACCESS()  [_debugMonitor requireReadAccess]
+#define REQUIRE_WRITE_ACCESS()          [_debugMonitor requireWriteAccess]
+#define REQUIRE_READ_ACCESS()           [_debugMonitor requireReadAccess]
+#define REPORT_ERROR_CODE(fname, ec)    if (ec != EC_Ok) {                                                                  \
+                                            PowerAuthCoreObjc_DebugDumpError(self, fname, ec);                              \
+                                            [_debugMonitor reportErrorCode:(PowerAuthCoreErrorCode)ec forOperation:fname];  \
+                                        }
 #else
 #define REQUIRE_WRITE_ACCESS()
 #define REQUIRE_READ_ACCESS()
+#define REPORT_ERROR_CODE(fname, ec)
 #endif
 
 @implementation PowerAuthCoreSession
@@ -152,7 +157,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->loadSessionState(cc7::ByteRange(state.bytes, state.length));
-	PowerAuthCoreObjc_DebugDumpError(self, @"DeserializeState", error);
+    REPORT_ERROR_CODE(@"DeserializeState", error);
 	return error == EC_Ok;
 }
 
@@ -182,7 +187,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return PowerAuthCoreActivationStep1ResultToObject(cpp_r1);
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"StartActivation", error);
+    REPORT_ERROR_CODE(@"StartActivation", error);
 	return nil;
 }
 
@@ -197,7 +202,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return PowerAuthCoreActivationStep2ResultToObject(cpp_r2);
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"ValidateActivation", error);
+    REPORT_ERROR_CODE(@"ValidateActivation", error);
 	return nil;
 }
 
@@ -208,7 +213,7 @@ using namespace io::getlime::powerAuth;
 	SignatureUnlockKeys cpp_keys;
 	PowerAuthCoreSignatureUnlockKeysToStruct(keys, cpp_keys);
 	auto error = _session->completeActivation(cpp_keys);
-	PowerAuthCoreObjc_DebugDumpError(self, @"CompleteActivation", error);
+    REPORT_ERROR_CODE(@"CompleteActivation", error);
 	return error == EC_Ok;
 }
 
@@ -229,7 +234,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return PowerAuthCoreActivationStatusToObject(cpp_status);
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"DecodeActivationStatus", error);
+    REPORT_ERROR_CODE(@"DecodeActivationStatus", error);
 	return nil;
 }
 
@@ -273,7 +278,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return signature;
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"SignHttpRequestData", error);
+    REPORT_ERROR_CODE(@"SignHttpRequestData", error);
 	return nil;
 }
 
@@ -293,7 +298,7 @@ using namespace io::getlime::powerAuth;
 	} else {
 		error = EC_WrongParam;
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"VerifyServerSignedData", error);
+    REPORT_ERROR_CODE(@"VerifyServerSignedData", error);
 	return error == EC_Ok;
 }
 
@@ -309,7 +314,7 @@ using namespace io::getlime::powerAuth;
 	} else {
 		error = EC_WrongParam;
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"ChangeUserPassword", error);
+    REPORT_ERROR_CODE(@"ChangeUserPassword", error);
 	return error == EC_Ok;
 }
 
@@ -321,7 +326,7 @@ using namespace io::getlime::powerAuth;
 	SignatureUnlockKeys cpp_keys;
 	PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
 	auto error = _session->addBiometryFactor(cpp_c_vault_key, cpp_keys);
-	PowerAuthCoreObjc_DebugDumpError(self, @"AddBiometryFactor", error);
+    REPORT_ERROR_CODE(@"AddBiometryFactor", error);
 	return error == EC_Ok;
 }
 
@@ -330,7 +335,7 @@ using namespace io::getlime::powerAuth;
     REQUIRE_READ_ACCESS();
 	bool result;
 	CC7_UNUSED_VAR auto error = _session->hasBiometryFactor(result);
-	PowerAuthCoreObjc_DebugDumpError(self, @"HasBiometryFactor", error);
+    REPORT_ERROR_CODE(@"HasBiometryFactor", error);
 	return result;
 }
 
@@ -338,7 +343,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->removeBiometryFactor();
-	PowerAuthCoreObjc_DebugDumpError(self, @"RemoveBiometryFactor", error);
+    REPORT_ERROR_CODE(@"RemoveBiometryFactor", error);
 	return error == EC_Ok;
 }
 
@@ -359,7 +364,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return cc7::objc::CopyToNSData(cpp_derived_key);
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"DeriveCryptographicKeyFromVaultKey", error);
+    REPORT_ERROR_CODE(@"DeriveCryptographicKeyFromVaultKey", error);
 	return nil;
 }
 
@@ -378,7 +383,7 @@ using namespace io::getlime::powerAuth;
 	if (error == EC_Ok) {
 		return cc7::objc::CopyToNSData(cpp_signature);
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"SignDataWithDevicePrivateKey", error);
+    REPORT_ERROR_CODE(@"SignDataWithDevicePrivateKey", error);
 	return nil;
 }
 
@@ -395,7 +400,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_READ_ACCESS();
 	auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-	PowerAuthCoreObjc_DebugDumpError(self, @"SetExternalEncryptionKey", error);
+    REPORT_ERROR_CODE(@"SetExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 
@@ -403,7 +408,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
-	PowerAuthCoreObjc_DebugDumpError(self, @"AddExternalEncryptionKey", error);
+    REPORT_ERROR_CODE(@"AddExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 
@@ -411,7 +416,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->removeExternalEncryptionKey();
-	PowerAuthCoreObjc_DebugDumpError(self, @"RemoveExternalEncryptionKey", error);
+    REPORT_ERROR_CODE(@"RemoveExternalEncryptionKey", error);
 	return error == EC_Ok;
 }
 
@@ -430,7 +435,7 @@ using namespace io::getlime::powerAuth;
 	
 	PowerAuthCoreEciesEncryptor * encryptor = [[PowerAuthCoreEciesEncryptor alloc] init];
 	auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, encryptor.encryptorRef);
-	PowerAuthCoreObjc_DebugDumpError(self, @"GetEciesEncryptor", error);
+    REPORT_ERROR_CODE(@"GetEciesEncryptor", error);
 	return error == EC_Ok ? encryptor : nil;
 }
 
@@ -460,7 +465,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	ErrorCode error = _session->startProtocolUpgrade();
-	PowerAuthCoreObjc_DebugDumpError(self, @"StartProtocolUpgrade", error);
+    REPORT_ERROR_CODE(@"StartProtocolUpgrade", error);
 	return error == EC_Ok;
 }
 
@@ -483,7 +488,7 @@ using namespace io::getlime::powerAuth;
 	} else {
 		error = EC_WrongParam;
 	}
-	PowerAuthCoreObjc_DebugDumpError(self, @"ApplyProtocolUpgradeData", error);
+    REPORT_ERROR_CODE(@"ApplyProtocolUpgradeData", error);
 	return error == EC_Ok;
 }
 
@@ -491,7 +496,7 @@ using namespace io::getlime::powerAuth;
 {
     REQUIRE_WRITE_ACCESS();
 	ErrorCode error = _session->finishProtocolUpgrade();
-	PowerAuthCoreObjc_DebugDumpError(self, @"FinishProtocolUpgrade", error);
+    REPORT_ERROR_CODE(@"FinishProtocolUpgrade", error);
 	return error == EC_Ok;
 }
 
@@ -518,7 +523,7 @@ using namespace io::getlime::powerAuth;
 	RecoveryData cpp_recovery_data;
 	ErrorCode error = _session->getActivationRecoveryData(cpp_c_vault_key, cpp_keys, cpp_recovery_data);
 	if (error != EC_Ok) {
-		PowerAuthCoreObjc_DebugDumpError(self, @"ActivationRecoveryData", error);
+        REPORT_ERROR_CODE(@"ActivationRecoveryData", error);
 		return nil;
 	}
 	return PowerAuthCoreRecoveryDataToObject(cpp_recovery_data);

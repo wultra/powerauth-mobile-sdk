@@ -23,44 +23,32 @@
 
 @implementation PA2DefaultSessionProvider
 {
-	/**
-	 Write lock protects consistency of write operations on top of Session. This is enough
-	 for the default implementation, because the underlying Session object also has its own
-	 locking to protect its internal data consistency. So it's OK to do the read tasks while
-	 the write lock is acquired.
-	 */
-	id<NSLocking> _writeLock;
+	id<NSLocking> _lock;
+	NSInteger _readWriteAccessCount;
+	BOOL _saveOnUnlock;
+	
 	PowerAuthCoreSession * _session;
 	PA2SessionDataProvider * _dataProvider;
 	NSData * _stateBefore;
-#if DEBUG
-	NSInteger _writeAccessCount;
-	NSInteger _readAccessCount;
-#endif
 }
 
-#if DEBUG
-	#define SET_DEBUG_MONITOR() _session.debugMonitor = self
-	#define WRITE_ACCESS_INC()	_writeAccessCount++
-	#define WRITE_ACCESS_DEC()	_writeAccessCount--
-	#define READ_ACCESS_INC()	[_writeLock lock]; _readAccessCount++
-	#define READ_ACCESS_DEC()	_readAccessCount--; [_writeLock unlock]
-#else
-	#define SET_DEBUG_MONITOR()
-	#define WRITE_ACCESS_INC()
-	#define WRITE_ACCESS_DEC()
-#endif
+#define READ_ACCESS_LOCK()		[self lockImpl:NO]
+#define READ_ACCESS_UNLOCK()	[self unlockImpl:NO]
+#define WRITE_ACCESS_LOCK()		[self lockImpl:YES]
+#define WRITE_ACCESS_UNLOCK()	[self unlockImpl:YES]
 
 - (instancetype) initWithSession:(PowerAuthCoreSession*)session
 					dataProvider:(PA2SessionDataProvider*)dataProvider
 {
 	self = [super init];
 	if (self) {
-		_writeLock = [[NSRecursiveLock alloc] init];
+		_lock = [[NSRecursiveLock alloc] init];
 		_session = session;
 		_dataProvider = dataProvider;
-		SET_DEBUG_MONITOR();
-		[self restoreState];
+#if DEBUG
+		_session.debugMonitor = self;
+#endif
+		[self loadState];
 	}
 	return self;
 }
@@ -68,12 +56,14 @@
 
 #pragma mark - Private
 
-- (void) restoreState
+- (void) loadState
 {
 	// We don't need to acquire access lock, because the object is still
 	// in its initialization phase. We need to just temporarily simulate
 	// that write access is granted.
-	WRITE_ACCESS_INC();
+	_readWriteAccessCount = 1;
+	_saveOnUnlock = YES;
+	
 	NSData * statusData = [_dataProvider sessionData];
 	if (statusData) {
 		[_session deserializeState:statusData];
@@ -81,79 +71,96 @@
 		[_session resetSession];
 	}
 	_stateBefore = [_session serializedState];
-	WRITE_ACCESS_DEC();
+	
+	// Set counters to initial state
+	_readWriteAccessCount = 0;
+	_saveOnUnlock = NO;
 }
 
+- (void) lockImpl:(BOOL)write
+{
+	[_lock lock];
+	_readWriteAccessCount++;
+	if (write) {
+		_saveOnUnlock = YES;
+	}
+}
+
+- (void) unlockImpl:(BOOL)write
+{
+	if (_readWriteAccessCount == 1 && _saveOnUnlock) {
+		NSData * stateAfter = [_session serializedState];
+		if (![_stateBefore isEqualToData:stateAfter]) {
+			[_dataProvider saveSessionData:stateAfter];
+			_stateBefore = stateAfter;
+		}
+		_saveOnUnlock = NO;
+	}
+	_readWriteAccessCount--;
+	[_lock unlock];
+}
 
 #pragma mark - PA2SessionProvider
 
 - (NSString*) activationIdentifier
 {
-	READ_ACCESS_INC();
+	READ_ACCESS_LOCK();
 	NSString * result = _session.activationIdentifier;
-	READ_ACCESS_DEC();
+	READ_ACCESS_UNLOCK();
 	return result;
 }
 
 - (id) readTaskWithSession:(id (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	READ_ACCESS_INC();
+	READ_ACCESS_LOCK();
 	id result = taskBlock(_session);
-	READ_ACCESS_DEC();
+	READ_ACCESS_UNLOCK();
 	return result;
 }
 
 - (BOOL) readBoolTaskWithSession:(BOOL (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	READ_ACCESS_INC();
+	READ_ACCESS_LOCK();
 	BOOL result = taskBlock(_session);
-	READ_ACCESS_DEC();
+	READ_ACCESS_UNLOCK();
 	return result;
 }
 
 - (void) readVoidTaskWithSession:(void (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	READ_ACCESS_INC();
+	READ_ACCESS_LOCK();
 	taskBlock(_session);
-	READ_ACCESS_DEC();
+	READ_ACCESS_UNLOCK();
 }
 
 - (id) writeTaskWithSession:(id (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	[_writeLock lock];
-	WRITE_ACCESS_INC();
+	WRITE_ACCESS_LOCK();
 	id result = taskBlock(_session);
-	NSData * stateAfter = [_session serializedState];
-	if (![_stateBefore isEqualToData:stateAfter]) {
-		[_dataProvider saveSessionData:stateAfter];
-		_stateBefore = stateAfter;
-	}
-	WRITE_ACCESS_DEC();
-	[_writeLock unlock];
+	WRITE_ACCESS_UNLOCK();
 	return result;
 }
 
 - (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	return [[self writeTaskWithSession:^id (PowerAuthCoreSession * session) {
-		return @(taskBlock(_session));
-	}] boolValue];
+	WRITE_ACCESS_LOCK();
+	BOOL result = taskBlock(_session);
+	WRITE_ACCESS_UNLOCK();
+	return result;
 }
 
 - (void) writeVoidTaskWithSession:(void (NS_NOESCAPE ^)(PowerAuthCoreSession *))taskBlock
 {
-	[self writeTaskWithSession:^id (PowerAuthCoreSession * session) {
-		taskBlock(_session);
-		return nil;
-	}];
+	WRITE_ACCESS_LOCK();
+	taskBlock(_session);
+	WRITE_ACCESS_UNLOCK();
 }
 
 - (void) resetSession
 {
-	[self writeTaskWithSession:^id (PowerAuthCoreSession * session) {
-		[session resetSession];
-		return nil;
-	}];
+	WRITE_ACCESS_LOCK();
+	[_session resetSession];
+	WRITE_ACCESS_UNLOCK();
 }
 
 - (PowerAuthExternalPendingOperation*) externalPendingOperation
@@ -169,45 +176,22 @@
 
 #pragma mark - PowerAuthSessionStatusProvider
 
-- (BOOL) canStartActivation
-{
-	READ_ACCESS_INC();
-	BOOL result = [_session canStartActivation];
-	READ_ACCESS_DEC();
-	return result;
+/**
+ Macro that executes PowerAuthCoreSession methodName returning BOOL while task is acquired.
+ */
+#define READ_BOOL_WRAPPER(methodName)					\
+- (BOOL) methodName {									\
+	READ_ACCESS_LOCK();									\
+	BOOL result = [_session methodName];				\
+	READ_ACCESS_UNLOCK();								\
+	return result;										\
 }
 
-- (BOOL) hasPendingActivation
-{
-	READ_ACCESS_INC();
-	BOOL result = [_session hasPendingActivation];
-	READ_ACCESS_DEC();
-	return result;
-}
-
-- (BOOL) hasPendingProtocolUpgrade
-{
-	READ_ACCESS_INC();
-	BOOL result = [_session hasPendingProtocolUpgrade];
-	READ_ACCESS_DEC();
-	return result;
-}
-
-- (BOOL) hasProtocolUpgradeAvailable
-{
-	READ_ACCESS_INC();
-	BOOL result = [_session hasProtocolUpgradeAvailable];
-	READ_ACCESS_DEC();
-	return result;
-}
-
-- (BOOL) hasValidActivation
-{
-	READ_ACCESS_INC();
-	BOOL result = [_session hasValidActivation];
-	READ_ACCESS_DEC();
-	return result;
-}
+READ_BOOL_WRAPPER(hasValidActivation)
+READ_BOOL_WRAPPER(canStartActivation)
+READ_BOOL_WRAPPER(hasPendingActivation)
+READ_BOOL_WRAPPER(hasPendingProtocolUpgrade)
+READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 
 
 #if DEBUG
@@ -228,20 +212,20 @@
 
 - (void) requireReadAccess
 {
-	[_writeLock lock];
-	if (_readAccessCount == 0 && _writeAccessCount == 0) {
+	[_lock lock];
+	if (_readWriteAccessCount == 0) {
 		PowerAuthLog(@"ERROR: Read access to PowerAuthCoreSession is not granted.");
 	}
-	[_writeLock unlock];
+	[_lock unlock];
 }
 
 - (void) requireWriteAccess
 {
-	[_writeLock lock];
-	if (_writeAccessCount == 0) {
+	[_lock lock];
+	if (_readWriteAccessCount == 0 || _saveOnUnlock == NO) {
 		PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
 	}
-	[_writeLock unlock];
+	[_lock unlock];
 }
 #endif // DEBUG
 

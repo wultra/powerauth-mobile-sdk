@@ -89,18 +89,10 @@ typedef struct SharedData {
 typedef struct LocalContext {
 	/// Pointer to SharedData structure mapped to address space of this process.
 	SharedData * sharedData;
-	
-	/// Number of opened "read" tasks from the current thread.
-	NSInteger readAccessCount;
-	/// Number of opened "write" tasks from the current thread.
-	NSInteger writeAccessCount;
-	
+
 	/// Counter that determine whether this process has still valid data.
 	/// This value must be in sync with SharedData->modfifyCounter.
 	NSUInteger modifyCounter;
-	/// If YES, then state of the session must be saved after the
-	/// last "read" or "write" task is completed.
-	BOOL saveOnUnlock;
 	
 	/// Contains PowerAuthExternalPendingOperationType with type
 	/// of operation started from this application. If value is 0,
@@ -139,6 +131,15 @@ typedef struct LocalContext {
 	PA2SharedLock * _sharedLock;
 	/// Additional debug lock, used for DEBUG builds
 	id<NSLocking> _debugLock;
+	
+	/// Number of "read" and "write" tasks opened from the current thread.
+	NSInteger _readWriteAccessCount;
+	/// If YES, then state of the session must be saved after the
+	/// last "read" or "write" task is completed.
+	BOOL _saveOnUnlock;
+	/// If YES, then "write" access is temporarily granted due to fact that
+	/// provider needs to restore session's state even when task is read-only.
+	BOOL _internalAccessGranted;
 	
 	/// LocalContext structure
 	LocalContext _localContext;
@@ -312,7 +313,9 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 - (void) requireReadAccess
 {
 	[_debugLock lock];
-	if (_localContext.readAccessCount == 0 && _localContext.writeAccessCount == 0) {
+	// Determine whether there's some opened task
+	BOOL accessGranted = _readWriteAccessCount > 0 || _internalAccessGranted;
+	if (!accessGranted) {
 		PowerAuthLog(@"ERROR: Read access to PowerAuthCoreSession is not granted.");
 	}
 	[_debugLock unlock];
@@ -321,7 +324,8 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 - (void) requireWriteAccess
 {
 	[_debugLock lock];
-	if (_localContext.writeAccessCount == 0) {
+	BOOL accessGranted = (_readWriteAccessCount > 0 && _saveOnUnlock) || _internalAccessGranted;
+	if (accessGranted) {
 		PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
 	}
 	[_debugLock unlock];
@@ -343,6 +347,10 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 		// Do nothing if local session has still valid data.
 		return;
 	}
+	
+	// Temporarily allow call session's methods that require write access.
+	_internalAccessGranted = YES;
+	
 	// Reload data from data provider
 	NSData * statusData = [_dataProvider sessionData];
 	if (statusData) {
@@ -352,6 +360,8 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 	}
 	_stateBefore = [_session serializedState];
 	
+	// Clear temporary granted access.
+	_internalAccessGranted = NO;
 	// Set context synchronized with others
 	_LocalContextSynchronize(&_localContext, NO);
 }
@@ -379,16 +389,14 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 	// At first, acquire a shared lock.
 	[_sharedLock lock];
 	
-	if (_LocalContextIsOpen(&_localContext)) {
-		// First lock, we should restore session's data if needed.
-		[self loadState:NO];
+	_readWriteAccessCount++;
+	if (write) {
+		_saveOnUnlock = YES;
 	}
 	
-	if (write) {
-		_localContext.writeAccessCount++;
-		_localContext.saveOnUnlock = YES;
-	} else {
-		_localContext.readAccessCount++;
+	if (_readWriteAccessCount == 1) {
+		// First lock, we should restore session's data if needed.
+		[self loadState:NO];
 	}
 }
 
@@ -397,18 +405,12 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
  */
 - (void) unlockImpl:(BOOL)write
 {
-	if (write) {
-		_localContext.writeAccessCount--;
-	} else {
-		_localContext.readAccessCount--;
-	}
-	
-	if (_LocalContextIsOpen(&_localContext)) {
+	if (_readWriteAccessCount == 1) {
 		// The shared lock will be released at the end of this function.
 		// At first, save the session's state if there was some write task opened.
-		if (_localContext.saveOnUnlock) {
-			_localContext.saveOnUnlock = NO;
+		if (_saveOnUnlock) {
 			[self saveState];
+			_saveOnUnlock = NO;
 		}
 		// Now determine whether it's possible to end the special operation started in this process.
 		if (_LocalContextThisRunningSpecialOp(&_localContext)) {
@@ -422,6 +424,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 			_LocalContextUpdateSpecialOp(&_localContext, finishSpecialOp);
 		}
 	}
+	_readWriteAccessCount--;
 	// Finally, release the shared lock.
 	[_sharedLock unlock];
 }
@@ -471,20 +474,6 @@ static void _LocalContextSynchronize(LocalContext * ctx, BOOL modified)
 		ctx->modifyCounter = ctx->sharedData->modifyCounter;
 	}
 }
-
-/**
- Return YES if write and read access counters are both equal to 0.
- */
-static BOOL _LocalContextIsOpen(LocalContext * ctx)
-{
-#if DEBUG
-	if (ctx->writeAccessCount < 0 || ctx->readAccessCount < 0) {
-		PowerAuthLog(@"PA2SharedSessionProvider: ERROR: Internal locks & unlocks are not in pair");
-	}
-#endif
-	return ctx->readAccessCount == 0 && ctx->writeAccessCount == 0;
-}
-
 
 #pragma mark Private special ops
 

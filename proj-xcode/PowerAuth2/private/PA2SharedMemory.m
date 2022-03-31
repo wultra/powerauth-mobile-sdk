@@ -60,7 +60,7 @@ typedef struct SharedMemory {
 
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier
 								   withSize:(NSUInteger)size
-								  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size))setupBlock
+								  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL created))setupBlock
 {
 	// At first, try to initialize shared memory
 	SharedMemory shm;
@@ -68,13 +68,10 @@ typedef struct SharedMemory {
 	if (init_result == SHM_INIT_FAIL) {
 		return nil;
 	}
-	// If init result is "CREATE" then this is the first process that created the shared memory.
-	// We have to call setupBlock in this situation.
-	if (init_result == SHM_INIT_CREATE) {
-		if (setupBlock(shm.ptr, shm.size) == NO) {
-			_SharedMemoryDestroy(&shm, NO);
-			return nil;
-		}
+	// Call setup block with just acquired shared memory.
+	if (setupBlock(shm.ptr, shm.size, init_result == SHM_INIT_CREATE) == NO) {
+		_SharedMemoryDestroy(&shm, NO);
+		return nil;
 	}
 	// Create PA2SharedMemory and take the ownership of the SharedMemory structure.
 	return [[PA2SharedMemory alloc] initWithSharedMemoryRef:&shm];

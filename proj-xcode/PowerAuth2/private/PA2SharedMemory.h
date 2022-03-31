@@ -25,13 +25,16 @@
  Create named memory shared between multiple applications.
  
  @param identifier Identifier that identify region of shared memory between multiple applications.
- @param size Size of shared memory.
+ @param requestedSize Requested size of shared memory.
  @param setupBlock Block called only when this process just created the shared memory region for the first time.
+ @param memory Pointer to allocated memory.
+ @param size Size of allocated memory.
+ @param crated YES if shared memory region is newly created.
  @return `PA2SharedMemory` instance or `nil` in case of failure.
  */
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier
-								   withSize:(NSUInteger)size
-								  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size))setupBlock;
+								   withSize:(NSUInteger)requestedSize
+								  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL create))setupBlock;
 /**
  Pointer to bytes shared between processes.
  

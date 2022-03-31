@@ -24,21 +24,28 @@
 
 #import <PowerAuth2/PowerAuthLog.h>
 
-#pragma mark - Private structures
+#pragma mark Private constants
 
-#define TIME_TO_FINISH_EXTERNAL_OP	10.0
-
+/// Lenght of SHA256 hash, calculated from PowerAuthConfiguration.instanceId
 #define INSTANCE_ID_SIZE 	32
-#define APP_ID_SIZE			(PADef_PowerAuthSharing_AppIdentifierMaxSize + 1)
 
+/// Length of application identifier, reserved in SharedData.
+#define APP_ID_SIZE			(PADef_PowerAuthSharing_AppIdentifierMaxSize + 1)
+/// Magic constant used at the beginning of SharedData structure.
 #define MAG_0				'M'
 #define MAG_1				'P'
 #define MAG_2				'S'
+/// Version of SharedData structure.
 #define VER_1 				'1'
 
-/**
- The `SharedData` structure contains data shared between multiple applications.
- */
+/// Defines how long will other processes wait until to re-take special operation ownership.
+#define TIME_TO_FINISH_EXTERNAL_OP	10.0
+
+#pragma mark - Private structures
+
+///
+/// The `SharedData` structure contains data shared between multiple applications.
+///
 typedef struct SharedData {
 	/// Contains "MPS" (Multi-Process Session) constant.
 	UInt8 magic[3];
@@ -75,10 +82,10 @@ typedef struct SharedData {
 
 } SharedData;
 
-/**
- Structure that keeps information about local session data and the state of
- opened tasks.
- */
+///
+/// Structure that keeps information about local session data and the state of
+/// opened tasks.
+///
 typedef struct LocalContext {
 	/// Pointer to SharedData structure mapped to address space of this process.
 	SharedData * sharedData;
@@ -99,12 +106,14 @@ typedef struct LocalContext {
 	/// of operation started from this application. If value is 0,
 	/// then no operation is started in this process.
 	NSInteger specialOpType;
-	/// Contains
+	/// Counter that helps to determine whether this process still owns
+	/// the special operation. If this counter is not equal to value in
+	/// SharedData, then this application lost ownership of the special operation.
 	NSUInteger specialOpTicket;
 	
 	/// Contains SHA256 hash calculated from PowerAuthConfiguration.instanceId.
 	/// The value is used to test whether SharedData structure is mapped to
-	/// the same
+	/// the same PowerAuthSDK instance.
 	UInt8 instanceIdentifier[INSTANCE_ID_SIZE];
 	/// Contains length of application identifier, including nul terminating character.
 	NSUInteger thisAppIdentifierSize;
@@ -118,14 +127,20 @@ typedef struct LocalContext {
 
 @implementation PA2SharedSessionProvider
 {
+	/// Reference to PowerAuthCoreSession provided by this object.
 	PowerAuthCoreSession * _session;
+	/// Reference to object providing data for session.
 	PA2SessionDataProvider * _dataProvider;
+	/// Last serialized state.
 	NSData * _stateBefore;
-	
+	/// Object holding memory shared between applications
 	PA2SharedMemory * _sharedMemory;
+	/// Lock shared between applications
 	PA2SharedLock * _sharedLock;
-	id<NSLocking> _localLock;
+	/// Additional debug lock, used for DEBUG builds
+	id<NSLocking> _debugLock;
 	
+	/// LocalContext structure
 	LocalContext _localContext;
 }
 
@@ -152,160 +167,134 @@ typedef struct LocalContext {
 		}
 		// Now acquire lock and initialize the shared memory.
 		[_sharedLock lock];
-		_sharedMemory = [PA2SharedMemory namedSharedMemory:sharedMemoryId withSize:sizeof(SharedData) setupOnce:^BOOL(void * memory, NSUInteger size) {
-			return _InitSharedMemoryData(&_localContext, memory, size);
+		_sharedMemory = [PA2SharedMemory namedSharedMemory:sharedMemoryId withSize:sizeof(SharedData) setupOnce:^BOOL(void * memory, NSUInteger size, BOOL created) {
+			if (created) {
+				// This is the first process that created the shared memory, so initialize its content
+				return _InitSharedMemoryData(&_localContext, memory, size);
+			} else {
+				// If shared memory was already initialized, then just validate its content.
+				return _ValidateSharedMemoryData(&_localContext, memory, size);
+			}
 		}];
 		// Validate allocated shared memory
-		if (!_ValidateSharedMemoryData(&_localContext, _sharedMemory)) {
+		if (!_sharedMemory) {
 			[_sharedLock unlock];
 			return nil;
 		}
 #if DEBUG
+		// Assign this class as session's debug monitor
 		_session.debugMonitor = self;
-		_localLock = [_sharedLock createLocalRecusiveLock];
+		// Acquire local recursive lock to get a thread safety for monitor functions
+		_debugLock = [_sharedLock createLocalRecusiveLock];
 #endif
 		// Everything looks OK, so restore the state and unlock the shared lock.
-		[self restoreState:YES];
+		[self loadState:YES];
 		
+		// Finally, release the shared lock
 		[_sharedLock unlock];
 	}
 	return self;
 }
 
+/**
+ READ_BLOCK macro all its parameters expands between [self lockImpl:NO] and [self unlockImpl:NO].
+ */
+#define READ_BLOCK(...)		[self lockImpl:NO]; 	\
+							__VA_ARGS__; 			\
+							[self unlockImpl:NO];
+/**
+ WRITE_BLOCK macro all its parameters expands between [self lockImpl:YES] and [self unlockImpl:YES].
+ */
+#define WRITE_BLOCK(...)	[self lockImpl:YES]; 	\
+							__VA_ARGS__; 			\
+							[self unlockImpl:YES];
 
-
-#pragma mark - PowerAuthCoreSessionProvider
-
-- (id) readTaskWithSession:(id (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
-{
-	[self lockImpl:NO];
-	id result = taskBlock(_session);
-	[self unlockImpl:NO];
-	return result;
-}
+#pragma mark - PowerAuthCoreSessionProvider protocol
 
 - (id) writeTaskWithSession:(id  (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
 {
-	[self lockImpl:YES];
-	id result = taskBlock(_session);
-	[self unlockImpl:YES];
+	WRITE_BLOCK(id result = taskBlock(_session));
+	return result;
+}
+
+- (void) writeVoidTaskWithSession:(void (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
+{
+	WRITE_BLOCK(taskBlock(_session));
+}
+
+- (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
+{
+	WRITE_BLOCK(BOOL result = taskBlock(_session));
+	return result;
+}
+
+- (id) readTaskWithSession:(id (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
+{
+	READ_BLOCK(id result = taskBlock(_session));
 	return result;
 }
 
 - (void) readVoidTaskWithSession:(void (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
 {
-	[self lockImpl:NO];
-	taskBlock(_session);
-	[self unlockImpl:NO];
-}
-
-- (void) writeVoidTaskWithSession:(void (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
-{
-	[self lockImpl:YES];
-	taskBlock(_session);
-	[self unlockImpl:YES];
+	READ_BLOCK(taskBlock(_session));
 }
 
 - (BOOL) readBoolTaskWithSession:(BOOL (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
 {
-	[self lockImpl:NO];
-	BOOL result = taskBlock(_session);
-	[self unlockImpl:NO];
-	return result;
-}
-
-- (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE^)(PowerAuthCoreSession *))taskBlock
-{
-	[self lockImpl:YES];
-	BOOL result = taskBlock(_session);
-	[self unlockImpl:YES];
+	READ_BLOCK(BOOL result = taskBlock(_session));
 	return result;
 }
 
 - (void) resetSession
 {
-	[self lockImpl:YES];
-	[_session resetSession];
-	[self unlockImpl:YES];
+	WRITE_BLOCK([_session resetSession])
 }
 
 - (NSString*) activationIdentifier
 {
-	[self lockImpl:NO];
-	NSString * result = _session.activationIdentifier;
-	[self unlockImpl:NO];
+	READ_BLOCK(NSString * result = _session.activationIdentifier);
 	return result;
 }
 
 - (NSError *) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
 {
-	[self lockImpl:YES];
-	NSError * error = _LocalContextStartSpecialOp(&_localContext, externalPendingOperation);
-	[self unlockImpl:YES];
-	return error;
+	WRITE_BLOCK(NSError * result = _LocalContextStartSpecialOp(&_localContext, externalPendingOperation));
+	return result;
 }
 
 - (PowerAuthExternalPendingOperation*) externalPendingOperation
 {
-	[self lockImpl:NO];
-	PowerAuthExternalPendingOperation * result;
-	if (!_LocalContextThisRunningSpecialOp(&_localContext)) {
-		result = _LocalContextGetExternalSpecialOp(&_localContext);
-	} else {
-		result = nil;
-	}
-	[self unlockImpl:NO];
+	READ_BLOCK
+	(PowerAuthExternalPendingOperation * result;
+	 if (!_LocalContextThisRunningSpecialOp(&_localContext)) {
+		 result = _LocalContextGetExternalSpecialOp(&_localContext);
+	 } else {
+		 result = nil;
+	 });
 	return result;
 }
 
 
+#pragma mark - PowerAuthSessionStatusProvider protocol
 
-#pragma mark - PowerAuthSessionStatusProvider
-
-- (BOOL) canStartActivation
-{
-	[self lockImpl:NO];
-	BOOL result = [_session canStartActivation];
-	[self unlockImpl:NO];
-	return result;
+/**
+ Macro that executes PowerAuthCoreSession methodName returning BOOL while task is acquired.
+ */
+#define READ_BOOL_WRAPPER(methodName)					\
+- (BOOL) methodName {									\
+	READ_BLOCK(BOOL result = [_session methodName]);	\
+	return result;										\
 }
 
-- (BOOL) hasPendingActivation
-{
-	[self lockImpl:NO];
-	BOOL result = [_session hasPendingActivation];
-	[self unlockImpl:NO];
-	return result;
-}
-
-- (BOOL) hasPendingProtocolUpgrade
-{
-	[self lockImpl:NO];
-	BOOL result = [_session hasPendingProtocolUpgrade];
-	[self unlockImpl:NO];
-	return result;
-}
-
-- (BOOL) hasProtocolUpgradeAvailable
-{
-	[self lockImpl:NO];
-	BOOL result = [_session hasProtocolUpgradeAvailable];
-	[self unlockImpl:NO];
-	return result;
-}
-
-- (BOOL) hasValidActivation
-{
-	[self lockImpl:NO];
-	BOOL result = [_session hasValidActivation];
-	[self unlockImpl:NO];
-	return result;
-}
-
+READ_BOOL_WRAPPER(hasValidActivation)
+READ_BOOL_WRAPPER(canStartActivation)
+READ_BOOL_WRAPPER(hasPendingActivation)
+READ_BOOL_WRAPPER(hasPendingProtocolUpgrade)
+READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 
 
 #if DEBUG
-#pragma mark - PowerAuthCoreDebugMonitor
+#pragma mark - PowerAuthCoreDebugMonitor protocol
 
 - (void) reportErrorCode:(PowerAuthCoreErrorCode)errorCode forOperation:(NSString *)operationName
 {
@@ -322,33 +311,33 @@ typedef struct LocalContext {
 
 - (void) requireReadAccess
 {
-	[_localLock lock];
+	[_debugLock lock];
 	if (_localContext.readAccessCount == 0 && _localContext.writeAccessCount == 0) {
 		PowerAuthLog(@"ERROR: Read access to PowerAuthCoreSession is not granted.");
 	}
-	[_localLock unlock];
+	[_debugLock unlock];
 }
 
 - (void) requireWriteAccess
 {
-	[_localLock lock];
+	[_debugLock lock];
 	if (_localContext.writeAccessCount == 0) {
 		PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
 	}
-	[_localLock unlock];
+	[_debugLock unlock];
 }
 #endif // DEBUG
 
 
 
-#pragma mark - Private
+#pragma mark - Private methods
 
 /**
- Restore local session's state from the persistent storage. If force parameter
+ Load local session's state from the persistent storage. If force parameter
  is NO, then function try to determine whether local session needs to deserialize its state.
  If force is YES, then the session's state is always restored from the persistent storage.
  */
-- (void) restoreState:(BOOL)force
+- (void) loadState:(BOOL)force
 {
 	if (!force && !_LocalContextIsDirty(&_localContext)) {
 		// Do nothing if local session has still valid data.
@@ -368,6 +357,21 @@ typedef struct LocalContext {
 }
 
 /**
+ Save session's state to the persistent storage.
+ */
+- (void) saveState
+{
+	NSData * serializedState = [_session serializedState];
+	if (![serializedState isEqualToData:_stateBefore]) {
+		// Data is different, so we really need to save the data.
+		[_dataProvider saveSessionData:serializedState];
+		_stateBefore = serializedState;
+		// Notify that shared data has been changed
+		_LocalContextSynchronize(&_localContext, YES);
+	}
+}
+
+/**
  Acquire shared lock for read or write operation.
  */
 - (void) lockImpl:(BOOL)write
@@ -375,9 +379,9 @@ typedef struct LocalContext {
 	// At first, acquire a shared lock.
 	[_sharedLock lock];
 	
-	if (_localContext.writeAccessCount == 0 && _localContext.readAccessCount == 0) {
+	if (_LocalContextIsOpen(&_localContext)) {
 		// First lock, we should restore session's data if needed.
-		[self restoreState:NO];
+		[self loadState:NO];
 	}
 	
 	if (write) {
@@ -398,37 +402,24 @@ typedef struct LocalContext {
 	} else {
 		_localContext.readAccessCount--;
 	}
-#if DEBUG
-	if (_localContext.writeAccessCount < 0 || _localContext.readAccessCount < 0) {
-		PowerAuthLog(@"PA2SharedSessionProvider: ERROR: Internal locks & unlocks are not in pair");
-	}
-#endif
-	if (_localContext.writeAccessCount == 0 && _localContext.readAccessCount == 0) {
-		// The shared lock will be unlocked.
+	
+	if (_LocalContextIsOpen(&_localContext)) {
+		// The shared lock will be released at the end of this function.
+		// At first, save the session's state if there was some write task opened.
 		if (_localContext.saveOnUnlock) {
-			// Save is required, so serialize the data.
-			// This must be ignored for pending protocol upgrade, because we don't want to
-			// serialize the pending flag into the persistent data.
-			if (!_session.hasPendingProtocolUpgrade) {
-				NSData * serializedState = [_session serializedState];
-				if (![serializedState isEqualToData:_stateBefore]) {
-					// Data is different, so we really need to save the data.
-					[_dataProvider saveSessionData:serializedState];
-					_stateBefore = serializedState;
-					// Notify that shared data has been changed
-					_LocalContextSynchronize(&_localContext, YES);
-				}
-			}
+			_localContext.saveOnUnlock = NO;
+			[self saveState];
 		}
+		// Now determine whether it's possible to end the special operation started in this process.
 		if (_LocalContextThisRunningSpecialOp(&_localContext)) {
 			// We keep a special operation lock. Try to determine whether it's OK to finish it automatically.
-			BOOL releaseSpecialOp = NO;
+			BOOL finishSpecialOp = NO;
 			if (_localContext.specialOpType == PowerAuthExternalPendingOperationType_Activation) {
-				releaseSpecialOp = !_session.hasPendingActivation;
+				finishSpecialOp = !_session.hasPendingActivation;
 			} else if (_localContext.specialOpType == PowerAuthExternalPendingOperationType_ProtocolUpgrade) {
-				releaseSpecialOp = !_session.hasPendingProtocolUpgrade;
+				finishSpecialOp = !_session.hasPendingProtocolUpgrade;
 			}
-			_LocalContextUpdateSpecialOp(&_localContext, releaseSpecialOp);
+			_LocalContextUpdateSpecialOp(&_localContext, finishSpecialOp);
 		}
 	}
 	// Finally, release the shared lock.
@@ -467,6 +458,7 @@ static BOOL _LocalContextIsDirty(LocalContext * ctx)
 {
 	return ctx->modifyCounter != ctx->sharedData->modifyCounter;
 }
+
 /**
  Make local context synchronized with shared data. If modified is YES, then
  also notify other applications that this context modified the shared data.
@@ -478,6 +470,19 @@ static void _LocalContextSynchronize(LocalContext * ctx, BOOL modified)
 	} else {
 		ctx->modifyCounter = ctx->sharedData->modifyCounter;
 	}
+}
+
+/**
+ Return YES if write and read access counters are both equal to 0.
+ */
+static BOOL _LocalContextIsOpen(LocalContext * ctx)
+{
+#if DEBUG
+	if (ctx->writeAccessCount < 0 || ctx->readAccessCount < 0) {
+		PowerAuthLog(@"PA2SharedSessionProvider: ERROR: Internal locks & unlocks are not in pair");
+	}
+#endif
+	return ctx->readAccessCount == 0 && ctx->writeAccessCount == 0;
 }
 
 
@@ -544,7 +549,7 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, BOOL finish)
 		ctx->specialOpType = 0;
 		ctx->sharedData->specialOpType = 0;
 		ctx->sharedData->specialOpStart = 0.0;
-		ctx->sharedData->specialOpAppId[0] = 0;
+		memset(ctx->sharedData->specialOpAppId, 0, sizeof(ctx->sharedData->specialOpAppId));
 	} else {
 		ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
 	}
@@ -572,7 +577,7 @@ static PowerAuthExternalPendingOperation * _LocalContextGetExternalSpecialOp(Loc
  */
 static BOOL _InitSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteger size)
 {
-	if (size < sizeof(SharedData)) {
+	if (!bytes || size < sizeof(SharedData)) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Not enough bytes allocated.");
 		return NO;
 	}
@@ -592,31 +597,34 @@ static BOOL _InitSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteger s
 	
 	// Copy SHA256 hash calculated from PowerAuthConfiguration.instanceId to SharedData
 	memcpy(sd->instanceIdentifier, ctx->instanceIdentifier, sizeof(ctx->instanceIdentifier));
-
+	
+	// Keep pointer to shared memory in LockContext
+	ctx->sharedData = sd;
 	return YES;
 }
 
 /**
  Validate whether shared memory contains a valid data.
  */
-static BOOL _ValidateSharedMemoryData(LocalContext * ctx, PA2SharedMemory * sharedMemory)
+static BOOL _ValidateSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteger size)
 {
-	if (!sharedMemory) {
-		return NO;
-	}
-	if (sharedMemory.size < sizeof(SharedData)) {
+	if (!bytes || size < sizeof(SharedData)) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Not enough bytes allocated.");
 		return NO;
 	}
-	SharedData * sd = sharedMemory.bytes;
+	SharedData * sd = bytes;
+	
+	// Validate magic values
 	if (sd->magic[0] != MAG_0 || sd->magic[1] != MAG_1 || sd->magic[2] != MAG_2) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Shared memory contains invalid data");
 		return NO;
 	}
-	if (0 != memcmp(&ctx->instanceIdentifier[0], &sd->instanceIdentifier[0], sizeof(ctx->instanceIdentifier))) {
+	// Compare instance identifiers
+	if (0 != memcmp(ctx->instanceIdentifier, sd->instanceIdentifier, sizeof(ctx->instanceIdentifier))) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Shared memory contains different activation data");
 		return NO;
 	}
+	// Finally, compare version
 	if (sd->version != VER_1) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Unsupported shared data version");
 		return NO;

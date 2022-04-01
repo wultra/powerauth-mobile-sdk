@@ -15,14 +15,7 @@
  */
 
 #import <XCTest/XCTest.h>
-
-#import <XCTest/XCTest.h>
-#import "PowerAuthTestServerAPI.h"
-#import "PowerAuthTestServerConfig.h"
-#import "AsyncHelper.h"
-
-@import PowerAuth2;
-@import PowerAuthCore;
+#import "PowerAuthSdkTestHelper.h"
 
 /**
  The purpose of `PowerAuthSDKProtocolUpgradeTests` is to test protocol
@@ -43,13 +36,8 @@
 
 @implementation PowerAuthSDKProtocolUpgradeTests
 {
-	PowerAuthTestServerConfig * _testServerConfig;	// Loaded config
-	PowerAuthTestServerAPI * _testServerApi;		// SOAP connection
-	PowerAuthConfiguration * _config;				// Default SDK config
-	PowerAuthSDK * _sdk;							// Default SDK instance
-
-	BOOL _hasConfig;
-	BOOL _invalidConfig;
+	PowerAuthSdkTestHelper * _helper;
+	PowerAuthSDK * _sdk;
 	
 	NSInteger _upgradeStep;
 	NSString * _upgradeOldProtocolVersion;
@@ -94,93 +82,29 @@
 - (void)setUp
 {
     [super setUp];
-	[self runOnceForAllTests];
-}
-
-/**
- Loads a configuration from expected file, or creates a default one.
- */
-- (BOOL) loadConfiguration
-{
-	NSBundle * bundle = [NSBundle bundleForClass:[self class]];
-	NSString * path = [bundle pathForResource:@"TestConfig/Configuration" ofType:@"json"];
-	if (path) {
-		_testServerConfig = [PowerAuthTestServerConfig loadFromJsonFile:path];
-		if (_testServerConfig == nil) {
-			return NO;
-		}
-	} else {
-		_testServerConfig = [PowerAuthTestServerConfig defaultConfig];
-	}
+	_helper = [PowerAuthSdkTestHelper createDefault];
+	_sdk = _helper.sdk;
 	
 	// Load protocol upgrade specific parameters
-	_upgradeStep = [[_testServerConfig configValueForKey:@"upgradeStep" defaultValue:@0] integerValue];
-	_upgradeOldProtocolVersion = [_testServerConfig configValueForKey:@"upgradeOldProtocolVersion" defaultValue:UPGRADE_OLD_PROTOCOL];
-	_upgradeNewProtocolVersion = [_testServerConfig configValueForKey:@"upgradeNewProtocolVersion" defaultValue:UPGRADE_NEW_PROTOCOL];
+	PowerAuthTestServerConfig * testServerConfig = _helper.testServerConfig;
+	_upgradeStep = [[testServerConfig configValueForKey:@"upgradeStep" defaultValue:@0] integerValue];
+	_upgradeOldProtocolVersion = [testServerConfig configValueForKey:@"upgradeOldProtocolVersion" defaultValue:UPGRADE_OLD_PROTOCOL];
+	_upgradeNewProtocolVersion = [testServerConfig configValueForKey:@"upgradeNewProtocolVersion" defaultValue:UPGRADE_NEW_PROTOCOL];
 	_upgradeProtocolVersion = _upgradeStep == 2 ? _upgradeNewProtocolVersion : _upgradeOldProtocolVersion;
 	
 	// Print report
 	NSLog(@"=======================================================================");
 	NSLog(@"The protocol upgrade tests will run against following servers:");
-	NSLog(@"    REST API Server: %@", _testServerConfig.restApiUrl);
-	NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
-	NSLog(@"               User: %@", _testServerConfig.userIdentifier);
+	NSLog(@"    REST API Server: %@", testServerConfig.restApiUrl);
+	NSLog(@"    SOAP API Server: %@", testServerConfig.soapApiUrl);
+	NSLog(@"               User: %@", testServerConfig.userIdentifier);
 	if (_upgradeStep > 0) {
 		NSLog(@"            Upgrade: %@ step, with protocol %@", _upgradeStep == 2 ? @"Validate" : @"Create", _upgradeProtocolVersion);
 	} else {
 		NSLog(@"            Upgrade: Disabled");
 	}
 	NSLog(@"=======================================================================");
-	
-	return YES;
 }
-
-/**
- Performs one-time initialization for all unit tests. The result of calling this method is
- pepared all i-vars with runtime variables, like _sdk, _soapApiURL, etc...
- */
-- (void) runOnceForAllTests
-{
-	PowerAuthLogSetEnabled(YES);
-	
-	if (_hasConfig || _invalidConfig) {
-		return;
-	}
-	
-	// Prepare command
-	BOOL result;
-	result = [self loadConfiguration];
-	XCTAssertTrue(result, @"The provided test configuration is wrong.");
-	
-	// Test connection to SOAP server
-	if (result) {
-		_testServerApi = [[PowerAuthTestServerAPI alloc] initWithConfiguration:_testServerConfig];
-		result = [_testServerApi validateConnection];
-		XCTAssertTrue(result, @"Connection to test server failed. Check debug log for details.");
-	}
-	// Create a configuration
-	if (result) {
-		_config = [[PowerAuthConfiguration alloc] init];
-		_config.instanceId = @"ProtocolUpgradeTests";
-		_config.baseEndpointUrl = _testServerConfig.restApiUrl;
-		_config.appKey = _testServerApi.appVersion.applicationKey;
-		_config.appSecret = _testServerApi.appVersion.applicationSecret;
-		_config.masterServerPublicKey = _testServerApi.appDetail.masterPublicKey;
-		result = [_config validateConfiguration];
-		XCTAssertTrue(result, @"Constructed configuration is not valid.");
-	}
-	// Construct an PA-SDK object
-	if (result) {
-		_sdk = [[PowerAuthSDK alloc] initWithConfiguration:_config];
-		
-		result = _sdk != nil;
-		
-		XCTAssertTrue(result, @"PowerAuthSDK ended in unexpected state.");
-	}
-	_invalidConfig = result == NO;
-	_hasConfig = YES;
-}
-
 
 #pragma mark - Helper utilities
 
@@ -189,7 +113,7 @@
  defined in this class.
  */
 #define CHECK_TEST_CONFIG()		\
-	if (_invalidConfig) {		\
+	if (!_sdk) {				\
 		XCTFail(@"Test configuration is not valid.");	\
 		return;					\
 	}
@@ -201,48 +125,6 @@
 	if (result == NO) {			\
 		return obj;				\
 	}
-
-/**
- Creates a new PowerAuthAuthentication object with default configuration.
- */
-- (PowerAuthAuthentication*) createAuthentication
-{
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.useBiometry = NO;		// There's no human being involved in the automatic test :)
-	auth.usePassword = @"supersecure";
-	return auth;
-}
-
-/**
- Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
- */
-- (PowerAuthActivationStatus*) fetchActivationStatus
-{
-	BOOL taskShouldWork = [_sdk hasValidActivation];
-	
-	__block NSDictionary * activationStatusCustomObject = nil;
-	__block NSError * fetchError = nil;
-	PowerAuthActivationStatus * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		// Start a fetch task.
-		PA2TestsOperationTask task = [_sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
-			activationStatusCustomObject = customObject;
-			fetchError = error;
-			[waiting reportCompletion:status];
-		}];
-		// Test whether the task should work.
-		if (taskShouldWork) {
-			XCTAssertNotNil(task);
-		} else {
-			XCTAssertNil(task);
-		}
-	}];
-	if (taskShouldWork) {
-		XCTAssertNotNil(result);
-		return result;
-	}
-	return nil;
-}
 
 /**
  Validates password on server. Returns YES if password is valid.
@@ -258,147 +140,7 @@
 	return result;
 }
 
-- (NSData*) sessionCoreSerializedState
-{
-	return [_sdk.sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
-		return [session serializedState];
-	}];
-}
-
-- (BOOL) sessionCoreDeserializeState:(NSData*)state
-{
-	return  [_sdk.sessionProvider writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * _Nonnull session) {
-		return [session deserializeState:state];
-	}];
-}
-
 #pragma mark - Integration tests
-
-#pragma mark - Activation
-
-/**
- Returns @[PATSInitActivationResponse, PowerAuthAuthentication, @(BOOL)] with activation data, authentication object,
- and result of activation. You can configure whether the activation can use optional signature during the activation
- and whether the activation should be removed automatically after the creation.
- */
-- (NSArray*) createActivation:(BOOL)useSignature removeAfter:(BOOL)removeAfter
-{
-	XCTAssertFalse([_sdk hasPendingActivation]);
-	XCTAssertFalse([_sdk hasValidActivation]);
-	
-	BOOL result;
-	NSError * error;
-	
-	// We can't guarantee a sequence of tests, so reset the activation now
-	[_sdk removeActivationLocal];
-	XCTAssertFalse([_sdk hasPendingActivation]);
-	XCTAssertFalse([_sdk hasValidActivation]);
-	XCTAssertTrue([_sdk canStartActivation]);
-	
-	// 1) SERVER: initialize an activation on server (this is typically implemented in the internet banking application)
-	PATSInitActivationResponse * activationData = [_testServerApi initializeActivation:_testServerConfig.userIdentifier];
-	NSString * activationCode = useSignature ? [activationData activationCodeWithSignature] : [activationData activationCodeWithoutSignature];
-	NSArray * preliminaryResult = @[activationData, @NO, [NSNull null]];
-	
-	__block NSString * activationFingerprint = nil;
-	
-	// 2) CLIENT: Start activation on client's side
-	result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		
-		NSString * activationName = _testServerConfig.userActivationName;
-		PA2TestsOperationTask task = [_sdk createActivationWithName:activationName activationCode:activationCode callback:^(PowerAuthActivationResult * result, NSError * error) {
-			activationFingerprint = result.activationFingerprint;
-			[waiting reportCompletion:@(error == nil)];
-		}];
-		// Returned task should not be cancelled
-		XCTAssertNotNil(task);
-		
-	}] boolValue];
-	XCTAssertTrue(result, @"Activation on client side did fail.");
-	CHECK_RESULT_RET(preliminaryResult);
-	
-	XCTAssertTrue([_sdk hasPendingActivation]);
-	XCTAssertFalse([_sdk hasValidActivation]);
-	XCTAssertFalse([_sdk canStartActivation]);
-	
-	
-	// 2.1) CLIENT: Try to fetch status. At this point, it should not work! The activation is not completed yet.
-	PowerAuthActivationStatus * activationStatus = [self fetchActivationStatus];
-	XCTAssertNil(activationStatus);
-	XCTAssertTrue([_sdk hasPendingActivation]);
-	XCTAssertFalse([_sdk hasValidActivation]);
-	
-	// 3) CLIENT: Now it's time to commit activation locally
-	PowerAuthAuthentication * auth = [self createAuthentication];
-	result = [_sdk commitActivationWithAuthentication:auth error:&error];
-	CHECK_RESULT_RET(preliminaryResult);
-	
-	XCTAssertTrue(result, @"Client's commit failed.");
-	XCTAssertFalse([_sdk hasPendingActivation]);
-	XCTAssertTrue([_sdk hasValidActivation]);
-	
-	// 3.1) CLIENT: Fetch status again. In this time, the operation should work and return OTP_USED
-	activationStatus = [self fetchActivationStatus];
-	XCTAssertNotNil(activationStatus);
-	XCTAssertTrue(activationStatus.state == PA2TestActivationState_PendingCommit);
-	
-	// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
-	//            This is typically done internally on the server side and depends on activation flow
-	//            in concrete internet banking project.
-	result = [_testServerApi commitActivation:activationData.activationId];
-	XCTAssertTrue(result, @"Server's commit failed");
-	CHECK_RESULT_RET(preliminaryResult);
-	
-	// 5) CLIENT: Fetch status again. Now the state should be active
-	activationStatus = [self fetchActivationStatus];
-	XCTAssertNotNil(activationStatus);
-	XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
-	
-	// Post activation steps...
-	result = [_sdk.activationIdentifier isEqualToString:activationData.activationId];
-	XCTAssertTrue(result, @"Activation identifier in session is different to identifier generated on the server.");
-	CHECK_RESULT_RET(preliminaryResult);
-	
-	// Now it's time to validate activation status, created on the server
-	PATSActivationStatus * serverActivationStatus = [_testServerApi getActivationStatus:activationData.activationId];
-	result = serverActivationStatus != nil;
-	CHECK_RESULT_RET(preliminaryResult);
-	XCTAssertTrue([serverActivationStatus.activationName isEqualToString:_testServerConfig.userActivationName]);
-	// Test whether the device's public key fingerprint is equal on server and client.
-	XCTAssertTrue([serverActivationStatus.devicePublicKeyFingerprint isEqualToString:activationFingerprint]);
-	
-	// This is just a cleanup. If remove will fail, then we don't report an error
-	if (removeAfter || !result) {
-		if (!result) {
-			NSLog(@"We're removing activation due to fact, that session creation failed.");
-		}
-		[self removeLastActivation:activationData];
-	}
-	
-	return @[activationData, auth, @YES ];
-}
-
-/**
- Method will remove activation on the server. We're using SOAP message, because our SDK object doesn't have activation always
- identifier present in its structures.
- */
-- (void) removeLastActivation:(PATSInitActivationResponse*)activationData
-{
-	NSString * activationId;
-	if (activationData) {
-		// If we have activation data, prefer that id.
-		activationId = _sdk.activationIdentifier;
-	}
-	if (!activationId) {
-		activationId = _sdk.activationIdentifier;
-	}
-	if (!activationId) {
-		NSLog(@"WARNING: Unable to remove activation. This is not an error, but you'll see a lot of unfinished activations.");
-	}
-	[_testServerApi removeActivation:activationId];
-}
-
-#pragma mark - Protocol upgrade tests
 
 - (void) testProtocolUpgrade
 {
@@ -424,20 +166,22 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 		[_sdk removeActivationLocal];
 	}
 	
-	NSArray * activation = [self createActivation:YES removeAfter:NO];
-	XCTAssertTrue([activation.lastObject boolValue]);
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:NO];
+	if (!activation) {
+		return;
+	}
 	
-	PATSInitActivationResponse * activationData = activation[0];
-	PowerAuthAuthentication * auth = activation[1];
+	PATSInitActivationResponse * activationData = activation.activationData;
+	PowerAuthAuthentication * auth = activation.credentials;
 	
-	NSString * activationStateData = [[self sessionCoreSerializedState] base64EncodedStringWithOptions:0];
+	NSString * activationStateData = [[_helper sessionCoreSerializedState] base64EncodedStringWithOptions:0];
 	NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
 	[defaults setObject:auth.usePassword forKey:s_PossessionFactorKey];
 	[defaults setObject:activationData.activationId forKey:s_ActivationIdKey];
 	[defaults setObject:activationStateData forKey:s_StateDataKey];
 	[defaults synchronize];
 	
-	PowerAuthActivationStatus * status = [self fetchActivationStatus];
+	PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 	XCTAssertTrue(status.state == PowerAuthActivationState_Active);
 	
 	NSLog(@"=======================================================================");
@@ -465,7 +209,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 		[_sdk removeActivationLocal];
 	}
 	NSData * stateData = [[NSData alloc] initWithBase64EncodedString:activationStateData options:0];
-	BOOL stateDeserialization = [self sessionCoreDeserializeState:stateData];
+	BOOL stateDeserialization = [_helper sessionCoreDeserializeState:stateData];
 	if (!stateDeserialization) {
 		XCTFail(@"Failed to restore state.");
 		return;
@@ -491,13 +235,13 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	XCTAssertTrue(result.code == PowerAuthErrorCode_PendingProtocolUpgrade);
 	XCTAssertTrue(result.powerAuthErrorCode == PowerAuthErrorCode_PendingProtocolUpgrade);
 	
-	PowerAuthActivationStatus * status = [self fetchActivationStatus];
+	PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
 	XCTAssertTrue(status.state == PowerAuthActivationState_Active);
 	
 	result = [self checkForPassword:password];
 	XCTAssertNil(result);
 	
-	status = [self fetchActivationStatus];
+	status = [_helper fetchActivationStatus];
 	XCTAssertTrue(status.state == PowerAuthActivationState_Active);
 	
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];

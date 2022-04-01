@@ -325,7 +325,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 {
 	[_debugLock lock];
 	BOOL accessGranted = (_readWriteAccessCount > 0 && _saveOnUnlock) || _internalAccessGranted;
-	if (accessGranted) {
+	if (!accessGranted) {
 		PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
 	}
 	[_debugLock unlock];

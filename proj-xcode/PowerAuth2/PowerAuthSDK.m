@@ -157,6 +157,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 		_sessionProvider = [[PA2DefaultSessionProvider alloc] initWithSession:_coreSession dataProvider:sessionDataProvider];
 	} else {
 		// This instance will use the session sharing.
+		// Turn OFF in-memory cache for Token Store.
+		[(PA2PrivateTokenKeychainStore*)_tokenStore setAllowInMemoryCache:NO];
 		// At first, try to determine shared memory identifier.
 		NSString * shortSharedMemoryId = _configuration.sharingConfiguration.sharedMemoryIdentifier;
 		if (!shortSharedMemoryId) {

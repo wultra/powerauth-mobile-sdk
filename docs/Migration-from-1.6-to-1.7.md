@@ -33,7 +33,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### API changes
 
-- `PowerAuthSDK` no longer provide `session` property. If you still need low-level access to `PowerAuthCoreSession`, then use `sessionProvider` as a replacement. The property contains object implementing new `PowerAuthCoreSessionProvider` protocol.
+- `PowerAuthSDK` no longer provide `session` property. If you still need access to low-level `PowerAuthCoreSession`, then use `sessionProvider` as a replacement. The property contains object implementing new `PowerAuthCoreSessionProvider` protocol.
 - `PowerAuthCoreSession.prepareKeyValueDictionaryForDataSigning()` is now static method.
 - `PowerAuthCoreSession.generateActivationStatusChallenge()` is now static method.
 

@@ -106,6 +106,12 @@
                                activationOtp:(NSString*)activationOtp;
 
 /**
+ Prepare activation on server.
+ */
+- (PATSInitActivationResponse*) prepareActivation:(BOOL)useSignature
+									activationOtp:(NSString*)activationOtp;
+
+/**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */
 - (PowerAuthActivationStatus*) fetchActivationStatus;

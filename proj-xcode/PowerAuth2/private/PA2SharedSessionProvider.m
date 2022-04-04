@@ -506,6 +506,7 @@ static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PowerAuthExtern
 	ctx->specialOpType = operationType;
 	ctx->specialOpTicket = ++ctx->sharedData->specialOpTicket;
 	// Keep time of operation start and this application's ID in SharedData.
+	ctx->sharedData->specialOpType = operationType;
 	ctx->sharedData->specialOpStart = now;
 	memcpy(ctx->sharedData->specialOpAppId, ctx->thisAppIdentifier, ctx->thisAppIdentifierSize);
 	return nil;

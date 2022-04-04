@@ -63,8 +63,6 @@ static NSString * PA_Ver = @"3.1";
 		_sdk = sdk;
 		_testServerApi = testServerApi;
 		_testServerConfig = testServerConfig;
-		PowerAuthLogSetEnabled(YES);
-		PowerAuthLogSetVerbose(NO);
 	}
 	return self;
 }
@@ -77,6 +75,14 @@ static NSString * PA_Ver = @"3.1";
 	NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
 	NSLog(@"               User: %@", _testServerConfig.userIdentifier);
 	NSLog(@"=======================================================================");
+}
+
++ (void) setupLog
+{
+	if (!PowerAuthLogIsEnabled()) {
+		PowerAuthLogSetEnabled(YES);
+		PowerAuthLogSetVerbose(NO);
+	}
 }
 
 + (PowerAuthTestServerConfig*) loadConfiguration
@@ -102,6 +108,8 @@ static NSString * PA_Ver = @"3.1";
 
 + (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration * configuration, PowerAuthKeychainConfiguration * keychainConfiguration, PowerAuthClientConfiguration * clientConfiguration))configurator
 {
+	[self setupLog];
+	
 	PowerAuthTestServerConfig * testConfig = [self loadConfiguration];
 	if (!testConfig) {
 		return nil;
@@ -149,6 +157,8 @@ static NSString * PA_Ver = @"3.1";
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
 				withConfiguration:(PowerAuthConfiguration*)configuration
 {
+	[self setupLog];
+	
 	PowerAuthSDK *sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration];
 	[sdk removeActivationLocal];
 	
@@ -208,6 +218,15 @@ static NSString * PA_Ver = @"3.1";
 	auth.usePossession = YES;
 	auth.usePassword = @"alwaysBadPassword";
 	return auth;
+}
+
+- (PATSInitActivationResponse*) prepareActivation:(BOOL)useSignature
+									activationOtp:(NSString*)activationOtp
+{
+	PATSActivationOtpValidationEnum otpValidation = activationOtp != nil ? PATSActivationOtpValidation_ON_KEY_EXCHANGE : PATSActivationOtpValidation_NONE;
+	return [_testServerApi initializeActivation:_testServerConfig.userIdentifier
+								  otpValidation:otpValidation
+											otp:activationOtp];
 }
 
 /**

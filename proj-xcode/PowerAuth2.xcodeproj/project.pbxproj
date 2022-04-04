@@ -348,6 +348,16 @@
 		BFBB36E72437679A00E2D741 /* PowerAuthActivationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFBB36E62437679A00E2D741 /* PowerAuthActivationTests.m */; };
 		BFC078E826834C550090583B /* PA2WeakArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC078E726834C550090583B /* PA2WeakArrayTests.m */; };
 		BFC078E926834C550090583B /* PA2WeakArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC078E726834C550090583B /* PA2WeakArrayTests.m */; };
+		BFC1925827FAF28F001455C1 /* TestHostAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */; };
+		BFC1925A27FAF28F001455C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925927FAF28F001455C1 /* ContentView.swift */; };
+		BFC1925C27FAF292001455C1 /* Assets-iOS.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1925B27FAF292001455C1 /* Assets-iOS.xcassets */; };
+		BFC1925F27FAF292001455C1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1925E27FAF292001455C1 /* Preview Assets.xcassets */; };
+		BFC1927A27FAF652001455C1 /* TestHostAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */; };
+		BFC1927B27FAF656001455C1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC1925927FAF28F001455C1 /* ContentView.swift */; };
+		BFC1927D27FAF663001455C1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1925E27FAF292001455C1 /* Preview Assets.xcassets */; };
+		BFC1928127FAF821001455C1 /* Assets-tvOS.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1928027FAF821001455C1 /* Assets-tvOS.xcassets */; };
+		BFC1928227FB04C4001455C1 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */; };
+		BFC1928527FB04F8001455C1 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49624C85D6300F9DDB2 /* PowerAuthCore.framework */; };
 		BFC581052316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */; };
 		BFCEE09C216E280600B41201 /* PA2GetActivationStatusTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */; };
 		BFCEE09D216E280600B41201 /* PA2GetActivationStatusTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BFCEE09B216E280600B41201 /* PA2GetActivationStatusTask.m */; };
@@ -470,6 +480,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = BF8CF47D2032EB41002A6B6E;
 			remoteInfo = PowerAuth2;
+		};
+		BFC1926527FAF3A6001455C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC1925427FAF28F001455C1;
+			remoteInfo = "TestHostApp-ios";
+		};
+		BFC1927E27FAF75E001455C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC1926B27FAF603001455C1;
+			remoteInfo = "PowerAuth2TestsHostApp-tvos";
+		};
+		BFC1928327FB04E9001455C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF8CF47D2032EB41002A6B6E;
+			remoteInfo = "PowerAuth2-ios";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -668,6 +699,13 @@
 		BFB47D5B20753640008A6A52 /* PowerAuthCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = PowerAuthCore.xcodeproj; sourceTree = "<group>"; };
 		BFBB36E62437679A00E2D741 /* PowerAuthActivationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthActivationTests.m; sourceTree = "<group>"; };
 		BFC078E726834C550090583B /* PA2WeakArrayTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArrayTests.m; sourceTree = "<group>"; };
+		BFC1925527FAF28F001455C1 /* PowerAuth2TestsHostApp-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PowerAuth2TestsHostApp-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHostAppApp.swift; sourceTree = "<group>"; };
+		BFC1925927FAF28F001455C1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BFC1925B27FAF292001455C1 /* Assets-iOS.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets-iOS.xcassets"; sourceTree = "<group>"; };
+		BFC1925E27FAF292001455C1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		BFC1926C27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PowerAuth2TestsHostApp-tvos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BFC1928027FAF821001455C1 /* Assets-tvOS.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets-tvOS.xcassets"; sourceTree = "<group>"; };
 		BFC581022316C4BC004FFFF7 /* PA2ValidateSignatureRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ValidateSignatureRequest.h; sourceTree = "<group>"; };
 		BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ValidateSignatureRequest.m; sourceTree = "<group>"; };
 		BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2GetActivationStatusTask.h; sourceTree = "<group>"; };
@@ -730,6 +768,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF5EB49924C85DB300F9DDB2 /* PowerAuthCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC1925227FAF28F001455C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFC1928527FB04F8001455C1 /* PowerAuthCore.framework in Frameworks */,
+				BFC1928227FB04C4001455C1 /* PowerAuth2.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC1926927FAF603001455C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1056,6 +1110,7 @@
 			children = (
 				BF0824882630492900B34E24 /* PowerAuth2 */,
 				BF0824872630492900B34E24 /* PowerAuth2Tests */,
+				BFC1926427FAF2E3001455C1 /* PowerAuth2TestsHostApp */,
 				BFB47D5A20753628008A6A52 /* Dependencies */,
 				BF4DBB9C1CDF3130008F3A47 /* Products */,
 				BFA585C7201F9CEE000DCD22 /* Frameworks */,
@@ -1071,6 +1126,8 @@
 				BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */,
 				BF5EB53B24C85FE200F9DDB2 /* PowerAuth2.framework */,
 				BF5EB56D24C860A500F9DDB2 /* PowerAuth2Tests-tvos.xctest */,
+				BFC1925527FAF28F001455C1 /* PowerAuth2TestsHostApp-ios.app */,
+				BFC1926C27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1181,6 +1238,26 @@
 				BF86E7852639617A004C8AE5 /* PowerAuthCoreTests-tvos.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BFC1925D27FAF292001455C1 /* DevelopmentAssets */ = {
+			isa = PBXGroup;
+			children = (
+				BFC1925E27FAF292001455C1 /* Preview Assets.xcassets */,
+			);
+			path = DevelopmentAssets;
+			sourceTree = "<group>";
+		};
+		BFC1926427FAF2E3001455C1 /* PowerAuth2TestsHostApp */ = {
+			isa = PBXGroup;
+			children = (
+				BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */,
+				BFC1925927FAF28F001455C1 /* ContentView.swift */,
+				BFC1925B27FAF292001455C1 /* Assets-iOS.xcassets */,
+				BFC1928027FAF821001455C1 /* Assets-tvOS.xcassets */,
+				BFC1925D27FAF292001455C1 /* DevelopmentAssets */,
+			);
+			path = PowerAuth2TestsHostApp;
 			sourceTree = "<group>";
 		};
 		BFFECF6B263862E9001DA7A9 /* public */ = {
@@ -1398,6 +1475,7 @@
 			);
 			dependencies = (
 				BFB47D69207536A7008A6A52 /* PBXTargetDependency */,
+				BFC1926627FAF3A6001455C1 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-ios";
 			productName = PA2TestWrapper;
@@ -1435,6 +1513,7 @@
 			);
 			dependencies = (
 				BF5EB57024C860B600F9DDB2 /* PBXTargetDependency */,
+				BFC1927F27FAF75E001455C1 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-tvos";
 			productName = PA2TestWrapper;
@@ -1460,28 +1539,70 @@
 			productReference = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		BFC1925427FAF28F001455C1 /* PowerAuth2TestsHostApp-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFC1926027FAF292001455C1 /* Build configuration list for PBXNativeTarget "PowerAuth2TestsHostApp-ios" */;
+			buildPhases = (
+				BFC1925127FAF28F001455C1 /* Sources */,
+				BFC1925227FAF28F001455C1 /* Frameworks */,
+				BFC1925327FAF28F001455C1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BFC1928427FB04E9001455C1 /* PBXTargetDependency */,
+			);
+			name = "PowerAuth2TestsHostApp-ios";
+			productName = TestHostApp;
+			productReference = BFC1925527FAF28F001455C1 /* PowerAuth2TestsHostApp-ios.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BFC1927727FAF607001455C1 /* Build configuration list for PBXNativeTarget "PowerAuth2TestsHostApp-tvos" */;
+			buildPhases = (
+				BFC1926827FAF603001455C1 /* Sources */,
+				BFC1926927FAF603001455C1 /* Frameworks */,
+				BFC1926A27FAF603001455C1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "PowerAuth2TestsHostApp-tvos";
+			productName = PowerAuthTestsHostApp;
+			productReference = BFC1926C27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		BF4DBB931CDF3130008F3A47 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1320;
 				LastUpgradeCheck = 1300;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions s.r.o.";
 				TargetAttributes = {
 					BF4DBCCC1CDF9CDE008F3A47 = {
 						CreatedOnToolsVersion = 7.3.1;
-						DevelopmentTeam = KTT9G859MR;
+						TestTargetID = BFC1925427FAF28F001455C1;
 					};
 					BF5EB4A024C85FE200F9DDB2 = {
-						DevelopmentTeam = KTT9G859MR;
 						ProvisioningStyle = Automatic;
 					};
 					BF5EB54024C860A500F9DDB2 = {
-						DevelopmentTeam = KTT9G859MR;
+						TestTargetID = BFC1926B27FAF603001455C1;
 					};
 					BF8CF47D2032EB41002A6B6E = {
-						DevelopmentTeam = KTT9G859MR;
+						ProvisioningStyle = Automatic;
+					};
+					BFC1925427FAF28F001455C1 = {
+						CreatedOnToolsVersion = 13.2.1;
+						ProvisioningStyle = Automatic;
+					};
+					BFC1926B27FAF603001455C1 = {
+						CreatedOnToolsVersion = 13.2.1;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -1509,6 +1630,8 @@
 				BF5EB4A024C85FE200F9DDB2 /* PowerAuth2-tvos */,
 				BF4DBCCC1CDF9CDE008F3A47 /* PowerAuth2Tests-ios */,
 				BF5EB54024C860A500F9DDB2 /* PowerAuth2Tests-tvos */,
+				BFC1925427FAF28F001455C1 /* PowerAuth2TestsHostApp-ios */,
+				BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */,
 			);
 		};
 /* End PBXProject section */
@@ -1602,6 +1725,24 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC1925327FAF28F001455C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFC1925F27FAF292001455C1 /* Preview Assets.xcassets in Resources */,
+				BFC1925C27FAF292001455C1 /* Assets-iOS.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC1926A27FAF603001455C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFC1928127FAF821001455C1 /* Assets-tvOS.xcassets in Resources */,
+				BFC1927D27FAF663001455C1 /* Preview Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1834,6 +1975,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BFC1925127FAF28F001455C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFC1925A27FAF28F001455C1 /* ContentView.swift in Sources */,
+				BFC1925827FAF28F001455C1 /* TestHostAppApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BFC1926827FAF603001455C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BFC1927B27FAF656001455C1 /* ContentView.swift in Sources */,
+				BFC1927A27FAF652001455C1 /* TestHostAppApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1856,6 +2015,21 @@
 			isa = PBXTargetDependency;
 			target = BF8CF47D2032EB41002A6B6E /* PowerAuth2-ios */;
 			targetProxy = BFB47D68207536A7008A6A52 /* PBXContainerItemProxy */;
+		};
+		BFC1926627FAF3A6001455C1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFC1925427FAF28F001455C1 /* PowerAuth2TestsHostApp-ios */;
+			targetProxy = BFC1926527FAF3A6001455C1 /* PBXContainerItemProxy */;
+		};
+		BFC1927F27FAF75E001455C1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */;
+			targetProxy = BFC1927E27FAF75E001455C1 /* PBXContainerItemProxy */;
+		};
+		BFC1928427FB04E9001455C1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF8CF47D2032EB41002A6B6E /* PowerAuth2-ios */;
+			targetProxy = BFC1928327FB04E9001455C1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1987,7 +2161,8 @@
 		BF4DBCD61CDF9CDE008F3A47 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2001,13 +2176,15 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Debug;
 		};
 		BF4DBCD71CDF9CDE008F3A47 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2021,6 +2198,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Release;
 		};
@@ -2034,6 +2212,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2065,6 +2244,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2088,7 +2268,8 @@
 		BF5EB56B24C860A500F9DDB2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2103,13 +2284,15 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
 			name = Debug;
 		};
 		BF5EB56C24C860A500F9DDB2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = KTT9G859MR;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				DEVELOPMENT_TEAM = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2124,6 +2307,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
 			name = Release;
 		};
@@ -2134,9 +2318,11 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2165,9 +2351,11 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2185,6 +2373,154 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		BFC1926127FAF292001455C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.TestHostApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BFC1926227FAF292001455C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.TestHostApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BFC1927827FAF607001455C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthTestsHostApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
+			};
+			name = Debug;
+		};
+		BFC1927927FAF607001455C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Automatic;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuthTestsHostApp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 14.0;
 			};
 			name = Release;
 		};
@@ -2232,6 +2568,24 @@
 			buildConfigurations = (
 				BF8CF5102032EB41002A6B6E /* Debug */,
 				BF8CF5112032EB41002A6B6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFC1926027FAF292001455C1 /* Build configuration list for PBXNativeTarget "PowerAuth2TestsHostApp-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFC1926127FAF292001455C1 /* Debug */,
+				BFC1926227FAF292001455C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BFC1927727FAF607001455C1 /* Build configuration list for PBXNativeTarget "PowerAuth2TestsHostApp-tvos" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BFC1927827FAF607001455C1 /* Debug */,
+				BFC1927927FAF607001455C1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1581,7 +1581,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1320;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions s.r.o.";
 				TargetAttributes = {
 					BF4DBCCC1CDF9CDE008F3A47 = {
@@ -2152,6 +2152,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				TVOS_DEPLOYMENT_TARGET = 9.0;
 				VALIDATE_PRODUCT = YES;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;

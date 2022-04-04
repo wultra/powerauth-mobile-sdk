@@ -98,6 +98,15 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	// Prepare identifier for biometry related keys - use instanceId by default, or a custom value if set
 	_biometryKeyIdentifier = _configuration.keychainKey_Biometry ? _configuration.keychainKey_Biometry : _configuration.instanceId;
 	
+	// Alter keychain in case that PowerAuthSharingConfiguration is used
+	PowerAuthSharingConfiguration * sharingConfiguration = _configuration.sharingConfiguration;
+	if (sharingConfiguration != nil) {
+		_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName = sharingConfiguration.appGroup;
+		if (sharingConfiguration.keychainAccessGroup) {
+			_keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
+		}
+	}
+	
 	// Create session setup parameters
 	PowerAuthCoreSessionSetup *setup = [[PowerAuthCoreSessionSetup alloc] init];
 	setup.applicationKey = _configuration.appKey;
@@ -152,7 +161,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	
 	// Finally, initialize session data provider and session provider.
 	PA2SessionDataProvider * sessionDataProvider = [[PA2SessionDataProvider alloc] initWithKeychain:_statusKeychain statusKey:_configuration.instanceId];
-	if (_configuration.sharingConfiguration == nil) {
+	if (sharingConfiguration == nil) {
 		// This instance will not use the session sharing.
 		_sessionProvider = [[PA2DefaultSessionProvider alloc] initWithSession:_coreSession dataProvider:sessionDataProvider];
 	} else {

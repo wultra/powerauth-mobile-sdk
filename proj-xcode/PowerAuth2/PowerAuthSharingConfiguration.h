@@ -41,9 +41,20 @@
 							appIdentifier:(nonnull NSString*)appIdentifier;
 
 /**
+ Initialize object with required parameters.
+ @param appGroup Name of app group that allows you sharing data between multiple applications.
+ @param appIdentifier Unique application identifier. This identifier helps you to determine which application
+					  currently holds the lock on activation data in a special operations.
+ @param keychainAccessGroup Keychain sharing access grorup. If provided, then you don't need to alter `PowerAuthKeychainConfiguration`.
+ */
+- (nonnull instancetype) initWithAppGroup:(nonnull NSString*)appGroup
+							appIdentifier:(nonnull NSString*)appIdentifier
+					  keychainAccessGroup:(nonnull NSString*)keychainAccessGroup;
+
+/**
  Name of app group that allows you sharing data between multiple applications.
  */
-@property (nonatomic, strong, nonnull) NSString * appGroup;
+@property (nonatomic, strong, nonnull, readonly) NSString * appGroup;
 /**
  Unique application identifier. This identifier helps you to determine which application
  currently holds the lock on activation data in a special operations.
@@ -52,7 +63,13 @@
  to use application's main bundle identifier, but in general, it's up to you how you identify your
  own applications.
  */
-@property (nonatomic, strong, nonnull) NSString * appIdentifier;
+@property (nonatomic, strong, nonnull, readonly) NSString * appIdentifier;
+
+/**
+ Keychain access group name used by the PowerAuthSDK keychain instances. If you provide this value, then
+ you don't need to alter the default `PowerAuthKeychainConfiguration` to properly configure activation sharing.
+ */
+@property (nonatomic, strong, nullable) NSString * keychainAccessGroup;
 /**
  Optional identifier of memory shared between the applications in app group. If identifier is not provided
  then PowerAuthSDK calculate unique identifier based on `PowerAuthConfiguration.instanceId`.

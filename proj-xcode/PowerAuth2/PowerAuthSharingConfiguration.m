@@ -37,6 +37,19 @@
 	return self;
 }
 
+- (instancetype) initWithAppGroup:(NSString*)appGroup
+					appIdentifier:(NSString*)appIdentifier
+			  keychainAccessGroup:(NSString*)keychainAccessGroup
+{
+	self = [super init];
+	if (self) {
+		_appGroup = appGroup;
+		_appIdentifier = appIdentifier;
+		_keychainAccessGroup = keychainAccessGroup;
+	}
+	return self;
+}
+
 - (BOOL) validateConfiguration
 {
 	BOOL result = _appGroup.length > 0;
@@ -54,6 +67,8 @@
 	if (c) {
 		c->_appGroup = _appGroup;
 		c->_appIdentifier = _appIdentifier;
+		c->_keychainAccessGroup = _keychainAccessGroup;
+		c->_sharedMemoryIdentifier = _sharedMemoryIdentifier;
 	}
 	return c;
 }

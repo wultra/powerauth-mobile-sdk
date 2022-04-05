@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthSharingConfiguration.h>
+#import <PowerAuth2ForExtensions/PowerAuthSharingConfiguration.h>
 #import "PA2PrivateConstants.h"
 
 #if PA2_HAS_CORE_MODULE

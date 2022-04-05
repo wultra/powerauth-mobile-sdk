@@ -332,7 +332,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 {
 	return _synchronized(self, ^id{
 		NSString * identifier = [self identifierForTokenName:name];
-		PA2PrivateTokenData * tokenData = _database[identifier];
+		PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
 			if (tokenData && _allowInMemoryCache) {
@@ -361,7 +361,9 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		} else {
 			[_keychain addValue:data forKey:identifier];
 		}
-		_database[identifier] = tokenData;
+		if (_allowInMemoryCache) {
+			_database[identifier] = tokenData;
+		}
 	});
 }
 

@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
 #import "PA2PrivateMacros.h"
+#import <PowerAuth2ForExtensions/PowerAuthLog.h>
 
 id PA2CastToImpl(id instance, Class desiredClass)
 {
@@ -26,3 +27,13 @@ id PA2CastToImpl(id instance, Class desiredClass)
 	}
 	return nil;
 }
+
+#if DEBUG
+void PA2PrintErrno(NSString * location)
+{
+	char buffer[256];
+	strerror_r(errno, buffer, sizeof(buffer));
+	NSString * error = [NSString stringWithUTF8String:buffer];
+	PowerAuthLog(@"%@ failed: %@", location, error);
+}
+#endif // DEBUG

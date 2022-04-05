@@ -24,11 +24,14 @@
 - (BOOL) validateConfiguration
 {
 	BOOL result = YES;
-	result = result && (self.instanceId != nil);
-	result = result && (self.appKey != nil);
-	result = result && (self.appSecret != nil);
-	result = result && (self.masterServerPublicKey != nil);
-	result = result && (self.baseEndpointUrl != nil);
+	result = result && (_instanceId != nil);
+	result = result && (_appKey != nil);
+	result = result && (_appSecret != nil);
+	result = result && (_masterServerPublicKey != nil);
+	result = result && (_baseEndpointUrl != nil);
+	if (_sharingConfiguration) {
+		result = result && [_sharingConfiguration validateConfiguration];
+	}
 	return result;
 }
 
@@ -44,6 +47,7 @@
 		c->_keychainKey_Biometry = _keychainKey_Biometry;
 		c->_externalEncryptionKey = _externalEncryptionKey;
 		c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
+		c->_sharingConfiguration = [_sharingConfiguration copy];
 	}
 	return c;
 }

@@ -30,8 +30,8 @@
 {
 	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
-	/// Semaphore for locking
-	dispatch_semaphore_t		_lock;
+	/// Data locking implementation
+	id<PA2TokenDataLock>		_lock;
 	
 	// Lazy initialized data
 
@@ -62,6 +62,7 @@
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
 			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+					dataLock:(id<PA2TokenDataLock>)dataLock
 {
 	self = [super init];
 	if (self) {
@@ -69,7 +70,7 @@
 		_statusProvider = statusProvider;
 		_remoteTokenProvider = remoteProvider;
 		_keychain = keychain;
-		_lock = dispatch_semaphore_create(1);
+		_lock = dataLock;
 		_allowInMemoryCache = YES;
 	}
 	return self;
@@ -84,31 +85,34 @@
  Prepares runtime data required by this class. We're initializing that objects only
  on demand, when the first token is being accessed.
  */
-static void _prepareInstance(PA2PrivateTokenKeychainStore * obj)
+- (void) prepareInstance
 {
 	// Initialize remote provider (instance may be nil)
-	[obj->_remoteTokenProvider prepareInstanceForConfiguration:obj->_sdkConfiguration];
+	[_remoteTokenProvider prepareInstanceForConfiguration:_sdkConfiguration];
 
 	// Build base key for all stored tokens
-	obj->_keychainKeyPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:obj->_sdkConfiguration.instanceId];
-	obj->_database = [NSMutableDictionary dictionaryWithCapacity:2];
+	_keychainKeyPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:_sdkConfiguration.instanceId];
+	_database = [NSMutableDictionary dictionaryWithCapacity:2];
 	// ...and debug set for overlapping operations
-	obj->_pendingNamedOperations = _OPERATIONS_SET();
+	_pendingNamedOperations = _OPERATIONS_SET();
 }
-
 
 /**
  A simple replacement for @synchronized() construct.
  This version of function returns object returned from the block.
  */
-static id _synchronized(PA2PrivateTokenKeychainStore * obj, id(^block)(void))
+- (id) synchronized:(id(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
-	if (nil == obj->_keychainKeyPrefix) {
-		_prepareInstance(obj);
+	BOOL isDirty = [_lock lockTokenStore];
+	if (_keychainKeyPrefix == nil) {
+		[self prepareInstance];
 	}
-	id result = block();
-	dispatch_semaphore_signal(obj->_lock);
+	if (_allowInMemoryCache && isDirty) {
+		[_database removeAllObjects];
+	}
+	BOOL modified = NO;
+	id result = block(&modified);
+	[_lock unlockTokenStore:modified];
 	return result;
 }
 
@@ -116,14 +120,18 @@ static id _synchronized(PA2PrivateTokenKeychainStore * obj, id(^block)(void))
  A simple replacement for @synchronized() construct.
  This version of function has no return value.
  */
-static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(void))
+- (void) synchronizedVoid:(void(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	dispatch_semaphore_wait(obj->_lock, DISPATCH_TIME_FOREVER);
-	if (nil == obj->_keychainKeyPrefix) {
-		_prepareInstance(obj);
+	BOOL isDirty = [_lock lockTokenStore];
+	if (_keychainKeyPrefix == nil) {
+		[self prepareInstance];
 	}
-	block();
-	dispatch_semaphore_signal(obj->_lock);
+	if (_allowInMemoryCache && isDirty) {
+		[_database removeAllObjects];
+	}
+	BOOL modified = NO;
+	block(&modified);
+	[_lock unlockTokenStore:modified];
 }
 
 #pragma mark - PowerAuthTokenStore protocol
@@ -242,21 +250,23 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 
 - (void) removeLocalTokenWithName:(NSString *)name
 {
-	_synchronizedVoid(self, ^{
+	[self synchronizedVoid:^(BOOL * setModified){
 		if (name) {
 			[self removeTokenWithIdentifier:[self identifierForTokenName:name]];
+			*setModified = YES;
 		}
-	});
+	}];
 }
 
 
 - (void) removeAllLocalTokens
 {
-	_synchronizedVoid(self, ^{
+	[self synchronizedVoid:^(BOOL *setModified) {
 		[[self allTokenIdentifiers] enumerateObjectsUsingBlock:^(NSString * identifier, NSUInteger idx, BOOL * stop) {
 			[self removeTokenWithIdentifier:identifier];
 		}];
-	});
+		*setModified = YES;
+	}];
 }
 
 
@@ -330,7 +340,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
  */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
 {
-	return _synchronized(self, ^id{
+	return [self synchronized:^id(BOOL *setModified) {
 		NSString * identifier = [self identifierForTokenName:name];
 		PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
 		if (!tokenData) {
@@ -340,7 +350,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 			}
 		}
 		return tokenData;
-	});
+	}];
 }
 
 /**
@@ -348,10 +358,10 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
  */
 - (void) storeTokenData:(PA2PrivateTokenData*)tokenData
 {
-	if (!self.canRequestForAccessToken) {
-		return;
-	}
-	_synchronizedVoid(self, ^{
+	[self synchronizedVoid:^(BOOL *setModified) {
+		if (!self.canRequestForAccessToken) {
+			return;
+		}
 		NSString * identifier = [self identifierForTokenName:tokenData.name];
 		NSData * data = [tokenData serializedData];
 		if ([_keychain containsDataForKey:identifier]) {
@@ -364,7 +374,8 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		if (_allowInMemoryCache) {
 			_database[identifier] = tokenData;
 		}
-	});
+		*setModified = YES;
+	}];
 }
 
 /**
@@ -381,7 +392,7 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 #if defined(DEBUG)
 - (void) startOperationForName:(NSString*)name
 {
-	_synchronizedVoid(self, ^{
+	[self synchronizedVoid:^(BOOL *setModified) {
 		if ([_pendingNamedOperations containsObject:name]) {
 			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
 			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
@@ -391,14 +402,14 @@ static void _synchronizedVoid(PA2PrivateTokenKeychainStore  * obj, void(^block)(
 		} else {
 			[_pendingNamedOperations addObject:name];
 		}
-	});
+	}];
 }
 
 - (void) stopOperationForName:(NSString*)name
 {
-	_synchronizedVoid(self, ^{
+	[self synchronizedVoid:^(BOOL *setModified) {
 		[_pendingNamedOperations removeObject:name];
-	});
+	}];
 }
 #endif // defined(DEBUG)
 

@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
-#import <PowerAuth2/PowerAuthConfiguration.h>
-
-@import PowerAuthCore;
-
-@class PA2SessionDataProvider;
+#import "PA2SessionInterface.h"
 
 /**
  The `PA2DefaultSessionProvider` provides PowerAuthCoreSession when
  interprocess session sharing is required.
  */
-@interface PA2SharedSessionProvider : NSObject<PowerAuthCoreSessionProvider, PowerAuthCoreDebugMonitor>
+@interface PA2SharedSessionInterface : NSObject<PA2SessionInterface, PowerAuthCoreDebugMonitor>
 
 /**
  Initialize provider with session and persistent data provider.
  */
 - (nullable instancetype) initWithSession:(nonnull PowerAuthCoreSession *)session
 							 dataProvider:(nonnull PA2SessionDataProvider *)dataProvider
-							   instanceId:(nonnull NSString*)instanceId
-							applicationId:(nonnull NSString*)applicationId
+							   instanceId:(nonnull NSString *)instanceId
+							applicationId:(nonnull NSString *)applicationId
 						   sharedMemoryId:(nonnull NSString *)sharedMemoryId
 						   sharedLockPath:(nonnull NSString *)sharedLockPath;
 

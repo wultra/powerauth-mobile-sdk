@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
+// PA2_SHARED_SOURCE PowerAuth2ForWatch private
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
-@import PowerAuthCore;
-
-@class PA2SessionDataProvider;
-
-/**
- The `PA2DefaultSessionProvider` provides PowerAuthCoreSession when no
- interprocess session sharing is required.
- */
-@interface PA2DefaultSessionProvider : NSObject<PowerAuthCoreSessionProvider, PowerAuthCoreDebugMonitor>
+#import <PowerAuth2/PowerAuthMacros.h>
 
 /**
- Initialize provider with session and persistent data provider.
+ The `PA2TokenDataLock` defines interface that allows token store
+ acquire an exclusive access to shared token data.
  */
-- (nonnull instancetype) initWithSession:(nonnull PowerAuthCoreSession*)session
-							dataProvider:(nonnull PA2SessionDataProvider*)dataProvider;
+@protocol PA2TokenDataLock <NSObject>
+
+/**
+ Lock token store data and return whether the local cached context
+ should be invalidated.
+ */
+- (BOOL) lockTokenStore;
+
+/**
+ Unlock token store data and mark that token store has been modified.
+ */
+- (void) unlockTokenStore:(BOOL)contentModified;
 
 @end

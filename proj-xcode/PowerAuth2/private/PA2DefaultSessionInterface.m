@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#import "PA2DefaultSessionProvider.h"
+#import "PA2DefaultSessionInterface.h"
 #import "PA2SessionDataProvider.h"
 #import <PowerAuth2/PowerAuthLog.h>
 #import "PA2PrivateMacros.h"
 
 @import PowerAuthCore;
 
-@implementation PA2DefaultSessionProvider
+@implementation PA2DefaultSessionInterface
 {
 	id<NSLocking> _lock;
 	NSInteger _readWriteAccessCount;
@@ -173,6 +173,28 @@
 	return nil;
 }
 
+#pragma mark - PA2SessionInterface protocol
+
+- (BOOL) lockTokenStore
+{
+	WRITE_ACCESS_LOCK();
+	return NO;
+}
+
+- (void) unlockTokenStore:(BOOL)contentModified
+{
+	WRITE_ACCESS_UNLOCK();
+}
+
+- (void) lockSharedQueue
+{
+	// Empty
+}
+
+- (void) unlockSharedQueue
+{
+	// Empty
+}
 
 #pragma mark - PowerAuthSessionStatusProvider
 

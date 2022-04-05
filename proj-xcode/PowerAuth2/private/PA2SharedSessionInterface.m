@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import "PA2SharedSessionProvider.h"
+#import "PA2SharedSessionInterface.h"
 #import "PA2SharedLock.h"
 #import "PA2SharedMemory.h"
 #import "PA2PrivateConstants.h"
@@ -56,10 +56,15 @@ typedef struct SharedData {
 	UInt8 reservedBytes[4];
 
 	/// Counter that determine whether processes has still valid data.
-	/// This value must be in sync with all LocalContext.modifyCounter.
+	/// This value must be in sync with all LocalContext.stateModifyCounter.
 	/// If it's not, then the process that want's to access session's data
 	/// must deserialize its content from the persistent storage.
-	volatile NSUInteger modifyCounter;
+	volatile NSUInteger stateModifyCounter;
+	/// Counter that determine whether processes has still valid data.
+	/// This value must be in sync with all LocalContext.tokenModifyCounter.
+	/// If it's not, then the process that want's to access tokens's data
+	/// must deserialize its content from the persistent storage.
+	volatile NSUInteger tokenModifyCounter;
 	
 	/// Contains PowerAuthExternalPendingOperationType with type
 	/// of operation started from some application. If value is 0,
@@ -91,8 +96,11 @@ typedef struct LocalContext {
 	SharedData * sharedData;
 
 	/// Counter that determine whether this process has still valid data.
-	/// This value must be in sync with SharedData->modfifyCounter.
-	NSUInteger modifyCounter;
+	/// This value must be in sync with SharedData->stateModifyCounter.
+	NSUInteger stateModifyCounter;
+	/// Counter that determine whether this process has still valid data.
+	/// This value must be in sync with SharedData->tokenModifyCounter.
+	NSUInteger tokenModifyCounter;
 	
 	/// Contains PowerAuthExternalPendingOperationType with type
 	/// of operation started from this application. If value is 0,
@@ -117,7 +125,7 @@ typedef struct LocalContext {
 
 #pragma mark - Public implementation
 
-@implementation PA2SharedSessionProvider
+@implementation PA2SharedSessionInterface
 {
 	/// Reference to PowerAuthCoreSession provided by this object.
 	PowerAuthCoreSession * _session;
@@ -275,6 +283,29 @@ typedef struct LocalContext {
 	return result;
 }
 
+#pragma mark - PA2SessionInterface protocol
+
+- (BOOL) lockTokenStore
+{
+	[self lockImpl:YES];
+	return _LocalContextTokenIsDirty(&_localContext);
+}
+
+- (void) unlockTokenStore:(BOOL)contentModified
+{
+	_LocalContextTokenSynchronize(&_localContext, contentModified);
+	[self unlockImpl:YES];
+}
+
+- (void) lockSharedQueue
+{
+	// TODO: ...
+}
+
+- (void) unlockSharedQueue
+{
+	// TODO: ...
+}
 
 #pragma mark - PowerAuthSessionStatusProvider protocol
 
@@ -343,7 +374,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
  */
 - (void) loadState:(BOOL)force
 {
-	if (!force && !_LocalContextIsDirty(&_localContext)) {
+	if (!force && !_LocalContextStateIsDirty(&_localContext)) {
 		// Do nothing if local session has still valid data.
 		return;
 	}
@@ -363,7 +394,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 	// Clear temporary granted access.
 	_internalAccessGranted = NO;
 	// Set context synchronized with others
-	_LocalContextSynchronize(&_localContext, NO);
+	_LocalContextStateSynchronize(&_localContext, NO);
 }
 
 /**
@@ -377,7 +408,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 		[_dataProvider saveSessionData:serializedState];
 		_stateBefore = serializedState;
 		// Notify that shared data has been changed
-		_LocalContextSynchronize(&_localContext, YES);
+		_LocalContextStateSynchronize(&_localContext, YES);
 	}
 }
 
@@ -455,23 +486,44 @@ static BOOL _LocalContextInit(LocalContext * ctx, NSString * instanceId, NSStrin
 }
 
 /**
- Determine whether local data is dirty and session needs to reload its state from persistent storage.
+ Determine whether local state data is dirty and session needs to reload its state from persistent storage.
  */
-static BOOL _LocalContextIsDirty(LocalContext * ctx)
+static BOOL _LocalContextStateIsDirty(LocalContext * ctx)
 {
-	return ctx->modifyCounter != ctx->sharedData->modifyCounter;
+	return ctx->stateModifyCounter != ctx->sharedData->stateModifyCounter;
 }
 
 /**
- Make local context synchronized with shared data. If modified is YES, then
- also notify other applications that this context modified the shared data.
+ Make local context synchronized with shared sate data. If modified is YES, then
+ also notify other applications that this context modified the shared state data.
  */
-static void _LocalContextSynchronize(LocalContext * ctx, BOOL modified)
+static void _LocalContextStateSynchronize(LocalContext * ctx, BOOL modified)
 {
 	if (modified) {
-		ctx->modifyCounter = ++ctx->sharedData->modifyCounter;
+		ctx->stateModifyCounter = ++ctx->sharedData->stateModifyCounter;
 	} else {
-		ctx->modifyCounter = ctx->sharedData->modifyCounter;
+		ctx->stateModifyCounter = ctx->sharedData->stateModifyCounter;
+	}
+}
+
+/**
+ Determine whether local state data is dirty and session needs to reload its state from persistent storage.
+ */
+static BOOL _LocalContextTokenIsDirty(LocalContext * ctx)
+{
+	return ctx->tokenModifyCounter != ctx->sharedData->tokenModifyCounter;
+}
+
+/**
+ Make local context synchronized with shared token data. If modified is YES, then
+ also notify other applications that this context modified the shared token data.
+ */
+static void _LocalContextTokenSynchronize(LocalContext * ctx, BOOL modified)
+{
+	if (modified) {
+		ctx->tokenModifyCounter = ++ctx->sharedData->tokenModifyCounter;
+	} else {
+		ctx->tokenModifyCounter = ctx->sharedData->tokenModifyCounter;
 	}
 }
 
@@ -580,8 +632,9 @@ static BOOL _InitSharedMemoryData(LocalContext * ctx, void * bytes, NSUInteger s
 	sd->magic[1] = MAG_1;
 	sd->magic[2] = MAG_2;
 	sd->version = VER_1;
-	// Set modifyCounter to 1 (different than its LocalContext counterpart)
-	sd->modifyCounter = 1;
+	// Set modifyCounters to 1 (different than their LocalContext counterparts)
+	sd->stateModifyCounter = 1;
+	sd->tokenModifyCounter = 1;
 	// Set op ticket to some value.
 	sd->specialOpTicket = 1;
 	

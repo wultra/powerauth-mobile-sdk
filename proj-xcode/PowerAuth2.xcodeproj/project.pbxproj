@@ -56,14 +56,14 @@
 		BF28A9FD27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
 		BF28A9FE27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */; };
 		BF28A9FF27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */; };
-		BF28AA0B27EA09F000FBFCEB /* PA2SharedSessionProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0927EA09F000FBFCEB /* PA2SharedSessionProvider.h */; };
-		BF28AA0C27EA09F000FBFCEB /* PA2SharedSessionProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0927EA09F000FBFCEB /* PA2SharedSessionProvider.h */; };
-		BF28AA0D27EA09F000FBFCEB /* PA2SharedSessionProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionProvider.m */; };
-		BF28AA0E27EA09F000FBFCEB /* PA2SharedSessionProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionProvider.m */; };
-		BF28AA1127EA0A1900FBFCEB /* PA2DefaultSessionProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionProvider.h */; };
-		BF28AA1227EA0A1900FBFCEB /* PA2DefaultSessionProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionProvider.h */; };
-		BF28AA1327EA0A1900FBFCEB /* PA2DefaultSessionProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionProvider.m */; };
-		BF28AA1427EA0A1900FBFCEB /* PA2DefaultSessionProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionProvider.m */; };
+		BF28AA0B27EA09F000FBFCEB /* PA2SharedSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0927EA09F000FBFCEB /* PA2SharedSessionInterface.h */; };
+		BF28AA0C27EA09F000FBFCEB /* PA2SharedSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0927EA09F000FBFCEB /* PA2SharedSessionInterface.h */; };
+		BF28AA0D27EA09F000FBFCEB /* PA2SharedSessionInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionInterface.m */; };
+		BF28AA0E27EA09F000FBFCEB /* PA2SharedSessionInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionInterface.m */; };
+		BF28AA1127EA0A1900FBFCEB /* PA2DefaultSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionInterface.h */; };
+		BF28AA1227EA0A1900FBFCEB /* PA2DefaultSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionInterface.h */; };
+		BF28AA1327EA0A1900FBFCEB /* PA2DefaultSessionInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionInterface.m */; };
+		BF28AA1427EA0A1900FBFCEB /* PA2DefaultSessionInterface.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionInterface.m */; };
 		BF28AA1727EB1EDE00FBFCEB /* PA2SessionDataProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA1527EB1EDE00FBFCEB /* PA2SessionDataProvider.h */; };
 		BF28AA1827EB1EDE00FBFCEB /* PA2SessionDataProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA1527EB1EDE00FBFCEB /* PA2SessionDataProvider.h */; };
 		BF28AA1927EB1EDE00FBFCEB /* PA2SessionDataProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28AA1627EB1EDE00FBFCEB /* PA2SessionDataProvider.m */; };
@@ -358,6 +358,10 @@
 		BFC1928127FAF821001455C1 /* Assets-tvOS.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BFC1928027FAF821001455C1 /* Assets-tvOS.xcassets */; };
 		BFC1928227FB04C4001455C1 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */; };
 		BFC1928527FB04F8001455C1 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49624C85D6300F9DDB2 /* PowerAuthCore.framework */; };
+		BFC192A127FC8C3F001455C1 /* PA2SessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC192A027FC8C3F001455C1 /* PA2SessionInterface.h */; };
+		BFC192A227FC8C3F001455C1 /* PA2SessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC192A027FC8C3F001455C1 /* PA2SessionInterface.h */; };
+		BFC192AA27FC95A0001455C1 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC192A927FC951F001455C1 /* PA2TokenDataLock.h */; };
+		BFC192AB27FC95A1001455C1 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC192A927FC951F001455C1 /* PA2TokenDataLock.h */; };
 		BFC581052316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */; };
 		BFCEE09C216E280600B41201 /* PA2GetActivationStatusTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */; };
 		BFCEE09D216E280600B41201 /* PA2GetActivationStatusTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BFCEE09B216E280600B41201 /* PA2GetActivationStatusTask.m */; };
@@ -592,10 +596,10 @@
 		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
 		BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AppGroupContainer.h; sourceTree = "<group>"; };
 		BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AppGroupContainer.m; sourceTree = "<group>"; };
-		BF28AA0927EA09F000FBFCEB /* PA2SharedSessionProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SharedSessionProvider.h; sourceTree = "<group>"; };
-		BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SharedSessionProvider.m; sourceTree = "<group>"; };
-		BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2DefaultSessionProvider.h; sourceTree = "<group>"; };
-		BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2DefaultSessionProvider.m; sourceTree = "<group>"; };
+		BF28AA0927EA09F000FBFCEB /* PA2SharedSessionInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SharedSessionInterface.h; sourceTree = "<group>"; };
+		BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionInterface.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SharedSessionInterface.m; sourceTree = "<group>"; };
+		BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2DefaultSessionInterface.h; sourceTree = "<group>"; };
+		BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionInterface.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2DefaultSessionInterface.m; sourceTree = "<group>"; };
 		BF28AA1527EB1EDE00FBFCEB /* PA2SessionDataProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SessionDataProvider.h; sourceTree = "<group>"; };
 		BF28AA1627EB1EDE00FBFCEB /* PA2SessionDataProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SessionDataProvider.m; sourceTree = "<group>"; };
 		BF28AA1B27EB242400FBFCEB /* PowerAuthCoreSessionProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreSessionProvider.h; sourceTree = "<group>"; };
@@ -706,6 +710,8 @@
 		BFC1925E27FAF292001455C1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		BFC1926C27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PowerAuth2TestsHostApp-tvos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFC1928027FAF821001455C1 /* Assets-tvOS.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets-tvOS.xcassets"; sourceTree = "<group>"; };
+		BFC192A027FC8C3F001455C1 /* PA2SessionInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SessionInterface.h; sourceTree = "<group>"; };
+		BFC192A927FC951F001455C1 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BFC581022316C4BC004FFFF7 /* PA2ValidateSignatureRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ValidateSignatureRequest.h; sourceTree = "<group>"; };
 		BFC581032316C4BC004FFFF7 /* PA2ValidateSignatureRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ValidateSignatureRequest.m; sourceTree = "<group>"; };
 		BFCEE09A216E280600B41201 /* PA2GetActivationStatusTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2GetActivationStatusTask.h; sourceTree = "<group>"; };
@@ -1004,10 +1010,11 @@
 				BFCEE09B216E280600B41201 /* PA2GetActivationStatusTask.m */,
 				BF28AA1527EB1EDE00FBFCEB /* PA2SessionDataProvider.h */,
 				BF28AA1627EB1EDE00FBFCEB /* PA2SessionDataProvider.m */,
-				BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionProvider.h */,
-				BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionProvider.m */,
-				BF28AA0927EA09F000FBFCEB /* PA2SharedSessionProvider.h */,
-				BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionProvider.m */,
+				BFC192A027FC8C3F001455C1 /* PA2SessionInterface.h */,
+				BF28AA0F27EA0A1900FBFCEB /* PA2DefaultSessionInterface.h */,
+				BF28AA1027EA0A1900FBFCEB /* PA2DefaultSessionInterface.m */,
+				BF28AA0927EA09F000FBFCEB /* PA2SharedSessionInterface.h */,
+				BF28AA0A27EA09F000FBFCEB /* PA2SharedSessionInterface.m */,
 			);
 			name = sdk;
 			sourceTree = "<group>";
@@ -1135,6 +1142,7 @@
 		BF79E3CE1FBDC9F6003DF179 /* token */ = {
 			isa = PBXGroup;
 			children = (
+				BFC192A927FC951F001455C1 /* PA2TokenDataLock.h */,
 				BF79E3CF1FBDCA3C003DF179 /* PA2PrivateTokenInterfaces.h */,
 				BF79E3D51FBDCE05003DF179 /* PA2PrivateTokenData.h */,
 				BF79E3D61FBDCE05003DF179 /* PA2PrivateTokenData.m */,
@@ -1325,14 +1333,15 @@
 				BFFECF2A26385BC9001DA7A9 /* PowerAuthActivationCode+Private.h in Headers */,
 				BF6B39EC27F312D100BDF579 /* PA2SharedMemory.h in Headers */,
 				BF5EB51324C85FE200F9DDB2 /* PowerAuthLog.h in Headers */,
+				BFC192AB27FC95A1001455C1 /* PA2TokenDataLock.h in Headers */,
 				BF5EB51724C85FE200F9DDB2 /* PowerAuthAuthentication.h in Headers */,
 				BF5EB51A24C85FE200F9DDB2 /* PA2GetTokenResponse.h in Headers */,
 				BF5EB51B24C85FE200F9DDB2 /* PA2RemoveTokenRequest.h in Headers */,
 				BF5EB51D24C85FE200F9DDB2 /* PowerAuthCustomHeaderRequestInterceptor.h in Headers */,
-				BF28AA1227EA0A1900FBFCEB /* PA2DefaultSessionProvider.h in Headers */,
+				BF28AA1227EA0A1900FBFCEB /* PA2DefaultSessionInterface.h in Headers */,
 				BF5EB51E24C85FE200F9DDB2 /* PA2PrivateTokenInterfaces.h in Headers */,
 				BF28AA2727EC710F00FBFCEB /* PowerAuthSharingConfiguration.h in Headers */,
-				BF28AA0C27EA09F000FBFCEB /* PA2SharedSessionProvider.h in Headers */,
+				BF28AA0C27EA09F000FBFCEB /* PA2SharedSessionInterface.h in Headers */,
 				BF5EB51F24C85FE200F9DDB2 /* PA2PrivateEncryptorFactory.h in Headers */,
 				BF5EB52024C85FE200F9DDB2 /* PowerAuthAuthorizationHttpHeader.h in Headers */,
 				BF5EB52224C85FE200F9DDB2 /* PowerAuthKeychainConfiguration.h in Headers */,
@@ -1352,6 +1361,7 @@
 				BF5EB52E24C85FE200F9DDB2 /* PA2GetActivationStatusTask.h in Headers */,
 				BF5EB52F24C85FE200F9DDB2 /* PA2CreateActivationResponse.h in Headers */,
 				BF08254B2631607C00B34E24 /* PowerAuthActivationStatus.h in Headers */,
+				BFC192A227FC8C3F001455C1 /* PA2SessionInterface.h in Headers */,
 				BF5EB53024C85FE200F9DDB2 /* PowerAuthRestApiErrorResponse.h in Headers */,
 				BFFECE972636EC41001DA7A9 /* PowerAuthSessionStatusProvider.h in Headers */,
 				BFFECEB926383CF7001DA7A9 /* PowerAuthDeprecated.h in Headers */,
@@ -1404,6 +1414,7 @@
 				BF8CF4E82032EB41002A6B6E /* PA2PrivateTokenData.h in Headers */,
 				BF8CF4E92032EB41002A6B6E /* PowerAuthClientSslNoValidationStrategy.h in Headers */,
 				BF8CF4EA2032EB41002A6B6E /* PA2WCSessionPacket_ActivationStatus.h in Headers */,
+				BFC192AA27FC95A0001455C1 /* PA2TokenDataLock.h in Headers */,
 				BF8CF4EB2032EB41002A6B6E /* PowerAuthSystem.h in Headers */,
 				BFEC963A21B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.h in Headers */,
 				BF585FD4215D328B00DE49C3 /* PA2PrivateCryptoHelper.h in Headers */,
@@ -1418,7 +1429,7 @@
 				BF8CF4F52032EB41002A6B6E /* PowerAuthKeychain.h in Headers */,
 				BF8CF4F62032EB41002A6B6E /* PowerAuthConfiguration.h in Headers */,
 				BF0825902632E2BC00B34E24 /* PowerAuthActivationStatus+Private.h in Headers */,
-				BF28AA0B27EA09F000FBFCEB /* PA2SharedSessionProvider.h in Headers */,
+				BF28AA0B27EA09F000FBFCEB /* PA2SharedSessionInterface.h in Headers */,
 				BFDFED9820BEEFAC0094138A /* PowerAuthLog.h in Headers */,
 				BF8CF4F72032EB41002A6B6E /* PA2WCSessionPacket.h in Headers */,
 				BF8CF4F82032EB41002A6B6E /* PowerAuthAuthentication.h in Headers */,
@@ -1438,6 +1449,7 @@
 				BF6B39EB27F312D100BDF579 /* PA2SharedMemory.h in Headers */,
 				BF8CF5032032EB41002A6B6E /* PowerAuthWCSessionManager+Private.h in Headers */,
 				BF1EC6CF223BD3BB00883236 /* PA2CreateActivationRecoveryData.h in Headers */,
+				BFC192A127FC8C3F001455C1 /* PA2SessionInterface.h in Headers */,
 				BF5344672163D104003C201C /* PA2Error+Decodable.h in Headers */,
 				BF31607527E895DD00EDA287 /* PA2SharedLock.h in Headers */,
 				BF8CF5042032EB41002A6B6E /* PowerAuthOperationTask.h in Headers */,
@@ -1449,7 +1461,7 @@
 				BF30DB5C206CEAE900430C12 /* PA2VaultUnlockRequest.h in Headers */,
 				BFCEE09C216E280600B41201 /* PA2GetActivationStatusTask.h in Headers */,
 				BF8CF5082032EB41002A6B6E /* PA2CreateActivationResponse.h in Headers */,
-				BF28AA1127EA0A1900FBFCEB /* PA2DefaultSessionProvider.h in Headers */,
+				BF28AA1127EA0A1900FBFCEB /* PA2DefaultSessionInterface.h in Headers */,
 				BF8CF5092032EB41002A6B6E /* PowerAuthRestApiErrorResponse.h in Headers */,
 				BF08256C2631670D00B34E24 /* PowerAuthActivationResult.h in Headers */,
 				BF28AA2027EB4E8A00FBFCEB /* PA2Result.h in Headers */,
@@ -1804,7 +1816,7 @@
 				BF5EB4AB24C85FE200F9DDB2 /* PowerAuthToken.m in Sources */,
 				BF5EB4AC24C85FE200F9DDB2 /* PA2Response.m in Sources */,
 				BF4017FA2636CC3D00C1E65C /* PA2PrivateMacros.m in Sources */,
-				BF28AA1427EA0A1900FBFCEB /* PA2DefaultSessionProvider.m in Sources */,
+				BF28AA1427EA0A1900FBFCEB /* PA2DefaultSessionInterface.m in Sources */,
 				BF5EB4AD24C85FE200F9DDB2 /* PA2EncryptedResponse.m in Sources */,
 				BF5EB4AE24C85FE200F9DDB2 /* PowerAuthClientConfiguration.m in Sources */,
 				BF5EB4AF24C85FE200F9DDB2 /* PA2RemoveTokenRequest.m in Sources */,
@@ -1854,7 +1866,7 @@
 				BF5EB4DB24C85FE200F9DDB2 /* PowerAuthAuthorizationHttpHeader.m in Sources */,
 				BFF711E5265D500300DB696A /* PowerAuthSDK+WatchSupport.m in Sources */,
 				BF28AA2927EC710F00FBFCEB /* PowerAuthSharingConfiguration.m in Sources */,
-				BF28AA0E27EA09F000FBFCEB /* PA2SharedSessionProvider.m in Sources */,
+				BF28AA0E27EA09F000FBFCEB /* PA2SharedSessionInterface.m in Sources */,
 				BF5EB4DC24C85FE200F9DDB2 /* PowerAuthAuthentication.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1955,7 +1967,7 @@
 				BFFECEC326383E48001DA7A9 /* PowerAuthDeprecated.m in Sources */,
 				BFADA9C921B6C0CE001C6EC2 /* PowerAuthCustomHeaderRequestInterceptor.m in Sources */,
 				BF8CF4BD2032EB41002A6B6E /* PowerAuthRestApiErrorResponse.m in Sources */,
-				BF28AA0D27EA09F000FBFCEB /* PA2SharedSessionProvider.m in Sources */,
+				BF28AA0D27EA09F000FBFCEB /* PA2SharedSessionInterface.m in Sources */,
 				BF0210442164D403009745A2 /* PA2AsyncOperation.m in Sources */,
 				BF8CF4BE2032EB41002A6B6E /* PA2PrivateHttpTokenProvider.m in Sources */,
 				BF8CF4C02032EB41002A6B6E /* PA2EncryptedRequest.m in Sources */,
@@ -1968,7 +1980,7 @@
 				BF08251B2630514D00B34E24 /* PowerAuthErrorConstants.m in Sources */,
 				BF28AA1927EB1EDE00FBFCEB /* PA2SessionDataProvider.m in Sources */,
 				BF1EC6D0223BD3BB00883236 /* PA2CreateActivationRecoveryData.m in Sources */,
-				BF28AA1327EA0A1900FBFCEB /* PA2DefaultSessionProvider.m in Sources */,
+				BF28AA1327EA0A1900FBFCEB /* PA2DefaultSessionInterface.m in Sources */,
 				BF8CF4C62032EB41002A6B6E /* PowerAuthAuthorizationHttpHeader.m in Sources */,
 				BF8CF4C92032EB41002A6B6E /* PowerAuthAuthentication.m in Sources */,
 				BF6B39ED27F312D100BDF579 /* PA2SharedMemory.m in Sources */,

@@ -129,6 +129,8 @@
 	
 	XCTAssertTrue([self.sdk hasValidActivation]);
 	XCTAssertTrue([_altSdk hasValidActivation]);
+	XCTAssertNil([self.sdk externalPendingOperation]);
+	XCTAssertNil([_altSdk externalPendingOperation]);
 }
 
 @end

@@ -25,7 +25,7 @@
  you should never use `PowerAuthCoreSession` directly, without acquiring the lock.
  */
 @protocol PowerAuthCoreSessionProvider <PowerAuthSessionStatusProvider>
-
+@required
 /**
  Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
  operation right now.

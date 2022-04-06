@@ -112,6 +112,13 @@
 									activationOtp:(NSString*)activationOtp;
 
 /**
+ Creates custom `PowerAuthSdkActivation` from provided data and assign this object to the helper.
+ */
+- (PowerAuthSdkActivation*) assignCustomActivationData:(PATSInitActivationResponse*)activationData
+									  activationResult:(PowerAuthActivationResult*)activationResult
+										   credentials:(PowerAuthAuthentication*)credentials;
+
+/**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */
 - (PowerAuthActivationStatus*) fetchActivationStatus;

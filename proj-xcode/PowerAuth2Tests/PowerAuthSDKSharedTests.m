@@ -27,6 +27,11 @@
 	NSString * _app2;
 	NSString * _appGroupId;
 	NSString * _instanceId;
+	
+	NSOperationQueue * _app1Queue;
+	NSOperationQueue * _app2Queue;
+	
+	AsyncHelper * _waitForQueuesTask;
 }
 
 - (void) setUp
@@ -41,7 +46,15 @@
 	_instanceId = @"SharedInstanceTests";
 #endif
 	[super setUp];
+}
+
+- (void) tearDown
+{
+	[self waitForTestQueues];
+	_app1Queue.suspended = YES;
+	_app2Queue.suspended = YES;
 	
+	[super tearDown];
 }
 
 - (void) prepareConfigs:(PowerAuthConfiguration *)configuration
@@ -67,12 +80,98 @@
 	return _altSdk != nil;
 }
 
+- (void) prepareTestQueues
+{
+	if (_app1Queue || _app2Queue) {
+		return;
+	}
+	_app1Queue = [[NSOperationQueue alloc] init];
+	_app1Queue.maxConcurrentOperationCount = 1;
+	_app1Queue.name = @"App1Thread";
+	_app2Queue = [[NSOperationQueue alloc] init];
+	_app2Queue.maxConcurrentOperationCount = 1;
+	_app2Queue.name = @"App2Thread";
+}
+
+- (void) waitForTestQueues
+{
+	if (_app1Queue && _app2Queue) {
+		__block volatile int completion = 2;
+		[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+			_waitForQueuesTask = waiting;
+			void (^block)(void) = ^{
+				if (--completion == 0) {
+					[waiting reportCompletion:nil];
+				}
+			};
+			[_app1Queue addOperationWithBlock:block];
+			[_app2Queue addOperationWithBlock:block];
+		}];
+		_waitForQueuesTask = nil;
+		[_app1Queue waitUntilAllOperationsAreFinished];
+		[_app2Queue waitUntilAllOperationsAreFinished];
+	}
+}
+
+#pragma mark - Integration tests
+
 - (void) testConcurrentSignatureCalculations
 {
 	if (![self prepareAltSdk]) {
 		XCTFail(@"Failed to initialize SDK objects");
 		return;
 	}
+	[self.helper createActivation:YES];
+	PowerAuthAuthentication * credentials = self.helper.authPossessionWithKnowledge;
+	XCTAssertTrue([self.sdk hasValidActivation]);
+	XCTAssertTrue([_altSdk hasValidActivation]);
+	
+	[self prepareTestQueues];
+	[_app1Queue addOperationWithBlock:^{
+		@try {
+			for (int i = 0; i < 50; i++) {
+				[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+					if (i % 5 == 0) {
+						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+							XCTAssertNotNil(status);
+							[waiting reportCompletion:nil];
+						}];
+					} else {
+						[self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+							XCTAssertNil(error);
+							[waiting reportCompletion:nil];
+						}];
+					}
+				}];
+				[_waitForQueuesTask extendWaitingTime];
+			}
+		} @catch (NSException *exception) {
+			XCTFail(@"Test failed with exception %@", exception);
+		}
+	}];
+	[_app2Queue addOperationWithBlock:^{
+		@try {
+			for (int i = 0; i < 50; i++) {
+				[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+					if (i % 7 == 0) {
+						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+							XCTAssertNotNil(status);
+							[waiting reportCompletion:nil];
+						}];
+					} else {
+						[_altSdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+							XCTAssertNil(error);
+							[waiting reportCompletion:nil];
+						}];
+					}
+				}];
+				[_waitForQueuesTask extendWaitingTime];
+			}
+		} @catch (NSException *exception) {
+			XCTFail(@"Test failed with exception %@", exception);
+		}
+	}];
+	[self waitForTestQueues];
 }
 
 - (void) testConcurrentActivation
@@ -88,6 +187,7 @@
 	
 	XCTAssertFalse([self.sdk hasValidActivation]);
 	XCTAssertFalse([_altSdk hasValidActivation]);
+	PowerAuthAuthentication * credentials = [self.helper createAuthentication];
 	PowerAuthActivationResult * activationResult = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PowerAuthActivation * activation = [PowerAuthActivation activationWithActivationCode:[activationData activationCodeWithSignature] name:nil error:nil];
 		id task = [self.sdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
@@ -114,6 +214,9 @@
 	XCTAssertNotNil(activationResult);
 	if (!activationResult) return;
 	
+	// Keep activation data in the helper to remove activation automatically at the end of the test.
+	[self.helper assignCustomActivationData:activationData activationResult:activationResult credentials:credentials];
+	
 	XCTAssertTrue([self.sdk hasPendingActivation]);
 	XCTAssertFalse([_altSdk hasValidActivation]);
 	XCTAssertFalse([_altSdk hasPendingActivation]);
@@ -123,7 +226,6 @@
 	XCTAssertEqual(PowerAuthExternalPendingOperationType_Activation, extOp2.externalOperationType);
 	XCTAssertTrue([_app1 isEqualToString:extOp2.externalApplicationId]);
 	
-	PowerAuthAuthentication * credentials = [self.helper createAuthentication];
 	BOOL result = [self.sdk commitActivationWithPassword:credentials.usePassword error:nil];
 	XCTAssertTrue(result);
 	
@@ -131,6 +233,25 @@
 	XCTAssertTrue([_altSdk hasValidActivation]);
 	XCTAssertNil([self.sdk externalPendingOperation]);
 	XCTAssertNil([_altSdk externalPendingOperation]);
+	
+	// Commit activation on the server.
+	[self.helper.testServerApi commitActivation:activationData.activationId];
+	
+	PowerAuthActivationStatus * status1 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+			[waiting reportCompletion:status];
+		}];
+	}];
+	XCTAssertNotNil(status1);
+	XCTAssertEqual(PowerAuthActivationState_Active, status1.state);
+	
+	PowerAuthActivationStatus * status2 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_altSdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+			[waiting reportCompletion:status];
+		}];
+	}];
+	XCTAssertNotNil(status2);
+	XCTAssertEqual(PowerAuthActivationState_Active, status2.state);
 }
 
 @end

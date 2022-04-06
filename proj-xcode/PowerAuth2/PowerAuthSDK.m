@@ -121,12 +121,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
 	
-	// Create and setup a new client
-	_client = [[PA2HttpClient alloc] initWithConfiguration:_clientConfiguration
-										   completionQueue:dispatch_get_main_queue()
-												   baseUrl:_configuration.baseEndpointUrl
-													helper:self];
-	
 	// Create a new keychain instances
 	_statusKeychain			= [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Status
 																accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
@@ -142,31 +136,41 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	} else {
 		// This instance will use the session sharing.
 		// At first, try to determine shared memory identifier.
+		NSString * instanceId = _configuration.instanceId;
 		NSString * shortSharedMemoryId = _configuration.sharingConfiguration.sharedMemoryIdentifier;
 		if (!shortSharedMemoryId) {
-			shortSharedMemoryId = [PA2AppGroupContainer shortSharedMemoryIdentifier:_configuration.instanceId];
+			shortSharedMemoryId = [PA2AppGroupContainer shortSharedMemoryIdentifier:instanceId];
 			// Store automatically calculated identifier to configuration.
 			_configuration.sharingConfiguration.sharedMemoryIdentifier = shortSharedMemoryId;
 		}
 		// Now prepare PA2AppGroupContainer and build various identifiers.
 		PA2AppGroupContainer * appGroupContainer = [PA2AppGroupContainer containerWithAppGroup:_configuration.sharingConfiguration.appGroup];
 		NSString * sharedMemoryId = [appGroupContainer sharedMemoryIdentifier:shortSharedMemoryId];
-		NSString * sharedLockPath = [appGroupContainer pathToFileLockWithIdentifier:_configuration.instanceId];
-		if (!sharedMemoryId || !sharedLockPath) {
+		NSString * statusLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"statusLock:" stringByAppendingString:instanceId]];
+		NSString * queueLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"queueLock:" stringByAppendingString:instanceId]];
+		if (!sharedMemoryId || !statusLockPath || !queueLockPath) {
 			[PowerAuthSDK throwInvalidConfigurationException];
 		}
 		// Finally, construct the shared session provider.
 		_sessionInterface = [[PA2SharedSessionInterface alloc] initWithSession:_coreSession
 																 dataProvider:sessionDataProvider
-																   instanceId:_configuration.instanceId
+																   instanceId:instanceId
 																applicationId:_configuration.sharingConfiguration.appIdentifier
 															   sharedMemoryId:sharedMemoryId
-															   sharedLockPath:sharedLockPath];
+															   statusLockPath:statusLockPath
+																 queueLockPath:queueLockPath];
 	}
 	// Throw a failure if session provider is not available.
 	if (!_sessionInterface) {
 		[PowerAuthSDK throwInvalidConfigurationException];
 	}
+	
+	// Create and setup a new HTTP client
+	_client = [[PA2HttpClient alloc] initWithConfiguration:_clientConfiguration
+										   completionQueue:dispatch_get_main_queue()
+												   baseUrl:_configuration.baseEndpointUrl
+									  coreSessionInterface:_sessionInterface
+													helper:self];
 	
 	// Initialize token store with its own keychain as a backing storage and remote token provider.
 	PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
@@ -1313,7 +1317,21 @@ static PowerAuthSDK * s_inst;
 		PowerAuthLog(@"executeOperationOnSerialQueue: There's no activation.");
 		return NO;
 	}
-	[_client.serialQueue addOperation:operation];
+	NSOperationQueue * queue = _client.serialQueue;
+	if (!_sessionInterface.supportsSharedQueueLock) {
+		// If external locking is not required, then simply add operation to the queue.
+		[queue addOperation:operation];
+	} else {
+		// If interprocess locking is required, then add the operation atomically, together with
+		// interprocess lock and unlock.
+		[queue addOperationWithBlock:^{
+			if (!operation.cancelled) {
+				[queue addOperationWithBlock:^{	[_sessionInterface lockSharedQueue]; }];
+				[queue addOperation:operation];
+				[queue addOperationWithBlock:^{ [_sessionInterface unlockSharedQueue]; }];
+			}
+		}];
+	}
 	return YES;
 }
 

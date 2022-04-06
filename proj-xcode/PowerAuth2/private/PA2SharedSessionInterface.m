@@ -135,8 +135,10 @@ typedef struct LocalContext {
 	NSData * _stateBefore;
 	/// Object holding memory shared between applications
 	PA2SharedMemory * _sharedMemory;
-	/// Lock shared between applications
+	/// Lock shared between applications that guards access to activation status data.
 	PA2SharedLock * _sharedLock;
+	/// Lock shared between applications that allows the signed requests serialization.
+	PA2SharedLock * _queueLock;
 	/// Additional debug lock, used for DEBUG builds
 	id<NSLocking> _debugLock;
 	
@@ -155,10 +157,11 @@ typedef struct LocalContext {
 
 - (instancetype) initWithSession:(PowerAuthCoreSession *)session
 					dataProvider:(PA2SessionDataProvider *)dataProvider
-					  instanceId:(NSString*)instanceId
-				   applicationId:(NSString*)applicationId
+					  instanceId:(NSString *)instanceId
+				   applicationId:(NSString *)applicationId
 				  sharedMemoryId:(NSString *)sharedMemoryId
-				  sharedLockPath:(NSString *)sharedLockPath
+				  statusLockPath:(NSString *)statusLockPath
+				   queueLockPath:(NSString *)queueLockPath
 {
 	self = [super init];
 	if (self) {
@@ -170,8 +173,12 @@ typedef struct LocalContext {
 			return nil;
 		}
 		// Create shared lock
-		_sharedLock = [[PA2SharedLock alloc] initWithPath:sharedLockPath recursive:YES];
+		_sharedLock = [[PA2SharedLock alloc] initWithPath:statusLockPath recursive:YES];
 		if (!_sharedLock) {
+			return nil;
+		}
+		_queueLock = [[PA2SharedLock alloc] initWithPath:queueLockPath recursive:NO];
+		if (!_queueLock) {
 			return nil;
 		}
 		// Now acquire lock and initialize the shared memory.
@@ -297,14 +304,35 @@ typedef struct LocalContext {
 	[self unlockImpl:YES];
 }
 
+- (BOOL) supportsSharedQueueLock
+{
+	return YES;
+}
+
 - (void) lockSharedQueue
 {
-	// TODO: ...
+	[_queueLock lock];
+	//PowerAuthLog(@"PA2SharedSessionInterface: %s: Queue Lock acquired", _localContext.thisAppIdentifier);
+#if DEBUG
+	[_debugLock lock];
+	if (_readWriteAccessCount > 0) {
+		PowerAuthLog(@"ERROR: Accessing lockSharedQueue from session task can lead to interprocess deadlock.");
+	}
+	[_debugLock unlock];
+#endif // DEBUG
 }
 
 - (void) unlockSharedQueue
 {
-	// TODO: ...
+	[_queueLock unlock];
+	//PowerAuthLog(@"PA2SharedSessionInterface: %s: Queue Lock released", _localContext.thisAppIdentifier);
+#if DEBUG
+	[_debugLock lock];
+	if (_readWriteAccessCount > 0) {
+		PowerAuthLog(@"ERROR: Accessing unlockSharedQueue from session task can lead to interprocess deadlock.");
+	}
+	[_debugLock unlock];
+#endif // DEBUG
 }
 
 #pragma mark - PowerAuthSessionStatusProvider protocol

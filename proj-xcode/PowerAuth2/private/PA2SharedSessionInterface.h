@@ -30,7 +30,8 @@
 							   instanceId:(nonnull NSString *)instanceId
 							applicationId:(nonnull NSString *)applicationId
 						   sharedMemoryId:(nonnull NSString *)sharedMemoryId
-						   sharedLockPath:(nonnull NSString *)sharedLockPath;
+						   statusLockPath:(nonnull NSString *)statusLockPath
+							queueLockPath:(nonnull NSString *)queueLockPath;
 
 @end
 

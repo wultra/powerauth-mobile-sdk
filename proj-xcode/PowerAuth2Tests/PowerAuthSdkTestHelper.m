@@ -382,6 +382,19 @@ static NSString * PA_Ver = @"3.1";
 	return [self createActivation:useSignature activationOtp:activationOtp removeAfter:NO];
 }
 
+- (PowerAuthSdkActivation*) assignCustomActivationData:(PATSInitActivationResponse*)activationData
+									  activationResult:(PowerAuthActivationResult*)activationResult
+										   credentials:(PowerAuthAuthentication*)credentials
+{
+	if (!activationData || !activationResult || !credentials) {
+		return nil;
+	}
+	_currentActivation = [[PowerAuthSdkActivation alloc] initWithActivationData:activationData
+																	credentials:[credentials copy]
+															   activationResult:activationResult];
+	return _currentActivation;
+}
+
 - (void) cleanup
 {
 	BOOL localCleanup = [_sdk hasValidActivation] || [_sdk hasPendingActivation];

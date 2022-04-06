@@ -186,14 +186,9 @@
 	WRITE_ACCESS_UNLOCK();
 }
 
-- (void) lockSharedQueue
+- (BOOL) supportsSharedQueueLock
 {
-	// Empty
-}
-
-- (void) unlockSharedQueue
-{
-	// Empty
+	return NO;
 }
 
 #pragma mark - PowerAuthSessionStatusProvider

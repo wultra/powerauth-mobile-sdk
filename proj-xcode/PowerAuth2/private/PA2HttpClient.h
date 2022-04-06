@@ -20,6 +20,7 @@
 #import "PA2HttpRequest.h"
 #import "PA2RestApiEndpoint.h"
 #import "PA2PrivateCryptoHelper.h"
+#import "PA2SessionInterface.h"
 
 /**
  The `PA2HttpClient` class provides a high level networking functionality,
@@ -33,14 +34,16 @@
 
 /**
  Initializes client for given PowerAuthClientConfiguration configuration, completion queue,
- base url and crypto helper.
+ base url, crypto helper and session interface.
  */
 - (instancetype) initWithConfiguration:(PowerAuthClientConfiguration*)configuration
 					   completionQueue:(dispatch_queue_t)queue
 							   baseUrl:(NSString*)baseUrl
+				  coreSessionInterface:(id<PA2SessionInterface>)sessionInterface
 								helper:(id<PA2PrivateCryptoHelper>)helper;
 
 @property (nonatomic, weak, readonly) id<PA2PrivateCryptoHelper> cryptoHelper;
+@property (nonatomic, strong, readonly) id<PA2SessionInterface> sessionInterface;
 @property (nonatomic, strong, readonly) PowerAuthClientConfiguration * configuration;
 @property (nonatomic, strong, readonly) NSString * baseUrl;
 

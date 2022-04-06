@@ -64,5 +64,10 @@
  */
 - (void) reportCompletion:(id)resultObject;
 
+/**
+ Reset the timeout internally used for completion to zero, so the asynchronous task
+ gets more time to complete.
+ */
+- (void) extendWaitingTime;
 
 @end

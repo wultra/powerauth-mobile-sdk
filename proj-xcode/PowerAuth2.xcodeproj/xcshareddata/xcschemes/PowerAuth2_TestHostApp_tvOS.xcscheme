@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BFC1926B27FAF603001455C1"
-               BuildableName = "PowerAuthTestsHostApp.app"
+               BuildableName = "PowerAuth2TestsHostApp-tvos.app"
                BlueprintName = "PowerAuth2TestsHostApp-tvos"
                ReferencedContainer = "container:PowerAuth2.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BFC1926B27FAF603001455C1"
-            BuildableName = "PowerAuthTestsHostApp.app"
+            BuildableName = "PowerAuth2TestsHostApp-tvos.app"
             BlueprintName = "PowerAuth2TestsHostApp-tvos"
             ReferencedContainer = "container:PowerAuth2.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "BFC1926B27FAF603001455C1"
-            BuildableName = "PowerAuthTestsHostApp.app"
+            BuildableName = "PowerAuth2TestsHostApp-tvos.app"
             BlueprintName = "PowerAuth2TestsHostApp-tvos"
             ReferencedContainer = "container:PowerAuth2.xcodeproj">
          </BuildableReference>

@@ -66,6 +66,9 @@ typedef struct SharedData {
 	/// must deserialize its content from the persistent storage.
 	volatile NSUInteger tokenModifyCounter;
 	
+	/// Reserved variables for future use.
+	NSUInteger reservedValues[6];
+	
 	/// Contains PowerAuthExternalPendingOperationType with type
 	/// of operation started from some application. If value is 0,
 	/// then no operation is started.

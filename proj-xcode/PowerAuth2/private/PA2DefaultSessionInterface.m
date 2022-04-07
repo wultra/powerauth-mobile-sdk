@@ -186,9 +186,16 @@
 	WRITE_ACCESS_UNLOCK();
 }
 
-- (BOOL) supportsSharedQueueLock
+- (void) addOperation:(NSOperation *)operation toSharedQueue:(NSOperationQueue *)queue
 {
-	return NO;
+#if DEBUG
+	[_lock lock];
+	if (_readWriteAccessCount > 0) {
+		PowerAuthLog(@"ERROR: Adding operation to shared queue from session task can lead to interprocess deadlock.");
+	}
+	[_lock unlock];
+#endif
+	[queue addOperation:operation];
 }
 
 #pragma mark - PowerAuthSessionStatusProvider

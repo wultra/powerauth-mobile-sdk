@@ -232,20 +232,7 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 	// Finally, add operation to the right queue
 	if (endpoint.isSerialized) {
 		// The request must be serialized in serial queue.
-		if (!_sessionInterface.supportsSharedQueueLock) {
-			// If external locking is not required, then simply add operation to the queue.
-			[_serialQueue addOperation:op];
-		} else {
-			// If interprocess locking is required, then add the operation atomically, together with
-			// interprocess lock and unlock.
-			[_serialQueue addOperationWithBlock:^{
-				if (!op.cancelled) {
-					[_serialQueue addOperationWithBlock:^{ [_sessionInterface lockSharedQueue]; }];
-					[_serialQueue addOperation:op];
-					[_serialQueue addOperationWithBlock:^{ [_sessionInterface unlockSharedQueue]; }];
-				}
-			}];
-		}
+		[_sessionInterface addOperation:op toSharedQueue:_serialQueue];
 	} else {
 		// The concurrent queue can be used
 		[_GetSharedConcurrentQueue() addOperation:op];

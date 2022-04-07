@@ -1317,21 +1317,8 @@ static PowerAuthSDK * s_inst;
 		PowerAuthLog(@"executeOperationOnSerialQueue: There's no activation.");
 		return NO;
 	}
-	NSOperationQueue * queue = _client.serialQueue;
-	if (!_sessionInterface.supportsSharedQueueLock) {
-		// If external locking is not required, then simply add operation to the queue.
-		[queue addOperation:operation];
-	} else {
-		// If interprocess locking is required, then add the operation atomically, together with
-		// interprocess lock and unlock.
-		[queue addOperationWithBlock:^{
-			if (!operation.cancelled) {
-				[queue addOperationWithBlock:^{	[_sessionInterface lockSharedQueue]; }];
-				[queue addOperation:operation];
-				[queue addOperationWithBlock:^{ [_sessionInterface unlockSharedQueue]; }];
-			}
-		}];
-	}
+	// Add operation to serialized queue.
+	[_sessionInterface addOperation:operation toSharedQueue:_client.serialQueue];
 	return YES;
 }
 

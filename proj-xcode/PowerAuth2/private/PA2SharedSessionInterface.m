@@ -309,30 +309,30 @@ typedef struct LocalContext {
 	return YES;
 }
 
-- (void) lockSharedQueue
+- (void) addOperation:(NSOperation*)operation toSharedQueue:(NSOperationQueue*)queue
 {
-	[_queueLock lock];
-	//PowerAuthLog(@"PA2SharedSessionInterface: %s: Queue Lock acquired", _localContext.thisAppIdentifier);
 #if DEBUG
 	[_debugLock lock];
 	if (_readWriteAccessCount > 0) {
-		PowerAuthLog(@"ERROR: Accessing lockSharedQueue from session task can lead to interprocess deadlock.");
+		PowerAuthLog(@"ERROR: Adding operation to shared queue from session task can lead to interprocess deadlock.");
 	}
 	[_debugLock unlock];
 #endif // DEBUG
-}
-
-- (void) unlockSharedQueue
-{
-	[_queueLock unlock];
-	//PowerAuthLog(@"PA2SharedSessionInterface: %s: Queue Lock released", _localContext.thisAppIdentifier);
-#if DEBUG
-	[_debugLock lock];
-	if (_readWriteAccessCount > 0) {
-		PowerAuthLog(@"ERROR: Accessing unlockSharedQueue from session task can lead to interprocess deadlock.");
-	}
-	[_debugLock unlock];
-#endif // DEBUG
+	NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
+		if (!operation.cancelled) {
+			NSBlockOperation * lockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock lock]; }];
+			NSBlockOperation * unlockOp = [NSBlockOperation blockOperationWithBlock:^{ [_queueLock unlock]; }];
+		
+			[operation addDependency:lockOp];
+			[unlockOp addDependency:operation];
+			
+			[queue addOperation:lockOp];
+			[queue addOperation:operation];
+			[queue addOperation:unlockOp];
+		}
+	}];
+	addOperation.queuePriority = NSOperationQueuePriorityVeryHigh;
+	[queue addOperation:addOperation];
 }
 
 #pragma mark - PowerAuthSessionStatusProvider protocol

@@ -27,19 +27,8 @@
 @protocol PA2SessionInterface <PowerAuthCoreSessionProvider, PA2TokenDataLock>
 @required
 /**
- Contains YES if PA2SessionInterface supports shared queue locks. If property contains YES,
- then `lockSharedQueue` and `unlockSharedQueue` methods must be implemented.
+ Add operation to the queue synchronized between multiple applications.
  */
-@property (nonatomic, readonly) BOOL supportsSharedQueueLock;
-
-@optional
-/**
- Lock queue that synchronize signature counter between multiple applications.
- */
-- (void) lockSharedQueue;
-/**
- Unlock queue that synchronize signature counter between multiple applications.
- */
-- (void) unlockSharedQueue;
+- (void) addOperation:(NSOperation*)operation toSharedQueue:(NSOperationQueue*)queue;
 
 @end

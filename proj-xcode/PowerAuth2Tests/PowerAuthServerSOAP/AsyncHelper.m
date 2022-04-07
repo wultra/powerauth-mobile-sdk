@@ -94,4 +94,10 @@
 	}
 }
 
++ (void) waitForNextSecond
+{
+	NSTimeInterval nextSecondStart = (NSTimeInterval)((int64_t)[[NSDate date] timeIntervalSince1970] + 1L);
+	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSince1970:nextSecondStart]];
+}
+
 @end

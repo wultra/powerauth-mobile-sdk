@@ -129,44 +129,78 @@
 	[self prepareTestQueues];
 	[_app1Queue addOperationWithBlock:^{
 		@try {
-			for (int i = 0; i < 50; i++) {
-				[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+			[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+				__block volatile NSUInteger completionCount = 0;
+				for (int i = 0; i < 50; i++) {
 					if (i % 5 == 0) {
+						completionCount++;
 						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
 							XCTAssertNotNil(status);
-							[waiting reportCompletion:nil];
+							[_waitForQueuesTask extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
 						}];
 					} else {
+						completionCount += 2;
 						[self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
 							XCTAssertNil(error);
-							[waiting reportCompletion:nil];
+							[waiting extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
 						}];
+						id<PowerAuthOperationTask> paTask = [self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+							XCTAssertNil(error);
+							[_waitForQueuesTask extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
+						}];
+						if (i == 29) {
+							completionCount--;
+							[paTask cancel];
+						}
 					}
-				}];
-				[_waitForQueuesTask extendWaitingTime];
-			}
+				}
+			}];
 		} @catch (NSException *exception) {
 			XCTFail(@"Test failed with exception %@", exception);
 		}
 	}];
 	[_app2Queue addOperationWithBlock:^{
 		@try {
-			for (int i = 0; i < 50; i++) {
-				[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+			[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+				__block volatile NSUInteger completionCount = 0;
+				for (int i = 0; i < 50; i++) {
 					if (i % 7 == 0) {
+						completionCount++;
 						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
 							XCTAssertNotNil(status);
-							[waiting reportCompletion:nil];
+							[_waitForQueuesTask extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
 						}];
 					} else {
-						[_altSdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+						completionCount += 2;
+						[self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
 							XCTAssertNil(error);
-							[waiting reportCompletion:nil];
+							[waiting extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
+						}];
+						[self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+							XCTAssertNil(error);
+							[_waitForQueuesTask extendWaitingTime];
+							if (!--completionCount) {
+								[waiting reportCompletion:nil];
+							}
 						}];
 					}
-				}];
-				[_waitForQueuesTask extendWaitingTime];
-			}
+				}
+			}];
 		} @catch (NSException *exception) {
 			XCTFail(@"Test failed with exception %@", exception);
 		}
@@ -252,6 +286,77 @@
 	}];
 	XCTAssertNotNil(status2);
 	XCTAssertEqual(PowerAuthActivationState_Active, status2.state);
+}
+
+- (void) testConcurrentTokens
+{
+	if (![self prepareAltSdk]) {
+		XCTFail(@"Failed to initialize SDK objects");
+		return;
+	}
+	[self.helper createActivation:YES];
+	PowerAuthAuthentication * credentials = self.helper.authPossessionWithKnowledge;
+	XCTAssertTrue([self.sdk hasValidActivation]);
+	XCTAssertTrue([_altSdk hasValidActivation]);
+	
+	NSString * token1 = @"SharedToken1";
+	NSString * token2 = @"SharedToken2";
+	
+	XCTAssertFalse([self.sdk.tokenStore hasLocalTokenWithName:token1]);
+	XCTAssertFalse([self.sdk.tokenStore hasLocalTokenWithName:token2]);
+	XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token1]);
+	XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token2]);
+	
+	PowerAuthToken * token1A = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[self.sdk.tokenStore requestAccessTokenWithName:token1 authentication:credentials completion:^(PowerAuthToken * token, NSError * error) {
+			[waiting reportCompletion:token];
+		}];
+	}];
+	XCTAssertNotNil(token1A);
+	XCTAssertTrue([self.sdk.tokenStore hasLocalTokenWithName:token1]);
+	XCTAssertTrue([_altSdk.tokenStore hasLocalTokenWithName:token1]);
+	PowerAuthToken * token2B =[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_altSdk.tokenStore requestAccessTokenWithName:token2 authentication:credentials completion:^(PowerAuthToken * token, NSError * error) {
+			[waiting reportCompletion:token];
+		}];
+	}];
+	XCTAssertNotNil(token2B);
+	
+	PowerAuthToken * token1B = [_altSdk.tokenStore localTokenWithName:token1];
+	PowerAuthToken * token2A = [self.sdk.tokenStore localTokenWithName:token2];
+	XCTAssertFalse([token1A isEqualToToken:token1B]);
+	XCTAssertFalse([token2A isEqualToToken:token2B]);
+	XCTAssertTrue([token1A.tokenIdentifier isEqualToString:token1B.tokenIdentifier]);
+	XCTAssertTrue([token2A.tokenIdentifier isEqualToString:token2B.tokenIdentifier]);
+	
+	[AsyncHelper waitForNextSecond];
+	
+	PowerAuthAuthorizationHttpHeader * header1A = [token1A generateHeader];
+	PowerAuthAuthorizationHttpHeader * header1B = [token1B generateHeader];
+	PowerAuthAuthorizationHttpHeader * header2A = [token2A generateHeader];
+	PowerAuthAuthorizationHttpHeader * header2B = [token2B generateHeader];
+	NSLog(@"Header1A = %@", header1A.value);
+	NSLog(@"Header1B = %@", header1B.value);
+	NSLog(@"Header2A = %@", header2A.value);
+	NSLog(@"Header2B = %@", header2B.value);
+
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_altSdk.tokenStore removeAccessTokenWithName:token1 completion:^(BOOL removed, NSError * _Nullable error) {
+			XCTAssertTrue(removed);
+			[waiting reportCompletion:nil];
+		}];
+	}];
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[self.sdk.tokenStore removeAccessTokenWithName:token2 completion:^(BOOL removed, NSError * _Nullable error) {
+			XCTAssertTrue(removed);
+			[waiting reportCompletion:nil];
+		}];
+	}];
+	
+	XCTAssertFalse([self.sdk.tokenStore hasLocalTokenWithName:token1]);
+	XCTAssertFalse([self.sdk.tokenStore hasLocalTokenWithName:token2]);
+	XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token1]);
+	XCTAssertFalse([_altSdk.tokenStore hasLocalTokenWithName:token2]);
 }
 
 @end

@@ -163,17 +163,7 @@
 	WRITE_ACCESS_UNLOCK();
 }
 
-- (PowerAuthExternalPendingOperation*) externalPendingOperation
-{
-	return nil;
-}
-
-- (NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
-{
-	return nil;
-}
-
-#pragma mark - PA2SessionInterface protocol
+#pragma mark - PA2TokenDataLock protocol
 
 - (BOOL) lockTokenStore
 {
@@ -184,6 +174,18 @@
 - (void) unlockTokenStore:(BOOL)contentModified
 {
 	WRITE_ACCESS_UNLOCK();
+}
+
+#pragma mark - PA2SessionInterface protocol
+
+- (PowerAuthExternalPendingOperation*) externalPendingOperation
+{
+	return nil;
+}
+
+- (NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
+{
+	return nil;
 }
 
 - (void) addOperation:(NSOperation *)operation toSharedQueue:(NSOperationQueue *)queue

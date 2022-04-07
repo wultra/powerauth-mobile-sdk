@@ -26,9 +26,24 @@
  */
 @protocol PA2SessionInterface <PowerAuthCoreSessionProvider, PA2TokenDataLock>
 @required
+
+/**
+ Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
+ operation right now.
+ */
+@property (nonatomic, strong, nullable, readonly) PowerAuthExternalPendingOperation* externalPendingOperation;
+
+/**
+ Notify other applications that the current application is going to start the critical operation, such as protocol upgrade, or activation start.
+ @param externalPendingOperation Operation type to start.
+ @return NSError in case that other application is already started its own critical operation.
+ */
+- (nullable NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation;
+
+
 /**
  Add operation to the queue synchronized between multiple applications.
  */
-- (void) addOperation:(NSOperation*)operation toSharedQueue:(NSOperationQueue*)queue;
+- (void) addOperation:(nonnull NSOperation*)operation toSharedQueue:(nonnull NSOperationQueue*)queue;
 
 @end

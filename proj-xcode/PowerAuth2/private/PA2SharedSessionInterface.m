@@ -275,6 +275,22 @@ typedef struct LocalContext {
 	return result;
 }
 
+#pragma mark - PA2TokenDataLock protocol
+
+- (BOOL) lockTokenStore
+{
+	[self lockImpl:YES];
+	return _LocalContextTokenIsDirty(&_localContext);
+}
+
+- (void) unlockTokenStore:(BOOL)contentModified
+{
+	_LocalContextTokenSynchronize(&_localContext, contentModified);
+	[self unlockImpl:YES];
+}
+
+#pragma mark - PA2SessionInterface protocol
+
 - (NSError *) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
 {
 	WRITE_BLOCK(NSError * result = _LocalContextStartSpecialOp(&_localContext, externalPendingOperation));
@@ -291,20 +307,6 @@ typedef struct LocalContext {
 		 result = nil;
 	 });
 	return result;
-}
-
-#pragma mark - PA2SessionInterface protocol
-
-- (BOOL) lockTokenStore
-{
-	[self lockImpl:YES];
-	return _LocalContextTokenIsDirty(&_localContext);
-}
-
-- (void) unlockTokenStore:(BOOL)contentModified
-{
-	_LocalContextTokenSynchronize(&_localContext, contentModified);
-	[self unlockImpl:YES];
 }
 
 - (BOOL) supportsSharedQueueLock

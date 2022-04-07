@@ -27,12 +27,6 @@
 @protocol PowerAuthCoreSessionProvider <PowerAuthSessionStatusProvider>
 @required
 /**
- Contains instance to `PowerAuthExternalPendingOperation` in case that other application is doing the critical
- operation right now.
- */
-@property (nonatomic, strong, nullable, readonly) PowerAuthExternalPendingOperation* externalPendingOperation;
-
-/**
  Contains activation identifier or nil if there's no activation in the session.
  */
 @property (nonatomic, strong, nullable, readonly) NSString * activationIdentifier;
@@ -92,12 +86,5 @@
  @return Boolean value returned from the task block.
  */
 - (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
-
-/**
- Notify other applications that the current application is going to start the critical operation, such as protocol upgrade, or activation start.
- @param externalPendingOperation Operation type to start.
- @return NSError in case that other application is already started its own critical operation.
- */
-- (nullable NSError*) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation;
 
 @end

@@ -27,6 +27,7 @@
 	NSString * _app2;
 	NSString * _appGroupId;
 	NSString * _instanceId;
+	NSString * _keychainAccessGroup;
 	
 	NSOperationQueue * _app1Queue;
 	NSOperationQueue * _app2Queue;
@@ -38,6 +39,9 @@
 {
 	_app1 = @"appInstance_1";
 	_app2 = @"appInstance_2";
+	// Tests runs only in Simulator and Simulator doesn't support keychain access groups,
+	// so it can be fake.
+	_keychainAccessGroup = @"fake.accessGroup";
 #if TARGET_OS_MACCATALYST == 1
 	_appGroupId = @"group.com.wultra.testGroup";
 	_instanceId = @"SharedInstanceTests-Catalyst";
@@ -62,7 +66,7 @@
 		   clientConfig:(PowerAuthClientConfiguration *)clientConfiguration
 {
 	configuration.instanceId = _instanceId;
-	PowerAuthSharingConfiguration * sharingConfig = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app1];
+	PowerAuthSharingConfiguration * sharingConfig = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app1 keychainAccessGroup:_keychainAccessGroup];
 	configuration.sharingConfiguration = sharingConfig;
 }
 
@@ -73,7 +77,7 @@
 	}
 	
 	PowerAuthConfiguration * altConfig = [self.helper.sdk.configuration copy];
-	altConfig.sharingConfiguration = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app2];
+	altConfig.sharingConfiguration = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app2 keychainAccessGroup:_keychainAccessGroup];
 	_altHelper = [PowerAuthSdkTestHelper clone:self.helper withConfiguration:altConfig];
 	_altSdk = _altHelper.sdk;
 	

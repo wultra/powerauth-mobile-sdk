@@ -103,9 +103,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	PowerAuthSharingConfiguration * sharingConfiguration = _configuration.sharingConfiguration;
 	if (sharingConfiguration != nil) {
 		_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName = sharingConfiguration.appGroup;
-		if (sharingConfiguration.keychainAccessGroup) {
-			_keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
-		}
+		_keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
 	}
 	
 	// Create session setup parameters

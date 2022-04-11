@@ -39,6 +39,7 @@
    - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
    - [Sending Token to Watch](#sending-token-to-watch)
    - [Removing Token from Watch](#removing-token-from-watch)
+- [Share Activation Data](#share-activation-data)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
    - [Password Strength Indicator](#password-strength-indicator)
@@ -1409,6 +1410,71 @@ if let token = tokenStore.localToken(withName: "MyToken") {
 }
 ```
 
+## Share Activation Data
+
+This chapter explains how to share `PowerAuthSDK` activation state between multiple applications from the same vendor. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
+
+<!-- begin box warning -->
+This feature is not supported on macOS Catalyst platform.
+<!-- end -->
+
+### Configure Activation Data Sharing
+
+To share activation's state just assign an instance of `PowerAuthSharingConfiguration` object into `PowerAuthConfiguration`:
+
+```swift
+// Prepare the configuration
+let configuration = PowerAuthConfiguration()
+// Standard configuration
+configuration.instanceId = "SharedInstance"
+configuration.appKey = "sbG8gd...MTIzNA=="
+configuration.appSecret = "aGVsbG...MTIzNA=="
+configuration.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
+configuration.baseEndpointUrl = "https://localhost:8080/demo-server"
+// Assign sharing configuration
+configuration.sharingConfiguration = PowerAuthSharingConfiguration(
+    appGroup: "group.your.app.group", 
+    appIdentifier: "com.powerauth.demo.App", 
+    keychainAccessGroup: "KTT00000MR.com.powerauth.demo.App")
+
+// Configure default PowerAuthSDK instance
+PowerAuthSDK.initSharedInstance(configuration)
+```
+
+The `PowerAuthSharingConfiguration` object contains the following properties:
+
+- `appGroup` is a name of app group shared between your applications.
+- `appIdentifier` is an identifier unique across your all applications that suppose to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of identifier must not exceed 127 bytes, if represented in UTF-8.
+- `keychainAccessGroup` is an access group for keychain sharing.
+
+Unlike the regular configuration the `instanceId` value in `PowerAuthConfiguration` should not be based on application's bundle identifier. This is due the fact that all your applications must use the same identifier, so it's recommended to use some predefined constant string.
+
+
+### External pending operations
+
+Some operations, such as activation process, must be exclusively finished in application that initiated the operation. For example, if you start an activation process in one app, then all other applications that use the same shared activation data may receive a failure with `PowerAuthErrorCode.externalPendingOperation` error code, during the time of the external activation process. You can determine this state in advance to prevent such errors:
+
+```swift
+if let externalOperation = PowerAuthSDK.sharedInstance().externalPendingOperation {
+    print("Application \(externalOperation.externalApplicationId) already started \(externalOperation.externalOperationType)")
+}
+```
+
+The same `PowerAuthExternalPendingOperation` object can be also extracted from the `NSError` error. For example:
+
+```swift
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+    if let error = error {
+        if let externalOperation = error.powerAuthExternalPendingOperation {
+            print("Application \(externalOperation.externalApplicationId) already started \(externalOperation.externalOperationType)")
+        }
+    }
+}
+``` 
+
+Due to a technical limitations of interprocess communication on iOS, the external pending operations have a predefiend limnited time to complete. If the application that initiated the operation doesn't finish it in time, then the another app can take over the process and start it again. The time limit is set to 10 seconds since the last activity.
+
+
 ## Common SDK Tasks
 
 ### Error Handling
@@ -1503,6 +1569,9 @@ if error == nil {
         case .pendingProtocolUpgrade:
             print("The operation is temporarily unavailable, due to pending protocol upgrade.")
 
+        case .externalPendingOperation:
+            print("Other application is doing activation or protocol upgrade.")
+            
         default:
             print("Unknown error")
         }
@@ -1517,6 +1586,7 @@ Here's the list of important error codes, which the application should properly 
 - `PowerAuthErrorCode.biometryCancel` is reported when the user cancels the biometric authentication dialog
 - `PowerAuthErrorCode.protocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
 - `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
+- `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collide with the same operation type already started in the external application.
 
 ### Working with Invalid SSL Certificates
 

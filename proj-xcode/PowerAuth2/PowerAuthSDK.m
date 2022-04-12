@@ -101,9 +101,11 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	
 	// Alter keychain in case that PowerAuthSharingConfiguration is used
 	PowerAuthSharingConfiguration * sharingConfiguration = _configuration.sharingConfiguration;
+	NSString * biometryKeychainAccessGroup = nil;
 	if (sharingConfiguration != nil) {
 		_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName = sharingConfiguration.appGroup;
 		_keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
+		biometryKeychainAccessGroup = sharingConfiguration.keychainAccessGroup;
 	}
 	
 	// Create session setup parameters
@@ -124,7 +126,29 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 																accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
 	_sharedKeychain			= [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Possession
 																accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
-	_biometryOnlyKeychain	= [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Biometry];
+	_biometryOnlyKeychain	= [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Biometry
+																accessGroup:biometryKeychainAccessGroup];
+	
+	// Initialize token store with its own keychain as a backing storage and remote token provider.
+	PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
+																			   accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+	// Make sure to reset keychain data after app re-install.
+	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
+	// By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
+	NSUserDefaults *userDefaults = nil;
+	if (_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
+		userDefaults = [[NSUserDefaults alloc] initWithSuiteName:_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+	} else {
+		userDefaults = [NSUserDefaults standardUserDefaults];
+	}
+	if ([userDefaults boolForKey:PowerAuthKeychain_Initialized] == NO) {
+		[_statusKeychain deleteAllData];
+		[_sharedKeychain deleteAllData];
+		[_biometryOnlyKeychain deleteAllData];
+		[tokenStoreKeychain deleteAllData];
+		[userDefaults setBool:YES forKey:PowerAuthKeychain_Initialized];
+		[userDefaults synchronize];
+	}
 	
 	// Initialize session data provider and session interface.
 	PA2SessionDataProvider * sessionDataProvider = [[PA2SessionDataProvider alloc] initWithKeychain:_statusKeychain statusKey:_configuration.instanceId];
@@ -170,33 +194,12 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 									  coreSessionInterface:_sessionInterface
 													helper:self];
 	
-	// Initialize token store with its own keychain as a backing storage and remote token provider.
-	PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
-																			   accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
 	_remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithHttpClient:_client];
 	_tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:self.configuration
 																	 keychain:tokenStoreKeychain
 															   statusProvider:self
 															   remoteProvider:_remoteHttpTokenProvider
 																	 dataLock:_sessionInterface];
-	
-	// Make sure to reset keychain data after app re-install.
-	// Important: This deletes all Keychain data in all PowerAuthSDK instances!
-	// By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
-	NSUserDefaults *userDefaults = nil;
-	if (_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
-		userDefaults = [[NSUserDefaults alloc] initWithSuiteName:_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
-	} else {
-		userDefaults = [NSUserDefaults standardUserDefaults];
-	}
-	if ([userDefaults boolForKey:PowerAuthKeychain_Initialized] == NO) {
-		[_statusKeychain deleteAllData];
-		[_sharedKeychain deleteAllData];
-		[_biometryOnlyKeychain deleteAllData];
-		[tokenStoreKeychain deleteAllData];
-		[userDefaults setBool:YES forKey:PowerAuthKeychain_Initialized];
-		[userDefaults synchronize];
-	}
 	
 #if defined(PA2_WATCH_SUPPORT)
 	// Register this instance to handle messages

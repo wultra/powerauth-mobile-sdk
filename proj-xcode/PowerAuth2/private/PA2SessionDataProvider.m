@@ -15,6 +15,7 @@
  */
 
 #import "PA2SessionDataProvider.h"
+#import <PowerAuth2/PowerAuthLog.h>
 
 @implementation PA2SessionDataProvider
 {
@@ -35,19 +36,32 @@
 
 - (NSData*) sessionData
 {
-	return [_keychain dataForKey:_statusKey status:nil];
+	OSStatus status = 0;
+	NSData * result = [_keychain dataForKey:_statusKey status:&status];
+	if (status != errSecSuccess && status != errSecItemNotFound) {
+		PowerAuthLog(@"PA2SessionDataProvider: Failed to load session data. Error %@", @(status));
+	}
+	return result;
 }
 
 - (void) saveSessionData:(NSData *)sessionData
 {
 	if (sessionData) {
 		if ([_keychain containsDataForKey:_statusKey]) {
-			[_keychain updateValue:sessionData forKey:_statusKey];
+			PowerAuthKeychainStoreItemResult r = [_keychain updateValue:sessionData forKey:_statusKey];
+			if (r != PowerAuthKeychainStoreItemResult_Ok) {
+				PowerAuthLog(@"PA2SessionDataProvider: Failed to update session data. Error %@", @(r));
+			}
 		} else {
-			[_keychain addValue:sessionData forKey:_statusKey];
+			PowerAuthKeychainStoreItemResult r = [_keychain addValue:sessionData forKey:_statusKey];
+			if (r != PowerAuthKeychainStoreItemResult_Ok) {
+				PowerAuthLog(@"PA2SessionDataProvider: Failed to store session data. Error %@", @(r));
+			}
 		}
 	} else {
-		[_keychain deleteDataForKey:_statusKey];
+		if (![_keychain deleteDataForKey:_statusKey]) {
+			PowerAuthLog(@"PA2SessionDataProvider: Failed to remove session data.");
+		}
 	}
 }
 

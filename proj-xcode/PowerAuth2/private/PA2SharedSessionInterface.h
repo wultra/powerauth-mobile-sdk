@@ -31,6 +31,7 @@
 							applicationId:(nonnull NSString *)applicationId
 						   sharedMemoryId:(nonnull NSString *)sharedMemoryId
 						   statusLockPath:(nonnull NSString *)statusLockPath
+						operationLockPath:(nonnull NSString *)operationLockPath
 							queueLockPath:(nonnull NSString *)queueLockPath;
 
 @end

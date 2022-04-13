@@ -271,6 +271,8 @@
 	XCTAssertTrue([_altSdk hasValidActivation]);
 	XCTAssertNil([self.sdk externalPendingOperation]);
 	XCTAssertNil([_altSdk externalPendingOperation]);
+	XCTAssertNil(self.sdk.externalPendingOperation);
+	XCTAssertNil(_altSdk.externalPendingOperation);
 	
 	// Commit activation on the server.
 	[self.helper.testServerApi commitActivation:activationData.activationId];

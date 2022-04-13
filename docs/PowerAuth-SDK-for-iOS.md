@@ -1452,7 +1452,7 @@ Unlike the regular configuration the `instanceId` value in `PowerAuthConfigurati
 
 ### External pending operations
 
-Some operations, such as activation process, must be exclusively finished in application that initiated the operation. For example, if you start an activation process in one app, then all other applications that use the same shared activation data may receive a failure with `PowerAuthErrorCode.externalPendingOperation` error code, during the time of the external activation process. You can determine this state in advance to prevent such errors:
+Some operations, such as activation process, must be exclusively finished in application that initiated the operation. For example, if you start an activation process in one app, then all other applications that use the same shared activation data may receive a failure with `PowerAuthErrorCode.externalPendingOperation` error code until the operation is finished. To prevent such errors you can determine this state in advance:
 
 ```swift
 if let externalOperation = PowerAuthSDK.sharedInstance().externalPendingOperation {
@@ -1471,8 +1471,6 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     }
 }
 ``` 
-
-Due to a technical limitations of interprocess communication on iOS, the external pending operations have a predefiend limnited time to complete. If the application that initiated the operation doesn't finish it in time, then the another app can take over the process and start it again. The time limit is set to 10 seconds since the last activity.
 
 
 ## Common SDK Tasks

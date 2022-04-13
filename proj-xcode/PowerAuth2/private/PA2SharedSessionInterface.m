@@ -139,7 +139,9 @@ typedef struct LocalContext {
 	/// Object holding memory shared between applications
 	PA2SharedMemory * _sharedMemory;
 	/// Lock shared between applications that guards access to activation status data.
-	PA2SharedLock * _sharedLock;
+	PA2SharedLock * _statusLock;
+	/// Lock shared between applications that guards access to start of special operations, such as activation.
+	PA2SharedLock * _operationLock;
 	/// Lock shared between applications that allows the signed requests serialization.
 	PA2SharedLock * _queueLock;
 	/// Additional debug lock, used for DEBUG builds
@@ -164,6 +166,7 @@ typedef struct LocalContext {
 				   applicationId:(NSString *)applicationId
 				  sharedMemoryId:(NSString *)sharedMemoryId
 				  statusLockPath:(NSString *)statusLockPath
+			   operationLockPath:(NSString *)operationLockPath
 				   queueLockPath:(NSString *)queueLockPath
 {
 	self = [super init];
@@ -176,8 +179,12 @@ typedef struct LocalContext {
 			return nil;
 		}
 		// Create shared lock
-		_sharedLock = [[PA2SharedLock alloc] initWithPath:statusLockPath recursive:YES];
-		if (!_sharedLock) {
+		_statusLock = [[PA2SharedLock alloc] initWithPath:statusLockPath recursive:YES];
+		if (!_statusLock) {
+			return nil;
+		}
+		_operationLock = [[PA2SharedLock alloc] initWithPath:operationLockPath recursive:NO];
+		if (!_operationLock) {
 			return nil;
 		}
 		_queueLock = [[PA2SharedLock alloc] initWithPath:queueLockPath recursive:NO];
@@ -185,7 +192,7 @@ typedef struct LocalContext {
 			return nil;
 		}
 		// Now acquire lock and initialize the shared memory.
-		[_sharedLock lock];
+		[_statusLock lock];
 		_sharedMemory = [PA2SharedMemory namedSharedMemory:sharedMemoryId withSize:sizeof(SharedData) setupOnce:^BOOL(void * memory, NSUInteger size, BOOL created) {
 			if (created) {
 				// This is the first process that created the shared memory, so initialize its content
@@ -197,20 +204,20 @@ typedef struct LocalContext {
 		}];
 		// Validate allocated shared memory
 		if (!_sharedMemory) {
-			[_sharedLock unlock];
+			[_statusLock unlock];
 			return nil;
 		}
 #if DEBUG
 		// Assign this class as session's debug monitor
 		_session.debugMonitor = self;
 		// Acquire local recursive lock to get a thread safety for monitor functions
-		_debugLock = [_sharedLock createLocalRecusiveLock];
+		_debugLock = [_statusLock createLocalRecusiveLock];
 #endif
 		// Everything looks OK, so restore the state and unlock the shared lock.
 		[self loadState:YES];
 		
 		// Finally, release the shared lock
-		[_sharedLock unlock];
+		[_statusLock unlock];
 	}
 	return self;
 }
@@ -293,7 +300,7 @@ typedef struct LocalContext {
 
 - (NSError *) startExternalPendingOperation:(PowerAuthExternalPendingOperationType)externalPendingOperation
 {
-	WRITE_BLOCK(NSError * result = _LocalContextStartSpecialOp(&_localContext, externalPendingOperation));
+	WRITE_BLOCK(NSError * result = _LocalContextStartSpecialOp(&_localContext, _operationLock, externalPendingOperation));
 	return result;
 }
 
@@ -451,7 +458,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 - (void) lockImpl:(BOOL)write
 {
 	// At first, acquire a shared lock.
-	[_sharedLock lock];
+	[_statusLock lock];
 	
 	_readWriteAccessCount++;
 	if (write) {
@@ -485,12 +492,12 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 			} else if (_localContext.specialOpType == PowerAuthExternalPendingOperationType_ProtocolUpgrade) {
 				finishSpecialOp = !_session.hasPendingProtocolUpgrade;
 			}
-			_LocalContextUpdateSpecialOp(&_localContext, finishSpecialOp);
+			_LocalContextUpdateSpecialOp(&_localContext, _operationLock, finishSpecialOp);
 		}
 	}
 	_readWriteAccessCount--;
 	// Finally, release the shared lock.
-	[_sharedLock unlock];
+	[_statusLock unlock];
 }
 
 #pragma mark Lock context
@@ -565,34 +572,30 @@ static void _LocalContextTokenSynchronize(LocalContext * ctx, BOOL modified)
 /**
  Start special operation with given type. If operation cannot be started, then returns NSError.
  */
-static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PowerAuthExternalPendingOperationType operationType)
+static NSError * _LocalContextStartSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, PowerAuthExternalPendingOperationType operationType)
 {
 	if (_LocalContextThisRunningSpecialOp(ctx)) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Failed to start external pending operation, because operation is already running.");
 		return PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Internal error: External pending operation is already started");
 	}
-	NSTimeInterval now = [NSDate date].timeIntervalSince1970;
-	// Try to build PowerAuthExternalPendingOperation, if it's valid, then some other process running the operation.
-	PowerAuthExternalPendingOperation * externalOpInfo = _LocalContextGetExternalSpecialOp(ctx);
-	if (externalOpInfo) {
-		// Now test whether the external operation is expired
-		NSTimeInterval timeDiff = now - ctx->sharedData->specialOpStart;
-		if (timeDiff >= 0.0 && timeDiff <= TIME_TO_FINISH_EXTERNAL_OP) {
-			// The operation is not expired, so report the error.
+	if (![opLock tryLock]) {
+		// Failed to acquire an operation lock, so another process is doing a special operation right now.
+		PowerAuthExternalPendingOperation * externalOpInfo = _LocalContextGetExternalSpecialOp(ctx);
+		if (externalOpInfo) {
 			PowerAuthLog(@"PA2SharedSessionProvider: There's already external operation running in another app. External AppId = %@", externalOpInfo.externalApplicationId);
 			return PA2MakeErrorInfo(PowerAuthErrorCode_ExternalPendingOperation, nil, @{PowerAuthErrorInfoKey_ExternalPendingOperation: externalOpInfo});
+		} else {
+			PowerAuthLog(@"PA2SharedSessionProvider: There's already external operation running in another app but no additional information is provided");
+			return PA2MakeError(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation, but no additional information is provided.");
 		}
-		// External app did not finish its task in time. This process should override this with its own operation.
-		PowerAuthLog(@"PA2SharedSessionProvider: External operation running in another app did not finish in time. This app will start its own operation. External AppId = %@", externalOpInfo.externalApplicationId);
 	}
-	
 	PowerAuthLog(@"PA2SharedSessionProvider: Starting external operation with type %@", @(operationType));
 	// Assign operation type to LocalContext and increase specialOpTicket.
 	ctx->specialOpType = operationType;
 	ctx->specialOpTicket = ++ctx->sharedData->specialOpTicket;
 	// Keep time of operation start and this application's ID in SharedData.
 	ctx->sharedData->specialOpType = operationType;
-	ctx->sharedData->specialOpStart = now;
+	ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
 	memcpy(ctx->sharedData->specialOpAppId, ctx->thisAppIdentifier, ctx->thisAppIdentifierSize);
 	return nil;
 }
@@ -607,7 +610,7 @@ static BOOL _LocalContextThisRunningSpecialOp(LocalContext * ctx)
 			ctx->specialOpTicket == ctx->sharedData->specialOpTicket) {
 			return YES;
 		}
-		PowerAuthLog(@"PA2SharedSessionProvider: Our special operation %@ did not finish in time. Resetting local context.", @(ctx->specialOpType));
+		PowerAuthLog(@"PA2SharedSessionProvider: Our special operation %@ did not finish properly. Resetting local context.", @(ctx->specialOpType));
 		ctx->specialOpType = 0;
 	}
 	return NO;
@@ -617,7 +620,7 @@ static BOOL _LocalContextThisRunningSpecialOp(LocalContext * ctx)
  Update special operation running in this process. You must call _LocalContextThisRunningSpecialOp() to test
  whether this process is runnig the operation. If finish parameter is YES, then the operation is set as complete.
  */
-static void _LocalContextUpdateSpecialOp(LocalContext * ctx, BOOL finish)
+static void _LocalContextUpdateSpecialOp(LocalContext * ctx, PA2SharedLock * opLock, BOOL finish)
 {
 	if (finish) {
 		PowerAuthLog(@"PA2SharedSessionProvider: Ending external operation with type %@", @(ctx->specialOpType));
@@ -625,6 +628,7 @@ static void _LocalContextUpdateSpecialOp(LocalContext * ctx, BOOL finish)
 		ctx->sharedData->specialOpType = 0;
 		ctx->sharedData->specialOpStart = 0.0;
 		memset(ctx->sharedData->specialOpAppId, 0, sizeof(ctx->sharedData->specialOpAppId));
+		[opLock unlock];
 	} else {
 		ctx->sharedData->specialOpStart = [NSDate date].timeIntervalSince1970;
 	}

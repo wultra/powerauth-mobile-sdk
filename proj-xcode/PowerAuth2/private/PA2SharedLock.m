@@ -32,11 +32,15 @@ typedef struct LockData {
 	/**
 	 Pointer to function that implements lock function.
 	 */
-	void (*lockFunc)(struct LockData * data, int operation);
+	BOOL (*lockFunc)(struct LockData * data, int operation);
+	/**
+	 Pointer to function that implements tryLock function.
+	 */
+	BOOL (*tryLockFunc)(struct LockData * data, int operation);
 	/**
 	 Pointer to function that implements unlock function.
 	 */
-	void (*unlockFunc)(struct LockData * data, int operation);
+	BOOL (*unlockFunc)(struct LockData * data, int operation);
 	/**
 	 Pointer to function that implements close lock function.
 	 */
@@ -99,6 +103,11 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 	_lockData.unlockFunc(&_lockData, LOCK_UN);
 }
 
+- (BOOL) tryLock
+{
+	return _lockData.tryLockFunc(&_lockData, LOCK_EX | LOCK_NB);
+}
+
 - (void) localLock
 {
 	_LockRecursive(&_lockData, 0);
@@ -126,13 +135,15 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
 	lockData->fileDescriptor = -1;
 		
 	if (recursive) {
-		lockData->lockFunc   = _LockRecursive;
-		lockData->unlockFunc = _UnlockRecursive;
-		lockData->closeFunc  = _CloseRecursive;
+		lockData->lockFunc   	= _LockRecursive;
+		lockData->tryLockFunc	= _TryLockRecursive;
+		lockData->unlockFunc 	= _UnlockRecursive;
+		lockData->closeFunc  	= _CloseRecursive;
 	} else {
-		lockData->lockFunc   = _LockOperation;
-		lockData->unlockFunc = _LockOperation;
-		lockData->closeFunc  = _CloseSimple;
+		lockData->lockFunc   	= _LockOperation;
+		lockData->tryLockFunc  	= _LockOperation;
+		lockData->unlockFunc 	= _LockOperation;
+		lockData->closeFunc  	= _CloseSimple;
 	}
 	
 	BOOL result = NO;
@@ -174,15 +185,20 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData)
  - `LOCK_SH` to acquire read lock.
  - `LOCK_EX` to acquire write lock.
  - `LOCK_UN` to release previously acquired lock.
+ - `LOCK_NB` can be combined with `LOCK_SH` and `LOCK_EX`
  */
-static void _LockOperation(LockData * ld, int operation)
+static BOOL _LockOperation(LockData * ld, int operation)
 {
+	BOOL result;
 	if (ld->fileDescriptor != -1) {
-		int result = flock(ld->fileDescriptor, operation);
-		if (result != 0) {
+		result = flock(ld->fileDescriptor, operation) == 0;
+		if (!result && !((operation & LOCK_NB) && (errno == EWOULDBLOCK))) {
 			PA2PrintErrno([NSString stringWithFormat:@"PA2SharedLock: flock(_, %d)", operation]);
 		}
+	} else {
+		result = NO;
 	}
+	return result;
 }
 
 #pragma mark - Simple lock
@@ -198,32 +214,58 @@ static void _CloseSimple(LockData * ld)
 
 #pragma mark - Recursive lock
 
-static void _LockRecursive(LockData * ld, int operation)
+static BOOL _LockRecursive(LockData * ld, int operation)
 {
 	if (!ld->mutexInitialized) {
-		return;
+		return NO;
 	}
 	// At first, acquire recursive mutex for this thread.
 	if (pthread_mutex_lock(&ld->mutex) != 0) {
 		PA2PrintErrno(@"PA2SharedLock: pthread_mutex_lock()");
-		return;
+		return NO;
 	}
 	if (operation == 0) {
-		return; // lock only pthread_mutex
+		return YES; // lock only pthread_mutex
 	}
 	
 	// Increase number of acquired locks. If count is 1, then we have to acquire
 	// exclusive lock on the underlying file.
 	ld->lockCount++;
 	if (ld->lockCount == 1) {
-		_LockOperation(ld, operation);
+		return _LockOperation(ld, operation);
 	}
+	return YES;
 }
 
-static void _UnlockRecursive(LockData * ld, int operation)
+static BOOL _TryLockRecursive(LockData * ld, int operation)
 {
 	if (!ld->mutexInitialized) {
-		return;
+		return NO;
+	}
+	// At first, acquire recursive mutex for this thread.
+	if (pthread_mutex_trylock(&ld->mutex) != 0) {
+		if (errno != EBUSY) {
+			PA2PrintErrno(@"PA2SharedLock: pthread_mutex_lock()");
+		}
+		return NO;
+	}
+	if (operation == 0) {
+		return YES; // lock only pthread_mutex
+	}
+	
+	// Increase number of acquired locks. If count is 1, then we have to acquire
+	// exclusive lock on the underlying file.
+	ld->lockCount++;
+	if (ld->lockCount == 1) {
+		return _LockOperation(ld, operation);
+	}
+	return YES;
+}
+
+static BOOL _UnlockRecursive(LockData * ld, int operation)
+{
+	if (!ld->mutexInitialized) {
+		return NO;
 	}
 	if (operation != 0) {
 		// At first, decrement lock counter.
@@ -241,7 +283,9 @@ static void _UnlockRecursive(LockData * ld, int operation)
 	// And finally, release recursive pthread mutex.
 	if (pthread_mutex_unlock(&ld->mutex) != 0) {
 		PA2PrintErrno(@"PA2SharedLock: pthread_mutex_unlock()");
+		return NO;
 	}
+	return YES;
 }
 
 static void _CloseRecursive(LockData * ld)

@@ -30,6 +30,11 @@
 - (nullable instancetype) initWithPath:(nonnull NSString*)path
 							 recursive:(BOOL)recursive;
 
+/**
+ Attempts to acquire a lock, and immediately returns a Boolean value that indicates
+ whether the attempt was successful.
+ */
+- (BOOL) tryLock;
 
 /**
  If shared lock was initialized with the recursive flag, then this function instantiate

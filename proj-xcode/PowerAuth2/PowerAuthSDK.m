@@ -169,8 +169,9 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 		PA2AppGroupContainer * appGroupContainer = [PA2AppGroupContainer containerWithAppGroup:_configuration.sharingConfiguration.appGroup];
 		NSString * sharedMemoryId = [appGroupContainer sharedMemoryIdentifier:shortSharedMemoryId];
 		NSString * statusLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"statusLock:" stringByAppendingString:instanceId]];
+		NSString * operationLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"operationLock:" stringByAppendingString:instanceId]];
 		NSString * queueLockPath = [appGroupContainer pathToFileLockWithIdentifier:[@"queueLock:" stringByAppendingString:instanceId]];
-		if (!sharedMemoryId || !statusLockPath || !queueLockPath) {
+		if (!sharedMemoryId || !statusLockPath || !queueLockPath || !operationLockPath) {
 			[PowerAuthSDK throwInvalidConfigurationException];
 		}
 		// Finally, construct the shared session provider.
@@ -180,6 +181,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 																applicationId:_configuration.sharingConfiguration.appIdentifier
 															   sharedMemoryId:sharedMemoryId
 															   statusLockPath:statusLockPath
+															 operationLockPath:operationLockPath
 																 queueLockPath:queueLockPath];
 	}
 	// Throw a failure if session provider is not available.

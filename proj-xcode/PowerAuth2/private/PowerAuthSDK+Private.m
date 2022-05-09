@@ -18,6 +18,7 @@
 #import "PA2PrivateEncryptorFactory.h"
 #import "PA2RestApiEndpoint.h"
 #import "PA2PrivateMacros.h"
+#import "PA2Result.h"
 
 @implementation PowerAuthSDK (CryptoHelper)
 
@@ -25,7 +26,7 @@
 {
 	// The encryptors factory requires PowerAuthCoreSession & possesion unlock key for a proper operation.
 	// After the enctyptor is created, we can destroy it.
-	return [[[PA2PrivateEncryptorFactory alloc] initWithSession:self.session deviceRelatedKey:[self deviceRelatedKey]]
+	return [[[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:self.sessionProvider deviceRelatedKey:[self deviceRelatedKey]]
 			encryptorWithId:encryptorId];
 }
 
@@ -34,22 +35,26 @@
 											authentication:(PowerAuthAuthentication*)authentication
 													 error:(NSError**)error
 {
-	if (self.hasPendingProtocolUpgrade || self.hasProtocolUpgradeAvailable) {
-		if (!endpoint.isAvailableInProtocolUpgrade) {
-			if (error) {
-				*error = PA2MakeError(PowerAuthErrorCode_PendingProtocolUpgrade, @"Request is temporarily unavailable, due to required or pending protocol upgrade.");
+	return [[self.sessionProvider writeTaskWithSession:^PA2Result<PowerAuthAuthorizationHttpHeader*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		if (self.hasPendingProtocolUpgrade || self.hasProtocolUpgradeAvailable) {
+			if (!endpoint.isAvailableInProtocolUpgrade) {
+				return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_PendingProtocolUpgrade, @"Request is temporarily unavailable, due to required or pending protocol upgrade.")];
 			}
-			return nil;
 		}
-	}
-	PowerAuthCoreHTTPRequestData * requestData = [[PowerAuthCoreHTTPRequestData alloc] init];
-	requestData.body = data;
-	requestData.method = endpoint.method;
-	requestData.uri = endpoint.authUriId;
-	PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
-																   authentication:authentication
-																			error:error];
-	return [PowerAuthAuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue];
+		NSError * localError = nil;
+		PowerAuthCoreHTTPRequestData * requestData = [[PowerAuthCoreHTTPRequestData alloc] init];
+		requestData.body = data;
+		requestData.method = endpoint.method;
+		requestData.uri = endpoint.authUriId;
+		PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
+																	   authentication:authentication
+																				error:&localError];
+		if (signature) {
+			return [PA2Result success:[PowerAuthAuthorizationHttpHeader authorizationHeaderWithValue:signature.authHeaderValue]];
+		} else {
+			return [PA2Result failure:localError];
+		}
+	}] extractResult:error];
 }
 
 @end

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
 #import "PowerAuthOperationTask.h"
 
 @class PowerAuthActivationStatus;
@@ -40,8 +41,7 @@
  */
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
 		 deviceRelatedKey:(NSData*)deviceRelatedKey
-				  session:(PowerAuthCoreSession*)session
-			sessionChange:(void(^)(PowerAuthCoreSession*))sessionChange
+		  sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
 			   completion:(void(^)(PA2GetActivationStatusTask*, PowerAuthActivationStatus*, NSDictionary*, NSError*))completion;
 
 /**

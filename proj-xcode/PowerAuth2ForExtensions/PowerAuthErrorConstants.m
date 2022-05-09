@@ -22,9 +22,10 @@
 
 #pragma mark - Error codes
 
-NSString *const PowerAuthErrorDomain					= PA2Def_PowerAuthErrorDomain;
-NSString *const PowerAuthErrorInfoKey_AdditionalInfo	= PA2Def_PowerAuthErrorInfoKey_AdditionalInfo;
-NSString *const PowerAuthErrorInfoKey_ResponseData		= PA2Def_PowerAuthErrorInfoKey_ResponseData;
+NSString *const PowerAuthErrorDomain							= PA2Def_PowerAuthErrorDomain;
+NSString *const PowerAuthErrorInfoKey_AdditionalInfo			= PA2Def_PowerAuthErrorInfoKey_AdditionalInfo;
+NSString *const PowerAuthErrorInfoKey_ResponseData				= PA2Def_PowerAuthErrorInfoKey_ResponseData;
+NSString *const PowerAuthErrorInfoKey_ExternalPendingOperation	= PA2Def_PowerAuthErrorInfoKey_ExtPendingApp;
 
 NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * message)
 {
@@ -50,6 +51,7 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
 		_CODE_DESC(PowerAuthErrorCode_WatchConnectivity, @"Watch connectivity error")
 		_CODE_DESC(PowerAuthErrorCode_ProtocolUpgrade, @"Protocol upgrade error")
 		_CODE_DESC(PowerAuthErrorCode_PendingProtocolUpgrade, @"Pending protocol ugprade, try later")
+		_CODE_DESC(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation")
 		default:
 			return [NSString stringWithFormat:@"Unknown error %@", @(errorCode)];
 	}
@@ -62,6 +64,13 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 	return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:info];
 }
 
+NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary * info)
+{
+	NSMutableDictionary * mutableInfo = [info mutableCopy];
+	mutableInfo[NSLocalizedDescriptionKey] = PA2MakeDefaultErrorDescription(errorCode, message);
+	return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:mutableInfo];
+}
+
 #pragma mark - NSError extension
 
 @implementation NSError (PowerAuthErrorCode)
@@ -72,6 +81,14 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 		return (PowerAuthErrorCode)self.code;
 	}
 	return PowerAuthErrorCode_NA;
+}
+
+- (PowerAuthExternalPendingOperation*) powerAuthExternalPendingOperation
+{
+	if ([self.domain isEqualToString:PowerAuthErrorDomain]) {
+		return self.userInfo[PowerAuthErrorInfoKey_ExternalPendingOperation];
+	}
+	return nil;
 }
 
 @end

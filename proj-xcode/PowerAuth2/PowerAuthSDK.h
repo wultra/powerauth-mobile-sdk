@@ -25,8 +25,10 @@
 #import <PowerAuth2/PowerAuthToken.h>
 #import <PowerAuth2/PowerAuthToken+WatchSupport.h>
 #import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
-#import <PowerAuth2/PowerAuthSessionStatusProvider.h>
+#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
 #import <PowerAuth2/PowerAuthOperationTask.h>
+#import <PowerAuth2/PowerAuthExternalPendingOperation.h>
+
 // Deprecated
 #import <PowerAuth2/PowerAuthDeprecated.h>
 
@@ -35,7 +37,7 @@
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 
-/** Reference to the low-level PowerAuthCoreSession class.
+/** Reference to object that provides the low-level PowerAuthCoreSession class.
  
  WARNING
  
@@ -45,7 +47,7 @@
  protective mechanisms for keeping the session state actually consistent in the functional (not low level) sense. As a result, you
  may break your activation state (for example, by changing password from incorrect value to some other value).
  */
-@property (nonatomic, strong, nonnull, readonly) PowerAuthCoreSession *session;
+@property (nonatomic, strong, nonnull, readonly) id<PowerAuthCoreSessionProvider> sessionProvider;
 
 /**
  Instance of configuration, provided during the object initialization.
@@ -83,6 +85,7 @@
  @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then `PowerAuthClientConfiguration.sharedInstance()` is used.
  
  @return Initialized instance.
+ @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
 						  keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
@@ -94,6 +97,7 @@
 	 
  @param configuration to be used for initialization.
  @return Initialized instance.
+ @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration;
 
@@ -127,7 +131,7 @@
  @return YES if session was restored, NO otherwise.
  @exception NSException thrown in case configuration is not present.
  */
-- (BOOL) restoreState;
+- (BOOL) restoreState PA2_DEPRECATED(1.7.0);
 
 /**
  Create a new activation.
@@ -599,5 +603,20 @@
 - (nullable id<PowerAuthOperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
 											 authentication:(nonnull PowerAuthAuthentication*)authentication
 												   callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback;
+
+@end
+
+
+
+#pragma mark - Activation data sharing
+
+@interface PowerAuthSDK (ActivationDataSharing)
+
+/**
+ If activation data sharing via app group is enabled for this instance of PowerAuthSDK, then this property may contain
+ an information about pending sensitive operation, currently running in an external application. Your application should
+ instruct user to switch to this application to complete the task.
+ */
+@property (nonatomic, strong, readonly, nullable) PowerAuthExternalPendingOperation * externalPendingOperation;
 
 @end

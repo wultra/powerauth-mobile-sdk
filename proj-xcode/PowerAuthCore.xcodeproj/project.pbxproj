@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
 		BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
+		BF28AA3C27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF28AA3D27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF31606427E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF31606327E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm */; };
 		BF31606527E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF31606327E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm */; };
 		BF44F35E26400E6100F3D498 /* PowerAuthCoreDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -350,6 +352,7 @@
 		BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "activation-status-blob-iv.json"; sourceTree = "<group>"; };
 		BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationStatusBlobTests.cpp; sourceTree = "<group>"; };
 		BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2RecoveryCodeTests.cpp; sourceTree = "<group>"; };
+		BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreDebugMonitor.h; sourceTree = "<group>"; };
 		BF31606327E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreCryptoUtilsTests.mm; sourceTree = "<group>"; };
 		BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLib-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3ACC962073DF5F00B8107E /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
@@ -795,6 +798,7 @@
 				BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */,
 				BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */,
 				BF720DCE2642A5EA00D5932A /* PowerAuthCoreDeprecated.m */,
+				BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */,
 			);
 			path = PowerAuthCore;
 			sourceTree = "<group>";
@@ -882,6 +886,7 @@
 				BFA980A4253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
 				BFA980B6253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */,
 				BFA98092253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */,
+				BF28AA3C27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -901,6 +906,7 @@
 				BFA980A5253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
 				BFA980B7253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */,
 				BFA98093253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */,
+				BF28AA3D27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1063,7 +1069,7 @@
 		BF3ACC7D2073DBA500B8107E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {

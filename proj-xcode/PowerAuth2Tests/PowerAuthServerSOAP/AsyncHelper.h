@@ -64,5 +64,17 @@
  */
 - (void) reportCompletion:(id)resultObject;
 
+/**
+ Reset the timeout internally used for completion to zero, so the asynchronous task
+ gets more time to complete.
+ */
+- (void) extendWaitingTime;
+
+/**
+ Wait for the beginning of the next second. This helper method is useful in situations when
+ some operation is time dependent and you need to guarantee that the current time's millisecond
+ part is close to zero as much as possible.
+ */
++ (void) waitForNextSecond;
 
 @end

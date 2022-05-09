@@ -94,8 +94,9 @@ The App Extension normally doesn't have an access to data created by the main ap
 iOS SDK is storing its most sensitive data into the iOS keychain, so you need to configure the keychain sharing first. If you're not familiar with keychain sharing, then don't worry about that, the keychain is shared only between the vendor's applications. So the sensitive information is not exposed to 3rd party applications.
 
 1. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the applications's target under the **TARGETS** heading in the sidebar.
-2. Now select **Capabilities** tab and expand **Keychain Sharing** section.
-3. Turn "ON" **Keychain Sharing** and Xcode will predefine first **Keychain Group** to your application's bundle name. Let's call this value as `KEYCHAIN_GROUP_NAME`
+2. Now select **Signing & Capabilities** tab and click **+ Capability** button.
+3. Find and add **Keychain Sharing** capability.
+4. Click "+" in just created **Keychain Sharing** capability and Xcode will predefine first **Keychain Group** to your application's bundle name. Let's call this value as `KEYCHAIN_GROUP_NAME`
 
 <!-- begin box info -->
 The predefined group is usually beneficial, because iOS is by default using that group for storing all keychain entries created in the application. So, If your application is already using PowerAuth and you're going to just add a support for extension, then this is the most simple way to setup a keychain sharing.
@@ -103,10 +104,11 @@ The predefined group is usually beneficial, because iOS is by default using that
 
 Now you have to do a similar setup for your application's extension:
 
-4. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the extensions's target under the **TARGETS** heading in the sidebar.
-5. Select **Capabilities** tab and expand **Keychain Sharing** section.
-6. Turn "ON" **Keychain Sharing** and set the same `KEYCHAIN_GROUP_NAME` as you did for the application's target.
-7. (optional) Repeat steps 4 to 6 for all other extensions which suppose to use Extensions SDK.
+5. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the extensions's target under the **TARGETS** heading in the sidebar.
+6. Select **Signing & Capabilities** tab and click **+ Capability** button.
+7. Find and add **Keychain Sharing** capability.
+8. Click "+" in just created **Keychain Sharing** capability and add the same `KEYCHAIN_GROUP_NAME` as you did for the application's target.
+9. (optional) Repeat steps 4 to 6 for all other extensions which suppose to use Extensions SDK.
 
 Now you need to know your **Team ID** (the unique identifier assigned to your team by Apple). Unfortunately, the identifier is not simply visible in Xcode, sou you'll have to log in into the Apple's [development portal](http://developer.apple.com) and look for that identifier in your membership details page.
 
@@ -117,8 +119,9 @@ If you know the Team ID, then the final `KEYCHAIN_GROUP_IDENTIFIER` constant is 
 The PowerAuth SDK for iOS is using one boolean flag stored in the `UserDefaults` facility, to determine whether the application has been reinstalled. Unfortunately, `UserDefaults.standard` created by the application cannot be shared with the app extension, so you have to create a new application group to share that data.
 
 1. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the applications's target under the **TARGETS** heading in the sidebar.
-2. Now select **Capabilities** tab and expand **App Groups** section.
-3. Turn "ON" **App Groups** and add group with desired identifier and turn this particular group ON (e.g. make sure that checkmark close to group's name is selected). Let's call this value as `APP_GROUP_IDENTIFIER`.
+2. Now select **Signing & Capabilities** tab and click **+ Capability** button.
+3. Find and add **App Groups** capability.
+3. Click "+" in just created **App Groups** capability and add group with desired identifier and turn this particular group ON (e.g. make sure that checkmark close to group's name is selected). Let's call this value as `APP_GROUP_IDENTIFIER`. If group already exists, then just click the checkmark to turn it ON.
 4. Now switch to application's extension target, select **Capabilities** tab and also expand **App Groups** section.
 5. Turn "ON" **App Groups** for extension and add app group with the same name as you did in step 3.
 

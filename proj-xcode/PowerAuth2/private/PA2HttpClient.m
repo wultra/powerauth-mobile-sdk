@@ -18,6 +18,7 @@
 #import "PA2AsyncOperation.h"
 #import "PA2PrivateMacros.h"
 #import "PowerAuthLog.h"
+#import "PA2Result.h"
 
 @implementation PA2HttpClient
 {
@@ -41,12 +42,14 @@ static NSOperationQueue * _GetSharedConcurrentQueue()
 - (instancetype) initWithConfiguration:(PowerAuthClientConfiguration*)configuration
 					   completionQueue:(dispatch_queue_t)completionQueue
 							   baseUrl:(NSString*)baseUrl
+				  coreSessionInterface:(id<PA2SessionInterface>)sessionInterface
 								helper:(id<PA2PrivateCryptoHelper>)helper
 {
 	self = [super init];
 	if (self) {
 		_configuration = configuration;
 		_completionQueue = completionQueue;
+		_sessionInterface = sessionInterface;
 		_cryptoHelper = helper;
 
 		// Prepare baseUrl (without the last separator)
@@ -177,7 +180,13 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 	op.executionBlock = ^id(PA2AsyncOperation *op) {
 		// Now it's time to construct HTTP request.
 		NSError * error = nil;
-		NSMutableURLRequest * urlRequest = [request buildRequestWithHelper:_cryptoHelper baseUrl:_baseUrl error:&error];
+		// The following read task wraps all possible cryptographic operations performed internally in `buildRequestWithHelper` in one
+		// locked context. So, we're using PowerAuthCoreSession indirectly via PA2PrivateCryptoHelper interface.
+		NSMutableURLRequest * urlRequest = [[_sessionInterface readTaskWithSession:^PA2Result<NSMutableURLRequest*>* (PowerAuthCoreSession * session) {
+			NSError * error = nil;
+			NSMutableURLRequest * mutableRequest = [request buildRequestWithHelper:_cryptoHelper baseUrl:_baseUrl error:&error];
+			return mutableRequest ? [PA2Result success:mutableRequest] : [PA2Result failure:error];
+		}] extractResult:&error];
 		if (error) {
 			[op completeWithResult:nil error:error];
 			return nil;
@@ -221,8 +230,13 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 	};
 	
 	// Finally, add operation to the right queue
-	NSOperationQueue * queue = endpoint.isSerialized ? _serialQueue : _GetSharedConcurrentQueue();
-	[queue addOperation:op];
+	if (endpoint.isSerialized) {
+		// The request must be serialized in serial queue.
+		[_sessionInterface addOperation:op toSharedQueue:_serialQueue];
+	} else {
+		// The concurrent queue can be used
+		[_GetSharedConcurrentQueue() addOperation:op];
+	}
 	return op;
 }
 

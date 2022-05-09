@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import <PowerAuth2/PowerAuthCoreSessionProvider.h>
 
 @class PowerAuthCoreSession;
 @class PowerAuthCoreEciesEncryptor;
@@ -83,7 +83,7 @@ typedef NS_ENUM(int, PA2EncryptorId) {
 };
 
 /**
- The `PA2PrivateEncryptorFactory`
+ The `PA2PrivateEncryptorFactory` helps construct ECIES encryptors.
  */
 @interface PA2PrivateEncryptorFactory : NSObject
 
@@ -91,8 +91,8 @@ typedef NS_ENUM(int, PA2EncryptorId) {
  Initializes object with required session & optional device related key.
  The device related key is required only for activation scoped encryptors.
  */
-- (instancetype) initWithSession:(PowerAuthCoreSession*)session
-				deviceRelatedKey:(NSData*)deviceRelatedKey;
+- (instancetype) initWithSessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
+						deviceRelatedKey:(NSData*)deviceRelatedKey;
 
 /**
  Constructs a new encryptor depending on encryptor identifier.

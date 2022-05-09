@@ -34,7 +34,7 @@
 
 - (PA2WCSessionPacket*) prepareActivationStatusPacket
 {
-	NSString * activationIdentifier = self.session.activationIdentifier;
+	NSString * activationIdentifier = self.sessionProvider.activationIdentifier;
 	NSString * instanceIdentifier   = self.privateInstanceId;
 	
 	if (!instanceIdentifier) {

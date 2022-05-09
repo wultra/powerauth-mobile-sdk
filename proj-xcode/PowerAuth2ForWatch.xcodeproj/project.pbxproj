@@ -64,6 +64,8 @@
 		BF86E8C0263C2707004C8AE5 /* PA2PrivateConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8BF263C2706004C8AE5 /* PA2PrivateConstants.h */; };
 		BF86E8D6263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BF86E8D4263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h */; };
 		BF86E8D7263C2BBF004C8AE5 /* PA2CoreCryptoUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E8D5263C2BBF004C8AE5 /* PA2CoreCryptoUtils.m */; };
+		BFC1929827FC694A001455C1 /* PowerAuthSharingConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC1929627FC694A001455C1 /* PowerAuthSharingConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFC1929927FC694A001455C1 /* PowerAuthSharingConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC1929727FC694A001455C1 /* PowerAuthSharingConfiguration.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -127,6 +129,8 @@
 		BF86E8BF263C2706004C8AE5 /* PA2PrivateConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2PrivateConstants.h; sourceTree = "<group>"; };
 		BF86E8D4263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CoreCryptoUtils.h; sourceTree = "<group>"; };
 		BF86E8D5263C2BBF004C8AE5 /* PA2CoreCryptoUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2CoreCryptoUtils.m; sourceTree = "<group>"; };
+		BFC1929627FC694A001455C1 /* PowerAuthSharingConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthSharingConfiguration.h; sourceTree = "<group>"; };
+		BFC1929727FC694A001455C1 /* PowerAuthSharingConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSharingConfiguration.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +178,8 @@
 				BF86E84B263C1EBD004C8AE5 /* PowerAuthAuthentication.m */,
 				BF86E827263C1EBD004C8AE5 /* PowerAuthConfiguration.h */,
 				BF86E853263C1EBE004C8AE5 /* PowerAuthConfiguration.m */,
+				BFC1929627FC694A001455C1 /* PowerAuthSharingConfiguration.h */,
+				BFC1929727FC694A001455C1 /* PowerAuthSharingConfiguration.m */,
 				BF86E84E263C1EBD004C8AE5 /* PowerAuthErrorConstants.h */,
 				BF86E824263C1EBD004C8AE5 /* PowerAuthErrorConstants.m */,
 				BF86E826263C1EBD004C8AE5 /* PowerAuthKeychain.h */,
@@ -283,6 +289,7 @@
 				BF86E87A263C1EBE004C8AE5 /* PA2WCSessionPacket_TokenData.h in Headers */,
 				BF86E85E263C1EBE004C8AE5 /* PowerAuthConfiguration.h in Headers */,
 				BF86E8B8263C2512004C8AE5 /* PowerAuthDeprecated.h in Headers */,
+				BFC1929827FC694A001455C1 /* PowerAuthSharingConfiguration.h in Headers */,
 				BF86E870263C1EBE004C8AE5 /* PA2WCSessionPacket.h in Headers */,
 				BF86E87D263C1EBE004C8AE5 /* PowerAuthWCSessionManager+Private.h in Headers */,
 				BF86E8D6263C2BBF004C8AE5 /* PA2CoreCryptoUtils.h in Headers */,
@@ -339,7 +346,7 @@
 		BF86E806263C1DDF004C8AE5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 1320;
 				TargetAttributes = {
 					BF86E80E263C1DDF004C8AE5 = {
 						CreatedOnToolsVersion = 12.4;
@@ -396,6 +403,7 @@
 				BF86E888263C1EBE004C8AE5 /* PowerAuthConfiguration.m in Sources */,
 				BF86E86B263C1EBE004C8AE5 /* PA2WeakArray.m in Sources */,
 				BF86E865263C1EBE004C8AE5 /* PowerAuthWCSessionManager_WatchServices.m in Sources */,
+				BFC1929927FC694A001455C1 /* PowerAuthSharingConfiguration.m in Sources */,
 				BF86E871263C1EBE004C8AE5 /* PA2WCSessionPacket_Success.m in Sources */,
 				BF86E85B263C1EBE004C8AE5 /* PowerAuthErrorConstants.m in Sources */,
 				BF86E886263C1EBE004C8AE5 /* PowerAuthWCSessionManager.m in Sources */,

@@ -20,6 +20,7 @@
 {
 	dispatch_semaphore_t _semaphore;
 	id _result;
+	NSDate * _startTime;
 }
 
 - (id) init
@@ -62,22 +63,41 @@
 
 - (id) waitForCompletion:(NSTimeInterval)waitingTime
 {
-	NSUInteger attempts = (NSUInteger)(waitingTime * 2);		// wt / (0.25 + 0.25) => wt * 2 => attempts
+	[self extendWaitingTime];
 	long triggered = 0;
-	while (attempts > 0) {
+	while ([self shouldWait:waitingTime]) {
 		// We need to prevent possible deadlocks, between our semaphore and the mesagess, processed in the runloop.
 		// So, at first, we will try to process current runloop for a while and then, our semaphore will wait.
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
-		triggered = dispatch_semaphore_wait(_semaphore, dispatch_time(DISPATCH_TIME_NOW, 0.25*NSEC_PER_SEC));
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
+		triggered = dispatch_semaphore_wait(_semaphore, dispatch_time(DISPATCH_TIME_NOW, 0.01*NSEC_PER_SEC));
 		if (triggered == 0) {
 			break;
 		}
-		--attempts;
 	}
 	if (triggered != 0) {
 		@throw [NSException exceptionWithName:@"SoapApi" reason:@"waitForCompletion timed out" userInfo:nil];
 	}
 	return _result;
+}
+
+- (BOOL) shouldWait:(NSTimeInterval)waitingTime
+{
+	@synchronized (self) {
+		return [[NSDate date] timeIntervalSinceDate:_startTime] < waitingTime;
+	}
+}
+
+- (void) extendWaitingTime
+{
+	@synchronized (self) {
+		_startTime = [NSDate date];
+	}
+}
+
++ (void) waitForNextSecond
+{
+	NSTimeInterval nextSecondStart = (NSTimeInterval)((int64_t)[[NSDate date] timeIntervalSince1970] + 1L);
+	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSince1970:nextSecondStart]];
 }
 
 @end

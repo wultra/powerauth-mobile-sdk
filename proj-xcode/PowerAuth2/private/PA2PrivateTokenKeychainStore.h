@@ -21,6 +21,7 @@
 #import <PowerAuth2/PowerAuthSessionStatusProvider.h>
 
 #import "PA2PrivateRemoteTokenProvider.h"
+#import "PA2TokenDataLock.h"
 
 @class PowerAuthKeychain;
 
@@ -67,7 +68,8 @@
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
-			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider;
+			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+					dataLock:(id<PA2TokenDataLock>)dataLock;
 
 
 // Token data identifiers

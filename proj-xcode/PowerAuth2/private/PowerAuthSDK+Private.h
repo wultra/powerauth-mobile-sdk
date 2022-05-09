@@ -71,3 +71,4 @@
 @interface PowerAuthKeychainConfiguration (BiometricAccess)
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end
+

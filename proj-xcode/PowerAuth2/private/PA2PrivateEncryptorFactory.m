@@ -19,15 +19,15 @@
 
 @implementation PA2PrivateEncryptorFactory
 {
-	PowerAuthCoreSession * _session;
+	id<PowerAuthCoreSessionProvider> _sessionProvider;
 	NSData * _deviceRelatedKey;
 }
-- (instancetype) initWithSession:(PowerAuthCoreSession*)session
-				deviceRelatedKey:(NSData*)deviceRelatedKey
+- (instancetype) initWithSessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
+						deviceRelatedKey:(NSData*)deviceRelatedKey
 {
 	self = [super init];
 	if (self) {
-		_session = session;
+		_sessionProvider = sessionProvider;
 		_deviceRelatedKey = deviceRelatedKey;
 	}
 	return self;
@@ -65,28 +65,30 @@
 											   sh1:(NSString*)sharedInfo1
 											  meta:(BOOL)metaData
 {
-	// Prepare data required for encryptor construction
-	NSString * activationId = nil;
-	PowerAuthCoreSignatureUnlockKeys * unlockKeys = nil;
-	if (scope == PowerAuthCoreEciesEncryptorScope_Activation) {
-		// For activation scope, also prepare activation ID and possession unlock key.
-		activationId = _session.activationIdentifier;
-		unlockKeys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
-		unlockKeys.possessionUnlockKey = _deviceRelatedKey;
-	}
-	// Prepare the rest of information required for o
-	NSData * sharedInfo1Data = [sharedInfo1 dataUsingEncoding:NSUTF8StringEncoding];
-	NSString * applicationKey = _session.sessionSetup.applicationKey;
-	// Now create the encryptor
-	PowerAuthCoreEciesEncryptor * encryptor = [_session eciesEncryptorForScope:scope
-																		  keys:unlockKeys
-																   sharedInfo1:sharedInfo1Data];
-	if (metaData) {
-		// And assign the associated metadata
-		encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
-																			 activationIdentifier:activationId];
-	}
-	return encryptor;
+	return [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+		// Prepare data required for encryptor construction
+		NSString * activationId = nil;
+		PowerAuthCoreSignatureUnlockKeys * unlockKeys = nil;
+		if (scope == PowerAuthCoreEciesEncryptorScope_Activation) {
+			// For activation scope, also prepare activation ID and possession unlock key.
+			activationId = session.activationIdentifier;
+			unlockKeys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+			unlockKeys.possessionUnlockKey = _deviceRelatedKey;
+		}
+		// Prepare the rest of information required for o
+		NSData * sharedInfo1Data = [sharedInfo1 dataUsingEncoding:NSUTF8StringEncoding];
+		NSString * applicationKey = session.sessionSetup.applicationKey;
+		// Now create the encryptor
+		PowerAuthCoreEciesEncryptor * encryptor = [session eciesEncryptorForScope:scope
+																			 keys:unlockKeys
+																	  sharedInfo1:sharedInfo1Data];
+		if (metaData) {
+			// And assign the associated metadata
+			encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
+																				 activationIdentifier:activationId];
+		}
+		return encryptor;
+	}];
 }
 
 @end

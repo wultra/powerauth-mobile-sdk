@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2ForExtensions/PowerAuthMacros.h>
+#import <PowerAuth2ForExtensions/PowerAuthSharingConfiguration.h>
 
 /** Class that represents a PowerAuthSDK instance configuration.
  */
@@ -58,6 +58,11 @@
  Default and recommended value is `NO`.
  */
 @property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
+
+/**
+ If set, then this instance of PowerAuthSDK can be shared between multiple vendor applications.
+ */
+@property (nonatomic, strong, nullable) PowerAuthSharingConfiguration * sharingConfiguration;
 
 /** Validate that the configuration is properly set (all required values were filled in).
  */

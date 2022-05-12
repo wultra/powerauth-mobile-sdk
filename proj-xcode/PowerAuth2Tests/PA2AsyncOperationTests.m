@@ -56,10 +56,7 @@
 							 waiting:(AsyncHelper*)waiting
 						  afterDelay:(NSTimeInterval)delay
 {
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-		[op completeWithResult:result error:nil];
-		[waiting reportCompletion:result];
-	});
+	[self completeWithResult:result withError:nil operation:op waiting:waiting afterDelay:delay];
 }
 
 - (void) completeOperationWithError:(NSError*)error
@@ -67,9 +64,24 @@
 							waiting:(AsyncHelper*)waiting
 						 afterDelay:(NSTimeInterval)delay
 {
+	[self completeWithResult:nil withError:error operation:op waiting:waiting afterDelay:delay];
+}
+
+- (void) completeWithResult:(NSString*)result
+				  withError:(NSError*)error
+				  operation:(PA2AsyncOperation*)op
+					waiting:(AsyncHelper*)waiting
+				 afterDelay:(NSTimeInterval)delay
+{
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-		[op completeWithResult:nil error:error];
-		[waiting reportCompletion:error];
+		[op completeWithResult:result error:error];
+		// This is a workaround for AsyncHelper. The trouble is that if waiting is called directly, then
+		// the waiting for completion in AsyncHelper is sometimes triggered sooner than the target dispatch queue
+		// receive the result. So we have to also schedule waiting to the same queue, to be sure that it's executed
+		// after the PA2AsyncOperation completion routines.
+		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+			[waiting reportCompletion:result != nil ? result : error];
+		});
 	});
 }
 
@@ -124,7 +136,7 @@
 				reported++;
 			};
 			[[self serialQueue] addOperation:operation];
-		} wait:2.0];
+		}];
 		XCTAssertEqual(YES, executed);
 		XCTAssertEqual(NO, canceled);
 		XCTAssertEqual(1, reported);

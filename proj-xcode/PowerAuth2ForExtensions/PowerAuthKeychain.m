@@ -49,9 +49,11 @@
 		[_baseQuery setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
 		[_baseQuery setValue:_identifier							forKey:(__bridge id)kSecAttrService];
 		[_baseQuery setValue:@YES									forKey:(__bridge id)kSecReturnData];
+#if !TARGET_OS_SIMULATOR
 		if (_accessGroup != nil) {
-			[_baseQuery setValue:_accessGroup							forKey:(__bridge id)kSecAttrAccessGroup];
+			[_baseQuery setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
 		}
+#endif
 	}
 	return self;
 }
@@ -217,9 +219,11 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
 	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
 	_AddUseNoAuthenticationUI(query);
+#if !TARGET_OS_SIMULATOR
 	if (_accessGroup != nil) {
 		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
 	}
+#endif
 	
 	CFTypeRef dataTypeRef = NULL;
 	OSStatus const status = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
@@ -574,9 +578,11 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
 	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
 	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
+#if !TARGET_OS_SIMULATOR
 	if (_accessGroup != nil) {
 		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
 	}
+#endif
 	
 	// Data to be updated.
 	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];

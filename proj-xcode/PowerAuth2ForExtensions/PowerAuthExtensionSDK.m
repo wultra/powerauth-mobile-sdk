@@ -21,9 +21,13 @@
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2SessionStatusDataReader.h"
 
+@interface PowerAuthExtensionSDK (TokenLock) <PA2TokenDataLock>
+@end
+
 @implementation PowerAuthExtensionSDK
 {
 	PowerAuthConfiguration * _configuration;
+    dispatch_semaphore_t _lockSemaphore;
 	PowerAuthKeychain * _statusKeychain;
 	NSUserDefaults * _userDefaults;
 }
@@ -36,6 +40,8 @@
 	self = [super init];
 	if (self) {
 		_configuration = [configuration copy];
+        _lockSemaphore = dispatch_semaphore_create(1);
+        
 		// Create status keychain
 		_statusKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
 															accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
@@ -46,7 +52,8 @@
 		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:_configuration
 																									   keychain:tokenStoreKeychain
 																								 statusProvider:self
-																								 remoteProvider:nil];
+																								 remoteProvider:nil
+                                                                                                       dataLock:self];
 		// For extensions, it's better to always access token data directly from keychain
 		tokenStore.allowInMemoryCache = NO;
 		_tokenStore = tokenStore;
@@ -107,6 +114,19 @@
 - (BOOL) hasProtocolUpgradeAvailable
 {
 	return NO;
+}
+
+#pragma mark - PA2TokenDataLock implementation
+
+- (BOOL) lockTokenStore
+{
+    dispatch_semaphore_wait(_lockSemaphore, DISPATCH_TIME_FOREVER);
+    return NO;
+}
+
+- (void) unlockTokenStore:(BOOL)contentModified
+{
+    dispatch_semaphore_signal(_lockSemaphore);
 }
 
 @end

@@ -28,9 +28,13 @@
 
 #pragma mark - Main Class -
 
+@interface PowerAuthWatchSDK (TokenLock) <PA2TokenDataLock>
+@end
+
 @implementation PowerAuthWatchSDK
 {
 	PowerAuthConfiguration * _configuration;
+    dispatch_semaphore_t _lockSemaphore;
 	PA2WatchRemoteTokenProvider * _remoteProvider;
 }
 
@@ -41,7 +45,8 @@
 	self = [super init];
 	if (self) {
 		_configuration = [configuration copy];
-
+        _lockSemaphore = dispatch_semaphore_create(1);
+        
 		// Prepare remote token provider, which is using WatchConnectivity internally
 		_remoteProvider = [[PA2WatchRemoteTokenProvider alloc] init];
 		// Prepare keychain token store
@@ -51,7 +56,8 @@
 		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:_configuration
 																									   keychain:tokenStoreKeychain
 																								 statusProvider:self
-																								 remoteProvider:_remoteProvider];
+																								 remoteProvider:_remoteProvider
+                                                                                                       dataLock:self];
 		tokenStore.allowInMemoryCache = NO;
 		_tokenStore = tokenStore;
 	}
@@ -97,6 +103,19 @@
 - (BOOL) hasProtocolUpgradeAvailable
 {
 	return NO;
+}
+
+#pragma mark - PA2TokenDataLock implementation
+
+- (BOOL) lockTokenStore
+{
+    dispatch_semaphore_wait(_lockSemaphore, DISPATCH_TIME_FOREVER);
+    return NO;
+}
+
+- (void) unlockTokenStore:(BOOL)contentModified
+{
+    dispatch_semaphore_signal(_lockSemaphore);
 }
 
 @end

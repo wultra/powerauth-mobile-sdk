@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */; };
 		BF86E855263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */; };
 		BF86E856263C1EBE004C8AE5 /* PowerAuthSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81F263C1EBD004C8AE5 /* PowerAuthSystem.m */; };
 		BF86E857263C1EBE004C8AE5 /* PowerAuthLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E820263C1EBD004C8AE5 /* PowerAuthLog.m */; };
@@ -69,6 +70,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BF86E80F263C1DDF004C8AE5 /* PowerAuth2ForWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthorizationHttpHeader.m; sourceTree = "<group>"; };
 		BF86E81F263C1EBD004C8AE5 /* PowerAuthSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSystem.m; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 		BF86E88F263C1F24004C8AE5 /* token */ = {
 			isa = PBXGroup;
 			children = (
+				BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */,
 				BF86E84A263C1EBD004C8AE5 /* PA2PrivateTokenInterfaces.h */,
 				BF86E833263C1EBD004C8AE5 /* PA2PrivateRemoteTokenProvider.h */,
 				BF86E836263C1EBD004C8AE5 /* PA2WatchRemoteTokenProvider.h */,
@@ -314,6 +317,7 @@
 				BF86E880263C1EBE004C8AE5 /* PA2PrivateTokenInterfaces.h in Headers */,
 				BF86E872263C1EBE004C8AE5 /* PA2WCSessionPacket_ActivationStatus.h in Headers */,
 				BF86E85F263C1EBE004C8AE5 /* PowerAuthWCSessionManager.h in Headers */,
+				BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */,
 				BF86E863263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.h in Headers */,
 				BF86E8B1263C231B004C8AE5 /* PowerAuthToken.h in Headers */,
 			);

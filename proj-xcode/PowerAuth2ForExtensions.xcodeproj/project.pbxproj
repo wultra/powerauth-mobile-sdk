@@ -83,6 +83,8 @@
 		BF44F318263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F319263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
 		BF44F31A263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
+		BF667E52282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */; };
+		BF667E53282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */; };
 		BFC1929C27FC69A4001455C1 /* PowerAuthSharingConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC1929A27FC69A4001455C1 /* PowerAuthSharingConfiguration.m */; };
 		BFC1929D27FC69A4001455C1 /* PowerAuthSharingConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC1929A27FC69A4001455C1 /* PowerAuthSharingConfiguration.m */; };
 		BFC1929E27FC69A4001455C1 /* PowerAuthSharingConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC1929B27FC69A4001455C1 /* PowerAuthSharingConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -132,6 +134,7 @@
 		BF44F309263C403600F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
 		BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthDeprecated.m; sourceTree = "<group>"; };
+		BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BFC1929A27FC69A4001455C1 /* PowerAuthSharingConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSharingConfiguration.m; sourceTree = "<group>"; };
 		BFC1929B27FC69A4001455C1 /* PowerAuthSharingConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthSharingConfiguration.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -242,6 +245,7 @@
 		BF44F29D263C3C3700F3D498 /* token */ = {
 			isa = PBXGroup;
 			children = (
+				BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */,
 				BF44F283263C3BF400F3D498 /* PA2PrivateRemoteTokenProvider.h */,
 				BF44F28B263C3BF400F3D498 /* PA2PrivateTokenInterfaces.h */,
 				BF44F286263C3BF400F3D498 /* PA2PrivateTokenData.h */,
@@ -282,6 +286,7 @@
 				BF44F2C2263C3C7000F3D498 /* PowerAuthAuthentication.h in Headers */,
 				BF44F28E263C3BF400F3D498 /* PA2PrivateRemoteTokenProvider.h in Headers */,
 				BF44F2D3263C3E8F00F3D498 /* PA2PrivateMacros.h in Headers */,
+				BF667E52282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -312,6 +317,7 @@
 				BF44F2F1263C403600F3D498 /* PowerAuthAuthentication.h in Headers */,
 				BF44F2F2263C403600F3D498 /* PA2PrivateRemoteTokenProvider.h in Headers */,
 				BF44F2F3263C403600F3D498 /* PA2PrivateMacros.h in Headers */,
+				BF667E53282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

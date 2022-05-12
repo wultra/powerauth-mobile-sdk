@@ -21,6 +21,7 @@
 #import <PowerAuth2ForExtensions/PowerAuthSessionStatusProvider.h>
 
 #import "PA2PrivateRemoteTokenProvider.h"
+#import "PA2TokenDataLock.h"
 
 @class PowerAuthKeychain;
 
@@ -63,11 +64,13 @@
  @param keychain PA2Keychain for storage. The store is keeping a strong reference to this object.
  @param statusProvider An object providing session's status. The store keeps a weak reference.
  @param remoteProvider An object for accessing remote token, when token is not cached locally. The store keeps a weak reference.
+ @param dataLock An object implementing token store locking.
  */
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
-			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider;
+			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+					dataLock:(id<PA2TokenDataLock>)dataLock;
 
 
 // Token data identifiers

@@ -485,20 +485,6 @@
 			remoteGlobalIDString = BF8CF47D2032EB41002A6B6E;
 			remoteInfo = PowerAuth2;
 		};
-		BFC1926527FAF3A6001455C1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BFC1925427FAF28F001455C1;
-			remoteInfo = "TestHostApp-ios";
-		};
-		BFC1927E27FAF75E001455C1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BFC1926B27FAF603001455C1;
-			remoteInfo = "PowerAuth2TestsHostApp-tvos";
-		};
 		BFC1928327FB04E9001455C1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
@@ -1487,7 +1473,6 @@
 			);
 			dependencies = (
 				BFB47D69207536A7008A6A52 /* PBXTargetDependency */,
-				BFC1926627FAF3A6001455C1 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-ios";
 			productName = PA2TestWrapper;
@@ -1525,7 +1510,6 @@
 			);
 			dependencies = (
 				BF5EB57024C860B600F9DDB2 /* PBXTargetDependency */,
-				BFC1927F27FAF75E001455C1 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-tvos";
 			productName = PA2TestWrapper;
@@ -1598,13 +1582,9 @@
 				TargetAttributes = {
 					BF4DBCCC1CDF9CDE008F3A47 = {
 						CreatedOnToolsVersion = 7.3.1;
-						TestTargetID = BFC1925427FAF28F001455C1;
 					};
 					BF5EB4A024C85FE200F9DDB2 = {
 						ProvisioningStyle = Automatic;
-					};
-					BF5EB54024C860A500F9DDB2 = {
-						TestTargetID = BFC1926B27FAF603001455C1;
 					};
 					BF8CF47D2032EB41002A6B6E = {
 						ProvisioningStyle = Automatic;
@@ -2028,16 +2008,6 @@
 			target = BF8CF47D2032EB41002A6B6E /* PowerAuth2-ios */;
 			targetProxy = BFB47D68207536A7008A6A52 /* PBXContainerItemProxy */;
 		};
-		BFC1926627FAF3A6001455C1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BFC1925427FAF28F001455C1 /* PowerAuth2TestsHostApp-ios */;
-			targetProxy = BFC1926527FAF3A6001455C1 /* PBXContainerItemProxy */;
-		};
-		BFC1927F27FAF75E001455C1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */;
-			targetProxy = BFC1927E27FAF75E001455C1 /* PBXContainerItemProxy */;
-		};
 		BFC1928427FB04E9001455C1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BF8CF47D2032EB41002A6B6E /* PowerAuth2-ios */;
@@ -2175,7 +2145,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2189,7 +2159,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Debug;
 		};
@@ -2197,7 +2166,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2211,7 +2180,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Release;
 		};
@@ -2282,7 +2250,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2297,7 +2265,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
 			name = Debug;
 		};
@@ -2305,7 +2272,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/include/libxml2,
@@ -2320,7 +2287,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
 			name = Release;
 		};

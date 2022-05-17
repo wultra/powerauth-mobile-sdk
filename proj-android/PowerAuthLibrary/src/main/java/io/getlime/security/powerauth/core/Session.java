@@ -457,7 +457,7 @@ public class Session {
      * Sets a known external encryption key to the internal SessionSetup structure. This method
      * is useful, when the Session is using EEK, but the key is not known yet. You can restore
      * the session without the EEK and use it for a very limited set of operations, like the status
-     * decode. The data signing will also work correctly, but only for a knowledge factor, which
+     * decode. The data signing will also work correctly, but only for a possession factor, which
      * is by design not protected with EEK.
      *
      * @param externalEncryptionKey EEK to be set to the session

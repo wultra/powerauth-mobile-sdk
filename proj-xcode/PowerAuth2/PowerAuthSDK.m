@@ -1417,3 +1417,65 @@ static PowerAuthSDK * s_inst;
 
 @end
 
+#pragma mark - External Encryption Key
+
+@implementation PowerAuthSDK (EEK)
+
+- (BOOL) hasExternalEncryptionKey
+{
+	return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
+		return [session hasExternalEncryptionKey];
+	}];
+}
+
+- (BOOL) addExternalEncryptionKey:(NSData *)externalEncryptionKey error:(NSError **)error
+{
+	NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
+		PowerAuthCoreErrorCode ec = [session addExternalEncryptionKey:externalEncryptionKey];
+		switch (ec) {
+			case PowerAuthCoreErrorCode_Ok:
+				_configuration.externalEncryptionKey = externalEncryptionKey;
+				return nil;
+			case PowerAuthCoreErrorCode_WrongParam:
+				return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
+			case PowerAuthCoreErrorCode_WrongState:
+				if (session.hasExternalEncryptionKey) {
+					return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is already set");
+				} else {
+					return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
+				}
+			default:
+				return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to add EEK");
+		}
+	}];
+	if (failure && error) {
+		*error = failure;
+	}
+	return !failure;
+}
+
+- (BOOL) removeExternalEncryptionKey:(NSError **)error
+{
+	NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
+		PowerAuthCoreErrorCode ec = [session removeExternalEncryptionKey];
+		switch (ec) {
+			case PowerAuthCoreErrorCode_Ok:
+				_configuration.externalEncryptionKey = nil;
+				return nil;
+			case PowerAuthCoreErrorCode_WrongState:
+				if (!session.hasExternalEncryptionKey) {
+					return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"EEK is not set");
+				} else {
+					return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
+				}
+			default:
+				return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to remove EEK");
+		}
+	}];
+	if (failure && error) {
+		*error = failure;
+	}
+	return !failure;
+}
+
+@end

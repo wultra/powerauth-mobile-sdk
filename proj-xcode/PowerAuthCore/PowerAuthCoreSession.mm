@@ -396,28 +396,28 @@ using namespace io::getlime::powerAuth;
 	return _session->hasExternalEncryptionKey();
 }
 
-- (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
     REQUIRE_READ_ACCESS();
 	auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
     REPORT_ERROR_CODE(@"SetExternalEncryptionKey", error);
-	return error == EC_Ok;
+	return static_cast<PowerAuthCoreErrorCode>(error);
 }
 
-- (BOOL) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
     REPORT_ERROR_CODE(@"AddExternalEncryptionKey", error);
-	return error == EC_Ok;
+	return static_cast<PowerAuthCoreErrorCode>(error);
 }
 
-- (BOOL) removeExternalEncryptionKey
+- (PowerAuthCoreErrorCode) removeExternalEncryptionKey
 {
     REQUIRE_WRITE_ACCESS();
 	auto error = _session->removeExternalEncryptionKey();
     REPORT_ERROR_CODE(@"RemoveExternalEncryptionKey", error);
-	return error == EC_Ok;
+	return static_cast<PowerAuthCoreErrorCode>(error);
 }
 
 

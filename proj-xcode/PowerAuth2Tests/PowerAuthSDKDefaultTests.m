@@ -832,4 +832,38 @@
 	}
 }
 
+- (void) testExternalEncryptionKey
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This validates EEK usage.
+	//
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+	
+	NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+	
+	NSError * error = nil;
+	BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	
+	XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+	
+	result = [_sdk removeExternalEncryptionKey:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+}
+
 @end

@@ -37,11 +37,12 @@ public class PowerAuthClientV3 implements PowerAuthServerApi {
      * Create REST client that communicate with PowerAuth Server RESTful API.
      *
      * @param serverApiUrl URL to PowerAuth Server.
+     * @param authorization Optional authorization header value, if PowerAuth Server require authorization.
      * @param minSupportedVersion Minimum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      * @param maxSupportedVersion Maximum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      */
-    public PowerAuthClientV3(@NonNull String serverApiUrl, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
-        this.restClient = new HttpRestClient(serverApiUrl);
+    public PowerAuthClientV3(@NonNull String serverApiUrl, @Nullable String authorization, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
+        this.restClient = new HttpRestClient(serverApiUrl, authorization);
         this.minSupportedVersion = minSupportedVersion == null ? ServerVersion.LATEST : minSupportedVersion;
         this.maxSupportedVersion = maxSupportedVersion == null ? ServerVersion.LATEST : maxSupportedVersion;
         if (this.minSupportedVersion.numericVersion > this.maxSupportedVersion.numericVersion) {

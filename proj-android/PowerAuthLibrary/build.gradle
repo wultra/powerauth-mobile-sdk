@@ -102,6 +102,8 @@ static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
     def instrumentationArguments = [
             "test.powerauth.restApiUrl",
             "test.powerauth.serverApiUrl",
+            "test.powerauth.serverAuthUser",
+            "test.powerauth.serverAuthPass",
             "test.powerauth.serverVersion",
             "test.powerauth.appName",
             "test.powerauth.appVersion",

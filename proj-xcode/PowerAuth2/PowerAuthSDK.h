@@ -620,3 +620,29 @@
 @property (nonatomic, strong, readonly, nullable) PowerAuthExternalPendingOperation * externalPendingOperation;
 
 @end
+
+
+#pragma mark - External Encryption Key
+
+@interface PowerAuthSDK (EEK)
+
+/**
+ Contains YES if EEK (external encryption key) is set.
+ */
+@property (nonatomic, readonly) BOOL hasExternalEncryptionKey;
+
+/**
+ Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object. The method
+ is is useful for scenarios, when you need to add the EEK additionally, after the activation.
+ @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.
+ */
+- (BOOL) addExternalEncryptionKey:(nonnull NSData*)externalEncryptionKey
+                            error:(NSError * _Nullable * _Nullable)error;
+
+/**
+ Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid
+ activation must be present and EEK must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
+ */
+- (BOOL) removeExternalEncryptionKey:(NSError * _Nullable * _Nullable)error;
+
+@end

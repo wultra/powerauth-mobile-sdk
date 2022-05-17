@@ -440,7 +440,7 @@
 /**
  Returns YES if EEK (external encryption key) is set.
  
- This function doesn't use shared data, so no exclusive access is required.
+ This function access the session's state, so read access must be guaranteed.
  */
 @property (nonatomic, assign, readonly) BOOL hasExternalEncryptionKey;
 
@@ -448,7 +448,7 @@
  Sets a known external encryption key to the internal SessionSetup structure. This method
  is useful, when the Session is using EEK, but the key is not known yet. You can restore
  the session without the EEK and use it for a very limited set of operations, like the status
- decode. The data signing will also work correctly, but only for a knowledge factor, which
+ decode. The data signing will also work correctly, but only for a possession factor, which
  is by design not protected with EEK.
  
  Returns YES if operation succeeded or NO in case of failure. You can determine the failure
@@ -459,7 +459,7 @@
  
  This function access the session's state, so read access must be guaranteed.
  */
-- (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
+- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
 
 /**
  Adds a new external encryption key permanently to the activated Session and to the internal 
@@ -477,7 +477,7 @@
  
  This function changes the session's state, so write access must be guaranteed.
  */
-- (BOOL) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
+- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
 
 /**
  Removes existing external encryption key from the activated Session. The method removes EEK permanently
@@ -494,7 +494,7 @@
  
  This function changes the session's state, so write access must be guaranteed.
  */
-- (BOOL) removeExternalEncryptionKey;
+- (PowerAuthCoreErrorCode) removeExternalEncryptionKey;
 
 #pragma mark - ECIES
 

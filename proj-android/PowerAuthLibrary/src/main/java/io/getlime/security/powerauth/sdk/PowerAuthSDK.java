@@ -2184,4 +2184,61 @@ public class PowerAuthSDK {
                     }
                 });
     }
+
+    // External Encryption key
+
+    /**
+     * @return true if EEK (external encryption key) is set.
+     */
+    public boolean hasExternalEncryptionKey() {
+        return mSession.hasExternalEncryptionKey();
+    }
+
+    /**
+     * Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object.
+     * The method is is useful for scenarios, when you need to add the EEK additionally, after the activation.
+     * @param externalEncryptionKey External Encryption key to add.
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    public void addExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+        switch (mSession.addExternalEncryptionKey(externalEncryptionKey)) {
+            case ErrorCode.OK:
+                saveSerializedState();
+                break;
+            case ErrorCode.WrongParam:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid key size");
+            case ErrorCode.WrongState:
+                if (mSession.hasExternalEncryptionKey()) {
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "EEK is already set");
+                } else {
+                    int paCode = mSession.hasValidActivation() ? PowerAuthErrorCodes.INVALID_ACTIVATION_STATE : PowerAuthErrorCodes.MISSING_ACTIVATION;
+                    throw new PowerAuthErrorException(paCode);
+                }
+            case ErrorCode.Encryption:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to add EEK");
+        }
+    }
+
+    /**
+     * Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid
+     * activation must be present and EEK must be set at the time of call (e.g. {@link #hasExternalEncryptionKey()} returns true).
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    public void removeExternalEncryptionKey() throws PowerAuthErrorException {
+        switch (mSession.removeExternalEncryptionKey()) {
+            case ErrorCode.OK:
+                saveSerializedState();
+                break;
+            case ErrorCode.WrongState:
+                if (!mSession.hasExternalEncryptionKey()) {
+                    throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "EEK is not set");
+                } else {
+                    int paCode = mSession.hasValidActivation() ? PowerAuthErrorCodes.INVALID_ACTIVATION_STATE : PowerAuthErrorCodes.MISSING_ACTIVATION;
+                    throw new PowerAuthErrorException(paCode);
+                }
+            case ErrorCode.Encryption:
+            case ErrorCode.WrongParam:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to remove EEK");
+        }
+    }
 }

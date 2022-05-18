@@ -1428,6 +1428,28 @@ static PowerAuthSDK * s_inst;
 	}];
 }
 
+- (BOOL) setExternalEncryptionKey:(NSData *)externalEncryptionKey error:(NSError **)error
+{
+	NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
+		PowerAuthCoreErrorCode ec = [session setExternalEncryptionKey:externalEncryptionKey];
+		switch (ec) {
+			case PowerAuthCoreErrorCode_Ok:
+				_configuration.externalEncryptionKey = externalEncryptionKey;
+				return nil;
+			case PowerAuthCoreErrorCode_WrongParam:
+				return PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Invalid key size");
+			case PowerAuthCoreErrorCode_WrongState:
+				return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Activation is not using EEK");
+			default:
+				return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to set EEK");
+		}
+	}];
+	if (failure && error) {
+		*error = failure;
+	}
+	return !failure;
+}
+
 - (BOOL) addExternalEncryptionKey:(NSData *)externalEncryptionKey error:(NSError **)error
 {
 	NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {

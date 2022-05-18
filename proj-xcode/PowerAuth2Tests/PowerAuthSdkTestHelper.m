@@ -420,6 +420,25 @@ static NSString * PA_Ver = @"3.1";
 	_currentActivation = nil;
 }
 
+- (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
+						keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+						  clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
+{
+	if (configuration == nil) {
+		configuration = [_sdk.configuration copy];
+	}
+	if (keychainConfiguration == nil) {
+		keychainConfiguration = [_sdk.keychainConfiguration copy];
+	}
+	if (clientConfiguration == nil) {
+		clientConfiguration = [_sdk.clientConfiguration copy];
+	}
+	_sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
+								 keychainConfiguration:keychainConfiguration
+								   clientConfiguration:clientConfiguration];
+	return _sdk;
+}
+
 /**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.
  */

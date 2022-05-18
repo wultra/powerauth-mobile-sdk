@@ -632,6 +632,17 @@
 @property (nonatomic, readonly) BOOL hasExternalEncryptionKey;
 
 /**
+ Sets a known external encryption key to the internal configuration. This method
+ is useful, when the activation is using EEK, but the key was not known during the PowerAuthSDK
+ creation. You can restore the activation without the EEK and use it for a very limited set of
+ operations, like the getting activation status. The data signing will also work correctly,
+ but only for a possession factor, which is by design not protected with EEK.
+ @param externalEncryptionKey EEK to be set to the internal configuration.
+ */
+- (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+							error:(NSError * _Nullable * _Nullable)error;
+
+/**
  Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object. The method
  is is useful for scenarios, when you need to add the EEK additionally, after the activation.
  @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.

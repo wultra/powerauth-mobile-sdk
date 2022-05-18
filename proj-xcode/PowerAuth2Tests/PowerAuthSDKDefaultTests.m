@@ -866,4 +866,107 @@
 	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
 }
 
+- (void) testEEKFromConfiguration
+{
+	CHECK_TEST_CONFIG();
+		
+	//
+	// This validates EEK usage from the beginning.
+	//
+	
+	NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+	PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
+	newConfig.externalEncryptionKey = eek;
+	_sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig keychainConfiguration:nil clientConfiguration:nil];
+	XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+	
+	NSError * error = nil;
+	BOOL result = [_sdk removeExternalEncryptionKey:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+}
+
+- (void) testSetEEKBeforeActivation
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This validates when EEK is set before activation is created.
+	//
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+	NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+	NSError * error = nil;
+	BOOL result = [_sdk setExternalEncryptionKey:eek error:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+	
+	result = [_sdk removeExternalEncryptionKey:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+}
+
+- (void) testSetEEKAfterActivation
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This validates when EEK is set after activation is created.
+	//
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+	
+	NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+	
+	NSError * error = nil;
+	BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	
+	XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+
+	// Now re-instantiate SDK and try to set EEK manually
+	PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
+	newConfig.externalEncryptionKey = nil;
+	_sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig keychainConfiguration:nil clientConfiguration:nil];
+	XCTAssertFalse(_sdk.hasExternalEncryptionKey);
+	// Activation status should work
+	PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
+	XCTAssertEqual(PowerAuthActivationState_Active, status.state);
+	// Now set EEK
+	result = [_sdk setExternalEncryptionKey:eek error:&error];
+	XCTAssertTrue(result);
+	XCTAssertNil(error);
+	
+	XCTAssertTrue(_sdk.hasExternalEncryptionKey);
+	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+}
+
 @end

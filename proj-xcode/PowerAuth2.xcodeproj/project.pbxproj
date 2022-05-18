@@ -450,6 +450,20 @@
 			remoteGlobalIDString = BF5EB4A024C85FE200F9DDB2;
 			remoteInfo = "PowerAuth2-tvos";
 		};
+		BF667E582835976A006E97F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC1925427FAF28F001455C1;
+			remoteInfo = "PowerAuth2TestsHostApp-ios";
+		};
+		BF667E602835976F006E97F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC1926B27FAF603001455C1;
+			remoteInfo = "PowerAuth2TestsHostApp-tvos";
+		};
 		BF86E7822639617A004C8AE5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D5B20753640008A6A52 /* PowerAuthCore.xcodeproj */;
@@ -1473,6 +1487,7 @@
 			);
 			dependencies = (
 				BFB47D69207536A7008A6A52 /* PBXTargetDependency */,
+				BF667E592835976A006E97F8 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-ios";
 			productName = PA2TestWrapper;
@@ -1510,6 +1525,7 @@
 			);
 			dependencies = (
 				BF5EB57024C860B600F9DDB2 /* PBXTargetDependency */,
+				BF667E612835976F006E97F8 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2Tests-tvos";
 			productName = PA2TestWrapper;
@@ -2002,6 +2018,16 @@
 			isa = PBXTargetDependency;
 			target = BF5EB4A024C85FE200F9DDB2 /* PowerAuth2-tvos */;
 			targetProxy = BF5EB56F24C860B600F9DDB2 /* PBXContainerItemProxy */;
+		};
+		BF667E592835976A006E97F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFC1925427FAF28F001455C1 /* PowerAuth2TestsHostApp-ios */;
+			targetProxy = BF667E582835976A006E97F8 /* PBXContainerItemProxy */;
+		};
+		BF667E612835976F006E97F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */;
+			targetProxy = BF667E602835976F006E97F8 /* PBXContainerItemProxy */;
 		};
 		BFB47D69207536A7008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

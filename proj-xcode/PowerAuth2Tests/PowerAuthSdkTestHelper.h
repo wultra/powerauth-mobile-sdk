@@ -68,6 +68,14 @@
  */
 - (void) cleanup;
 
+/**
+ Re-instantiate PowerAuthSDK instance with new configuration. If some provided configuration is nil, then the
+ appropriate configuration from current PowerAuthSDK will be used.
+ */
+- (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
+								 keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+								   clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
+
 // Activation
 
 /**

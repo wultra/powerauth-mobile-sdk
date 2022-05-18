@@ -17,6 +17,8 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -162,6 +164,17 @@ public class PowerAuthTestHelper {
          * @throws Exception In case that cannot create the helper object.
          */
         public @NonNull PowerAuthTestHelper build() throws Exception {
+            return build(false);
+        }
+
+        /**
+         * Build {@link PowerAuthTestHelper} instance. Note that the method does a synchronous communication with
+         * PowerAuth Server REST API.
+         * @param isActive If true, then it's expected that PowerAuthSDK contains a valid activation.
+         * @return Prepared instance of {@link PowerAuthTestHelper}
+         * @throws Exception In case that cannot create the helper object.
+         */
+        public @NonNull PowerAuthTestHelper build(boolean isActive) throws Exception {
             // Prepare logger
             PowerAuthLog.setEnabled(true);
             PowerAuthLog.setVerbose(true);
@@ -174,10 +187,16 @@ public class PowerAuthTestHelper {
                     .clientConfiguration(clientConfiguration)
                     .keychainConfiguration(prepareKeychainConfiguration())
                     .build(context);
-            if (sdk.hasValidActivation()) {
-                Logger.e("Shared PowerAuthSDK has a valid activation at test initialization.");
+            if (!isActive) {
+                if (sdk.hasValidActivation()) {
+                    Logger.e("Shared PowerAuthSDK has a valid activation at test initialization.");
+                }
+                sdk.removeActivationLocal(context, true);
+            } else {
+                if (!sdk.hasValidActivation()) {
+                    Logger.e("Shared PowerAuthSDK doesn't have a valid activation at test initialization.");
+                }
             }
-            sdk.removeActivationLocal(context, true);
             return new PowerAuthTestHelper(
                     context,
                     testConfig,

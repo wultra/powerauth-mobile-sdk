@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
@@ -57,6 +58,47 @@ public class ActivationHelper {
     private PowerAuthAuthentication validAuthentication;
     private PowerAuthAuthentication invalidAuthentication;
     private CreateActivationResult createActivationResult;
+
+    /**
+     * Helper's state.
+     */
+    public static class HelperState {
+        Activation activation;
+        PowerAuthAuthentication validAuthentication;
+        PowerAuthAuthentication invalidAuthentication;
+        CreateActivationResult createActivationResult;
+        HelperState(Activation activation, PowerAuthAuthentication validAuthentication, PowerAuthAuthentication invalidAuthentication, CreateActivationResult createActivationResult) {
+            this.activation = activation;
+            this.validAuthentication = validAuthentication;
+            this.invalidAuthentication = invalidAuthentication;
+            this.createActivationResult = createActivationResult;
+        }
+    }
+
+    /**
+     * Get helper's state that can be used to create another instance of ActivationHelper.
+     * @return Helper's state.
+     */
+    public @NonNull HelperState getHelperState() {
+        return new HelperState(activation, validAuthentication, invalidAuthentication, createActivationResult);
+    }
+
+    /**
+     * Construct activation helper with default values, acquired from test helper and with state saved
+     * from another activation helper object.
+     * @param testHelper Test helper instance.
+     * @param state State acquired from another instance of ActivationHelper.
+     */
+    public ActivationHelper(@NonNull PowerAuthTestHelper testHelper, @NonNull HelperState state) {
+        this.testHelper = testHelper;
+        this.application = testHelper.getSharedApplication();
+        this.userId = testHelper.getUserId();
+        this.powerAuthSDK = testHelper.getSharedSdk();
+        this.activation = state.activation;
+        this.validAuthentication = state.validAuthentication;
+        this.invalidAuthentication = state.invalidAuthentication;
+        this.createActivationResult = state.createActivationResult;
+    }
 
     /**
      * Construct activation helper with default values, acquired from test helper.

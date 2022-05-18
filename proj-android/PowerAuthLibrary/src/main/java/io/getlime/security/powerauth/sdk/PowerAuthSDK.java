@@ -2195,7 +2195,30 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object.
+     * Sets a known external encryption key to the internal configuration. This method
+     * is useful, when the activation is using EEK, but the key was not known during the PowerAuthSDK
+     * creation. You can restore the activation without the EEK and use it for a very limited set of
+     * operations, like the getting activation status. The data signing will also work correctly,
+     * but only for a possession factor, which is by design not protected with EEK.
+     *
+     * @param externalEncryptionKey EEK to be set to the internal configuration.
+     * @throws PowerAuthErrorException In case of failure.
+     */
+    public void setExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+        switch (mSession.setExternalEncryptionKey(externalEncryptionKey)) {
+            case ErrorCode.OK:
+                break;
+            case ErrorCode.WrongParam:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid key size");
+            case ErrorCode.WrongState:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Activation is not using EEK");
+            case ErrorCode.Encryption:
+                throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to set EEK");
+        }
+    }
+
+    /**
+     * Add a new external encryption key permanently to the activated PowerAuthSDK and to the internal configuration.
      * The method is is useful for scenarios, when you need to add the EEK additionally, after the activation.
      * @param externalEncryptionKey External Encryption key to add.
      * @throws PowerAuthErrorException In case of failure.

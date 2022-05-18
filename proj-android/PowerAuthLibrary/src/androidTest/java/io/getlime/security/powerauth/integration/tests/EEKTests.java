@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.RandomGenerator;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
@@ -30,6 +31,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -94,8 +96,70 @@ public class EEKTests {
         activationHelper = new ActivationHelper(testHelper);
 
         // Test
+        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
         activationHelper.createStandardActivation(true, null);
         assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+
+        powerAuthSDK.removeExternalEncryptionKey();
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+    }
+
+    @Test
+    public void testSetEEKAfterActivation() throws Exception {
+        // Setup
+        testHelper = new PowerAuthTestHelper.Builder().build();
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper);
+
+        // Test
+        final byte[] eek = new RandomGenerator().generateBytes(16);
+
+        // At first, create activation without EEK and add manually
+        activationHelper.createStandardActivation(true, null);
+        final ActivationHelper.HelperState activationHelperState = activationHelper.getHelperState();
+
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+
+        powerAuthSDK.addExternalEncryptionKey(eek);
+        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+
+        // Now re-instantiate PowerAuthSDK (e.g. with no-EEK in configuration)
+        testHelper = new PowerAuthTestHelper.Builder().build(true);
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper, activationHelperState);
+
+        assertTrue(powerAuthSDK.hasValidActivation());
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+
+        // Try to fetch activation status. This should work also without an EEK.
+        ActivationStatus status = activationHelper.fetchActivationStatus();
+        assertEquals(ActivationStatus.State_Active, status.state);
+
+        // Now set an EEK
+        powerAuthSDK.setExternalEncryptionKey(eek);
+        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+        assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+    }
+
+    @Test
+    public void testSetEEKBeforeActivation() throws Exception {
+        // Setup
+        testHelper = new PowerAuthTestHelper.Builder().build();
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper);
+
+        // Test
+        final byte[] eek = new RandomGenerator().generateBytes(16);
+        assertFalse(powerAuthSDK.hasExternalEncryptionKey());
+        powerAuthSDK.setExternalEncryptionKey(eek);
+        assertTrue(powerAuthSDK.hasExternalEncryptionKey());
+
+        // At first, create activation without EEK and add manually
+        activationHelper.createStandardActivation(true, null);
         assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
         powerAuthSDK.removeExternalEncryptionKey();

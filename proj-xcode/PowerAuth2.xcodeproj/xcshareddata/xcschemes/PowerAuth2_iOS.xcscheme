@@ -51,29 +51,6 @@
                BlueprintName = "PowerAuth2Tests-ios"
                ReferencedContainer = "container:PowerAuth2.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "PowerAuthConcurrencyTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthInvalidCurveTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthSDKDefaultTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthSDKProtocolUpgradeTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthSDKSharedTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthSDKTests">
-               </Test>
-               <Test
-                  Identifier = "PowerAuthTokenTests">
-               </Test>
-            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

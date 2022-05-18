@@ -46,6 +46,16 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF86E6DC26395F2C004C8AE5"
+               BuildableName = "PowerAuthCoreTests-tvos.xctest"
+               BlueprintName = "PowerAuthCoreTests-tvos"
+               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF5EB54024C860A500F9DDB2"
                BuildableName = "PowerAuth2Tests-tvos.xctest"
                BlueprintName = "PowerAuth2Tests-tvos"
@@ -61,11 +71,19 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF86E6DC26395F2C004C8AE5"
-               BuildableName = "PowerAuthCoreTests-tvos.xctest"
-               BlueprintName = "PowerAuthCoreTests-tvos"
-               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+               BlueprintIdentifier = "BF667E9128359C93006E97F8"
+               BuildableName = "PowerAuth2IntegrationTests-tvos.xctest"
+               BlueprintName = "PowerAuth2IntegrationTests-tvos"
+               ReferencedContainer = "container:PowerAuth2.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthConcurrencyTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthInvalidCurveTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

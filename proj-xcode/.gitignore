@@ -1,2 +1,2 @@
 # Ignore developer's actual server configuration for integration tests
-PowerAuth2Tests/TestConfig/Configuration*
+PowerAuth2IntegrationTests/TestConfig/Configuration*

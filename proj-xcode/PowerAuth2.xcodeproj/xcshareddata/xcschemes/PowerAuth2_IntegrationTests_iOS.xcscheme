@@ -46,6 +46,16 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF86E65826395AD3004C8AE5"
+               BuildableName = "PowerAuthCoreTests-ios.xctest"
+               BlueprintName = "PowerAuthCoreTests-ios"
+               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF4DBCCC1CDF9CDE008F3A47"
                BuildableName = "PowerAuth2Tests-ios.xctest"
                BlueprintName = "PowerAuth2Tests-ios"
@@ -61,11 +71,19 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF86E65826395AD3004C8AE5"
-               BuildableName = "PowerAuthCoreTests-ios.xctest"
-               BlueprintName = "PowerAuthCoreTests-ios"
-               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+               BlueprintIdentifier = "BF667E6228359C7C006E97F8"
+               BuildableName = "PowerAuth2IntegrationTests-ios.xctest"
+               BlueprintName = "PowerAuth2IntegrationTests-ios"
+               ReferencedContainer = "container:PowerAuth2.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthConcurrencyTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthInvalidCurveTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

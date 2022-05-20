@@ -32,14 +32,6 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
  * be used and also provides the authentication method itself.
  */
 public interface IBiometricAuthenticator {
-
-    /**
-     * Evaluate whether the biometric authentication is supported on the system.
-     *
-     * @return {@code true} if current device and operating system supports biometric authentication, otherwise {@code false}.
-     */
-    boolean isAvailable();
-
     /**
      * Return type of biometry supported on the system.
      *

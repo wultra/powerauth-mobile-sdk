@@ -96,11 +96,6 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
     // IBiometricAuthenticator methods
 
     @Override
-    public boolean isAvailable() {
-        return keystore.isKeystoreReady();
-    }
-
-    @Override
     public @BiometryType int getBiometryType(@NonNull Context context) {
         final PackageManager pm = context.getPackageManager();
         int featuresCount = 0;

@@ -73,14 +73,15 @@ public class BiometricAuthentication {
 
     /**
      * Check whether biometric authentication is available on this authenticator and can be used
-     * in this SDK.
+     * in this SDK. It's equivalent to call {@link #canAuthenticate(Context)} and compare result
+     * to {@link BiometricStatus#OK}.
      *
      * @param context Android {@link Context} object
      * @return true if this authenticator supports a biometric authentication, otherwise false.
      */
     public static boolean isBiometricAuthenticationAvailable(@NonNull final Context context) {
         synchronized (SharedContext.class) {
-            return getContext().getAuthenticator(context).isAvailable();
+            return getContext().getAuthenticator(context).canAuthenticate() == BiometricStatus.OK;
         }
     }
 

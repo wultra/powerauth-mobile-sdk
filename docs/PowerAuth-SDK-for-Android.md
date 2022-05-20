@@ -1381,7 +1381,7 @@ The `PowerAuthSDK` allows you to specify an external encryption key (called EEK 
 
 The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains an information that the factor keys are protected with EEK, so EEK must be known in the time of PowerAuth signature is calculated. You have basically three options how to configure the key:
 
-1. Assign EEK into `externalEncryptionKey` property of `PowerAuthConfiguration` in the time of `PowerAuthSDK` object creation.
+1. Assign EEK into `PowerAuthConfiguration.Builder` in the time of `PowerAuthSDK` object creation.
    - This is the most convenient way of using EEK, but the key must be known in the time of `PowerAuthSDK` instantiation.
    - Once the `PowerAuthSDK` instance create a new activation, then the factor keys will be automatically protected with EEK.
    

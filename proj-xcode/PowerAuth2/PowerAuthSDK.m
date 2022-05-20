@@ -684,6 +684,8 @@ static PowerAuthSDK * s_inst;
 																 error:&localError];
 		if (!localError) {
 			decryptor = privateEncryptor;
+		} else {
+			[_session resetSession];
 		}
 	} else {
 		localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);

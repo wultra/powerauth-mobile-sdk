@@ -25,7 +25,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### Other changes
 
-- TBA
+- `BiometricAuthentication.isBiometricAuthenticationAvailable()` now better reflect the biometric authentication availability. The function is now internally implemented as `BiometricAuthentication.canAuthenticate() == BiometricStatus.OK`.
 
 ## iOS & tvOS
 

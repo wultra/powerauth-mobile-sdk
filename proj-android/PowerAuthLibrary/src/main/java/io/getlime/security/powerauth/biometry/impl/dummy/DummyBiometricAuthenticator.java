@@ -36,11 +36,6 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 public class DummyBiometricAuthenticator implements IBiometricAuthenticator {
 
     @Override
-    public boolean isAvailable() {
-        return false;
-    }
-
-    @Override
     public @BiometryType int getBiometryType(@NonNull Context context) {
         return BiometryType.NONE;
     }

@@ -1491,6 +1491,7 @@ static PowerAuthSDK * s_inst;
 					return PA2MakeError(session.hasValidActivation ? PowerAuthErrorCode_InvalidActivationState : PowerAuthErrorCode_MissingActivation, nil);
 				}
 			default:
+				// [session removeExternalEncryptionKey] never return WrongParam, so the default case is OK here.
 				return PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to remove EEK");
 		}
 	}];

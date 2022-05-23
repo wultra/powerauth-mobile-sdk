@@ -2261,6 +2261,8 @@ public class PowerAuthSDK {
                 }
             case ErrorCode.Encryption:
             case ErrorCode.WrongParam:
+                // mSession.removeExternalEncryptionKey() never return WrongParam. The default case for switch still produce "SwitchIntDef" warning,
+                // so we have to enumerate all cases for ErrorCode IntDef.
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to remove EEK");
         }
     }

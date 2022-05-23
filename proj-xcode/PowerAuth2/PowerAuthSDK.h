@@ -648,7 +648,7 @@
  @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.
  */
 - (BOOL) addExternalEncryptionKey:(nonnull NSData*)externalEncryptionKey
-                            error:(NSError * _Nullable * _Nullable)error;
+							error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid

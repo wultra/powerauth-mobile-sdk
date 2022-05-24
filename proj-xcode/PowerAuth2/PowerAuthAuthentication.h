@@ -45,6 +45,10 @@
  For example, include a name of the account user uses to log in.
  */
 @property (nonatomic, strong, nullable) NSString *biometryPrompt;
+/**
+ Indicates if a biometry factor should be used. If both biometryContext and biometryPrompt properties are set, then the context will be applied.
+ */
+@property (nonatomic, strong, nullable) LAContext *biometryContext API_UNAVAILABLE(watchos, tvos);
 
 /** (optional) If 'usePossession' is set to YES, this value may specify possession key data. If no custom data is specified, default possession key is used.
  */
@@ -79,23 +83,11 @@
  and knowledge factor.
  */
 + (nonnull PowerAuthAuthentication*) possessionWithPassword:(nonnull NSString*)password;
-
-@end
-
-#if PA2_HAS_LACONTEXT == 1
-// LAContext support
-@interface PowerAuthAuthentication (LAContext)
-/**
- Indicates if a biometry factor should be used. If both biometryContext and biometryPrompt properties are set, then the context will be applied.
- */
-@property (nonatomic, strong, nullable) LAContext *biometryContext;
 /**
  Returns a new instance of authentication object preconfigured for a combination of
  possession and biometry factors and with local authentication context. The context allows you
- to 
+ to
  */
-+ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithContext:(nonnull LAContext*)context;
++ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithContext:(nonnull LAContext*)context API_UNAVAILABLE(watchos, tvos);
 
 @end
-
-#endif // PA2_HAS_LACONTEXT

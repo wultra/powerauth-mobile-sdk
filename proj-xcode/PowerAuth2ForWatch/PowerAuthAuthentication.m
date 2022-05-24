@@ -21,11 +21,6 @@
 #import <PowerAuth2ForWatch/PowerAuthKeychainAuthentication.h>
 
 @implementation PowerAuthAuthentication
-{
-#if PA2_HAS_LACONTEXT == 1
-	LAContext * _biometryContext;
-#endif
-}
 
 - (id)copyWithZone:(NSZone *)zone
 {
@@ -127,22 +122,8 @@
 	auth.usePassword = password;
 	return auth;
 }
-@end
 
 #if PA2_HAS_LACONTEXT == 1
-
-@implementation PowerAuthAuthentication (LAContext)
-
-- (LAContext*) biometryContext
-{
-	return _biometryContext;
-}
-
-- (void) setBiometryContext:(LAContext *)biometryContext
-{
-	_biometryContext = biometryContext;
-}
-
 + (PowerAuthAuthentication*) possessionWithBiometryWithContext:(LAContext*)context
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
@@ -151,7 +132,6 @@
 	auth.biometryContext = context;
 	return auth;
 }
+#endif // PA2_HAS_LACONTEXT
 
 @end
-
-#endif // PA2_HAS_LACONTEXT

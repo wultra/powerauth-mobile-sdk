@@ -41,19 +41,16 @@
  */
 - (nonnull instancetype) initWithPrompt:(nonnull NSString*)prompt;
 
-#if PA2_HAS_LACONTEXT == 1
 /**
  Contains LAContext in case that object was initialized with local authentication context.
  */
-@property (nonatomic, nullable, strong, readonly) LAContext * context;
+@property (nonatomic, nullable, strong, readonly) LAContext * context API_UNAVAILABLE(watchos, tvos);
 
 /**
  Initialize object with local authentication context that allows you to alter more parameters
  of dialog displayed in case of biometric authentication.
  */
-- (nonnull instancetype) initWithContext:(nonnull LAContext*)context;
-
-#endif // PA2_HAS_LACONTEXT
+- (nonnull instancetype) initWithContext:(nonnull LAContext*)context API_UNAVAILABLE(watchos, tvos);
 
 @end
 

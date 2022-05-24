@@ -1174,6 +1174,22 @@ static PowerAuthSDK * s_inst;
 	[self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] withBlock:block];
 }
 
+#if PA2_HAS_LACONTEXT == 1
+
+- (void) authenticateUsingBiometryWithContext:(LAContext *)context
+									 callback:(void (^)(PowerAuthAuthentication *, NSError *))callback
+{
+	[self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] callback:callback];
+}
+
+- (void) unlockBiometryKeysWithContext:(LAContext *)context
+							 withBlock:(void (^)(NSDictionary<NSString *,NSData *> *, BOOL))block
+{
+	[self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] withBlock:block];
+}
+
+#endif // PA2_HAS_LACONTEXT
+
 - (void) authenticateUsingBiometryImpl:(PowerAuthKeychainAuthentication *)keychainAuthentication
 							  callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
 {
@@ -1512,25 +1528,3 @@ static PowerAuthSDK * s_inst;
 }
 
 @end
-
-#pragma mark - LAContext support
-
-#if PA2_HAS_LACONTEXT == 1
-
-@implementation PowerAuthSDK (LAContext)
-
-- (void) authenticateUsingBiometryWithContext:(LAContext *)context
-									 callback:(void (^)(PowerAuthAuthentication *, NSError *))callback
-{
-	[self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] callback:callback];
-}
-
-- (void) unlockBiometryKeysWithContext:(LAContext *)context
-							 withBlock:(void (^)(NSDictionary<NSString *,NSData *> *, BOOL))block
-{
-	[self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] withBlock:block];
-}
-
-@end
-
-#endif

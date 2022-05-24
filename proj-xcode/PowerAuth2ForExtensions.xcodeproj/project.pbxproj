@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1ED07E283D034D00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED07C283D034C00D6B380 /* PowerAuthKeychainAuthentication.m */; };
+		BF1ED07F283D034D00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED07C283D034C00D6B380 /* PowerAuthKeychainAuthentication.m */; };
+		BF1ED080283D034D00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED07D283D034C00D6B380 /* PowerAuthKeychainAuthentication.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF1ED081283D034D00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED07D283D034C00D6B380 /* PowerAuthKeychainAuthentication.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F277263C3B0F00F3D498 /* PowerAuth2ForExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F28C263C3BF400F3D498 /* PA2SessionStatusDataReader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F281263C3BF400F3D498 /* PA2SessionStatusDataReader.m */; };
 		BF44F28D263C3BF400F3D498 /* PA2PrivateConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F282263C3BF400F3D498 /* PA2PrivateConstants.h */; };
@@ -92,6 +96,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF1ED07C283D034C00D6B380 /* PowerAuthKeychainAuthentication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthKeychainAuthentication.m; sourceTree = "<group>"; };
+		BF1ED07D283D034C00D6B380 /* PowerAuthKeychainAuthentication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthKeychainAuthentication.h; sourceTree = "<group>"; };
 		BF44F272263C3B0F00F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuth2ForExtensions.h; sourceTree = "<group>"; };
 		BF44F276263C3B0F00F3D498 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -197,6 +203,8 @@
 				BF44F2A2263C3C6F00F3D498 /* PowerAuthErrorConstants.m */,
 				BF44F2AB263C3C6F00F3D498 /* PowerAuthKeychain.h */,
 				BF44F2A1263C3C6E00F3D498 /* PowerAuthKeychain.m */,
+				BF1ED07D283D034C00D6B380 /* PowerAuthKeychainAuthentication.h */,
+				BF1ED07C283D034C00D6B380 /* PowerAuthKeychainAuthentication.m */,
 				BF44F2AC263C3C6F00F3D498 /* PowerAuthKeychainConfiguration.h */,
 				BF44F2A6263C3C6F00F3D498 /* PowerAuthKeychainConfiguration.m */,
 				BF44F2A7263C3C6F00F3D498 /* PowerAuthLog.h */,
@@ -264,6 +272,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF44F293263C3BF400F3D498 /* PA2PrivateTokenKeychainStore.h in Headers */,
+				BF1ED080283D034D00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */,
 				BF44F2BB263C3C7000F3D498 /* PowerAuthLog.h in Headers */,
 				BF44F292263C3BF400F3D498 /* PA2SessionStatusDataReader.h in Headers */,
 				BF44F2BE263C3C7000F3D498 /* PowerAuthExtensionSDK.h in Headers */,
@@ -295,6 +304,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF44F2DF263C403600F3D498 /* PA2PrivateTokenKeychainStore.h in Headers */,
+				BF1ED081283D034D00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */,
 				BF44F2E0263C403600F3D498 /* PowerAuthLog.h in Headers */,
 				BF44F2E1263C403600F3D498 /* PA2SessionStatusDataReader.h in Headers */,
 				BF44F2E2263C403600F3D498 /* PowerAuthExtensionSDK.h in Headers */,
@@ -415,6 +425,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF44F319263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */,
+				BF1ED07E283D034D00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */,
 				BF44F2BA263C3C7000F3D498 /* PowerAuthKeychainConfiguration.m in Sources */,
 				BF44F2D9263C3F5100F3D498 /* PowerAuthToken.m in Sources */,
 				BFC1929C27FC69A4001455C1 /* PowerAuthSharingConfiguration.m in Sources */,
@@ -439,6 +450,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF44F31A263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */,
+				BF1ED07F283D034D00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */,
 				BF44F2F5263C403600F3D498 /* PowerAuthKeychainConfiguration.m in Sources */,
 				BF44F2F6263C403600F3D498 /* PowerAuthToken.m in Sources */,
 				BFC1929D27FC69A4001455C1 /* PowerAuthSharingConfiguration.m in Sources */,

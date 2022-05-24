@@ -105,4 +105,5 @@
 	#define PA2_HAS_LACONTEXT 1
 #else
 	#define PA2_HAS_LACONTEXT 0
+	#define LAContext NSObject
 #endif

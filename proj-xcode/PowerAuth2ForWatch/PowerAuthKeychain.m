@@ -73,21 +73,6 @@
 	return [self implAddValue:data forKey:key access:access];
 }
 
-- (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
-{
-	[self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None completion:completion];
-}
-
-- (void) addValue:(NSData*)data forKey:(NSString*)key access:(PowerAuthKeychainItemAccess)access completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
-{
-	[self containsDataForKey:key completion:^(BOOL containsValue) {
-		if (containsValue) {
-			completion(PowerAuthKeychainStoreItemResult_Duplicate);
-		} else {
-			completion([self implAddValue:data forKey:key access:access]);
-		}
-	}];
-}
 
 #pragma mark - Updating existing records
 
@@ -100,17 +85,6 @@
 	}
 }
 
-- (void)updateValue:(NSData *)data forKey:(NSString *)key completion:(void (^)(PowerAuthKeychainStoreItemResult))completion
-{
-	[self containsDataForKey:key completion:^(BOOL containsValue) {
-		if (containsValue) {
-			completion([self implUpdateValue:data forKey:key]);
-		} else {
-			completion(PowerAuthKeychainStoreItemResult_NotFound);
-		}
-	}];
-}
-
 #pragma mark - Removing records
 
 - (BOOL)deleteDataForKey:(NSString *)key
@@ -120,24 +94,17 @@
 	return SecItemDelete((__bridge CFDictionaryRef)(query)) == errSecSuccess;
 }
 
-- (void) deleteDataForKey:(NSString*)key completion:(void(^)(BOOL deleted))completion
-{
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		completion([self deleteDataForKey:key]);
-	});
-}
-
 + (void) deleteAllData
 {
-    NSArray *secItemClasses = @[(__bridge id)kSecClassGenericPassword,
-                                (__bridge id)kSecClassInternetPassword,
-                                (__bridge id)kSecClassCertificate,
-                                (__bridge id)kSecClassKey,
-                                (__bridge id)kSecClassIdentity];
-    for (id secItemClass in secItemClasses) {
-        NSDictionary *spec = @{(__bridge id)kSecClass: secItemClass};
-        SecItemDelete((__bridge CFDictionaryRef)spec);
-    }
+	NSArray *secItemClasses = @[(__bridge id)kSecClassGenericPassword,
+								(__bridge id)kSecClassInternetPassword,
+								(__bridge id)kSecClassCertificate,
+								(__bridge id)kSecClassKey,
+								(__bridge id)kSecClassIdentity];
+	for (id secItemClass in secItemClasses) {
+		NSDictionary *spec = @{(__bridge id)kSecClass: secItemClass};
+		SecItemDelete((__bridge CFDictionaryRef)spec);
+	}
 }
 
 - (void) deleteAllData
@@ -152,18 +119,23 @@
 
 - (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status
 {
-	return [self dataForKey:key status:status prompt:nil];
+	return [self dataForKey:key status:status authentication:nil];
 }
 
-- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status prompt:(NSString*)prompt
+- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status authentication:(PowerAuthKeychainAuthentication *)authentication
 {
 	// Build query
 	NSMutableDictionary *query = [_baseQuery mutableCopy];
 	[query setValue:key forKey:(__bridge id)kSecAttrAccount];
 	
-	// Add prompt for Touch ID
-	if (prompt) {
-		[query setValue:prompt forKey:(__bridge id)kSecUseOperationPrompt];
+	// Add authentication for items protected with biometry.
+	if (authentication) {
+		if (!_AddKeychainAuthentication(query, authentication)) {
+			if (status) {
+				*status = errSecBadReq;
+			}
+			return nil;
+		}
 	}
 	
 	// Obtain data and return result
@@ -180,36 +152,43 @@
 	}
 }
 
-- (void) dataForKey:(NSString*)key prompt:(NSString*)prompt completion:(void(^)(NSData *data, OSStatus status))completion
-{
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		OSStatus status;
-		NSData *value = [self dataForKey:key status:&status prompt:prompt];
-		completion(value, status);
-	});
-}
 
-- (void) dataForKey:(NSString*)key completion:(void(^)(NSData *data, OSStatus status))completion
+static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKeychainAuthentication * auth)
 {
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		OSStatus status;
-		NSData *value = [self dataForKey:key status:&status];
-		completion(value, status);
-	});
+	NSString * prompt = auth.prompt;
+#if PA2_HAS_LACONTEXT == 1
+	LAContext * context = auth.context;
+	if (context) {
+		if (@available(iOS 11, macCatalyst 10.15, *)) {
+			if (context.interactionNotAllowed) {
+				PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
+				return NO;
+			}
+		}
+		query[(__bridge id)kSecUseAuthenticationContext] = context;
+		return YES;
+	}
+	if (prompt) {
+		if (@available(iOS 11, macCatalyst 10.15, *)) {
+			// kSecUseOperationPrompt is deprecated, so on iOS11+ use LAContext.
+			LAContext * context = [[LAContext alloc] init];
+			context.localizedReason = prompt;
+			query[(__bridge id)kSecUseAuthenticationContext] = context;
+			return YES;
+		}
+	}
+#endif // PA2_HAS_LACONTEXT
+	if (!prompt) {
+		PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
+		return NO;
+	}
+	query[(__bridge id)kSecUseOperationPrompt] = prompt;
+	return YES;
 }
 
 static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 {
-	if (@available(iOS 9, watchOS 2, *)) {
-		// IOS 9+
-		query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
-	} else {
-		// IOS 8, unfortunately, we have to force warning off for the next line
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-		query[(__bridge id)kSecUseNoAuthenticationUI] = @YES;
-#pragma clang diagnostic pop
-	}
+	query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
 }
 
 - (BOOL) containsDataForKey:(NSString *)key
@@ -240,54 +219,52 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	}
 }
 
-- (void) containsDataForKey:(NSString*)key completion:(void(^)(BOOL containsValue))completion
-{
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		BOOL containsValue = [self containsDataForKey:key];
-		completion(containsValue);
-	});
-}
 
 #pragma mark - Data in-memory caching
 
-- (NSDictionary*) allItems
+- (NSDictionary*) allItemsWithAuthentication:(PowerAuthKeychainAuthentication *)authentication withStatus:(OSStatus *)status
 {
-    return [self allItemsWithPrompt:nil withStatus:nil];
+	// Build query to return all results
+	NSMutableDictionary *query = [_baseQuery mutableCopy];
+	[query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
+	[query setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
+
+	// Add authentication for items protected with biometry.
+	if (authentication) {
+		if (!_AddKeychainAuthentication(query, authentication)) {
+			if (status) {
+				*status = errSecBadReq;
+			}
+			return nil;
+		}
+	}
+
+	// Obtain data and return result
+	CFTypeRef dataTypeRef = NULL;
+	OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
+	NSArray *queryResult = (__bridge_transfer NSArray *)dataTypeRef;
+	NSMutableDictionary *result = [NSMutableDictionary dictionary];
+
+	if (status != NULL) {
+		*status = s;
+	}
+
+	if (s == errSecSuccess) {
+		for (NSDictionary *const item in queryResult) {
+			NSString *key = [item valueForKey:(__bridge id)kSecAttrAccount];
+			NSData *value = [item valueForKey:(__bridge id)kSecValueData];
+			[result setObject:value forKey:key];
+		}
+	}
+	else {
+		return nil;
+	}
+	return result;
 }
 
-- (NSDictionary*) allItemsWithPrompt:(NSString*)prompt withStatus: (OSStatus *)status
+- (NSDictionary*) allItems
 {
-    // Build query to return all results
-    NSMutableDictionary *query = [_baseQuery mutableCopy];
-    [query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
-    [query setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
-
-    // Add prompt for Touch ID
-    if (prompt) {
-        [query setValue:prompt forKey:(__bridge id)kSecUseOperationPrompt];
-    }
-
-    // Obtain data and return result
-    CFTypeRef dataTypeRef = NULL;
-    OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
-    NSArray *queryResult = (__bridge_transfer NSArray *)dataTypeRef;
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
-
-    if (status != NULL) {
-        *status = s;
-    }
-
-    if (s == errSecSuccess) {
-        for (NSDictionary *const item in queryResult) {
-            NSString *key = [item valueForKey:(__bridge id)kSecAttrAccount];
-            NSData *value = [item valueForKey:(__bridge id)kSecValueData];
-            [result setObject:value forKey:key];
-        }
-    }
-    else {
-        return nil;
-    }
-    return result;
+	return [self allItemsWithAuthentication:nil withStatus:nil];
 }
 
 #pragma mark - Biometry support
@@ -603,6 +580,84 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 		default:
 			return PowerAuthKeychainStoreItemResult_Other;
 	}
+}
+
+@end
+
+// MARK: - Deprecated implementation
+
+@implementation PowerAuthKeychain (Deprecated)
+
+- (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
+{
+	[self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None completion:completion];
+}
+
+- (void) addValue:(NSData*)data forKey:(NSString*)key access:(PowerAuthKeychainItemAccess)access completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
+{
+	[self containsDataForKey:key completion:^(BOOL containsValue) {
+		if (containsValue) {
+			completion(PowerAuthKeychainStoreItemResult_Duplicate);
+		} else {
+			completion([self implAddValue:data forKey:key access:access]);
+		}
+	}];
+}
+
+- (void)updateValue:(NSData *)data forKey:(NSString *)key completion:(void (^)(PowerAuthKeychainStoreItemResult))completion
+{
+	[self containsDataForKey:key completion:^(BOOL containsValue) {
+		if (containsValue) {
+			completion([self implUpdateValue:data forKey:key]);
+		} else {
+			completion(PowerAuthKeychainStoreItemResult_NotFound);
+		}
+	}];
+}
+
+- (void) deleteDataForKey:(NSString*)key completion:(void(^)(BOOL deleted))completion
+{
+	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		completion([self deleteDataForKey:key]);
+	});
+}
+
+- (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status prompt:(NSString*)prompt
+{
+	PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
+	return [self dataForKey:key status:status authentication:auth];
+}
+
+- (void) dataForKey:(NSString*)key prompt:(NSString*)prompt completion:(void(^)(NSData *data, OSStatus status))completion
+{
+	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		OSStatus status;
+		NSData *value = [self dataForKey:key status:&status prompt:prompt];
+		completion(value, status);
+	});
+}
+
+- (void) dataForKey:(NSString*)key completion:(void(^)(NSData *data, OSStatus status))completion
+{
+	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		OSStatus status;
+		NSData *value = [self dataForKey:key status:&status];
+		completion(value, status);
+	});
+}
+
+- (void) containsDataForKey:(NSString*)key completion:(void(^)(BOOL containsValue))completion
+{
+	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+		BOOL containsValue = [self containsDataForKey:key];
+		completion(containsValue);
+	});
+}
+
+- (NSDictionary*) allItemsWithPrompt:(NSString*)prompt withStatus: (OSStatus *)status
+{
+	PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
+	return [self allItemsWithAuthentication:auth withStatus:status];
 }
 
 @end

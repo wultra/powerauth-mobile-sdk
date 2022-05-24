@@ -19,6 +19,10 @@
 
 #import <PowerAuth2ForExtensions/PowerAuthMacros.h>
 
+#if PA2_HAS_LACONTEXT == 1
+#import <LocalAuthentication/LocalAuthentication.h>
+#endif
+
 /** Class representing a multi-factor authentication object.
  */
 @interface PowerAuthAuthentication : NSObject<NSCopying>
@@ -77,3 +81,21 @@
 + (nonnull PowerAuthAuthentication*) possessionWithPassword:(nonnull NSString*)password;
 
 @end
+
+#if PA2_HAS_LACONTEXT == 1
+// LAContext support
+@interface PowerAuthAuthentication (LAContext)
+/**
+ Indicates if a biometry factor should be used. If both biometryContext and biometryPrompt properties are set, then the context will be applied.
+ */
+@property (nonatomic, strong, nullable) LAContext *biometryContext;
+/**
+ Returns a new instance of authentication object preconfigured for a combination of
+ possession and biometry factors and with local authentication context. The context allows you
+ to 
+ */
++ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithContext:(nonnull LAContext*)context;
+
+@end
+
+#endif // PA2_HAS_LACONTEXT

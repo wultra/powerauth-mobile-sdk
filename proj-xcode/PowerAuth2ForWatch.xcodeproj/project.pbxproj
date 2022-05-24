@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1ED07A283D01CC00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED078283D01CC00D6B380 /* PowerAuthKeychainAuthentication.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF1ED07B283D01CC00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED079283D01CC00D6B380 /* PowerAuthKeychainAuthentication.m */; };
 		BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */; };
 		BF86E855263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */; };
 		BF86E856263C1EBE004C8AE5 /* PowerAuthSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81F263C1EBD004C8AE5 /* PowerAuthSystem.m */; };
@@ -70,6 +72,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BF1ED078283D01CC00D6B380 /* PowerAuthKeychainAuthentication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthKeychainAuthentication.h; sourceTree = "<group>"; };
+		BF1ED079283D01CC00D6B380 /* PowerAuthKeychainAuthentication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthKeychainAuthentication.m; sourceTree = "<group>"; };
 		BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BF86E80F263C1DDF004C8AE5 /* PowerAuth2ForWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthorizationHttpHeader.m; sourceTree = "<group>"; };
@@ -186,6 +190,8 @@
 				BF86E824263C1EBD004C8AE5 /* PowerAuthErrorConstants.m */,
 				BF86E826263C1EBD004C8AE5 /* PowerAuthKeychain.h */,
 				BF86E854263C1EBE004C8AE5 /* PowerAuthKeychain.m */,
+				BF1ED078283D01CC00D6B380 /* PowerAuthKeychainAuthentication.h */,
+				BF1ED079283D01CC00D6B380 /* PowerAuthKeychainAuthentication.m */,
 				BF86E822263C1EBD004C8AE5 /* PowerAuthKeychainConfiguration.h */,
 				BF86E84C263C1EBD004C8AE5 /* PowerAuthKeychainConfiguration.m */,
 				BF86E82A263C1EBD004C8AE5 /* PowerAuthLog.h */,
@@ -307,6 +313,7 @@
 				BF86E883263C1EBE004C8AE5 /* PowerAuthErrorConstants.h in Headers */,
 				BF86E866263C1EBE004C8AE5 /* PA2WatchSynchronizationService.h in Headers */,
 				BF86E87F263C1EBE004C8AE5 /* PA2WCSessionPacket_Success.h in Headers */,
+				BF1ED07A283D01CC00D6B380 /* PowerAuthKeychainAuthentication.h in Headers */,
 				BF86E86C263C1EBE004C8AE5 /* PA2WatchRemoteTokenProvider.h in Headers */,
 				BF86E8C0263C2707004C8AE5 /* PA2PrivateConstants.h in Headers */,
 				BF86E869263C1EBE004C8AE5 /* PA2PrivateRemoteTokenProvider.h in Headers */,
@@ -391,6 +398,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF86E882263C1EBE004C8AE5 /* PowerAuthKeychainConfiguration.m in Sources */,
+				BF1ED07B283D01CC00D6B380 /* PowerAuthKeychainAuthentication.m in Sources */,
 				BF86E87E263C1EBE004C8AE5 /* PA2WCSessionPacket_ActivationStatus.m in Sources */,
 				BF86E87C263C1EBE004C8AE5 /* PA2WatchRemoteTokenProvider.m in Sources */,
 				BF86E879263C1EBE004C8AE5 /* PA2PrivateMacros.m in Sources */,

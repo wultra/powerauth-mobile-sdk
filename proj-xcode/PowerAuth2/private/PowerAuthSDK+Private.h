@@ -72,3 +72,7 @@
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end
 
+// Reveal private property that helps convert LAContext or prompt into PowerAuthKeychainAuthentication.
+@interface PowerAuthAuthentication (KeychainAuth)
+@property (nonatomic, strong, readonly) PowerAuthKeychainAuthentication * keychainAuthentication;
+@end

@@ -279,13 +279,13 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	return possessionKey;
 }
 
-- (NSData*) biometryRelatedKeyUserCancelled:(nullable BOOL *)userCancelled prompt:(NSString*)prompt
+- (NSData*) biometryRelatedKeyUserCancelled:(BOOL *)userCancelled authentication:(PowerAuthKeychainAuthentication*)authentication
 {
 	if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
 		__block OSStatus status = errSecUserCanceled;
 		__block NSData *key = nil;
 		BOOL executed = [PowerAuthKeychain tryLockBiometryAndExecuteBlock:^{
-			key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status prompt:prompt];
+			key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status authentication:authentication];
 		}];
 		if (userCancelled != NULL) {
 			if (!executed || status == errSecUserCanceled) {
@@ -304,7 +304,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 }
 
 - (PowerAuthCoreSignatureUnlockKeys*) signatureKeysForAuthentication:(PowerAuthAuthentication*)authentication
-													   userCancelled:(nonnull BOOL *)userCancelled
+													   userCancelled:(BOOL *)userCancelled
 {
 	// Generate signature key encryption keys
 	NSData *possessionKey = nil;
@@ -321,7 +321,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 		if (authentication.overridenBiometryKey) { // user specified a custom biometry key
 			biometryKey = authentication.overridenBiometryKey;
 		} else { // default biometry key should be fetched
-			biometryKey = [self biometryRelatedKeyUserCancelled:userCancelled prompt:authentication.biometryPrompt];
+			biometryKey = [self biometryRelatedKeyUserCancelled:userCancelled authentication:authentication.keychainAuthentication];
 			if (*userCancelled) {
 				return nil;
 			}
@@ -1165,6 +1165,18 @@ static PowerAuthSDK * s_inst;
 - (void) authenticateUsingBiometryWithPrompt:(NSString *)prompt
 									callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
 {
+	[self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] callback:callback];
+}
+
+- (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
+							withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
+{
+	[self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] withBlock:block];
+}
+
+- (void) authenticateUsingBiometryImpl:(PowerAuthKeychainAuthentication *)keychainAuthentication
+							  callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
+{
 	[self checkForValidSetup];
 	// Check if activation is present
 	if (!_sessionInterface.hasValidActivation) {
@@ -1183,12 +1195,11 @@ static PowerAuthSDK * s_inst;
 		NSError * error;
 		// Acquire key to unlock biometric factor
 		BOOL userCancelled = NO;
-		NSData * biometryKey = [self biometryRelatedKeyUserCancelled:&userCancelled prompt:prompt];
+		NSData * biometryKey = [self biometryRelatedKeyUserCancelled:&userCancelled authentication:keychainAuthentication];
 		if (biometryKey) {
 			// The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
-			// with possession+biometry factors. The prompt is not needed for rhw future usage of this
-			// authentication object, but it could be useful for debugging purposes.
-			authentication = [PowerAuthAuthentication possessionWithBiometryWithPrompt:prompt];
+			// with possession+biometry factors.
+			authentication = [PowerAuthAuthentication possessionWithBiometry];
 			authentication.overridenBiometryKey = biometryKey;
 			error = nil;
 		} else {
@@ -1201,17 +1212,16 @@ static PowerAuthSDK * s_inst;
 			callback(authentication, error);
 		});
 	});
-
 }
 
-- (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
-							withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
+- (void) unlockBiometryKeysImpl:(PowerAuthKeychainAuthentication*)keychainAuthentication
+					  withBlock:(void(^)(NSDictionary<NSString*, NSData*> *keys, BOOL userCanceled))block
 {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		__block OSStatus status;
 		__block NSDictionary *keys;
 		BOOL executed = [PowerAuthKeychain tryLockBiometryAndExecuteBlock:^{
-			keys = [_biometryOnlyKeychain allItemsWithPrompt:prompt withStatus:&status];
+			keys = [_biometryOnlyKeychain allItemsWithAuthentication:keychainAuthentication withStatus:&status];
 		}];
 		BOOL userCanceled = !executed || (status == errSecUserCanceled);
 		block(keys, userCanceled);
@@ -1502,3 +1512,25 @@ static PowerAuthSDK * s_inst;
 }
 
 @end
+
+#pragma mark - LAContext support
+
+#if PA2_HAS_LACONTEXT == 1
+
+@implementation PowerAuthSDK (LAContext)
+
+- (void) authenticateUsingBiometryWithContext:(LAContext *)context
+									 callback:(void (^)(PowerAuthAuthentication *, NSError *))callback
+{
+	[self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] callback:callback];
+}
+
+- (void) unlockBiometryKeysWithContext:(LAContext *)context
+							 withBlock:(void (^)(NSDictionary<NSString *,NSData *> *, BOOL))block
+{
+	[self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] withBlock:block];
+}
+
+@end
+
+#endif

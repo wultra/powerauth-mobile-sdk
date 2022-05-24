@@ -525,10 +525,7 @@ When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) 
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
-auth.usePassword   = "1234"
-auth.useBiometry   = false
+let auth = PowerAuthAuthentication.possession(withPassword: "1234")
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 do {
@@ -544,10 +541,7 @@ When signing `GET` requests, use the same code as above with normalized request 
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
-auth.usePassword   = "1234"
-auth.useBiometry   = false
+let auth = PowerAuthAuthentication.possession(withPassword: "1234")
 
 // Sign GET call with provided query parameters made to URI with custom identifier "/payment/create"
 let params = [
@@ -862,6 +856,37 @@ Once the configuration above is used, then `linkBiometricItemsToCurrentSet` opti
 <!-- begin box warning -->
 It's not recommended to allow fallback to device passcode if your application falls under EU banking regulations or your application needs to distinguish between the biometric and the knowledge-factor based signatures. This is due to the fact that if the biometry factor-related key is unlocked with the device's passcode, then it's no longer a biometric signature.
 <!-- end -->
+
+### LAContext support
+
+In case you require advanced customization to system biometric dialog, then you can use your own `LAContext` instance set to `PowerAuthAuthentication` or in some functions. For example:
+
+```swift
+// Prepare LAContext
+let laContext = LAContext()
+laContext.localizedReason = "Authenticate to remove activation"
+
+// Prepare PowerAuthAuthentication with context
+let authentication = PowerAuthAuthentication.possessionWithBiometry(withContext: laContext)
+// Now you can use authentication in some functions...
+PowerAuthSDK.sharedInstance().removeActivation(with: authentication) { error in
+    // ...
+}
+
+// Fetch biometry key in advance, with using LAContext
+PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: laContext) { authentication, error in
+    if let authentication = authentication {
+        // success
+    }
+}
+```
+
+The usage of `LAContext` has the following limitations:
+
+- It's effective from iOS 11 because on the older operating systems the context doesn't support essential properties, such as `localizedReason`.
+- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects such an operation.
+- It's not supported on tvOS platform.
+
 
 ## Activation Removal
 

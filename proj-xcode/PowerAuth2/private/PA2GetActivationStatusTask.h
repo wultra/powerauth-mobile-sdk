@@ -34,8 +34,7 @@
 
  @param httpClient HTTP client for communicating with the server
  @param deviceRelatedKey key for unlocking possession factor
- @param session PowerAuthCoreSession object providing low level protocol tasks
- @param sessionChange closure called, when the state of PowerAuthCoreSession needs to be serialized.
+ @param sessionProvider PowerAuthCoreSession provider.
  @param completion closure called at the end of operation
  @return initialized object
  */

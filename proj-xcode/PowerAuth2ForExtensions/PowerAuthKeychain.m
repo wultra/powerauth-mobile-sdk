@@ -132,7 +132,7 @@
 	if (authentication) {
 		if (!_AddKeychainAuthentication(query, authentication)) {
 			if (status) {
-				*status = errSecBadReq;
+				*status = errSecUserCanceled;
 			}
 			return nil;
 		}
@@ -233,7 +233,7 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 	if (authentication) {
 		if (!_AddKeychainAuthentication(query, authentication)) {
 			if (status) {
-				*status = errSecBadReq;
+				*status = errSecUserCanceled;
 			}
 			return nil;
 		}

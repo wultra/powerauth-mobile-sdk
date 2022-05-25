@@ -884,8 +884,7 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: laContext) 
 The usage of `LAContext` has the following limitations:
 
 - It's effective from iOS 11 because on the older operating systems the context doesn't support essential properties, such as `localizedReason`.
-- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects such an operation.
-- It's not supported on tvOS platform.
+- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects the context and reports user cancel error.
 
 
 ## Activation Removal

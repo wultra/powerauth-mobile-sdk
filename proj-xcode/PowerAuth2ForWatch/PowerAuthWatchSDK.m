@@ -77,6 +77,11 @@
 	return [[PA2WatchSynchronizationService sharedInstance] activationIdForSessionInstanceId:_configuration.instanceId];
 }
 
+- (NSString*) activationIdentifier
+{
+    return [[PA2WatchSynchronizationService sharedInstance] activationIdForSessionInstanceId:_configuration.instanceId];
+}
+
 
 #pragma mark - PA2SessionStatusProvider implementation
 
@@ -92,7 +97,7 @@
 
 - (BOOL) hasValidActivation
 {
-	return self.activationId != nil;
+	return self.activationIdentifier != nil;
 }
 
 - (BOOL) hasPendingProtocolUpgrade

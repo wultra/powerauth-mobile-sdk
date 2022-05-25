@@ -65,4 +65,9 @@
  */
 - (BOOL) hasPendingProtocolUpgrade;
 
+/**
+ Read only property contains activation identifier or nil if object has no valid activation.
+ */
+@property (nonatomic, strong, nullable, readonly) NSString *activationIdentifier;
+
 @end

@@ -47,6 +47,7 @@
 	PA2PrivateTokenData * result = [[PA2PrivateTokenData alloc] init];
 	result.name		 			= PA2ObjectAs(dict[@"name"], NSString);
 	result.identifier			= PA2ObjectAs(dict[@"id"], NSString);
+	result.activationIdentifier = PA2ObjectAs(dict[@"aid"], NSString);
 	NSString * loadedB64Secret 	= PA2ObjectAs(dict[@"sec"], NSString);
 	NSData * loadedSecret 		= loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
 	if (loadedSecret) {
@@ -63,7 +64,11 @@
 		return nil;
 	}
 	NSString * b64secret = [_secret base64EncodedStringWithOptions:0];
-	return @{ @"name" : _name, @"id" : _identifier, @"sec": b64secret };
+	if (_activationIdentifier != nil) {
+		return @{ @"name" : _name, @"id" : _identifier, @"aid": _activationIdentifier, @"sec": b64secret };
+	} else {
+		return @{ @"name" : _name, @"id" : _identifier, @"sec": b64secret };
+	}
 }
 
 #if defined(DEBUG)
@@ -85,6 +90,7 @@
 	BOOL equal = [otherData.name isEqualToString:_name];
 	equal = equal && [otherData.identifier isEqualToString:_identifier];
 	equal = equal && [otherData.secret isEqualToData:_secret];
+	equal = equal && [otherData.activationIdentifier isEqualToString:_activationIdentifier];
 	return equal;
 }
 

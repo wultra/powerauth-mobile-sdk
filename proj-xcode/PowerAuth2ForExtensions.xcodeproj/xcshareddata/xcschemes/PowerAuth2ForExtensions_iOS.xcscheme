@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF1ED0872840ED3F00D6B380"
-               BuildableName = "PowerAuth2ForExtensionsTests.xctest"
+               BuildableName = "PowerAuth2ForExtensionsTests_ios.xctest"
                BlueprintName = "PowerAuth2ForExtensionsTests_ios"
                ReferencedContainer = "container:PowerAuth2ForExtensions.xcodeproj">
             </BuildableReference>

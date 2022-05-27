@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2ForWatch/PowerAuthAuthentication.h>
+#import <PowerAuth2ForWatch/PowerAuthKeychainAuthentication.h>
 
 @implementation PowerAuthAuthentication
 
@@ -31,18 +32,24 @@
 		copy->_biometryPrompt = _biometryPrompt;
 		copy->_overridenPossessionKey = _overridenPossessionKey;
 		copy->_overridenBiometryKey = _overridenBiometryKey;
+#if PA2_HAS_LACONTEXT == 1
+		copy->_biometryContext = _biometryContext;
+#endif
 	}
 	return copy;
 }
 
-- (void) setTouchIdPrompt:(NSString *)touchIdPrompt
+- (PowerAuthKeychainAuthentication*) keychainAuthentication
 {
-	_biometryPrompt = touchIdPrompt;
-}
-
-- (NSString*) biometryPrompt
-{
-	return _biometryPrompt;
+#if PA2_HAS_LACONTEXT == 1
+	if (_biometryContext) {
+		return [[PowerAuthKeychainAuthentication alloc] initWithContext:_biometryContext];
+	}
+#endif // PA2_HAS_LACONTEXT
+	if (_biometryPrompt) {
+		return [[PowerAuthKeychainAuthentication alloc] initWithPrompt:_biometryPrompt];
+	}
+	return nil;
 }
 
 #if DEBUG
@@ -63,6 +70,11 @@
 	if (_biometryPrompt) {
 		[info addObject:@"+prompt"];
 	}
+#if PA2_HAS_LACONTEXT == 1
+	if (_biometryContext) {
+		[info addObject:@"+context"];
+	}
+#endif
 	if (_overridenBiometryKey) {
 		[info addObject:@"+extBK"];
 	}
@@ -110,4 +122,16 @@
 	auth.usePassword = password;
 	return auth;
 }
+
+#if PA2_HAS_LACONTEXT == 1
++ (PowerAuthAuthentication*) possessionWithBiometryWithContext:(LAContext*)context
+{
+	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
+	auth.usePossession = YES;
+	auth.useBiometry = YES;
+	auth.biometryContext = context;
+	return auth;
+}
+#endif // PA2_HAS_LACONTEXT
+
 @end

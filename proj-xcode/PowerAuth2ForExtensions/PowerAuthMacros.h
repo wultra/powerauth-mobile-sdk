@@ -99,3 +99,11 @@
 #else
 	#define PA2_HAS_CORE_MODULE 0
 #endif
+
+// LAContext availability
+#if TARGET_OS_IOS == 1 || TARGET_OS_MACCATALYST == 1
+	#define PA2_HAS_LACONTEXT 1
+#else
+	#define PA2_HAS_LACONTEXT 0
+	#define LAContext NSObject
+#endif

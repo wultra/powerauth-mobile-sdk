@@ -27,9 +27,6 @@
  @param identifier Identifier that identify region of shared memory between multiple applications.
  @param requestedSize Requested size of shared memory.
  @param setupBlock Block called only when this process just created the shared memory region for the first time.
- @param memory Pointer to allocated memory.
- @param size Size of allocated memory.
- @param crated YES if shared memory region is newly created.
  @return `PA2SharedMemory` instance or `nil` in case of failure.
  */
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier

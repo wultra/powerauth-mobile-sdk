@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2ForExtensions/PowerAuthKeychainConfiguration.h>
+#import <PowerAuth2ForExtensions/PowerAuthKeychainAuthentication.h>
 
 /**
  Enum encapsulating possible Keychain query result.
@@ -157,18 +158,6 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 									   forKey:(nonnull NSString*)key;
 
 /**
- Store data for given key in the Keychain asynchronously, return the result in a callback. If a value for given key exists,
- 'PowerAuthKeychainStoreItemResult_Duplicate' is returned.
- 
- @param data Secret data to be stored.
- @param key Key to use for data storage.
- @param completion Callback with the operation result.
- */
-- (void) addValue:(nonnull NSData*)data
-		   forKey:(nonnull NSString*)key
-	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion;
-
-/**
  Store data for given key in the Keychain synchronously.
 
  If a value for given key exists, 'PowerAuthKeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
@@ -185,23 +174,6 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 									   access:(PowerAuthKeychainItemAccess)access;
 
 /**
- Store data for given key in the Keychain asynchronously, return the result in a callback.
- 
- If a value for given key exists, 'PowerAuthKeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
- protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
- this method returns 'PowerAuthKeychainStoreItemResult_BiometryNotAvailable' response code.
- 
- @param data Secret data to be stored.
- @param key Key to use for data storage.
- @param access Restrict access to the item.
- @param completion Callback with the operation result.
- */
-- (void) addValue:(nonnull NSData*)data
-		   forKey:(nonnull NSString*)key
-		   access:(PowerAuthKeychainItemAccess)access
-	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion;
-
-/**
  Updates data for given key in the Keychain synchronously. If a value for given key does not exist, 'PowerAuthKeychainStoreItemResult_NotFound' is returned.
  
  @param data Secret data to be stored.
@@ -211,32 +183,12 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 - (PowerAuthKeychainStoreItemResult) updateValue:(nonnull NSData*)data
 										  forKey:(nonnull NSString*)key;
 
-/**
- Updates data for given key in the Keychain asynchronously, returns the result in a callback. If a value for given key does not exist,
- 'PowerAuthKeychainStoreItemResult_NotFound' is returned.
- 
- @param data Secret data to be stored.
- @param key Key to use for data storage.
- @param completion Callback with the operation result.
- */
-- (void) updateValue:(nonnull NSData*)data
-			  forKey:(nonnull NSString*)key
-		  completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion;
-
 /** Removes a record with a specified key synchronously.
  
  @param key Key of the record to be deleted.
  @returns Returns YES if an item was deleted, NO otherwise.
  */
 - (BOOL) deleteDataForKey:(nonnull NSString*)key;
-
-/** Removes a record with a specified key asynchronously, returns the result in a callback.
- 
- @param key Key of the record to be deleted.
- @param completion Callback with the operation result - YES if the record was deleted, NO otherwise.
- */
-- (void) deleteDataForKey:(nonnull NSString*)key
-			   completion:(nonnull void(^)(BOOL deleted))completion;
 
 /**
  Delete all data that are stored for all keychains.
@@ -249,16 +201,16 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 - (void) deleteAllData;
 
 /**
- Retrieve the data for given key in the Keychain synchronously, in case record requires Touch ID, use given prompt in the dialog.
+ Retrieve the data for given key in the Keychain synchronously, in case record requires biometry, use given authentication object.
  
  @param key Key for which to retrieve the value.
  @param status Status that was returned when obtaining keychain item.
- @param prompt Prompt displayed to user when requesting record with Touch ID.
+ @param authentication Keychain authentication in case that keychain item is protected with biometry.
  @return Data for given key, or 'nil' in case no data are present or when an error occurred.
  */
 - (nullable NSData*) dataForKey:(nonnull NSString *)key
 						 status:(nullable OSStatus *)status
-						 prompt:(nullable NSString*)prompt;
+				 authentication:(nullable PowerAuthKeychainAuthentication*)authentication;
 
 /**
  Retrieve the data for given key in the Keychain synchronously.
@@ -271,41 +223,12 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
 						 status:(nullable OSStatus *)status;
 
 /**
- Retrieve the data for given key in the Keychain asynchronously, return result in a callbacl.
- 
- @param key Key for which to retrieve the value.
- @param prompt Prompt displayed to user when requesting record protected with biometry.
- @param completion Callback with the retrieved data.
- */
-- (void) dataForKey:(nonnull NSString*)key
-			 prompt:(nullable NSString*)prompt
-		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion;
-
-/**
- Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
- 
- @param key Key for which to retrieve the value.
- @param completion Callback with the retrieved data.
- */
-- (void) dataForKey:(nonnull NSString*)key
-		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion;
-
-/**
  Checks if a value exists for given key in Keychain synchronously.
  
  @param key Key for which to check the value presence.
  @return Returns YES in case record for given key was found, NO otherwise.
  */
 - (BOOL) containsDataForKey:(nonnull NSString*)key;
-
-/**
- Checks if a value exists for given key in Keychain asynchronously, return result in a callback.
- 
- @param key Key for which to check the value presence.
- @param completion Callback with the information about value presence.
- */
-- (void) containsDataForKey:(nonnull NSString*)key
-				 completion:(nonnull void(^)(BOOL containsValue))completion;
 
 /**
  Return all items that are stored in this Keychain.
@@ -323,14 +246,13 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  If some of the items are protected by Touch or Face ID, then biometric authentication is required and prompt message
  specified as a parameter is used.
 
- @param prompt Prompt displayed in case that Touch ID authentication is required.
+ @param authentication Keychain authentication in case that items are protected with biometry.
  @param status Status that was returned when obtaining keychain item.
  @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
-         operation is cancelled or any error occurs.
+		 operation is cancelled or any error occurs.
  */
-- (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt
-								   withStatus:(nullable OSStatus *)status;
-
+- (nullable NSDictionary*) allItemsWithAuthentication:(nullable PowerAuthKeychainAuthentication*)authentication
+										   withStatus:(nullable OSStatus *)status;
 /**
  Convenience static property that checks if Touch ID or Face ID can be used on the current system.
  
@@ -371,5 +293,133 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return YES in case that the provided block has been executed, otherwise NO
  */
 + (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block;
+
+@end
+
+
+// MARK: - Deprecated
+
+@interface PowerAuthKeychain (Deprecated)
+/**
+ Store data for given key in the Keychain asynchronously, return the result in a callback. If a value for given key exists,
+ 'PowerAuthKeychainStoreItemResult_Duplicate' is returned.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param data Secret data to be stored.
+ @param key Key to use for data storage.
+ @param completion Callback with the operation result.
+ */
+- (void) addValue:(nonnull NSData*)data
+		   forKey:(nonnull NSString*)key
+	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Store data for given key in the Keychain asynchronously, return the result in a callback.
+ 
+ If a value for given key exists, 'PowerAuthKeychainStoreItemResult_Duplicate' is returned. This method let's you optionally
+ protect the record with biometry on iOS 9.0 and newer. When iOS version is lower than 9.0 and biometry is requested,
+ this method returns 'PowerAuthKeychainStoreItemResult_BiometryNotAvailable' response code.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param data Secret data to be stored.
+ @param key Key to use for data storage.
+ @param access Restrict access to the item.
+ @param completion Callback with the operation result.
+ */
+- (void) addValue:(nonnull NSData*)data
+		   forKey:(nonnull NSString*)key
+		   access:(PowerAuthKeychainItemAccess)access
+	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Updates data for given key in the Keychain asynchronously, returns the result in a callback. If a value for given key does not exist,
+ 'PowerAuthKeychainStoreItemResult_NotFound' is returned.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param data Secret data to be stored.
+ @param key Key to use for data storage.
+ @param completion Callback with the operation result.
+ */
+- (void) updateValue:(nonnull NSData*)data
+			  forKey:(nonnull NSString*)key
+		  completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+
+/** Removes a record with a specified key asynchronously, returns the result in a callback.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param key Key of the record to be deleted.
+ @param completion Callback with the operation result - YES if the record was deleted, NO otherwise.
+ */
+- (void) deleteDataForKey:(nonnull NSString*)key
+			   completion:(nonnull void(^)(BOOL deleted))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Retrieve the data for given key in the Keychain synchronously, in case record requires Touch ID, use given prompt in the dialog.
+ 
+ This method is deprecated and you can use variant with PowerAuthKeychainAuthentication as a replacement.
+ 
+ @param key Key for which to retrieve the value.
+ @param status Status that was returned when obtaining keychain item.
+ @param prompt Prompt displayed to user when requesting record with Touch ID.
+ @return Data for given key, or 'nil' in case no data are present or when an error occurred.
+ */
+- (nullable NSData*) dataForKey:(nonnull NSString *)key
+						 status:(nullable OSStatus *)status
+						 prompt:(nullable NSString*)prompt PA2_DEPRECATED(1.7.0);
+
+/**
+ Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param key Key for which to retrieve the value.
+ @param prompt Prompt displayed to user when requesting record protected with biometry.
+ @param completion Callback with the retrieved data.
+ */
+- (void) dataForKey:(nonnull NSString*)key
+			 prompt:(nullable NSString*)prompt
+		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param key Key for which to retrieve the value.
+ @param completion Callback with the retrieved data.
+ */
+- (void) dataForKey:(nonnull NSString*)key
+		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Checks if a value exists for given key in Keychain asynchronously, return result in a callback.
+ 
+ This method is deprecated, please use synchronous variant as a replacement.
+ 
+ @param key Key for which to check the value presence.
+ @param completion Callback with the information about value presence.
+ */
+- (void) containsDataForKey:(nonnull NSString*)key
+				 completion:(nonnull void(^)(BOOL containsValue))completion PA2_DEPRECATED(1.7.0);
+
+/**
+ Return all items that are stored in this Keychain.
+
+ If some of the items are protected by Touch or Face ID, then biometric authentication is required and prompt message
+ specified as a parameter is used.
+ 
+ This method is deprecated and you can use variant with PowerAuthKeychainAuthentication as a replacement.
+
+ @param prompt Prompt displayed in case that Touch ID authentication is required.
+ @param status Status that was returned when obtaining keychain item.
+ @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
+		 operation is cancelled or any error occurs.
+ */
+- (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt
+								   withStatus:(nullable OSStatus *)status PA2_DEPRECATED(1.7.0);
 
 @end

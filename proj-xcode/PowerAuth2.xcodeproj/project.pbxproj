@@ -37,6 +37,10 @@
 		BF1EC6D0223BD3BB00883236 /* PA2CreateActivationRecoveryData.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6CE223BD3BB00883236 /* PA2CreateActivationRecoveryData.m */; };
 		BF1EC6D7223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1EC6D5223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.h */; };
 		BF1EC6D8223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6D6223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.m */; };
+		BF1ED06E283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED06C283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF1ED06F283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED06C283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BF1ED070283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED06D283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m */; };
+		BF1ED071283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED06D283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m */; };
 		BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */; };
 		BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */; };
 		BF28A9FC27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
@@ -587,6 +591,8 @@
 		BF1EC6CE223BD3BB00883236 /* PA2CreateActivationRecoveryData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2CreateActivationRecoveryData.m; sourceTree = "<group>"; };
 		BF1EC6D5223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ConfirmRecoveryCodeRequest.h; sourceTree = "<group>"; };
 		BF1EC6D6223BDF5500883236 /* PA2ConfirmRecoveryCodeRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ConfirmRecoveryCodeRequest.m; sourceTree = "<group>"; };
+		BF1ED06C283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthKeychainAuthentication.h; sourceTree = "<group>"; };
+		BF1ED06D283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthKeychainAuthentication.m; sourceTree = "<group>"; };
 		BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateEncryptorFactory.h; sourceTree = "<group>"; };
 		BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateEncryptorFactory.m; sourceTree = "<group>"; };
 		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
@@ -998,6 +1004,8 @@
 		BF0824BE26304C5500B34E24 /* keychain */ = {
 			isa = PBXGroup;
 			children = (
+				BF1ED06C283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h */,
+				BF1ED06D283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m */,
 				BF5A236C1FE0030A00B78DE2 /* PowerAuthKeychainConfiguration.h */,
 				BF5A236D1FE0030A00B78DE2 /* PowerAuthKeychainConfiguration.m */,
 				1B6F00011D6DA99C00EC1C5A /* PowerAuthKeychain.h */,
@@ -1413,6 +1421,7 @@
 				BF28AA1827EB1EDE00FBFCEB /* PA2SessionDataProvider.h in Headers */,
 				BF5EB52D24C85FE200F9DDB2 /* PA2VaultUnlockRequest.h in Headers */,
 				BF5EB52E24C85FE200F9DDB2 /* PA2GetActivationStatusTask.h in Headers */,
+				BF1ED06F283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h in Headers */,
 				BF5EB52F24C85FE200F9DDB2 /* PA2CreateActivationResponse.h in Headers */,
 				BF08254B2631607C00B34E24 /* PowerAuthActivationStatus.h in Headers */,
 				BFC192A227FC8C3F001455C1 /* PA2SessionInterface.h in Headers */,
@@ -1503,6 +1512,7 @@
 				BF6B39EB27F312D100BDF579 /* PA2SharedMemory.h in Headers */,
 				BF8CF5032032EB41002A6B6E /* PowerAuthWCSessionManager+Private.h in Headers */,
 				BF1EC6CF223BD3BB00883236 /* PA2CreateActivationRecoveryData.h in Headers */,
+				BF1ED06E283CEB2700D6B380 /* PowerAuthKeychainAuthentication.h in Headers */,
 				BFC192A127FC8C3F001455C1 /* PA2SessionInterface.h in Headers */,
 				BF5344672163D104003C201C /* PA2Error+Decodable.h in Headers */,
 				BF31607527E895DD00EDA287 /* PA2SharedLock.h in Headers */,
@@ -1911,6 +1921,7 @@
 				BF5EB4B424C85FE200F9DDB2 /* PA2ObjectSerialization.m in Sources */,
 				BF5EB4B524C85FE200F9DDB2 /* PA2CreateActivationRequestData.m in Sources */,
 				BF08254D2631607C00B34E24 /* PowerAuthActivationStatus.m in Sources */,
+				BF1ED071283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m in Sources */,
 				BF5EB4B624C85FE200F9DDB2 /* PA2Request.m in Sources */,
 				BF5EB4B724C85FE200F9DDB2 /* PA2VaultUnlockResponse.m in Sources */,
 				BF5EB4B824C85FE200F9DDB2 /* PA2PrivateTokenData.m in Sources */,
@@ -2062,6 +2073,7 @@
 				BF4017F92636CC3D00C1E65C /* PA2PrivateMacros.m in Sources */,
 				BF585FC6215BC12D00DE49C3 /* PA2ObjectSerialization.m in Sources */,
 				BF08256E2631670D00B34E24 /* PowerAuthActivationResult.m in Sources */,
+				BF1ED070283CEB2700D6B380 /* PowerAuthKeychainAuthentication.m in Sources */,
 				BFFB0B9E2167A541004A06E2 /* PA2CreateActivationRequestData.m in Sources */,
 				BF8CF4962032EB41002A6B6E /* PA2Request.m in Sources */,
 				BF8CF4982032EB41002A6B6E /* PA2VaultUnlockResponse.m in Sources */,
@@ -2198,6 +2210,7 @@
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -2263,6 +2276,7 @@
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
@@ -2353,7 +2367,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
@@ -2385,7 +2398,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
@@ -2550,7 +2562,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -2583,7 +2594,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -2619,7 +2629,6 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
@@ -2658,7 +2667,6 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
@@ -2696,7 +2704,6 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;
@@ -2732,7 +2739,6 @@
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_STYLE = Automatic;

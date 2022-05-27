@@ -38,7 +38,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - `PowerAuthSDK` no longer provide `session` property. If you still need access to low-level `PowerAuthCoreSession`, then use `sessionProvider` as a replacement. The property contains object implementing new `PowerAuthCoreSessionProvider` protocol.
 - `PowerAuthCoreSession.prepareKeyValueDictionaryForDataSigning()` is now static method.
 - `PowerAuthCoreSession.generateActivationStatusChallenge()` is now static method.
-
+- All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
+- All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
     
 ### Other changes
 
@@ -50,7 +51,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### API changes
 
-- TBA
+- All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
+- All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
 
 ## watchOS
 
@@ -58,4 +60,6 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### API changes
 
+- All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
+- All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
 - `PowerAuthWatchSDK.activationId` property is now deprecated. Please use `activationIdentifier` as a replacement.

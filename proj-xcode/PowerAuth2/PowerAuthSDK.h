@@ -398,12 +398,31 @@
 - (void) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
 									callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback;
 
+/** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
+ 
+ The method is useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+  
+ Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
+ 
+ @param context A local authentication context that can affect a biometry authentication dialog.
+ @param callback A callback with result, always executed on the main thread.
+ */
+- (void) authenticateUsingBiometryWithContext:(nonnull LAContext *)context
+									 callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback API_UNAVAILABLE(tvos);
+
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
  There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
 - (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt
 							withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block;
+
+/** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
+ 
+ There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
+ */
+- (void) unlockBiometryKeysWithContext:(nonnull LAContext*)context
+							 withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block API_UNAVAILABLE(tvos);
 
 /** Generate an derived encryption key with given index.
  

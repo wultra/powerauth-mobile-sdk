@@ -1295,24 +1295,23 @@ public class PowerAuthSDK {
      * <b>NOTE:</b> This method is useful for situations, where the application has multiple SDK instances activated at the same time and
      * you need to manage a lifetime of shared biometry key.
      *
-     * @param context                   Context, may be null if removeSharedBiometryKey is false.
+     * @param context                   Android context.
      * @param removeSharedBiometryKey   If set to true, then also shared biometry key will be removed.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    public void removeActivationLocal(@Nullable Context context, boolean removeSharedBiometryKey) {
+    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
 
         checkForValidSetup();
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (removeSharedBiometryKey && mSession.hasBiometryFactor() && context != null) {
+            if (removeSharedBiometryKey && mSession.hasBiometryFactor()) {
                 mBiometryKeychain.remove(mKeychainConfiguration.getKeychainBiometryDefaultKey());
             }
             BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor();
         }
         // Remove all tokens from token store
-        if (context != null) {
-            this.getTokenStore().removeAllLocalTokens(context);
-        }
+        getTokenStore().removeAllLocalTokens(context);
+
         // Reset C++ session
         mSession.resetSession();
         // Serialize will notify state listener

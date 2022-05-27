@@ -23,6 +23,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - Interface `IFetchKeysStrategy` is now deprecated and will be removed in the next major SDK release.
   - There's `IPossessionFactorEncryptionKeyProvider` that SDK is using internally as a replacement. If your application depends on `IFetchKeysStrategy`, then please contact us to find a proper solution for you.
 
+- Method `PowerAuthSDK.removeActivationLocal(Context, boolean)` has no longer the context parameter optional, so the Context has to be always provided.
+
 ### Other changes
 
 - `BiometricAuthentication.isBiometricAuthenticationAvailable()` now better reflect the biometric authentication availability. The function is now internally implemented as `BiometricAuthentication.canAuthenticate() == BiometricStatus.OK`.
@@ -56,4 +58,4 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### API changes
 
-- TBA
+- `PowerAuthWatchSDK.activationId` property is now deprecated. Please use `activationIdentifier` as a replacement.

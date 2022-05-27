@@ -38,6 +38,7 @@ import io.getlime.security.powerauth.networking.model.request.TokenRemoveRequest
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The {@code PowerAuthTokenStore} provides interface for managing access tokens.
@@ -96,6 +97,21 @@ public class PowerAuthTokenStore {
      */
     public synchronized boolean canRequestForAccessToken() {
         return sdk != null && sdk.hasValidActivation();
+    }
+
+    /**
+     * Internal method that determine whether it's possible to generate header from private token data.
+     * @param privateTokenData Private token's data.
+     * @return {@code true} if it's possible to generate header from private token data.
+     */
+    synchronized  boolean canGenerateHeaderForToken(@NonNull PowerAuthPrivateTokenData privateTokenData) {
+        if (sdk != null) {
+            final String activationId = sdk.getActivationIdentifier();
+            if (sdk.hasValidActivation() && activationId != null) {
+                return activationId.equals(privateTokenData.activationId);
+            }
+        }
+        return false;
     }
 
     /**
@@ -159,7 +175,7 @@ public class PowerAuthTokenStore {
                     public void onNetworkResponse(@NonNull TokenResponsePayload response) {
                         // Success, try to construct a new PowerAuthPrivateTokenData object.
                         final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
-                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes);
+                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, sdk.getActivationIdentifier());
                         if (newTokenData.hasValidData()) {
                             // Store token data & report to listener
                             storeTokenData(context, newTokenData);
@@ -284,7 +300,17 @@ public class PowerAuthTokenStore {
      * @param tokenName token to be removed
      */
     public synchronized void removeLocalToken(@NonNull final Context context, @NonNull String tokenName) {
-        String identifier = this.getLocalIdentifier(tokenName);
+        removeLocalTokenImpl(context, getLocalIdentifier(tokenName));
+    }
+
+    /**
+     * Remove token from the local database. This method must be called from another synchronized method.
+     *
+     * @param context Context
+     * @param identifier Token's identifier
+     */
+    private void removeLocalTokenImpl(@NonNull Context context, @NonNull String identifier) {
+        // Remove token from keychain and local cache
         this.localTokens.remove(identifier);
         this.keychain.remove(identifier);
         // Update index
@@ -313,15 +339,30 @@ public class PowerAuthTokenStore {
      * @return Private data object or null if token doesn't exist in local database.
      */
     private @Nullable PowerAuthPrivateTokenData getTokenData(@NonNull final Context context, @NonNull String tokenName) {
-        // Note, must be called from another synchronized method...
-        String identifier = this.getLocalIdentifier(tokenName);
+        // Note, must be called from another synchronized method.
+        final String activationId = sdk.getActivationIdentifier();
+        final String identifier = this.getLocalIdentifier(tokenName);
         PowerAuthPrivateTokenData tokenData = this.localTokens.get(identifier);
         if (tokenData == null) {
             byte[] tokenBytes = this.keychain.getData(identifier);
             if (tokenBytes != null) {
                 tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
                 if (tokenData != null) {
+                    if (tokenData.activationId == null) {
+                        // Old data format, so we have to add an activationId and re-save
+                        PowerAuthLog.d("PowerAuthTokenStore: Upgrading data for token '" + tokenName + "'");
+                        tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, activationId);
+                        storeTokenData(context, tokenData);
+                    }
                     this.localTokens.put(identifier, tokenData);
+                }
+            }
+        } else {
+            // Validate whether activation identifier is still the same.
+            if (tokenData.activationId != null && activationId != null) {
+                if (!tokenData.activationId.equals(activationId)) {
+                    PowerAuthLog.e("KeychainTokenStore: WARNING: Token '" + tokenName + "' is no longer valid.");
+                    removeLocalTokenImpl(context, identifier);
                 }
             }
         }

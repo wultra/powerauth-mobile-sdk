@@ -100,7 +100,7 @@ public class PowerAuthToken {
      * @return true if token can generate a new header
      */
     public boolean canGenerateHeader() {
-        return tokenStore.canRequestForAccessToken();
+        return tokenStore.canGenerateHeaderForToken(tokenData);
     }
 
     /**
@@ -112,7 +112,7 @@ public class PowerAuthToken {
     public @NonNull PowerAuthAuthorizationHttpHeader generateHeader() {
         @PowerAuthErrorCodes int errorCode;
         if (this.isValid()) {
-            if (tokenStore.canRequestForAccessToken()) {
+            if (tokenStore.canGenerateHeaderForToken(tokenData)) {
                 String headerValue = TokenCalculator.calculateTokenValue(tokenData);
                 if (headerValue != null) {
                     return PowerAuthAuthorizationHttpHeader.createTokenHeader(headerValue);

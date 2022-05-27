@@ -163,7 +163,9 @@ public class PowerAuthTokenStore {
             });
             return null;
         }
-
+        // Prepare activationID in advance, to do not store null when activation is suddenly
+        // removed during the operation.
+        final String activationIdentifier = sdk.getActivationIdentifier();
         // Execute HTTP request
         return httpClient.post(
                 null,
@@ -175,7 +177,7 @@ public class PowerAuthTokenStore {
                     public void onNetworkResponse(@NonNull TokenResponsePayload response) {
                         // Success, try to construct a new PowerAuthPrivateTokenData object.
                         final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
-                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, sdk.getActivationIdentifier());
+                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier);
                         if (newTokenData.hasValidData()) {
                             // Store token data & report to listener
                             storeTokenData(context, newTokenData);

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1ED08B2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED08A2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m */; };
+		BF1ED08C2840ED3F00D6B380 /* PowerAuth2ForExtensions.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF44F272263C3B0F00F3D498 /* PowerAuth2ForExtensions.framework */; };
+		BF1ED0962840F44200D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED08A2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m */; };
+		BF1ED0A12840F4B900D6B380 /* PowerAuth2ForExtensions.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF44F309263C403600F3D498 /* PowerAuth2ForExtensions.framework */; };
 		BF44F277263C3B0F00F3D498 /* PowerAuth2ForExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F28C263C3BF400F3D498 /* PA2SessionStatusDataReader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F281263C3BF400F3D498 /* PA2SessionStatusDataReader.m */; };
 		BF44F28D263C3BF400F3D498 /* PA2PrivateConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F282263C3BF400F3D498 /* PA2PrivateConstants.h */; };
@@ -91,7 +95,27 @@
 		BFC1929F27FC69A4001455C1 /* PowerAuthSharingConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC1929B27FC69A4001455C1 /* PowerAuthSharingConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BF1ED08D2840ED3F00D6B380 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF44F269263C3B0F00F3D498 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF44F271263C3B0F00F3D498;
+			remoteInfo = PowerAuth2ForExtensions_ios;
+		};
+		BF1ED09E2840F4AC00D6B380 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF44F269263C3B0F00F3D498 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF44F2DD263C403600F3D498;
+			remoteInfo = PowerAuth2ForExtensions_tvos;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		BF1ED0882840ED3F00D6B380 /* PowerAuth2ForExtensionsTests_ios.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PowerAuth2ForExtensionsTests_ios.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF1ED08A2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuth2ForExtensionsTests.m; sourceTree = "<group>"; };
+		BF1ED09D2840F44200D6B380 /* PowerAuth2ForExtensionsTests_tvos.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PowerAuth2ForExtensionsTests_tvos.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F272263C3B0F00F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuth2ForExtensions.h; sourceTree = "<group>"; };
 		BF44F276263C3B0F00F3D498 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -140,6 +164,22 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BF1ED0852840ED3F00D6B380 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF1ED08C2840ED3F00D6B380 /* PowerAuth2ForExtensions.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF1ED0972840F44200D6B380 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF1ED0A12840F4B900D6B380 /* PowerAuth2ForExtensions.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF44F26F263C3B0F00F3D498 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -157,11 +197,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BF1ED0892840ED3F00D6B380 /* PowerAuth2ForExtensionsTests */ = {
+			isa = PBXGroup;
+			children = (
+				BF1ED08A2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m */,
+			);
+			path = PowerAuth2ForExtensionsTests;
+			sourceTree = "<group>";
+		};
+		BF1ED0A02840F4B900D6B380 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BF44F268263C3B0F00F3D498 = {
 			isa = PBXGroup;
 			children = (
 				BF44F274263C3B0F00F3D498 /* PowerAuth2ForExtensions */,
+				BF1ED0892840ED3F00D6B380 /* PowerAuth2ForExtensionsTests */,
 				BF44F273263C3B0F00F3D498 /* Products */,
+				BF1ED0A02840F4B900D6B380 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -170,6 +227,8 @@
 			children = (
 				BF44F272263C3B0F00F3D498 /* PowerAuth2ForExtensions.framework */,
 				BF44F309263C403600F3D498 /* PowerAuth2ForExtensions.framework */,
+				BF1ED0882840ED3F00D6B380 /* PowerAuth2ForExtensionsTests_ios.xctest */,
+				BF1ED09D2840F44200D6B380 /* PowerAuth2ForExtensionsTests_tvos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -324,6 +383,42 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		BF1ED0872840ED3F00D6B380 /* PowerAuth2ForExtensionsTests_ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF1ED0912840ED3F00D6B380 /* Build configuration list for PBXNativeTarget "PowerAuth2ForExtensionsTests_ios" */;
+			buildPhases = (
+				BF1ED0842840ED3F00D6B380 /* Sources */,
+				BF1ED0852840ED3F00D6B380 /* Frameworks */,
+				BF1ED0862840ED3F00D6B380 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF1ED08E2840ED3F00D6B380 /* PBXTargetDependency */,
+			);
+			name = PowerAuth2ForExtensionsTests_ios;
+			productName = PowerAuth2ForExtensionsTests;
+			productReference = BF1ED0882840ED3F00D6B380 /* PowerAuth2ForExtensionsTests_ios.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BF1ED0922840F44200D6B380 /* PowerAuth2ForExtensionsTests_tvos */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF1ED09A2840F44200D6B380 /* Build configuration list for PBXNativeTarget "PowerAuth2ForExtensionsTests_tvos" */;
+			buildPhases = (
+				BF1ED0952840F44200D6B380 /* Sources */,
+				BF1ED0972840F44200D6B380 /* Frameworks */,
+				BF1ED0992840F44200D6B380 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF1ED09F2840F4AC00D6B380 /* PBXTargetDependency */,
+			);
+			name = PowerAuth2ForExtensionsTests_tvos;
+			productName = PowerAuth2ForExtensionsTests;
+			productReference = BF1ED09D2840F44200D6B380 /* PowerAuth2ForExtensionsTests_tvos.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		BF44F271263C3B0F00F3D498 /* PowerAuth2ForExtensions_ios */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BF44F27A263C3B0F00F3D498 /* Build configuration list for PBXNativeTarget "PowerAuth2ForExtensions_ios" */;
@@ -368,6 +463,9 @@
 			attributes = {
 				LastUpgradeCheck = 1320;
 				TargetAttributes = {
+					BF1ED0872840ED3F00D6B380 = {
+						CreatedOnToolsVersion = 13.2.1;
+					};
 					BF44F271263C3B0F00F3D498 = {
 						CreatedOnToolsVersion = 12.4;
 					};
@@ -388,11 +486,27 @@
 			targets = (
 				BF44F271263C3B0F00F3D498 /* PowerAuth2ForExtensions_ios */,
 				BF44F2DD263C403600F3D498 /* PowerAuth2ForExtensions_tvos */,
+				BF1ED0872840ED3F00D6B380 /* PowerAuth2ForExtensionsTests_ios */,
+				BF1ED0922840F44200D6B380 /* PowerAuth2ForExtensionsTests_tvos */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BF1ED0862840ED3F00D6B380 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF1ED0992840F44200D6B380 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF44F270263C3B0F00F3D498 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -410,6 +524,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BF1ED0842840ED3F00D6B380 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF1ED08B2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF1ED0952840F44200D6B380 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF1ED0962840F44200D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BF44F26E263C3B0F00F3D498 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -460,7 +590,82 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		BF1ED08E2840ED3F00D6B380 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF44F271263C3B0F00F3D498 /* PowerAuth2ForExtensions_ios */;
+			targetProxy = BF1ED08D2840ED3F00D6B380 /* PBXContainerItemProxy */;
+		};
+		BF1ED09F2840F4AC00D6B380 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF44F2DD263C403600F3D498 /* PowerAuth2ForExtensions_tvos */;
+			targetProxy = BF1ED09E2840F4AC00D6B380 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		BF1ED08F2840ED3F00D6B380 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuth2ForExtensionsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		BF1ED0902840ED3F00D6B380 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuth2ForExtensionsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
+		BF1ED09B2840F44200D6B380 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuth2ForExtensionsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		BF1ED09C2840F44200D6B380 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = KTT9G859MR;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wultra.lib.PowerAuth2ForExtensionsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
 		BF44F278263C3B0F00F3D498 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -700,6 +905,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BF1ED0912840ED3F00D6B380 /* Build configuration list for PBXNativeTarget "PowerAuth2ForExtensionsTests_ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF1ED08F2840ED3F00D6B380 /* Debug */,
+				BF1ED0902840ED3F00D6B380 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BF1ED09A2840F44200D6B380 /* Build configuration list for PBXNativeTarget "PowerAuth2ForExtensionsTests_tvos" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF1ED09B2840F44200D6B380 /* Debug */,
+				BF1ED09C2840F44200D6B380 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BF44F26C263C3B0F00F3D498 /* Build configuration list for PBXProject "PowerAuth2ForExtensions" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

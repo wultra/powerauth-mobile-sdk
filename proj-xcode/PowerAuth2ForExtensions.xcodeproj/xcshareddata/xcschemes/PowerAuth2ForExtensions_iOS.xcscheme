@@ -28,6 +28,16 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BF1ED0872840ED3F00D6B380"
+               BuildableName = "PowerAuth2ForExtensionsTests.xctest"
+               BlueprintName = "PowerAuth2ForExtensionsTests_ios"
+               ReferencedContainer = "container:PowerAuth2ForExtensions.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

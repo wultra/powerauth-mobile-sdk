@@ -36,6 +36,7 @@
 @implementation PowerAuthToken
 {
 	PA2PrivateTokenData * _tokenData;
+	__weak id<PowerAuthPrivateTokenStore> _tokenStore;
 }
 
 #pragma mark - Public getters
@@ -62,7 +63,7 @@
 
 - (BOOL) canGenerateHeader
 {
-	return _tokenData != nil && _tokenStore.canRequestForAccessToken;
+	return _tokenData != nil && [_tokenStore canGenerateHeaderForToken:self];
 }
 
 #pragma mark - Public methods
@@ -142,7 +143,7 @@
 	return nil;
 }
 
-- (id) initWithStore:(id<PowerAuthTokenStore>)store
+- (id) initWithStore:(id<PowerAuthPrivateTokenStore>)store
 				data:(PA2PrivateTokenData*)data
 {
 	self = [super init];
@@ -151,6 +152,11 @@
 		_tokenData = data;
 	}
 	return self;
+}
+
+- (id<PowerAuthTokenStore>) tokenStore
+{
+	return _tokenStore;
 }
 
 #pragma mark - Debug

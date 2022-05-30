@@ -148,15 +148,15 @@
 	return [_statusProvider hasValidActivation];
 }
 
-- (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
-										authentication:(PowerAuthAuthentication*)authentication
-											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenWithName:(NSString*)name
+										   authentication:(PowerAuthAuthentication*)authentication
+											   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	return [self requestAccessTokenImpl:name authentication:authentication completion:completion];
 }
 
-- (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
-											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenWithName:(NSString*)name
+											   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	return [self requestAccessTokenImpl:name authentication:nil completion:completion];
 }
@@ -164,9 +164,9 @@
 /*
  This is an actual implementation of `requestAccessTokenWithName...` method, but allowing authentication to be nil.
  */
-- (PowerAuthTokenStoreTask) requestAccessTokenImpl:(NSString*)name
-									authentication:(PowerAuthAuthentication*)authentication
-										completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenImpl:(NSString*)name
+									   authentication:(PowerAuthAuthentication*)authentication
+										   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	if (!name || !completion) {
 		if (completion) {
@@ -212,8 +212,8 @@
 }
 
 
-- (PowerAuthTokenStoreTask) removeAccessTokenWithName:(NSString *)name
-										   completion:(void (^)(BOOL, NSError * ))completion
+- (id<PowerAuthOperationTask>) removeAccessTokenWithName:(NSString *)name
+											  completion:(void (^)(BOOL, NSError * ))completion
 {
 	if (!name || !completion) {
 		if (completion) {
@@ -249,11 +249,13 @@
 }
 
 
-- (void) cancelTask:(PowerAuthTokenStoreTask)task
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+- (void) cancelTask:(id)task
 {
-	[_remoteTokenProvider cancelTask:task];
+	[PA2ConformsTo(task, PowerAuthOperationTask) cancel];
 }
-
+#pragma clang diagnostic pop
 
 - (void) removeLocalTokenWithName:(NSString *)name
 {

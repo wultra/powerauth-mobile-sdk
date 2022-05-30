@@ -40,6 +40,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - `PowerAuthCoreSession.generateActivationStatusChallenge()` is now static method.
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
 - All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
+- All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
+- `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.
     
 ### Other changes
 
@@ -63,3 +65,5 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
 - All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
 - `PowerAuthWatchSDK.activationId` property is now deprecated. Please use `activationIdentifier` as a replacement.
+- All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
+- `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.

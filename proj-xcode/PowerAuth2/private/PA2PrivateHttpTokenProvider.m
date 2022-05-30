@@ -47,9 +47,9 @@
 	// EMPTY
 }
 
-- (PowerAuthTokenStoreTask) requestTokenWithName:(NSString *)name
-								  authentication:(PowerAuthAuthentication *)authentication
-									  completion:(void (^)(PA2PrivateTokenData *, NSError *))completion
+- (id<PowerAuthOperationTask>) requestTokenWithName:(NSString *)name
+									 authentication:(PowerAuthAuthentication *)authentication
+										 completion:(void (^)(PA2PrivateTokenData *, NSError *))completion
 {
 	return [_httpClient postObject:nil
 								to:[PA2RestApiEndpoint getToken]
@@ -77,8 +77,8 @@
 						}];
 }
 
-- (PowerAuthTokenStoreTask) removeTokenData:(PA2PrivateTokenData*)tokenData
-								 completion:(void(^)(BOOL removed, NSError * error))completion
+- (id<PowerAuthOperationTask>) removeTokenData:(PA2PrivateTokenData*)tokenData
+									completion:(void(^)(BOOL removed, NSError * error))completion
 {
 	PA2RemoveTokenRequest * removeRequest = [[PA2RemoveTokenRequest alloc] init];
 	removeRequest.tokenId = tokenData.identifier;
@@ -90,11 +90,6 @@
 							BOOL removed = (status == PowerAuthRestApiResponseStatus_OK) && (error == nil);
 							completion(removed, error);
 						}];
-}
-
-- (void) cancelTask:(PowerAuthTokenStoreTask)task
-{
-	[PA2ObjectAs(task, NSOperation) cancel];
 }
 
 @end

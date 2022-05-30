@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
 #import <PowerAuth2ForExtensions/PowerAuthMacros.h>
+#import <PowerAuth2ForExtensions/PowerAuthOperationTask.h>
 
 // Forward declarations...
 @class PowerAuthAuthorizationHttpHeader;
@@ -75,12 +76,6 @@
 #pragma mark - Store -
 
 /**
- The PowerAuthTokenStoreTask is an abstract type for token store task. The object type
- returned from store may vary between the store implementations.
- */
-typedef id PowerAuthTokenStoreTask;
-
-/**
  The `PowerAuthTokenStore` protocol defines interface for creating access tokens.
  The implementing class must be thread safe. It is expected to access store
  from multiple threads.
@@ -108,9 +103,9 @@ typedef id PowerAuthTokenStoreTask;
  block was executed synchronously. That typically happens when token is locally present
  and available (e.g. doesn't need to be acquired from the server) or in case of error.
  */
-- (nullable PowerAuthTokenStoreTask) requestAccessTokenWithName:(nonnull NSString*)name
-												 authentication:(nonnull PowerAuthAuthentication*)authentication
-													 completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
+- (nullable id<PowerAuthOperationTask>) requestAccessTokenWithName:(nonnull NSString*)name
+													authentication:(nonnull PowerAuthAuthentication*)authentication
+														completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
 
 /**
  Create a new access token with given name without needing an authentication object. The method
@@ -124,8 +119,8 @@ typedef id PowerAuthTokenStoreTask;
  block was executed synchronously. That typically happens when token is locally present
  and available (e.g. doesn't need to be acquired from the server) or in case of error.
  */
-- (nullable PowerAuthTokenStoreTask) requestAccessTokenWithName:(nonnull NSString*)name
-													 completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
+- (nullable id<PowerAuthOperationTask>) requestAccessTokenWithName:(nonnull NSString*)name
+														completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
 
 /**
  Removes previously created access token from the server and from local database.
@@ -137,16 +132,18 @@ typedef id PowerAuthTokenStoreTask;
  Returns cancellable object if operation is asynchronous, or nil, when the completion
  block was executed synchronously. That typically happens in case of error.
  */
-- (nullable PowerAuthTokenStoreTask) removeAccessTokenWithName:(nonnull NSString*)name
-													completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
+- (nullable id<PowerAuthOperationTask>) removeAccessTokenWithName:(nonnull NSString*)name
+													   completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
 
 /**
  Cancels previously created store task. Note that cancelling may lead to inconsistent state,
  when the server will execute the operation but client application will not get the result.
  
  It is safe to call this method with nil task.
+ 
+ This method is deprecated, because now you can call cancel directly on object returned from the asynchronous method.
  */
-- (void) cancelTask:(nullable PowerAuthTokenStoreTask)task;
+- (void) cancelTask:(nullable id)task PA2_DEPRECATED(1.7.0);
 
 /**
  Removes token with given name from the local database. Be aware that this operation doesn't invalidate

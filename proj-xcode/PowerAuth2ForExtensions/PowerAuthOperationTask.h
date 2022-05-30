@@ -17,7 +17,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForWatch .
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions .
 
-#import <PowerAuth2/PowerAuthMacros.h>
+#import <PowerAuth2ForExtensions/PowerAuthMacros.h>
 
 /**
  Protocol representing an asynchronous operation created in PowerAuth SDK.

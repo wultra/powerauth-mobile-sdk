@@ -55,6 +55,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
 - All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
+- `PowerAuthTokenStore.removeLocalToken()` and `PowerAuthTokenStore.removeAllLocalTokens|()` functions are now disabled for app extensions. You have to manage tokens from the main application now.
 
 ## watchOS
 

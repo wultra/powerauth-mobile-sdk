@@ -288,6 +288,10 @@
 }
 #pragma clang diagnostic pop
 
+#if PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
+//
+// Implementation available for PowerAuth2 & PowerAuth2ForWatch modules
+//
 - (void) removeLocalTokenWithName:(NSString *)name
 {
 	[self synchronizedVoid:^(BOOL * setModified){
@@ -308,6 +312,24 @@
 		*setModified = YES;
 	}];
 }
+
+#else
+//
+// Implementation available only for PowerAuth2ForExtensions
+//
+- (void) removeLocalTokenWithName:(NSString *)name
+{
+	// Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
+	PowerAuthLog(@"ERROR: removeLocalToken() is not available for PowerAuth2ForExtensions module");
+}
+
+- (void) removeAllLocalTokens
+{
+	// Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
+	PowerAuthLog(@"ERROR: removeAllLocalTokens() is not available for PowerAuth2ForExtensions module");
+}
+
+#endif // PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
 
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name

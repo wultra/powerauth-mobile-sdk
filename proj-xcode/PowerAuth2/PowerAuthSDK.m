@@ -89,7 +89,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	}
 	
 	// Exclusive lock
-	_lock = [[NSLock alloc] init];
+	_lock = [[NSRecursiveLock alloc] init];
 	
 	// Make copy of configuration objects
 	_configuration = [configuration copy];
@@ -201,7 +201,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 																	 keychain:tokenStoreKeychain
 															   statusProvider:self
 															   remoteProvider:_remoteHttpTokenProvider
-																	 dataLock:_sessionInterface];
+																	 dataLock:_sessionInterface
+																	localLock:_lock];
 	
 #if defined(PA2_WATCH_SUPPORT)
 	// Register this instance to handle messages

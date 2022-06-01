@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#import <PA2PrivateHttpTokenProvider.h>
-#import <PA2PrivateTokenData.h>
-#import <PA2PrivateMacros.h>
+#import "PA2PrivateHttpTokenProvider.h"
+#import "PA2PrivateTokenData.h"
+#import "PA2PrivateMacros.h"
 
-#import <PA2HttpClient.h>
-#import <PA2RestApiEndpoint.h>
+#import "PA2HttpClient.h"
+#import "PA2RestApiEndpoint.h"
 
-#import <PA2GetTokenResponse.h>
-#import <PA2RemoveTokenRequest.h>
+#import "PA2GetTokenResponse.h"
+#import "PA2RemoveTokenRequest.h"
 
 #import <PowerAuth2/PowerAuthAuthentication.h>
 

@@ -12,6 +12,10 @@
 		BF1ED0AB2844C2E400D6B380 /* PowerAuthOperationTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0AA2844C2E400D6B380 /* PowerAuthOperationTask.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF1ED0AE2844C3FD00D6B380 /* PA2SimpleCancelable.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0AC2844C3FD00D6B380 /* PA2SimpleCancelable.h */; };
 		BF1ED0AF2844C3FD00D6B380 /* PA2SimpleCancelable.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0AD2844C3FD00D6B380 /* PA2SimpleCancelable.m */; };
+		BF1ED0C9284775E200D6B380 /* PA2GroupedTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0C7284775E200D6B380 /* PA2GroupedTask.h */; };
+		BF1ED0CA284775E200D6B380 /* PA2GroupedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0C8284775E200D6B380 /* PA2GroupedTask.m */; };
+		BF1ED0CD284775FA00D6B380 /* PA2CreateTokenTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0CB284775FA00D6B380 /* PA2CreateTokenTask.h */; };
+		BF1ED0CE284775FA00D6B380 /* PA2CreateTokenTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0CC284775FA00D6B380 /* PA2CreateTokenTask.m */; };
 		BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */; };
 		BF86E855263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */; };
 		BF86E856263C1EBE004C8AE5 /* PowerAuthSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81F263C1EBD004C8AE5 /* PowerAuthSystem.m */; };
@@ -80,6 +84,10 @@
 		BF1ED0AA2844C2E400D6B380 /* PowerAuthOperationTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthOperationTask.h; sourceTree = "<group>"; };
 		BF1ED0AC2844C3FD00D6B380 /* PA2SimpleCancelable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SimpleCancelable.h; sourceTree = "<group>"; };
 		BF1ED0AD2844C3FD00D6B380 /* PA2SimpleCancelable.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SimpleCancelable.m; sourceTree = "<group>"; };
+		BF1ED0C7284775E200D6B380 /* PA2GroupedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2GroupedTask.h; sourceTree = "<group>"; };
+		BF1ED0C8284775E200D6B380 /* PA2GroupedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2GroupedTask.m; sourceTree = "<group>"; };
+		BF1ED0CB284775FA00D6B380 /* PA2CreateTokenTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CreateTokenTask.h; sourceTree = "<group>"; };
+		BF1ED0CC284775FA00D6B380 /* PA2CreateTokenTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2CreateTokenTask.m; sourceTree = "<group>"; };
 		BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BF86E80F263C1DDF004C8AE5 /* PowerAuth2ForWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthorizationHttpHeader.m; sourceTree = "<group>"; };
@@ -226,6 +234,8 @@
 		BF86E88D263C1F19004C8AE5 /* system */ = {
 			isa = PBXGroup;
 			children = (
+				BF1ED0C7284775E200D6B380 /* PA2GroupedTask.h */,
+				BF1ED0C8284775E200D6B380 /* PA2GroupedTask.m */,
 				BF86E845263C1EBD004C8AE5 /* PA2WeakArray.h */,
 				BF86E835263C1EBD004C8AE5 /* PA2WeakArray.m */,
 				BF86E838263C1EBD004C8AE5 /* PA2PrivateMacros.h */,
@@ -251,6 +261,8 @@
 				BF86E834263C1EBD004C8AE5 /* PA2PrivateTokenKeychainStore.m */,
 				BF86E839263C1EBD004C8AE5 /* PA2PrivateTokenData.h */,
 				BF86E842263C1EBD004C8AE5 /* PA2PrivateTokenData.m */,
+				BF1ED0CB284775FA00D6B380 /* PA2CreateTokenTask.h */,
+				BF1ED0CC284775FA00D6B380 /* PA2CreateTokenTask.m */,
 			);
 			name = token;
 			sourceTree = "<group>";
@@ -333,8 +345,10 @@
 				BF86E861263C1EBE004C8AE5 /* PowerAuthLog.h in Headers */,
 				BF86E85A263C1EBE004C8AE5 /* PowerAuthAuthentication.h in Headers */,
 				BF86E880263C1EBE004C8AE5 /* PA2PrivateTokenInterfaces.h in Headers */,
+				BF1ED0C9284775E200D6B380 /* PA2GroupedTask.h in Headers */,
 				BF86E872263C1EBE004C8AE5 /* PA2WCSessionPacket_ActivationStatus.h in Headers */,
 				BF86E85F263C1EBE004C8AE5 /* PowerAuthWCSessionManager.h in Headers */,
+				BF1ED0CD284775FA00D6B380 /* PA2CreateTokenTask.h in Headers */,
 				BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */,
 				BF86E863263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.h in Headers */,
 				BF86E8B1263C231B004C8AE5 /* PowerAuthToken.h in Headers */,
@@ -418,6 +432,7 @@
 				BF86E8D7263C2BBF004C8AE5 /* PA2CoreCryptoUtils.m in Sources */,
 				BF86E86D263C1EBE004C8AE5 /* PA2WCSessionPacket_TokenData.m in Sources */,
 				BF86E873263C1EBE004C8AE5 /* PA2WatchSynchronizationService.m in Sources */,
+				BF1ED0CA284775E200D6B380 /* PA2GroupedTask.m in Sources */,
 				BF86E8B9263C2512004C8AE5 /* PowerAuthDeprecated.m in Sources */,
 				BF1ED0AF2844C3FD00D6B380 /* PA2SimpleCancelable.m in Sources */,
 				BF86E889263C1EBE004C8AE5 /* PowerAuthKeychain.m in Sources */,
@@ -425,6 +440,7 @@
 				BF86E881263C1EBE004C8AE5 /* PowerAuthAuthentication.m in Sources */,
 				BF86E856263C1EBE004C8AE5 /* PowerAuthSystem.m in Sources */,
 				BF86E888263C1EBE004C8AE5 /* PowerAuthConfiguration.m in Sources */,
+				BF1ED0CE284775FA00D6B380 /* PA2CreateTokenTask.m in Sources */,
 				BF86E86B263C1EBE004C8AE5 /* PA2WeakArray.m in Sources */,
 				BF86E865263C1EBE004C8AE5 /* PowerAuthWCSessionManager_WatchServices.m in Sources */,
 				BFC1929927FC694A001455C1 /* PowerAuthSharingConfiguration.m in Sources */,

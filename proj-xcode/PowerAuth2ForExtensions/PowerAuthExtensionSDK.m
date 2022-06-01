@@ -27,7 +27,7 @@
 @implementation PowerAuthExtensionSDK
 {
 	PowerAuthConfiguration * _configuration;
-    dispatch_semaphore_t _lockSemaphore;
+    id<NSLocking> _lock;
 	PowerAuthKeychain * _statusKeychain;
 	NSUserDefaults * _userDefaults;
 }
@@ -40,7 +40,7 @@
 	self = [super init];
 	if (self) {
 		_configuration = [configuration copy];
-        _lockSemaphore = dispatch_semaphore_create(1);
+        _lock = [[NSRecursiveLock alloc] init];
         
 		// Create status keychain
 		_statusKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
@@ -53,7 +53,8 @@
 																									   keychain:tokenStoreKeychain
 																								 statusProvider:self
 																								 remoteProvider:nil
-                                                                                                       dataLock:self];
+                                                                                                       dataLock:self
+                                                                                                      localLock:_lock];
 		// For extensions, it's better to always access token data directly from keychain
 		tokenStore.allowInMemoryCache = NO;
 		_tokenStore = tokenStore;
@@ -125,13 +126,13 @@
 
 - (BOOL) lockTokenStore
 {
-    dispatch_semaphore_wait(_lockSemaphore, DISPATCH_TIME_FOREVER);
+    [_lock lock];
     return NO;
 }
 
 - (void) unlockTokenStore:(BOOL)contentModified
 {
-    dispatch_semaphore_signal(_lockSemaphore);
+    [_lock unlock];
 }
 
 @end

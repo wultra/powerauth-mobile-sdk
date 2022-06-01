@@ -21,6 +21,7 @@
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
+#import "PA2CreateTokenTask.h"
 #import "PowerAuthErrorConstants.h"
 #import "PowerAuthKeychain.h"
 #import "PowerAuthConfiguration.h"
@@ -30,8 +31,10 @@
 {
 	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
-	/// Data locking implementation
-	id<PA2TokenDataLock>		_lock;
+	/// Token data locking implementation
+	id<PA2TokenDataLock>		_tokenDataLock;
+	/// Local lock, protecting data in this process.
+	id<NSLocking>				_localLock;
 	
 	// Lazy initialized data
 
@@ -39,30 +42,16 @@
 	NSString * _keychainKeyPrefix;
 	/// A local database for tokens.
 	NSMutableDictionary<NSString*, PA2PrivateTokenData*> * _database;
-	/// A debug set with pending operations (valid only for DEBUG build of library)
-	NSMutableSet<NSString*> * 	_pendingNamedOperations;
+	
+	NSMutableDictionary<NSString*, PA2CreateTokenTask*> *_createTokenTasks;
 }
-
-/**
- Following debug macros allows tracking of dangerous simultaneous requests for the same tokens.
- The feature is turned off in release build of the library.
- */
-#if defined(DEBUG)
-	#define _START_OPERATION(name)	[self startOperationForName:name]
-	#define _STOP_OPERATION(name)	[self stopOperationForName:name]
-	#define _OPERATIONS_SET() 		[NSMutableSet set]
-#else
-	#define _START_OPERATION(name)
-	#define _STOP_OPERATION(name)
-	#define _OPERATIONS_SET() 		nil
-#endif
-
 
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
 			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
 					dataLock:(id<PA2TokenDataLock>)dataLock
+				   localLock:(id<NSLocking>)localLock
 {
 	self = [super init];
 	if (self) {
@@ -70,7 +59,8 @@
 		_statusProvider = statusProvider;
 		_remoteTokenProvider = remoteProvider;
 		_keychain = keychain;
-		_lock = dataLock;
+		_tokenDataLock = dataLock;
+		_localLock = localLock ? localLock : [[NSRecursiveLock alloc] init];
 		_allowInMemoryCache = YES;
 	}
 	return self;
@@ -93,8 +83,7 @@
 	// Build base key for all stored tokens
 	_keychainKeyPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:_sdkConfiguration.instanceId];
 	_database = [NSMutableDictionary dictionaryWithCapacity:2];
-	// ...and debug set for overlapping operations
-	_pendingNamedOperations = _OPERATIONS_SET();
+	_createTokenTasks = [NSMutableDictionary dictionaryWithCapacity:2];
 }
 
 /**
@@ -103,7 +92,7 @@
  */
 - (id) synchronized:(id(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	BOOL isDirty = [_lock lockTokenStore];
+	BOOL isDirty = [_tokenDataLock lockTokenStore];
 	if (_keychainKeyPrefix == nil) {
 		[self prepareInstance];
 	}
@@ -112,7 +101,7 @@
 	}
 	BOOL modified = NO;
 	id result = block(&modified);
-	[_lock unlockTokenStore:modified];
+	[_tokenDataLock unlockTokenStore:modified];
 	return result;
 }
 
@@ -122,7 +111,7 @@
  */
 - (void) synchronizedVoid:(void(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	BOOL isDirty = [_lock lockTokenStore];
+	BOOL isDirty = [_tokenDataLock lockTokenStore];
 	if (_keychainKeyPrefix == nil) {
 		[self prepareInstance];
 	}
@@ -131,7 +120,7 @@
 	}
 	BOOL modified = NO;
 	block(&modified);
-	[_lock unlockTokenStore:modified];
+	[_tokenDataLock unlockTokenStore:modified];
 }
 
 #pragma mark - PowerAuthPrivateTokenStore protocol
@@ -139,6 +128,25 @@
 - (BOOL) canGenerateHeaderForToken:(PowerAuthToken *)token
 {
 	return [_statusProvider hasValidActivation] && [_statusProvider.activationIdentifier isEqualToString:token.privateTokenData.activationIdentifier];
+}
+
+- (void) storeTokenData:(PA2PrivateTokenData*)tokenData
+{
+	[self synchronizedVoid:^(BOOL *setModified) {
+		if (!self.canRequestForAccessToken) {
+			return;
+		}
+		[self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
+		*setModified = YES;
+	}];
+}
+
+- (void) removeCreateTokenTask:(NSString *)tokenName
+{
+	[_localLock lock];
+	// Remove group task from the dictionary.
+	[_createTokenTasks removeObjectForKey:tokenName];
+	[_localLock unlock];
 }
 
 #pragma mark - PowerAuthTokenStore protocol
@@ -174,7 +182,8 @@
 		}
 		return nil;
 	}
-	if (!authentication && [_remoteTokenProvider authenticationIsRequired]) {
+	BOOL authenticationIsRequired = [_remoteTokenProvider authenticationIsRequired];
+	if (!authentication && authenticationIsRequired) {
 		completion(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Authentication object is missing."));
 		return nil;
 	}
@@ -197,18 +206,42 @@
 		return nil;
 	}
 	
-	_START_OPERATION(name);
-	return [strongTokenProvider requestTokenWithName:name authentication:authentication completion:^(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error) {
-		PowerAuthToken * token;
-		if (tokenData && !error) {
-			[self storeTokenData:tokenData];
-			token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
-		} else {
-			token = nil;
+	// Local token is not found, so we have to fire a remote request.
+	
+	[_localLock lock];
+	//
+	PA2CreateTokenTask * groupTask = _createTokenTasks[name];
+	id<PowerAuthOperationTask> result = nil;
+	NSError * error = nil;
+	if (groupTask && authenticationIsRequired) {
+		if (![groupTask.authentication hasEqualFactorsToAuthentication:authentication]) {
+			error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"There's already pending request for this token, but with a different authentication.");
 		}
-		_STOP_OPERATION(name);
-		completion(token, error);
-	}];
+	}
+	if (!error) {
+		// No error yet, so try to create child task. Note that groupTask may be nil.
+		result = [groupTask createChildTask:completion];
+		if (!result) {
+			// No group task created yet, or existing task is already completed, so we have to create a new one.
+			groupTask = [[PA2CreateTokenTask alloc] initWithProvider:strongTokenProvider
+														  tokenStore:self
+													  authentication:authentication
+														activationId:_statusProvider.activationIdentifier
+														   tokenName:name
+														  sharedLock:_localLock];
+			// Keep group task in the dictionary.
+			_createTokenTasks[name] = groupTask;
+			// Create child task that capture the completion for the application.
+			result = [groupTask createChildTask:completion];
+		}
+	}
+	//
+	[_localLock unlock];
+	
+	if (error) {
+		completion(nil, error);
+	}
+	return result;
 }
 
 
@@ -238,9 +271,7 @@
 		return nil;
 	}
 	
-	_START_OPERATION(name);
 	return [strongTokenProvider removeTokenData:tokenData completion:^(BOOL removed, NSError * _Nullable error) {
-		_STOP_OPERATION(name);
 		if (removed) {
 			[self removeLocalTokenWithName:name];
 		}
@@ -378,20 +409,6 @@
 	}];
 }
 
-/**
- Stores a private data object to keychain.
- */
-- (void) storeTokenData:(PA2PrivateTokenData*)tokenData
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		if (!self.canRequestForAccessToken) {
-			return;
-		}
-		[self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
-		*setModified = YES;
-	}];
-}
-
 - (void) storeTokenDataWhenLocked:(PA2PrivateTokenData*)tokenData isUpgrade:(BOOL)isUpgrade
 {
 	NSString * identifier = [self identifierForTokenName:tokenData.name];
@@ -423,32 +440,5 @@
 	[_keychain deleteDataForKey:identifier];
 	[_database removeObjectForKey:identifier];
 }
-
-#pragma mark - Debug methods
-
-#if defined(DEBUG)
-- (void) startOperationForName:(NSString*)name
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		if ([_pendingNamedOperations containsObject:name]) {
-			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
-			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
-			// on the server.
-			// This warning is also displayed for removal and creation operations created at the same time.
-			PowerAuthLog(@"TokenKeychainStore: WARNING: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
-		} else {
-			[_pendingNamedOperations addObject:name];
-		}
-	}];
-}
-
-- (void) stopOperationForName:(NSString*)name
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		[_pendingNamedOperations removeObject:name];
-	}];
-}
-#endif // defined(DEBUG)
-
 
 @end

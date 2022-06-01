@@ -39,7 +39,7 @@
 	return copy;
 }
 
-- (PowerAuthKeychainAuthentication*) keychainAuthentication
+- (PowerAuthKeychainAuthentication *) keychainAuthentication
 {
 #if PA2_HAS_LACONTEXT == 1
 	if (_biometryContext) {
@@ -50,6 +50,23 @@
 		return [[PowerAuthKeychainAuthentication alloc] initWithPrompt:_biometryPrompt];
 	}
 	return nil;
+}
+
+/**
+ Calculate numeric representation from the combination of factors set in PowerAuthAuthentication object.
+ */
+static NSUInteger _GetFactorsMask(PowerAuthAuthentication * auth)
+{
+	NSUInteger result = 0;
+	if (auth.usePossession) result |= 0x001;
+	if (auth.usePassword)   result |= 0x010;
+	if (auth.useBiometry)   result |= 0x100;
+	return result;
+}
+
+- (BOOL) hasEqualFactorsToAuthentication:(PowerAuthAuthentication *)authentication
+{
+	return _GetFactorsMask(self) == _GetFactorsMask(authentication);
 }
 
 #if DEBUG
@@ -91,14 +108,14 @@
 
 @implementation PowerAuthAuthentication (EasyAccessors)
 
-+ (PowerAuthAuthentication*) possession
++ (PowerAuthAuthentication *) possession
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithBiometry
++ (PowerAuthAuthentication *) possessionWithBiometry
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -106,7 +123,7 @@
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
++ (PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -115,7 +132,7 @@
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithPassword:(NSString *)password
++ (PowerAuthAuthentication *) possessionWithPassword:(NSString *)password
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -124,7 +141,7 @@
 }
 
 #if PA2_HAS_LACONTEXT == 1
-+ (PowerAuthAuthentication*) possessionWithBiometryWithContext:(LAContext*)context
++ (PowerAuthAuthentication *) possessionWithBiometryWithContext:(LAContext *)context
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;

@@ -34,7 +34,7 @@
 @implementation PowerAuthWatchSDK
 {
 	PowerAuthConfiguration * _configuration;
-    dispatch_semaphore_t _lockSemaphore;
+    id<NSLocking> _lock;
 	PA2WatchRemoteTokenProvider * _remoteProvider;
 }
 
@@ -45,7 +45,7 @@
 	self = [super init];
 	if (self) {
 		_configuration = [configuration copy];
-        _lockSemaphore = dispatch_semaphore_create(1);
+        _lock = [[NSRecursiveLock alloc] init];
         
 		// Prepare remote token provider, which is using WatchConnectivity internally
 		_remoteProvider = [[PA2WatchRemoteTokenProvider alloc] init];
@@ -57,7 +57,8 @@
 																									   keychain:tokenStoreKeychain
 																								 statusProvider:self
 																								 remoteProvider:_remoteProvider
-                                                                                                       dataLock:self];
+                                                                                                       dataLock:self
+                                                                                                      localLock:_lock];
 		tokenStore.allowInMemoryCache = NO;
 		_tokenStore = tokenStore;
 	}
@@ -114,13 +115,13 @@
 
 - (BOOL) lockTokenStore
 {
-    dispatch_semaphore_wait(_lockSemaphore, DISPATCH_TIME_FOREVER);
+    [_lock lock];
     return NO;
 }
 
 - (void) unlockTokenStore:(BOOL)contentModified
 {
-    dispatch_semaphore_signal(_lockSemaphore);
+    [_lock unlock];
 }
 
 @end

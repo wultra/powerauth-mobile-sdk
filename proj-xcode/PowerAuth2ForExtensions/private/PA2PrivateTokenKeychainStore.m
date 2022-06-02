@@ -66,6 +66,11 @@
 	return self;
 }
 
+- (void) dealloc
+{
+	[self cancelAllTasksImpl];
+}
+
 - (PowerAuthConfiguration*) configuration
 {
 	return _sdkConfiguration;
@@ -147,6 +152,21 @@
 	// Remove group task from the dictionary.
 	[_createTokenTasks removeObjectForKey:tokenName];
 	[_localLock unlock];
+}
+
+- (void) cancelAllTasks
+{
+	[_localLock lock];
+	[self cancelAllTasksImpl];
+	[_localLock unlock];
+}
+
+- (void) cancelAllTasksImpl
+{
+	[[_createTokenTasks copy] enumerateKeysAndObjectsUsingBlock:^(NSString * key, PA2CreateTokenTask * obj, BOOL * stop) {
+		[obj cancel];
+	}];
+	[_createTokenTasks removeAllObjects];
 }
 
 #pragma mark - PowerAuthTokenStore protocol

@@ -45,11 +45,6 @@
 - (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock;
 
 /**
- The property contains lock used internally.
- */
-@property (nonatomic, strong, readonly, nonnull) id<NSLocking> lock;
-
-/**
  Complete this grouped operation with result or failure.
  */
 - (void) complete:(nullable ResultType)result error:(nullable NSError*)error;
@@ -84,21 +79,41 @@
  Called when the first child task is created. The subclass implementation must call super and add at least one cancelable operation.
  */
 - (void) onTaskStart;
+
 /**
  Called when the group task is completed with the result or error. The subclass implementation must call super.
  */
 - (void) onTaskComplete;
+
 /**
  Called when the group task has no more child tasks associated and `self.shouldCancelWhenNoChildOperationIsSet` returns `YES`.
  The subclass implementation must call super.
  */
 - (void) onTaskCancel;
+
 /**
  The default implementation return `YES`, so when there's no child task associated to this group, then the whole task is canceled.
  The subclass implementation may override this behavior in case that it's important to complete the operation even if the application
  no longer wants the result. For example, if the protocol upgrade is performed, then it's important to complete the upgrade.
  */
 - (BOOL) shouldCancelWhenNoChildOperationIsSet;
+
+#pragma mark - Thread synchronization
+
+/**
+ The property contains lock used internally.
+ */
+@property (nonatomic, strong, readonly, nonnull) id<NSLocking> lock;
+
+/**
+ Execute block when internal lock is acquired.
+ */
+- (void) synchronizedVoid:(void(NS_NOESCAPE ^ _Nonnull)(void))block;
+
+/**
+ Execute block when internal lock is acquired and return result created in the block.
+ */
+- (nullable id) synchronized:(id _Nullable (NS_NOESCAPE ^ _Nonnull)(void))block;
 
 @end
 

@@ -60,6 +60,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	PowerAuthKeychainConfiguration * _keychainConfiguration;
 	PowerAuthClientConfiguration * _clientConfiguration;
 	
+	id<PowerAuthPrivateTokenStore> _tokenStore;
 	PA2HttpClient *_client;
 	NSString *_biometryKeyIdentifier;
 	PowerAuthKeychain *_statusKeychain;
@@ -216,14 +217,18 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	// Unregister this instance for processing packets...
 	[[PowerAuthWCSessionManager sharedInstance] unregisterDataHandler:self];
 #endif
-	// Cancel possible get activation status task
-	[self cancelActivationStatusTask];
+	[self cancelAllPendingTasks];
 }
 
 
 + (void) throwInvalidConfigurationException {
 	[NSException raise:PowerAuthExceptionMissingConfig
 				format:@"Invalid PowerAuthSDK configuration. You must set a valid PowerAuthConfiguration to PowerAuthSDK instance using initializer."];
+}
+
+- (id<PowerAuthTokenStore>) tokenStore
+{
+	return _tokenStore;
 }
 
 - (PowerAuthConfiguration*) configuration
@@ -482,6 +487,11 @@ static PowerAuthSDK * s_inst;
 	return _sessionInterface;
 }
 
+- (void) cancelAllPendingTasks
+{
+	[self cancelActivationStatusTask];
+	[_tokenStore cancelAllTasks];
+}
 
 #pragma mark - Activation
 #pragma mark Creating a new activation
@@ -925,7 +935,7 @@ static PowerAuthSDK * s_inst;
 - (void) removeActivationLocal
 {
 	[self checkForValidSetup];
-	[self cancelActivationStatusTask];
+	[self cancelAllPendingTasks];
 	[_sessionInterface writeVoidTaskWithSession:^(PowerAuthCoreSession * session) {
 		BOOL error = NO;
 		if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {

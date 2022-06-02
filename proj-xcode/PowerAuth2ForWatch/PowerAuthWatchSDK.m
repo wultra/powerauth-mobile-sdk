@@ -33,8 +33,9 @@
 
 @implementation PowerAuthWatchSDK
 {
-	PowerAuthConfiguration * _configuration;
     id<NSLocking> _lock;
+	PowerAuthConfiguration * _configuration;
+    id<PowerAuthPrivateTokenStore> _tokenStore;
 	PA2WatchRemoteTokenProvider * _remoteProvider;
 }
 
@@ -65,6 +66,10 @@
 	return self;
 }
 
+- (void) dealloc
+{
+    [_tokenStore cancelAllTasks];
+}
 
 #pragma mark - Getters
 
@@ -83,6 +88,10 @@
     return [[PA2WatchSynchronizationService sharedInstance] activationIdForSessionInstanceId:_configuration.instanceId];
 }
 
+- (id<PowerAuthTokenStore>) tokenStore
+{
+    return _tokenStore;
+}
 
 #pragma mark - PA2SessionStatusProvider implementation
 

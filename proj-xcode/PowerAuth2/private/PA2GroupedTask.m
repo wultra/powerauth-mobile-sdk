@@ -209,6 +209,27 @@
 	return result;
 }
 
+#pragma mark Thread synchronization
+
+- (void) synchronizedVoid:(void(NS_NOESCAPE ^)(void))block
+{
+	[_lock lock];
+	//
+	block();
+	//
+	[_lock unlock];
+}
+
+- (id) synchronized:(id (NS_NOESCAPE ^ )(void))block
+{
+	[_lock lock];
+	//
+	id result = block();
+	[_lock unlock];
+	//
+	return result;
+}
+
 #pragma mark Private functions
 
 /**

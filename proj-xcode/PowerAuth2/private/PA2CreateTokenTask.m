@@ -22,8 +22,8 @@
 
 @implementation PA2CreateTokenTask
 {
-	id<PA2PrivateRemoteTokenProvider> _tokenProvider;
-	id<PowerAuthPrivateTokenStore> _tokenStore;
+	__weak id<PA2PrivateRemoteTokenProvider> _tokenProvider;
+	__weak id<PowerAuthPrivateTokenStore> _tokenStore;
 	NSString * _tokenName;
 	NSString * _activationId;
 	PowerAuthAuthentication * _authentication;
@@ -56,12 +56,16 @@
 	_privateTokenData = nil;
 	id<PowerAuthOperationTask> task = [_tokenProvider requestTokenWithName:_tokenName authentication:_authentication completion:^(PA2PrivateTokenData * tokenData, NSError * error) {
 		PowerAuthToken * token;
-		if (tokenData) {
+		id<PowerAuthPrivateTokenStore> tokenStore = _tokenStore;
+		if (tokenData && tokenStore) {
 			tokenData.activationIdentifier = _activationId;
-			token = [[PowerAuthToken alloc] initWithStore:_tokenStore data:tokenData];
+			token = [[PowerAuthToken alloc] initWithStore:tokenStore data:tokenData];
 			_privateTokenData = tokenData;
 		} else {
 			token = nil;
+			if (!error) {
+				error = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"Token store is no longer valid.");
+			}
 		}
 		[self complete:token error:error];
 	}];
@@ -88,4 +92,5 @@
 	}
 	[_tokenStore removeCreateTokenTask:_tokenName];
 }
+
 @end

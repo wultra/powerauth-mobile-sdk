@@ -43,6 +43,11 @@
  */
 - (void) removeCreateTokenTask:(nonnull NSString*)tokenName;
 
+/**
+ Cancel all pending tasks.
+ */
+- (void) cancelAllTasks;
+
 @end
 
 

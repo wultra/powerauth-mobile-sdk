@@ -20,6 +20,7 @@
 #import <PowerAuth2ForExtensions/PowerAuthToken.h>
 #import <PowerAuth2ForExtensions/PowerAuthSessionStatusProvider.h>
 
+#import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateRemoteTokenProvider.h"
 #import "PA2TokenDataLock.h"
 
@@ -30,9 +31,10 @@
  stores tokens into the IOS keychain. Each created token has its own
  database entry, with using token's name as unique identifier.
  
- The class also implements fetching token from the PA2 server.
+ The class also implements fetching token from the PA2 server if
+ the remote token provider is set in constructor.
  */
-@interface PA2PrivateTokenKeychainStore : NSObject<PowerAuthTokenStore>
+@interface PA2PrivateTokenKeychainStore : NSObject<PowerAuthPrivateTokenStore>
 
 /**
  A PowerAuth onfiguration object provided during the object initialization.

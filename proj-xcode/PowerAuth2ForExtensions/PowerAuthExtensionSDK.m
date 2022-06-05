@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,23 +87,7 @@
 
 - (BOOL) hasValidActivation
 {
-	if (_userDefaults) {
-		if (NO == [_userDefaults boolForKey:PowerAuthKeychain_Initialized]) {
-			return NO;	// Missing keychain initialization flag, stored in user defaults
-		}
-	} else {
-		// The extension can work with this configuration, but it may lead to possible false positive
-		// validation detections. The problematic scenario is:
-		//	1. application has a valid activation
-		//	2. user uninstall application (the session status is still in keychain)
-		//	3. user install application again
-		//	4. user enables extension without running application for first time
-		// The result is that this function may return YES but the stored activation is not valid.
-		PowerAuthLog(@"WARNING: Missing setup for PowerAuthKeychain.keychainAttribute_UserDefaultsSuiteName.");
-	}
-	// Retrieve & investigate data stored in keychain
-	NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];
-	return PA2SessionStatusDataReader_DataContainsActivation(sessionData);
+    return self.activationIdentifier != nil;
 }
 
 - (BOOL) hasPendingProtocolUpgrade
@@ -114,6 +98,27 @@
 - (BOOL) hasProtocolUpgradeAvailable
 {
 	return NO;
+}
+
+- (NSString*) activationIdentifier
+{
+    if (_userDefaults) {
+        if (NO == [_userDefaults boolForKey:PowerAuthKeychain_Initialized]) {
+            return nil;    // Missing keychain initialization flag, stored in user defaults
+        }
+    } else {
+        // The extension can work with this configuration, but it may lead to possible false positive
+        // validation detections. The problematic scenario is:
+        //    1. application has a valid activation
+        //    2. user uninstall application (the session status is still in keychain)
+        //    3. user install application again
+        //    4. user enables extension without running application for first time
+        // The result is that this function may return YES but the stored activation is not valid.
+        PowerAuthLog(@"WARNING: Missing setup for PowerAuthKeychain.keychainAttribute_UserDefaultsSuiteName.");
+    }
+    // Retrieve & investigate data stored in keychain
+    NSData *sessionData = [_statusKeychain dataForKey:_configuration.instanceId status:nil];
+    return PA2SessionStatusDataReader_GetActivationId(sessionData);
 }
 
 #pragma mark - PA2TokenDataLock implementation

@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,6 @@
 #import <PowerAuth2ForExtensions/PowerAuthMacros.h>
 
 /**
- Returns YES if provided data contains a possible activation.
+ Returns activation identifier in case that data contains a valid activation.
  */
-PA2_EXTERN_C BOOL PA2SessionStatusDataReader_DataContainsActivation(NSData * data);
+PA2_EXTERN_C NSString * PA2SessionStatusDataReader_GetActivationId(NSData * data);

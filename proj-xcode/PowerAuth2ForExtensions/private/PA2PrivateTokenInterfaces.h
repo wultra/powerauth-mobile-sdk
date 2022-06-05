@@ -22,6 +22,20 @@
 #import "PA2PrivateTokenData.h"
 
 /**
+ The `PowerAuthPrivateTokenStore` protocol extends `PowerAuthTokenStore`
+ with private functions.
+ */
+@protocol PowerAuthPrivateTokenStore <PowerAuthTokenStore>
+@required
+/**
+ Determine whether token can be still used for 
+ */
+- (BOOL) canGenerateHeaderForToken:(nonnull PowerAuthToken*)token;
+
+@end
+
+
+/**
  The category provides a private interface for PowerAuthToken object.
  The header is not available in public library builds (e.g. for CocoaPods)
  */
@@ -36,7 +50,7 @@
  Initializes token with parent store and with its private data. The internal
  reference to store object is weak.
  */
-- (nonnull id) initWithStore:(nonnull id<PowerAuthTokenStore>)store
+- (nonnull id) initWithStore:(nonnull id<PowerAuthPrivateTokenStore>)store
 						data:(nonnull PA2PrivateTokenData*)data;
 
 @end

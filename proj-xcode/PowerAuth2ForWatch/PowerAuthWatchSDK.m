@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,11 @@
 	return [[PA2WatchSynchronizationService sharedInstance] activationIdForSessionInstanceId:_configuration.instanceId];
 }
 
+- (NSString*) activationIdentifier
+{
+    return [[PA2WatchSynchronizationService sharedInstance] activationIdForSessionInstanceId:_configuration.instanceId];
+}
+
 
 #pragma mark - PA2SessionStatusProvider implementation
 
@@ -92,7 +97,7 @@
 
 - (BOOL) hasValidActivation
 {
-	return self.activationId != nil;
+	return self.activationIdentifier != nil;
 }
 
 - (BOOL) hasPendingProtocolUpgrade

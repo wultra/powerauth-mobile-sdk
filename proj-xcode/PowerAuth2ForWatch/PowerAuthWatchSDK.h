@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright 2022 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,10 @@
 /**
  Contains activationId if counterpart session object on iPhone has a valid activation or nil if there's no
  such activation.
+ 
+ The property is deprecated, please use `activationIdentifier` as a replacement.
  */
-@property (nonatomic, strong, nullable, readonly) NSString * activationId;
+@property (nonatomic, strong, nullable, readonly) NSString * activationId PA2_DEPRECATED(1.7.0);
 
 /**
  A designated initializer.

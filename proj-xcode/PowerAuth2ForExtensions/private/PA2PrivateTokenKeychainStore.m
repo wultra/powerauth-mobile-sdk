@@ -134,6 +134,13 @@
 	[_lock unlockTokenStore:modified];
 }
 
+#pragma mark - PowerAuthPrivateTokenStore protocol
+
+- (BOOL) canGenerateHeaderForToken:(PowerAuthToken *)token
+{
+	return [_statusProvider hasValidActivation] && [_statusProvider.activationIdentifier isEqualToString:token.privateTokenData.activationIdentifier];
+}
+
 #pragma mark - PowerAuthTokenStore protocol
 
 - (BOOL) canRequestForAccessToken
@@ -345,6 +352,22 @@
 		PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
+			if (tokenData) {
+				NSString * aid = tokenData.activationIdentifier;
+				if (aid == nil) {
+					// Old data format, with no activation identifier serialized. Re-save the data
+					[self storeTokenDataWhenLocked:tokenData isUpgrade:YES];
+					*setModified = YES;
+				} else if (![aid isEqualToString:_statusProvider.activationIdentifier]) {
+					// Looks like serialized activation identifier is different to the current AID.
+					// This token is no longer valid and must be removed from the keychain.
+					PowerAuthLog(@"KeychainTokenStore: WARNING: Token '%@' is no longer valid.", name);
+					[_keychain deleteDataForKey:identifier];
+					tokenData = nil;
+					*setModified = YES;
+				}
+			}
+			// Finally, keep tokenData in cache, if allowed
 			if (tokenData && _allowInMemoryCache) {
 				_database[identifier] = tokenData;
 			}
@@ -362,20 +385,32 @@
 		if (!self.canRequestForAccessToken) {
 			return;
 		}
-		NSString * identifier = [self identifierForTokenName:tokenData.name];
-		NSData * data = [tokenData serializedData];
-		if ([_keychain containsDataForKey:identifier]) {
-			// This is just warning, but creating two tokens with the same name at the same time, is not recommended.
-			PowerAuthLog(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
-			[_keychain updateValue:data forKey:identifier];
-		} else {
-			[_keychain addValue:data forKey:identifier];
-		}
-		if (_allowInMemoryCache) {
-			_database[identifier] = tokenData;
-		}
+		[self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
 		*setModified = YES;
 	}];
+}
+
+- (void) storeTokenDataWhenLocked:(PA2PrivateTokenData*)tokenData isUpgrade:(BOOL)isUpgrade
+{
+	NSString * identifier = [self identifierForTokenName:tokenData.name];
+	if (tokenData.activationIdentifier == nil) {
+		tokenData.activationIdentifier = _statusProvider.activationIdentifier;
+	}
+	NSData * data = [tokenData serializedData];
+	if ([_keychain containsDataForKey:identifier]) {
+		if (!isUpgrade) {
+			// This is just warning, but creating two tokens with the same name at the same time, is not recommended.
+			PowerAuthLog(@"KeychainTokenStore: WARNING: Looks like that token '%@' already has some data stored. Overwriting the content.", tokenData.name);
+		} else {
+			PowerAuthLog(@"KeychainTokenStore: Upgrading data for token '%@'.", tokenData.name);
+		}
+		[_keychain updateValue:data forKey:identifier];
+	} else {
+		[_keychain addValue:data forKey:identifier];
+	}
+	if (_allowInMemoryCache) {
+		_database[identifier] = tokenData;
+	}
 }
 
 /**

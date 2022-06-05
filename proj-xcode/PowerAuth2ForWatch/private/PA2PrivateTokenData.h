@@ -39,6 +39,11 @@
  Token's secret, received from the server.
  */
 @property (nonatomic, strong, nonnull) NSData * secret;
+/**
+ Identifier of activation associated with the token. If nil, then the serialized
+ data is still in old format and needs to be upgraded.
+ */
+@property (nonatomic, strong, nullable) NSString * activationIdentifier;
 
 #pragma mark - Compare
 

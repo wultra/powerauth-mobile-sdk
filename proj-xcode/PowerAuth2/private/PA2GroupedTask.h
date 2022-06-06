@@ -45,6 +45,12 @@
 - (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock;
 
 /**
+ Restarts the task. Returns YES if task has been restarted and you can add more child tasks.
+ If NO is returned, then the task is still in progress.
+ */
+- (BOOL) restart;
+
+/**
  Complete this grouped operation with result or failure.
  */
 - (void) complete:(nullable ResultType)result error:(nullable NSError*)error;

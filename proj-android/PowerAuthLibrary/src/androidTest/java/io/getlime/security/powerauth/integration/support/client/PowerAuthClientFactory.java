@@ -38,7 +38,8 @@ public class PowerAuthClientFactory {
      */
     public PowerAuthServerApi createApiClient(@NonNull PowerAuthTestConfig testConfig) throws Exception {
         PowerAuthServerApi api = null;
-        if (testConfig.getServerVersion() == ServerVersion.V1_0_0) {
+        if (testConfig.getServerVersion().numericVersion >= ServerVersion.V1_0_0.numericVersion &&
+                testConfig.getServerVersion().numericVersion <= ServerVersion.LATEST.numericVersion) {
             api = new PowerAuthClientV3(testConfig.getServerApiUrl(), testConfig.getAuthorizationHeaderValue(), null, null);
         }
         if (api == null) {

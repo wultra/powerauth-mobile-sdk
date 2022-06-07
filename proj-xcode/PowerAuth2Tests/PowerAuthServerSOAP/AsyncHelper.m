@@ -19,6 +19,7 @@
 @implementation AsyncHelper
 {
 	dispatch_semaphore_t _semaphore;
+	BOOL _hasResult;
 	id _result;
 }
 
@@ -27,6 +28,9 @@
 	self = [super init];
 	if (self) {
 		_semaphore = dispatch_semaphore_create(0);
+		_result = nil;
+		_hasResult = NO;
+		_startTime = nil;
 		if (_semaphore == NULL) {
 			return nil;
 		}
@@ -56,7 +60,14 @@
 
 - (void) reportCompletion:(id)resultObject
 {
-	_result = resultObject;
+	@synchronized (self) {
+		if (!_hasResult) {
+			_hasResult = YES;
+			_result = resultObject;
+		} else {
+			@throw [NSException exceptionWithName:@"SoapApi" reason:@"Test already reported a result" userInfo:nil];
+		}
+	}
 	dispatch_semaphore_signal(_semaphore);
 }
 

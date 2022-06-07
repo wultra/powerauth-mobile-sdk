@@ -40,51 +40,6 @@
 	return _queue;
 }
 
-
-- (void) completeOperationWithCancel:(PA2AsyncOperation*)op
-							 waiting:(AsyncHelper*)waiting
-						  afterDelay:(NSTimeInterval)delay
-{
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-		[op cancel];
-		[waiting reportCompletion:@"cancel"];
-	});
-}
-
-- (void) completeOperationWithResult:(NSString*)result
-						   operation:(PA2AsyncOperation*)op
-							 waiting:(AsyncHelper*)waiting
-						  afterDelay:(NSTimeInterval)delay
-{
-	[self completeWithResult:result withError:nil operation:op waiting:waiting afterDelay:delay];
-}
-
-- (void) completeOperationWithError:(NSError*)error
-						  operation:(PA2AsyncOperation*)op
-							waiting:(AsyncHelper*)waiting
-						 afterDelay:(NSTimeInterval)delay
-{
-	[self completeWithResult:nil withError:error operation:op waiting:waiting afterDelay:delay];
-}
-
-- (void) completeWithResult:(NSString*)result
-				  withError:(NSError*)error
-				  operation:(PA2AsyncOperation*)op
-					waiting:(AsyncHelper*)waiting
-				 afterDelay:(NSTimeInterval)delay
-{
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-		[op completeWithResult:result error:error];
-		// This is a workaround for AsyncHelper. The trouble is that if waiting is called directly, then
-		// the waiting for completion in AsyncHelper is sometimes triggered sooner than the target dispatch queue
-		// receive the result. So we have to also schedule waiting to the same queue, to be sure that it's executed
-		// after the PA2AsyncOperation completion routines.
-		dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-			[waiting reportCompletion:result != nil ? result : error];
-		});
-	});
-}
-
 #pragma mark - Tests
 
 - (void) testAsyncOperationSuccessExecution
@@ -97,7 +52,7 @@
 			PA2AsyncOperation * operation = [[PA2AsyncOperation alloc] initWithReportQueue:dispatch_get_main_queue()];
 			operation.executionBlock = ^id(PA2AsyncOperation *op) {
 				executed = YES;
-				[self completeOperationWithResult:@"success" operation:op waiting:waiting afterDelay:0.1];
+				[op completeWithResult:@"success" error:nil];
 				return nil;
 			};
 			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
@@ -105,6 +60,7 @@
 			};
 			operation.reportBlock = ^(PA2AsyncOperation *op) {
 				reported++;
+				[waiting reportCompletion:op.operationResult];
 			};
 			[[self serialQueue] addOperation:operation];
 		}];
@@ -126,7 +82,7 @@
 			operation.executionBlock = ^id(PA2AsyncOperation *op) {
 				executed = YES;
 				NSError * error = [[NSError alloc] initWithDomain:@"TestDomain" code:99 userInfo:nil];
-				[self completeOperationWithError:error operation:op waiting:waiting afterDelay:0.1];
+				[op completeWithResult:nil error:error];
 				return nil;
 			};
 			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
@@ -134,6 +90,7 @@
 			};
 			operation.reportBlock = ^(PA2AsyncOperation *op) {
 				reported++;
+				[waiting reportCompletion:op.operationError];
 			};
 			[[self serialQueue] addOperation:operation];
 		}];
@@ -156,16 +113,20 @@
 			PA2AsyncOperation * operation = [[PA2AsyncOperation alloc] initWithReportQueue:dispatch_get_main_queue()];
 			operation.executionBlock = ^id(PA2AsyncOperation *op) {
 				executed = YES;
-				[self completeOperationWithCancel:op waiting:waiting afterDelay:0.1];
 				return nil;
 			};
 			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
 				canceled = YES;
+				[waiting reportCompletion:@"cancel"];
 			};
 			operation.reportBlock = ^(PA2AsyncOperation *op) {
 				reported++;
 			};
 			[[self serialQueue] addOperation:operation];
+			
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+				[operation cancel];
+			});
 		} wait:2.0];
 		XCTAssertEqual(executed, YES);
 		XCTAssertEqual(canceled, YES);
@@ -185,12 +146,11 @@
 			operation.executionBlock = ^id(PA2AsyncOperation *op) {
 				executed = YES;
 				[op cancel];
-				[self completeOperationWithResult:@"success" operation:op waiting:waiting afterDelay:0.3];
 				return nil;
 			};
 			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
-				[waiting reportCompletion:@"cancel-handler"];
 				canceled = YES;
+				[waiting reportCompletion:@"cancel-handler"];
 			};
 			operation.reportBlock = ^(PA2AsyncOperation *op) {
 				reported++;
@@ -203,5 +163,67 @@
 		XCTAssertEqual(@"cancel-handler", result);
 	}
 }
+
+- (void) testAsyncOperationCancelAfterEnqueue
+{
+	for (int i = 0; i < 3; i++) {
+		__block BOOL executed = NO;
+		__block BOOL canceled = NO;
+		__block NSInteger reported = 0;
+		id result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+			PA2AsyncOperation * operation = [[PA2AsyncOperation alloc] initWithReportQueue:dispatch_get_main_queue()];
+			operation.executionBlock = ^id(PA2AsyncOperation *op) {
+				executed = YES;
+				return nil;
+			};
+			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
+				canceled = YES;
+				[waiting reportCompletion:@"cancel-handler"];
+			};
+			operation.reportBlock = ^(PA2AsyncOperation *op) {
+				reported++;
+			};
+			[[self serialQueue] addOperation:operation];
+			[operation cancel];
+		} wait:2.0];
+		XCTAssertEqual(canceled, YES);
+		XCTAssertEqual(0, reported);
+		XCTAssertEqual(@"cancel-handler", result);
+	}
+}
+
+// TODO: Uncomment to test #435 - crash in PA2AsyncOperation
+
+//- (void) testAsyncOperationCancelAfterEnqueueButNotExecuted
+//{
+//	for (int i = 0; i < 3; i++) {
+//		__block BOOL executed = NO;
+//		__block BOOL canceled = NO;
+//		__block NSInteger reported = 0;
+//		id result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+//			PA2AsyncOperation * operation = [[PA2AsyncOperation alloc] initWithReportQueue:dispatch_get_main_queue()];
+//			operation.executionBlock = ^id(PA2AsyncOperation *op) {
+//				executed = YES;
+//				return nil;
+//			};
+//			operation.cancelBlock = ^(PA2AsyncOperation *op, id operationTask) {
+//				canceled = YES;
+//				[waiting reportCompletion:@"cancel-handler"];
+//			};
+//			operation.reportBlock = ^(PA2AsyncOperation *op) {
+//				reported++;
+//			};
+//			[[self serialQueue] addOperationWithBlock:^{
+//				[NSThread sleepForTimeInterval:0.2];
+//			}];
+//			[[self serialQueue] addOperation:operation];
+//			[operation cancel];
+//		} wait:2.0];
+//		XCTAssertEqual(executed, NO);
+//		XCTAssertEqual(canceled, YES);
+//		XCTAssertEqual(0, reported);
+//		XCTAssertEqual(@"cancel-handler", result);
+//	}
+//}
 
 @end

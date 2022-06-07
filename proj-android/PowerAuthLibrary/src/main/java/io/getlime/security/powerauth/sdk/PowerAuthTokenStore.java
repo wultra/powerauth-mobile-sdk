@@ -24,6 +24,8 @@ import android.util.Base64;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -37,6 +39,8 @@ import io.getlime.security.powerauth.networking.model.entity.TokenResponsePayloa
 import io.getlime.security.powerauth.networking.model.request.TokenRemoveRequest;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
+import io.getlime.security.powerauth.sdk.impl.GetAccessTokenTask;
+import io.getlime.security.powerauth.sdk.impl.ITaskCompletion;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
@@ -50,6 +54,10 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  */
 public class PowerAuthTokenStore {
 
+    /**
+     * Internal lock
+     */
+    private final ReentrantLock lock;
     /**
      * Reference to parent {@link PowerAuthSDK} object
      */
@@ -71,6 +79,10 @@ public class PowerAuthTokenStore {
      * A prefix for all data stored to the keychain.
      */
     private final String keychainKeyPrefix;
+    /**
+     * Map of grouped HTTP requests that create token.
+     */
+    private final Map<String, GetAccessTokenTask> createTokenRequests;
 
 
     /**
@@ -85,18 +97,25 @@ public class PowerAuthTokenStore {
             @NonNull PowerAuthSDK sdk,
             @NonNull Keychain keychain,
             @NonNull HttpClient httpClient) {
+        this.lock = sdk.getSharedLock();
         this.sdk = sdk;
         this.keychain = keychain;
         this.httpClient = httpClient;
         this.localTokens = new HashMap<>();
         this.keychainKeyPrefix = TOKENS_KEY_PREFIX + "__" + sdk.getConfiguration().getInstanceId() + "__";
+        this.createTokenRequests = new HashMap<>(2);
     }
 
     /**
      * @return true if this instance can provide {@link PowerAuthToken} objects.
      */
-    public synchronized boolean canRequestForAccessToken() {
-        return sdk != null && sdk.hasValidActivation();
+    public boolean canRequestForAccessToken() {
+        try {
+            lock.lock();
+            return sdk != null && sdk.hasValidActivation();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -104,14 +123,34 @@ public class PowerAuthTokenStore {
      * @param privateTokenData Private token's data.
      * @return {@code true} if it's possible to generate header from private token data.
      */
-    synchronized  boolean canGenerateHeaderForToken(@NonNull PowerAuthPrivateTokenData privateTokenData) {
-        if (sdk != null) {
-            final String activationId = sdk.getActivationIdentifier();
-            if (sdk.hasValidActivation() && activationId != null) {
-                return activationId.equals(privateTokenData.activationId);
+    boolean canGenerateHeaderForToken(@NonNull PowerAuthPrivateTokenData privateTokenData) {
+        try {
+            lock.lock();
+            if (sdk != null) {
+                final String activationId = sdk.getActivationIdentifier();
+                if (sdk.hasValidActivation() && activationId != null) {
+                    return activationId.equals(privateTokenData.activationId);
+                }
             }
+            return false;
+        } finally {
+            lock.unlock();
         }
-        return false;
+    }
+
+    /**
+     * Cancel all pending requests created in the store.
+     */
+    void cancelAllRequests() {
+        try {
+            lock.lock();
+            for (GetAccessTokenTask task : createTokenRequests.values()) {
+                task.cancel();
+            }
+            createTokenRequests.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -132,72 +171,150 @@ public class PowerAuthTokenStore {
     public @Nullable
     ICancelable requestAccessToken(@NonNull final Context context, @NonNull final String tokenName, @NonNull PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
 
-        Throwable error = null;
-        PowerAuthPrivateTokenData tokenData = null;
+        final Throwable error;
+        final PowerAuthToken token;
+        final ICancelable task;
 
-        synchronized (this) {
+        try {
+            lock.lock();
             if (this.canRequestForAccessToken()) {
-                tokenData = this.getTokenData(context, tokenName);
+                final PowerAuthPrivateTokenData tokenData = this.getTokenData(context, tokenName);
+                if (tokenData != null) {
+                    token = new PowerAuthToken(this, tokenData);
+                    task = null;
+                    error = null;
+                } else {
+                    token = null;
+                    task = createAccessTokenTask(context, tokenName, authentication, listener);
+                    error = task == null ? new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Different PowerAuthAuthentication used for the same token creation.") : null;
+                }
+
             } else {
+                token = null;
+                task = null;
                 error = new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION);
             }
+        } finally {
+            lock.unlock();
         }
 
-        // If there's private data or error available, then report that immediately to the listener.
+        // Dispatch token or error when we already know the result.
         if (error != null) {
-            final Throwable err = error;
             sdk.dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onGetTokenFailed(err);
+                    listener.onGetTokenFailed(error);
                 }
             });
-            return null;
-        } else if (tokenData != null) {
-            final PowerAuthToken token = new PowerAuthToken(this, tokenData);
+        } else if (token != null) {
             sdk.dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
                     listener.onGetTokenSucceeded(token);
                 }
             });
-            return null;
         }
-        // Prepare activationID in advance, to do not store null when activation is suddenly
-        // removed during the operation.
-        final String activationIdentifier = sdk.getActivationIdentifier();
-        // Execute HTTP request
-        return httpClient.post(
-                null,
-                new CreateTokenEndpoint(),
-                sdk.getCryptoHelper(context),
-                authentication,
-                new INetworkResponseListener<TokenResponsePayload>() {
-                    @Override
-                    public void onNetworkResponse(@NonNull TokenResponsePayload response) {
-                        // Success, try to construct a new PowerAuthPrivateTokenData object.
-                        final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
-                        final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier);
-                        if (newTokenData.hasValidData()) {
-                            // Store token data & report to listener
-                            storeTokenData(context, newTokenData);
-                            listener.onGetTokenSucceeded(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
-                        } else {
-                            // Report encryption error
-                            listener.onGetTokenFailed(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
-                        }
-                    }
+        return task;
+    }
 
-                    @Override
-                    public void onNetworkError(@NonNull Throwable t) {
-                        listener.onGetTokenFailed(t);
-                    }
+    /**
+     * Method that create an asynchronous task and solve request grouping when application ask
+     * for the same token in a very short time.
+     *
+     * @param context         Android context.
+     * @param tokenName       Name of token.
+     * @param authentication  Authentication object.
+     * @param listener        Callback to application.
+     * @return Asynchronous task or null in case that this application request has PowerAuthAuthentication with a different set of factors.
+     */
+    private @Nullable ICancelable createAccessTokenTask(@NonNull final Context context, @NonNull final String tokenName, @NonNull final PowerAuthAuthentication authentication, @NonNull final IGetTokenListener listener) {
 
-                    @Override
-                    public void onCancel() {
-                    }
-                });
+        // Create completion that wraps callback to the application
+        final ITaskCompletion<PowerAuthToken> completion = new ITaskCompletion<PowerAuthToken>() {
+            @Override
+            public void onSuccess(@NonNull PowerAuthToken powerAuthToken) {
+                listener.onGetTokenSucceeded(powerAuthToken);
+            }
 
+            @Override
+            public void onFailure(@NonNull Throwable failure) {
+                listener.onGetTokenFailed(failure);
+            }
+        };
+
+        // Try to find grouped task in task map.
+        GetAccessTokenTask groupedTask = createTokenRequests.get(tokenName);
+        if (groupedTask != null) {
+            if (groupedTask.authenticationFactors != authentication.getSignatureFactorsMask()) {
+                PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenName + "' is not allowed.");
+                return null;
+            }
+        }
+
+        ICancelable childTask = groupedTask != null ? groupedTask.createChildTask(completion) : null;
+        if (childTask == null) {
+            // Prepare activationID in advance, to do not store null when activation is suddenly
+            // removed during the operation.
+            final String activationIdentifier = sdk.getActivationIdentifier();
+
+            // Create new grouped task
+            groupedTask = new GetAccessTokenTask(authentication.getSignatureFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
+
+                @Override
+                public void onTaskStart(@NonNull final GetAccessTokenTask groupedTask) {
+                    // Execute HTTP request
+                    final ICancelable httpTask = httpClient.post(
+                            null,
+                            new CreateTokenEndpoint(),
+                            sdk.getCryptoHelper(context),
+                            authentication,
+                            new INetworkResponseListener<TokenResponsePayload>() {
+                                @Override
+                                public void onNetworkResponse(@NonNull TokenResponsePayload response) {
+                                    // Success, try to construct a new PowerAuthPrivateTokenData object.
+                                    final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
+                                    final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier);
+                                    if (newTokenData.hasValidData()) {
+                                        // Store token data & report to listener
+                                        groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
+                                    } else {
+                                        // Report encryption error
+                                        groupedTask.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
+                                    }
+                                }
+
+                                @Override
+                                public void onNetworkError(@NonNull Throwable t) {
+                                    groupedTask.complete(t);
+                                }
+
+                                @Override
+                                public void onCancel() {
+                                }
+                            });
+                    // Register HTTP task to the grouped task.
+                    if (!groupedTask.addCancelableOperation(httpTask)) {
+                        // This case should never happen, because we're at task start.
+                        throw new IllegalStateException();
+                    }
+                }
+
+                @Override
+                public void onTaskComplete(@NonNull GetAccessTokenTask groupedTask, @Nullable PowerAuthToken token) {
+                    if (token != null) {
+                        storeTokenData(context, token.getTokenData());
+                    }
+                    createTokenRequests.remove(tokenName);
+                }
+            });
+
+            // Register newly created grouped task
+            createTokenRequests.put(tokenName, groupedTask);
+
+            // And finally, create new child task with the completion
+            childTask = groupedTask.createChildTask(completion);
+        }
+        return childTask;
     }
 
     /**
@@ -218,11 +335,14 @@ public class PowerAuthTokenStore {
         Throwable error = null;
         PowerAuthPrivateTokenData tokenData;
 
-        synchronized (this) {
+        try {
+            lock.lock();
             tokenData = getTokenData(context, tokenName);
             if (tokenData == null) {
                 error = new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_TOKEN);
             }
+        } finally {
+            lock.unlock();
         }
 
         if (error != null) {
@@ -275,8 +395,13 @@ public class PowerAuthTokenStore {
      * @param tokenName Name of access token to be checked.
      * @return true if token exists in local database.
      */
-    public synchronized boolean hasLocalToken(@NonNull final Context context, @NonNull String tokenName) {
-        return this.getTokenData(context, tokenName) != null;
+    public boolean hasLocalToken(@NonNull final Context context, @NonNull String tokenName) {
+        try {
+            lock.lock();
+            return getTokenData(context, tokenName) != null;
+        } finally {
+            lock.unlock();
+        }
     }
 
 
@@ -286,12 +411,14 @@ public class PowerAuthTokenStore {
      * @param tokenName Name of access token to be returned
      * @return token object or null if token's not in the local database
      */
-    public synchronized @Nullable PowerAuthToken getLocalToken(@NonNull final Context context, @NonNull String tokenName) {
-        PowerAuthPrivateTokenData tokenData = this.getTokenData(context, tokenName);
-        if (tokenData != null) {
-            return new PowerAuthToken(this, tokenData);
+    public @Nullable PowerAuthToken getLocalToken(@NonNull final Context context, @NonNull String tokenName) {
+        try {
+            lock.lock();
+            PowerAuthPrivateTokenData tokenData = getTokenData(context, tokenName);
+            return tokenData != null ? new PowerAuthToken(this, tokenData) : null;
+        } finally {
+            lock.unlock();
         }
-        return null;
     }
 
 
@@ -301,12 +428,18 @@ public class PowerAuthTokenStore {
      * @param context Context
      * @param tokenName token to be removed
      */
-    public synchronized void removeLocalToken(@NonNull final Context context, @NonNull String tokenName) {
-        removeLocalTokenImpl(context, getLocalIdentifier(tokenName));
+    public void removeLocalToken(@NonNull final Context context, @NonNull String tokenName) {
+        try {
+            lock.lock();
+            removeLocalTokenImpl(context, getLocalIdentifier(tokenName));
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
-     * Remove token from the local database. This method must be called from another synchronized method.
+     * Remove token from the local database. This private method can be called only if private lock
+     * is acquired.
      *
      * @param context Context
      * @param identifier Token's identifier
@@ -327,21 +460,25 @@ public class PowerAuthTokenStore {
      *
      * @param context Context
      */
-    public synchronized void removeAllLocalTokens(@NonNull final Context context) {
-        this.clearTokensIndex(context);
-        this.localTokens.clear();
+    public void removeAllLocalTokens(@NonNull final Context context) {
+        try {
+            lock.lock();
+            this.clearTokensIndex(context);
+            this.localTokens.clear();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
-     * Returns private token data for given token name. Note that this private method has to be
-     * called from the synchronized block.
+     * Returns private token data for given token name. This private method can be called only if
+     * private lock is acquired.
      *
      * @param context Context
      * @param tokenName token to be requested
      * @return Private data object or null if token doesn't exist in local database.
      */
     private @Nullable PowerAuthPrivateTokenData getTokenData(@NonNull final Context context, @NonNull String tokenName) {
-        // Note, must be called from another synchronized method.
         final String activationId = sdk.getActivationIdentifier();
         final String identifier = this.getLocalIdentifier(tokenName);
         PowerAuthPrivateTokenData tokenData = this.localTokens.get(identifier);
@@ -377,22 +514,27 @@ public class PowerAuthTokenStore {
      * @param context Context
      * @param tokenData Private data to be stored
      */
-    private synchronized void storeTokenData(@NonNull final Context context, @NonNull PowerAuthPrivateTokenData tokenData) {
-        // If parent SDK object has no longer a valid activation, then we should not store this token.
-        // Looks like that the activation has been removed during the token acquiring from the server.
-        if (!this.canRequestForAccessToken()) {
-            return;
-        }
-        String identifier = this.getLocalIdentifier(tokenData.name);
-        // Store data into local dictionary
-        this.localTokens.put(identifier, tokenData);
-        // Store to keychain
-        this.keychain.putData(tokenData.getSerializedData(), identifier);
+    private void storeTokenData(@NonNull final Context context, @NonNull PowerAuthPrivateTokenData tokenData) {
+        try {
+            lock.lock();
+            // If parent SDK object has no longer a valid activation, then we should not store this token.
+            // Looks like that the activation has been removed during the token acquiring from the server.
+            if (!this.canRequestForAccessToken()) {
+                return;
+            }
+            String identifier = this.getLocalIdentifier(tokenData.name);
+            // Store data into local dictionary
+            this.localTokens.put(identifier, tokenData);
+            // Store to keychain
+            this.keychain.putData(tokenData.getSerializedData(), identifier);
 
-        // And finally, update index
-        HashSet<String> index = loadTokensIndex(context);
-        index.add(identifier);
-        this.saveTokensIndex(context, index);
+            // And finally, update index
+            HashSet<String> index = loadTokensIndex(context);
+            index.add(identifier);
+            this.saveTokensIndex(context, index);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**

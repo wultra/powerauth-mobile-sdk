@@ -25,6 +25,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - Method `PowerAuthSDK.removeActivationLocal(Context, boolean)` has no longer the context parameter optional, so the Context has to be always provided.
 
+- Property `PowerAuthAuthentication.overridenPossessionKey` is now `overriddenPossessionKey` (fixed typo in property name.)
+
 ### Other changes
 
 - `BiometricAuthentication.isBiometricAuthenticationAvailable()` now better reflect the biometric authentication availability. The function is now internally implemented as `BiometricAuthentication.canAuthenticate() == BiometricStatus.OK`.

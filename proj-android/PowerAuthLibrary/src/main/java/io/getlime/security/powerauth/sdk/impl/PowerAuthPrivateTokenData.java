@@ -46,14 +46,25 @@ public class PowerAuthPrivateTokenData {
      * Identifier of activation associated to this token.
      */
     public final String activationId;
+    /**
+     * Integer represents PowerAuth Symmetric Signature factors used for the token creation.
+     * If value is equal to 0, then the token was created in older SDKs than 1.7.0.
+     */
+    public final int authenticationFactors;
 
     private static final int SECRET_LENGTH = 16;
 
-    public PowerAuthPrivateTokenData(@NonNull String name, @NonNull String identifier, @NonNull byte[] secret, @Nullable String activationId) {
+    public PowerAuthPrivateTokenData(
+            @NonNull String name,
+            @NonNull String identifier,
+            @NonNull byte[] secret,
+            @Nullable String activationId,
+            int authenticationFactors) {
         this.name = name;
         this.identifier = identifier;
         this.secret = secret;
         this.activationId = activationId;
+        this.authenticationFactors = authenticationFactors;
     }
 
     public boolean hasValidData() {
@@ -110,6 +121,8 @@ public class PowerAuthPrivateTokenData {
             sb.append(',');
             sb.append(activationId);
         }
+        sb.append(',');
+        sb.append(authenticationFactors);
         return sb.toString().getBytes(StandardCharsets.US_ASCII);
     }
 
@@ -118,7 +131,7 @@ public class PowerAuthPrivateTokenData {
         String str = new String(data, StandardCharsets.US_ASCII);
         // Split into components
         final String[] components = str.split("\\,");
-        if (components.length != 3 && components.length != 4) {
+        if (components.length < 3 || components.length > 5) {
             return null;
         }
         final String identifier = components[0];
@@ -130,8 +143,14 @@ public class PowerAuthPrivateTokenData {
         } else {
             activationId = null;
         }
+        final int authenticationFactors;
+        if (components.length == 5) {
+            authenticationFactors = Integer.parseInt(components[0]);
+        } else {
+            authenticationFactors = 0;
+        }
 
-        final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(name, identifier, secret, activationId);
+        final PowerAuthPrivateTokenData tokenData = new PowerAuthPrivateTokenData(name, identifier, secret, activationId, authenticationFactors);
         return tokenData.hasValidData() ? tokenData : null;
     }
 }

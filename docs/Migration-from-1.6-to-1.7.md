@@ -31,6 +31,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - `BiometricAuthentication.isBiometricAuthenticationAvailable()` now better reflect the biometric authentication availability. The function is now internally implemented as `BiometricAuthentication.canAuthenticate() == BiometricStatus.OK`.
 
+- If you try to request for the same access token but with a different set of factors in `PowerAuthAuthentication`, then the request will fail with `WRONG_PARAMETER` error code.
+
 ## iOS & tvOS
 
 - TBA

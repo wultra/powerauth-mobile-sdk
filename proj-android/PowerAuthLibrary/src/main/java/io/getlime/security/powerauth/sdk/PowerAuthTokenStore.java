@@ -177,12 +177,12 @@ public class PowerAuthTokenStore {
 
         try {
             lock.lock();
-            if (this.canRequestForAccessToken()) {
-                final PowerAuthPrivateTokenData tokenData = this.getTokenData(context, tokenName);
+            if (canRequestForAccessToken()) {
+                final PowerAuthPrivateTokenData tokenData = getTokenData(context, tokenName);
                 if (tokenData != null) {
-                    token = new PowerAuthToken(this, tokenData);
+                    token = createAccessToken(context, tokenData, authentication);
                     task = null;
-                    error = null;
+                    error = token == null ? new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Different PowerAuthAuthentication used for the same token creation.") : null;;
                 } else {
                     token = null;
                     task = createAccessTokenTask(context, tokenName, authentication, listener);
@@ -218,6 +218,32 @@ public class PowerAuthTokenStore {
     }
 
     /**
+     * Create PowerAuthToken from private token data. The method also validates whether the requested
+     * authentication match the factors that was used to token creation. If the token was created in
+     * older SDK, then the token data stored in the keychain is automatically upgraded to the new format.
+     *
+     * @param context Android context.
+     * @param tokenData Private token data.
+     * @param authentication Authentication object.
+     * @return {@link PowerAuthToken} instance or null if authentication contains a different factors.
+     */
+    private @Nullable PowerAuthToken createAccessToken(@NonNull Context context, @NonNull PowerAuthPrivateTokenData tokenData, @NonNull PowerAuthAuthentication authentication) {
+        if (tokenData.authenticationFactors != 0) {
+            // Token data contains information about factors.
+            if (tokenData.authenticationFactors != authentication.getSignatureFactorsMask()) {
+                PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenData.name + "' creation is not allowed.");
+                return null;
+            }
+        } else {
+            // Token was created in OLD SDK, so we should upgrade data and assign a currently requested authentication factors.
+            PowerAuthLog.d("PowerAuthTokenStore: Upgrading authentication data for token '" + tokenData.name + "'");
+            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getSignatureFactorsMask());
+            storeTokenData(context, tokenData, true);
+        }
+        return new PowerAuthToken(this, tokenData);
+    }
+
+    /**
      * Method that create an asynchronous task and solve request grouping when application ask
      * for the same token in a very short time.
      *
@@ -246,7 +272,7 @@ public class PowerAuthTokenStore {
         GetAccessTokenTask groupedTask = createTokenRequests.get(tokenName);
         if (groupedTask != null) {
             if (groupedTask.authenticationFactors != authentication.getSignatureFactorsMask()) {
-                PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenName + "' is not allowed.");
+                PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenName + "' creation is not allowed.");
                 return null;
             }
         }
@@ -256,6 +282,7 @@ public class PowerAuthTokenStore {
             // Prepare activationID in advance, to do not store null when activation is suddenly
             // removed during the operation.
             final String activationIdentifier = sdk.getActivationIdentifier();
+            final int authenticationFactors = authentication.getSignatureFactorsMask();
 
             // Create new grouped task
             groupedTask = new GetAccessTokenTask(authentication.getSignatureFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
@@ -273,7 +300,7 @@ public class PowerAuthTokenStore {
                                 public void onNetworkResponse(@NonNull TokenResponsePayload response) {
                                     // Success, try to construct a new PowerAuthPrivateTokenData object.
                                     final byte[] tokenSecretBytes = Base64.decode(response.getTokenSecret(), Base64.NO_WRAP);
-                                    final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier);
+                                    final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier, authenticationFactors);
                                     if (newTokenData.hasValidData()) {
                                         // Store token data & report to listener
                                         groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
@@ -302,7 +329,7 @@ public class PowerAuthTokenStore {
                 @Override
                 public void onTaskComplete(@NonNull GetAccessTokenTask groupedTask, @Nullable PowerAuthToken token) {
                     if (token != null) {
-                        storeTokenData(context, token.getTokenData());
+                        storeTokenData(context, token.getTokenData(), false);
                     }
                     createTokenRequests.remove(tokenName);
                 }
@@ -446,12 +473,12 @@ public class PowerAuthTokenStore {
      */
     private void removeLocalTokenImpl(@NonNull Context context, @NonNull String identifier) {
         // Remove token from keychain and local cache
-        this.localTokens.remove(identifier);
-        this.keychain.remove(identifier);
+        localTokens.remove(identifier);
+        keychain.remove(identifier);
         // Update index
-        HashSet<String> allIdentifiers = this.loadTokensIndex(context);
+        HashSet<String> allIdentifiers = loadTokensIndex(context);
         allIdentifiers.remove(identifier);
-        this.saveTokensIndex(context, allIdentifiers);
+        saveTokensIndex(context, allIdentifiers);
     }
 
 
@@ -463,8 +490,8 @@ public class PowerAuthTokenStore {
     public void removeAllLocalTokens(@NonNull final Context context) {
         try {
             lock.lock();
-            this.clearTokensIndex(context);
-            this.localTokens.clear();
+            clearTokensIndex(context);
+            localTokens.clear();
         } finally {
             lock.unlock();
         }
@@ -480,20 +507,20 @@ public class PowerAuthTokenStore {
      */
     private @Nullable PowerAuthPrivateTokenData getTokenData(@NonNull final Context context, @NonNull String tokenName) {
         final String activationId = sdk.getActivationIdentifier();
-        final String identifier = this.getLocalIdentifier(tokenName);
-        PowerAuthPrivateTokenData tokenData = this.localTokens.get(identifier);
+        final String identifier = getLocalIdentifier(tokenName);
+        PowerAuthPrivateTokenData tokenData = localTokens.get(identifier);
         if (tokenData == null) {
-            byte[] tokenBytes = this.keychain.getData(identifier);
+            byte[] tokenBytes = keychain.getData(identifier);
             if (tokenBytes != null) {
                 tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
                 if (tokenData != null) {
                     if (tokenData.activationId == null) {
                         // Old data format, so we have to add an activationId and re-save
-                        PowerAuthLog.d("PowerAuthTokenStore: Upgrading data for token '" + tokenName + "'");
-                        tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, activationId);
-                        storeTokenData(context, tokenData);
+                        PowerAuthLog.d("PowerAuthTokenStore: Upgrading activation data for token '" + tokenName + "'");
+                        tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, activationId, tokenData.authenticationFactors);
+                        storeTokenData(context, tokenData, true);
                     }
-                    this.localTokens.put(identifier, tokenData);
+                    localTokens.put(identifier, tokenData);
                 }
             }
         } else {
@@ -513,25 +540,27 @@ public class PowerAuthTokenStore {
      *
      * @param context Context
      * @param tokenData Private data to be stored
+     * @param upgrade If true, then this is the data upgrade, so the update of token index is not required.
      */
-    private void storeTokenData(@NonNull final Context context, @NonNull PowerAuthPrivateTokenData tokenData) {
+    private void storeTokenData(@NonNull final Context context, @NonNull PowerAuthPrivateTokenData tokenData, boolean upgrade) {
         try {
             lock.lock();
             // If parent SDK object has no longer a valid activation, then we should not store this token.
             // Looks like that the activation has been removed during the token acquiring from the server.
-            if (!this.canRequestForAccessToken()) {
+            if (!canRequestForAccessToken()) {
                 return;
             }
-            String identifier = this.getLocalIdentifier(tokenData.name);
+            String identifier = getLocalIdentifier(tokenData.name);
             // Store data into local dictionary
-            this.localTokens.put(identifier, tokenData);
+            localTokens.put(identifier, tokenData);
             // Store to keychain
-            this.keychain.putData(tokenData.getSerializedData(), identifier);
-
-            // And finally, update index
-            HashSet<String> index = loadTokensIndex(context);
-            index.add(identifier);
-            this.saveTokensIndex(context, index);
+            keychain.putData(tokenData.getSerializedData(), identifier);
+            if (!upgrade) {
+                // And finally, update index
+                HashSet<String> index = loadTokensIndex(context);
+                index.add(identifier);
+                saveTokensIndex(context, index);
+            }
         } finally {
             lock.unlock();
         }
@@ -587,7 +616,7 @@ public class PowerAuthTokenStore {
     private void saveTokensIndex(@NonNull final Context context, @NonNull HashSet<String> index) {
 
         final String joinedIdentifiers = TextUtils.join("\n", index.toArray());
-        this.keychain.putString(joinedIdentifiers, this.getIndexKey());
+        keychain.putString(joinedIdentifiers, getIndexKey());
     }
 
     /**
@@ -597,12 +626,12 @@ public class PowerAuthTokenStore {
      */
     private HashSet<String> loadTokensIndex(@NonNull final Context context) {
         HashSet<String> index = new HashSet<>();
-        final String joinedIdentifiers = this.keychain.getString(this.getIndexKey());
+        final String joinedIdentifiers = keychain.getString(getIndexKey());
         if (joinedIdentifiers != null) {
             // Split previously joined identifiers
             String[] tokenIdentifiers = joinedIdentifiers.split("\\n");
             for (String identifier: tokenIdentifiers) {
-                if (this.isValidLocalIdentifier(identifier)) {
+                if (isValidLocalIdentifier(identifier)) {
                     index.add(identifier);
                 }
             }
@@ -618,8 +647,8 @@ public class PowerAuthTokenStore {
     private void clearTokensIndex(@NonNull final Context context) {
         HashSet<String> identifiers = loadTokensIndex(context);
         for (String id: identifiers) {
-            this.keychain.remove(id);
+            keychain.remove(id);
         }
-        this.keychain.remove(this.getIndexKey());
+        keychain.remove(getIndexKey());
     }
 }

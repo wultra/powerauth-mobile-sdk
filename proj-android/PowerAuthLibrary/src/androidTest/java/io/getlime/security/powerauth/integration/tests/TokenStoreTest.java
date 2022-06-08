@@ -280,12 +280,25 @@ public class TokenStoreTest {
         PowerAuthToken token1 = requestAccessToken(TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), true);
         assertNotNull(token1);
 
-        try {
-            requestAccessToken(TOKEN_NAME_POSSESSION, activationHelper.getValidAuthentication(), true);
-            fail();
-        } catch (PowerAuthErrorException e) {
-            assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, e.getPowerAuthErrorCode());
-        }
+        // Try to create token with different auth when the token is already cached
+        AsyncHelper.await(new AsyncHelper.Execution<Boolean>() {
+
+            @Override
+            public void execute(@NonNull final AsyncHelper.ResultCatcher<Boolean> resultCatcher) throws Exception {
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getValidAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException)t).getPowerAuthErrorCode());
+                        resultCatcher.completeWithResult(true);
+                    }
+                });
+            }
+        });
     }
 
 

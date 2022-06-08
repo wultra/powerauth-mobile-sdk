@@ -20,17 +20,17 @@ import java.util.List;
 
 public class ApplicationDetail {
 
-    private Long applicationId;
+    private String applicationId;
     private String applicationName;
     private List<String> applicationRoles;
     private String masterPublicKey;
     private List<ApplicationVersion> versions;
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

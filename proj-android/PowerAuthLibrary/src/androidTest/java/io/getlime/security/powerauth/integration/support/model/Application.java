@@ -24,8 +24,7 @@ import java.util.List;
 
 public class Application {
 
-    @SerializedName("id")
-    private Long applicationId;
+    private String applicationId;
     private String applicationName;
     private List<String> applicationRoles;
 
@@ -38,11 +37,11 @@ public class Application {
         this.applicationRoles = applicationDetail.getApplicationRoles();
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

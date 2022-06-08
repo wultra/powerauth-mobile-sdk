@@ -18,17 +18,17 @@ package io.getlime.security.powerauth.integration.support.model;
 
 public class ApplicationVersion {
 
-    private Long applicationVersionId;
+    private String applicationVersionId;
     private String applicationVersionName;
     private String applicationKey;
     private String applicationSecret;
     private boolean supported;
 
-    public Long getApplicationVersionId() {
+    public String getApplicationVersionId() {
         return applicationVersionId;
     }
 
-    public void setApplicationVersionId(Long applicationVersionId) {
+    public void setApplicationVersionId(String applicationVersionId) {
         this.applicationVersionId = applicationVersionId;
     }
 

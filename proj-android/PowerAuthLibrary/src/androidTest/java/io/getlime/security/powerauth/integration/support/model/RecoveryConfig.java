@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.integration.support.model;
 public class RecoveryConfig {
 
     // Always present values
-    private long applicationId;
+    private String applicationId;
     private boolean activationRecoveryEnabled;
     private boolean recoveryPostcardEnabled;
 
@@ -28,11 +28,11 @@ public class RecoveryConfig {
     private String postcardPublicKey; // Should not be set in update
     private String remotePostcardPublicKey;
 
-    public long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

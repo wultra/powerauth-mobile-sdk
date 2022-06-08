@@ -38,8 +38,7 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.integration.support.Logger;
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApiException;
-import io.getlime.security.powerauth.integration.support.endpoints.EmptyRequestObject;
-import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.EmptyRequestObject;
 
 /**
  * The {@code RestClient} class implements HTTP communication with PowerAuth Server REST API.

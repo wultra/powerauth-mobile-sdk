@@ -34,7 +34,7 @@ public class ActivationDetail {
     private String platform;
     private String deviceInfo;
     private List<String> activationFlags;
-    private long applicationId;
+    private String applicationId;
     private String encryptedStatusBlob;
     private String encryptedStatusBlobNonce;
     private String activationCode;
@@ -137,11 +137,11 @@ public class ActivationDetail {
         this.activationFlags = activationFlags;
     }
 
-    public long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

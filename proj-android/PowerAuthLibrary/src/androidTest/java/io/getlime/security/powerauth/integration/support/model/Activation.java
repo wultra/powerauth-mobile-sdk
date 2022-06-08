@@ -23,7 +23,7 @@ public class Activation {
     private String activationCode;
     private @NonNull String activationId = "INVALID_ID";
     private String activationSignature;
-    private Long applicationId;
+    private String applicationId;
     private String userId;
 
     public String getActivationCode() {
@@ -51,11 +51,11 @@ public class Activation {
         this.activationSignature = activationSignature;
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

@@ -59,6 +59,7 @@
 		id<PowerAuthPrivateTokenStore> tokenStore = _tokenStore;
 		if (tokenData && tokenStore) {
 			tokenData.activationIdentifier = _activationId;
+			tokenData.authenticationFactors = _authentication.signatureFactorMask;
 			token = [[PowerAuthToken alloc] initWithStore:tokenStore data:tokenData];
 			_privateTokenData = tokenData;
 		} else {

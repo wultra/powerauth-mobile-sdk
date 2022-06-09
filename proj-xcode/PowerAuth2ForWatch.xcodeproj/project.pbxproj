@@ -16,6 +16,7 @@
 		BF1ED0CA284775E200D6B380 /* PA2GroupedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0C8284775E200D6B380 /* PA2GroupedTask.m */; };
 		BF1ED0CD284775FA00D6B380 /* PA2CreateTokenTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0CB284775FA00D6B380 /* PA2CreateTokenTask.h */; };
 		BF1ED0CE284775FA00D6B380 /* PA2CreateTokenTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0CC284775FA00D6B380 /* PA2CreateTokenTask.m */; };
+		BF4B3589285209CA009A03EF /* PowerAuthAuthentication+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF4B3588285209CA009A03EF /* PowerAuthAuthentication+Private.h */; };
 		BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */; };
 		BF86E855263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */; };
 		BF86E856263C1EBE004C8AE5 /* PowerAuthSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = BF86E81F263C1EBD004C8AE5 /* PowerAuthSystem.m */; };
@@ -88,6 +89,7 @@
 		BF1ED0C8284775E200D6B380 /* PA2GroupedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2GroupedTask.m; sourceTree = "<group>"; };
 		BF1ED0CB284775FA00D6B380 /* PA2CreateTokenTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CreateTokenTask.h; sourceTree = "<group>"; };
 		BF1ED0CC284775FA00D6B380 /* PA2CreateTokenTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2CreateTokenTask.m; sourceTree = "<group>"; };
+		BF4B3588285209CA009A03EF /* PowerAuthAuthentication+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PowerAuthAuthentication+Private.h"; sourceTree = "<group>"; };
 		BF667E54282D3F5F006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BF86E80F263C1DDF004C8AE5 /* PowerAuth2ForWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF86E81E263C1EBD004C8AE5 /* PowerAuthAuthorizationHttpHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthorizationHttpHeader.m; sourceTree = "<group>"; };
@@ -164,6 +166,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BF4B3587285209BA009A03EF /* sdk */ = {
+			isa = PBXGroup;
+			children = (
+				BF4B3588285209CA009A03EF /* PowerAuthAuthentication+Private.h */,
+			);
+			name = sdk;
+			sourceTree = "<group>";
+		};
 		BF86E805263C1DDF004C8AE5 = {
 			isa = PBXGroup;
 			children = (
@@ -224,6 +234,7 @@
 		BF86E82D263C1EBD004C8AE5 /* private */ = {
 			isa = PBXGroup;
 			children = (
+				BF4B3587285209BA009A03EF /* sdk */,
 				BF86E891263C1F34004C8AE5 /* watch */,
 				BF86E88F263C1F24004C8AE5 /* token */,
 				BF86E88D263C1F19004C8AE5 /* system */,
@@ -349,6 +360,7 @@
 				BF86E872263C1EBE004C8AE5 /* PA2WCSessionPacket_ActivationStatus.h in Headers */,
 				BF86E85F263C1EBE004C8AE5 /* PowerAuthWCSessionManager.h in Headers */,
 				BF1ED0CD284775FA00D6B380 /* PA2CreateTokenTask.h in Headers */,
+				BF4B3589285209CA009A03EF /* PowerAuthAuthentication+Private.h in Headers */,
 				BF667E55282D3F5F006E97F8 /* PA2TokenDataLock.h in Headers */,
 				BF86E863263C1EBE004C8AE5 /* PowerAuthAuthorizationHttpHeader.h in Headers */,
 				BF86E8B1263C231B004C8AE5 /* PowerAuthToken.h in Headers */,

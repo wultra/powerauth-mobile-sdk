@@ -148,7 +148,7 @@
 	__block PowerAuthToken * token4 = nil;
 	__block PowerAuthToken * token5 = nil;
 	__block NSUInteger completionCount = 0;
-	const NSUInteger minCompletionCount = 5;
+	const NSUInteger minCompletionCount = 6;
 	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		PowerAuthAuthentication * auth = _helper.authPossessionWithKnowledge;
 		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
@@ -193,6 +193,13 @@
 				[waiting reportCompletion:nil];
 			}
 		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
 	}];
 	
 	XCTAssertTrue([token1 isEqualToToken:token2]);
@@ -200,6 +207,57 @@
 	XCTAssertTrue([token2 isEqualToToken:token3]);
 	XCTAssertTrue([token4 isEqualToToken:token5]);
 	XCTAssertFalse([token4 isEqualToToken:token1]);
+}
+
+- (void) testCreateTokenWithDifferentAuth
+{
+	CHECK_TEST_CONFIG();
+	
+	// This test validates whether SDK validates signature factors for already
+	// created token.
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	__block PowerAuthToken * token1 = nil;
+	__block PowerAuthToken * token2 = nil;
+	__block NSUInteger completionCount = 0;
+	const NSUInteger minCompletionCount = 2;
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token1 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token2 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+	}];
+	completionCount = 0;
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+	}];
 }
 
 @end

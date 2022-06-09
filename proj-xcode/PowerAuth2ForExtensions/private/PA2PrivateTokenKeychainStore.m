@@ -22,10 +22,12 @@
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
 #import "PA2CreateTokenTask.h"
-#import "PowerAuthErrorConstants.h"
-#import "PowerAuthKeychain.h"
-#import "PowerAuthConfiguration.h"
-#import "PowerAuthLog.h"
+#import "PowerAuthAuthentication+Private.h"
+
+#import <PowerAuth2ForExtensions/PowerAuthErrorConstants.h>
+#import <PowerAuth2ForExtensions/PowerAuthKeychain.h>
+#import <PowerAuth2ForExtensions/PowerAuthConfiguration.h>
+#import <PowerAuth2ForExtensions/PowerAuthLog.h>
 
 @implementation PA2PrivateTokenKeychainStore
 {
@@ -211,13 +213,17 @@
 		completion(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
-	if (tokenData) {
+	
+	NSError * error = nil;
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:authentication error:&error];
+	if (tokenData || error) {
 		// The data is available, so the token can be returned synchronously
-		PowerAuthToken * token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
-		completion(token, nil);
+		PowerAuthToken * token = tokenData ? [[PowerAuthToken alloc] initWithStore:self data:tokenData] : nil;
+		completion(token, error);
 		return nil;
 	}
+	
+	// Local token is not found, so we have to fire a remote request.
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
@@ -226,16 +232,13 @@
 		return nil;
 	}
 	
-	// Local token is not found, so we have to fire a remote request.
-	
 	[_localLock lock];
 	//
 	PA2CreateTokenTask * groupTask = _createTokenTasks[name];
 	id<PowerAuthOperationTask> result = nil;
-	NSError * error = nil;
 	if (groupTask && authenticationIsRequired) {
-		if (![groupTask.authentication hasEqualFactorsToAuthentication:authentication]) {
-			error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"There's already pending request for this token, but with a different authentication.");
+		if (groupTask.authentication.signatureFactorMask != authentication.signatureFactorMask) {
+			error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
 		}
 	}
 	if (!error) {
@@ -278,9 +281,10 @@
 		completion(NO, PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
+	NSError * error = nil;
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:nil error:&error];
 	if (!tokenData) {
-		completion(NO, PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Token not found."));
+		completion(NO, error ? error : PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Token not found."));
 		return nil;
 	}
 
@@ -354,13 +358,13 @@
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
 {
-	return nil != [self tokenDataForTokenName:name];
+	return nil != [self tokenDataForTokenName:name authentication:nil error:nil];
 }
 
 
 - (PowerAuthToken*) localTokenWithName:(NSString*)name
 {
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:nil error:nil];
 	if (tokenData) {
 		return [[PowerAuthToken alloc] initWithStore:self data:tokenData];
 	}
@@ -421,24 +425,33 @@
  Returns PA2PrivateTokenData object created for token with name or nil if no such data is stored.
  */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
+								authentication:(PowerAuthAuthentication*)authentication
+										 error:(NSError**)error
 {
-	return [self synchronized:^id(BOOL *setModified) {
+	__block NSError * localError = nil;
+	PA2PrivateTokenData * result = [self synchronized:^id(BOOL *setModified) {
 		NSString * identifier = [self identifierForTokenName:name];
 		PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
 			if (tokenData) {
-				NSString * aid = tokenData.activationIdentifier;
-				if (aid == nil) {
-					// Old data format, with no activation identifier serialized. Re-save the data
-					[self storeTokenDataWhenLocked:tokenData isUpgrade:YES];
-					*setModified = YES;
-				} else if (![aid isEqualToString:_statusProvider.activationIdentifier]) {
+				NSString * tokenDataAID = tokenData.activationIdentifier;
+				BOOL isInvalid          = tokenDataAID != nil && ![tokenDataAID isEqualToString:_statusProvider.activationIdentifier];
+				BOOL doUpgradeAID       = tokenDataAID == nil;
+				BOOL doUpgradeFactors   = authentication != nil && tokenData.authenticationFactors == 0;
+				if (isInvalid) {
 					// Looks like serialized activation identifier is different to the current AID.
 					// This token is no longer valid and must be removed from the keychain.
 					PowerAuthLog(@"KeychainTokenStore: WARNING: Token '%@' is no longer valid.", name);
 					[_keychain deleteDataForKey:identifier];
 					tokenData = nil;
+					*setModified = YES;
+				} else if (doUpgradeAID || doUpgradeFactors) {
+					// Old data format, with no activation identifier or factors serialized. Re-save the data
+					if (doUpgradeFactors) {
+						tokenData.authenticationFactors = authentication.signatureFactorMask;
+					}
+					[self storeTokenDataWhenLocked:tokenData isUpgrade:YES];
 					*setModified = YES;
 				}
 			}
@@ -447,8 +460,19 @@
 				_database[identifier] = tokenData;
 			}
 		}
+		// Finally, validate whether the requested factors
+		if (authentication != nil && tokenData.authenticationFactors != 0) {
+			if (tokenData.authenticationFactors != authentication.signatureFactorMask) {
+				localError = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
+				tokenData = nil;
+			}
+		}
 		return tokenData;
 	}];
+	if (error && localError) {
+		*error = localError;
+	}
+	return result;
 }
 
 - (void) storeTokenDataWhenLocked:(PA2PrivateTokenData*)tokenData isUpgrade:(BOOL)isUpgrade

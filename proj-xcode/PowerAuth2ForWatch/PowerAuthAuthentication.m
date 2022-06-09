@@ -19,6 +19,7 @@
 
 #import <PowerAuth2ForWatch/PowerAuthAuthentication.h>
 #import <PowerAuth2ForWatch/PowerAuthKeychainAuthentication.h>
+#import "PowerAuthAuthentication+Private.h"
 
 @implementation PowerAuthAuthentication
 
@@ -50,23 +51,6 @@
 		return [[PowerAuthKeychainAuthentication alloc] initWithPrompt:_biometryPrompt];
 	}
 	return nil;
-}
-
-/**
- Calculate numeric representation from the combination of factors set in PowerAuthAuthentication object.
- */
-static NSUInteger _GetFactorsMask(PowerAuthAuthentication * auth)
-{
-	NSUInteger result = 0;
-	if (auth.usePossession) result |= 0x001;
-	if (auth.usePassword)   result |= 0x010;
-	if (auth.useBiometry)   result |= 0x100;
-	return result;
-}
-
-- (BOOL) hasEqualFactorsToAuthentication:(PowerAuthAuthentication *)authentication
-{
-	return _GetFactorsMask(self) == _GetFactorsMask(authentication);
 }
 
 #if DEBUG
@@ -150,5 +134,19 @@ static NSUInteger _GetFactorsMask(PowerAuthAuthentication * auth)
 	return auth;
 }
 #endif // PA2_HAS_LACONTEXT
+
+@end
+
+
+@implementation PowerAuthAuthentication (Private)
+
+- (NSInteger) signatureFactorMask
+{
+	NSUInteger result = 0;
+	if (_usePossession) result |= 1;
+	if (_usePassword)   result |= 2;
+	if (_useBiometry)   result |= 4;
+	return result;
+}
 
 @end

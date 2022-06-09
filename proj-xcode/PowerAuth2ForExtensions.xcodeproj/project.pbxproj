@@ -101,6 +101,8 @@
 		BF44F318263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F319263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
 		BF44F31A263C41A100F3D498 /* PowerAuthDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */; };
+		BF4B358C285209FC009A03EF /* PowerAuthAuthentication+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF4B358B285209FC009A03EF /* PowerAuthAuthentication+Private.h */; };
+		BF4B358D285209FC009A03EF /* PowerAuthAuthentication+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF4B358B285209FC009A03EF /* PowerAuthAuthentication+Private.h */; };
 		BF667E52282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */; };
 		BF667E53282D3D9E006E97F8 /* PA2TokenDataLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */; };
 		BFC1929C27FC69A4001455C1 /* PowerAuthSharingConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFC1929A27FC69A4001455C1 /* PowerAuthSharingConfiguration.m */; };
@@ -179,6 +181,7 @@
 		BF44F309263C403600F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F315263C41A100F3D498 /* PowerAuthDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthDeprecated.h; sourceTree = "<group>"; };
 		BF44F316263C41A100F3D498 /* PowerAuthDeprecated.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthDeprecated.m; sourceTree = "<group>"; };
+		BF4B358B285209FC009A03EF /* PowerAuthAuthentication+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PowerAuthAuthentication+Private.h"; sourceTree = "<group>"; };
 		BF667E51282D3D9E006E97F8 /* PA2TokenDataLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2TokenDataLock.h; sourceTree = "<group>"; };
 		BFC1929A27FC69A4001455C1 /* PowerAuthSharingConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSharingConfiguration.m; sourceTree = "<group>"; };
 		BFC1929B27FC69A4001455C1 /* PowerAuthSharingConfiguration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthSharingConfiguration.h; sourceTree = "<group>"; };
@@ -305,6 +308,7 @@
 		BF44F280263C3BF400F3D498 /* private */ = {
 			isa = PBXGroup;
 			children = (
+				BF4B358A285209EF009A03EF /* sdk */,
 				BF44F29D263C3C3700F3D498 /* token */,
 				BF44F298263C3C0800F3D498 /* system */,
 				BF44F287263C3BF400F3D498 /* PA2SessionStatusDataReader.h */,
@@ -343,6 +347,14 @@
 			name = token;
 			sourceTree = "<group>";
 		};
+		BF4B358A285209EF009A03EF /* sdk */ = {
+			isa = PBXGroup;
+			children = (
+				BF4B358B285209FC009A03EF /* PowerAuthAuthentication+Private.h */,
+			);
+			name = sdk;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -367,6 +379,7 @@
 				BF44F28D263C3BF400F3D498 /* PA2PrivateConstants.h in Headers */,
 				BF44F2C8263C3C7000F3D498 /* PowerAuthSessionStatusProvider.h in Headers */,
 				BF44F2B9263C3C7000F3D498 /* PowerAuthSystem.h in Headers */,
+				BF4B358C285209FC009A03EF /* PowerAuthAuthentication+Private.h in Headers */,
 				BF44F296263C3BF400F3D498 /* PA2PrivateTokenInterfaces.h in Headers */,
 				BF44F2C3263C3C7000F3D498 /* PowerAuthMacros.h in Headers */,
 				BF44F317263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */,
@@ -402,6 +415,7 @@
 				BF44F2E9263C403600F3D498 /* PA2PrivateConstants.h in Headers */,
 				BF44F2EA263C403600F3D498 /* PowerAuthSessionStatusProvider.h in Headers */,
 				BF44F2EB263C403600F3D498 /* PowerAuthSystem.h in Headers */,
+				BF4B358D285209FC009A03EF /* PowerAuthAuthentication+Private.h in Headers */,
 				BF44F2EC263C403600F3D498 /* PA2PrivateTokenInterfaces.h in Headers */,
 				BF44F2ED263C403600F3D498 /* PowerAuthMacros.h in Headers */,
 				BF44F318263C41A100F3D498 /* PowerAuthDeprecated.h in Headers */,

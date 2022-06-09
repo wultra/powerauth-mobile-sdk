@@ -42,8 +42,11 @@
 		_headers = [self prepareFixedHeaders:config];
 		if (_version == PATS_V0_24 ||
 			_version == PATS_V1_0 ||
-			_version == PATS_V1_1) {
+			_version == PATS_V1_1 ||
+			_version == PATS_V1_2) {
 			_templateMapping = [SoapHelper mappingForV0_24];
+		} else if (_version == PATS_V1_3) {
+			_templateMapping = [SoapHelper mappingForV1_3];
 		} else {
 			@throw [NSException exceptionWithName:@"SoapError" reason:@"Connection to older servers is not supported." userInfo:nil];
 		}
@@ -283,6 +286,38 @@
 			 @"VerifySignature_ForceVer"		: MAP(v3, @"VerifySignature_ForceVer"),	// Forced protocol version
 			 };
 }
+
++ (NSDictionary<NSString*, SoapHelperMapping*>*) mappingForV1_3
+{
+	NSString * v3 = @"http://getlime.io/security/powerauth/v3";
+	return @{
+			 @"BlockActivation" 				: MAP(v3, @"BlockActivation"),
+			 @"CommitActivation" 				: MAP(v3, @"CommitActivation"),
+			 @"CreateApplication" 				: MAP(v3, @"CreateApplication_1_3"),
+			 @"CreateApplicationVersion" 		: MAP(v3, @"CreateApplicationVersion_1_3"),
+			 @"CreateNonPersonalizedOfflineSignaturePayload": MAP(v3, @"CreateNonPersonalizedOfflineSignaturePayload"),
+			 @"CreatePersonalizedOfflineSignaturePayload"	: MAP(v3, @"CreatePersonalizedOfflineSignaturePayload"),
+			 @"CreateToken"						: MAP(v3, @"CreateToken"),
+			 @"GetActivationStatus"				: MAP(v3, @"GetActivationStatus"),
+			 @"GetActivationStatus_Challenge"	: MAP(v3, @"GetActivationStatus_Challenge"),
+			 @"GetApplicationDetail"			: MAP(v3, @"GetApplicationDetail"),
+			 @"GetApplicationList"				: MAP(v3, @"GetApplicationList"),
+			 @"GetSystemStatus"					: MAP(v3, @"GetSystemStatus"),
+			 @"InitActivation"					: MAP(v3, @"InitActivation"),
+			 @"InitActivation_OTP"				: MAP(v3, @"InitActivation_OTP"),
+			 @"RemoveActivation"				: MAP(v3, @"RemoveActivation"),
+			 @"RemoveToken"						: MAP(v3, @"RemoveToken"),
+			 @"SupportApplicationVersion"		: MAP(v3, @"SupportApplicationVersion_1_3"),
+			 @"UnblockActivation"				: MAP(v3, @"UnblockActivation"),
+			 @"UnsupportApplicationVersion"		: MAP(v3, @"UnsupportApplicationVersion_1_3"),
+			 @"ValidateToken"					: MAP(v3, @"ValidateToken"),
+			 @"VerifyECDSASignature"			: MAP(v3, @"VerifyECDSASignature"),
+			 @"VerifyOfflineSignature"			: MAP(v3, @"VerifyOfflineSignature"),
+			 @"VerifySignature"					: MAP(v3, @"VerifySignature"),
+			 @"VerifySignature_ForceVer"		: MAP(v3, @"VerifySignature_ForceVer"),	// Forced protocol version
+			 };
+}
+
 #undef MAP
 
 @end

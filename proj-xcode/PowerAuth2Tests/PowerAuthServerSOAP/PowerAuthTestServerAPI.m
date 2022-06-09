@@ -71,7 +71,7 @@
 	_appDetail = [self getApplicationDetail:foundRequiredApp.applicationId];
 	// Look for appropriate version
 	[_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
-		if ([obj.applicationVersionName isEqualToString:_applicationVersionString] && obj.supported) {
+		if ([obj.applicationVersionName isEqualToString:_applicationVersionString]) {
 			_appVersion = obj;
 			*stop = YES;
 		}
@@ -88,6 +88,10 @@
 	}
 	if (![_appVersion.applicationVersionName isEqualToString:_applicationVersionString]) {
 		NSLog(@"Application version name doesn't match: %@ vs %@", _appVersion.applicationVersionName, _applicationVersionString);
+		return NO;
+	}
+	if (!_appVersion.supported) {
+		NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
 		return NO;
 	}
 	
@@ -157,12 +161,29 @@ static NSInteger _IntegerValue(CXMLNode * node)
 
 ////////////////////////////
 
-static PATSApplication * _XML_to_PATSApplication(CXMLNode * node, NSDictionary * ns, NSError ** localError)
+static PATSApplication * _XML_to_PATSApplication_V1_0(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
 	PATSApplication * appObj = [[PATSApplication alloc] init];
 	if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:id" namespaceMappings:ns error:localError] stringValue];
 	if (!*localError) appObj.applicationName = [[node nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:localError] stringValue];
 	return appObj;
+}
+
+static PATSApplication * _XML_to_PATSApplication_V1_3(CXMLNode * node, NSDictionary * ns, NSError ** localError)
+{
+	PATSApplication * appObj = [[PATSApplication alloc] init];
+	if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:localError] stringValue];
+	if (!*localError) appObj.applicationName = appObj.applicationId;
+	return appObj;
+}
+
+static PATSApplication * _XML_to_PATSApplication(CXMLNode * node, NSDictionary * ns, NSError ** localError, PowerAuthTestServerVersion version)
+{
+	if (version < PATS_V1_3) {
+		return _XML_to_PATSApplication_V1_0(node, ns, localError);
+	} else {
+		return _XML_to_PATSApplication_V1_3(node, ns, localError);
+	}
 }
 
 - (NSArray<PATSApplication*>*) getApplicationList
@@ -172,7 +193,7 @@ static PATSApplication * _XML_to_PATSApplication(CXMLNode * node, NSDictionary *
 		NSArray * xmlApps = [resp nodesForXPath:@"pa:applications" namespaceMappings:ns error:&localError];
 		NSMutableArray * objApps = [NSMutableArray arrayWithCapacity:xmlApps.count];
 		[xmlApps enumerateObjectsUsingBlock:^(CXMLNode * appNode, NSUInteger idx, BOOL * stop) {
-			PATSApplication * appObj = _XML_to_PATSApplication(appNode, ns, &localError);
+			PATSApplication * appObj = _XML_to_PATSApplication(appNode, ns, &localError, _serverVersion);
 			if (!localError) {
 				[objApps addObject:appObj];
 			} else {
@@ -186,7 +207,7 @@ static PATSApplication * _XML_to_PATSApplication(CXMLNode * node, NSDictionary *
 
 ////////////////////////////
 
-static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, NSDictionary * ns, NSError ** localError)
+static PATSApplicationVersion * _XML_to_PATSApplicationVersion_V1_0(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
 	PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
 	if (!*localError) verObj.applicationVersionId	= [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
@@ -197,19 +218,44 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 	return verObj;
 }
 
+static PATSApplicationVersion * _XML_to_PATSApplicationVersion_V1_3(CXMLNode * node, NSDictionary * ns, NSError ** localError)
+{
+	PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
+	if (!*localError) verObj.applicationVersionId	= [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
+	if (!*localError) verObj.applicationVersionName	= verObj.applicationVersionId;
+	if (!*localError) verObj.applicationKey			= [[node nodeForXPath:@"pa:applicationKey" namespaceMappings:ns error:localError] stringValue];
+	if (!*localError) verObj.applicationSecret		= [[node nodeForXPath:@"pa:applicationSecret" namespaceMappings:ns error:localError] stringValue];
+	if (!*localError) verObj.supported				= _BoolValue([node nodeForXPath:@"pa:supported" namespaceMappings:ns error:localError]);
+	return verObj;
+}
+
+static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, NSDictionary * ns, NSError ** localError, PowerAuthTestServerVersion version)
+{
+	if (version < PATS_V1_3) {
+		return _XML_to_PATSApplicationVersion_V1_0(node, ns, localError);
+	} else {
+		return _XML_to_PATSApplicationVersion_V1_3(node, ns, localError);
+	}
+}
+
 - (PATSApplicationDetail*) getApplicationDetail:(NSString*)applicationId
 {
 	PATSApplicationDetail * response = [_helper soapRequest:@"GetApplicationDetail" params:@[applicationId] response:@"GetApplicationDetailResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		__block NSError * localError = nil;
 		PATSApplicationDetail * appObj = [[PATSApplicationDetail alloc] init];
-		if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) appObj.applicationName = [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
-		
+		if (_serverVersion < PATS_V1_3) {
+			if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+			if (!localError) appObj.applicationName = [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
+			if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
+		} else {
+			if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+			if (!localError) appObj.applicationName = appObj.applicationId;
+			if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
+		}
 		NSArray * xmlVersions = [resp nodesForXPath:@"pa:versions" namespaceMappings:ns error:&localError];
 		NSMutableArray<PATSApplicationVersion*>* objVersions = [NSMutableArray arrayWithCapacity:xmlVersions.count];
 		[xmlVersions enumerateObjectsUsingBlock:^(CXMLNode * verNode, NSUInteger idx, BOOL * stop) {
-			PATSApplicationVersion * verObj = _XML_to_PATSApplicationVersion(verNode, ns, &localError);
+			PATSApplicationVersion * verObj = _XML_to_PATSApplicationVersion(verNode, ns, &localError, _serverVersion);
 			if (!localError) {
 				[objVersions addObject:verObj];
 			} else {
@@ -226,7 +272,7 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 {
 	PATSApplication * response = [_helper soapRequest:@"CreateApplication" params:@[applicationName] response:@"CreateApplicationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
-		PATSApplication * appObj = _XML_to_PATSApplication(resp, ns, &localError);
+		PATSApplication * appObj = _XML_to_PATSApplication(resp, ns, &localError, _serverVersion);
 		return !localError ? appObj : nil;
 	}];
 	return response;
@@ -238,7 +284,7 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 {
 	PATSApplicationVersion * response = [_helper soapRequest:@"CreateApplicationVersion" params:@[applicationId, versionName] response:@"CreateApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
-		PATSApplicationVersion * appVer = _XML_to_PATSApplicationVersion(resp, ns, &localError);
+		PATSApplicationVersion * appVer = _XML_to_PATSApplicationVersion(resp, ns, &localError, _serverVersion);
 		return !localError ? appVer : nil;
 	}];
 	return response;
@@ -252,7 +298,7 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 	// Look for version
 	__block PATSApplicationVersion * response = nil;
 	[_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
-		if ([obj.applicationVersionId isEqualToString:versionName]) {
+		if ([obj.applicationVersionName isEqualToString:versionName]) {
 			if (obj.supported) {
 				response = obj;
 				*stop = YES;
@@ -267,7 +313,8 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 
 - (BOOL) supportApplicationVersion:(NSString*)applicationVersionId
 {
-	PATSApplicationVersionSupport * response = [_helper soapRequest:@"SupportApplicationVersion" params:@[applicationVersionId] response:@"SupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
+	PATSApplicationVersionSupport * response = [_helper soapRequest:@"SupportApplicationVersion" params:params response:@"SupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
 		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
@@ -283,7 +330,8 @@ static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, 
 
 - (BOOL) unsupportApplicationVersion:(NSString*)applicationVersionId
 {
-	PATSApplicationVersionSupport * response = [_helper soapRequest:@"UnsupportApplicationVersion" params:@[applicationVersionId] response:@"UnsupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+	NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
+	PATSApplicationVersionSupport * response = [_helper soapRequest:@"UnsupportApplicationVersion" params:params response:@"UnsupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
 		NSError * localError = nil;
 		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
 		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];

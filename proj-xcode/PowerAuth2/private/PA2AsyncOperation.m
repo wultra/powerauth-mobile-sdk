@@ -27,6 +27,7 @@
 @implementation PA2AsyncOperation
 {
 	BOOL _reported;
+	BOOL _isCanceled;
 	BOOL _isExecuting;
 	BOOL _isFinished;
 	BOOL _inExecutionBlock;
@@ -39,7 +40,7 @@
 	self = [super init];
 	if (self) {
 		_reportQueue = queue;
-		_lock = [[NSLock alloc] init];
+		_lock = [[NSRecursiveLock alloc] init];
 	}
 	return self;
 }
@@ -49,21 +50,21 @@
 
 - (void) start
 {
-	self.isExecuting = YES;
-	
 	// In first lock, we need to acquire execution block and set marker
 	// that we're in the execution block.
-	
+
 	[_lock lock];
-	//
+	
+	[self notifyStart];
+
 	_inExecutionBlock = YES;
 	id (^execution)(PA2AsyncOperation*) = _executionBlock;
 	_executionBlock = nil;
-	BOOL shouldExecuteBlock = self.isCancelled == NO;
+	BOOL shouldExecuteBlock = _isCanceled == NO;
 	//
 	[_lock unlock];
 	
-	if (execution) {
+	if (execution != nil) {
 		// Call execution block & acquire operation task. If the operation
 		// is already canceled, then do nothing.
 		id operationTask = shouldExecuteBlock ? execution(self) : nil;
@@ -80,7 +81,7 @@
 		//
 		_inExecutionBlock = NO;
 		_operationTask = operationTask;
-		if (self.isCancelled) {
+		if (_isCanceled) {
 			[self cancelImpl];
 		}
 		//
@@ -88,8 +89,6 @@
 		//
 	} else {
 		PowerAuthLog(@"WARNING: Internal: Async operation without an execution block.");
-		self.isExecuting = NO;
-		self.isFinished = YES;
 		NSError * error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Async operation without an execution block.");
 		[self completeWithResult:nil error:error];
 	}
@@ -98,7 +97,6 @@
 
 - (void) cancel
 {
-	[super cancel];
 	[_lock lock];
 	//
 	[self cancelImpl];
@@ -108,18 +106,26 @@
 
 - (void) cancelImpl
 {
+	_isCanceled = YES;
 	if (!_inExecutionBlock) {
 		if (_cancelBlock) {
 			_cancelBlock(self, _operationTask);
 			_cancelBlock = nil;
 		}
 		_operationTask = nil;
-		
-		// Mark operation as finished to remove
-		// the operation from the queue.
-		self.isExecuting = NO;
-		self.isFinished = YES;
+
+		[self notifyStop];
 	}
+}
+
+- (BOOL) isCancelled
+{
+	[_lock lock];
+	//
+	BOOL result = _isCanceled;
+	//
+	[_lock unlock];
+	return result;
 }
 
 
@@ -127,8 +133,12 @@
 
 - (void) completeWithResult:(id)result error:(NSError*)error
 {
-	self.isExecuting = NO;
-	self.isFinished = YES;
+	[_lock lock];
+	//
+	[self notifyStop];
+	_cancelBlock = nil;
+	//
+	[_lock unlock];
 	
 	dispatch_async(_reportQueue, ^{
 		
@@ -155,28 +165,39 @@
 	return YES;
 }
 
-- (void) setIsExecuting:(BOOL)value
-{
-	[self willChangeValueForKey:@"isExecuting"];
-	_isExecuting = value;
-	[self didChangeValueForKey:@"isExecuting"];
-}
-
 - (BOOL) isExecuting
 {
-	return _isExecuting;
-}
-
-- (void) setIsFinished:(BOOL)value
-{
-	[self willChangeValueForKey:@"isFinished"];
-	_isFinished = value;
-	[self didChangeValueForKey:@"isFinished"];
+	[_lock lock];
+	BOOL result = _isExecuting;
+	[_lock unlock];
+	return result;
 }
 
 - (BOOL) isFinished
 {
-	return _isFinished;
+	[_lock lock];
+	BOOL result = _isFinished;
+	[_lock unlock];
+	return result;
+}
+
+- (void) notifyStart
+{
+	[self willChangeValueForKey:@"isExecuting"];
+	_isExecuting = YES;
+	[self didChangeValueForKey:@"isExecuting"];
+}
+
+- (void) notifyStop
+{
+	if (_isExecuting) {
+		[self willChangeValueForKey:@"isExecuting"];
+		[self willChangeValueForKey:@"isFinished"];
+		_isExecuting = NO;
+		_isFinished = YES;
+		[self didChangeValueForKey:@"isExecuting"];
+		[self didChangeValueForKey:@"isFinished"];
+	}
 }
 
 @end

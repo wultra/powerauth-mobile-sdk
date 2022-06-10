@@ -77,4 +77,30 @@
  */
 + (void) waitForNextSecond;
 
+/**
+ Function wait for multiple queues to complete.
+ */
++ (void) waitForQueuesCompletion:(NSArray<NSOperationQueue*>*)queues;
+
+@end
+
+/**
+ The AtomicCounter class implements simple atomic counter that may be useful
+ in various tests.
+ */
+@interface AtomicCounter : NSObject
+/**
+ Increment counter and return the current value.
+ */
+- (int32_t) increment;
+/**
+ Increment counter and if limit is reached, then call block.
+ */
+- (int32_t) incrementUpTo:(int32_t)limit
+			   completion:(void(^)(void))block;
+/**
+ The current value of the counter.
+ */
+@property (nonatomic, readonly) int32_t value;
+
 @end

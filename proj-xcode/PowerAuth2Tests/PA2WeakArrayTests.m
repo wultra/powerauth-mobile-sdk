@@ -17,6 +17,7 @@
 #import <XCTest/XCTest.h>
 #import "PA2WeakArray.h"
 #import "PA2AsyncOperation.h"
+#import "AsyncHelper.h"
 
 @interface PA2WeakArrayTests : XCTestCase
 @end
@@ -34,12 +35,13 @@
 {
 	_queue = [[NSOperationQueue alloc] init];
 	_queue.maxConcurrentOperationCount = 4;
+	_queue.name = [self.class description];
 }
 
 - (void)tearDown
 {
 	[_queue cancelAllOperations];
-	[_queue waitUntilAllOperationsAreFinished];
+	[AsyncHelper waitForQueuesCompletion:@[_queue]];
 }
 
 - (void) testWeakArrayCleanup
@@ -54,7 +56,7 @@
 		
 		[self captureString:T1 toWeakArray:array forAWhile:0.5];
 		[self captureString:T2 toWeakArray:array forAWhile:0.3];
-		[self captureString:T3 toWeakArray:array forAWhile:1.2];
+		[self captureString:T3 toWeakArray:array forAWhile:0.8];
 
 		XCTAssertTrue([array hasString:T1]);
 		XCTAssertTrue([array hasString:T2]);
@@ -63,7 +65,7 @@
 		NSLog(@"All captured, waiting...");
 	}
 	
-	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.5]];
+	[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.5]];
 	NSUInteger remainingCount = [array allNonnullObjects].count;
 	XCTAssertEqual(0, remainingCount);
 	

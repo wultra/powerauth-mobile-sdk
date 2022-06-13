@@ -27,8 +27,6 @@
 	NSString * _tokenName;
 	NSString * _activationId;
 	PowerAuthAuthentication * _authentication;
-	
-	PA2PrivateTokenData * _privateTokenData;
 }
 
 - (id) initWithProvider:(id<PA2PrivateRemoteTokenProvider>)provider
@@ -53,7 +51,6 @@
 {
 	[super onTaskStart];
 	
-	_privateTokenData = nil;
 	id<PowerAuthOperationTask> task = [_tokenProvider requestTokenWithName:_tokenName authentication:_authentication completion:^(PA2PrivateTokenData * tokenData, NSError * error) {
 		PowerAuthToken * token;
 		id<PowerAuthPrivateTokenStore> tokenStore = _tokenStore;
@@ -61,7 +58,6 @@
 			tokenData.activationIdentifier = _activationId;
 			tokenData.authenticationFactors = _authentication.signatureFactorMask;
 			token = [[PowerAuthToken alloc] initWithStore:tokenStore data:tokenData];
-			_privateTokenData = tokenData;
 		} else {
 			token = nil;
 			if (!error) {
@@ -77,19 +73,12 @@
 	}
 }
 
-- (void) onTaskCancel
+- (void) onTaskCompleteWithResult:(PowerAuthToken*)result error:(NSError *)error
 {
-	[super onTaskCancel];
-	
-	[_tokenStore removeCreateTokenTask:_tokenName];
-}
-
-- (void) onTaskComplete
-{
-	[super onTaskComplete];
-	
-	if (_privateTokenData) {
-		[_tokenStore storeTokenData:_privateTokenData];
+	[super onTaskCompleteWithResult:result error:error];
+	PA2PrivateTokenData * tokenData = result.privateTokenData;
+	if (tokenData) {
+		[_tokenStore storeTokenData:tokenData];
 	}
 	[_tokenStore removeCreateTokenTask:_tokenName];
 }

@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.integration.support;
 
+import android.os.Debug;
+
 import androidx.annotation.NonNull;
 
 import java.util.concurrent.CountDownLatch;
@@ -158,7 +160,8 @@ public class AsyncHelper {
         final CountDownLatch signal = new CountDownLatch(1);
         final ResultCatcher<TResult> resultCatcher = new ResultCatcher<>(signal);
         executionBlock.execute(resultCatcher);
-        boolean completed = signal.await(10, TimeUnit.SECONDS);
+        final long awaitTimeout = Debug.isDebuggerConnected() ? 100 : 10; // give more time to developer to debug the things
+        boolean completed = signal.await(awaitTimeout, TimeUnit.SECONDS);
         if (!completed) {
             throw new Exception("Asynchronous operation did not finish in time.");
         }

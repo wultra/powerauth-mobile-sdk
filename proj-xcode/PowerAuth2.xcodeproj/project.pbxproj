@@ -87,6 +87,8 @@
 		BF31607627E895DD00EDA287 /* PA2SharedLock.h in Headers */ = {isa = PBXBuildFile; fileRef = BF31607327E895DD00EDA287 /* PA2SharedLock.h */; };
 		BF31607727E895DD00EDA287 /* PA2SharedLock.m in Sources */ = {isa = PBXBuildFile; fileRef = BF31607427E895DD00EDA287 /* PA2SharedLock.m */; };
 		BF31607827E895DD00EDA287 /* PA2SharedLock.m in Sources */ = {isa = PBXBuildFile; fileRef = BF31607427E895DD00EDA287 /* PA2SharedLock.m */; };
+		BF369FCA285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF369FC9285370DD0004C454 /* PA2GroupedTaskTests.m */; };
+		BF369FCB285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF369FC9285370DD0004C454 /* PA2GroupedTaskTests.m */; };
 		BF4017F22636CBCB00C1E65C /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BF4017F12636CBCB00C1E65C /* PA2WeakArray.m */; };
 		BF4017F32636CBCB00C1E65C /* PA2WeakArray.m in Sources */ = {isa = PBXBuildFile; fileRef = BF4017F12636CBCB00C1E65C /* PA2WeakArray.m */; };
 		BF4017F92636CC3D00C1E65C /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BF4017F82636CC3D00C1E65C /* PA2PrivateMacros.m */; };
@@ -659,6 +661,7 @@
 		BF30DB5B206CEAE900430C12 /* PA2VaultUnlockRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2VaultUnlockRequest.m; sourceTree = "<group>"; };
 		BF31607327E895DD00EDA287 /* PA2SharedLock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SharedLock.h; sourceTree = "<group>"; };
 		BF31607427E895DD00EDA287 /* PA2SharedLock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SharedLock.m; sourceTree = "<group>"; };
+		BF369FC9285370DD0004C454 /* PA2GroupedTaskTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2GroupedTaskTests.m; sourceTree = "<group>"; };
 		BF3C3FF324938A9A0062D739 /* PowerAuthSDKProtocolUpgradeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKProtocolUpgradeTests.m; sourceTree = "<group>"; };
 		BF4017CD2632E83300C1E65C /* PowerAuthActivationCode+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PowerAuthActivationCode+Private.h"; sourceTree = "<group>"; };
 		BF4017F12636CBCB00C1E65C /* PA2WeakArray.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2WeakArray.m; sourceTree = "<group>"; };
@@ -1209,9 +1212,10 @@
 		BF667EC12835A0B2006E97F8 /* PowerAuth2Tests */ = {
 			isa = PBXGroup;
 			children = (
+				BF667EC42835A0B2006E97F8 /* PA2AsyncOperationTests.m */,
+				BF369FC9285370DD0004C454 /* PA2GroupedTaskTests.m */,
 				BF667EC22835A0B2006E97F8 /* PA2WeakArrayTests.m */,
 				BF667EC32835A0B2006E97F8 /* PowerAuthActivationTests.m */,
-				BF667EC42835A0B2006E97F8 /* PA2AsyncOperationTests.m */,
 				BF667EC52835A0B2006E97F8 /* PowerAuthCustomHeaderRequestInterceptorTests.m */,
 				BF667EC62835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m */,
 				BF667EC72835A0B2006E97F8 /* Info.plist */,
@@ -1912,6 +1916,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF667ED52835A13F006E97F8 /* AsyncHelper.m in Sources */,
+				BF369FCA285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED02835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
 				BF667EC82835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECA2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,
@@ -2001,6 +2006,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF667ED42835A13E006E97F8 /* AsyncHelper.m in Sources */,
+				BF369FCB285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED12835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
 				BF667EC92835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECB2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,

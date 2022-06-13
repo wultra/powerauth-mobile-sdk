@@ -23,6 +23,9 @@
 
 #pragma mark - Grouped task
 
+#define FINISH_AUTO_CANCEL		0x001
+#define FINISH_SET_CANCEL		0x010
+
 @implementation PA2GroupedTask
 {
 	NSMutableArray<PA2ChildTask*> * _childTasks;
@@ -84,7 +87,10 @@
 			[self onTaskStart];
 			// Print warning if implementation did not assing internal operation.
 			if (_operations.count == 0) {
-				PowerAuthLog(@"WARNING: %@: No operation is registered after task start.", _taskName);
+				// The task implementation failed to add a cancelable operation.
+				PowerAuthLog(@"%@: No operation is registered after task start.", _taskName);
+				NSError * error = PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"Internal error. No operation is set");
+				[self finishTask:nil error:error withFlags:FINISH_SET_CANCEL];
 			}
 		}
 	} else {
@@ -98,38 +104,36 @@
 
 - (void) removeChildTask:(id<PowerAuthOperationTask>)operation
 {
+	void(^cleanupJobs)(void) = nil;
+	
 	[_lock lock];
 	//
 	[_childTasks removeObject:operation];
 	if (_childTasks.count == 0 && !_finished) {
 		if ([self shouldCancelWhenNoChildOperationIsSet]) {
-			[self onTaskCancel];
+			cleanupJobs = [self finishTask:nil error:nil withFlags:FINISH_AUTO_CANCEL];
 		} else {
 			PowerAuthLog(@"%@: Task is going to complete itself whith no child set.", _taskName);
 		}
 	}
 	//
 	[_lock unlock];
+	
+	if (cleanupJobs) {
+		cleanupJobs();
+	}
 }
 
 - (void) complete:(id)result error:(NSError *)error
 {
 	[_lock lock];
 	//
-	NSArray * childTasks;
-	if (!_finished) {
-		_finished = YES;
-		childTasks = [_childTasks copy];
-		[_childTasks removeAllObjects];
-		[_operations removeAllObjects];
-		[self onTaskComplete];
-	} else {
-		childTasks = nil;
-	}
+	void(^cleanupJobs)(void) = [self finishTask:result error:error withFlags:0];
 	//
 	[_lock unlock];
-	
-	[self dispatchResult:result error:error toChildTasks:childTasks];
+	if (cleanupJobs) {
+		cleanupJobs();
+	}
 }
 
 - (BOOL) addCancelableOperation:(id<PowerAuthOperationTask>)cancelable
@@ -161,20 +165,26 @@
 	return result;
 }
 
+#pragma mark Overridable
+
 - (void) onTaskStart
 {
 	PowerAuthLog(@"%@: Task is starting.", _taskName);
 }
 
-- (void) onTaskComplete
+- (void) onTaskCompleteWithResult:(id)result error:(NSError*)error
 {
-	PowerAuthLog(@"%@: Task is complete.", _taskName);
-}
-
-- (void) onTaskCancel
-{
-	PowerAuthLog(@"%@: Task is complete with automatic cancel.", _taskName);
-	[self cancelTaskAndReportErrorToChilds:NO];
+	if (result && !error) {
+		PowerAuthLog(@"%@: Task is complete with result.", _taskName);
+	} else if (!result && error) {
+		if (!_canceled) {
+			PowerAuthLog(@"%@: Task is complete with error: %@", _taskName, error);
+		} else {
+			PowerAuthLog(@"%@: Task is complete with forced cancel.", _taskName);
+		}
+	} else {
+		PowerAuthLog(@"%@: Task is complete with automatic cancel.", _taskName);
+	}
 }
 
 - (BOOL) shouldCancelWhenNoChildOperationIsSet
@@ -188,15 +198,13 @@
 {
 	[_lock lock];
 	//
-	if (!_canceled && !_finished) {
-		_canceled = YES;
-		// This is explicit cancel initiated from the SDK internals, so we should
-		// report error back to app.
-		PowerAuthLog(@"%@: Task is canceled from elsewhere.", _taskName);
-		[self cancelTaskAndReportErrorToChilds:YES];
-	}
+	void(^cleanupJobs)(void) = [self finishTask:nil error:nil withFlags:FINISH_SET_CANCEL];
 	//
 	[_lock unlock];
+	
+	if (cleanupJobs) {
+		cleanupJobs();
+	}
 }
 
 - (BOOL) isCancelled
@@ -233,44 +241,55 @@
 #pragma mark Private functions
 
 /**
- Function dispatch result or error to the list of child tasks. The completion is performed from the main thread.
+ Finish tash with result or error. Both error and result may be nil, but then the flags
+ parameter must contain one of completion flags:
+ - FINISH_AUTO_CANCEL, must be set if task is automatically canceled.	
+ - FINISH_SET_CANCEL, must be set if task is force canceled.
  */
-- (void) dispatchResult:(id)result error:(NSError*)error toChildTasks:(NSArray<PA2ChildTask*>*)childTasks
+- (void(^)(void)) finishTask:(id)result error:(NSError*)error withFlags:(NSInteger)flags
 {
-	if (childTasks) {
-		// Report result from the main thread.
-		dispatch_async(dispatch_get_main_queue(), ^{
-			[childTasks enumerateObjectsUsingBlock:^(PA2ChildTask* childTask, NSUInteger idx, BOOL * _Nonnull stop) {
-				[childTask complete:result error:error];
-			}];
-		});
-	}
-}
-
-- (void) cancelTaskAndReportErrorToChilds:(BOOL)reportError
-{
-	[_lock lock];
-	//
-	NSArray * operationsToCancel = nil;
-	NSArray * childTasksToComplete = nil;
+	BOOL isAutoCancel   = (flags & FINISH_AUTO_CANCEL) != 0;
+	BOOL isForcedCancel = (flags & FINISH_SET_CANCEL) != 0;
+	
+	NSArray<PA2ChildTask*> * childTasks;
+	NSArray<id<PowerAuthOperationTask>> * operationsToCancel;
 	if (!_finished) {
 		_finished = YES;
-		operationsToCancel = [_operations copy];
-		if (reportError) {
-			childTasksToComplete = [_childTasks copy];
-			[_childTasks removeAllObjects];
+		_canceled = isForcedCancel;
+		if (isForcedCancel && !error) {
+			error = PA2MakeError(PowerAuthErrorCode_OperationCancelled, nil);
 		}
+		childTasks = isAutoCancel ? nil : [_childTasks copy];
+		operationsToCancel = isForcedCancel || isAutoCancel ? [_operations copy] : nil;
+		
+		[_childTasks removeAllObjects];
+		[_operations removeAllObjects];
+		
+		[self onTaskCompleteWithResult:result error:error];
+		
+	} else {
+		childTasks = nil;
+		operationsToCancel = nil;
 	}
-	//
-	[_lock unlock];
-	
-	[operationsToCancel enumerateObjectsUsingBlock:^(id<PowerAuthOperationTask> obj, NSUInteger idx, BOOL * _Nonnull stop) {
-		[obj cancel];
-	}];
-	if (childTasksToComplete) {
-		NSError * error = PA2MakeError(PowerAuthErrorCode_OperationCancelled, nil);
-		[self dispatchResult:nil error:error toChildTasks:childTasksToComplete];
+
+	if (operationsToCancel || childTasks) {
+		return ^{
+			// Cancel all remaining pending operations
+			[operationsToCancel enumerateObjectsUsingBlock:^(id<PowerAuthOperationTask> op, NSUInteger idx, BOOL * stop) {
+				[op cancel];
+			}];
+			
+			// Dispatch results back to child tasks
+			if (childTasks) {
+				dispatch_async(dispatch_get_main_queue(), ^{
+					[childTasks enumerateObjectsUsingBlock:^(PA2ChildTask* childTask, NSUInteger idx, BOOL * _Nonnull stop) {
+						[childTask complete:result error:error];
+					}];
+				});
+			}
+		};
 	}
+	return nil;
 }
 
 @end

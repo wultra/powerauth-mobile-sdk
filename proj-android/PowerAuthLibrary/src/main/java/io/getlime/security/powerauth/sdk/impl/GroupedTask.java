@@ -71,7 +71,7 @@ public class GroupedTask<TResult> implements ICancelable {
     public boolean restart() {
         try {
             lock.lock();
-            final boolean restartResult = !isStarted || !isFinished;
+            final boolean restartResult = !isStarted || isFinished;
             if (restartResult) {
                 PowerAuthLog.d(taskName + "Task is restarted");
                 isStarted = false;
@@ -97,21 +97,31 @@ public class GroupedTask<TResult> implements ICancelable {
      * @return ICancelable instance or null if this grouped task is already finished.
      */
     public @Nullable ICancelable createChildTask(@NonNull ITaskCompletion<TResult> completion) {
+        final ICancelable result;
+        final Runnable completionTask;
         try {
             lock.lock();
             if (!isFinished) {
                 final ChildTask childTask = new ChildTask(completion);
                 childTasks.add(childTask);
-                if (!isStarted && childTasks.size() == 1) {
-                    onTaskStart();
+                if (!isStarted && childTasks.size() == 1 && !onTaskStart()) {
+                    // The task implementation failed to add a cancelable operation.
+                    final Throwable failure = new PowerAuthErrorException(PowerAuthErrorCodes.OPERATION_CANCELED, "Internal error. No operation is set");
+                    completionTask = onTaskComplete(null, failure, OP_SET_CANCELED);
+                } else {
+                    completionTask = null;
                 }
-                return childTask;
+                result = childTask;
+            } else {
+                PowerAuthLog.d(taskName + "Task is already finished");
+                result = null;
+                completionTask = null;
             }
-            PowerAuthLog.d(taskName + "Task is already finished");
-            return null;
         } finally {
             lock.unlock();
         }
+        dispatchResult(completionTask);
+        return result;
     }
 
     /**
@@ -120,15 +130,19 @@ public class GroupedTask<TResult> implements ICancelable {
      * @param childTask Child task to remove.
      */
     private void removeChildTask(@NonNull ChildTask childTask) {
+        final Runnable completionTask;
         try {
             lock.lock();
             childTasks.remove(childTask);
             if (childTasks.isEmpty()) {
-                onAutomaticTaskCancel();
+                completionTask = onAutomaticTaskCancel();
+            } else {
+                completionTask = null;
             }
         } finally {
             lock.unlock();
         }
+        dispatchResult(completionTask);
     }
 
     // Cancelable operations
@@ -296,13 +310,15 @@ public class GroupedTask<TResult> implements ICancelable {
      * <p>
      * The method must be called only when the internal lock is acquired.
      */
-    private void onTaskStart() {
+    private boolean onTaskStart() {
         isStarted = true;
         PowerAuthLog.d(taskName + "Task is starting");
         onGroupedTaskStart();
         if (operations.isEmpty()) {
             PowerAuthLog.e(taskName + "No operation is registered after task start");
+            return false;
         }
+        return true;
     }
 
     private static final int OP_SET_CANCELED    = 0x001;
@@ -327,7 +343,11 @@ public class GroupedTask<TResult> implements ICancelable {
             isCanceled = (flags & OP_SET_CANCELED) == OP_SET_CANCELED;
             if (!isCanceled) {
                 if ((flags & OP_AUTO_CANCEL) == 0) {
-                    PowerAuthLog.d(taskName + "Task is complete");
+                    if (result == null) {
+                        PowerAuthLog.d(taskName + "Task is complete");
+                    } else {
+                        PowerAuthLog.d(taskName + "Task is complete with error: " + failure);
+                    }
                 } else {
                     PowerAuthLog.d(taskName + "Task is complete with automatic cancel");
                 }
@@ -335,7 +355,7 @@ public class GroupedTask<TResult> implements ICancelable {
                 PowerAuthLog.d(taskName + "Task is canceled from elsewhere");
             }
             final List<ChildTask> childTasksToComplete = childTasks.isEmpty() ? null : new ArrayList<>(childTasks);
-            final List<ICancelable> operationsToCancel = (flags & OP_SET_CANCELED) == OP_SET_CANCELED ? new ArrayList<>(operations) : null;
+            final List<ICancelable> operationsToCancel = (flags & (OP_SET_CANCELED | OP_AUTO_CANCEL)) == 0 ? null : new ArrayList<>(operations);
             childTasks.clear();
             operations.clear();
 
@@ -345,33 +365,29 @@ public class GroupedTask<TResult> implements ICancelable {
             // Report result to subclasses
             onGroupedTaskComplete(result, failure);
 
-            if (childTasksToComplete != null && (flags & OP_AUTO_CANCEL) == 0) {
+            if (childTasksToComplete != null || operationsToCancel != null) {
                 // If there are child tasks to complete, then create a proper runnable with completion.
-                if (result != null) {
-                    return new Runnable() {
-                        @Override
-                        public void run() {
+                return new Runnable() {
+                    @Override
+                    public void run() {
+                        if (childTasksToComplete != null) {
                             for (ChildTask childTask : childTasksToComplete) {
-                                childTask.complete(result);
+                                if (result != null) {
+                                    childTask.complete(result);
+                                } else if (failure != null) {
+                                    childTask.complete(failure);
+                                } else {
+                                    throw new IllegalStateException("Internal SDK failure");
+                                }
                             }
                         }
-                    };
-                } else if (failure != null) {
-                    return new Runnable() {
-                        @Override
-                        public void run() {
-                            for (ChildTask childTask : childTasksToComplete) {
-                                childTask.complete(failure);
+                        if (operationsToCancel != null) {
+                            for (ICancelable cancelable : operationsToCancel) {
+                                cancelable.cancel();
                             }
                         }
-                    };
-                }
-                throw new IllegalStateException("Internal SDK failure");
-            }
-            if (operationsToCancel != null) {
-                for (ICancelable cancelable : operationsToCancel) {
-                    cancelable.cancel();
-                }
+                    }
+                };
             }
         }
         return null;
@@ -382,15 +398,17 @@ public class GroupedTask<TResult> implements ICancelable {
      * and there's no longer child tasks associated in it.
      * <p>
      * The method must be called only when the internal lock is acquired.
+     * @return Runnable with cleanup job or null if no cleanup job is required.
      */
-    private void onAutomaticTaskCancel() {
+    private @Nullable Runnable onAutomaticTaskCancel() {
         if (!isFinished && !isCanceled) {
             if (groupedTaskShouldCancelWhenNoChildOperationIsSet()) {
-                onTaskComplete(null, null, OP_AUTO_CANCEL);
+                return onTaskComplete(null, null, OP_AUTO_CANCEL);
             } else {
                 PowerAuthLog.d(taskName + "Task is going to complete itself with no child set");
             }
         }
+        return null;
     }
 
     /**

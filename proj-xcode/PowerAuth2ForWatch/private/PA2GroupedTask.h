@@ -87,15 +87,10 @@
 - (void) onTaskStart;
 
 /**
- Called when the group task is completed with the result or error. The subclass implementation must call super.
+ Called when the group task is completed with the result or error or is automatically cancelled. If task is automatically canceled,
+ then both parameters are nil. The subclass implementation must call super.
  */
-- (void) onTaskComplete;
-
-/**
- Called when the group task has no more child tasks associated and `self.shouldCancelWhenNoChildOperationIsSet` returns `YES`.
- The subclass implementation must call super.
- */
-- (void) onTaskCancel;
+- (void) onTaskCompleteWithResult:(nullable ResultType)result error:(nullable NSError*)error;
 
 /**
  The default implementation return `YES`, so when there's no child task associated to this group, then the whole task is canceled.

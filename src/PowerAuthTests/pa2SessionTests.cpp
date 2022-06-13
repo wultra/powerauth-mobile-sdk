@@ -987,6 +987,8 @@ namespace powerAuthTests
 		// DATA_MIGRATION_TAG
 		void testOldDataMigration()
 		{
+            // Old format is no longer supported, so loading such data will lead to error.
+            
 			// constants
 			std::string master_server_public_key  = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
 			//std::string master_server_private_key = "8fzrRXY+y+eH8+u6SbwxHWEvXMD4LGiW6oM8cgntOI8=";
@@ -1007,7 +1009,7 @@ namespace powerAuthTests
 			// Empty data
 			auto empty_status = cc7::FromBase64String("UEFNMmn/");
 			ErrorCode ec = s1.loadSessionState(empty_status);
-			ccstAssertTrue(ec == EC_Ok);
+			ccstAssertTrue(ec == EC_WrongParam);
 			ccstAssertTrue(s1.canStartActivation());
 			ccstAssertFalse(s1.hasValidActivation());
 			ccstAssertFalse(s1.hasPendingActivation());
@@ -1020,62 +1022,11 @@ namespace powerAuthTests
 														  "oLe1MmEPwAwDeNQFrAcETbOjAr1OEkviQI8k9/NlURxmGHq/X4itDJuPlZ4PYeEUvAQmvWce+ZJ"
 														  "AAdLRVkwMDAx/w==");
 			ec = s1.loadSessionState(activated_status);
-			ccstAssertTrue(ec == EC_Ok);
-			ccstAssertFalse(s1.canStartActivation());
-			ccstAssertTrue(s1.hasValidActivation());
-			ccstAssertFalse(s1.hasPendingActivation());
-			ccstAssertFalse(s1.hasExternalEncryptionKey());
-			ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
-
-			const cc7::U64 COUNTER = 0;
-
-			std::string cVaultKey;
-			std::string signatureValue;
-			{
-				// get vault key
-				SignatureUnlockKeys keys;
-				keys.possessionUnlockKey = possessionUnlockKey;
-				keys.userPassword        = password;
-				
-				//
-				cc7::ByteArray post_data = cc7::MakeRange("Getting vault key!");
-				std::string method = "POST";
-				std::string uriId  = "/vault/unlock";
-				SignatureFactor factor = SF_Possession_Knowledge;
-				
-				HTTPRequestDataSignature sigData;
-				ec = s1.signHTTPRequestData(HTTPRequestData(post_data, method, uriId), keys, factor, sigData);
-				signatureValue = sigData.buildAuthHeaderValue();
-				ccstAssertEqual(ec, EC_Ok);
-				ccstAssertTrue(!signatureValue.empty());
-			}
-			{
-				// Try to parse signature and simulate response from the server
-				auto sig = T_parseSignature(signatureValue);
-				//
-				cc7::ByteArray post_data = cc7::MakeRange("Getting vault key!");
-				std::string method = "POST";
-				std::string uriId  = "/vault/unlock";
-				SignatureFactor factor = SF_Possession_Knowledge;
-				//
-				auto expected_signature = T_calculateSignatureForData(post_data, method, uriId, MASTER_SHARED_SECRET, sig["pa_nonce"], oldSetup.applicationSecret, factor, COUNTER, cc7::ByteRange(), true);
-				ccstAssertTrue(expected_signature == sig["pa_signature"]);
-				// encrypted vault key
-				cVaultKey = T_encryptedVaultKey(MASTER_SHARED_SECRET);
-			}
-			// Decrypt vault key and generate some derived key.
-			{
-				SignatureUnlockKeys keys;
-				keys.possessionUnlockKey = possessionUnlockKey;
-				cc7::ByteArray derived_key;
-				ec = s1.deriveCryptographicKeyFromVaultKey(cVaultKey, keys, 1977, derived_key);
-				ccstAssertEqual(ec, EC_Ok);
-				ccstAssertTrue(!derived_key.empty());
-				
-				cc7::ByteArray vault_key = protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 2000);
-				cc7::ByteArray expected_derived_key = protocol::DeriveSecretKey(vault_key, 1977);
-				ccstAssertEqual(derived_key, expected_derived_key);
-			}
+			ccstAssertTrue(ec == EC_WrongParam);
+            ccstAssertTrue(s1.canStartActivation());
+            ccstAssertFalse(s1.hasValidActivation());
+            ccstAssertFalse(s1.hasPendingActivation());
+            ccstAssertFalse(s1.hasExternalEncryptionKey());
 		}
 		
 		void testPersistentDataUpgradeFromV2ToV5()

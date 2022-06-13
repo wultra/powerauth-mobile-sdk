@@ -317,13 +317,7 @@ namespace protocol
 	 Returns false if the byte stream contains invalid data.
 	 */
 	bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
-	
-	/**
-	 Deserializes a persistent data in old format from the |reader| into the |pd| reference.
-	 Returns false if the byte stream contains invalid old data format.
-	 */
-	bool TryDeserializeOldPersistentData(PersistentData & pd, utils::DataReader & reader); // DATA_MIGRATION_TAG
-	
+
 	
 	//
 	// MARK: - Recovery codes -

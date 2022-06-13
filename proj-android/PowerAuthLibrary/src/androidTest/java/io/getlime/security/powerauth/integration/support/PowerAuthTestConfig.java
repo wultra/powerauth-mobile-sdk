@@ -17,6 +17,11 @@
 package io.getlime.security.powerauth.integration.support;
 
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Base64;
+
+import java.nio.charset.StandardCharsets;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -32,6 +37,12 @@ import io.getlime.security.powerauth.integration.support.model.ServerVersion;
  *     </li>
  *     <li>
  *         {@code "test.powerauth.serverApiUrl"} - <b>required</b> URL to private PowerAuth Server RESTful API.
+ *     </li>
+ *     <li>
+ *         {@code "test.powerauth.serverAuthUser"} - User name if PowerAuth Server RESTful API require authentication.
+ *     </li>
+ *     <li>
+ *         {@code "test.powerauth.serverAuthPass"} - Password if PowerAuth Server RESTful API require authentication.
  *     </li>
  *     <li>
  *         {@code "test.powerauth.serverVersion"} - Expected PowerAuth Server version.
@@ -56,6 +67,8 @@ public class PowerAuthTestConfig {
 
     private final @NonNull String restApiUrl;
     private final @NonNull String serverApiUrl;
+    private final @Nullable String serverAuthUser;
+    private final @Nullable String serverAuthPass;
     private final @NonNull ServerVersion serverVersion;
     private final @NonNull String powerAuthAppName;
     private final @NonNull String powerAuthAppVersion;
@@ -64,12 +77,16 @@ public class PowerAuthTestConfig {
     private PowerAuthTestConfig(
             @NonNull String restApiUrl,
             @NonNull String serverApiUrl,
+            @Nullable String serverAuthUser,
+            @Nullable String serverAuthPass,
             @NonNull ServerVersion serverVersion,
             @NonNull String powerAuthAppName,
             @NonNull String powerAuthAppVersion,
             @NonNull String userIdentifier) {
         this.restApiUrl = restApiUrl;
         this.serverApiUrl = serverApiUrl;
+        this.serverAuthUser = serverAuthUser;
+        this.serverAuthPass = serverAuthPass;
         this.serverVersion = serverVersion;
         this.powerAuthAppName = powerAuthAppName;
         this.powerAuthAppVersion = powerAuthAppVersion;
@@ -88,6 +105,17 @@ public class PowerAuthTestConfig {
      */
     public @NonNull String getServerApiUrl() {
         return serverApiUrl;
+    }
+
+    /**
+     * @return Authorization header if PowerAuth Server RESTful API require authentication.
+     */
+    public @Nullable String getAuthorizationHeaderValue() {
+        if (serverAuthUser != null && serverAuthPass != null) {
+            final byte[] authBytes = (serverAuthUser + ":" + serverAuthPass).getBytes(StandardCharsets.UTF_8);
+            return "Basic " + Base64.encodeToString(authBytes, Base64.NO_WRAP);
+        }
+        return null;
     }
 
     /**
@@ -132,7 +160,28 @@ public class PowerAuthTestConfig {
         final String powerAuthAppName = getInstrumentationParameter("appName", "AutomaticTest-Android");
         final String powerAuthAppVersion = getInstrumentationParameter("appVersion", "default");
         final String userIdentifier = getInstrumentationParameter("userIdentifier", "TestUserAndroid");
-        return new PowerAuthTestConfig(restApiUrl, serverApiUrl, serverVersion, powerAuthAppName, powerAuthAppVersion, userIdentifier);
+        final String serverAuthUser = patchAndroidStudioParameterValue(getInstrumentationParameter("serverAuthUser", ""));
+        final String serverAuthPass = patchAndroidStudioParameterValue(getInstrumentationParameter("serverAuthPass", ""));
+        return new PowerAuthTestConfig(restApiUrl, serverApiUrl, serverAuthUser, serverAuthPass, serverVersion, powerAuthAppName, powerAuthAppVersion, userIdentifier);
+    }
+
+    /**
+     * If test is initiated from Android Studio IDE, then we have to workaround possible broken values due to nasty but in studio.
+     * The problem is that if value contains '-e' sequence, then the studio is treating this as a switch for external parameter for ADB
+     * and break the string.
+     *
+     * @param value String value to patch.
+     * @return Patched value.
+     */
+    private static @Nullable String patchAndroidStudioParameterValue(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        if (TextUtils.isEmpty(value)) {
+            return null;
+        }
+        value = value.replace(" -e ", "-e");
+        return value;
     }
 
     /**

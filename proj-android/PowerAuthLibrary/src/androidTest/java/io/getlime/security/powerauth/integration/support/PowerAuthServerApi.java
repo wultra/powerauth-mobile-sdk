@@ -50,6 +50,23 @@ public interface PowerAuthServerApi {
     // Application & Application Version
 
     /**
+     * Find application by name.
+     * @param applicationName Name of application to find.
+     * @return {@link Application} with given name or null if there's no such application.
+     * @throws Exception if operation fails.
+     */
+    @Nullable Application findApplicationByName(@NonNull String applicationName) throws Exception;
+
+    /**
+     * Find application version in the application detail.
+     * @param applicationDetail Application detail that contains list of applications.
+     * @param applicationVersionName Version name to find.
+     * @return {@link ApplicationVersion} object or null if there's no such version with given name.
+     * @throws Exception If operation fails.
+     */
+    @Nullable ApplicationVersion findApplicationVersionByName(@NonNull ApplicationDetail applicationDetail, @NonNull String applicationVersionName) throws Exception;
+
+    /**
      * Return list of available applications.
      * @return List of {@link Application} objects.
      * @throws Exception if operation fails.
@@ -78,7 +95,7 @@ public interface PowerAuthServerApi {
      * @return {@link ApplicationDetail} object with information about application.
      * @throws Exception if operation fails.
      */
-    @NonNull ApplicationDetail getApplicationDetailById(long applicationId) throws Exception;
+    @NonNull ApplicationDetail getApplicationDetailById(String applicationId) throws Exception;
 
     /**
      * Create a new application version for given application.
@@ -87,7 +104,7 @@ public interface PowerAuthServerApi {
      * @return {@link ApplicationVersion} object with information about just crated application version.
      * @throws Exception if operation fails.
      */
-    @NonNull ApplicationVersion createApplicationVersion(long applicationId, @NonNull String versionName) throws Exception;
+    @NonNull ApplicationVersion createApplicationVersion(String applicationId, @NonNull String versionName) throws Exception;
 
     /**
      * Set application version supported or unsupported.
@@ -95,7 +112,7 @@ public interface PowerAuthServerApi {
      * @param supported If {@code true} then set application supported.
      * @throws Exception if operation fails.
      */
-    void setApplicationVersionSupported(long applicationVersionId, boolean supported) throws Exception;
+    void setApplicationVersionSupported(String applicationVersionId, boolean supported) throws Exception;
 
     // Recovery config
 
@@ -106,7 +123,7 @@ public interface PowerAuthServerApi {
      * @return {@link RecoveryConfig} object.
      * @throws Exception In case of failure.
      */
-    @NonNull RecoveryConfig getRecoveryConfig(long applicationId) throws Exception;
+    @NonNull RecoveryConfig getRecoveryConfig(String applicationId) throws Exception;
 
     /**
      * Update recovery config for application specified in {@link RecoveryConfig} object.
@@ -295,7 +312,7 @@ public interface PowerAuthServerApi {
      * @return {@link OfflineSignaturePayload} with payload data.
      * @throws Exception In case of failure.
      */
-    @NonNull OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(long applicationId, @NonNull String data) throws Exception;
+    @NonNull OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(String applicationId, @NonNull String data) throws Exception;
 
     /**
      * Create a payload for offline QR code, signed with personalized private key associated with user's activation.

@@ -52,6 +52,28 @@ public class PowerAuthTestHelper {
     private final @NonNull ApplicationVersion sharedApplicationVersion;
 
     /**
+     * Interface allows adjust PowerAuthSDK configurations before the SDK instance is created.
+     */
+    public interface IConfigurationObserver {
+        /**
+         * Adjust future PowerAuthConfiguration.
+         * @param builder Builder that can alter future PowerAuthConfiguration.
+         */
+        void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder);
+
+        /**
+         * Adjust future PowerAuthClientConfiguration.
+         * @param builder Builder that can alter future PowerAuthClientConfiguration.
+         */
+        void adjustPowerAuthClientConfiguration(@NonNull PowerAuthClientConfiguration.Builder builder);
+        /**
+         * Adjust future PowerAuthKeychainConfiguration.
+         * @param builder Builder that can alter future PowerAuthKeychainConfiguration.
+         */
+        void adjustPowerAuthKeychainConfiguration(@NonNull PowerAuthKeychainConfiguration.Builder builder);
+    }
+
+    /**
      * A builder that creates {@link PowerAuthTestHelper} instances.
      */
     public static class Builder {
@@ -61,6 +83,7 @@ public class PowerAuthTestHelper {
         private final @NonNull PowerAuthServerApi serverApi;
 
         private PowerAuthSDK sharedSdk;
+        private IConfigurationObserver configurationObserver;
         private PowerAuthConfiguration sharedConfiguration;
         private PowerAuthKeychainConfiguration sharedKeychainConfiguration;
         private PowerAuthClientConfiguration sharedClientConfiguration;
@@ -90,6 +113,16 @@ public class PowerAuthTestHelper {
             this.context = context;
             this.testConfig = testConfig;
             this.serverApi = new PowerAuthClientFactory().createApiClient(testConfig);
+        }
+
+        /**
+         * Set configuration observer that can alter configurations for PowerAuthSDK created in this helper.
+         * @param observer Observer to set.
+         * @return Instance of this builder.
+         */
+        public @NonNull Builder configurationObserver(@NonNull IConfigurationObserver observer) {
+            this.configurationObserver = observer;
+            return this;
         }
 
         /**
@@ -181,6 +214,9 @@ public class PowerAuthTestHelper {
                 } else if (testConfig.getRestApiUrl().startsWith("https://")) {
                     builder.clientValidationStrategy(new HttpClientSslNoValidationStrategy());
                 }
+                if (configurationObserver != null) {
+                    configurationObserver.adjustPowerAuthClientConfiguration(builder);
+                }
                 return builder.build();
             }
             return sharedClientConfiguration;
@@ -192,7 +228,11 @@ public class PowerAuthTestHelper {
          */
         private @NonNull PowerAuthKeychainConfiguration prepareKeychainConfiguration() {
             if (sharedKeychainConfiguration == null) {
-                return new PowerAuthKeychainConfiguration.Builder().build();
+                PowerAuthKeychainConfiguration.Builder builder = new PowerAuthKeychainConfiguration.Builder();
+                if (configurationObserver != null) {
+                    configurationObserver.adjustPowerAuthKeychainConfiguration(builder);
+                }
+                return builder.build();
             }
             return sharedKeychainConfiguration;
         }
@@ -207,25 +247,15 @@ public class PowerAuthTestHelper {
          */
         private @NonNull PowerAuthConfiguration acquireDefaultConfiguration() throws Exception {
             // Acquire application.
-            Application application = null;
-            for (Application a : serverApi.getApplicationList()) {
-                if (a.getApplicationName().equals(testConfig.getPowerAuthAppName())) {
-                    application = a;
-                    break;
-                }
-            }
+            Application application = serverApi.findApplicationByName(testConfig.getPowerAuthAppName());
             if (application == null) {
                 // If server has no such application, then create a new one.
                 application = serverApi.createApplication(testConfig.getPowerAuthAppName());
             }
             // Acquire application detail to get the list of application versions.
             sharedApplication = serverApi.getApplicationDetailById(application.getApplicationId());
-            for (ApplicationVersion v : sharedApplication.getVersions()) {
-                if (v.getApplicationVersionName().equals(testConfig.getPowerAuthAppVersion())) {
-                    sharedApplicationVersion = v;
-                    break;
-                }
-            }
+            sharedApplicationVersion = serverApi.findApplicationVersionByName(sharedApplication, testConfig.getPowerAuthAppVersion());
+
             if (sharedApplicationVersion == null) {
                 // If application version is not available, then create a new one.
                 sharedApplicationVersion = serverApi.createApplicationVersion(sharedApplication.getApplicationId(), testConfig.getPowerAuthAppVersion());
@@ -235,13 +265,16 @@ public class PowerAuthTestHelper {
                 serverApi.setApplicationVersionSupported(sharedApplicationVersion.getApplicationVersionId(), true);
             }
             // Finally, create a new instance of PowerAuthConfiguration.
-            return new PowerAuthConfiguration.Builder(
+            PowerAuthConfiguration.Builder builder = new PowerAuthConfiguration.Builder(
                     null,
                     testConfig.getRestApiUrl(),
                     sharedApplicationVersion.getApplicationKey(),
                     sharedApplicationVersion.getApplicationSecret(),
-                    sharedApplication.getMasterPublicKey())
-                    .build();
+                    sharedApplication.getMasterPublicKey());
+            if (configurationObserver != null) {
+                configurationObserver.adjustPowerAuthConfiguration(builder);
+            }
+            return builder.build();
         }
 
     }

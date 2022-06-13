@@ -38,8 +38,7 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.integration.support.Logger;
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApiException;
-import io.getlime.security.powerauth.integration.support.endpoints.EmptyRequestObject;
-import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEndpoint;
+import io.getlime.security.powerauth.integration.support.v10.endpoints.EmptyRequestObject;
 
 /**
  * The {@code RestClient} class implements HTTP communication with PowerAuth Server REST API.
@@ -47,12 +46,14 @@ import io.getlime.security.powerauth.integration.support.endpoints.IServerApiEnd
 public class HttpRestClient {
 
     private final @NonNull String baseUrl;
+    private final @Nullable String authorization;
     private final @NonNull Gson gson;
     private final @NonNull JsonParser jsonParser;
 
-    public HttpRestClient(@NonNull String baseUrl) {
+    public HttpRestClient(@NonNull String baseUrl, @Nullable String authorization) {
         // Make sure that baseUrl doesn't end with forward slash.
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.authorization = authorization;
         this.gson = new GsonBuilder().create();
         this.jsonParser = new JsonParser();
     }
@@ -123,6 +124,9 @@ public class HttpRestClient {
         urlConnection.setUseCaches(false);
         urlConnection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
         urlConnection.setRequestProperty("Accept", "application/json; charset=utf-8");
+        if (authorization != null) {
+            urlConnection.setRequestProperty("Authorization", authorization);
+        }
         if (requestData.body != null) {
             urlConnection.getOutputStream().write(requestData.body);
         }

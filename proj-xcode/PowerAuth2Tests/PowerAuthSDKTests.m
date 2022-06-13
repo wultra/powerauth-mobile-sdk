@@ -1395,4 +1395,36 @@ static NSString * PA_Ver = @"3.1";
 	[self removeLastActivation:activationData];
 }
 
+- (void) testCancelEnqueuedHttpOperation
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether cancelation of enqueued, but not executed yet
+	// HTTP request doesn't lead to crash. See bug #435 for more details.
+	//
+	
+	NSArray * activation = [self createActivation:YES removeAfter:NO];
+	XCTAssertTrue([activation.lastObject boolValue]);
+	if (!activation) {
+		return;
+	}
+	PATSInitActivationResponse * activationData = activation[0];
+	PowerAuthAuthentication * auth = activation[1];
+	
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * _Nullable error) {
+			XCTAssertNil(error);
+			[waiting reportCompletion:nil];
+		}];
+		id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * _Nullable error) {
+			XCTFail();
+		}];
+		[task cancel];
+	}];
+	
+	// Cleanup
+	[self removeLastActivation:activationData];
+}
+
 @end

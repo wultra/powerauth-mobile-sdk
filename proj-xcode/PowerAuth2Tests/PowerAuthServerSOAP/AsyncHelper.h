@@ -31,15 +31,15 @@
 	 NSLog(@"Operation ended with %@", result);		// Will print: "Operation ended with: SUCCESS"
 
  WARNING: Do not use this class in the production application. The internal implementation is
-          sufficient for the testing purposes, but it's still kind of multithread anti-pattern.
+		  sufficient for the testing purposes, but it's still kind of multithread anti-pattern.
  */
 @interface AsyncHelper : NSObject
 
 /**
  Creates a new instance of AsyncHelper and immediately executes the provided block.
  In the block, you can start any asynchronous operation with any completion, but once
- you exit the |block|, the execution ends in a waiting loop. You have to call 
- [waiting reportCompletion:object] to break the waiting loop. If you don't report 
+ you exit the |block|, the execution ends in a waiting loop. You have to call
+ [waiting reportCompletion:object] to break the waiting loop. If you don't report
  the completion in predefined time (10 seconds), then the exception is thrown.
  
  The method returns the same |resultObject| as you previously passed to `-reportCompletion:`.
@@ -64,5 +64,43 @@
  */
 - (void) reportCompletion:(id)resultObject;
 
+/**
+ Reset the timeout internally used for completion to zero, so the asynchronous task
+ gets more time to complete.
+ */
+- (void) extendWaitingTime;
+
+/**
+ Wait for the beginning of the next second. This helper method is useful in situations when
+ some operation is time dependent and you need to guarantee that the current time's millisecond
+ part is close to zero as much as possible.
+ */
++ (void) waitForNextSecond;
+
+/**
+ Function wait for multiple queues to complete.
+ */
++ (void) waitForQueuesCompletion:(NSArray<NSOperationQueue*>*)queues;
+
+@end
+
+/**
+ The AtomicCounter class implements simple atomic counter that may be useful
+ in various tests.
+ */
+@interface AtomicCounter : NSObject
+/**
+ Increment counter and return the current value.
+ */
+- (int32_t) increment;
+/**
+ Increment counter and if limit is reached, then call block.
+ */
+- (int32_t) incrementUpTo:(int32_t)limit
+			   completion:(void(^)(void))block;
+/**
+ The current value of the counter.
+ */
+@property (nonatomic, readonly) int32_t value;
 
 @end

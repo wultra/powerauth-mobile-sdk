@@ -1174,40 +1174,7 @@ let task = tokenStore.requestAccessToken(withName: "MyToken", authentication: au
 }
 ```
 
-The request is performed synchronously or asynchronously depending on whether the token is locally cached on the device. You can test this situation by calling `tokenStore.hasLocalToken(withName: "MyToken")`. If operation is asynchronous, then `requestAccessToken()` returns cancellable task. Be aware that you should not issue multiple asynchronous operations for the same token name. Here's a more complex example:
-
-```swift
-private var tokenAcquireTask: Any?
-private var tokenAcquireRequests: [(PowerAuthToken?, Error?)->Void] = []
-
-func acquireToken(_ completion: @escaping (PowerAuthToken?, Error?)->Void) {
-    let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
-    if let token = tokenStore.localToken(withName: "MyToken") {
-        // token is available in local db
-        completion(token, nil)
-        return
-    }
-    // token is not locally available, remember that completion block
-    tokenAcquireRequests.append(completion)
-    if tokenAcquireTask == nil {
-        // there's no pending request, create a new one
-        let auth = PowerAuthAuthentication()
-        auth.usePossession = true
-        // now try to request for token
-        tokenAcquireTask = tokenStore.requestAccessToken(withName: "MyToken", authentication: auth) { (token, error) in
-            // we have result, report to all blocks
-            self.tokenAcquireTask = nil
-            self.tokenAcquireRequests.forEach { (block) in
-                block(token, error)
-            }
-            self.tokenAcquireRequests.removeAll()
-        }
-    }
-}
-
-```
-
-The complex example above is trying to hide that problematic asynchronous requesting by remembering completion blocks when the underlying HTTP request is already on the fly. Be aware that the code is still very simple PoC and, for example, doesn't solve cancelation and thread-safety.
+The request is performed synchronously or asynchronously depending on whether the token is locally cached on the device. You can test this situation by calling `tokenStore.hasLocalToken(withName: "MyToken")`. If operation is asynchronous, then `requestAccessToken()` returns cancellable task.
 
 ### Generating Authorization Header
 

@@ -66,28 +66,28 @@
 /**
  Returns a new instance of authentication object preconfigured for a possession factor.
  */
-+ (nonnull PowerAuthAuthentication*) possession;
++ (nonnull PowerAuthAuthentication *) possession;
 /**
  Returns a new instance of authentication object preconfigured for a combination of
  possession and biometry factors.
  */
-+ (nonnull PowerAuthAuthentication*) possessionWithBiometry;
++ (nonnull PowerAuthAuthentication *) possessionWithBiometry;
 /**
  Returns a new instance of authentication object preconfigured for a combination of
  possession and biometry factors and with prompt, displayed in the system biometric
  authentication dialog.
  */
-+ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithPrompt:(nonnull NSString*)biometryPrompt;
++ (nonnull PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(nonnull NSString*)biometryPrompt;
 /**
  Returns a new instance of authentication object preconfigured for combination of possesion
  and knowledge factor.
  */
-+ (nonnull PowerAuthAuthentication*) possessionWithPassword:(nonnull NSString*)password;
++ (nonnull PowerAuthAuthentication *) possessionWithPassword:(nonnull NSString*)password;
 /**
  Returns a new instance of authentication object preconfigured for a combination of
  possession and biometry factors and with local authentication context. The context allows you
- to
+ to better customize the system biometric authentication dialog.
  */
-+ (nonnull PowerAuthAuthentication*) possessionWithBiometryWithContext:(nonnull LAContext*)context API_UNAVAILABLE(watchos, tvos);
++ (nonnull PowerAuthAuthentication *) possessionWithBiometryWithContext:(nonnull LAContext*)context API_UNAVAILABLE(watchos, tvos);
 
 @end

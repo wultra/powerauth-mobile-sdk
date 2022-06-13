@@ -21,17 +21,22 @@
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
-#import "PowerAuthErrorConstants.h"
-#import "PowerAuthKeychain.h"
-#import "PowerAuthConfiguration.h"
-#import "PowerAuthLog.h"
+#import "PA2CreateTokenTask.h"
+#import "PowerAuthAuthentication+Private.h"
+
+#import <PowerAuth2ForWatch/PowerAuthErrorConstants.h>
+#import <PowerAuth2ForWatch/PowerAuthKeychain.h>
+#import <PowerAuth2ForWatch/PowerAuthConfiguration.h>
+#import <PowerAuth2ForWatch/PowerAuthLog.h>
 
 @implementation PA2PrivateTokenKeychainStore
 {
 	/// A copy of SDK configuration
 	PowerAuthConfiguration *	_sdkConfiguration;
-	/// Data locking implementation
-	id<PA2TokenDataLock>		_lock;
+	/// Token data locking implementation
+	id<PA2TokenDataLock>		_tokenDataLock;
+	/// Local lock, protecting data in this process.
+	id<NSLocking>				_localLock;
 	
 	// Lazy initialized data
 
@@ -39,30 +44,16 @@
 	NSString * _keychainKeyPrefix;
 	/// A local database for tokens.
 	NSMutableDictionary<NSString*, PA2PrivateTokenData*> * _database;
-	/// A debug set with pending operations (valid only for DEBUG build of library)
-	NSMutableSet<NSString*> * 	_pendingNamedOperations;
+	
+	NSMutableDictionary<NSString*, PA2CreateTokenTask*> *_createTokenTasks;
 }
-
-/**
- Following debug macros allows tracking of dangerous simultaneous requests for the same tokens.
- The feature is turned off in release build of the library.
- */
-#if defined(DEBUG)
-	#define _START_OPERATION(name)	[self startOperationForName:name]
-	#define _STOP_OPERATION(name)	[self stopOperationForName:name]
-	#define _OPERATIONS_SET() 		[NSMutableSet set]
-#else
-	#define _START_OPERATION(name)
-	#define _STOP_OPERATION(name)
-	#define _OPERATIONS_SET() 		nil
-#endif
-
 
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
 			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
 					dataLock:(id<PA2TokenDataLock>)dataLock
+				   localLock:(id<NSLocking>)localLock
 {
 	self = [super init];
 	if (self) {
@@ -70,10 +61,16 @@
 		_statusProvider = statusProvider;
 		_remoteTokenProvider = remoteProvider;
 		_keychain = keychain;
-		_lock = dataLock;
+		_tokenDataLock = dataLock;
+		_localLock = localLock ? localLock : [[NSRecursiveLock alloc] init];
 		_allowInMemoryCache = YES;
 	}
 	return self;
+}
+
+- (void) dealloc
+{
+	[self cancelAllTasksImpl];
 }
 
 - (PowerAuthConfiguration*) configuration
@@ -93,8 +90,7 @@
 	// Build base key for all stored tokens
 	_keychainKeyPrefix = [PA2PrivateTokenKeychainStore keychainPrefixForInstanceId:_sdkConfiguration.instanceId];
 	_database = [NSMutableDictionary dictionaryWithCapacity:2];
-	// ...and debug set for overlapping operations
-	_pendingNamedOperations = _OPERATIONS_SET();
+	_createTokenTasks = [NSMutableDictionary dictionaryWithCapacity:2];
 }
 
 /**
@@ -103,7 +99,7 @@
  */
 - (id) synchronized:(id(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	BOOL isDirty = [_lock lockTokenStore];
+	BOOL isDirty = [_tokenDataLock lockTokenStore];
 	if (_keychainKeyPrefix == nil) {
 		[self prepareInstance];
 	}
@@ -112,7 +108,7 @@
 	}
 	BOOL modified = NO;
 	id result = block(&modified);
-	[_lock unlockTokenStore:modified];
+	[_tokenDataLock unlockTokenStore:modified];
 	return result;
 }
 
@@ -122,7 +118,7 @@
  */
 - (void) synchronizedVoid:(void(NS_NOESCAPE ^)(BOOL * setModified))block
 {
-	BOOL isDirty = [_lock lockTokenStore];
+	BOOL isDirty = [_tokenDataLock lockTokenStore];
 	if (_keychainKeyPrefix == nil) {
 		[self prepareInstance];
 	}
@@ -131,7 +127,7 @@
 	}
 	BOOL modified = NO;
 	block(&modified);
-	[_lock unlockTokenStore:modified];
+	[_tokenDataLock unlockTokenStore:modified];
 }
 
 #pragma mark - PowerAuthPrivateTokenStore protocol
@@ -141,6 +137,40 @@
 	return [_statusProvider hasValidActivation] && [_statusProvider.activationIdentifier isEqualToString:token.privateTokenData.activationIdentifier];
 }
 
+- (void) storeTokenData:(PA2PrivateTokenData*)tokenData
+{
+	[self synchronizedVoid:^(BOOL *setModified) {
+		if (!self.canRequestForAccessToken) {
+			return;
+		}
+		[self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
+		*setModified = YES;
+	}];
+}
+
+- (void) removeCreateTokenTask:(NSString *)tokenName
+{
+	[_localLock lock];
+	// Remove group task from the dictionary.
+	[_createTokenTasks removeObjectForKey:tokenName];
+	[_localLock unlock];
+}
+
+- (void) cancelAllTasks
+{
+	[_localLock lock];
+	[self cancelAllTasksImpl];
+	[_localLock unlock];
+}
+
+- (void) cancelAllTasksImpl
+{
+	[[_createTokenTasks copy] enumerateKeysAndObjectsUsingBlock:^(NSString * key, PA2CreateTokenTask * obj, BOOL * stop) {
+		[obj cancel];
+	}];
+	[_createTokenTasks removeAllObjects];
+}
+
 #pragma mark - PowerAuthTokenStore protocol
 
 - (BOOL) canRequestForAccessToken
@@ -148,15 +178,15 @@
 	return [_statusProvider hasValidActivation];
 }
 
-- (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
-										authentication:(PowerAuthAuthentication*)authentication
-											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenWithName:(NSString*)name
+										   authentication:(PowerAuthAuthentication*)authentication
+											   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	return [self requestAccessTokenImpl:name authentication:authentication completion:completion];
 }
 
-- (PowerAuthTokenStoreTask) requestAccessTokenWithName:(NSString*)name
-											completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenWithName:(NSString*)name
+											   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	return [self requestAccessTokenImpl:name authentication:nil completion:completion];
 }
@@ -164,9 +194,9 @@
 /*
  This is an actual implementation of `requestAccessTokenWithName...` method, but allowing authentication to be nil.
  */
-- (PowerAuthTokenStoreTask) requestAccessTokenImpl:(NSString*)name
-									authentication:(PowerAuthAuthentication*)authentication
-										completion:(void(^)(PowerAuthToken * token, NSError * error))completion
+- (id<PowerAuthOperationTask>) requestAccessTokenImpl:(NSString*)name
+									   authentication:(PowerAuthAuthentication*)authentication
+										   completion:(void(^)(PowerAuthToken * token, NSError * error))completion
 {
 	if (!name || !completion) {
 		if (completion) {
@@ -174,7 +204,8 @@
 		}
 		return nil;
 	}
-	if (!authentication && [_remoteTokenProvider authenticationIsRequired]) {
+	BOOL authenticationIsRequired = [_remoteTokenProvider authenticationIsRequired];
+	if (!authentication && authenticationIsRequired) {
 		completion(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Authentication object is missing."));
 		return nil;
 	}
@@ -182,13 +213,17 @@
 		completion(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
-	if (tokenData) {
+	
+	NSError * error = nil;
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:authentication error:&error];
+	if (tokenData || error) {
 		// The data is available, so the token can be returned synchronously
-		PowerAuthToken * token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
-		completion(token, nil);
+		PowerAuthToken * token = tokenData ? [[PowerAuthToken alloc] initWithStore:self data:tokenData] : nil;
+		completion(token, error);
 		return nil;
 	}
+	
+	// Local token is not found, so we have to fire a remote request.
 	
 	id<PA2PrivateRemoteTokenProvider> strongTokenProvider = _remoteTokenProvider;
 	if (!strongTokenProvider) {
@@ -197,23 +232,44 @@
 		return nil;
 	}
 	
-	_START_OPERATION(name);
-	return [strongTokenProvider requestTokenWithName:name authentication:authentication completion:^(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error) {
-		PowerAuthToken * token;
-		if (tokenData && !error) {
-			[self storeTokenData:tokenData];
-			token = [[PowerAuthToken alloc] initWithStore:self data:tokenData];
-		} else {
-			token = nil;
+	[_localLock lock];
+	//
+	PA2CreateTokenTask * groupTask = _createTokenTasks[name];
+	id<PowerAuthOperationTask> result = nil;
+	if (groupTask && authenticationIsRequired) {
+		if (groupTask.authentication.signatureFactorMask != authentication.signatureFactorMask) {
+			error = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
 		}
-		_STOP_OPERATION(name);
-		completion(token, error);
-	}];
+	}
+	if (!error) {
+		// No error yet, so try to create child task. Note that groupTask may be nil.
+		result = [groupTask createChildTask:completion];
+		if (!result) {
+			// No group task created yet, or existing task is already completed, so we have to create a new one.
+			groupTask = [[PA2CreateTokenTask alloc] initWithProvider:strongTokenProvider
+														  tokenStore:self
+													  authentication:authentication
+														activationId:_statusProvider.activationIdentifier
+														   tokenName:name
+														  sharedLock:_localLock];
+			// Keep group task in the dictionary.
+			_createTokenTasks[name] = groupTask;
+			// Create child task that capture the completion for the application.
+			result = [groupTask createChildTask:completion];
+		}
+	}
+	//
+	[_localLock unlock];
+	
+	if (error) {
+		completion(nil, error);
+	}
+	return result;
 }
 
 
-- (PowerAuthTokenStoreTask) removeAccessTokenWithName:(NSString *)name
-										   completion:(void (^)(BOOL, NSError * ))completion
+- (id<PowerAuthOperationTask>) removeAccessTokenWithName:(NSString *)name
+											  completion:(void (^)(BOOL, NSError * ))completion
 {
 	if (!name || !completion) {
 		if (completion) {
@@ -225,9 +281,10 @@
 		completion(NO, PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Activation is no longer valid."));
 		return nil;
 	}
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
+	NSError * error = nil;
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:nil error:&error];
 	if (!tokenData) {
-		completion(NO, PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Token not found."));
+		completion(NO, error ? error : PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Token not found."));
 		return nil;
 	}
 
@@ -238,9 +295,7 @@
 		return nil;
 	}
 	
-	_START_OPERATION(name);
 	return [strongTokenProvider removeTokenData:tokenData completion:^(BOOL removed, NSError * _Nullable error) {
-		_STOP_OPERATION(name);
 		if (removed) {
 			[self removeLocalTokenWithName:name];
 		}
@@ -249,12 +304,18 @@
 }
 
 
-- (void) cancelTask:(PowerAuthTokenStoreTask)task
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
+- (void) cancelTask:(id)task
 {
-	[_remoteTokenProvider cancelTask:task];
+	[PA2ConformsTo(task, PowerAuthOperationTask) cancel];
 }
+#pragma clang diagnostic pop
 
-
+#if PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
+//
+// Implementation available for PowerAuth2 & PowerAuth2ForWatch modules
+//
 - (void) removeLocalTokenWithName:(NSString *)name
 {
 	[self synchronizedVoid:^(BOOL * setModified){
@@ -276,16 +337,34 @@
 	}];
 }
 
+#else
+//
+// Implementation available only for PowerAuth2ForExtensions
+//
+- (void) removeLocalTokenWithName:(NSString *)name
+{
+	// Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
+	PowerAuthLog(@"ERROR: removeLocalToken() is not available for PowerAuth2ForExtensions module");
+}
+
+- (void) removeAllLocalTokens
+{
+	// Issue #433: PowerAuth2ForExtensions has no remote provider, so this function is unavailable.
+	PowerAuthLog(@"ERROR: removeAllLocalTokens() is not available for PowerAuth2ForExtensions module");
+}
+
+#endif // PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
+
 
 - (BOOL) hasLocalTokenWithName:(nonnull NSString*)name
 {
-	return nil != [self tokenDataForTokenName:name];
+	return nil != [self tokenDataForTokenName:name authentication:nil error:nil];
 }
 
 
 - (PowerAuthToken*) localTokenWithName:(NSString*)name
 {
-	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name];
+	PA2PrivateTokenData * tokenData = [self tokenDataForTokenName:name authentication:nil error:nil];
 	if (tokenData) {
 		return [[PowerAuthToken alloc] initWithStore:self data:tokenData];
 	}
@@ -346,24 +425,33 @@
  Returns PA2PrivateTokenData object created for token with name or nil if no such data is stored.
  */
 - (PA2PrivateTokenData*) tokenDataForTokenName:(NSString*)name
+								authentication:(PowerAuthAuthentication*)authentication
+										 error:(NSError**)error
 {
-	return [self synchronized:^id(BOOL *setModified) {
+	__block NSError * localError = nil;
+	PA2PrivateTokenData * result = [self synchronized:^id(BOOL *setModified) {
 		NSString * identifier = [self identifierForTokenName:name];
 		PA2PrivateTokenData * tokenData = _allowInMemoryCache ? _database[identifier] : nil;
 		if (!tokenData) {
 			tokenData = [PA2PrivateTokenData deserializeWithData: [_keychain dataForKey:identifier status:NULL]];
 			if (tokenData) {
-				NSString * aid = tokenData.activationIdentifier;
-				if (aid == nil) {
-					// Old data format, with no activation identifier serialized. Re-save the data
-					[self storeTokenDataWhenLocked:tokenData isUpgrade:YES];
-					*setModified = YES;
-				} else if (![aid isEqualToString:_statusProvider.activationIdentifier]) {
+				NSString * tokenDataAID = tokenData.activationIdentifier;
+				BOOL isInvalid          = tokenDataAID != nil && ![tokenDataAID isEqualToString:_statusProvider.activationIdentifier];
+				BOOL doUpgradeAID       = tokenDataAID == nil;
+				BOOL doUpgradeFactors   = authentication != nil && tokenData.authenticationFactors == 0;
+				if (isInvalid) {
 					// Looks like serialized activation identifier is different to the current AID.
 					// This token is no longer valid and must be removed from the keychain.
 					PowerAuthLog(@"KeychainTokenStore: WARNING: Token '%@' is no longer valid.", name);
 					[_keychain deleteDataForKey:identifier];
 					tokenData = nil;
+					*setModified = YES;
+				} else if (doUpgradeAID || doUpgradeFactors) {
+					// Old data format, with no activation identifier or factors serialized. Re-save the data
+					if (doUpgradeFactors) {
+						tokenData.authenticationFactors = authentication.signatureFactorMask;
+					}
+					[self storeTokenDataWhenLocked:tokenData isUpgrade:YES];
 					*setModified = YES;
 				}
 			}
@@ -372,22 +460,19 @@
 				_database[identifier] = tokenData;
 			}
 		}
+		// Finally, validate whether the requested factors
+		if (authentication != nil && tokenData.authenticationFactors != 0) {
+			if (tokenData.authenticationFactors != authentication.signatureFactorMask) {
+				localError = PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Different PowerAuthAuthentication used for the same token creation.");
+				tokenData = nil;
+			}
+		}
 		return tokenData;
 	}];
-}
-
-/**
- Stores a private data object to keychain.
- */
-- (void) storeTokenData:(PA2PrivateTokenData*)tokenData
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		if (!self.canRequestForAccessToken) {
-			return;
-		}
-		[self storeTokenDataWhenLocked:tokenData isUpgrade:NO];
-		*setModified = YES;
-	}];
+	if (error && localError) {
+		*error = localError;
+	}
+	return result;
 }
 
 - (void) storeTokenDataWhenLocked:(PA2PrivateTokenData*)tokenData isUpgrade:(BOOL)isUpgrade
@@ -421,32 +506,5 @@
 	[_keychain deleteDataForKey:identifier];
 	[_database removeObjectForKey:identifier];
 }
-
-#pragma mark - Debug methods
-
-#if defined(DEBUG)
-- (void) startOperationForName:(NSString*)name
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		if ([_pendingNamedOperations containsObject:name]) {
-			// Well, this store implementation is thread safe, so the application won't crash on race condition, but it's not aware against requesting
-			// the same token for multiple times. This may lead to situations, when you will not be able to remove all previously created tokens
-			// on the server.
-			// This warning is also displayed for removal and creation operations created at the same time.
-			PowerAuthLog(@"TokenKeychainStore: WARNING: Looks like you're running simultaneous operations for token '%@'. This is highly not recommended.", name);
-		} else {
-			[_pendingNamedOperations addObject:name];
-		}
-	}];
-}
-
-- (void) stopOperationForName:(NSString*)name
-{
-	[self synchronizedVoid:^(BOOL *setModified) {
-		[_pendingNamedOperations removeObject:name];
-	}];
-}
-#endif // defined(DEBUG)
-
 
 @end

@@ -29,12 +29,14 @@ import org.junit.runner.RunWith;
 import java.util.Map;
 import java.util.Objects;
 
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
@@ -138,6 +140,165 @@ public class TokenStoreTest {
         assertFalse(tokenStore.canRequestForAccessToken());
         assertFalse(token1.canGenerateHeader());
         assertFalse(token2.canGenerateHeader());
+    }
+
+    @Test
+    public void testGroupedCreateTokenRequests() throws Exception {
+        final Context context = testHelper.getContext();
+        activationHelper.createStandardActivation(true, null);
+
+        final PowerAuthToken[] token1 = {null};
+        final PowerAuthToken[] token2 = {null};
+        final PowerAuthToken[] token3 = {null};
+        final PowerAuthToken[] token4 = {null};
+        final PowerAuthToken[] token5 = {null};
+
+        AsyncHelper.await(new AsyncHelper.Execution<Boolean>() {
+
+            @Override
+            public void execute(final @NonNull AsyncHelper.ResultCatcher<Boolean> resultCatcher) throws Exception {
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        token1[0] = token;
+                        complete(resultCatcher);
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        complete(resultCatcher);
+                    }
+                });
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        token2[0] = token;
+                        complete(resultCatcher);
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        complete(resultCatcher);
+                    }
+                });
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION_KNOWLEDGE, activationHelper.getValidAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        token4[0] = token;
+                        complete(resultCatcher);
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        complete(resultCatcher);
+                    }
+                });
+                ICancelable task = tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        fail();
+                    }
+                });
+                if (task != null) {
+                    task.cancel();
+                }
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        token3[0] = token;
+                        complete(resultCatcher);
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        complete(resultCatcher);
+                    }
+                });
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION_KNOWLEDGE, activationHelper.getValidAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        token5[0] = token;
+                        complete(resultCatcher);
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        complete(resultCatcher);
+                    }
+                });
+                // Try to create token with different auth when the grouped request is pending
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION_KNOWLEDGE, activationHelper.getPossessionAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException)t).getPowerAuthErrorCode());
+                        complete(resultCatcher);
+                    }
+                });
+            }
+
+            // Await completion
+
+            int responseCount = 0;
+            final int maxResponseCount = 6;
+
+            synchronized void complete(AsyncHelper.ResultCatcher<Boolean> resultCatcher) {
+                responseCount++;
+                if (responseCount >= maxResponseCount) {
+                    resultCatcher.completeWithResult(true);
+                }
+            }
+
+        });
+        assertNotNull(token1[0]);
+        assertNotNull(token2[0]);
+        assertNotNull(token3[0]);
+        assertNotNull(token4[0]);
+        assertNotNull(token5[0]);
+        assertEquals(token1[0], token2[0]);
+        assertEquals(token1[0], token3[0]);
+        assertEquals(token2[0], token2[0]);
+        assertEquals(token4[0], token5[0]);
+        assertNotEquals(token1[0], token4[0]);
+    }
+
+    @Test
+    public void testCreateTokenRequestsWithDifferentAuth() throws Exception {
+        final Context context = testHelper.getContext();
+        activationHelper.createStandardActivation(true, null);
+
+        assertFalse(tokenStore.hasLocalToken(context, TOKEN_NAME_POSSESSION));
+        PowerAuthToken token1 = requestAccessToken(TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), true);
+        assertNotNull(token1);
+
+        // Try to create token with different auth when the token is already cached
+        AsyncHelper.await(new AsyncHelper.Execution<Boolean>() {
+
+            @Override
+            public void execute(@NonNull final AsyncHelper.ResultCatcher<Boolean> resultCatcher) throws Exception {
+                tokenStore.requestAccessToken(context, TOKEN_NAME_POSSESSION, activationHelper.getValidAuthentication(), new IGetTokenListener() {
+                    @Override
+                    public void onGetTokenSucceeded(@NonNull PowerAuthToken token) {
+                        fail();
+                    }
+
+                    @Override
+                    public void onGetTokenFailed(@NonNull Throwable t) {
+                        assertEquals(PowerAuthErrorCodes.WRONG_PARAMETER, ((PowerAuthErrorException)t).getPowerAuthErrorCode());
+                        resultCatcher.completeWithResult(true);
+                    }
+                });
+            }
+        });
     }
 
 

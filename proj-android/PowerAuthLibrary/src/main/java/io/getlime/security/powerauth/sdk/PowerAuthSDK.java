@@ -31,6 +31,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.biometry.BiometricAuthentication;
 import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
@@ -118,6 +119,7 @@ import io.getlime.security.powerauth.system.PowerAuthSystem;
  */
 public class PowerAuthSDK {
 
+    private final @NonNull ReentrantLock mLock;
     private final @NonNull Session mSession;
     private final @NonNull PowerAuthConfiguration mConfiguration;
     private final @NonNull PowerAuthKeychainConfiguration mKeychainConfiguration;
@@ -128,7 +130,7 @@ public class PowerAuthSDK {
     private final @NonNull Keychain mBiometryKeychain;
     private final @NonNull Keychain mTokenStoreKeychain;
     private final @NonNull ICallbackDispatcher mCallbackDispatcher;
-    private PowerAuthTokenStore mTokenStore;
+    private final @NonNull PowerAuthTokenStore mTokenStore;
 
     /**
      * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
@@ -304,6 +306,7 @@ public class PowerAuthSDK {
             @NonNull Keychain biometryKeychain,
             @NonNull Keychain tokenStoreKeychain,
             @NonNull ICallbackDispatcher callbackDispatcher) {
+        this.mLock = new ReentrantLock();
         this.mSession = session;
         this.mConfiguration = configuration;
         this.mKeychainConfiguration = keychainConfiguration;
@@ -314,6 +317,7 @@ public class PowerAuthSDK {
         this.mBiometryKeychain = biometryKeychain;
         this.mTokenStoreKeychain = tokenStoreKeychain;
         this.mCallbackDispatcher = callbackDispatcher;
+        this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
     }
 
     /**
@@ -356,6 +360,20 @@ public class PowerAuthSDK {
     }
 
     /**
+     * @return Internal callback dispatcher.
+     */
+    @NonNull ICallbackDispatcher getCallbackDispatcher() {
+        return mCallbackDispatcher;
+    }
+
+    /**
+     * @return Internal reentrant lock that can be shared between multiple objects owned by SDK.
+     */
+    @NonNull ReentrantLock getSharedLock() {
+        return mLock;
+    }
+
+    /**
      * Checks for valid SessionSetup and throws a PowerAuthMissingConfigException when the provided configuration
      * is not correct or is missing.
      *
@@ -392,8 +410,8 @@ public class PowerAuthSDK {
         Password knowledgeKey = null;
 
         if (authentication.usePossession) {
-            if (authentication.overridenPossessionKey != null) {
-                possessionKey = authentication.overridenPossessionKey;
+            if (authentication.overriddenPossessionKey != null) {
+                possessionKey = authentication.overriddenPossessionKey;
             } else {
                 possessionKey = deviceRelatedKey(context);
             }
@@ -508,10 +526,7 @@ public class PowerAuthSDK {
      *
      * @return Reference to {@code PowerAuthTokenStore} instance.
      */
-    public synchronized @NonNull PowerAuthTokenStore getTokenStore() {
-        if (mTokenStore == null) {
-            mTokenStore = new PowerAuthTokenStore(this, mTokenStoreKeychain, mClient);
-        }
+    public @NonNull PowerAuthTokenStore getTokenStore() {
         return mTokenStore;
     }
 
@@ -1096,8 +1111,11 @@ public class PowerAuthSDK {
      *         there's no activation, or status was not received yet.
      */
     public @Nullable ActivationStatus getLastFetchedActivationStatus() {
-        synchronized (this) {
+        try {
+            mLock.lock();
             return mLastFetchedActivationStatus;
+        } finally {
+            mLock.unlock();
         }
     }
 
@@ -1134,7 +1152,8 @@ public class PowerAuthSDK {
         // Cancelable object returned to the application
         ICancelable task = null;
 
-        synchronized (this) {
+        try {
+            mLock.lock();
             if (mGetActivationStatusTask != null) {
                 // There's already some pending task, try to add this listener to it.
                 task = mGetActivationStatusTask.addActivationStatusListener(listener);
@@ -1167,6 +1186,8 @@ public class PowerAuthSDK {
                 task = mGetActivationStatusTask.addActivationStatusListener(listener);
                 mGetActivationStatusTask.execute();
             }
+        } finally {
+            mLock.unlock();
         }
 
         return task;
@@ -1181,7 +1202,8 @@ public class PowerAuthSDK {
      * @param status fetched status
      */
     private void completeGetActivationStatusTask(@Nullable GetActivationStatusTask task, @Nullable ActivationStatus status) {
-        synchronized (this) {
+        try {
+            mLock.lock();
             final boolean updateLastStatus;
             if (task == mGetActivationStatusTask) {
                 // Regular processing, only one task was scheduled and it just finished.
@@ -1199,6 +1221,8 @@ public class PowerAuthSDK {
                 // It's safe to update last fetched status.
                 mLastFetchedActivationStatus = status;
             }
+        } finally {
+            mLock.unlock();
         }
     }
 
@@ -1207,12 +1231,15 @@ public class PowerAuthSDK {
      * only in rare cases, like when SDK object is going to reset its local state.
      */
     private void cancelGetActivationStatusTask() {
-        synchronized (this) {
+        try {
+            mLock.lock();
             if (mGetActivationStatusTask != null) {
                 mGetActivationStatusTask.cancel();
                 mGetActivationStatusTask = null;
             }
             mLastFetchedActivationStatus = null;
+        } finally {
+            mLock.unlock();
         }
     }
 
@@ -1310,6 +1337,7 @@ public class PowerAuthSDK {
             BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor();
         }
         // Remove all tokens from token store
+        getTokenStore().cancelAllRequests();
         getTokenStore().removeAllLocalTokens(context);
 
         // Reset C++ session

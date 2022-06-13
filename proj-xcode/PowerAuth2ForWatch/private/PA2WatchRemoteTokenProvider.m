@@ -19,6 +19,7 @@
 #import "PA2WCSessionPacket_TokenData.h"
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateMacros.h"
+#import "PA2SimpleCancelable.h"
 
 #import <PowerAuth2ForWatch/PowerAuthErrorConstants.h>
 #import <PowerAuth2ForWatch/PowerAuthConfiguration.h>
@@ -28,45 +29,6 @@
 	PowerAuthConfiguration * _configuration;
 	NSString * _target;
 }
-
-
-#pragma mark - Cancellable task
-
-/*
- Cancellable task
- 
- The any-kind of cancellable task is required by the PA2PrivateRemoteTokenProvider.
- To fulfill this contract, we're using a simple NSMutableData as cancel request
- value holder.
- 
- If the task is cancelled, then the execution is is completed as usual, but
- the completion block to the user's code is not called.
- */
-
-static id _TaskMakeNew()
-{
-	return [NSMutableData dataWithLength:1];
-}
-
-static BOOL _TaskIsCancelled(id task)
-{
-	NSMutableData * data = PA2ObjectAs(task, NSMutableData);
-	const char * bytes = (const char *)data.bytes;
-	if (data.length == 1 && bytes != NULL) {
-		return bytes[0] != 0;
-	}
-	return NO;
-}
-
-static void _TaskCancel(id task)
-{
-	NSMutableData * data = PA2ObjectAs(task, NSMutableData);
-	char * bytes = (char *)data.mutableBytes;
-	if (data.length == 1 && bytes != NULL) {
-		bytes[0] = 1;
-	}
-}
-
 
 #pragma mark - PA2PrivateRemoteTokenProvider
 
@@ -82,9 +44,9 @@ static void _TaskCancel(id task)
 }
 
 
-- (nullable PowerAuthTokenStoreTask) requestTokenWithName:(nonnull NSString*)name
-										   authentication:(nullable PowerAuthAuthentication*)authentication
-											   completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion
+- (nullable id<PowerAuthOperationTask>) requestTokenWithName:(nonnull NSString*)name
+                                              authentication:(nullable PowerAuthAuthentication*)authentication
+                                                  completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion
 {
 	//
 	// Remote request for token, with using WatchConnectivity framework
@@ -94,11 +56,11 @@ static void _TaskCancel(id task)
 	requestData.tokenName = name;
 	PA2WCSessionPacket * packet = [PA2WCSessionPacket packetWithData:requestData target:_target];
 	
-	id task = _TaskMakeNew();
+	id<PowerAuthOperationTask> task = [[PA2SimpleCancelable alloc] init];
 	PowerAuthWCSessionManager * manager = [PowerAuthWCSessionManager sharedInstance];
 	[manager sendPacketWithResponse:packet responseClass:requestData.class completion:^(PA2WCSessionPacket *response, NSError *error) {
 		//
-		if (_TaskIsCancelled(task)) {
+		if (task.isCancelled) {
 			return;
 		}
 		//
@@ -123,16 +85,11 @@ static void _TaskCancel(id task)
 	return task;
 }
 
-- (nullable PowerAuthTokenStoreTask) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
-										  completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion
+- (nullable id<PowerAuthOperationTask>) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
+                                             completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion
 {
 	completion(NO, PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Removing token on iPhone is unsupported operation"));
 	return nil;
-}
-
-- (void) cancelTask:(nullable PowerAuthTokenStoreTask)task
-{
-	_TaskCancel(task);
 }
 
 @end

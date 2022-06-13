@@ -141,7 +141,7 @@ public class RecoveryActivationTest {
      * @throws Exception In case of failure.
      */
     private void enableRecoveryActivations(boolean enable) throws Exception {
-        long applicationId = testHelper.getSharedApplication().getApplicationId();
+        String applicationId = testHelper.getSharedApplication().getApplicationId();
         RecoveryConfig recoveryConfig = testHelper.getServerApi().getRecoveryConfig(applicationId);
         if (recoveryConfig.isActivationRecoveryEnabled() == enable) {
             String currentState = enable ? "enabled" : "disabled";

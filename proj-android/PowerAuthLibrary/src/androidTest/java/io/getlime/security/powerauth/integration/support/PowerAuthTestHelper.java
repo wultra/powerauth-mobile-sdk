@@ -266,25 +266,15 @@ public class PowerAuthTestHelper {
          */
         private @NonNull PowerAuthConfiguration acquireDefaultConfiguration() throws Exception {
             // Acquire application.
-            Application application = null;
-            for (Application a : serverApi.getApplicationList()) {
-                if (a.getApplicationName().equals(testConfig.getPowerAuthAppName())) {
-                    application = a;
-                    break;
-                }
-            }
+            Application application = serverApi.findApplicationByName(testConfig.getPowerAuthAppName());
             if (application == null) {
                 // If server has no such application, then create a new one.
                 application = serverApi.createApplication(testConfig.getPowerAuthAppName());
             }
             // Acquire application detail to get the list of application versions.
             sharedApplication = serverApi.getApplicationDetailById(application.getApplicationId());
-            for (ApplicationVersion v : sharedApplication.getVersions()) {
-                if (v.getApplicationVersionName().equals(testConfig.getPowerAuthAppVersion())) {
-                    sharedApplicationVersion = v;
-                    break;
-                }
-            }
+            sharedApplicationVersion = serverApi.findApplicationVersionByName(sharedApplication, testConfig.getPowerAuthAppVersion());
+
             if (sharedApplicationVersion == null) {
                 // If application version is not available, then create a new one.
                 sharedApplicationVersion = serverApi.createApplicationVersion(sharedApplication.getApplicationId(), testConfig.getPowerAuthAppVersion());

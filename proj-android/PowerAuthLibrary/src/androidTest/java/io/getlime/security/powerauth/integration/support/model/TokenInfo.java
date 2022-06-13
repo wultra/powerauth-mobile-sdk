@@ -21,7 +21,7 @@ import java.util.List;
 public class TokenInfo {
 
     private String activationId;
-    private long applicationId;
+    private String applicationId;
     private String userId;
     private SignatureType signatureType;
     private List<String> applicationRoles;
@@ -35,11 +35,11 @@ public class TokenInfo {
         this.activationId = activationId;
     }
 
-    public long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 

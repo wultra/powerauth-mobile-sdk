@@ -18,6 +18,8 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
 #import <PowerAuth2ForExtensions/PowerAuthToken.h>
+#import <PowerAuth2ForExtensions/PowerAuthOperationTask.h>
+
 
 @class PowerAuthConfiguration;
 @class PA2PrivateTokenData;
@@ -47,9 +49,9 @@
  Returns cancellable object if operation is asynchronous, or nil, when the completion
  block was executed synchronously. That typically happens in case of error.
  */
-- (nullable PowerAuthTokenStoreTask) requestTokenWithName:(nonnull NSString*)name
-										   authentication:(nullable PowerAuthAuthentication*)authentication
-											   completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion;
+- (nullable id<PowerAuthOperationTask>) requestTokenWithName:(nonnull NSString*)name
+											  authentication:(nullable PowerAuthAuthentication*)authentication
+												  completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion;
 
 /**
  Removes previously created access token from the remote location.
@@ -57,15 +59,7 @@
  Returns cancellable object if operation is asynchronous, or nil, when the completion
  block was executed synchronously. That typically happens in case of error.
  */
-- (nullable PowerAuthTokenStoreTask) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
-											  completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
-
-/**
- Cancels previously created store task. Note that cancelling may lead to inconsistent state,
- when the server will execute the operation but client application will not get the result.
- 
- It is safe to call this method with nil task.
- */
-- (void) cancelTask:(nullable PowerAuthTokenStoreTask)task;
+- (nullable id<PowerAuthOperationTask>) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
+											 completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
 
 @end

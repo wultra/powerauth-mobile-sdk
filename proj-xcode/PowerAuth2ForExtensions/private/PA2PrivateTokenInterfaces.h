@@ -32,6 +32,22 @@
  */
 - (BOOL) canGenerateHeaderForToken:(nonnull PowerAuthToken*)token;
 
+/**
+ Store token data.
+ */
+- (void) storeTokenData:(nonnull PA2PrivateTokenData*)tokenData;
+
+/**
+ Remove task that crate a new token from the list of pending tasks.
+ The task is identified by the token name.
+ */
+- (void) removeCreateTokenTask:(nonnull NSString*)tokenName;
+
+/**
+ Cancel all pending tasks.
+ */
+- (void) cancelAllTasks;
+
 @end
 
 

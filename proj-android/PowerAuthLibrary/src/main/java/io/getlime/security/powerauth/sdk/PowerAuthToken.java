@@ -128,4 +128,11 @@ public class PowerAuthToken {
         // In case of error, create an object with error.
         return PowerAuthAuthorizationHttpHeader.createError(errorCode);
     }
+
+    /**
+     * @return Private token data.
+     */
+    @NonNull PowerAuthPrivateTokenData getTokenData() {
+        return tokenData;
+    }
 }

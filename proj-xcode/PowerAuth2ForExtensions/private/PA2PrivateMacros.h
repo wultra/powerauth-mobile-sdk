@@ -30,6 +30,10 @@
 /// Please use PA2ObjectAs macro instead of this function.
 PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);
 
+/// Returns provided object instance if implements the desired protocol, otherwise nil.
+/// Please use PA2ObjectConformsTo macro instead of this function.
+PA2_EXTERN_C id PA2CastToProtoImpl(id object, Protocol * desiredProtocol);
+
 /**
  This macro returns the provided instance if it's kind of desiredClass, otherwise nil.
  Typical usage:
@@ -43,6 +47,10 @@ PA2_EXTERN_C id PA2CastToImpl(id object, Class desiredClass);
  */
 #define PA2ObjectAs(object, requiredClass) ((requiredClass*)(PA2CastToImpl(object, [requiredClass class])))
 
+/**
+ This macro returns the provided instance if it conforms the requested protocol, otherwise nil.
+ */
+#define PA2ConformsTo(object, requiredProtocol) ((id<requiredProtocol>)(PA2CastToProtoImpl(object, @protocol(requiredProtocol))))
 
 /// Returns NSError with PA2ErrorDomain with given errorCode & message.
 PA2_EXTERN_C NSError * PA2MakeError(PowerAuthErrorCode errorCode, NSString * message);

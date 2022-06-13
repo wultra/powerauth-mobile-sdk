@@ -35,6 +35,12 @@
 	return [NSJSONSerialization dataWithJSONObject:dict options:0 error:NULL];
 }
 
+#define KEY_NAME 		@"name"
+#define KEY_ID			@"id"
+#define KEY_ACT_ID		@"aid"
+#define KEY_FACTORS		@"af"
+#define KEY_SECRET		@"sec"
+
 + (PA2PrivateTokenData*) deserializeWithData:(nonnull NSData*)data
 {
 	if (!data) {
@@ -45,18 +51,18 @@
 		return nil;
 	}
 	PA2PrivateTokenData * result = [[PA2PrivateTokenData alloc] init];
-	result.name		 			= PA2ObjectAs(dict[@"name"], NSString);
-	result.identifier			= PA2ObjectAs(dict[@"id"], NSString);
-	result.activationIdentifier = PA2ObjectAs(dict[@"aid"], NSString);
-	NSString * loadedB64Secret 	= PA2ObjectAs(dict[@"sec"], NSString);
-	NSData * loadedSecret 		= loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
+	result.name		 			 = PA2ObjectAs(dict[KEY_NAME], NSString);
+	result.identifier			 = PA2ObjectAs(dict[KEY_ID], NSString);
+	result.activationIdentifier  = PA2ObjectAs(dict[KEY_ACT_ID], NSString);
+	result.authenticationFactors = [PA2ObjectAs(dict[KEY_FACTORS], NSNumber) integerValue];
+	NSString * loadedB64Secret 	 = PA2ObjectAs(dict[KEY_SECRET], NSString);
+	NSData * loadedSecret 		 = loadedB64Secret ? [[NSData alloc] initWithBase64EncodedString:loadedB64Secret options:0] : nil;
 	if (loadedSecret) {
 		result.secret = loadedSecret;
 	}
+	
 	return result.hasValidData ? result : nil;
 }
-
-#pragma mark - Private and debug
 
 - (NSDictionary*) toDictionary
 {
@@ -65,11 +71,24 @@
 	}
 	NSString * b64secret = [_secret base64EncodedStringWithOptions:0];
 	if (_activationIdentifier != nil) {
-		return @{ @"name" : _name, @"id" : _identifier, @"aid": _activationIdentifier, @"sec": b64secret };
+		return @{
+			KEY_NAME   	: _name,
+			KEY_ID     	: _identifier,
+			KEY_ACT_ID 	: _activationIdentifier,
+			KEY_FACTORS	: @(_authenticationFactors),
+			KEY_SECRET 	: b64secret
+		};
 	} else {
-		return @{ @"name" : _name, @"id" : _identifier, @"sec": b64secret };
+		return @{
+			KEY_NAME	: _name,
+			KEY_ACT_ID	: _identifier,
+			KEY_FACTORS	: @(_authenticationFactors),
+			KEY_SECRET	: b64secret
+		};
 	}
 }
+
+#pragma mark - Debug
 
 #if defined(DEBUG)
 - (NSString*) description
@@ -91,6 +110,7 @@
 	equal = equal && [otherData.identifier isEqualToString:_identifier];
 	equal = equal && [otherData.secret isEqualToData:_secret];
 	equal = equal && [otherData.activationIdentifier isEqualToString:_activationIdentifier];
+	equal = equal && (otherData.authenticationFactors == _authenticationFactors);
 	return equal;
 }
 

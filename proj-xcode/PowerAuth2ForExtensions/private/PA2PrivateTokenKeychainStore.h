@@ -67,12 +67,14 @@
  @param statusProvider An object providing session's status. The store keeps a weak reference.
  @param remoteProvider An object for accessing remote token, when token is not cached locally. The store keeps a weak reference.
  @param dataLock An object implementing token store locking.
+ @param localLock An optional local lock that implements recursive locking. If not provided, then internal lock is created.
  */
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
 					keychain:(PowerAuthKeychain*)keychain
 			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
 			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
-					dataLock:(id<PA2TokenDataLock>)dataLock;
+					dataLock:(id<PA2TokenDataLock>)dataLock
+				   localLock:(id<NSLocking>)localLock;
 
 
 // Token data identifiers

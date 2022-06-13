@@ -217,17 +217,7 @@ if let header = token.generateHeader() {
 
 ### Removing Token Locally
 
-To remove token locally, you can simply use following code:
-
-```swift
-let tokenStore = this.powerAuthExt.tokenStore
-// Remove just one token
-tokenStore.removeLocalToken(withName: "MyToken")
-// Remove all local tokens
-tokenStore.removeAllLocalTokens()
-```
-
-Note that removing tokens locally you'll loose control about tokens stored on the server. This is the same situation as in application.
+The token store exposes `removeLocalToken()` method, but the implementation does nothing.
 
 ### Removing Token From the Server
 

@@ -1,0 +1,9 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+    $HDR
+	<soapenv:Body>
+		<pow:SupportApplicationVersionRequest>
+            <pow:applicationId>$1</pow:applicationId>
+            <pow:applicationVersionId>$2</pow:applicationVersionId>
+		</pow:SupportApplicationVersionRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

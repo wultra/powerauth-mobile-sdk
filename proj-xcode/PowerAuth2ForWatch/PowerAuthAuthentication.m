@@ -19,6 +19,7 @@
 
 #import <PowerAuth2ForWatch/PowerAuthAuthentication.h>
 #import <PowerAuth2ForWatch/PowerAuthKeychainAuthentication.h>
+#import "PowerAuthAuthentication+Private.h"
 
 @implementation PowerAuthAuthentication
 
@@ -39,7 +40,7 @@
 	return copy;
 }
 
-- (PowerAuthKeychainAuthentication*) keychainAuthentication
+- (PowerAuthKeychainAuthentication *) keychainAuthentication
 {
 #if PA2_HAS_LACONTEXT == 1
 	if (_biometryContext) {
@@ -91,14 +92,14 @@
 
 @implementation PowerAuthAuthentication (EasyAccessors)
 
-+ (PowerAuthAuthentication*) possession
++ (PowerAuthAuthentication *) possession
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithBiometry
++ (PowerAuthAuthentication *) possessionWithBiometry
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -106,7 +107,7 @@
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
++ (PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -115,7 +116,7 @@
 	return auth;
 }
 
-+ (PowerAuthAuthentication*) possessionWithPassword:(NSString *)password
++ (PowerAuthAuthentication *) possessionWithPassword:(NSString *)password
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -124,7 +125,7 @@
 }
 
 #if PA2_HAS_LACONTEXT == 1
-+ (PowerAuthAuthentication*) possessionWithBiometryWithContext:(LAContext*)context
++ (PowerAuthAuthentication *) possessionWithBiometryWithContext:(LAContext *)context
 {
 	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
 	auth.usePossession = YES;
@@ -133,5 +134,19 @@
 	return auth;
 }
 #endif // PA2_HAS_LACONTEXT
+
+@end
+
+
+@implementation PowerAuthAuthentication (Private)
+
+- (NSInteger) signatureFactorMask
+{
+	NSUInteger result = 0;
+	if (_usePossession) result |= 1;
+	if (_usePassword)   result |= 2;
+	if (_useBiometry)   result |= 4;
+	return result;
+}
 
 @end

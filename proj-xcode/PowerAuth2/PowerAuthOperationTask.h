@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// PA2_SHARED_SOURCE PowerAuth2ForWatch .
+// PA2_SHARED_SOURCE PowerAuth2ForExtensions .
+
 #import <PowerAuth2/PowerAuthMacros.h>
 
 /**
@@ -31,4 +34,9 @@
  */
 - (void) cancel;
 
+@end
+
+// Make NSOperation compatible with PowerAuthOperationTask (it already is, we need
+// to just make compiler happy with the object types)
+@interface NSOperation (PowerAuthTaskCompatibility) <PowerAuthOperationTask>
 @end

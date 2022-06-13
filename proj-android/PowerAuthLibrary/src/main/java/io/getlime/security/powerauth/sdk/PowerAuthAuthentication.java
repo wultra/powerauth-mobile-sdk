@@ -19,9 +19,8 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.Nullable;
 
 /**
- * Created by miroslavmichalec on 20/10/2016.
+ * Class representing a multi-factor authentication object.
  */
-
 public class PowerAuthAuthentication {
 
     /**
@@ -42,5 +41,23 @@ public class PowerAuthAuthentication {
     /**
      * (optional) If 'usePossession' is set to YES, this value may specify possession key data. If no custom data is specified, default possession key is used.
      */
-    public byte[] overridenPossessionKey;
+    public @Nullable byte[] overriddenPossessionKey;
+
+    /**
+     * Calculate numeric value representing a combination of used factors.
+     * @return Numeric value representing a combination of factors.
+     */
+    int getSignatureFactorsMask() {
+        int factors = 0;
+        if (usePossession) {
+            factors |= 1;
+        }
+        if (usePassword != null) {
+            factors |= 2;
+        }
+        if (useBiometry != null) {
+            factors |= 4;
+        }
+        return factors;
+    }
 }

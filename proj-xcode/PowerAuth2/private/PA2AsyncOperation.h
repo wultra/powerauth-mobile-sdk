@@ -78,8 +78,3 @@
 - (void) completeWithResult:(id)result error:(NSError*)error;
 
 @end
-
-// Make NSOperation compatible with PowerAuthOperationTask (it already is, we need
-// to just make compiler happy with the object types)
-@interface NSOperation (TaskCompatibility) <PowerAuthOperationTask>
-@end

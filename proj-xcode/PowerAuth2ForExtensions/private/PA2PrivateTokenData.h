@@ -44,6 +44,11 @@
  data is still in old format and needs to be upgraded.
  */
 @property (nonatomic, strong, nullable) NSString * activationIdentifier;
+/**
+ Integer represents PowerAuth Symmetric Signature factors used for the token creation.
+ If value is equal to 0, then the token was created in older SDKs than 1.7.0.
+ */
+@property (nonatomic, assign) NSInteger authenticationFactors;
 
 #pragma mark - Compare
 

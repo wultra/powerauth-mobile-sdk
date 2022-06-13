@@ -70,11 +70,19 @@
 
 #pragma mark - Integration tests
 
-- (void) runTestsForTokenStore:(id<PowerAuthTokenStore>)tokenStore
-					activation:(PowerAuthSdkActivation*)activation
+- (void) testBasicTokenOperations
 {
+	CHECK_TEST_CONFIG();
+	
+	// The purpose of this test is to validate whether token store produced in PowerAuthSDK
+	// works correctly. We're using the same battery of tests than
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
 	PATSInitActivationResponse * activationData = activation.activationData;
-	//PowerAuthAuthentication * auth = activation[1];
+	id<PowerAuthTokenStore> tokenStore = _sdk.tokenStore;
 	
 	XCTAssertTrue(tokenStore.canRequestForAccessToken);
 	
@@ -114,26 +122,142 @@
 		}];
 	}] boolValue];
 	XCTAssertTrue(tokenRemoved);
-}
-
-- (void) testTokens_WithRealTokenStore
-{
-	CHECK_TEST_CONFIG();
 	
-	//
-	// The purpose of this test is to validate whether token store produced in PowerAuthSDK
-	// works correctly. We're using the same battery of tests than
-	
-	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-	if (!activation) {
-		return;
-	}
-	[self runTestsForTokenStore:_sdk.tokenStore activation:activation];
 	
 	// Cleanup
 	[_helper cleanup];
 	
 	XCTAssertFalse(_sdk.tokenStore.canRequestForAccessToken);
+}
+
+- (void) testGroupedCreateTokenRequests
+{
+	CHECK_TEST_CONFIG();
+	
+	// This test validates whether the multiple create token requests
+	// created at the same time leads to the same token.
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	__block PowerAuthToken * token1 = nil;
+	__block PowerAuthToken * token2 = nil;
+	__block PowerAuthToken * token3 = nil;
+	__block PowerAuthToken * token4 = nil;
+	__block PowerAuthToken * token5 = nil;
+	__block NSUInteger completionCount = 0;
+	const NSUInteger minCompletionCount = 6;
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		PowerAuthAuthentication * auth = _helper.authPossessionWithKnowledge;
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token1 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token2 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token4 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		id<PowerAuthOperationTask> task = [_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTFail(@"This should be never called");
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[task cancel];
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token3 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:auth completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token5 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+	}];
+	
+	XCTAssertTrue([token1 isEqualToToken:token2]);
+	XCTAssertTrue([token1 isEqualToToken:token3]);
+	XCTAssertTrue([token2 isEqualToToken:token3]);
+	XCTAssertTrue([token4 isEqualToToken:token5]);
+	XCTAssertFalse([token4 isEqualToToken:token1]);
+}
+
+- (void) testCreateTokenWithDifferentAuth
+{
+	CHECK_TEST_CONFIG();
+	
+	// This test validates whether SDK validates signature factors for already
+	// created token.
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	
+	__block PowerAuthToken * token1 = nil;
+	__block PowerAuthToken * token2 = nil;
+	__block NSUInteger completionCount = 0;
+	const NSUInteger minCompletionCount = 2;
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token1 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNotNil(token);
+			token2 = token;
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+	}];
+	completionCount = 0;
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk.tokenStore requestAccessTokenWithName:@"SameToken" authentication:_helper.authPossessionWithKnowledge completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+		[_sdk.tokenStore requestAccessTokenWithName:@"AnotherToken" authentication:_helper.authPossession completion:^(PowerAuthToken * token, NSError * error) {
+			XCTAssertNil(token);
+			XCTAssertTrue(error.powerAuthErrorCode == PowerAuthErrorCode_WrongParameter);
+			if (++completionCount >= minCompletionCount) {
+				[waiting reportCompletion:nil];
+			}
+		}];
+	}];
 }
 
 @end

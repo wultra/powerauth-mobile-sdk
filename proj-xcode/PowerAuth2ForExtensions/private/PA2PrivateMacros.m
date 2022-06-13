@@ -28,6 +28,14 @@ id PA2CastToImpl(id instance, Class desiredClass)
 	return nil;
 }
 
+id PA2CastToProtoImpl(id instance, Protocol * proto)
+{
+	if ([instance conformsToProtocol:proto]) {
+		return instance;
+	}
+	return nil;
+}
+
 #if DEBUG
 void PA2PrintErrno(NSString * location)
 {

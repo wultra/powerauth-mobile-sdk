@@ -21,8 +21,6 @@ import androidx.annotation.Nullable;
 
 /**
  * Interface to be used to provide PA state storing functionality.
- *
- * @author miroslavmichalec
  */
 public interface ISavePowerAuthStateListener {
 

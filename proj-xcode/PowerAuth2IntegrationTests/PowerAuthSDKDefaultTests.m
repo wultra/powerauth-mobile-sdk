@@ -969,4 +969,29 @@
 	XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
 }
 
+- (void) testCancelEnqueuedHttpOperation
+{
+	CHECK_TEST_CONFIG();
+	
+	//
+	// This test validates whether cancelation of enqueued, but not executed yet
+	// HTTP request doesn't lead to crash. See bug #435 for more details.
+	//
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk validatePasswordCorrect:activation.credentials.usePassword callback:^(NSError * _Nullable error) {
+			XCTAssertNil(error);
+			[waiting reportCompletion:nil];
+		}];
+		id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:activation.credentials.usePassword callback:^(NSError * _Nullable error) {
+			XCTFail();
+		}];
+		[task cancel];
+	}];
+}
+
 @end

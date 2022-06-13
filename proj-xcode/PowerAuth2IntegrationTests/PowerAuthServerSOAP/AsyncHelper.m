@@ -15,6 +15,7 @@
  */
 
 #import "AsyncHelper.h"
+#include <libkern/OSAtomic.h>
 
 @implementation AsyncHelper
 {
@@ -47,7 +48,7 @@
 	}
 	AsyncHelper * waiting = [[AsyncHelper alloc] init];
 	if (!waiting) {
-		@throw [NSException exceptionWithName:@"SoapApi" reason:@"Can't create synchronization semaphore" userInfo:nil];
+		@throw [NSException exceptionWithName:@"AsyncHelper" reason:@"Can't create synchronization semaphore" userInfo:nil];
 		return nil;
 	}
 	block(waiting);
@@ -66,7 +67,7 @@
 			_hasResult = YES;
 			_result = resultObject;
 		} else {
-			@throw [NSException exceptionWithName:@"SoapApi" reason:@"Test already reported a result" userInfo:nil];
+			@throw [NSException exceptionWithName:@"AsyncHelper" reason:@"Test already reported a result" userInfo:nil];
 		}
 	}
 	dispatch_semaphore_signal(_semaphore);
@@ -86,7 +87,7 @@
 		}
 	}
 	if (triggered != 0) {
-		@throw [NSException exceptionWithName:@"SoapApi" reason:@"waitForCompletion timed out" userInfo:nil];
+		@throw [NSException exceptionWithName:@"AsyncHelper" reason:@"waitForCompletion timed out" userInfo:nil];
 	}
 	return _result;
 }
@@ -109,6 +110,45 @@
 {
 	NSTimeInterval nextSecondStart = (NSTimeInterval)((int64_t)[[NSDate date] timeIntervalSince1970] + 1L);
 	[NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSince1970:nextSecondStart]];
+}
+
++ (void) waitForQueuesCompletion:(NSArray<NSOperationQueue*>*)queues
+{
+	AtomicCounter * ctr = [[AtomicCounter alloc] init];
+	int32_t queuesCount = (int32_t)queues.count;
+	[self synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[queues enumerateObjectsUsingBlock:^(NSOperationQueue * queue, NSUInteger idx, BOOL * stop) {
+			NSLog(@"AsyncHelper: Waiting for queue %@", queue.name ? queue.name : @"<UNNAMED>");
+			if (@available(iOS 13.0, *)) {
+				[queue addBarrierBlock:^{
+					[ctr incrementUpTo:queuesCount completion:^{
+						[waiting reportCompletion:nil];
+					}];
+				}];
+			} else {
+				@throw [NSException exceptionWithName:@"AsyncHelper" reason:@"Unsupported platform for tests" userInfo:nil];
+			}
+		}];
+	}];
+	NSLog(@"AsyncHelper: All queues finished");
+}
+
+@end
+
+@implementation AtomicCounter
+
+- (int32_t) increment
+{
+	return OSAtomicIncrement32(&_value);
+}
+
+- (int32_t) incrementUpTo:(int32_t)limit completion:(void (^)(void))block
+{
+	int32_t next = OSAtomicIncrement32(&_value);
+	if (next >= limit) {
+		block();
+	}
+	return next;
 }
 
 @end

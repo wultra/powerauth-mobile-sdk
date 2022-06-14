@@ -15,6 +15,7 @@
  */
 
 #import <PowerAuth2/PowerAuthClientConfiguration.h>
+#import <PowerAuth2/PowerAuthSystem.h>
 
 @implementation PowerAuthClientConfiguration
 
@@ -22,7 +23,8 @@
 {
 	self = [super init];
 	if (self) {
-		self.defaultRequestTimeout = 20.0;
+		_defaultRequestTimeout = 20.0;
+		_userAgent = [PowerAuthSystem defaultUserAgent];
 	}
 	return self;
 }
@@ -34,6 +36,7 @@
 		c->_defaultRequestTimeout = _defaultRequestTimeout;
 		c->_sslValidationStrategy = _sslValidationStrategy;
 		c->_requestInterceptors = [_requestInterceptors copyWithZone:zone];
+		c->_userAgent = _userAgent;
 	}
 	return c;
 }

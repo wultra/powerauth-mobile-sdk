@@ -191,6 +191,9 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 			[op completeWithResult:nil error:error];
 			return nil;
 		}
+		if (_configuration.userAgent) {
+			[urlRequest addValue:_configuration.userAgent forHTTPHeaderField:@"User-Agent"];
+		}
 		// Process all request interceptors
 		[_configuration.requestInterceptors enumerateObjectsUsingBlock:^(id<PowerAuthHttpRequestInterceptor> interceptor, NSUInteger idx, BOOL * stop) {
 			[interceptor processRequest:urlRequest];

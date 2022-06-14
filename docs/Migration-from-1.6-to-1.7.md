@@ -51,6 +51,10 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - If you try to request for the same access token but with a different set of factors in `PowerAuthAuthentication`, then the request will fail with `wrongParameter` error code.
 
+- PowerAuth mobile SDK is now using custom "User-Agent" for all HTTP requests initiated from the library.
+  - You can see how's user agent string constructed by reading a new `userAgent` property of `PowerAuthClientConfiguration` object.
+  - To set the previous networking behavior, you can set `nil` 
+
 ## iOS & tvOS App Extensions
 
 - TBA

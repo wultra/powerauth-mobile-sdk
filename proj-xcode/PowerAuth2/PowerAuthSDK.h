@@ -229,16 +229,15 @@
  */
 @property (nonatomic, strong, nullable, readonly) NSString *activationFingerprint;
 
-
 /** Fetch the activation status for current activation.
- 
- If server returns custom object, it is returned in the callback as NSDictionary.
  
  @param callback A callback with activation status result - it contains status information in case of success and error in case of failure.
  @return PowerAuthOperationTask associated with the running request.
  @exception NSException thrown in case configuration is not present.
  */
-- (nullable id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback;
+- (nullable id<PowerAuthOperationTask>) getActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSError * _Nullable error))callback
+	NS_SWIFT_NAME(fetchActivationStatus(callback:));
+
 
 /**
  Read only property contains last activation status object received from the server.
@@ -247,11 +246,22 @@
 @property (nonatomic, strong, nullable, readonly) PowerAuthActivationStatus * lastFetchedActivationStatus;
 
 /**
+ Fetch the activation status for current activation. If server returns custom object, it is returned in the callback as NSDictionary.
+ 
+ This method is deprecated if favor of method that doesn't take customObject in its callback. The custom object is now a part of PowerAuthActivationStatus object.
+ 
+ @param callback A callback with activation status result - it contains status information in case of success and error in case of failure.
+ @return PowerAuthOperationTask associated with the running request.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback PA2_DEPRECATED(1.7.0);
+
+/**
  Read only property contains last custom object received from the server, together with the activation status.
  Note that the value is optional and PowerAuth Application Server must support this custom object.
  You have to call `fetchActivationStatus()` method to update this value.
  */
-@property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* lastFetchedCustomObject;
+@property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* lastFetchedCustomObject PA2_DEPRECATED(1.7.0);
 
 
 /** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.

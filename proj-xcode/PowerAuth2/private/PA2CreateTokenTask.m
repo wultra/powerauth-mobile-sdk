@@ -36,7 +36,7 @@
 			  tokenName:(NSString*)tokenName
 			 sharedLock:(id<NSLocking>)sharedLock
 {
-	self = [super initWithSharedLock:sharedLock];
+	self = [super initWithSharedLock:sharedLock taskName:@"CreateToken"];
 	if (self) {
 		_tokenProvider = provider;
 		_tokenStore = tokenStore;

@@ -450,8 +450,8 @@ static NSString * PA_Ver = @"3.1";
 	__block NSError * fetchError = nil;
 	PowerAuthActivationStatus * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		// Start a fetch task.
-		id<PowerAuthOperationTask> task = [_sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
-			activationStatusCustomObject = customObject;
+		id<PowerAuthOperationTask> task = [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status,NSError * error) {
+			activationStatusCustomObject = status.customObject;
 			fetchError = error;
 			[waiting reportCompletion:status];
 		}];

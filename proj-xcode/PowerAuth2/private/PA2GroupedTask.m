@@ -38,17 +38,18 @@
 
 - (nonnull instancetype) init
 {
-	return [self initWithSharedLock:[[NSRecursiveLock alloc] init]];
+	return [self initWithSharedLock:[[NSRecursiveLock alloc] init] taskName:nil];
 }
 
 - (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock
+								   taskName:(nullable NSString*)taskName
 {
 	self = [super init];
 	if (self) {
 		_lock = sharedLock;
 		_childTasks = [NSMutableArray arrayWithCapacity:1];
 		_operations = [NSMutableArray arrayWithCapacity:1];
-		_taskName = [self.class description];
+		_taskName = taskName ? taskName : [self.class description];
 		_finished = NO;
 	}
 	return self;
@@ -61,7 +62,6 @@
 	BOOL result = !_started || _finished;
 	if (result) {
 		// Task can be restarted only if it's not started or it's already finished.
-		PowerAuthLog(@"%@: Task is restarted.", _taskName);
 		_started = NO;
 		_finished = NO;
 		_canceled = NO;
@@ -170,6 +170,11 @@
 - (void) onTaskStart
 {
 	PowerAuthLog(@"%@: Task is starting.", _taskName);
+}
+
+- (void) onTaskRestart
+{
+	PowerAuthLog(@"%@: Task is restarted.", _taskName);
 }
 
 - (void) onTaskCompleteWithResult:(id)result error:(NSError*)error

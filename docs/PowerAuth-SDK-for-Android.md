@@ -1587,7 +1587,7 @@ We don't recommend implementing the `HttpRequestInterceptor` interface on your o
 
 The `PowerAuthClientConfiguration` contains `userAgent` property that allows you to set a custom value for "User-Agent" HTTP request header for all requests initiated by the library:
 
-```swift
+```java
 final PowerAuthClientConfiguration clientConfiguration = new PowerAuthClientConfiguration.Builder()
                 .userAgent("MyApp/1.0.0")
                 .build();

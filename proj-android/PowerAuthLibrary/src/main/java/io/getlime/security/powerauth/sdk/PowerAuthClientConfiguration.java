@@ -75,6 +75,11 @@ public class PowerAuthClientConfiguration {
     private final List<HttpRequestInterceptor> requestInterceptors;
 
     /**
+     * Property that specifies value for "User-Agent" HTTP request header.
+     */
+    private final String userAgent;
+
+    /**
      * @return connection timeout in milliseconds
      */
     public int getConnectionTimeout() {
@@ -108,6 +113,14 @@ public class PowerAuthClientConfiguration {
     }
 
     /**
+     * @return Value for User-Agent HTTP request header. If {@code ""} (empty string), then the
+     * default system provided value is used in the networking.
+     */
+    public @Nullable String getUserAgent() {
+        return userAgent;
+    }
+
+    /**
      * Default private constructor. Use {@link Builder} to create a new instance of this class.
      *
      * @param connectionTimeout Connection timeout in ms.
@@ -115,18 +128,21 @@ public class PowerAuthClientConfiguration {
      * @param allowUnsecuredConnection Defines whether unsecured connection is allowed.
      * @param clientValidationStrategy {@link HttpClientValidationStrategy} object that implements TLS validation strategy.
      * @param requestInterceptors Array of {@link HttpRequestInterceptor} objects or {@code null} if there's none.
+     * @param userAgent Value for User-Agent HTTP request header or (@code ""} if default, system provided User-Agent should be used.
      */
     private PowerAuthClientConfiguration(
             int connectionTimeout,
             int readTimeout,
             boolean allowUnsecuredConnection,
             HttpClientValidationStrategy clientValidationStrategy,
-            List<HttpRequestInterceptor> requestInterceptors) {
+            List<HttpRequestInterceptor> requestInterceptors,
+            String userAgent) {
         this.connectionTimeout = connectionTimeout;
         this.readTimeout = readTimeout;
         this.allowUnsecuredConnection = allowUnsecuredConnection;
         this.clientValidationStrategy = clientValidationStrategy;
         this.requestInterceptors = requestInterceptors;
+        this.userAgent = userAgent;
     }
 
     /**
@@ -138,6 +154,7 @@ public class PowerAuthClientConfiguration {
         private boolean allowUnsecuredConnection = DEFAULT_ALLOW_UNSECURED_CONNECTION;
         private HttpClientValidationStrategy clientValidationStrategy;
         private ArrayList<HttpRequestInterceptor> requestInterceptors;
+        private String userAgent;
 
         /**
          * Creates a builder for {@link PowerAuthClientConfiguration}.
@@ -198,6 +215,18 @@ public class PowerAuthClientConfiguration {
         }
 
         /**
+         * Adds value for User-Agent HTTP request header.
+         * @param userAgent Value for "User-Agent" HTTP request header. If value is{@code ""}
+         *                 (empty string) then the system provided header is used. If {@code null}
+         *                  is set, then the default value, provided by PowerAuth SDK is used.
+         * @return The same {@link Builder} object instance.
+         */
+        public Builder userAgent(@Nullable String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        /**
          * Build a final configuration.
          *
          * @return Final {@link PowerAuthClientConfiguration} instance.
@@ -208,7 +237,32 @@ public class PowerAuthClientConfiguration {
                     readTimeout,
                     allowUnsecuredConnection,
                     clientValidationStrategy,
-                    requestInterceptors != null ? Collections.unmodifiableList(requestInterceptors) : null);
+                    requestInterceptors != null ? Collections.unmodifiableList(requestInterceptors) : null,
+                    userAgent);
         }
+    }
+
+    /**
+     * Create a new instance of {@link PowerAuthClientConfiguration} if this configuration has no
+     * application's provided userAgent. In this casne, the returned instance will contain user agent
+     * set from the parameter. If application set userAgent property in the configuration, then
+     * returns this.
+     *
+     * @param customUserAgent Custom value for userAgent property.
+     * @return {@link PowerAuthClientConfiguration} or {@code this}, depending on whether this structure has
+     * userAgent set.
+     */
+    @NonNull
+    PowerAuthClientConfiguration duplicateIfNoUserAgentIsSet(@NonNull String customUserAgent) {
+        if (userAgent != null) {
+            return this;
+        }
+        return new PowerAuthClientConfiguration(
+                connectionTimeout,
+                readTimeout,
+                allowUnsecuredConnection,
+                clientValidationStrategy,
+                requestInterceptors,
+                customUserAgent);
     }
 }

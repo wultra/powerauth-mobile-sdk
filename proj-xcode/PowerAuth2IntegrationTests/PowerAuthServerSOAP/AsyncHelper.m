@@ -119,7 +119,7 @@
 	[self synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		[queues enumerateObjectsUsingBlock:^(NSOperationQueue * queue, NSUInteger idx, BOOL * stop) {
 			NSLog(@"AsyncHelper: Waiting for queue %@", queue.name ? queue.name : @"<UNNAMED>");
-			if (@available(iOS 13.0, *)) {
+			if (@available(iOS 13.0, tvOS 13.0, *)) {
 				[queue addBarrierBlock:^{
 					[ctr incrementUpTo:queuesCount completion:^{
 						[waiting reportCompletion:nil];

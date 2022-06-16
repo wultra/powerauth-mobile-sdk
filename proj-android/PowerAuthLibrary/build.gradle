@@ -31,6 +31,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName VERSION_NAME
         versionCode 1
+        buildConfigField "String", "LIBRARY_VERSION_NAME", "\"" + VERSION_NAME + "\""
 
         vectorDrawables.useSupportLibrary = true
 
@@ -39,7 +40,6 @@ android {
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
         }
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         loadInstrumentationTestConfigProperties(project, owner)
     }

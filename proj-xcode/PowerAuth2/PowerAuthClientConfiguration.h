@@ -80,6 +80,12 @@
 @property (nonatomic, strong, nullable) NSArray<id<PowerAuthHttpRequestInterceptor>>* requestInterceptors;
 
 /**
+ Property that specifies the content of User-Agent request header. The default is value calculated in `PowerAuthSystem.defaultUserAgent()` function.
+ If you set `nil` to this property, then the default value provided by operating system is used.
+ */
+@property (nonatomic, strong, nullable) NSString * userAgent;
+
+/**
  Return the shared in stance of a client configuration object.
  
  @return Shared instance of a client configuration.

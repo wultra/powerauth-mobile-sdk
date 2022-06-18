@@ -14,56 +14,6 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCoreSession.h>
-#import <PowerAuthCore/PowerAuthCorePassword.h>
-#import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
-#import <PowerAuthCore/PowerAuthCoreTypes.h>
-#import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
+#import <PowerAuthCore/PowerAuthCoreMacros.h>
 
-// Session
-
-/**
- The `PA2Session` is now deprecated, please use `PowerAuthCoreSession` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2Session, PowerAuthCoreSession)
-
-// Password
-
-/**
- The `PA2Password` is now deprecated, please use `PowerAuthCorePassword` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2Password, PowerAuthCorePassword)
-/**
- The `PA2MutablePassword` is now deprecated, please use `PowerAuthCoreMutablePassword` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2MutablePassword, PowerAuthCoreMutablePassword)
-
-// ECIES
-
-/**
- The `PA2ECIESEncryptor` is now deprecated, please use `PowerAuthCoreEciesEncryptor` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESEncryptor, PowerAuthCoreEciesEncryptor)
-/**
- The `PA2ECIESCryptogram` is now deprecated, please use `PowerAuthCoreEciesCryptogram` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESCryptogram, PowerAuthCoreEciesCryptogram)
-/**
- The `PA2ECIESMetaData` is now deprecated, please use `PowerAuthCoreEciesMetaData` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECIESMetaData, PowerAuthCoreEciesMetaData)
-/**
- The `PA2ECIESEncryptorScope` is now deprecated, please use `PowerAuthCoreEciesEncryptorScope` instead.
- */
-POWERAUTH_DEPRECATED_TYPE(1.6.0, PA2ECIESEncryptorScope, PowerAuthCoreEciesEncryptorScope)
-
-// Crypto utils
-
-/**
- The `PA2CryptoUtils` is now deprecated, please use `PowerAuthCoreCryptoUtils` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2CryptoUtils, PowerAuthCoreCryptoUtils)
-/**
- The `PA2ECPublicKey` is now deprecated, please use `PowerAuthCoreECPublicKey` instead.
- */
-POWERAUTH_DEPRECATED_CLASS(1.6.0, PA2ECPublicKey, PowerAuthCoreECPublicKey)
+// Reserved for future deprecations

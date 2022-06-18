@@ -47,7 +47,7 @@ public class CryptoUtils {
      * @param publicKeyData EC public key
      * @return true if signature is valid
      */
-    @Deprecated
+    @Deprecated // 1.7.0
     public static boolean ecdsaValidateSignature(byte[] data, byte[] signature, byte[] publicKeyData) {
         return ecdsaValidateSignature(data, signature, new EcPublicKey(publicKeyData));
     }

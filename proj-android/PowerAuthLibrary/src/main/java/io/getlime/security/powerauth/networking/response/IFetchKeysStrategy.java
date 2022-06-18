@@ -26,7 +26,7 @@ import androidx.annotation.NonNull;
  * The interface is deprecated since 1.7.0. If you still use it, then please contact us that
  * we can provide a new solution for you.
  */
-@Deprecated
+@Deprecated // 1.7.0
 public interface IFetchKeysStrategy {
 
     /**

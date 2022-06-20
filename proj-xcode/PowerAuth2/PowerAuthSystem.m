@@ -72,4 +72,54 @@
 #endif
 }
 
+/**
+ Return bundle's executable name and it's version in form of "name/version", for example "PowerAuth2/1.7.0".
+ */
++ (NSString*) bundleVersion:(NSBundle*)bundle
+{
+	NSString * infoPath = [bundle pathForResource:@"Info" ofType:@"plist"];
+	if (infoPath) {
+		NSDictionary * dictionary = [NSDictionary dictionaryWithContentsOfFile:infoPath];
+		NSString * libraryName    = dictionary[@"CFBundleExecutable"];
+		NSString * libraryVersion = dictionary[@"CFBundleShortVersionString"];
+		if (libraryName && libraryVersion) {
+			return [[libraryName stringByAppendingString:@"/"] stringByAppendingString:libraryVersion];
+		}
+	}
+	return nil;
+}
+
+/**
+ Return operating system version, in form of "osType/version", for example "iOS/15.1.1".
+ */
++ (NSString*) osVersion
+{
+	NSProcessInfo * processInfo = [NSProcessInfo processInfo];
+	NSOperatingSystemVersion version = processInfo.operatingSystemVersion;
+	return version.patchVersion != 0
+				? [NSString stringWithFormat:@"%@ %@.%@.%@", [self platform], @(version.majorVersion), @(version.minorVersion), @(version.patchVersion)]
+				: [NSString stringWithFormat:@"%@ %@.%@", [self platform], @(version.majorVersion), @(version.minorVersion)];
+}
+
++ (NSString*) defaultUserAgent
+{
+	// Get PowerAuth library version
+	NSString * libraryVersion = [self bundleVersion:[NSBundle bundleForClass:self]];
+	// Get main bundle version (e.g. application's executable and version)
+	NSString * appVersion = [[self bundleVersion:[NSBundle mainBundle]] stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+	NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
+	if (appVersion) {
+		[components addObject:appVersion];
+	}
+	if (libraryVersion) {
+		[components addObject:libraryVersion];
+	}
+	if (components.count > 0) {
+		[components addObject:[NSString stringWithFormat:@"(%@, %@)", [self osVersion], [self deviceInfo]]];
+		return [components componentsJoinedByString:@" "];
+	}
+	// Essential information is missing, so return nil to use default user agent provided by the system.
+	return nil;
+}
+
 @end

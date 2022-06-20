@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.networking.client;
 
 import android.net.TrafficStats;
 import android.os.AsyncTask;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
 import java.io.ByteArrayOutputStream;
@@ -105,8 +107,9 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         return result.toByteArray();
     }
 
+    @SafeVarargs
     @Override
-    protected TResponse doInBackground(TRequest... tRequests) {
+    protected final TResponse doInBackground(TRequest... tRequests) {
         setThreadStatsTag();
 
         InputStream inputStream = null;
@@ -131,6 +134,9 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             urlConnection.setReadTimeout(clientConfiguration.getReadTimeout());
             for (Map.Entry<String, String> header : requestData.httpHeaders.entrySet()) {
                 urlConnection.setRequestProperty(header.getKey(), header.getValue());
+            }
+            if (!TextUtils.isEmpty(clientConfiguration.getUserAgent())) {
+                urlConnection.setRequestProperty("User-Agent", clientConfiguration.getUserAgent());
             }
 
             // ssl validation strategy

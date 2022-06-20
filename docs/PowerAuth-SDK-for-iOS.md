@@ -1674,3 +1674,16 @@ clientConfig.requestInterceptors = [ basicAuth, customHeader ]
 ```
 
 We don't recommend implementing the `PowerAuthHttpRequestInterceptor` protocol on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK` but also gives you an opportunity to break things. So, rather than create your own interceptor, contact us and describe what use-case is missing. Also, keep in mind that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of the interface itself.
+
+### Custom User-Agent
+
+The `PowerAuthClientConfiguration` contains `userAgent` property that allows you to set a custom value for "User-Agent" HTTP request header for all requests initiated by the library:
+
+```swift
+let clientConfig = PowerAuthClientConfiguration()
+clientConfig.userAgent = "MyClient/1.0.0"
+```
+
+The default value of the property is composed as "APP-EXECUTABLE/APP-VERSION PowerAuth2/PA-VERSION (OS/OS-VERSION, DEVICE-INFO)", for example: "MyApp/1.0 PowerAuth2/1.7.0 (iOS 15.2, iPhone12.1)". The information about application executable and version is get from main bundle and its `Info.plist`.
+
+If you set `nil` to the `userAgent` property, then the default "User-Agent" provided by the operating system will be used. 

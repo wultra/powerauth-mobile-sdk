@@ -16,7 +16,6 @@
 
 package io.getlime.security.powerauth.biometry;
 
-import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -152,43 +151,9 @@ public class BiometricDialogResources {
          * @param errorNoFingerprintScannerDescription Resource string still in use.
          * @param errorFingerprintDisabledTitle Resource string still in use.
          * @param errorFingerprintDisabledDescription Resource string still in use.
-         * @param statusTouchSensor Resource is now deprecated.
-         * @param statusFingerprintNotRecognized Resource is now deprecated.
-         * @param statusSuccess Resource is now deprecated.
          * @param errorCodeLockout Resource string still in use.
          * @param errorCodeGeneric Resource string still in use.
-         * @param accessibilityFingerprintIcon Resource is now deprecated.
-         * @param accessibilitySuccessIcon Resource is now deprecated.
-         * @param accessibilityFailureIcon Resource is now deprecated.
-         * @param accessibilityTryAgainAnnouncement Resource is now deprecated.
-         * @param accessibilitySuccessAnnouncement Resource is now deprecated.
          */
-        @Deprecated
-        public Strings(@StringRes int ok,
-                       @StringRes int close,
-                       @StringRes int errorEnrollFingerprintTitle,
-                       @StringRes int errorEnrollFingerprintDescription,
-                       @StringRes int errorNoFingerprintScannerTitle,
-                       @StringRes int errorNoFingerprintScannerDescription,
-                       @StringRes int errorFingerprintDisabledTitle,
-                       @StringRes int errorFingerprintDisabledDescription,
-                       @StringRes int statusTouchSensor,
-                       @StringRes int statusFingerprintNotRecognized,
-                       @StringRes int statusSuccess,
-                       @StringRes int errorCodeLockout,
-                       @StringRes int errorCodeGeneric,
-                       @StringRes int accessibilityFingerprintIcon,
-                       @StringRes int accessibilitySuccessIcon,
-                       @StringRes int accessibilityFailureIcon,
-                       @StringRes int accessibilityTryAgainAnnouncement,
-                       @StringRes int accessibilitySuccessAnnouncement) {
-            this(ok, close,
-                 errorEnrollFingerprintTitle, errorEnrollFingerprintDescription,
-                 errorNoFingerprintScannerTitle, errorNoFingerprintScannerDescription,
-                 errorFingerprintDisabledTitle, errorFingerprintDisabledDescription,
-                 errorCodeLockout, errorCodeGeneric);
-        }
-
         public Strings(@StringRes int ok,
                        @StringRes int close,
                        @StringRes int errorEnrollFingerprintTitle,
@@ -243,18 +208,8 @@ public class BiometricDialogResources {
         /**
          * Deprecated in version 1.6.0. Please review your resources and use new constructor
          * with reduced number of strings.
-         * @param fingerprintIcon Resource is now deprecated.
          * @param errorIcon Resource ID for error icon.
-         * @param successIcon Resource is now deprecated.
          */
-        @Deprecated
-        public Drawables(
-                @DrawableRes int fingerprintIcon,
-                @DrawableRes int errorIcon,
-                @DrawableRes int successIcon) {
-            this(errorIcon);
-        }
-
         public Drawables(
                 @DrawableRes int errorIcon) {
             this.errorIcon = errorIcon;

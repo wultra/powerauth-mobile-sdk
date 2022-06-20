@@ -224,8 +224,11 @@ public class PowerAuthSDK {
             if (mKeychainConfiguration == null) {
                 mKeychainConfiguration = new PowerAuthKeychainConfiguration.Builder().build();
             }
+            final String defaultUserAgent = PowerAuthSystem.getDefaultUserAgent(context);
             if (mClientConfiguration == null) {
-                mClientConfiguration = new PowerAuthClientConfiguration.Builder().build();
+                mClientConfiguration = new PowerAuthClientConfiguration.Builder().userAgent(defaultUserAgent).build();
+            } else {
+                mClientConfiguration = mClientConfiguration.duplicateIfNoUserAgentIsSet(defaultUserAgent);
             }
             if (mCallbackDispatcher == null) {
                 mCallbackDispatcher = MainThreadExecutor.getInstance();

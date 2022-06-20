@@ -54,13 +54,6 @@ public class ActivationStatus {
     public static final int State_Deadlock = 128;
 
     /**
-     * The activation is not completed yet on the server. The enumeration is deprecated
-     * and you should use State_Pending_Commit as a replacement.
-     */
-    @Deprecated
-    public static final int State_OTP_Used = 2;
-
-    /**
      * Error code returned from the C++ code. The value can be compared
      * to constants from ErrorCode class.
      */

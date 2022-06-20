@@ -17,10 +17,6 @@
 package io.getlime.security.powerauth.exception;
 
 /**
- * Created by miroslavmichalec on 20/10/2016.
- */
-
-/**
  * Will be thrown in case when valid PowerAuth configuration is not present.
  */
 public class PowerAuthMissingConfigException extends IllegalStateException {

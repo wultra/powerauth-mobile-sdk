@@ -204,7 +204,7 @@ public class PowerAuthConfiguration {
          * @param fetchKeysStrategy {@link IFetchKeysStrategy} interface for key providing strategy.
          * @return {@link Builder}
          */
-        @Deprecated
+        @Deprecated // 1.7.0
         public @NonNull Builder fetchKeysStrategy(@NonNull IFetchKeysStrategy fetchKeysStrategy) {
             this.fetchKeysStrategy = fetchKeysStrategy;
             return this;

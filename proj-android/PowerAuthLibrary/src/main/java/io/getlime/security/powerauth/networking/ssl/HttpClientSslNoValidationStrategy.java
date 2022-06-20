@@ -61,14 +61,13 @@ import javax.net.ssl.X509TrustManager;
  * <code>
  *   PowerAuthClientConfiguration.Builder clientBuilder = new PowerAuthClientConfiguration.Builder();
  *   if (BuildConfig.TRUST_ALL_SSL_HOSTS) {
- *       clientBuilder.clientValidationStrategy(new PA2ClientSslNoValidationStrategy());
+ *       clientBuilder.clientValidationStrategy(new HttpClientSslNoValidationStrategy());
  *   }
  * </code>
  * </pre>
  *
  * 3. Set minifyEnabled to true for release buildType to enable code shrinking with ProGuard.
  */
-
 public class HttpClientSslNoValidationStrategy implements HttpClientValidationStrategy {
 
     @Nullable

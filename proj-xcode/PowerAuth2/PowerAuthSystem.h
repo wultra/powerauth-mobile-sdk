@@ -38,4 +38,13 @@
  */
 + (nonnull NSString*) deviceInfo;
 
+/**
+ Returns default user agent for internal networking or nil in case that
+ user agent string cannot be provided.
+ 
+ The default string is typically composed as: "%MainBundleVersion% %PowerAuthFrameworkVersion% (%OsVersion%, %DeviceInfo%)".
+ For example: "PowerAuth2TestsHostApp-ios/1.0 PowerAuth2/1.6.3 (iOS 15.2, iPhone12.3)".
+ */
++ (nullable NSString*) defaultUserAgent;
+
 @end

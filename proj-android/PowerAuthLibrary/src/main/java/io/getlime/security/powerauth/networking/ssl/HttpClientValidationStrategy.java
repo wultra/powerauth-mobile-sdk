@@ -22,10 +22,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * Created by miroslavmichalec on 21/10/2016.
- */
-
-/**
  * Interface to be used for optional custom implementation of HostnameVerifier and X509TrustManager.
  */
 public interface HttpClientValidationStrategy {

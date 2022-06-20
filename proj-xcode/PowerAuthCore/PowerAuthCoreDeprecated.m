@@ -15,17 +15,3 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreDeprecated.h>
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
-
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2Session, PowerAuthCoreSession)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2Password, PowerAuthCorePassword)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2MutablePassword, PowerAuthCoreMutablePassword)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2ECIESEncryptor, PowerAuthCoreEciesEncryptor)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2ECIESCryptogram, PowerAuthCoreEciesCryptogram)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2ECIESMetaData, PowerAuthCoreEciesMetaData)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2CryptoUtils, PowerAuthCoreCryptoUtils)
-POWERAUTH_DEPRECATED_CLASS_IMPL(1.6.0, PA2ECPublicKey, PowerAuthCoreECPublicKey)
-
-#pragma clang diagnostic pop

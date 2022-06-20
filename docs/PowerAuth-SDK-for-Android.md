@@ -1582,3 +1582,17 @@ final PowerAuthClientConfiguration clientConfiguration = new PowerAuthClientConf
 ```
 
 We don't recommend implementing the `HttpRequestInterceptor` interface on your own. The interface allows you to tweak the requests created in the `PowerAuthSDK` but also gives you an opportunity to break things. So, rather than create your own interceptor, try to contact us and describe what's your problem with the networking in the PowerAuth SDK. Also, keep in mind that the interface may change in the future. We can guarantee the API stability of public classes implementing this interface, but not the stability of the interface itself.
+
+### Custom User-Agent
+
+The `PowerAuthClientConfiguration` contains `userAgent` property that allows you to set a custom value for "User-Agent" HTTP request header for all requests initiated by the library:
+
+```java
+final PowerAuthClientConfiguration clientConfiguration = new PowerAuthClientConfiguration.Builder()
+                .userAgent("MyApp/1.0.0")
+                .build();
+```
+
+The default value of the property is composed as "APP-PACKAGE/APP-PACKAGE-VERSION PowerAuth2/PA-VERSION (OS/OS-VERSION, DEVICE-INFO)", for example: "com.test.app/1.0 PowerAuth2/1.7.0 (Android 11.0.0, SM-A525F)".
+
+If you set `""` (empty string) to the `userAgent` property, then the default "User-Agent" provided by the operating system will be used. 

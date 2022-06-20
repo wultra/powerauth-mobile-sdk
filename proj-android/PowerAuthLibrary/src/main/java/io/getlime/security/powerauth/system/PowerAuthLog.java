@@ -44,7 +44,7 @@ public class PowerAuthLog {
     public static void setEnabled(boolean enabled) {
         logIsEnabled = enabled;
         if (enabled) {
-            android.util.Log.d(LOG_TAG, "PA2Log is now turned on");
+            android.util.Log.d(LOG_TAG, "PowerAuthLog is now turned on");
         }
     }
     /**

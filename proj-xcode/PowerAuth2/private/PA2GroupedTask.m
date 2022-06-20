@@ -67,6 +67,7 @@
 		_canceled = NO;
 		[_childTasks removeAllObjects];
 		[_operations removeAllObjects];
+		[self onTaskRestart];
 	}
 	
 	[_lock unlock];

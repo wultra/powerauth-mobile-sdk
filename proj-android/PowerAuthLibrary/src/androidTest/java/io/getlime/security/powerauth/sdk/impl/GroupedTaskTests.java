@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import io.getlime.security.powerauth.R;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
@@ -452,10 +451,10 @@ public class GroupedTaskTests {
                     @Override
                     public void run() {
                         groupedTask.replaceCancelableOperation(operation2);
+                        groupedTask.cancel();
                         backgroundExecutor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                groupedTask.cancel();
                                 backgroundExecutor.execute(new Runnable() {
                                     @Override
                                     public void run() {
@@ -514,17 +513,6 @@ public class GroupedTaskTests {
         }
 
         @Override
-        public boolean restart() {
-            boolean r = super.restart();
-            if (r) {
-                monitorOnTaskStartCount = 0;
-                monitorOnTaskCompletionCount = 0;
-                testOperation = null;
-            }
-            return r;
-        }
-
-        @Override
         public void onGroupedTaskStart() {
             super.onGroupedTaskStart();
             synchronized (this) {
@@ -536,6 +524,14 @@ public class GroupedTaskTests {
                 testOperation = new TestOperationTask();
                 addCancelableOperation(testOperation);
             }
+        }
+
+        @Override
+        public void onGroupedTaskRestart() {
+            super.onGroupedTaskRestart();
+            monitorOnTaskStartCount = 0;
+            monitorOnTaskCompletionCount = 0;
+            testOperation = null;
         }
 
         @Override

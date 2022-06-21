@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -26,8 +27,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 import io.getlime.security.powerauth.networking.client.HttpClient;
+import io.getlime.security.powerauth.system.PowerAuthSystem;
 
 import static org.junit.Assert.*;
 
@@ -91,7 +94,55 @@ public class PowerAuthSDKBuilderTest {
 
         PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
         assertNotNull(powerAuthClientConfigurationInClient);
-        assertEquals(srcClientConfiguration, powerAuthClientConfigurationInClient);
+        // In default client configuration, the user-agent is defaulted to value computed in PowerAuthSystem class.
+        // So, we should ingore value in compare function.
+        assertTrue(compareConfigurations(srcClientConfiguration, powerAuthClientConfigurationInClient, true));
+        assertEquals(PowerAuthSystem.getDefaultUserAgent(androidContext), powerAuthClientConfigurationInClient.getUserAgent());
+    }
+
+    @Test
+    public void testClientConfigurationUserAgentEmpty() throws Exception {
+        PowerAuthClientConfiguration srcClientConfiguration = new PowerAuthClientConfiguration.Builder()
+                .userAgent("") // fallback to previous networking behavior, when user agent is not set to header
+                .build();
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
+                .clientConfiguration(srcClientConfiguration)
+                .build(androidContext);
+
+        assertNotNull(powerAuthSDK);
+        assertNotNull(powerAuthSDK.getConfiguration());
+
+        Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
+        httpClientField.setAccessible(true);
+        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        assertNotNull(httpClient);
+
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        assertNotNull(powerAuthClientConfigurationInClient);
+        assertTrue(compareConfigurations(srcClientConfiguration, powerAuthClientConfigurationInClient, false));
+        assertTrue(TextUtils.isEmpty(powerAuthClientConfigurationInClient.getUserAgent()));
+    }
+
+    @Test
+    public void testClientConfigurationUserAgentNonNull() throws Exception {
+        PowerAuthClientConfiguration srcClientConfiguration = new PowerAuthClientConfiguration.Builder()
+                .userAgent("PowerAuth2/0.0.1-TEST")
+                .build();
+        PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(powerAuthConfiguration)
+                .clientConfiguration(srcClientConfiguration)
+                .build(androidContext);
+
+        assertNotNull(powerAuthSDK);
+        assertNotNull(powerAuthSDK.getConfiguration());
+
+        Field httpClientField = powerAuthSDK.getClass().getDeclaredField("mClient");
+        httpClientField.setAccessible(true);
+        HttpClient httpClient = (HttpClient) httpClientField.get(powerAuthSDK);
+        assertNotNull(httpClient);
+
+        PowerAuthClientConfiguration powerAuthClientConfigurationInClient = httpClient.getClientConfiguration();
+        assertNotNull(powerAuthClientConfigurationInClient);
+        assertTrue(compareConfigurations(srcClientConfiguration, powerAuthClientConfigurationInClient, false));
     }
 
     @Test
@@ -126,5 +177,22 @@ public class PowerAuthSDKBuilderTest {
         PowerAuthKeychainConfiguration keychainConfiguration = (PowerAuthKeychainConfiguration) keychainConfigurationField.get(powerAuthSDK);
         assertNotNull(keychainConfiguration);
         assertEquals(srcKeychainConfiguration, keychainConfiguration);
+    }
+
+    // Helper methods
+
+    static boolean compareConfigurations(PowerAuthClientConfiguration a, PowerAuthClientConfiguration b, boolean ignoreUserAgent) {
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a == b) {
+            return true;
+        }
+        return a.getConnectionTimeout() == b.getConnectionTimeout() &&
+                a.getReadTimeout() == b.getReadTimeout() &&
+                a.isUnsecuredConnectionAllowed() == b.isUnsecuredConnectionAllowed() &&
+                Objects.equals(a.getClientValidationStrategy(), b.getClientValidationStrategy()) &&
+                Objects.equals(a.getRequestInterceptors(), b.getRequestInterceptors()) &&
+                (ignoreUserAgent || Objects.equals(a.getUserAgent(), b.getUserAgent()));
     }
 }

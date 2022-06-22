@@ -39,10 +39,12 @@ import static org.junit.Assert.*;
 public class GroupedTaskTests {
 
     Executor backgroundExecutor;
+    Executor mainThreadExecutor;
 
     @Before
     public void setUp() {
         backgroundExecutor = Executors.newSingleThreadExecutor();
+        mainThreadExecutor = MainThreadExecutor.getInstance();
     }
 
     @Test
@@ -50,42 +52,34 @@ public class GroupedTaskTests {
         final TestGroupedTask groupedTask = new TestGroupedTask();
         final Integer[] completionCounter = {0};
         final int expectedCompletion = 3;
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        synchronized (this) {
-                            completionCounter[0] = completionCounter[0] + 1;
-                            if (completionCounter[0] == expectedCompletion) {
-                                resultCatcher.completeWithSuccess();
-                            }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    synchronized (this) {
+                        completionCounter[0] = completionCounter[0] + 1;
+                        if (completionCounter[0] == expectedCompletion) {
+                            resultCatcher.completeWithSuccess();
                         }
-                        assertTrue(aBoolean);
                     }
+                    assertTrue(aBoolean);
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        fail();
-                    }
-                };
-                ICancelable childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
-                childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
-                childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    fail();
+                }
+            };
+            ICancelable childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
+            childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
+            childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
 
-                assertFalse(groupedTask.restart());
+            assertFalse(groupedTask.restart());
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupedTask.complete(true);
-                    }
-                });
-            }
+            backgroundExecutor.execute(() -> groupedTask.complete(true));
         });
 
         assertFalse(groupedTask.testOperation.isCancelled());
@@ -108,42 +102,34 @@ public class GroupedTaskTests {
         assertTrue(groupedTask.restart());
         completionCounter[0] = 0;
 
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        fail();
-                    }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    fail();
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        synchronized (this) {
-                            completionCounter[0] = completionCounter[0] + 1;
-                            if (completionCounter[0] == expectedCompletion) {
-                                resultCatcher.completeWithSuccess();
-                            }
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    synchronized (this) {
+                        completionCounter[0] = completionCounter[0] + 1;
+                        if (completionCounter[0] == expectedCompletion) {
+                            resultCatcher.completeWithSuccess();
                         }
-                        assertEquals("Test failure", failure.getMessage());
                     }
-                };
-                ICancelable childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
-                childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
-                childTask = groupedTask.createChildTask(completion);
-                assertNotNull(childTask);
+                    assertEquals("Test failure", failure.getMessage());
+                }
+            };
+            ICancelable childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
+            childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
+            childTask = groupedTask.createChildTask(completion);
+            assertNotNull(childTask);
 
-                assertFalse(groupedTask.restart());
+            assertFalse(groupedTask.restart());
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupedTask.complete(new Exception("Test failure"));
-                    }
-                });
-            }
+            backgroundExecutor.execute(() -> groupedTask.complete(new Exception("Test failure")));
         });
 
         assertFalse(groupedTask.testOperation.isCancelled());
@@ -171,43 +157,35 @@ public class GroupedTaskTests {
         final TestGroupedTask groupedTask = new TestGroupedTask();
         final Integer[] completionCounter = {0};
         final int expectedCompletion = 2;
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        synchronized (this) {
-                            completionCounter[0] = completionCounter[0] + 1;
-                            if (completionCounter[0] == expectedCompletion) {
-                                resultCatcher.completeWithSuccess();
-                            }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    synchronized (this) {
+                        completionCounter[0] = completionCounter[0] + 1;
+                        if (completionCounter[0] == expectedCompletion) {
+                            resultCatcher.completeWithSuccess();
                         }
-                        assertTrue(aBoolean);
                     }
+                    assertTrue(aBoolean);
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        fail();
-                    }
-                };
-                ICancelable childTask1 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask1);
-                ICancelable childTask2 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask2);
-                ICancelable childTask3 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask3);
-                assertFalse(groupedTask.restart());
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    fail();
+                }
+            };
+            ICancelable childTask1 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask1);
+            ICancelable childTask2 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask2);
+            ICancelable childTask3 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask3);
+            assertFalse(groupedTask.restart());
 
-                childTask2.cancel();
+            childTask2.cancel();
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupedTask.complete(true);
-                    }
-                });
-            }
+            backgroundExecutor.execute(() -> groupedTask.complete(true));
         });
 
         assertFalse(groupedTask.testOperation.isCancelled());
@@ -233,39 +211,31 @@ public class GroupedTaskTests {
     @Test
     public void testChildCancelAll() throws Exception {
         final TestGroupedTask groupedTask = new TestGroupedTask();
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        fail();
-                    }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    fail();
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        fail();
-                    }
-                };
-                ICancelable childTask1 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask1);
-                ICancelable childTask2 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask2);
-                ICancelable childTask3 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask3);
-                assertFalse(groupedTask.restart());
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    fail();
+                }
+            };
+            ICancelable childTask1 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask1);
+            ICancelable childTask2 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask2);
+            ICancelable childTask3 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask3);
+            assertFalse(groupedTask.restart());
 
-                childTask2.cancel();
-                childTask1.cancel();
-                childTask3.cancel();
+            childTask2.cancel();
+            childTask1.cancel();
+            childTask3.cancel();
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        resultCatcher.completeWithSuccess();
-                    }
-                });
-            }
+            mainThreadExecutor.execute(resultCatcher::completeWithSuccess);
         });
 
         assertTrue(groupedTask.testOperation.isCancelled());
@@ -292,44 +262,41 @@ public class GroupedTaskTests {
         final TestGroupedTask groupedTask = new TestGroupedTask();
         groupedTask.taskShouldCancelWhenNoChildOperationIsSet = false;
 
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                groupedTask.resultCatcher = resultCatcher;
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        fail();
-                    }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            groupedTask.resultCatcher = resultCatcher;
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    fail();
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        fail();
-                    }
-                };
-                ICancelable childTask1 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask1);
-                ICancelable childTask2 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask2);
-                ICancelable childTask3 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask3);
-                assertFalse(groupedTask.restart());
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    fail();
+                }
+            };
+            ICancelable childTask1 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask1);
+            ICancelable childTask2 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask2);
+            ICancelable childTask3 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask3);
+            assertFalse(groupedTask.restart());
 
-                childTask2.cancel();
-                childTask1.cancel();
-                childTask3.cancel();
+            childTask2.cancel();
+            childTask1.cancel();
+            childTask3.cancel();
 
-                ICancelable childTask4 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask4);
-                childTask4.cancel();
+            ICancelable childTask4 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask4);
+            childTask4.cancel();
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupedTask.complete(true);
-                    }
-                });
-            }
+            backgroundExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    groupedTask.complete(true);
+                }
+            });
         });
 
         assertFalse(groupedTask.testOperation.isCancelled());
@@ -365,29 +332,26 @@ public class GroupedTaskTests {
             }
         };
 
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                groupedTask.resultCatcher = resultCatcher;
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        fail();
-                    }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            groupedTask.resultCatcher = resultCatcher;
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    fail();
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        assertTrue(failure instanceof PowerAuthErrorException);
-                        assertEquals(PowerAuthErrorCodes.OPERATION_CANCELED, ((PowerAuthErrorException) failure).getPowerAuthErrorCode());
-                    }
-                };
-                ICancelable childTask1 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask1);
-                ICancelable childTask2 = groupedTask.createChildTask(completion);
-                assertNull(childTask2);
-                ICancelable childTask3 = groupedTask.createChildTask(completion);
-                assertNull(childTask3);
-            }
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    assertTrue(failure instanceof PowerAuthErrorException);
+                    assertEquals(PowerAuthErrorCodes.OPERATION_CANCELED, ((PowerAuthErrorException) failure).getPowerAuthErrorCode());
+                }
+            };
+            ICancelable childTask1 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask1);
+            ICancelable childTask2 = groupedTask.createChildTask(completion);
+            assertNull(childTask2);
+            ICancelable childTask3 = groupedTask.createChildTask(completion);
+            assertNull(childTask3);
         });
 
         assertNull(groupedTask.testOperation);
@@ -425,47 +389,30 @@ public class GroupedTaskTests {
             }
         };
 
-        AsyncHelper.await(new AsyncHelper.Execution<Void>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Void> resultCatcher) throws Exception {
-                ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
-                    @Override
-                    public void onSuccess(@NonNull Boolean aBoolean) {
-                        fail();
-                    }
+        AsyncHelper.await((AsyncHelper.Execution<Void>) resultCatcher -> {
+            ITaskCompletion<Boolean> completion = new ITaskCompletion<Boolean>() {
+                @Override
+                public void onSuccess(@NonNull Boolean aBoolean) {
+                    fail();
+                }
 
-                    @Override
-                    public void onFailure(@NonNull Throwable failure) {
-                        assertTrue(failure instanceof PowerAuthErrorException);
-                        assertEquals(PowerAuthErrorCodes.OPERATION_CANCELED, ((PowerAuthErrorException) failure).getPowerAuthErrorCode());
-                    }
-                };
-                ICancelable childTask1 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask1);
-                ICancelable childTask2 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask2);
-                ICancelable childTask3 = groupedTask.createChildTask(completion);
-                assertNotNull(childTask3);
+                @Override
+                public void onFailure(@NonNull Throwable failure) {
+                    assertTrue(failure instanceof PowerAuthErrorException);
+                    assertEquals(PowerAuthErrorCodes.OPERATION_CANCELED, ((PowerAuthErrorException) failure).getPowerAuthErrorCode());
+                }
+            };
+            ICancelable childTask1 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask1);
+            ICancelable childTask2 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask2);
+            ICancelable childTask3 = groupedTask.createChildTask(completion);
+            assertNotNull(childTask3);
 
-                backgroundExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        groupedTask.replaceCancelableOperation(operation2);
-                        groupedTask.cancel();
-                        backgroundExecutor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                backgroundExecutor.execute(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        resultCatcher.completeWithSuccess();
-                                    }
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+            groupedTask.replaceCancelableOperation(operation2);
+            groupedTask.cancel();
+
+            mainThreadExecutor.execute(resultCatcher::completeWithSuccess);
         });
 
         assertNull(groupedTask.testOperation);

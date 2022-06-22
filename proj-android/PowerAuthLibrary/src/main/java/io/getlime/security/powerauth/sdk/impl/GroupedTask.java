@@ -81,6 +81,7 @@ public class GroupedTask<TResult> implements ICancelable {
                 operations.clear();
                 successResult = null;
                 failureResult = null;
+                onGroupedTaskRestart();
             }
             return restartResult;
         } finally {
@@ -280,6 +281,12 @@ public class GroupedTask<TResult> implements ICancelable {
      * Overridable method, called when task is started.
      */
     public void onGroupedTaskStart() {
+    }
+
+    /**
+     * Overridable method, called when task is restarted.
+     */
+    public void onGroupedTaskRestart() {
     }
 
     /**

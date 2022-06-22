@@ -327,8 +327,11 @@
  */
 - (void) commitUpgradeToV3
 {
+	// Disable auto cancel
+	_disableAutoCancel = YES;
 	PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeCommitV3];
 	PowerAuthAuthentication * auth = [PowerAuthAuthentication possession];
+	//
 	id<PowerAuthOperationTask> commitUpgradeTask = [_client postObject:nil to:endpoint auth:auth completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
 		// HTTP request completion
 		if (status == PowerAuthRestApiResponseStatus_OK) {

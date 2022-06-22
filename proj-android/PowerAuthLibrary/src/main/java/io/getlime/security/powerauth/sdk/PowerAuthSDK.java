@@ -107,6 +107,7 @@ import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
 import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
 import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
 import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
+import io.getlime.security.powerauth.sdk.impl.ITaskCompletion;
 import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
 import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
 import io.getlime.security.powerauth.system.PowerAuthLog;
@@ -574,8 +575,13 @@ public class PowerAuthSDK {
      * The method is used for saving serialized state of Session, for example after password change method called directly via Session instance. See {@link PowerAuthSDK#getSession()} method.
      */
     public void saveSerializedState() {
-        final byte[] state = mSession.serializedState();
-        mStateListener.onPowerAuthStateChanged(mConfiguration.getInstanceId(), state);
+        try {
+            mLock.lock();
+            final byte[] state = mSession.serializedState();
+            mStateListener.onPowerAuthStateChanged(mConfiguration.getInstanceId(), state);
+        } finally {
+            mLock.unlock();
+        }
     }
 
     /**
@@ -1155,78 +1161,49 @@ public class PowerAuthSDK {
         // Cancelable object returned to the application
         ICancelable task = null;
 
+        final ITaskCompletion<ActivationStatus> completion = new ITaskCompletion<ActivationStatus>() {
+            @Override
+            public void onSuccess(@NonNull ActivationStatus activationStatus) {
+                listener.onActivationStatusSucceed(activationStatus);
+            }
+
+            @Override
+            public void onFailure(@NonNull Throwable failure) {
+                listener.onActivationStatusFailed(failure);
+            }
+        };
+
         try {
             mLock.lock();
             if (mGetActivationStatusTask != null) {
                 // There's already some pending task, try to add this listener to it.
-                task = mGetActivationStatusTask.addActivationStatusListener(listener);
-                if (task == null) {
-                    // Looks like the current task is already exiting. We need to create a new one
-                    mGetActivationStatusTask = null;
-                }
+                task = mGetActivationStatusTask.createChildTask(completion);
             }
-            if (mGetActivationStatusTask == null) {
-                // Create a new GetActivationStatusTask() object
-                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession,
-                        mCallbackDispatcher, new GetActivationStatusTask.ICompletionListener() {
+            if (task == null) {
+                mGetActivationStatusTask = new GetActivationStatusTask(mClient, getCryptoHelper(context), mSession, mLock, mCallbackDispatcher, mConfiguration.isAutomaticProtocolUpgradeDisabled(), new GetActivationStatusTask.ICompletionListener() {
                     @Override
                     public void onSessionStateChange() {
                         saveSerializedState();
                     }
-                    @Override
-                    public void onSuccess(@NonNull GetActivationStatusTask task, @NonNull ActivationStatus status) {
-                        completeGetActivationStatusTask(task, status);
-                    }
 
                     @Override
-                    public void onFailure(@NonNull GetActivationStatusTask task) {
-                        completeGetActivationStatusTask(task, null);
+                    public void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable ActivationStatus status) {
+                        // The mLock is already locked, because GetActivationStatusTask uses shared lock.
+                        if (task == mGetActivationStatusTask) {
+                            if (status != null) {
+                                mLastFetchedActivationStatus = status;
+                            }
+                            mGetActivationStatusTask = null;
+                        }
                     }
                 });
-                // Apply "disable" flag to task
-                mGetActivationStatusTask.setUpgradeDisabled(mConfiguration.isAutomaticProtocolUpgradeDisabled());
-                // And finally assign that task
-                task = mGetActivationStatusTask.addActivationStatusListener(listener);
-                mGetActivationStatusTask.execute();
+                task = mGetActivationStatusTask.createChildTask(completion);
             }
         } finally {
             mLock.unlock();
         }
 
         return task;
-    }
-
-    /**
-     * Complete pending {@link GetActivationStatusTask} with received status. The method safely clears
-     * private {@link #mGetActivationStatusTask} property and updates {@link #mLastFetchedActivationStatus}
-     * if status has been really received.
-     *
-     * @param task task being completed
-     * @param status fetched status
-     */
-    private void completeGetActivationStatusTask(@Nullable GetActivationStatusTask task, @Nullable ActivationStatus status) {
-        try {
-            mLock.lock();
-            final boolean updateLastStatus;
-            if (task == mGetActivationStatusTask) {
-                // Regular processing, only one task was scheduled and it just finished.
-                mGetActivationStatusTask = null;
-                updateLastStatus = true;
-            } else {
-                // If mGetActivationStatusTask is null, then it means that last status task has been cancelled.
-                // In this case, we should not update the objects.
-                // If there's a different PA2GetActivationStatusTask object, then that means
-                // that during the finishing our batch, was scheduled the next one. In this situation
-                // we still can keep the last received objects, because there was no cancel, or reset.
-                updateLastStatus = mGetActivationStatusTask != null;
-            }
-            if (updateLastStatus && status != null) {
-                // It's safe to update last fetched status.
-                mLastFetchedActivationStatus = status;
-            }
-        } finally {
-            mLock.unlock();
-        }
     }
 
     /**
@@ -1238,9 +1215,7 @@ public class PowerAuthSDK {
             mLock.lock();
             if (mGetActivationStatusTask != null) {
                 mGetActivationStatusTask.cancel();
-                mGetActivationStatusTask = null;
             }
-            mLastFetchedActivationStatus = null;
         } finally {
             mLock.unlock();
         }

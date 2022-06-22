@@ -34,7 +34,7 @@ public class UnblockActivationEndpoint implements IServerApiEndpoint<UnblockActi
     @Nullable
     @Override
     public TypeToken<Response> getResponseType() {
-        return null;
+        return TypeToken.get(UnblockActivationEndpoint.Response.class);
     }
 
     // Request

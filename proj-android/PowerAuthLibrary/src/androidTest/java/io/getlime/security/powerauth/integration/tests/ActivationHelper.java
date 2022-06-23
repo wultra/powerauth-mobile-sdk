@@ -298,10 +298,12 @@ public class ActivationHelper {
         assertFalse(powerAuthSDK.hasPendingActivation());
         assertFalse(powerAuthSDK.canStartActivation());
 
-        // Fetch status to test whether it's in "pending commit" state.
+        // Fetch status to test whether it's in "pending commit" or "active" state, depending on server's configuration.
+        final boolean isAutoCommit = testHelper.getTestConfig().isServerAutoCommit();
         ActivationStatus activationStatus = fetchActivationStatus();
-        if (activationStatus.state != ActivationStatus.State_Pending_Commit) {
-            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state);
+        final @ActivationStatus.ActivationState int expectedState = isAutoCommit ? ActivationStatus.State_Active : ActivationStatus.State_Pending_Commit;
+        if (activationStatus.state != expectedState) {
+            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state + ", Expected = " + expectedState);
         }
 
         // Compare public key fingerprints
@@ -310,13 +312,15 @@ public class ActivationHelper {
             throw new Exception("Public key fingerprints doesn't match between server and client.");
         }
 
-        // Commit activation on the server.
-        testHelper.getServerApi().activationCommit(activation);
+        if (!isAutoCommit) {
+            // Commit activation on the server.
+            testHelper.getServerApi().activationCommit(activation);
 
-        // Fetch status to validate whether activation is now active
-        activationStatus = fetchActivationStatus();
-        if (activationStatus.state != ActivationStatus.State_Active) {
-            throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            // Fetch status to validate whether activation is now active
+            activationStatus = fetchActivationStatus();
+            if (activationStatus.state != ActivationStatus.State_Active) {
+                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            }
         }
 
         return activationDetail;

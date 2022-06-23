@@ -275,7 +275,9 @@
 	XCTAssertNil(_altSdk.externalPendingOperation);
 	
 	// Commit activation on the server.
-	[self.helper.testServerApi commitActivation:activationData.activationId];
+	if (!self.helper.testServerConfig.isServerAutoCommit) {
+		[self.helper.testServerApi commitActivation:activationData.activationId];
+	}
 	
 	PowerAuthActivationStatus * status1 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		[self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {

@@ -30,6 +30,7 @@ typedef NS_ENUM(int, PowerAuthTestServerVersion) {
 	PATS_V1_0,		// V3.1 crypto + Activation OTP
 	PATS_V1_1,		// V3.1 crypto + Activation OTP
 	PATS_V1_2,		// V3.1 crypto + Activation OTP
+	PATS_V1_2_5,	// V3.1 crypto + Activation OTP
 	PATS_V1_3,		// V3.1 crypto + Activation OTP, applicationId as String
 };
 
@@ -94,6 +95,10 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
  Default value is @"Testing on " + short device description
  */
 @property (nonatomic, strong, readonly) NSString * userActivationName;
+/**
+ If YES, then activation is automatically commited on the server.
+ */
+@property (nonatomic, readonly) BOOL isServerAutoCommit;
 /**
  A content of original dictionary used to create this configuration.
  */

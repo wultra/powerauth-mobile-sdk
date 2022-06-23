@@ -48,6 +48,9 @@ import io.getlime.security.powerauth.integration.support.model.ServerVersion;
  *         {@code "test.powerauth.serverVersion"} - Expected PowerAuth Server version.
  *     </li>
  *     <li>
+ *         {@code "test.powerauth.serverAutoCommit"} - If "true" then server commits activation automatically.
+ *     </li>
+ *     <li>
  *         {@code "test.powerauth.appName"} - Name of PowerAuth Application that should be used for testing.
  *     </li>
  *     <li>
@@ -73,6 +76,7 @@ public class PowerAuthTestConfig {
     private final @NonNull String powerAuthAppName;
     private final @NonNull String powerAuthAppVersion;
     private final @NonNull String userIdentifier;
+    private final boolean serverAutoCommit;
 
     private PowerAuthTestConfig(
             @NonNull String restApiUrl,
@@ -82,7 +86,8 @@ public class PowerAuthTestConfig {
             @NonNull ServerVersion serverVersion,
             @NonNull String powerAuthAppName,
             @NonNull String powerAuthAppVersion,
-            @NonNull String userIdentifier) {
+            @NonNull String userIdentifier,
+            boolean serverAutoCommit) {
         this.restApiUrl = restApiUrl;
         this.serverApiUrl = serverApiUrl;
         this.serverAuthUser = serverAuthUser;
@@ -91,6 +96,7 @@ public class PowerAuthTestConfig {
         this.powerAuthAppName = powerAuthAppName;
         this.powerAuthAppVersion = powerAuthAppVersion;
         this.userIdentifier = userIdentifier;
+        this.serverAutoCommit = serverAutoCommit;
     }
 
     /**
@@ -147,6 +153,13 @@ public class PowerAuthTestConfig {
     }
 
     /**
+     * @return {@code true} if server supports auto-commit of activation.
+     */
+    public boolean isServerAutoCommit() {
+        return serverAutoCommit;
+    }
+
+    /**
      * Load testing parameters from instrumentation registry.
      *
      * @return Instance of {@link PowerAuthTestConfig}
@@ -162,7 +175,8 @@ public class PowerAuthTestConfig {
         final String userIdentifier = getInstrumentationParameter("userIdentifier", "TestUserAndroid");
         final String serverAuthUser = getInstrumentationParameter("serverAuthUser", "");
         final String serverAuthPass = getInstrumentationParameter("serverAuthPass", "");
-        return new PowerAuthTestConfig(restApiUrl, serverApiUrl, serverAuthUser, serverAuthPass, serverVersion, powerAuthAppName, powerAuthAppVersion, userIdentifier);
+        final boolean autoCommit = getInstrumentationParameter("serverAutoCommit", "false").equals("true");
+        return new PowerAuthTestConfig(restApiUrl, serverApiUrl, serverAuthUser, serverAuthPass, serverVersion, powerAuthAppName, powerAuthAppVersion, userIdentifier, autoCommit);
     }
 
     /**

@@ -68,6 +68,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 		case PATS_V1_0:
 		case PATS_V1_1:
 		case PATS_V1_2:
+		case PATS_V1_2_5:
 		case PATS_V1_3:
 			return PATS_P31;
 		default:
@@ -95,6 +96,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 			@"1.0"    : @(PATS_V1_0),
 			@"1.1"    : @(PATS_V1_1),
 			@"1.2"    : @(PATS_V1_2),
+			@"1.2.5"  : @(PATS_V1_2_5),
 			@"1.3"    : @(PATS_V1_3),
 		 };
 	}
@@ -125,6 +127,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 		instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];
 		instance->_userIdentifier = dict[@"userIdentifier"];
 		instance->_userActivationName = dict[@"userActivationName"];
+		instance->_isServerAutoCommit = [dict[@"serverAutoCommit"] boolValue];
 		instance->_configDictionary = [dict copy];
 		if (![instance validateAndFillOptionals]) {
 			return nil;

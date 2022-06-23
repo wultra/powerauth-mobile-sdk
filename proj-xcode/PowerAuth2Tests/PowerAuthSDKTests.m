@@ -484,19 +484,23 @@ static NSString * PA_Ver = @"3.1";
 		// If activation OTP was used for the activation, then the activation is ACTIVE right now.
 		XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
 	} else {
-		XCTAssertTrue(activationStatus.state == PowerAuthActivationState_PendingCommit);
-		// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
-		//            This is typically done internally on the server side and depends on activation flow
-		//            in concrete internet banking project.
-		result = [_testServerApi commitActivation:activationData.activationId];
-		XCTAssertTrue(result, @"Server's commit failed");
-		CHECK_RESULT_RET(preliminaryResult);
+		if (_testServerConfig.isServerAutoCommit) {
+			XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
+		} else {
+			XCTAssertTrue(activationStatus.state == PowerAuthActivationState_PendingCommit);
+			// 4) SERVER: This is the last step of activation. We need to commit an activation on the server side.
+			//            This is typically done internally on the server side and depends on activation flow
+			//            in concrete internet banking project.
+			result = [_testServerApi commitActivation:activationData.activationId];
+			XCTAssertTrue(result, @"Server's commit failed");
+			CHECK_RESULT_RET(preliminaryResult);
+			
+			// 5) CLIENT: Fetch status again. Now the state should be active
+			activationStatus = [self fetchActivationStatus];
+			XCTAssertNotNil(activationStatus);
+			XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
+		}
 	}
-	
-	// 5) CLIENT: Fetch status again. Now the state should be active
-	activationStatus = [self fetchActivationStatus];
-	XCTAssertNotNil(activationStatus);
-	XCTAssertTrue(activationStatus.state == PowerAuthActivationState_Active);
 	
 	// Post activation steps...
 	result = [_sdk.session.activationIdentifier isEqualToString:activationData.activationId];

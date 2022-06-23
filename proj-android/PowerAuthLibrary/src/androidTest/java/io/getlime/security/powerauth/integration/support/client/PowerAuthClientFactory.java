@@ -41,11 +41,11 @@ public class PowerAuthClientFactory {
     public PowerAuthServerApi createApiClient(@NonNull PowerAuthTestConfig testConfig) throws Exception {
         PowerAuthServerApi api = null;
         if (testConfig.getServerVersion().numericVersion >= ServerVersion.V1_0_0.numericVersion &&
-                testConfig.getServerVersion().numericVersion <= ServerVersion.V1_2_0.numericVersion) {
-            api = new PowerAuthClientV3_ServerV10(testConfig.getServerApiUrl(), testConfig.getAuthorizationHeaderValue(), null, null);
+                testConfig.getServerVersion().numericVersion <= ServerVersion.V1_2_5.numericVersion) {
+            api = new PowerAuthClientV3_ServerV10(testConfig.getServerApiUrl(), testConfig.getAuthorizationHeaderValue(), ServerVersion.V1_0_0, ServerVersion.V1_2_5);
         } else if (testConfig.getServerVersion().numericVersion >= ServerVersion.V1_3_0.numericVersion &&
                 testConfig.getServerVersion().numericVersion <= ServerVersion.LATEST.numericVersion) {
-            api = new PowerAuthClientV3_ServerV13(testConfig.getServerApiUrl(), testConfig.getAuthorizationHeaderValue(), null, null);
+            api = new PowerAuthClientV3_ServerV13(testConfig.getServerApiUrl(), testConfig.getAuthorizationHeaderValue(), ServerVersion.V1_3_0, null);
         }
         if (api == null) {
             throw new Exception("Missing implementation for server API, for server version " + testConfig.getServerVersion().version);

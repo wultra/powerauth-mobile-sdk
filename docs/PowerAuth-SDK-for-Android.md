@@ -941,6 +941,10 @@ powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the bi
 });
 ```
 
+<!-- begin box warning -->
+Note that if the biometric authentication fails with too many attempts in a row (e.g. biometry is temporarily or permanently locked out), then PowerAuth SDK will generate an invalid biometry factor related key and the success is reported. This is an intended behavior and as the result, it typically lead to unsuccessful authentication on the server and increased counter of failed attempts. The purpose of this is to limit the number of attempts for attacker to deceive the biometry sensor.
+<!-- end -->
+
 ### Biometry Factor-Related Key Lifetime
 
 By default, the biometry factor-related key is invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is no longer available for the signing operation. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `false` and use that configuration for the `PowerAuthSDK` instance construction:

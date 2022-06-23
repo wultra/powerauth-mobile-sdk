@@ -14,7 +14,6 @@
  * and limitations under the License.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
         mavenLocal()
@@ -25,7 +24,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.2.1'
         // releasing
         classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
     }
@@ -41,7 +40,7 @@ ext {
     minSdkVersion = 19
     buildToolsVersion = "30.0.3"
     // NDK, check https://developer.android.com/ndk/downloads for updates
-    ndkVersion = "21.4.7075529" // r21e
+    ndkVersion = "23.2.8568313" // r23c
 }
 
 allprojects {

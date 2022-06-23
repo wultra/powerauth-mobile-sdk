@@ -160,28 +160,9 @@ public class PowerAuthTestConfig {
         final String powerAuthAppName = getInstrumentationParameter("appName", "AutomaticTest-Android");
         final String powerAuthAppVersion = getInstrumentationParameter("appVersion", "default");
         final String userIdentifier = getInstrumentationParameter("userIdentifier", "TestUserAndroid");
-        final String serverAuthUser = patchAndroidStudioParameterValue(getInstrumentationParameter("serverAuthUser", ""));
-        final String serverAuthPass = patchAndroidStudioParameterValue(getInstrumentationParameter("serverAuthPass", ""));
+        final String serverAuthUser = getInstrumentationParameter("serverAuthUser", "");
+        final String serverAuthPass = getInstrumentationParameter("serverAuthPass", "");
         return new PowerAuthTestConfig(restApiUrl, serverApiUrl, serverAuthUser, serverAuthPass, serverVersion, powerAuthAppName, powerAuthAppVersion, userIdentifier);
-    }
-
-    /**
-     * If test is initiated from Android Studio IDE, then we have to workaround possible broken values due to nasty but in studio.
-     * The problem is that if value contains '-e' sequence, then the studio is treating this as a switch for external parameter for ADB
-     * and break the string.
-     *
-     * @param value String value to patch.
-     * @return Patched value.
-     */
-    private static @Nullable String patchAndroidStudioParameterValue(@Nullable String value) {
-        if (value == null) {
-            return null;
-        }
-        if (TextUtils.isEmpty(value)) {
-            return null;
-        }
-        value = value.replace(" -e ", "-e");
-        return value;
     }
 
     /**

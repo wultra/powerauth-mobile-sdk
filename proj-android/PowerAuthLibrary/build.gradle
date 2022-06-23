@@ -97,8 +97,13 @@ android {
 // Load properties for instrumentation tests.
 static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
     def configsRoot = new File("${project.rootProject.projectDir}/configs")
-    def configPropertiesFile = new File(configsRoot, "powerauth-instrumentation-tests.properties")
-
+    // Default, public config pointing to localhost PowerAuth Stack installation.
+    def defaultPropertiesFile = new File(configsRoot, "default-instrumentation-tests.properties")
+    // Private config where you can put configuration with sensitive values.
+    def privatePropertiesFile = new File(configsRoot, "private-instrumentation-tests.properties")
+    // Select config file, prefer private over default.
+    def configFile = privatePropertiesFile.canRead() ? privatePropertiesFile : defaultPropertiesFile
+    // List of supported arguments
     def instrumentationArguments = [
             "test.powerauth.restApiUrl",
             "test.powerauth.serverApiUrl",
@@ -109,16 +114,16 @@ static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
             "test.powerauth.appVersion",
             "test.powerauth.userIdentifier" ]
 
-    project.logger.info("LOADING_PROPERTIES Reading $configPropertiesFile")
-    if (configPropertiesFile.canRead()) {
+    project.logger.info("LOADING_PROPERTIES Reading $configFile")
+    if (configFile.canRead()) {
         def props = new Properties()
-        props.load(new FileInputStream(configPropertiesFile))
+        props.load(new FileInputStream(configFile))
 
         for (key in instrumentationArguments) {
             defaultConfig.testInstrumentationRunnerArgument key, "${props[key]}"
         }
     } else {
-        project.logger.warn("Loading properties error: Missing $configPropertiesFile")
+        project.logger.warn("Loading properties error: Missing configuration file: $configFile")
     }
 }
 

@@ -42,6 +42,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
                     .build();
     ``` 
 
+- `IOException` is no longer reported from SDK's internal networking. Now all such exceptions are wrapped into `PowerAuthErrorException` with `NETWORK_ERROR` code set.
+
 ## iOS & tvOS
 
 - TBA

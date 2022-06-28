@@ -128,7 +128,6 @@ public class PowerAuthSDK {
     private final @NonNull ISavePowerAuthStateListener mStateListener;
     private final @NonNull IPossessionFactorEncryptionKeyProvider mPossessionFactorEncryptionKeyProvider;
     private final @NonNull Keychain mBiometryKeychain;
-    private final @NonNull Keychain mTokenStoreKeychain;
     private final @NonNull ICallbackDispatcher mCallbackDispatcher;
     private final @NonNull PowerAuthTokenStore mTokenStore;
 
@@ -318,7 +317,6 @@ public class PowerAuthSDK {
         this.mStateListener = stateListener;
         this.mPossessionFactorEncryptionKeyProvider = possessionKeyProvider;
         this.mBiometryKeychain = biometryKeychain;
-        this.mTokenStoreKeychain = tokenStoreKeychain;
         this.mCallbackDispatcher = callbackDispatcher;
         this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
     }

@@ -36,6 +36,8 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
 import io.getlime.security.powerauth.networking.interceptors.HttpRequestInterceptor;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
@@ -162,7 +164,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             // Apply request interceptors
             final List<HttpRequestInterceptor> requestInterceptors = clientConfiguration.getRequestInterceptors();
             if (requestInterceptors != null) {
-                for (HttpRequestInterceptor interceptor: requestInterceptors) {
+                for (HttpRequestInterceptor interceptor : requestInterceptors) {
                     interceptor.processRequestConnection(urlConnection);
                 }
             }
@@ -201,6 +203,11 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             logResponse(urlConnection, responseData, null);
             // Finally, return the result.
             return result;
+        } catch (IOException e) {
+            // Log response with error
+            logResponse(urlConnection, null, e);
+            // Create PowerAuthErrorException with NETWORK_ERROR code
+            error = new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, e.getMessage(), e);
 
         } catch (Throwable e) {
             // Log response with error

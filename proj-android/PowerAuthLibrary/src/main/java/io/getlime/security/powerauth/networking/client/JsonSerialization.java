@@ -49,11 +49,6 @@ public class JsonSerialization {
     private Gson gson;
 
     /**
-     * Private instance of {@link JsonParser}.
-     */
-    private JsonParser parser;
-
-    /**
      * Constant representing an empty object, serialized to JSON (e.g. empty curly brackets, {@code {}})
      */
     private static final byte[] EMPTY_OBJECT_BYTES = { 0x7B, 0x7D };
@@ -141,7 +136,7 @@ public class JsonSerialization {
             throw new JsonParseException("Empty response received.");
         }
         final String jsonString = new String(data, Charset.defaultCharset());
-        final JsonElement jsonRoot = getParser().parse(jsonString);
+        final JsonElement jsonRoot = JsonParser.parseString(jsonString);
         if (!jsonRoot.isJsonObject()) {
             throw new JsonParseException("Unexpected type of JSON data.");
         }
@@ -179,7 +174,7 @@ public class JsonSerialization {
     public byte[] decryptData(@Nullable byte[] data, @NonNull EciesEncryptor decryptor) throws PowerAuthErrorException {
         // 1. Deserialize bytes into response object
         final EciesEncryptedResponse response = deserializeObject(data, TypeToken.get(EciesEncryptedResponse.class));
-        // 2. Construct cryptogam with data & mac (response doesn't contain ephemeral key)
+        // 2. Construct cryptogram with data & mac (response doesn't contain ephemeral key)
         final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac());
         // 3. Decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
@@ -278,16 +273,4 @@ public class JsonSerialization {
         }
         return gson;
     }
-
-    /**
-     * @return Lazy initialized instance of {@link JsonParser} object.
-     */
-    @NonNull
-    public JsonParser getParser() {
-        if (parser == null) {
-            parser = new JsonParser();
-        }
-        return parser;
-    }
-
 }

@@ -34,7 +34,7 @@ XCODE_DIR="${SRC_ROOT}/proj-xcode"
 
 # iOS / tvOS
 EXT_FRAMEWORK="PowerAuth2ForExtensions"
-EXT_PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
+EXT_PLATFORMS="iOS iOS_Simulator tvOS tvOS_Simulator macOS_Catalyst"
 EXT_PROJECT="${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj"
 # WatchOS
 WOS_FRAMEWORK="PowerAuth2ForWatch"
@@ -102,6 +102,11 @@ function USAGE
 #   Print a list of architectures for given build platform. For example,
 #    for 'iOS' function prints 'iphoneos'.
 #
+# GET_PLATFORM_DESTINATION
+#   Print a value for -destination parameter used to set proper build
+#   target for xcodebuild. For example, for 'iOS' function prints
+#   'generic/platform=iOS'.
+#
 # GET_PLATFORM_TARGET
 #   Print a build target for given build platform. For example, for 'iOS'
 #   function prints 'PowerAuth2ForExtensions_iOS'.
@@ -145,6 +150,19 @@ function GET_PLATFORM_SDK
         watchOS)            echo 'watchos' ;;
         watchOS_Simulator)  echo 'watchsimulator' ;;
         *) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
+    esac
+}
+function GET_PLATFORM_DESTINATION
+{
+    case $1 in
+        iOS)                echo 'generic/platform=iOS' ;;
+        iOS_Simulator)      echo 'generic/platform=iOS Simulator' ;;
+        macOS_Catalyst)     echo 'generic/platform=macOS,variant=Mac Catalyst' ;;
+        tvOS)               echo 'generic/platform=tvOS' ;;
+        tvOS_Simulator)     echo 'generic/platform=tvOS Simulator' ;;
+        watchOS)            echo 'generic/platform=watchOS' ;;
+        watchOS_Simulator)  echo 'generic/platform=watchOS Simulator' ;;
+        *) FAILURE "Cannot determine platform destination. Unsupported platform: '$1'" ;;
     esac
 }
 function GET_PLATFORM_TARGET
@@ -203,6 +221,7 @@ function BUILD_COMMAND
     local PLATFORM_ARCHS="$(GET_PLATFORM_ARCH $PLATFORM)"
     local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
     local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
+    local PLATFORM_DEST="$(GET_PLATFORM_DESTINATION $PLATFORM)"
     local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
     local PROJECT="$(GET_PLATFORM_PROJECT $PLATFORM)"
     local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
@@ -215,6 +234,7 @@ function BUILD_COMMAND
     local COMMAND_LINE="xcodebuild archive -project \"${PROJECT}\" -scheme ${SCHEME}"
     COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
     COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
+    COMMAND_LINE+=" -destination \"${PLATFORM_DEST}\""
     COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
     [[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
     [[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
@@ -306,7 +326,8 @@ function CLEAN_COMMAND
     local ALL_PLATFORMS=( $PLATFORMS )
     local SCHEME=$(GET_PLATFORM_SCHEME ${ALL_PLATFORMS[0]})
     local PROJECT=$(GET_PLATFORM_PROJECT ${ALL_PLATFORMS[0]})
-    local COMMAND_LINE="xcodebuild clean -project \"${PROJECT}\" -scheme ${SCHEME} ${QUIET}"
+    local DESTINATION="$(GET_PLATFORM_DESTINATION ${ALL_PLATFORMS[0]})"
+    local COMMAND_LINE="xcodebuild clean -project \"${PROJECT}\" -scheme ${SCHEME} ${QUIET} -destination ${DESTINATION}"
     
     DEBUG_LOG $COMMAND_LINE
     eval $COMMAND_LINE

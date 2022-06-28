@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BF1A0E972864BC57009DA579 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
+		BF1A0E9A2864BC73009DA579 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4720753444008A6A52 /* libcc7tests-ios.a */; };
 		BF61F90A207687C500520C57 /* PA2OtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF61F909207687C500520C57 /* PA2OtpUtil.mm */; };
 		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
 		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
@@ -55,9 +57,7 @@
 		BFB47D392075335A008A6A52 /* PA2Types.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2920753359008A6A52 /* PA2Types.mm */; };
 		BFB47D3A2075335A008A6A52 /* PA2ECIESEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2B20753359008A6A52 /* PA2ECIESEncryptor.mm */; };
 		BFB47D3B2075335A008A6A52 /* PA2PrivateMacros.m in Sources */ = {isa = PBXBuildFile; fileRef = BFB47D2C20753359008A6A52 /* PA2PrivateMacros.m */; };
-		BFB47D512075347E008A6A52 /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BFB47D5420753491008A6A52 /* libPowerAuthCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCore.a */; };
-		BFB47D5620753491008A6A52 /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4720753444008A6A52 /* libcc7tests-ios.a */; };
 		BFC92DEF2073E3860087851C /* pa2CryptoPKCS7PaddingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C72073E00D00735ED2 /* pa2CryptoPKCS7PaddingTests.cpp */; };
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
@@ -67,6 +67,62 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		BF1A0E8B2864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8AAF2449B4F80032821F;
+			remoteInfo = "cc7-tvos";
+		};
+		BF1A0E8D2864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEC0E26662A01009AC5FD;
+			remoteInfo = "cc7-macos";
+		};
+		BF1A0E8F2864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8ACF2449B53C0032821F;
+			remoteInfo = "cc7tests-tvos";
+		};
+		BF1A0E912864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEC2F26662A0B009AC5FD;
+			remoteInfo = "cc7tests-macos";
+		};
+		BF1A0E932864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BFFE8ADF2449B5820032821F;
+			remoteInfo = "CC7TestsWrapper-tvos";
+		};
+		BF1A0E952864BB8E009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEBFA266629ED009AC5FD;
+			remoteInfo = "CC7TestsWrapper-macos";
+		};
+		BF1A0E982864BC62009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFB1A6B31CB5937800B2D172;
+			remoteInfo = "cc7-ios";
+		};
+		BF1A0E9B2864BC82009DA579 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BF30682D1CC91B20002FD3BC;
+			remoteInfo = "cc7tests-ios";
+		};
 		BFB47D4420753444008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
@@ -87,13 +143,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = BF498AA21CDCBE8300D7E904;
 			remoteInfo = CC7TestsWrapper;
-		};
-		BFB47D4B20753475008A6A52 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = BFB1A6B31CB5937800B2D172;
-			remoteInfo = "cc7-ios";
 		};
 		BFB47D5220753487008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -240,7 +289,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFB47D512075347E008A6A52 /* libcc7-ios.a in Frameworks */,
+				BF1A0E972864BC57009DA579 /* libcc7-ios.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,8 +297,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF1A0E9A2864BC73009DA579 /* libcc7tests-ios.a in Frameworks */,
 				BFB47D5420753491008A6A52 /* libPowerAuthCore.a in Frameworks */,
-				BFB47D5620753491008A6A52 /* libcc7tests-ios.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,8 +578,14 @@
 			isa = PBXGroup;
 			children = (
 				BFB47D4520753444008A6A52 /* libcc7-ios.a */,
+				BF1A0E8C2864BB8E009DA579 /* libcc7-tvos.a */,
+				BF1A0E8E2864BB8E009DA579 /* libcc7-macos.a */,
 				BFB47D4720753444008A6A52 /* libcc7tests-ios.a */,
-				BFB47D4920753444008A6A52 /* CC7TestsWrapper.xctest */,
+				BF1A0E902864BB8E009DA579 /* libcc7tests-tvos.a */,
+				BF1A0E922864BB8E009DA579 /* libcc7tests-macos.a */,
+				BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */,
+				BF1A0E942864BB8E009DA579 /* CC7TestsWrapper-tvos.xctest */,
+				BF1A0E962864BB8E009DA579 /* CC7TestsWrapper-macos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -556,7 +611,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				BFB47D4C20753475008A6A52 /* PBXTargetDependency */,
+				BF1A0E992864BC62009DA579 /* PBXTargetDependency */,
 			);
 			name = PowerAuthCore;
 			productName = PowerAuthCore;
@@ -574,6 +629,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF1A0E9C2864BC82009DA579 /* PBXTargetDependency */,
 				BFB47D5320753487008A6A52 /* PBXTargetDependency */,
 			);
 			name = PowerAuthCoreTests;
@@ -587,7 +643,7 @@
 		BF3ACC7D2073DBA500B8107E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1340;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {
@@ -604,6 +660,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = BF3ACC7C2073DBA500B8107E;
 			productRefGroup = BF3ACC862073DBA500B8107E /* Products */;
@@ -623,6 +680,48 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		BF1A0E8C2864BB8E009DA579 /* libcc7-tvos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7-tvos.a";
+			remoteRef = BF1A0E8B2864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF1A0E8E2864BB8E009DA579 /* libcc7-macos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7-macos.a";
+			remoteRef = BF1A0E8D2864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF1A0E902864BB8E009DA579 /* libcc7tests-tvos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7tests-tvos.a";
+			remoteRef = BF1A0E8F2864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF1A0E922864BB8E009DA579 /* libcc7tests-macos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7tests-macos.a";
+			remoteRef = BF1A0E912864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF1A0E942864BB8E009DA579 /* CC7TestsWrapper-tvos.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CC7TestsWrapper-tvos.xctest";
+			remoteRef = BF1A0E932864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BF1A0E962864BB8E009DA579 /* CC7TestsWrapper-macos.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CC7TestsWrapper-macos.xctest";
+			remoteRef = BF1A0E952864BB8E009DA579 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		BFB47D4520753444008A6A52 /* libcc7-ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -637,10 +736,10 @@
 			remoteRef = BFB47D4620753444008A6A52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		BFB47D4920753444008A6A52 /* CC7TestsWrapper.xctest */ = {
+		BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = CC7TestsWrapper.xctest;
+			path = "CC7TestsWrapper-ios.xctest";
 			remoteRef = BFB47D4820753444008A6A52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -718,10 +817,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BFB47D4C20753475008A6A52 /* PBXTargetDependency */ = {
+		BF1A0E992864BC62009DA579 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "cc7-ios";
-			targetProxy = BFB47D4B20753475008A6A52 /* PBXContainerItemProxy */;
+			targetProxy = BF1A0E982864BC62009DA579 /* PBXContainerItemProxy */;
+		};
+		BF1A0E9C2864BC82009DA579 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cc7tests-ios";
+			targetProxy = BF1A0E9B2864BC82009DA579 /* PBXContainerItemProxy */;
 		};
 		BFB47D5320753487008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -785,10 +889,15 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../include",
 					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -841,9 +950,14 @@
 				HEADER_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../include",
 					"$(PROJECT_DIR)/../cc7/include",
-					"$(PROJECT_DIR)/../cc7/openssl/ios/include",
+					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
+				OTHER_LDFLAGS = (
+					"-framework",
+					openssl,
+				);
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -854,7 +968,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -866,7 +983,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KTT9G859MR;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -885,7 +1005,10 @@
 					"$(PROJECT_DIR)/../src/PowerAuth",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -904,7 +1027,10 @@
 					"$(PROJECT_DIR)/../src/PowerAuth",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";

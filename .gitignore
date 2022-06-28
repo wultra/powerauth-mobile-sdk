@@ -40,19 +40,7 @@ xcuserdata
 # Temp. folder for our local CocoaPods build
 Library/
 
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
-
-Carthage/Build
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the 
-# screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://github.com/fastlane/fastlane/blob/master/docs/Gitignore.md
-
-fastlane/report.xml
-fastlane/screenshots
+# Hide artefacts from newer SDK versions (when you switch the branch)
+proj-android/configs
+proj-xcode/PowerAuth2IntegrationTests
+.cxx

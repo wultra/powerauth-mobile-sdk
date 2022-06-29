@@ -8,7 +8,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### Compatibility with PowerAuth Server
 
-- This release is fully compatible with PowerAuth Server version `0.24.x`, `1.0.x` and `1.1.x`.
+- This release is fully compatible with PowerAuth Server version `0.24.x` up to `1.3.x`.
 
 ## Android
 

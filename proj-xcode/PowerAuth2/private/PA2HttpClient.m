@@ -235,7 +235,9 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 	// Finally, add operation to the right queue
 	if (endpoint.isSerialized) {
 		// The request must be serialized in serial queue.
-		[_sessionInterface addOperation:op toSharedQueue:_serialQueue];
+		[_sessionInterface executeOutsideOfTask:^{
+			[_sessionInterface addOperation:op toSharedQueue:_serialQueue];
+		} queue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)];
 	} else {
 		// The concurrent queue can be used
 		[_GetSharedConcurrentQueue() addOperation:op];

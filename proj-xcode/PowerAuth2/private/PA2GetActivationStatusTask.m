@@ -126,42 +126,40 @@
  */
 - (void) fetchActivationStatus:(void(^)(PowerAuthActivationStatus *status, NSError *error))callback
 {
-	[self executeOutsideSessionTask:^{
-		// Perform the server request
-		PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
-		request.activationId = _sessionProvider.activationIdentifier;
-		request.challenge    = [PowerAuthCoreSession generateActivationStatusChallenge];
-		PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint getActivationStatus];
-		//
-		id<PowerAuthOperationTask> fetchStatusTask = [_client postObject:request to:endpoint completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-			// HTTP request completion
-			PowerAuthActivationStatus * statusObject = nil;
-			// Validate result
-			if (status == PowerAuthRestApiResponseStatus_OK) {
-				// Cast to response object
-				PA2GetActivationStatusResponse * ro = response;
-				// Prepare unlocking key (possession factor only)
-				PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
-				keys.possessionUnlockKey = _deviceRelatedKey;
-				// Try to decode the activation status
-				PowerAuthCoreEncryptedActivationStatus * encryptedStatus = [[PowerAuthCoreEncryptedActivationStatus alloc] init];
-				encryptedStatus.challenge				= request.challenge;
-				encryptedStatus.encryptedStatusBlob	= ro.encryptedStatusBlob;
-				encryptedStatus.nonce					= ro.nonce;
-				PowerAuthCoreActivationStatus * coreStatusObject = [_sessionProvider writeTaskWithSession:^id (PowerAuthCoreSession * session) {
-					return [session decodeActivationStatus:encryptedStatus keys:keys];
-				}];
-				if (coreStatusObject) {
-					statusObject = [[PowerAuthActivationStatus alloc] initWithCoreStatus: coreStatusObject customObject:ro.customObject];
-				} else {
-					error = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
-				}
+	// Perform the server request
+	PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
+	request.activationId = _sessionProvider.activationIdentifier;
+	request.challenge    = [PowerAuthCoreSession generateActivationStatusChallenge];
+	PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint getActivationStatus];
+	//
+	id<PowerAuthOperationTask> fetchStatusTask = [_client postObject:request to:endpoint completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+		// HTTP request completion
+		PowerAuthActivationStatus * statusObject = nil;
+		// Validate result
+		if (status == PowerAuthRestApiResponseStatus_OK) {
+			// Cast to response object
+			PA2GetActivationStatusResponse * ro = response;
+			// Prepare unlocking key (possession factor only)
+			PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+			keys.possessionUnlockKey = _deviceRelatedKey;
+			// Try to decode the activation status
+			PowerAuthCoreEncryptedActivationStatus * encryptedStatus = [[PowerAuthCoreEncryptedActivationStatus alloc] init];
+			encryptedStatus.challenge				= request.challenge;
+			encryptedStatus.encryptedStatusBlob	= ro.encryptedStatusBlob;
+			encryptedStatus.nonce					= ro.nonce;
+			PowerAuthCoreActivationStatus * coreStatusObject = [_sessionProvider writeTaskWithSession:^id (PowerAuthCoreSession * session) {
+				return [session decodeActivationStatus:encryptedStatus keys:keys];
+			}];
+			if (coreStatusObject) {
+				statusObject = [[PowerAuthActivationStatus alloc] initWithCoreStatus: coreStatusObject customObject:ro.customObject];
+			} else {
+				error = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
 			}
-			// Execute callback
-			callback(statusObject, error);
-		}];
-		[self replaceCancelableOperation:fetchStatusTask];
+		}
+		// Execute callback
+		callback(statusObject, error);
 	}];
+	[self replaceCancelableOperation:fetchStatusTask];
 }
 
 #pragma mark - Counter synchronization
@@ -291,39 +289,37 @@
  */
 - (void) startUpgradeToV3
 {
-	[self executeOutsideSessionTask:^{
-		// Disable auto cancel
-		_disableAutoCancel = YES;
-		PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeStartV3];
-		//
-		id<PowerAuthOperationTask> startUpgradeTask = [_client postObject:nil to:endpoint completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-			PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* (PowerAuthCoreSession * session) {
-				// Response from start upgrade request
-				if (status == PowerAuthRestApiResponseStatus_OK) {
-					PA2UpgradeStartV3Response * ro = response;
-					PowerAuthCoreProtocolUpgradeDataV3 * v3data = [[PowerAuthCoreProtocolUpgradeDataV3 alloc] init];
-					v3data.ctrData = ro.ctrData;
-					if ([session applyProtocolUpgradeData:v3data]) {
-						// Everything looks fine, we can continue with commit on server.
-						// Since this change, we can sign requests with V3 signatures
-						// and local protocol version is bumped to V3.
-						[self commitUpgradeToV3];
-						
-					} else {
-						// The PowerAuthCoreSession did reject our upgrade data.
-						return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to apply protocol upgrade data.")];
-					}
+	// Disable auto cancel
+	_disableAutoCancel = YES;
+	PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeStartV3];
+	//
+	id<PowerAuthOperationTask> startUpgradeTask = [_client postObject:nil to:endpoint completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+		PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* (PowerAuthCoreSession * session) {
+			// Response from start upgrade request
+			if (status == PowerAuthRestApiResponseStatus_OK) {
+				PA2UpgradeStartV3Response * ro = response;
+				PowerAuthCoreProtocolUpgradeDataV3 * v3data = [[PowerAuthCoreProtocolUpgradeDataV3 alloc] init];
+				v3data.ctrData = ro.ctrData;
+				if ([session applyProtocolUpgradeData:v3data]) {
+					// Everything looks fine, we can continue with commit on server.
+					// Since this change, we can sign requests with V3 signatures
+					// and local protocol version is bumped to V3.
+					[self commitUpgradeToV3];
+					
 				} else {
-					// Upgrade start failed. This might be a temporary problem with the network,
-					// so try to repeat everything.
-					[self fetchActivationStatusAndTestUpgrade];
+					// The PowerAuthCoreSession did reject our upgrade data.
+					return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Failed to apply protocol upgrade data.")];
 				}
-				return nil;
-			}];
-			[self completeWithResult:result];
+			} else {
+				// Upgrade start failed. This might be a temporary problem with the network,
+				// so try to repeat everything.
+				[self fetchActivationStatusAndTestUpgrade];
+			}
+			return nil;
 		}];
-		[self replaceCancelableOperation:startUpgradeTask];
+		[self completeWithResult:result];
 	}];
+	[self replaceCancelableOperation:startUpgradeTask];
 }
 
 /**
@@ -331,25 +327,23 @@
  */
 - (void) commitUpgradeToV3
 {
-	[self executeOutsideSessionTask:^{
-		// Disable auto cancel
-		_disableAutoCancel = YES;
-		PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeCommitV3];
-		PowerAuthAuthentication * auth = [PowerAuthAuthentication possession];
-		//
-		id<PowerAuthOperationTask> commitUpgradeTask = [_client postObject:nil to:endpoint auth:auth completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
-			// HTTP request completion
-			if (status == PowerAuthRestApiResponseStatus_OK) {
-				// Everything looks fine, just finish the upgrade.
-				[self finishUpgradeToV3];
-			} else {
-				// Upgrade start failed. This might be a temporary problem with the network,
-				// so try to repeat everything.
-				[self fetchActivationStatusAndTestUpgrade];
-			}
-		}];
-		[self replaceCancelableOperation:commitUpgradeTask];
+	// Disable auto cancel
+	_disableAutoCancel = YES;
+	PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeCommitV3];
+	PowerAuthAuthentication * auth = [PowerAuthAuthentication possession];
+	//
+	id<PowerAuthOperationTask> commitUpgradeTask = [_client postObject:nil to:endpoint auth:auth completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+		// HTTP request completion
+		if (status == PowerAuthRestApiResponseStatus_OK) {
+			// Everything looks fine, just finish the upgrade.
+			[self finishUpgradeToV3];
+		} else {
+			// Upgrade start failed. This might be a temporary problem with the network,
+			// so try to repeat everything.
+			[self fetchActivationStatusAndTestUpgrade];
+		}
 	}];
+	[self replaceCancelableOperation:commitUpgradeTask];
 }
 
 /**
@@ -369,8 +363,6 @@
 	[self completeWithResult:result];
 }
 
-// MARK: - Support functions
-
 /**
  Complete task with PA2Result object. If result is not available, then the task is not finished yet.
  */
@@ -379,18 +371,6 @@
 	if (result) {
 		[self complete:result.result error:result.error];
 	}
-}
-
-/**
- Function executes block immediately when this thread doesn't run session provider's task. If the task is pending
- then defer the block execution into the background queue.
- 
- This is required to prevent a possible interprocess deadlock when HTTP request operation is added into
- the synchronized operation queue from the middle of session provider's task.
- */
-- (void) executeOutsideSessionTask:(void(^ _Nonnull)(void))block
-{
-	[_sessionProvider executeOutsideOfTask:block queue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)];
 }
 
 @end

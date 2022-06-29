@@ -45,7 +45,8 @@ ext {
 
 task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    // options.addStringOption('Xdoclint:none', '-quiet')
+    // Make generated BuildConfig visible for javadoc
+    source += 'build/generated/source/buildConfig'
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     // adds libraries to classpath
     android.libraryVariants.all { variant ->
@@ -161,6 +162,11 @@ nexusPublishing {
         }
     }
 }
+
+afterEvaluate {
+    androidJavadocs.dependsOn generateReleaseBuildConfig
+}
+
 
 // Helper functions
 

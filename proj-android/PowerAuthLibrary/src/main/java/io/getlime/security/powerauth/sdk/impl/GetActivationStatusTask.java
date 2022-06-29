@@ -75,6 +75,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
      * @param session low level {@link Session} object
      * @param sharedLock Shared lock.
      * @param callbackDispatcher callback dispatcher from parent SDK object
+     * @param isUpgradeDisabled If true, then protocol upgrade is disabled
      * @param completionListener final completion listener.
      */
     public GetActivationStatusTask(

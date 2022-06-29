@@ -21,7 +21,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.BuildConfig;
 
 /**

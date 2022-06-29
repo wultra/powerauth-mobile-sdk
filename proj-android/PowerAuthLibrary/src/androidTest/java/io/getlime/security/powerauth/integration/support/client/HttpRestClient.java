@@ -48,14 +48,12 @@ public class HttpRestClient {
     private final @NonNull String baseUrl;
     private final @Nullable String authorization;
     private final @NonNull Gson gson;
-    private final @NonNull JsonParser jsonParser;
 
     public HttpRestClient(@NonNull String baseUrl, @Nullable String authorization) {
         // Make sure that baseUrl doesn't end with forward slash.
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.authorization = authorization;
         this.gson = new GsonBuilder().create();
-        this.jsonParser = new JsonParser();
     }
 
     /**
@@ -177,10 +175,9 @@ public class HttpRestClient {
         if (typeToken == null) {
             return null;
         }
-        final TResponse response;
         try {
             final String responseString = new String(responseData.response, Charset.defaultCharset());
-            final JsonElement jsonRoot = jsonParser.parse(responseString);
+            final JsonElement jsonRoot = JsonParser.parseString(responseString);
             if (!jsonRoot.isJsonObject()) {
                 throw new PowerAuthServerApiException("JSON response doesn't contain a response object.");
             }

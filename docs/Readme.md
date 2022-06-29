@@ -4,31 +4,16 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 
 ## Integration Tutorials
 
-- [PowerAuth SDK for iOS Apps](PowerAuth-SDK-for-iOS.md)
-- [PowerAuth SDK for iOS Extensions](PowerAuth-SDK-for-iOS-Extensions.md)
+- [PowerAuth SDK for iOS and tvOS Apps](PowerAuth-SDK-for-iOS.md)
+- [PowerAuth SDK for iOS and tvOS Extensions](PowerAuth-SDK-for-iOS-Extensions.md)
 - [PowerAuth SDK for watchOS](PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](PowerAuth-SDK-for-Android.md)
-
-## Support and Compatibility
-
-| Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
-|------------|----------|---------------------|-----------------------------------|
-| `1.6.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
-| `1.5.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
-| `1.4.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
-| `1.3.x`    | `V3.1`   | `0.23+`             | Security bugfixes                 |
-| `1.2.x`    | `V3.0`   | `0.22+`<sup>1</sup> | Security bugfixes                 |
-| `1.1.x`    | `V3.0`   | `0.21+`             | Security bugfixes                 |
-| `0.20.x`   | `V2.1`   | `0.18+`             | Not supported                     |
-
-> Notes
-> 1. If [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) feature is not used, then you can
->    use this version also with PowerAuth Server `0.21`.
 
 ## Migration guides
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
+- [Migration from version `1.6.x` to `1.7.x`](Migration-from-1.6-to-1.7.md)
 - [Migration from version `1.5.x` to `1.6.x`](Migration-from-1.5-to-1.6.md)
 - [Migration from version `1.4.x` to `1.5.x`](Migration-from-1.4-to-1.5.md)
 - [Migration from version `1.3.x` to `1.4.x`](Migration-from-1.3-to-1.4.md)
@@ -37,6 +22,19 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 - [Migration from version `1.0.x` to `1.1.x`](Migration-from-1.0-to-1.1.md)
 - [Migration from version `0.20.x` to `1.0.x`](Migration-from-0.20-to-1.0.md)
 - [Migration from version `0.19.x` to `0.20.x`](Migration-from-0.19-to-0.20.md)
+
+## Support and Compatibility
+
+| Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
+|------------|----------|---------------------|-----------------------------------|
+| `1.7.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
+| `1.6.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
+| `1.5.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
+| `1.4.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
+| `1.3.x`    | `V3.1`   | `0.23+`             | Security bugfixes                 |
+| `1.2.x`    | `V3.0`   | `0.22+`             | Not supported                     |
+| `1.1.x`    | `V3.0`   | `0.21+`             | Not supported                     |
+| `0.20.x`   | `V2.1`   | `0.18+`             | Not supported                     |
 
 ## License
 

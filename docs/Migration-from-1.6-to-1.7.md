@@ -2,7 +2,9 @@
 
 PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings multiple enhancements to both platforms:
 
-- TBA  
+- iOS SDK introduces a new feature that allows you to share activation across multiple apps from the same vendor.
+- Added missing nullability annotations to Android SDK.
+- Both platforms have improved PowerAuth Token internal implementations. For example, your networking code can ask for the named token simultaneously without worrying that multiple tokens are created on the server.
 
 ### Compatibility with PowerAuth Server
 
@@ -46,8 +48,6 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ## iOS & tvOS
 
-- TBA
-
 ### API changes
 
 - `PowerAuthSDK` no longer provide `session` property. If you still need access to low-level `PowerAuthCoreSession`, then use `sessionProvider` as a replacement. The property contains object implementing new `PowerAuthCoreSessionProvider` protocol.
@@ -68,22 +68,16 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ## iOS & tvOS App Extensions
 
-- TBA
-
 ### API changes
 
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
-- All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
 - `PowerAuthTokenStore.removeLocalToken()` and `PowerAuthTokenStore.removeAllLocalTokens|()` functions are now disabled for app extensions. You have to manage tokens from the main application now.
 
 ## watchOS
 
-- TBA
-
 ### API changes
 
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
-- All methods with biometry prompt in `PowerAuthKeychain` are now deprecated. You can use new methods with `PowerAuthKeychainAuthentication` as a replacement.
 - `PowerAuthWatchSDK.activationId` property is now deprecated. Please use `activationIdentifier` as a replacement.
 - All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
 - `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.

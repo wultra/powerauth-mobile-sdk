@@ -71,8 +71,8 @@ DO_COPYSDK=0
 # -----------------------------------------------------------------------------
 function USAGE
 {
-	echo ""
-	echo "Usage:  $CMD  [options] command"
+    echo ""
+    echo "Usage:  $CMD  [options] command"
     echo ""
     echo "commands are:"
     echo ""
@@ -80,18 +80,18 @@ function USAGE
     echo "  buildCore         Build PowerAuthCore.xcframework to out directory"
     echo "  buildSdk          Build PowerAuth2.xcframework to out directory"
     echo ""
-	echo "options are:"
-	echo "  -nc | --no-clean  disable 'clean' before 'build'"
-	echo "                    also disables temporary data cleanup after build"
-	echo "  -v0               turn off all prints to stdout"
-	echo "  -v1               print only basic log about build progress"
-	echo "  -v2               print full build log with rich debug info"
-	echo "  --out-dir path    changes directory where final framework"
-	echo "                    will be stored"
-	echo "  --tmp-dir path    changes temporary directory to |path|"
-	echo "  -h | --help       prints this help information"
-	echo ""
-	exit $1
+    echo "options are:"
+    echo "  -nc | --no-clean  disable 'clean' before 'build'"
+    echo "                    also disables temporary data cleanup after build"
+    echo "  -v0               turn off all prints to stdout"
+    echo "  -v1               print only basic log about build progress"
+    echo "  -v2               print full build log with rich debug info"
+    echo "  --out-dir path    changes directory where final framework"
+    echo "                    will be stored"
+    echo "  --tmp-dir path    changes temporary directory to |path|"
+    echo "  -h | --help       prints this help information"
+    echo ""
+    exit $1
 }
 
 # -----------------------------------------------------------------------------
@@ -125,25 +125,25 @@ function USAGE
 # -----------------------------------------------------------------------------
 function GET_PLATFORM_ARCH
 {
-	case $1 in
-		iOS)			echo ${ARCH_IOS} ;;
-		iOS_Simulator)	echo ${ARCH_IOS_SIM} ;;
-		macOS_Catalyst)	echo ${ARCH_CATALYST} ;;
-		tvOS)			echo ${ARCH_TVOS} ;;
-		tvOS_Simulator)	echo ${ARCH_TVOS_SIM} ;;
-		*) FAILURE "Cannot determine architecture. Unsupported platform: '$1'" ;;
-	esac
+    case $1 in
+        iOS)            echo ${ARCH_IOS} ;;
+        iOS_Simulator)  echo ${ARCH_IOS_SIM} ;;
+        macOS_Catalyst) echo ${ARCH_CATALYST} ;;
+        tvOS)           echo ${ARCH_TVOS} ;;
+        tvOS_Simulator) echo ${ARCH_TVOS_SIM} ;;
+        *) FAILURE "Cannot determine architecture. Unsupported platform: '$1'" ;;
+    esac
 }
 function GET_PLATFORM_SDK
 {
-	case $1 in
-		iOS)			echo 'iphoneos' ;;
-		iOS_Simulator)	echo 'iphonesimulator' ;;
-		macOS_Catalyst)	echo 'macosx' ;;
-		tvOS)			echo 'appletvos' ;;
-		tvOS_Simulator)	echo 'appletvsimulator' ;;
-		*) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
-	esac
+    case $1 in
+        iOS)            echo 'iphoneos' ;;
+        iOS_Simulator)  echo 'iphonesimulator' ;;
+        macOS_Catalyst) echo 'macosx' ;;
+        tvOS)           echo 'appletvos' ;;
+        tvOS_Simulator) echo 'appletvsimulator' ;;
+        *) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
+    esac
 }
 function GET_PLATFORM_DESTINATION
 {
@@ -158,28 +158,28 @@ function GET_PLATFORM_DESTINATION
 }
 function GET_PLATFORM_TARGET
 {
-	case $1 in
-		iOS | iOS_Simulator | macOS_Catalyst)	echo ${XCODE_TARGET_IOS} ;;
-		tvOS | tvOS_Simulator)					echo ${XCODE_TARGET_TVOS} ;;
-		*) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
-	esac
+    case $1 in
+        iOS | iOS_Simulator | macOS_Catalyst)   echo ${XCODE_TARGET_IOS} ;;
+        tvOS | tvOS_Simulator)                  echo ${XCODE_TARGET_TVOS} ;;
+        *) FAILURE "Cannot determine platform target. Unsupported platform: '$1'" ;;
+    esac
 }
 function GET_PLATFORM_MIN_OS_VER
 {
-	case $1 in
-		iOS | iOS_Simulator) 	echo ${MIN_VER_IOS} ;;
-		macOS_Catalyst) 		echo ${MIN_VER_CATALYST} ;;
-		tvOS | tvOS_Simulator)	echo ${MIN_VER_TVOS} ;;
-		*) FAILURE "Cannot determine minimum supported OS version. Unsupported platform: '$1'" ;;
-	esac
+    case $1 in
+        iOS | iOS_Simulator)    echo ${MIN_VER_IOS} ;;
+        macOS_Catalyst)         echo ${MIN_VER_CATALYST} ;;
+        tvOS | tvOS_Simulator)  echo ${MIN_VER_TVOS} ;;
+        *) FAILURE "Cannot determine minimum supported OS version. Unsupported platform: '$1'" ;;
+    esac
 }
 function GET_PLATFORM_SCHEME
 {
-	case $1 in
-		iOS | iOS_Simulator | macOS_Catalyst)	echo ${XCODE_SCHEME_IOS} ;;
-		tvOS | tvOS_Simulator)					echo ${XCODE_SCHEME_TVOS} ;;
-		*) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
-	esac
+    case $1 in
+        iOS | iOS_Simulator | macOS_Catalyst)   echo ${XCODE_SCHEME_IOS} ;;
+        tvOS | tvOS_Simulator)                  echo ${XCODE_SCHEME_TVOS} ;;
+        *) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
+    esac
 }
 
 # -----------------------------------------------------------------------------
@@ -190,35 +190,35 @@ function GET_PLATFORM_SCHEME
 # -----------------------------------------------------------------------------
 function COPY_SOURCE_FILES
 {
-	local SRC="$1"
-	local DST="$2"
-	
-	# Prepare dirs in output directory
-	DST="`( cd \"$DST\" && pwd )`"
-	$MD "${DST}"
-	$MD "${DST}/Private"
-	
-	# Copy public / private SDK folders
+    local SRC="$1"
+    local DST="$2"
+    
+    # Prepare dirs in output directory
+    DST="`( cd \"$DST\" && pwd )`"
+    $MD "${DST}"
+    $MD "${DST}/Private"
+    
+    # Copy public / private SDK folders
     PUSH_DIR "$SRC"
     ####
     local FILES=(`grep -R -null --include "*.h" --include "*.m" "" .`)
-	# Do for each file we found...
-	for ix in ${!FILES[*]}
-	do
-		local FILE="${FILES[$ix]}"
+    # Do for each file we found...
+    for ix in ${!FILES[*]}
+    do
+        local FILE="${FILES[$ix]}"
         local DEST_DIR="$DST"
-    	case "$FILE" in 
-    	  ./private/*)
-    		DEST_DIR="$DST/Private"
-    	    ;;
-    	esac
+        case "$FILE" in 
+          ./private/*)
+            DEST_DIR="$DST/Private"
+            ;;
+        esac
         $CP "${FILE}" "${DEST_DIR}"
-	done
+    done
     ####
     POP_DIR
     
-	# Remove umbrella header, because CocoaPods generates its own.
-	$RM "${DST}/PowerAuth2.h"
+    # Remove umbrella header, because CocoaPods generates its own.
+    $RM "${DST}/PowerAuth2.h"
 }
 
 # -----------------------------------------------------------------------------
@@ -229,39 +229,39 @@ function COPY_SOURCE_FILES
 # -----------------------------------------------------------------------------
 function BUILD_COMMAND
 {
-	local PLATFORM="$1"
-	local DO_CLEAN="$2"
-	
-	local PLATFORM_DIR=$"${TMP_DIR}/${PLATFORM}"
-	local ARCHIVE_PATH="${PLATFORM_DIR}/${OUT_FW}.xcarchive"
-	
-	local PLATFORM_ARCHS="$(GET_PLATFORM_ARCH $PLATFORM)"
-	local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
+    local PLATFORM="$1"
+    local DO_CLEAN="$2"
+    
+    local PLATFORM_DIR=$"${TMP_DIR}/${PLATFORM}"
+    local ARCHIVE_PATH="${PLATFORM_DIR}/${OUT_FW}.xcarchive"
+    
+    local PLATFORM_ARCHS="$(GET_PLATFORM_ARCH $PLATFORM)"
+    local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
     local PLATFORM_DEST="$(GET_PLATFORM_DESTINATION $PLATFORM)"
-	local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
-	local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
-	local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
-	
-	LOG_LINE
-	LOG "Building ${PLATFORM} (${MIN_SDK_VER}+) for architectures ${PLATFORM_ARCHS}"
-	
-	DEBUG_LOG "Executing 'archive' for target ${PLATFORM_TARGET} ${PLATFORM_TARGET} :: ${PLATFORM_ARCHS}"
-	
-	local COMMAND_LINE="xcodebuild archive -project \"${XCODE_PROJECT}\" -scheme ${SCHEME}"
-	COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
-	COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
+    local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
+    local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
+    local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
+    
+    LOG_LINE
+    LOG "Building ${PLATFORM} (${MIN_SDK_VER}+) for architectures ${PLATFORM_ARCHS}"
+    
+    DEBUG_LOG "Executing 'archive' for target ${PLATFORM_TARGET} ${PLATFORM_TARGET} :: ${PLATFORM_ARCHS}"
+    
+    local COMMAND_LINE="xcodebuild archive -project \"${XCODE_PROJECT}\" -scheme ${SCHEME}"
+    COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
+    COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
     COMMAND_LINE+=" -destination \"${PLATFORM_DEST}\""
-	COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
-	[[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
-	[[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
-	
-	DEBUG_LOG ${COMMAND_LINE}
-	eval ${COMMAND_LINE}
+    COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
+    [[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
+    [[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
+    
+    DEBUG_LOG ${COMMAND_LINE}
+    eval ${COMMAND_LINE}
 
-	# Add produced platform framework to the list
-	local FINAL_FW="${ARCHIVE_PATH}/Products/Library/Frameworks/${OUT_FW}.framework"
-	[[ ! -d "${FINAL_FW}" ]] && FAILURE "Xcode build did not produce '${OUT_FW}.framework' for platform ${PLATFORM}"
-	ALL_FAT_LIBS+=("${FINAL_FW}")
+    # Add produced platform framework to the list
+    local FINAL_FW="${ARCHIVE_PATH}/Products/Library/Frameworks/${OUT_FW}.framework"
+    [[ ! -d "${FINAL_FW}" ]] && FAILURE "Xcode build did not produce '${OUT_FW}.framework' for platform ${PLATFORM}"
+    ALL_FAT_LIBS+=("${FINAL_FW}")
 }
 
 # -----------------------------------------------------------------------------
@@ -281,31 +281,31 @@ function BUILD_LIB
     XCODE_TARGET_TVOS="${LIB_NAME}-tvos"
     OUT_FW=${LIB_NAME}
     
-	LOG_LINE
-	LOG "Building $LIB_NAME for supported platforms..."
-	LOG_LINE
+    LOG_LINE
+    LOG "Building $LIB_NAME for supported platforms..."
+    LOG_LINE
 
-	ALL_FAT_LIBS=()
-	
+    ALL_FAT_LIBS=()
+    
     BUILD_PATCH_ARCHITECTURES
     
-	[[ x$FULL_REBUILD == x1 ]] && CLEAN_COMMAND
-	
-	for PLATFORM in ${PLATFORMS}
-	do
-		BUILD_COMMAND $PLATFORM $FULL_REBUILD
-	done
-	
-	LOG_LINE
-	LOG "Creating final ${OUT_FW}.xcframework..."
-	local XCFW_PATH="${OUT_DIR}/${OUT_FW}.xcframework"
-	local XCFW_ARGS=
+    [[ x$FULL_REBUILD == x1 ]] && CLEAN_COMMAND
+    
+    for PLATFORM in ${PLATFORMS}
+    do
+        BUILD_COMMAND $PLATFORM $FULL_REBUILD
+    done
+    
+    LOG_LINE
+    LOG "Creating final ${OUT_FW}.xcframework..."
+    local XCFW_PATH="${OUT_DIR}/${OUT_FW}.xcframework"
+    local XCFW_ARGS=
     for ARG in ${ALL_FAT_LIBS[@]}; do
         XCFW_ARGS+="-framework ${ARG} "
-		DEBUG_LOG "  - source fw: ${ARG}"
+        DEBUG_LOG "  - source fw: ${ARG}"
     done
-	DEBUG_LOG "  - target fw: ${XCFW_PATH}"
-	
+    DEBUG_LOG "  - target fw: ${XCFW_PATH}"
+    
     xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"    
 }
 
@@ -314,11 +314,11 @@ function BUILD_LIB
 # -----------------------------------------------------------------------------
 function COPY_SDK_SOURCES
 {
-	LOG_LINE
-	LOG "Copying SDK files ..."
-	LOG_LINE
+    LOG_LINE
+    LOG "Copying SDK files ..."
+    LOG_LINE
     
-	# Copy source files...
+    # Copy source files...
     COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
 }
 
@@ -355,17 +355,17 @@ function BUILD_PATCH_ARCHITECTURES
 # -----------------------------------------------------------------------------
 function CLEAN_COMMAND
 {
-	LOG_LINE
-	LOG "Cleaning build folder..."
-	
-	local QUIET=
-	if [ $VERBOSE -lt 2 ]; then
-		QUIET=" -quiet"
-	fi
+    LOG_LINE
+    LOG "Cleaning build folder..."
+    
+    local QUIET=
+    if [ $VERBOSE -lt 2 ]; then
+        QUIET=" -quiet"
+    fi
     local ALL_PLATFORMS=( $PLATFORMS )
     local DESTINATION="$(GET_PLATFORM_DESTINATION ${ALL_PLATFORMS[0]})"
     
-	xcodebuild clean -project "${XCODE_PROJECT}" -scheme ${XCODE_SCHEME_IOS} -destination ${DESTINATION} ${QUIET}
+    xcodebuild clean -project "${XCODE_PROJECT}" -scheme ${XCODE_SCHEME_IOS} -destination ${DESTINATION} ${QUIET}
 }
 
 ###############################################################################
@@ -374,40 +374,40 @@ function CLEAN_COMMAND
 
 while [[ $# -gt 0 ]]
 do
-	opt="$1"
-	case "$opt" in
+    opt="$1"
+    case "$opt" in
         buildCore)
             DO_BUILDCORE=1
-			;;
+            ;;
         buildSdk)
             DO_BUILDSDK=1
-			;;
+            ;;
         copySdk)
             DO_COPYSDK=1
             ;;
-		-nc | --no-clean)
-			FULL_REBUILD=0 
-			CLEANUP_AFTER=0
-			;;
-		--tmp-dir)
-			TMP_DIR="$2"
-			shift
-			;;
-		--out-dir)
-			OUT_DIR="$2"
-			shift
-			;;
-		-v*)
-			SET_VERBOSE_LEVEL_FROM_SWITCH $opt
-			;;
-		-h | --help)
-			USAGE 0
-			;;
-		*)
-			USAGE 1
-			;;
-	esac
-	shift
+        -nc | --no-clean)
+            FULL_REBUILD=0 
+            CLEANUP_AFTER=0
+            ;;
+        --tmp-dir)
+            TMP_DIR="$2"
+            shift
+            ;;
+        --out-dir)
+            OUT_DIR="$2"
+            shift
+            ;;
+        -v*)
+            SET_VERBOSE_LEVEL_FROM_SWITCH $opt
+            ;;
+        -h | --help)
+            USAGE 0
+            ;;
+        *)
+            USAGE 1
+            ;;
+    esac
+    shift
 done
 
 if [ x$DO_BUILDCORE$DO_BUILDSDK$DO_COPYSDK == x000 ]; then
@@ -416,10 +416,10 @@ fi
 
 # Defaulting target & temporary folders
 if [ -z "$OUT_DIR" ]; then
-	OUT_DIR="${TOP}/Lib"
+    OUT_DIR="${TOP}/Lib"
 fi
 if [ -z "$TMP_DIR" ]; then
-	TMP_DIR="${TOP}/Tmp"
+    TMP_DIR="${TOP}/Tmp"
 fi
 
 REQUIRE_COMMAND xcodebuild
@@ -448,9 +448,9 @@ $MD "${TMP_DIR}"
 # Remove temporary data
 #
 if [ x$CLEANUP_AFTER == x1 ]; then
-	LOG_LINE
-	LOG "Removing temporary data..."
-	$RM -r "${TMP_DIR}"
+    LOG_LINE
+    LOG "Removing temporary data..."
+    $RM -r "${TMP_DIR}"
 fi
 
 EXIT_SUCCESS

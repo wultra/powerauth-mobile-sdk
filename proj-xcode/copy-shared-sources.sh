@@ -116,11 +116,11 @@ function PATCH_ALL_MARKED_FILES
     # Find all files containing PA2_SHARED_SOURCE    
     local LOOKUP="PA2_SHARED_SOURCE $TI"
     local FILES=(`grep -R -null --include "*.h" --include "*.m" "$LOOKUP" .`)
-	
+    
     # Do for each file we found...
-	for ix in ${!FILES[*]}
-	do
-		local SRC_LOCAL_PATH="${FILES[$ix]}"
+    for ix in ${!FILES[*]}
+    do
+        local SRC_LOCAL_PATH="${FILES[$ix]}"
         local SRC_FILE=$(basename $SRC_LOCAL_PATH)
         # Look for a whole marker in this file
         local MARKER=(`grep "$LOOKUP" "$SRC_LOCAL_PATH"`)
@@ -135,7 +135,7 @@ function PATCH_ALL_MARKED_FILES
         fi
         #echo "PATCH $SRC_PATH $DST_PATH"
         PATCH $SRC_PATH $DST_PATH 
-	done
+    done
     
     POP_DIR
 }
@@ -213,11 +213,11 @@ DO_TEST_ONLY=0
 
 while [[ $# -gt 0 ]]
 do
-	opt="$1"
-	case "$opt" in
+    opt="$1"
+    case "$opt" in
         watch)
             DO_WATCH=1
-			;;
+            ;;
         extensions)
             DO_EXTENSIONS=1
             ;;
@@ -230,17 +230,17 @@ do
         -f | --force)
             FC=1
             ;;
-		-v*)
-			SET_VERBOSE_LEVEL_FROM_SWITCH $opt
-			;;
-		-h | --help)
-			USAGE 0
-			;;
-		*)
-			USAGE 1
-			;;
-	esac
-	shift
+        -v*)
+            SET_VERBOSE_LEVEL_FROM_SWITCH $opt
+            ;;
+        -h | --help)
+            USAGE 0
+            ;;
+        *)
+            USAGE 1
+            ;;
+    esac
+    shift
 done
 
 if [ x$DO_WATCH$DO_EXTENSIONS$DO_SDK_TEST == x000 ]; then

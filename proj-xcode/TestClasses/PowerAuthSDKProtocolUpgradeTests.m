@@ -429,6 +429,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	NSLog(@"Upgrade params (for old SDK step):");
 	NSLog(@"  - password    %@", auth.usePassword);
 	NSLog(@"  - act-id      %@", activationData.activationId);
+    NSLog(@"  - act-data    %@", activationStateData);
 	NSLog(@"=======================================================================");
 }
 

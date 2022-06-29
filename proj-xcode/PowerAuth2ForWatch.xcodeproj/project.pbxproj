@@ -394,7 +394,7 @@
 		BF86E806263C1DDF004C8AE5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1320;
+				LastUpgradeCheck = 1340;
 				TargetAttributes = {
 					BF86E80E263C1DDF004C8AE5 = {
 						CreatedOnToolsVersion = 12.4;

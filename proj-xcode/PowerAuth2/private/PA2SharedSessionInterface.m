@@ -144,8 +144,8 @@ typedef struct LocalContext {
 	PA2SharedLock * _operationLock;
 	/// Lock shared between applications that allows the signed requests serialization.
 	PA2SharedLock * _queueLock;
-	/// Additional debug lock, used for DEBUG builds
-	id<NSLocking> _debugLock;
+	/// Additional lock, used exclusively for this process.
+	id<NSLocking> _localLock;
 	
 	/// Number of "read" and "write" tasks opened from the current thread.
 	NSInteger _readWriteAccessCount;
@@ -210,9 +210,9 @@ typedef struct LocalContext {
 #if DEBUG
 		// Assign this class as session's debug monitor
 		_session.debugMonitor = self;
-		// Acquire local recursive lock to get a thread safety for monitor functions
-		_debugLock = [_statusLock createLocalRecusiveLock];
 #endif
+		// Acquire local recursive lock to get a thread safety for debug and support functions
+		_localLock = [_statusLock createLocalRecusiveLock];
 		// Everything looks OK, so restore the state and unlock the shared lock.
 		[self loadState:YES];
 		
@@ -282,6 +282,25 @@ typedef struct LocalContext {
 	return result;
 }
 
+- (void) executeOutsideOfTask:(void (^)(void))block queue:(dispatch_queue_t)queue
+{
+	[_localLock lock];
+	if (_readWriteAccessCount > 0) {
+		// We're in the middle of read or write task, so schedule the block execution
+		// into preferred dispatch queue.
+		dispatch_async(queue, ^{
+			// Acquire local lock to run block safely.
+			[_localLock lock];
+			block();
+			[_localLock unlock];
+		});
+	} else {
+		// No read or write task is running in this thread, so we can execute block now.
+		block();
+	}
+	[_localLock unlock];
+}
+
 #pragma mark - PA2TokenDataLock protocol
 
 - (BOOL) lockTokenStore
@@ -324,11 +343,11 @@ typedef struct LocalContext {
 - (void) addOperation:(NSOperation*)operation toSharedQueue:(NSOperationQueue*)queue
 {
 #if DEBUG
-	[_debugLock lock];
+	[_localLock lock];
 	if (_readWriteAccessCount > 0) {
 		PowerAuthLog(@"ERROR: Adding operation to shared queue from session task can lead to interprocess deadlock.");
 	}
-	[_debugLock unlock];
+	[_localLock unlock];
 #endif // DEBUG
 	NSBlockOperation * addOperation = [NSBlockOperation blockOperationWithBlock:^{
 		if (!operation.cancelled) {
@@ -383,23 +402,23 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
 
 - (void) requireReadAccess
 {
-	[_debugLock lock];
+	[_localLock lock];
 	// Determine whether there's some opened task
 	BOOL accessGranted = _readWriteAccessCount > 0 || _internalAccessGranted;
 	if (!accessGranted) {
 		PowerAuthLog(@"ERROR: Read access to PowerAuthCoreSession is not granted.");
 	}
-	[_debugLock unlock];
+	[_localLock unlock];
 }
 
 - (void) requireWriteAccess
 {
-	[_debugLock lock];
+	[_localLock lock];
 	BOOL accessGranted = (_readWriteAccessCount > 0 && _saveOnUnlock) || _internalAccessGranted;
 	if (!accessGranted) {
 		PowerAuthLog(@"ERROR: Write access to PowerAuthCoreSession is not granted.");
 	}
-	[_debugLock unlock];
+	[_localLock unlock];
 }
 #endif // DEBUG
 

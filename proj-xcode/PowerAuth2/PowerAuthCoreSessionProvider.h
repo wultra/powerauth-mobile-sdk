@@ -87,4 +87,15 @@
  */
 - (BOOL) writeBoolTaskWithSession:(BOOL (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreSession* _Nonnull session))taskBlock;
 
+/**
+ Execute block when no read or write task is open in the current thread. If this thread is in the middle
+ of session provider's task, then defer the block execution into the provided queue. It's guaranteed that block
+ is always executed when the session provider's local lock is acquired.
+ 
+ @param block Block to execute outside of read or write task.
+ @param queue Dispatch queue to use to run the block when the current thread is in the middle of session provider's task.
+ */
+- (void) executeOutsideOfTask:(void (^ _Nonnull)(void))block
+						queue:(dispatch_queue_t _Nonnull)queue;
+
 @end

@@ -138,7 +138,7 @@
 				for (int i = 0; i < 50; i++) {
 					if (i % 5 == 0) {
 						completionCount++;
-						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+						[self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
 							XCTAssertNotNil(status);
 							[_waitForQueuesTask extendWaitingTime];
 							if (!--completionCount) {
@@ -179,7 +179,7 @@
 				for (int i = 0; i < 50; i++) {
 					if (i % 7 == 0) {
 						completionCount++;
-						[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+						[self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
 							XCTAssertNotNil(status);
 							[_waitForQueuesTask extendWaitingTime];
 							if (!--completionCount) {
@@ -275,10 +275,12 @@
 	XCTAssertNil(_altSdk.externalPendingOperation);
 	
 	// Commit activation on the server.
-	[self.helper.testServerApi commitActivation:activationData.activationId];
+	if (!self.helper.testServerConfig.isServerAutoCommit) {
+		[self.helper.testServerApi commitActivation:activationData.activationId];
+	}
 	
 	PowerAuthActivationStatus * status1 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		[self.sdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+		[self.sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
 			[waiting reportCompletion:status];
 		}];
 	}];
@@ -286,7 +288,7 @@
 	XCTAssertEqual(PowerAuthActivationState_Active, status1.state);
 	
 	PowerAuthActivationStatus * status2 = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		[_altSdk fetchActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSDictionary * customObject, NSError * error) {
+		[_altSdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
 			[waiting reportCompletion:status];
 		}];
 	}];

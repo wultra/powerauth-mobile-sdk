@@ -110,6 +110,7 @@ static def loadInstrumentationTestConfigProperties(project, defaultConfig) {
             "test.powerauth.serverAuthUser",
             "test.powerauth.serverAuthPass",
             "test.powerauth.serverVersion",
+            "test.powerauth.serverAutoCommit",
             "test.powerauth.appName",
             "test.powerauth.appVersion",
             "test.powerauth.userIdentifier" ]

@@ -22,9 +22,10 @@
 
 @interface PowerAuthActivationStatus (Private)
 /**
- Private constructor with core status object.
+ Private constructor with core status object and optional custom object
  */
-- (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus*)status;
+- (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus*)status
+					   customObject:(NSDictionary<NSString*, NSObject*>*)customObject;
 /**
  Contains current version of activation
  */

@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -32,8 +33,10 @@ import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
+import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
@@ -174,9 +177,11 @@ public class StandardActivationTest {
         assertFalse(powerAuthSDK.canStartActivation());
 
         // Fetch status to test whether it's in "pending commit" state.
+        final boolean isAutoCommit = testHelper.getTestConfig().isServerAutoCommit();
+        final @ActivationStatus.ActivationState int expectedState = isAutoCommit ? ActivationStatus.State_Active : ActivationStatus.State_Pending_Commit;
         ActivationStatus activationStatus = activationHelper.fetchActivationStatus();
-        if (activationStatus.state != ActivationStatus.State_Pending_Commit) {
-            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state);
+        if (activationStatus.state != expectedState) {
+            throw new Exception("Activation is in invalid state after creation. State = " + activationStatus.state + ", Expected = " + expectedState);
         }
 
         // Compare public key fingerprints
@@ -186,12 +191,14 @@ public class StandardActivationTest {
         }
 
         // Commit activation on the server.
-        testHelper.getServerApi().activationCommit(activation);
+        if (!isAutoCommit) {
+            testHelper.getServerApi().activationCommit(activation);
 
-        // Fetch status to validate whether activation is now active
-        activationStatus = activationHelper.fetchActivationStatus();
-        if (activationStatus.state != ActivationStatus.State_Active) {
-            throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            // Fetch status to validate whether activation is now active
+            activationStatus = activationHelper.fetchActivationStatus();
+            if (activationStatus.state != ActivationStatus.State_Active) {
+                throw new Exception("Activation is in invalid state after commit. State = " + activationStatus.state);
+            }
         }
     }
 
@@ -236,6 +243,102 @@ public class StandardActivationTest {
         assertFalse(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
         assertTrue(powerAuthSDK.canStartActivation());
+    }
+
+    // Activation status
+
+    @Test
+    public void testGetActivationStatus() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+        ActivationStatus status = activationHelper.fetchActivationStatus();
+        assertEquals(ActivationStatus.State_Active, status.state);
+
+        testHelper.getServerApi().activationBlock(activationHelper.getActivation());
+        status = activationHelper.fetchActivationStatus();
+        assertEquals(ActivationStatus.State_Blocked, status.state);
+
+        testHelper.getServerApi().activationUnblock(activationHelper.getActivation());
+        status = activationHelper.fetchActivationStatus();
+        assertEquals(ActivationStatus.State_Active, status.state);
+
+        testHelper.getServerApi().activationRemove(activationHelper.getActivation());
+        status = activationHelper.fetchActivationStatus();
+        assertEquals(ActivationStatus.State_Removed, status.state);
+    }
+
+    @Test
+    public void testGetActivationStatusConcurrent() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        final ActivationStatus[] status1 = new ActivationStatus[1];
+        final ActivationStatus[] status2 = new ActivationStatus[1];
+        final ActivationStatus[] status3 = new ActivationStatus[1];
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        AsyncHelper.await((AsyncHelper.Execution<Boolean>) resultCatcher -> {
+            final ICancelable task1, task2, task3, task4;
+            task1 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                @Override
+                public void onActivationStatusSucceed(ActivationStatus status) {
+                    status1[0] = status;
+                    if (counter.addAndGet(1) == 3) {
+                        resultCatcher.completeWithResult(true);
+                    }
+                }
+
+                @Override
+                public void onActivationStatusFailed(@NonNull Throwable t) {
+                    fail();
+                }
+            });
+            assertNotNull(task1);
+            task4 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                @Override
+                public void onActivationStatusSucceed(ActivationStatus status) {
+                    fail();
+                }
+
+                @Override
+                public void onActivationStatusFailed(@NonNull Throwable t) {
+                    fail();
+                }
+            });
+            assertNotNull(task4);
+            task2 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                @Override
+                public void onActivationStatusSucceed(ActivationStatus status) {
+                    status2[0] = status;
+                    if (counter.addAndGet(1) == 3) {
+                        resultCatcher.completeWithResult(true);
+                    }
+                }
+
+                @Override
+                public void onActivationStatusFailed(@NonNull Throwable t) {
+                    fail();
+                }
+            });
+            assertNotNull(task2);
+            task3 = powerAuthSDK.fetchActivationStatusWithCallback(testHelper.getContext(), new IActivationStatusListener() {
+                @Override
+                public void onActivationStatusSucceed(ActivationStatus status) {
+                    status3[0] = status;
+                    if (counter.addAndGet(1) == 3) {
+                        resultCatcher.completeWithResult(true);
+                    }
+                }
+
+                @Override
+                public void onActivationStatusFailed(@NonNull Throwable t) {
+                    fail();
+                }
+            });
+            assertNotNull(task3);
+            task4.cancel();
+        });
+        assertSame(status1[0], status2[0]);
+        assertSame(status1[0], status3[0]);
+        assertSame(status2[0], status3[0]);
     }
 
 }

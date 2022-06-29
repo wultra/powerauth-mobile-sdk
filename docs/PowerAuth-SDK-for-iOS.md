@@ -440,7 +440,7 @@ To obtain a detailed activation status information, use the following code:
 if PowerAuthSDK.sharedInstance().hasValidActivation() {
 
     // If there is an activation on the device, check the status with the server
-    PowerAuthSDK.sharedInstance().fetchActivationStatus() { (status, customObject, error) in
+    PowerAuthSDK.sharedInstance().fetchActivationStatus() { (status, error) in
 
         // If no error occurred, process the status
         if let status = status {
@@ -1500,7 +1500,7 @@ Most of the SDK methods return an error object of an `NSError` class in case som
 In most cases, you receive an error object via a callback, like in this example:
 
 ```swift
-PowerAuthSDK.sharedInstance().fetchActivationStatus { (status, customObject, error) in
+PowerAuthSDK.sharedInstance().fetchActivationStatus { (status, error) in
     // Handle 'error' here
 }
 ```

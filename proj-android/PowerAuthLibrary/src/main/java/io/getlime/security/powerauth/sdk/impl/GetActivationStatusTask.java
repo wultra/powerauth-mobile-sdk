@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.EncryptedActivationStatus;
@@ -51,90 +52,75 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  *  and the protocol upgrade. The upgrade is started automatically, depending on the
  *  local and server's state of the activation.
  */
-public class GetActivationStatusTask implements ICancelable {
+public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
 
     public interface ICompletionListener {
         void onSessionStateChange();
-        void onSuccess(@NonNull GetActivationStatusTask task, @NonNull ActivationStatus status);
-        void onFailure(@NonNull GetActivationStatusTask task);
+        void onTaskCompletion(@NonNull GetActivationStatusTask task, @Nullable ActivationStatus status);
     }
 
     private final HttpClient httpClient;
     private final Session session;
     private final IPrivateCryptoHelper cryptoHelper;
     private final ICompletionListener completionListener;
-    private final ICallbackDispatcher callbackDispacher;
-
-    private final AtomicBoolean isExiting = new AtomicBoolean();
-    private final AtomicBoolean isCanceled = new AtomicBoolean();
-
-    private final ArrayList<ChildTask> childTasks = new ArrayList<>();
 
     /**
-     * Current pending operation.
+     * If set to true, then the automatic protocol upgrade will not start.
      */
-    private ICancelable pendingOperation;
+    private final boolean isUpgradeDisabled;
 
     /**
      * @param httpClient HTTP client
      * @param cryptoHelper cryptographic helper
      * @param session low level {@link Session} object
-     * @param callbackDispacher callback dispatcher from parent SDK object
+     * @param sharedLock Shared lock.
+     * @param callbackDispatcher callback dispatcher from parent SDK object
      * @param completionListener final completion listener.
      */
     public GetActivationStatusTask(
             @NonNull HttpClient httpClient,
             @NonNull IPrivateCryptoHelper cryptoHelper,
             @NonNull Session session,
-            @NonNull ICallbackDispatcher callbackDispacher,
+            @NonNull ReentrantLock sharedLock,
+            @NonNull ICallbackDispatcher callbackDispatcher,
+            boolean isUpgradeDisabled,
             @NonNull ICompletionListener completionListener) {
+        super("GetStatus", sharedLock, callbackDispatcher);
         this.httpClient = httpClient;
         this.session = session;
         this.cryptoHelper = cryptoHelper;
-        this.callbackDispacher = callbackDispacher;
         this.completionListener = completionListener;
-        this.pendingOperation = null;
+        this.isUpgradeDisabled = isUpgradeDisabled;
     }
 
-    /**
-     * If set to true, then the automatic protocol upgrade will not start.
-     */
-    private boolean isUpgradeDisabled;
+    //
+    // GroupedTask methods
+    //
 
-    /**
-     * @return true if automatic upgrade is disabled.
-     */
-    public boolean isUpgradeDisabled() {
-        return isUpgradeDisabled;
-    }
-
-    /**
-     * Enable or disable automatic protocol upgrade.
-     *
-     * @param upgradeDisabled Set true, if automatic upgrade should be disabled.
-     */
-    public void setUpgradeDisabled(boolean upgradeDisabled) {
-        isUpgradeDisabled = upgradeDisabled;
-    }
-
-    /**
-     * true if execute() method has been called
-     */
-    private boolean isStarted = false;
-
-    /**
-     * Start this task.
-     */
-    public void execute() {
-        if (isStarted) {
-             return;
-        }
-        isStarted = true;
-        lastFetchedStatus = null;
-        protocolUpgradeAttempts = 3;
+    @Override
+    public void onGroupedTaskStart() {
+        super.onGroupedTaskStart();
         fetchActivationStatusAndTestUpgrade();
     }
 
+    @Override
+    public void onGroupedTaskRestart() {
+        super.onGroupedTaskRestart();
+        lastFetchedStatus = null;
+        protocolUpgradeAttempts = 3;
+        isAutoCancelDisabled = false;
+    }
+
+    @Override
+    public boolean groupedTaskShouldCancelWhenNoChildOperationIsSet() {
+        return !isAutoCancelDisabled;
+    }
+
+    @Override
+    public void onGroupedTaskComplete(@Nullable ActivationStatus activationStatus, @Nullable Throwable failure) {
+        super.onGroupedTaskComplete(activationStatus, failure);
+        completionListener.onTaskCompletion(this, activationStatus);
+    }
 
     //
     // Fetch status
@@ -168,13 +154,13 @@ public class GetActivationStatusTask implements ICancelable {
                     return;
                 }
                 // Otherwise return the result as usual
-                completeTask(status, null);
+                complete(status);
             }
 
             @Override
             public void onActivationStatusFailed(@NonNull Throwable t) {
                 // In case of error, just complete the task with error.
-                completeTask(null, t);
+                complete(t);
             }
         });
     }
@@ -192,7 +178,7 @@ public class GetActivationStatusTask implements ICancelable {
         request.setActivationId(session.getActivationIdentifier());
         request.setChallenge(session.generateActivationStatusChallenge());
 
-        pendingOperation = httpClient.post(
+        final ICancelable operation = httpClient.post(
                 request,
                 new GetActivationStatusEndpoint(),
                 cryptoHelper,
@@ -200,16 +186,14 @@ public class GetActivationStatusTask implements ICancelable {
                     @Override
                     public void onNetworkResponse(@NonNull ActivationStatusResponse response) {
                         // Network communication completed correctly
-                        pendingOperation = null;
-                        // Prepare object with encryped status
+                        // Prepare object with encrypted status
                         final EncryptedActivationStatus encryptedStatus = new EncryptedActivationStatus(request.getChallenge(), response.getEncryptedStatusBlob(), response.getNonce());
                         // Prepare unlocking key (possession factor only)
                         final SignatureUnlockKeys keys = new SignatureUnlockKeys(cryptoHelper.getDeviceRelatedKey(), null, null);
                         // Attempt to decode the activation status
-                        final ActivationStatus activationStatus = session.decodeActivationStatus(encryptedStatus, keys);
+                        final ActivationStatus activationStatus = session.decodeActivationStatus(encryptedStatus, keys, response.getCustomObject());
                         if (activationStatus != null) {
                             // Everything was OK, keep custom object and report that result.
-                            activationStatus.setCustomObject(response.getCustomObject());
                             listener.onActivationStatusSucceed(activationStatus);
                         } else {
                             // Error occurred when decoding status
@@ -219,15 +203,13 @@ public class GetActivationStatusTask implements ICancelable {
 
                     @Override
                     public void onNetworkError(@NonNull Throwable t) {
-                        pendingOperation = null;
                         listener.onActivationStatusFailed(t);
                     }
 
                     @Override
-                    public void onCancel() {
-                        pendingOperation = null;
-                    }
+                    public void onCancel() { }
                 });
+        replaceCancelableOperation(operation);
     }
 
     //
@@ -251,7 +233,7 @@ public class GetActivationStatusTask implements ICancelable {
         final ValidateSignatureRequest request = new ValidateSignatureRequest();
         request.setReason("COUNTER_SYNCHRONIZATION");
 
-        pendingOperation = httpClient.post(
+        ICancelable operation = httpClient.post(
                 request,
                 new ValidateSignatureEndpoint(),
                 cryptoHelper,
@@ -259,23 +241,19 @@ public class GetActivationStatusTask implements ICancelable {
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(@NonNull Void aVoid) {
-                        pendingOperation = null;
-                        completeTask(status, null);
+                        complete(status);
                     }
 
                     @Override
                     public void onNetworkError(@NonNull Throwable throwable) {
-                        pendingOperation = null;
-                        completeTask(null, throwable);
+                        complete(throwable);
                     }
 
                     @Override
-                    public void onCancel() {
-                        pendingOperation = null;
-                    }
+                    public void onCancel() { }
                 }
-
         );
+        replaceCancelableOperation(operation);
     }
 
 
@@ -283,6 +261,14 @@ public class GetActivationStatusTask implements ICancelable {
     // Protocol upgrade
     //
 
+    /**
+     * If set to true, the this task is finished even if no child task is waiting for the result.
+     */
+    private boolean isAutoCancelDisabled;
+
+    /**
+     * Save session's state.
+     */
     private void serializeSessionState() {
         completionListener.onSessionStateChange();
     }
@@ -291,6 +277,7 @@ public class GetActivationStatusTask implements ICancelable {
      * Contains last fetched status, for later reporting.
      */
     private ActivationStatus lastFetchedStatus;
+
     /**
      * Contains number of attempts available for the upgrade. The upgrade procedure is will try
      * to finish the job in case that some partial operation fails.
@@ -316,7 +303,7 @@ public class GetActivationStatusTask implements ICancelable {
             continueWithUpgradeToV3(status);
         } else {
             final Throwable error = new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Number of upgrade attempts reached its maximum.");
-            completeTask(null, error);
+            complete(error);
         }
     }
 
@@ -391,7 +378,7 @@ public class GetActivationStatusTask implements ICancelable {
                 } else if (pendingUpgradeVersion == ProtocolVersion.NA) {
                     // Server's in V3, client's in V3, no pending upgrade.
                     // This is weird, but we can just report the result.
-                    completeTask(lastFetchedStatus, null);
+                    complete(status);
                     return;
                 }
             }
@@ -416,7 +403,8 @@ public class GetActivationStatusTask implements ICancelable {
      * Starts upgrade to V3 on the server.
      */
     private void startUpgradeToV3() {
-        pendingOperation = httpClient.post(
+        isAutoCancelDisabled = true;
+        final ICancelable operation = httpClient.post(
                 null,
                 new UpgradeStartV3Endpoint(),
                 cryptoHelper,
@@ -424,7 +412,6 @@ public class GetActivationStatusTask implements ICancelable {
                     @Override
                     public void onNetworkResponse(@NonNull UpgradeResponsePayload response) {
                         // Http request succeeded.
-                        pendingOperation = null;
                         // Prepare and apply the upgrade data.
                         final ProtocolUpgradeData upgradeData = ProtocolUpgradeData.version3(response.getCtrData());
                         if (session.applyProtocolUpgradeData(upgradeData) == ErrorCode.OK) {
@@ -442,26 +429,26 @@ public class GetActivationStatusTask implements ICancelable {
                     @Override
                     public void onNetworkError(@NonNull Throwable throwable) {
                         // In case of error, try to repeat the operation
-                        pendingOperation = null;
                         fetchActivationStatusAndTestUpgrade();
                     }
 
                     @Override
                     public void onCancel() {
-                        pendingOperation = null;
                     }
                 });
+        replaceCancelableOperation(operation);
     }
 
     /**
      * Commits upgrade to V3 on the server.
      */
     private void commitUpgradeToV3() {
+        isAutoCancelDisabled = true;
         // Prepare auth object with possession factor.
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         authentication.usePossession = true;
         // Start HTTP request
-        pendingOperation = httpClient.post(
+        final ICancelable operation = httpClient.post(
                 null,
                 new UpgradeCommitV3Endpoint(),
                 cryptoHelper,
@@ -469,8 +456,6 @@ public class GetActivationStatusTask implements ICancelable {
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(@NonNull Void o) {
-                        // Http request succeeded.
-                        pendingOperation = null;
                         // Everything looks fine, just finish the operation
                         finishUpgradeToV3();
                     }
@@ -478,15 +463,14 @@ public class GetActivationStatusTask implements ICancelable {
                     @Override
                     public void onNetworkError(@NonNull Throwable throwable) {
                         // In case of error, try to repeat the operation
-                        pendingOperation = null;
                         fetchActivationStatusAndTestUpgrade();
                     }
 
                     @Override
                     public void onCancel() {
-                        pendingOperation = null;
                     }
                 });
+        replaceCancelableOperation(operation);
     }
 
     /**
@@ -498,7 +482,7 @@ public class GetActivationStatusTask implements ICancelable {
             PowerAuthLog.d("ProtocolUpgrade: Activation was successfully upgraded to protocol V3.");
             // Everything looks fine, we can report previously cached status
             serializeSessionState();
-            completeTask(lastFetchedStatus, null);
+            complete(lastFetchedStatus);
         } else {
             // Unfortunately, session did reject the upgrade completion.
             completeTaskWithUpgradeError("Failed to complete the upgrade process.");
@@ -507,69 +491,8 @@ public class GetActivationStatusTask implements ICancelable {
 
 
     //
-    // Cancelable
-    //
-
-    @Override
-    public void cancel() {
-        isCanceled.set(true);
-        synchronized (this) {
-            if (pendingOperation != null) {
-                pendingOperation.cancel();
-                pendingOperation = null;
-            }
-        }
-        // Report "cancel from elsewhere"
-        completeTask(null, null);
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return isCanceled.get();
-    }
-
-
-    //
     // Task completion
     //
-
-    /**
-     * Complete the task with status or with error. If both objects are not provided, then the
-     * {@link PowerAuthErrorCodes#OPERATION_CANCELED} exception is created.
-     *
-     * @param status status to be reported
-     * @param throwable error to be reported
-     */
-    private void completeTask(@Nullable ActivationStatus status, @Nullable Throwable throwable) {
-
-        if (isExiting.getAndSet(true)) {
-            // We're already exiting
-            return;
-        }
-
-        // If both parameters are null, then it's
-        if (status == null && throwable == null) {
-            throwable = new PowerAuthErrorException(PowerAuthErrorCodes.OPERATION_CANCELED, "Operation was canceled from elsewhere.");
-        }
-
-        final ArrayList<ChildTask> tasksToReport;
-        synchronized (this) {
-            tasksToReport = new ArrayList<>(childTasks);
-            childTasks.clear();
-        }
-
-        // At first, report to primary listener (e.g. to the PowerAuthSDK)
-        if (status != null) {
-            completionListener.onSuccess(this, status);
-        } else {
-            completionListener.onFailure(this);
-        }
-        // Now report to all child tasks
-        for (ChildTask task : tasksToReport) {
-            task.complete(status, throwable);
-        }
-    }
-
 
     /**
      * Complete task with {@link PowerAuthErrorException} and with {@link PowerAuthErrorCodes#PROTOCOL_UPGRADE}
@@ -578,91 +501,6 @@ public class GetActivationStatusTask implements ICancelable {
      * @param message additional message describing the reason why the task failed.
      */
     private void completeTaskWithUpgradeError(@NonNull String message) {
-        completeTask(null, new PowerAuthErrorException(PowerAuthErrorCodes.PROTOCOL_UPGRADE, message));
-    }
-
-
-    //
-    // Child task
-    //
-
-    /**
-     * Add a listener into the list of listeners for later completion. The method returns {@link ICancelable}
-     * object capturing the listener provided to the function. The application can cancel the returned
-     * object. After that, the listener will never be completed.
-     *
-     * @param listener {@link IActivationStatusListener} to be added to the list of completion listeners
-     * @return {@link ICancelable} object capturing the listener or null if this task is already exiting.
-     */
-    public @Nullable ICancelable addActivationStatusListener(@NonNull IActivationStatusListener listener) {
-        synchronized (this) {
-            if (!isExiting.get()) {
-                final ChildTask task = new ChildTask(listener);
-                childTasks.add(task);
-                return task;
-            }
-            return null;
-        }
-    }
-
-
-    /**
-     * Remove one particular child task from list of child tasks. The method should be used
-     * only from {@link ChildTask#cancel()} method.
-     *
-     * @param task child task to be removed
-     */
-    private void removeActivationStatusListener(@NonNull ChildTask task) {
-        synchronized (this) {
-            childTasks.remove(task);
-        }
-    }
-
-
-    /**
-     * The {@code ChildTask} class wraps one {@link IActivationStatusListener} listener into
-     * cancelable object. The application can then cancel its previously created request for
-     * the activation status.
-     */
-    private class ChildTask implements ICancelable {
-
-        private final IActivationStatusListener listener;
-        private final AtomicBoolean isCanceled = new AtomicBoolean();
-
-        ChildTask(@NonNull IActivationStatusListener listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public void cancel() {
-            isCanceled.set(true);
-            removeActivationStatusListener(this);
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return isCanceled.get();
-        }
-
-        /**
-         * Notify listener about the result.
-         *
-         * @param status if not null, then the {@link IActivationStatusListener#onActivationStatusSucceed(ActivationStatus)} will be called
-         * @param throwable if not null, then the {@link IActivationStatusListener#onActivationStatusFailed(Throwable)} will be called
-         */
-        public void complete(final @Nullable ActivationStatus status, final @Nullable Throwable throwable) {
-            if (!isCanceled.getAndSet(true)) {
-                callbackDispacher.dispatchCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (status != null) {
-                            listener.onActivationStatusSucceed(status);
-                        } else {
-                            listener.onActivationStatusFailed(throwable);
-                        }
-                    }
-                });
-            }
-        }
+        complete(new PowerAuthErrorException(PowerAuthErrorCodes.PROTOCOL_UPGRADE, message));
     }
 }

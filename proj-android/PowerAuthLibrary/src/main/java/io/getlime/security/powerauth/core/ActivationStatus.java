@@ -121,13 +121,13 @@ public class ActivationStatus {
      * Contains custom object received from the server together with the status. The value is optional
      * and the server's implementation must support it.
      */
-    private Map<String, Object> customObject;
+    private final Map<String, Object> customObject;
 
     // Constructor
 
-    public ActivationStatus() {
-        this.errorCode = 0;
-        this.state = 0;
+    ActivationStatus() {
+        this.errorCode = ErrorCode.OK;
+        this.state = State_Created;
         this.failCount = 0;
         this.maxFailCount = 0;
         this.currentVersion = ProtocolVersion.NA;
@@ -136,14 +136,6 @@ public class ActivationStatus {
         this.isSignatureCalculationRecommended = false;
         this.needsSerializeSessionState = false;
         this.customObject = null;
-    }
-
-
-    /**
-     * @param customObject custom object to set
-     */
-    public void setCustomObject(Map<String, Object> customObject) {
-        this.customObject = customObject;
     }
 
     /**

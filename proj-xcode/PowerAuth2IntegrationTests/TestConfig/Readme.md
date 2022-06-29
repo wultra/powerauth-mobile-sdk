@@ -7,9 +7,9 @@ To do this, please follow these simple steps:
 2. Create a following keys in the file:
    ```
    {
-		"restApiUrl"           : "http://localhost:8080/powerauth-webflow",
+		"restApiUrl"           : "http://localhost:8080/enrollment-server",
 		"soapApiUrl"           : "http://localhost:8080/powerauth-java-server/soap",
-		"soapApiVersion"       : "1.1",
+		"soapApiVersion"       : "1.3",
 		"powerAuthAppName"     : "AutomaticTest-IOS",
 		"powerAuthAppVersion"  : "default"
    }
@@ -28,3 +28,4 @@ To do this, please follow these simple steps:
    - `userActivationName` - a name will be used for newly created activations
    - `soapAuthUsername` - an username in case that SOAP service needs authentication
    - `soapAuthPassword` - a password in case that SOAP service needs authentication
+   - `serverAutoCommit` - if true, then the activation is automatically commited on the server.

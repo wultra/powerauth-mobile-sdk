@@ -73,6 +73,11 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
  otherwise 0.
  */
 @property (nonatomic, assign, readonly) UInt32 remainingAttempts;
+/**
+ Contains custom object returned from the server. The value is optional and PowerAuth Application Server
+ must support this custom object.
+ */
+@property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* customObject;
 
 @end
 

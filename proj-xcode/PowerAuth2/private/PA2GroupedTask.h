@@ -42,7 +42,8 @@
  Initialize object with a shared lock that will be used as a thread synchronization primitive.
  Be aware that the lock must support recursive locking.
  */
-- (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock;
+- (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock
+								   taskName:(nullable NSString*)taskName;
 
 /**
  Restarts the task. Returns YES if task has been restarted and you can add more child tasks.
@@ -85,6 +86,11 @@
  Called when the first child task is created. The subclass implementation must call super and add at least one cancelable operation.
  */
 - (void) onTaskStart;
+
+/**
+ Called from restart method, when task is being restarted. The subclass implementation must call super and add at least one cancelable operation.
+ */
+- (void) onTaskRestart;
 
 /**
  Called when the group task is completed with the result or error or is automatically cancelled. If task is automatically canceled,

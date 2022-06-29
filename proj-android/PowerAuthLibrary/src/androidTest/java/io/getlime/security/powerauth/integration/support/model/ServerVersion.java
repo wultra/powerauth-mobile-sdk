@@ -29,6 +29,7 @@ public enum ServerVersion {
     V1_0_0("1.0", 1000000, ProtocolVersion.V3_1),
     V1_1_0("1.1", 1001000, ProtocolVersion.V3_1),
     V1_2_0("1.2", 1002000, ProtocolVersion.V3_1),
+    V1_2_5("1.2.5", 1002005, ProtocolVersion.V3_1),
     V1_3_0("1.3", 1003000, ProtocolVersion.V3_1)
 
     ;

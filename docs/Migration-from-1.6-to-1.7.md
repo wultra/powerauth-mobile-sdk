@@ -50,6 +50,9 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ### API changes
 
+- `PowerAuthSDK.lastFetchedCustomObject` property is now deprecated. The custom object dictionary is now a part of `PowerAuthActivationStatus` object.
+- `PowerAuthSDK.fetchActivationStatus` has now a different callback function, with no custom object dictionary in the callback parameter.
+  - The original function is marked as deprecated, so if you're not interested in the custom object, then simply remove that parameter from the callback. The Swift compiler should re-map the call to a proper Objective-C message from SDK. If you're using Objective-C, then use `getActivationStatusWithCallback` message as a replacement.
 - `PowerAuthSDK` no longer provide `session` property. If you still need access to low-level `PowerAuthCoreSession`, then use `sessionProvider` as a replacement. The property contains object implementing new `PowerAuthCoreSessionProvider` protocol.
 - `PowerAuthCoreSession.prepareKeyValueDictionaryForDataSigning()` is now static method.
 - `PowerAuthCoreSession.generateActivationStatusChallenge()` is now static method.

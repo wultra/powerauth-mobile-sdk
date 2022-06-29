@@ -377,6 +377,65 @@
 	XCTAssertEqual(status.state, PowerAuthActivationState_Removed);
 }
 
+- (void) testActivationStatusConcurrent
+{
+	//
+	// This test checks whether SDK correctly group getting activation status requests
+	//
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
+
+	__block PowerAuthActivationStatus * status1 = nil;
+	__block PowerAuthActivationStatus * status2 = nil;
+	__block PowerAuthActivationStatus * status3 = nil;
+	AtomicCounter * counter = [[AtomicCounter alloc] init];
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		id<PowerAuthOperationTask> task1, task2, task3, task4;
+		task1 = [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+			status1 = status;
+			[counter incrementUpTo:3 completion:^{ [waiting reportCompletion:nil]; }];
+		}];
+		task4 = [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+			XCTFail();
+		}];
+		task2 = [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+			status2 = status;
+			[counter incrementUpTo:3 completion:^{ [waiting reportCompletion:nil]; }];
+		}];
+		task3 = [_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+			status3 = status;
+			[counter incrementUpTo:3 completion:^{ [waiting reportCompletion:nil]; }];
+		}];
+		[task4 cancel];
+	}];
+	XCTAssertNotNil(status1);
+	XCTAssertNotNil(status2);
+	XCTAssertNotNil(status3);
+	XCTAssertTrue(status1 == status2);
+	XCTAssertTrue(status1 == status3);
+	XCTAssertTrue(status2 == status3);
+	
+	status1 = nil;
+	status2 = nil;
+	
+	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+			status1 = status;
+			// Request for the status immediately from the callback
+			[_sdk getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+				status2 = status;
+				[waiting reportCompletion:nil];
+			}];
+		}];
+	}];
+	XCTAssertNotNil(status1);
+	XCTAssertNotNil(status2);
+	XCTAssertFalse(status1 == status2);
+}
+
 - (void) testActivationStatusFailCounters
 {
 	CHECK_TEST_CONFIG();

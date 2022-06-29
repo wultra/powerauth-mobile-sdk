@@ -34,6 +34,7 @@
 
 // Monitors
 @property (atomic, readonly) NSInteger monitorOnTaskStartCount;
+@property (atomic, readonly) NSInteger monitorOnTaskRestartCount;
 @property (atomic, readonly) NSInteger monitorOnTaskCompleteCount;
 
 // Operations
@@ -52,16 +53,6 @@
 	}
 	return self;
 }
-- (BOOL) restart
-{
-	BOOL r = [super restart];
-	if (r) {
-		_monitorOnTaskStartCount = 0;
-		_monitorOnTaskCompleteCount = 0;
-		_testOperation = nil;
-	}
-	return r;
-}
 - (void) onTaskStart
 {
 	[super onTaskStart];
@@ -71,6 +62,15 @@
 	} else {
 		_testOperation = [[TestOperationTask alloc] init];
 		[self addCancelableOperation:_testOperation];
+	}
+}
+- (void) onTaskRestart
+{
+	@synchronized (self) {
+		_monitorOnTaskStartCount = 0;
+		_monitorOnTaskCompleteCount = 0;
+		_monitorOnTaskRestartCount++;
+		_testOperation = nil;
 	}
 }
 - (void) onTaskCompleteWithResult:(id)result error:(NSError *)error
@@ -206,6 +206,7 @@
 		XCTFail();
 	}];
 	XCTAssertNil(childAfterComplete);
+	XCTAssertEqual(1, groupTask.monitorOnTaskRestartCount);
 }
 
 - (void) testChildCancel

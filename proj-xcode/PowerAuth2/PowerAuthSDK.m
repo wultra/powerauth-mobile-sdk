@@ -30,7 +30,6 @@
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
 #import "PA2PrivateEncryptorFactory.h"
-#import "PA2GetActivationStatusTask.h"
 #import "PA2DefaultSessionInterface.h"
 #import "PA2SharedSessionInterface.h"
 #import "PA2SessionDataProvider.h"
@@ -70,6 +69,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 	
 	/// Current pending status task.
 	PA2GetActivationStatusTask * _getStatusTask;
+	PowerAuthActivationStatus * _lastFetchedActivationStatus;
 }
 
 #pragma mark - Private methods
@@ -489,7 +489,7 @@ static PowerAuthSDK * s_inst;
 
 - (void) cancelAllPendingTasks
 {
-	[self cancelActivationStatusTask];
+	[_getStatusTask cancel];
 	[_tokenStore cancelAllTasks];
 }
 
@@ -794,10 +794,9 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Getting activations state
 
-- (id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus *status, NSDictionary *customObject, NSError *error))callback
+- (id<PowerAuthOperationTask>) getActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus * status, NSError * error))callback
 {
 	[self checkForValidSetup];
-	
 	// Check for activation
 	NSError * stateError = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
 		if (!session.hasValidActivation) {
@@ -807,46 +806,37 @@ static PowerAuthSDK * s_inst;
 		return nil;
 	}];
 	if (stateError) {
-		callback(nil, nil, stateError);
+		callback(nil, stateError);
 		return nil;
 	}
-	// Create child task and add it to the status fetcher.
-	PA2GetActivationStatusChildTask * task = [[PA2GetActivationStatusChildTask alloc] initWithCompletionQueue:dispatch_get_main_queue() completion:callback];
-	[self getActivationStatusWithChildTask:task];
+	
+	[_lock lock];
+	//
+	id<PowerAuthOperationTask> task = [_getStatusTask createChildTask:callback];
+	if (!task) {
+		// If there's no grouping task, or task is already finished, then simply create new one with the child task.
+		_getStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
+															   deviceRelatedKey:[self deviceRelatedKey]
+																sessionProvider:_sessionInterface
+																	   delegate:self
+																	 sharedLock:_lock
+																 disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
+		task = [_getStatusTask createChildTask:callback];
+	}
+	//
+	[_lock unlock];
 	return task;
 }
 
-
-- (void) getActivationStatusWithChildTask:(PA2GetActivationStatusChildTask*)childTask
+- (void) getActivationStatusTask:(PA2GetActivationStatusTask*)task didFinishedWithStatus:(PowerAuthActivationStatus*)status error:(NSError*)error
 {
-	PA2GetActivationStatusTask * oldTask = nil;
-	[_lock lock];
-	{
-		if (_getStatusTask) {
-			if ([_getStatusTask addChildTask:childTask] == NO) {
-				// unable to add child task. This means that current task is going to finish its execution soon,
-				// so we need to create a new one.
-				oldTask = _getStatusTask;
-				_getStatusTask = nil;
-			}
+	// [_lock lock] is guaranteed, because this method is called from task's completion while locked with shared lock.
+	// So, we can freely mutate objects in this instance.
+	if (_getStatusTask == task) {
+		_getStatusTask = nil;
+		if (status) {
+			_lastFetchedActivationStatus = status;
 		}
-		if (!_getStatusTask) {
-			// Task doesn't exist. We need to create a new one.
-			__weak PowerAuthSDK * weakSelf = self;
-			_getStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
-																   deviceRelatedKey:[self deviceRelatedKey]
-																	sessionProvider:_sessionInterface
-																		 completion:^(PA2GetActivationStatusTask * task, PowerAuthActivationStatus* status, NSDictionary* customObject, NSError* error) {
-																			[weakSelf completeActivationStatusTask:task status:status customObject:customObject error:error];
-																		 }];
-			_getStatusTask.disableUpgrade = _configuration.disableAutomaticProtocolUpgrade;
-			[_getStatusTask addChildTask:childTask];
-			[_getStatusTask execute];
-		}
-	}
-	[_lock unlock];
-	
-	if (oldTask) {
 		// This is the reference to task which is going to finish its execution soon.
 		// The ivar no longer holds the reference to the task, but we should keep that reference
 		// for a little bit longer, to guarantee, that we don't destroy that object during its
@@ -855,62 +845,32 @@ static PowerAuthSDK * s_inst;
 			// The following call does nothing, because the old task is no longer stored
 			// in the `_getStatusTask` ivar. It just guarantees that the object will be alive
 			// during waiting to execute the operation block.
-			[self completeActivationStatusTask:oldTask status:nil customObject:nil error:nil];
+			[self getActivationStatusTask:task didFinishedWithStatus:nil error:nil];
 		}];
 	}
 }
 
-
-/**
- Completes pending PA2GetActivationStatusTask. The function resets internal `_getStatusTask` ivar,
- but only if it equals to provided "task" object.
- 
- @param task task being completed
- */
-- (void) completeActivationStatusTask:(PA2GetActivationStatusTask*)task
-							   status:(PowerAuthActivationStatus*)status
-						 customObject:(NSDictionary*)customObject
-								error:(NSError*)error
+- (PowerAuthActivationStatus*) lastFetchedActivationStatus
 {
 	[_lock lock];
-	{
-		BOOL updateObjects;
-		if (task == _getStatusTask) {
-			// Regular processing, only one task was scheduled and it just finished.
-			_getStatusTask = nil;
-			updateObjects = YES;
-		} else {
-			// If _getStatusTask is nil, then it means that last status task has been cancelled.
-			// In this case, we should not update the objects.
-			// If there's a different PA2GetActivationStatusTask object, then that means
-			// that during the finishing our batch, was scheduled the next one. In this situation
-			// we still can keep the last received objects, because there was no cancel, or reset.
-			updateObjects = _getStatusTask != nil;
-		}
-		// Update last received objects
-		if (!error && status && updateObjects) {
-			_lastFetchedActivationStatus = status;
-			_lastFetchedCustomObject = customObject;
-		}
-	}
+	PowerAuthActivationStatus * status = _lastFetchedActivationStatus;
 	[_lock unlock];
+	return status;
 }
 
+// Deprecated methods
 
-/**
- Cancels possible pending PA2GetActivationStatusTask. The function can be called only in rare cases,
- like when SDK object is going to reset its local state.
- */
-- (void) cancelActivationStatusTask
+// PA2_DEPRECATED(1.7.0)
+- (id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus *status, NSDictionary *customObject, NSError *error))callback
 {
-	[_lock lock];
-	{
-		[_getStatusTask cancel];
-		_getStatusTask = nil;
-		_lastFetchedActivationStatus = nil;
-		_lastFetchedCustomObject = nil;
-	}
-	[_lock unlock];
+	return [self getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
+		callback(status, status.customObject, error);
+	}];
+}
+// PA2_DEPRECATED(1.7.0)
+- (NSDictionary*) lastFetchedCustomObject
+{
+	return self.lastFetchedActivationStatus.customObject;
 }
 
 

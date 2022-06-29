@@ -110,6 +110,7 @@ public class AsyncHelper {
      * Interface that allows start of asynchronous operation.
      * @param <TResult> Type of result object.
      */
+    @FunctionalInterface
     public interface Execution<TResult> {
         /**
          * Start your asynchronous operation. Your implementation get a {@link ResultCatcher} object

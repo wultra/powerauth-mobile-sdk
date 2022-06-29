@@ -36,21 +36,21 @@
  Initializes client for given PowerAuthClientConfiguration configuration, completion queue,
  base url, crypto helper and session interface.
  */
-- (instancetype) initWithConfiguration:(PowerAuthClientConfiguration*)configuration
-					   completionQueue:(dispatch_queue_t)queue
-							   baseUrl:(NSString*)baseUrl
-				  coreSessionInterface:(id<PA2SessionInterface>)sessionInterface
-								helper:(id<PA2PrivateCryptoHelper>)helper;
+- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
+							   completionQueue:(nonnull dispatch_queue_t)queue
+									   baseUrl:(nonnull NSString*)baseUrl
+						  coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
+										helper:(nonnull id<PA2PrivateCryptoHelper>)helper;
 
-@property (nonatomic, weak, readonly) id<PA2PrivateCryptoHelper> cryptoHelper;
-@property (nonatomic, strong, readonly) id<PA2SessionInterface> sessionInterface;
-@property (nonatomic, strong, readonly) PowerAuthClientConfiguration * configuration;
-@property (nonatomic, strong, readonly) NSString * baseUrl;
+@property (nonatomic, weak, nullable, readonly) id<PA2PrivateCryptoHelper> cryptoHelper;
+@property (nonatomic, strong, nonnull, readonly) id<PA2SessionInterface> sessionInterface;
+@property (nonatomic, strong, nonnull, readonly) PowerAuthClientConfiguration * configuration;
+@property (nonatomic, strong, nonnull, readonly) NSString * baseUrl;
 
 /**
  Contains NSURLSession object created during the client initialization.
  */
-@property (nonatomic, strong, readonly) NSURLSession * session;
+@property (nonatomic, strong, nonnull, readonly) NSURLSession * session;
 /**
  Contains serialization queue. The queue is unique per PA2HttpClient instance, so basically
  each instnace of PowerAuthSDK has its own queue.
@@ -59,29 +59,29 @@
  signature is requested. The reson for that is that the entry, protected by biometry,
  needs to be acquired from the underlying keychain.
  */
-@property (nonatomic, strong, readonly) NSOperationQueue * serialQueue;
+@property (nonatomic, strong, nonnull, readonly) NSOperationQueue * serialQueue;
 /**
  Contains concurrent queue. Note that this queue is shared between multiple PA2HttpClient
  instances.
  */
-@property (nonatomic, strong, readonly) NSOperationQueue * concurrentQueue;
+@property (nonatomic, strong, nonnull, readonly) NSOperationQueue * concurrentQueue;
 
 /**
  Post a HTTP request to the the given endpoint. The object and authentication parameters are optional.
  The completion block is always issued to the "completionQueue", provided in the object's initialization.
  */
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-						 to:(PA2RestApiEndpoint*)endpoint
-					   auth:(PowerAuthAuthentication*)authentication
-				 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion;
+- (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
+								 to:(nonnull PA2RestApiEndpoint*)endpoint
+							   auth:(nullable PowerAuthAuthentication*)authentication
+						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
 
 /**
  Post a HTTP request to the the given endpoint. The object parameter is optional.
  The completion block is always issued to the "completionQueue", provided in the object's initialization.
  */
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-						 to:(PA2RestApiEndpoint*)endpoint
-				 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion;
+- (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
+								 to:(nonnull PA2RestApiEndpoint*)endpoint
+						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
 
 /**
  Post a HTTP request to the the given endpoint. The object and authentication parameters are optional.
@@ -90,10 +90,10 @@
  The cancel block is called if application calls "cancel" on returned operation. This allows SDK to handle
  special cases, where the consistency needs to be guaranteed.
  */
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-						 to:(PA2RestApiEndpoint*)endpoint
-					   auth:(PowerAuthAuthentication*)authentication
-				 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
-					 cancel:(void(^)(void))cancel;
+- (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
+								 to:(nonnull PA2RestApiEndpoint*)endpoint
+							   auth:(nullable PowerAuthAuthentication*)authentication
+						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion
+							 cancel:(void(^ _Nullable)(void))cancel;
 
 @end

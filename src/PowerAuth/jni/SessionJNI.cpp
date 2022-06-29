@@ -338,9 +338,9 @@ CC7_JNI_METHOD_PARAMS(jint, completeActivation, jobject lockKeys)
 // ----------------------------------------------------------------------------
 
 //
-// public native ActivationStatus decodeActivationStatus(EncryptedActivationStatus encryptedStatus, SignatureUnlockKeys unlockKeys);
+// public native ActivationStatus decodeActivationStatus(EncryptedActivationStatus encryptedStatus, SignatureUnlockKeys unlockKeys, Map<String, Object> customObject);
 //
-CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, jobject unlockKeys)
+CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, jobject unlockKeys, jobject customObject)
 {
 	auto session = CC7_THIS_OBJ();
 	if (!session || !unlockKeys || !encryptedStatus) {
@@ -367,6 +367,7 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, 
 	CC7_JNI_SET_FIELD_INT(resultObject, resultClazz, "errorCode", code);
 	if (code == EC_Ok) {
 		const char * versionSig = CC7_JNI_MODULE_CLASS_SIGNATURE("ProtocolVersion");
+		const char * customObjectSig = "Ljava/util/Map;";
 		jobject currentVersionObject = CreateJavaProtocolVersion(env, cppStatus.currentVersion);
 		jobject upgradeVersionObject = CreateJavaProtocolVersion(env, cppStatus.upgradeVersion);
 		CC7_JNI_SET_FIELD_INT	(resultObject, resultClazz, "state", 	 			cppStatus.state);
@@ -377,6 +378,7 @@ CC7_JNI_METHOD_PARAMS(jobject, decodeActivationStatus, jobject encryptedStatus, 
 		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isUpgradeAvailable",					cppStatus.isProtocolUpgradeAvailable());
 		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "isSignatureCalculationRecommended",	cppStatus.isSignatureCalculationRecommended());
 		CC7_JNI_SET_FIELD_BOOL	(resultObject, resultClazz, "needsSerializeSessionState",			cppStatus.needsSerializeSessionState());
+		CC7_JNI_SET_FIELD_OBJECT(resultObject, resultClazz, "customObject", customObjectSig, customObject);
 	}
 	return resultObject;
 }

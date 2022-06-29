@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.core;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -244,10 +245,14 @@ public class Session {
      *
      * @param encryptedStatus encrypted status blob received from the server
      * @param unlockKeys object with unlock keys, with the required possession factor.
+     * @param customObject Custom object returned from the server. The map will be assigned to the activation status in case of success.
      * @return Always returns a valid object and you have to check result's errorCode property whether
      *         the operation failed or not.
      */
-    public native ActivationStatus decodeActivationStatus(@NonNull EncryptedActivationStatus encryptedStatus, @NonNull SignatureUnlockKeys unlockKeys);
+    public native ActivationStatus decodeActivationStatus(
+            @NonNull EncryptedActivationStatus encryptedStatus,
+            @NonNull SignatureUnlockKeys unlockKeys,
+            @Nullable Map<String, Object> customObject);
 
     //
     // Data signing

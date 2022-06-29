@@ -48,11 +48,13 @@
 
 @implementation PowerAuthActivationStatus (Private)
 
-- (instancetype) initWithCoreStatus:(nonnull PowerAuthCoreActivationStatus*)status
+- (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus *)status
+					   customObject:(NSDictionary<NSString *,NSObject *> *)customObject
 {
 	self = [super init];
 	if (self) {
 		_status = status;
+		_customObject = customObject;
 	}
 	return self;
 }

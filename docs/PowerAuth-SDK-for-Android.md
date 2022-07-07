@@ -399,18 +399,14 @@ powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authenticatio
 Also, you can use the following code to create activation with the best granularity control:
 
 ```java
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = encryptedBiometryKey;
-
+PowerAuthAuthentication authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(pin, biometryFactorRelatedKey);
 int result =  powerAuthSDK.commitActivationWithAuthentication(context, authentication);
 if (result != PowerAuthErrorCodes.SUCCEED) {
     // happens only in case SDK was not configured or activation is not in state to be committed
 }
 ```
 
-Note that you currently need to obtain the encrypted biometry key yourself - you have to use `BiometricPrompt.CryptoObject` or integration with Android `KeyStore` to do so.
+Note that you currently need to obtain the biometry factor-related key yourself - you have to use `BiometricPrompt.CryptoObject` or integration with Android `KeyStore` to do so.
 
 ### Validating User Inputs
 
@@ -592,22 +588,22 @@ The main feature of the PowerAuth protocol is data signing. PowerAuth has two ty
 To sign request data, you need to first obtain user credentials (password, PIN code, biometric image) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication` that holds information about the used authentication factors:
 
 ```java
+// 1FA signature, uses device related key only.
+PowerAuthAuthentication oneFactor = PowerAuthAuthentication.possession();
+
 // 2FA signature, uses device related key and user PIN code.
-// To use biometry, you need to fetch the encrypted biometry key value using `BiometricPrompt.CryptoObject`.
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication twoFactorPassword = PowerAuthAuthentication.possessionWithPassword("1234");
+
+// 2FA signature, uses biometry factor-related key as a 2nd. factor.
+// To obtain biometryFactorRelatedKey see "Fetching the Biometry Factor-Related Key for Authentication" chapter.
+PowerAuthAuthentication twoFactorPassword = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
 ```
 
 When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
 
 ```java
 // 2FA signature, uses device related key and user PIN code
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes);
@@ -623,10 +619,7 @@ When signing `GET` requests, use the same code as above with normalized request 
 
 ```java
 // 2FA signature, uses device related key and user PIN code
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 // Sign GET call with provided query parameters made to URI with custom identifier "/payment/create"
 Map<String, String> params = new HashMap<>();
@@ -687,10 +680,7 @@ This process is completely transparent on the SDK level. To compute an asymmetri
 
 ```java
 // Prepare the authentication object
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 // Get the data to be signed
 byte[] data = this.getMyData();
@@ -714,9 +704,7 @@ This type of signature is very similar to [Symmetric Multi-Factor Signature](#sy
 
 ```java
 // Prepare the authentication object
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 final String signature = powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confirm/offline/operation", data, nonce);
 if (signature != null) {
@@ -930,8 +918,9 @@ powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the bi
 
     @Override
     public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-        // User authenticated and biometry key was returned
-        byte[] biometryFactorRelatedKey = biometricKeyData.getDerivedData();
+        // User authenticated and biometry key was returned, now you can construct PowerAuthAuthentication object with proper signing capabilities.
+        final byte[] biometryFactorRelatedKey = biometricKeyData.getDerivedData();
+        final PowerAuthAuthentication twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
     }
 
     @Override
@@ -1052,10 +1041,7 @@ PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove`
 Use the following code for an activation removal using signed request:
 
 ```java
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 // Remove activation using provided authentication object
 powerAuthSDK.removeActivationWithAuthentication(context, authentication, new IActivationRemoveListener() {
@@ -1166,10 +1152,7 @@ In order to obtain an encryption key with a given index, use the following code:
 
 ```java
 // 2FA signature. It uses device related key and user PIN code.
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 // Select custom key index
 long index = 1000L;
@@ -1222,10 +1205,7 @@ if (!powerAuthSDK.hasActivationRecoveryData()) {
 }
 
 // 2FA signature, uses device related key and user PIN code
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 powerAuthSDK.getActivationRecoveryData(context, authentication, new IGetRecoveryDataListener() {
     @Override
@@ -1264,10 +1244,7 @@ The recovery postcard can contain the recovery code and multiple PUK values on o
 
 ```java
 // 2FA signature with possession factor is required
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
-authentication.usePassword = "1234";
-authentication.useBiometry = null;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
 final String recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
 powerAuthSDK.confirmRecoveryCode(context, authentication, recoveryCode, new IConfirmRecoveryCodeListener{
@@ -1312,8 +1289,7 @@ To get an access token, you can use the following code:
 
 ```java
 // 1FA signature, uses device related key
-PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-authentication.usePossession = true;
+PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
 
 final PowerAuthTokenStore tokenStore = powerAuthSDK.getTokenStore();
 final AsyncTask task = tokenStore.requestAccessToken(context, "MyToken", authentication, new IGetTokenListener() {

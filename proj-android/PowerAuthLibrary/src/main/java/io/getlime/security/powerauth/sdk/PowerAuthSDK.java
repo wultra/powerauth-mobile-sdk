@@ -406,25 +406,27 @@ public class PowerAuthSDK {
      * @return {@link SignatureUnlockKeys} object with
      */
     private @NonNull SignatureUnlockKeys signatureKeysForAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
+
+        // Validate authentication usage for signature calculation.
+        authentication.validateAuthenticationUsage(false);
+
         // Generate signature key encryption keys
-        byte[] possessionKey = null;
+        byte[] possessionKey;
         byte[] biometryKey = null;
         Password knowledgeKey = null;
 
-        if (authentication.usePossession) {
-            if (authentication.overriddenPossessionKey != null) {
-                possessionKey = authentication.overriddenPossessionKey;
-            } else {
-                possessionKey = deviceRelatedKey(context);
-            }
+        if (authentication.getOverriddenPossessionKey() != null) {
+            possessionKey = authentication.getOverriddenPossessionKey();
+        } else {
+            possessionKey = deviceRelatedKey(context);
         }
 
-        if (authentication.useBiometry != null) {
-            biometryKey = authentication.useBiometry;
+        if (authentication.getBiometryFactorRelatedKey() != null) {
+            biometryKey = authentication.getBiometryFactorRelatedKey();
         }
 
-        if (authentication.usePassword != null) {
-            knowledgeKey = new Password(authentication.usePassword);
+        if (authentication.getPassword() != null) {
+            knowledgeKey = new Password(authentication.getPassword());
         }
 
         // Prepare signature unlock keys structure
@@ -440,14 +442,11 @@ public class PowerAuthSDK {
      */
     @SignatureFactor
     private int determineSignatureFactorForAuthentication(@NonNull PowerAuthAuthentication authentication) {
-        @SignatureFactor int factor = 0;
-        if (authentication.usePossession) {
-            factor |= SignatureFactor.Possession;
-        }
-        if (authentication.usePassword != null) {
+        @SignatureFactor int factor = SignatureFactor.Possession;
+        if (authentication.getPassword() != null) {
             factor |= SignatureFactor.Knowledge;
         }
-        if (authentication.useBiometry != null) {
+        if (authentication.getBiometryFactorRelatedKey() != null) {
             factor |= SignatureFactor.Biometry;
         }
         return factor;
@@ -930,11 +929,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password) {
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.useBiometry = null;
-        authentication.usePossession = true;
-        authentication.usePassword = password;
-        return commitActivationWithAuthentication(context, authentication);
+        return commitActivationWithAuthentication(context, PowerAuthAuthentication.possessionWithPassword(password));
     }
 
     /**
@@ -1016,7 +1011,8 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-                final int errorCode = commitActivationWithPassword(context, password, biometricKeyData.getDerivedData());
+                final PowerAuthAuthentication authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
+                final int errorCode = commitActivationWithAuthentication(context, authentication);
                 if (errorCode == PowerAuthErrorCodes.SUCCEED) {
                     callback.onBiometricDialogSuccess();
                 } else {
@@ -1046,11 +1042,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.useBiometry = encryptedBiometryKey;
-        authentication.usePossession = true;
-        authentication.usePassword = password;
-        return commitActivationWithAuthentication(context, authentication);
+        return commitActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, encryptedBiometryKey, null));
     }
 
     /**
@@ -1072,10 +1064,13 @@ public class PowerAuthSDK {
             return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
         }
 
+        // Validate authentication usage for commit.
+        authentication.validateAuthenticationUsage(true);
+
         // Prepare key encryption keys
-        final byte[] possessionKey = authentication.usePossession ? deviceRelatedKey(context) : null;
-        final byte[] biometryKey = authentication.useBiometry;
-        final Password knowledgeKey = authentication.usePassword != null ? new Password(authentication.usePassword) : null;
+        final byte[] possessionKey = deviceRelatedKey(context);
+        final byte[] biometryKey = authentication.getBiometryFactorRelatedKey();
+        final Password knowledgeKey = authentication.getPassword() != null ? new Password(authentication.getPassword()) : null;
 
         // Prepare signature unlock keys structure
         final SignatureUnlockKeys keys = new SignatureUnlockKeys(possessionKey, biometryKey, knowledgeKey);
@@ -1658,9 +1653,7 @@ public class PowerAuthSDK {
             @NonNull final IAddBiometryFactorListener listener) {
 
         // Initial authentication object, used for vault unlock call on server
-        final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
-        authAuthentication.usePossession = true;
-        authAuthentication.usePassword = password;
+        final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
 
         // Fetch vault unlock key
         final CompositeCancelableTask compositeCancelableTask = new CompositeCancelableTask(true);
@@ -1728,9 +1721,7 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable addBiometryFactor(@NonNull final Context context, @NonNull String password, final @NonNull byte[] encryptedBiometryKey, @NonNull final IAddBiometryFactorListener listener) {
-        final PowerAuthAuthentication authAuthentication = new PowerAuthAuthentication();
-        authAuthentication.usePossession = true;
-        authAuthentication.usePassword = password;
+        final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
 
         return fetchEncryptedVaultUnlockKey(context, authAuthentication, VaultUnlockReason.ADD_BIOMETRY, new IFetchEncryptedVaultUnlockKeyListener() {
 
@@ -1829,9 +1820,7 @@ public class PowerAuthSDK {
     ICancelable validatePasswordCorrect(@NonNull Context context, @NonNull String password, @NonNull final IValidatePasswordListener listener) {
 
         // Prepare authentication object
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
-        authentication.usePassword = password;
+        PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword(password);
         // Prepare request object
         final ValidateSignatureRequest request = new ValidateSignatureRequest();
         request.setReason("VALIDATE_PASSWORD");

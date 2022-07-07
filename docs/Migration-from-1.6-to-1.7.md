@@ -5,6 +5,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - iOS SDK introduces a new feature that allows you to share activation across multiple apps from the same vendor.
 - Added missing nullability annotations to Android SDK.
 - Both platforms have improved PowerAuth Token internal implementations. For example, your networking code can ask for the named token simultaneously without worrying that multiple tokens are created on the server.
+- Improved usage of `PowerAuthAuthentication` object on both platforms.
 
 ### Compatibility with PowerAuth Server
 
@@ -13,6 +14,13 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 ## Android
 
 ### API changes
+
+- All mutable properties in `PowerAuthAuthentication` are now deprecated, including `PowerAuthAuthentication()` (constructor with no parameters). You can use the following static methods as a replacement:
+  - `PowerAuthAuthentication.possession()` - create authentication object for signing with possession factor only.
+  - `PowerAuthAuthentication.possessionWithPassword()` - create authentication object for signing with possession and knowledge factors.
+  - `PowerAuthAuthentication.possessionWithBiometry()` - create authentication object for signing with possession and biometry factors.
+  - `PowerAuthAuthentication.commitWithPassword()` - create authentication object for activation commit purpose.
+  - `PowerAuthAuthentication.commitWithPasswordAndBiometry()` - create authentication object for activation commit purpose.
 
 - Added `@NonNull` annotations to all public "listener" interfaces. This change may produce several warnings in application's code. The following interfaces are affected:
   - `IActivationRemoveListener`

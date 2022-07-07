@@ -163,6 +163,25 @@
 	WRITE_ACCESS_UNLOCK();
 }
 
+- (void) executeOutsideOfTask:(void (^)(void))block queue:(dispatch_queue_t)queue
+{
+	[_lock lock];
+	if (_readWriteAccessCount > 0) {
+		// We're in the middle of read or write task, so schedule the block execution
+		// into preferred dispatch queue.
+		dispatch_async(queue, ^{
+			// Acquire local lock to run block safely.
+			[_lock lock];
+			block();
+			[_lock unlock];
+		});
+	} else {
+		// No read or write task is running in this thread, so we can execute block now.
+		block();
+	}
+	[_lock unlock];
+}
+
 #pragma mark - PA2TokenDataLock protocol
 
 - (BOOL) lockTokenStore

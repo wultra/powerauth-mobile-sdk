@@ -596,7 +596,7 @@ PowerAuthAuthentication twoFactorPassword = PowerAuthAuthentication.possessionWi
 
 // 2FA signature, uses biometry factor-related key as a 2nd. factor.
 // To obtain biometryFactorRelatedKey see "Fetching the Biometry Factor-Related Key for Authentication" chapter.
-PowerAuthAuthentication twoFactorPassword = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
+PowerAuthAuthentication twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
 ```
 
 When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:

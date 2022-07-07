@@ -75,7 +75,7 @@ public class PowerAuthAuthentication {
      * Construct object with desired combination of factors. Such authentication object can be used
      * either for activation commit and for the signature calculation.
      *
-     * Note that you should prefer static construction functions, instead of this constructor, unless
+     * Note that you should prefer static construction functions instead of this constructor, unless
      * you have a special reason for it.
      *
      * @param activationCommit If true, then authentication can be used for activation commit.

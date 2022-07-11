@@ -25,4 +25,9 @@
  */
 @property (nonatomic, readonly) NSInteger signatureFactorMask;
 
+/// Function validates whether PowerAuthAuthentication was created for the right object usage.
+/// @param forCommit Specifies whether commit or sign operation is required.
+/// @return YES if object is correct for the specified usage.
+- (BOOL) validateUsage:(BOOL)forCommit;
+
 @end

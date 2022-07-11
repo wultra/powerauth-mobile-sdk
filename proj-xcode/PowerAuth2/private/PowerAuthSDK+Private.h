@@ -21,6 +21,7 @@
 #import "PA2GetActivationStatusTask.h"
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
+#import "PowerAuthAuthentication+Private.h"
 
 @import PowerAuthCore;
 

@@ -334,10 +334,7 @@ This code has created activation with two factors: possession (key stored using 
 
 ```swift
 do {
-    let auth = PowerAuthAuthentication()
-    auth.usePossession = true
-    auth.usePassword   = "1234"
-    auth.useBiometry   = true
+    let auth = PowerAuthAuthentication.commitWithPasswordAndBiometry(password: "1234")
 
     try PowerAuthSDK.sharedInstance().commitActivation(with: auth)
 } catch _ {
@@ -514,18 +511,24 @@ The main feature of the PowerAuth protocol is data signing. PowerAuth has three 
 To sign request data, you need to first obtain user credentials (password, PIN code, Touch ID scan) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication` that holds information about the used authentication factors:
 
 ```swift
-// 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
-auth.usePassword   = "1234"
-auth.useBiometry   = false
+// 1FA signature, uses device related key only.
+let oneFactor = PowerAuthAuthentication.possession()
+
+// 2FA signature, uses device related key and user PIN code.
+let twoFactorPassword = PowerAuthAuthentication.possessionWithPassword(password: "1234")
+
+// 2FA signature, uses biometry factor-related key as a 2nd. factor.
+let twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry()
+
+// Alternative biometry authentications with prompt
+let twoFactorBiometryPrompt = PowerAuthAuthentication.possessionWithBiometry(prompt: "Please authenticate with biometry to log-in.")
 ```
 
 When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 do {
@@ -541,7 +544,7 @@ When signing `GET` requests, use the same code as above with normalized request 
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Sign GET call with provided query parameters made to URI with custom identifier "/payment/create"
 let params = [
@@ -595,10 +598,7 @@ This process is completely transparent on the SDK level. To compute an asymmetri
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
-auth.usePassword   = "1234"
-auth.useBiometry   = false
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Unlock the secure vault, fetch the private key and perform data signing
 PowerAuthSDK.sharedInstance().signData(withDevicePrivateKey: auth, data: data) { (signature, error) in
@@ -616,10 +616,7 @@ This type of signature is very similar to [Symmetric Multi-Factor Signature](#sy
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
-auth.usePassword   = "1234"
-auth.useBiometry   = false
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 do {
     let signature = try PowerAuthSDK.sharedInstance().offlineSignature(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce)
@@ -871,7 +868,7 @@ let laContext = LAContext()
 laContext.localizedReason = "Authenticate to remove activation"
 
 // Prepare PowerAuthAuthentication with context
-let authentication = PowerAuthAuthentication.possessionWithBiometry(withContext: laContext)
+let authentication = PowerAuthAuthentication.possessionWithBiometry(context: laContext)
 // Now you can use authentication in some functions...
 PowerAuthSDK.sharedInstance().removeActivation(with: authentication) { error in
     // ...
@@ -933,7 +930,7 @@ Use the following code for an activation removal using signed request:
 
 ```swift
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Remove activation using provided authentication object
 PowerAuthSDK.sharedInstance().removeActivation(with: auth) { (error) in
@@ -1038,7 +1035,7 @@ In order to obtain an encryption key with a given index, use the following code:
 
 ```swift
 // 2FA signature. It uses device-related key and user PIN code.
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Select custom key index
 let index = UInt64(1000)
@@ -1088,7 +1085,7 @@ guard powerAuthSdk.hasActivationRecoveryData() else {
 }
 
 // 2FA signature, uses device related key and user PIN code
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in
     if let recoveryData = recoveryData {
@@ -1123,7 +1120,7 @@ The recovery postcard can contain the recovery code and multiple PUK values on o
 
 ```swift
 // 2FA signature with possession factor is required
-let auth = PowerAuthAuthentication.possession(withPassword: "1234")
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 let recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
 PowerAuthSDK.sharedInstance().confirmRecoveryCode(recoveryCode, authentication: auth) { alreadyConfirmed, error in
@@ -1164,8 +1161,7 @@ To get an access token, you can use the following code:
 
 ```swift
 // 1FA signature, uses device related key
-let auth = PowerAuthAuthentication()
-auth.usePossession = true
+let auth = PowerAuthAuthentication.possession()
 
 let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
 

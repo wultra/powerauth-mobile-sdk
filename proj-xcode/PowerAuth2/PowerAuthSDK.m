@@ -312,6 +312,9 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 - (PowerAuthCoreSignatureUnlockKeys*) signatureKeysForAuthentication:(PowerAuthAuthentication*)authentication
 													   userCancelled:(BOOL *)userCancelled
 {
+	// Validate authentication object usage
+	[authentication validateUsage:NO];
+	
 	// Generate signature key encryption keys
 	NSData *possessionKey = nil;
 	NSData *biometryKey = nil;
@@ -628,10 +631,7 @@ static PowerAuthSDK * s_inst;
 - (BOOL) commitActivationWithPassword:(NSString*)password
 								error:(NSError**)error
 {
-	PowerAuthAuthentication *authentication = [[PowerAuthAuthentication alloc] init];
-	authentication.useBiometry = YES;
-	authentication.usePossession = YES;
-	authentication.usePassword = password;
+	PowerAuthAuthentication *authentication = [PowerAuthAuthentication commitWithPassword:password];
 	return [self commitActivationWithAuthentication:authentication error:error];
 }
 
@@ -639,6 +639,9 @@ static PowerAuthSDK * s_inst;
 									  error:(NSError**)error
 {
 	[self checkForValidSetup];
+	
+	// Validate authentication object usage
+	[authentication validateUsage:YES];
 	
 	NSError * reportedError = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
 		// Check if there is a pending activation present and not an already existing valid activation
@@ -1186,8 +1189,8 @@ static PowerAuthSDK * s_inst;
 		if (biometryKey) {
 			// The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
 			// with possession+biometry factors.
-			authentication = [PowerAuthAuthentication possessionWithBiometry];
-			authentication.overridenBiometryKey = biometryKey;
+			authentication = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:biometryKey
+																			  customPossessionKey:nil];
 			error = nil;
 		} else {
 			// Otherwise report an error depending on whether the operation was canceled by the user.

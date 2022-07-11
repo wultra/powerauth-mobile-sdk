@@ -213,3 +213,16 @@
               expectedResult:(BOOL)expectedResult;
 
 @end
+
+@interface PowerAuthAuthentication (TestHelper)
+/**
+ Create copy from this authentication object, suited for the signature calculation.
+ */
+- (PowerAuthAuthentication*) copyForSigning;
+
+/**
+ Create a broken copy from this authentication object.
+ */
+- (PowerAuthAuthentication*) copyCrippledForSigning;
+
+@end

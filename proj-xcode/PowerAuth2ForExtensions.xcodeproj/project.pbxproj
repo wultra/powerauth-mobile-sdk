@@ -25,6 +25,8 @@
 		BF1ED0D82847778500D6B380 /* PA2CreateTokenTask.h in Headers */ = {isa = PBXBuildFile; fileRef = BF1ED0D52847778500D6B380 /* PA2CreateTokenTask.h */; };
 		BF1ED0D92847778500D6B380 /* PA2CreateTokenTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0D62847778500D6B380 /* PA2CreateTokenTask.m */; };
 		BF1ED0DA2847778500D6B380 /* PA2CreateTokenTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0D62847778500D6B380 /* PA2CreateTokenTask.m */; };
+		BF215F05287D965E00EC3F3E /* PowerAuthAuthenticationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF215F04287D965E00EC3F3E /* PowerAuthAuthenticationTests.m */; };
+		BF215F06287D965E00EC3F3E /* PowerAuthAuthenticationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF215F04287D965E00EC3F3E /* PowerAuthAuthenticationTests.m */; };
 		BF44F277263C3B0F00F3D498 /* PowerAuth2ForExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F28C263C3BF400F3D498 /* PA2SessionStatusDataReader.m in Sources */ = {isa = PBXBuildFile; fileRef = BF44F281263C3BF400F3D498 /* PA2SessionStatusDataReader.m */; };
 		BF44F28D263C3BF400F3D498 /* PA2PrivateConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F282263C3BF400F3D498 /* PA2PrivateConstants.h */; };
@@ -139,6 +141,7 @@
 		BF1ED0D02847776B00D6B380 /* PA2GroupedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2GroupedTask.m; sourceTree = "<group>"; };
 		BF1ED0D52847778500D6B380 /* PA2CreateTokenTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2CreateTokenTask.h; sourceTree = "<group>"; };
 		BF1ED0D62847778500D6B380 /* PA2CreateTokenTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2CreateTokenTask.m; sourceTree = "<group>"; };
+		BF215F04287D965E00EC3F3E /* PowerAuthAuthenticationTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthenticationTests.m; sourceTree = "<group>"; };
 		BF44F272263C3B0F00F3D498 /* PowerAuth2ForExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2ForExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF44F275263C3B0F00F3D498 /* PowerAuth2ForExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuth2ForExtensions.h; sourceTree = "<group>"; };
 		BF44F276263C3B0F00F3D498 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -224,6 +227,7 @@
 		BF1ED0892840ED3F00D6B380 /* PowerAuth2ForExtensionsTests */ = {
 			isa = PBXGroup;
 			children = (
+				BF215F04287D965E00EC3F3E /* PowerAuthAuthenticationTests.m */,
 				BF1ED08A2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m */,
 			);
 			path = PowerAuth2ForExtensionsTests;
@@ -579,6 +583,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF1ED08B2840ED3F00D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */,
+				BF215F05287D965E00EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -587,6 +592,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF1ED0962840F44200D6B380 /* PowerAuth2ForExtensionsTests.m in Sources */,
+				BF215F06287D965E00EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

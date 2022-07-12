@@ -51,6 +51,8 @@
 		BF1ED0C62846274700D6B380 /* PA2CreateTokenTask.m in Sources */ = {isa = PBXBuildFile; fileRef = BF1ED0C22846274700D6B380 /* PA2CreateTokenTask.m */; };
 		BF2007542152B44F001F3614 /* PA2PrivateEncryptorFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */; };
 		BF2007552152B44F001F3614 /* PA2PrivateEncryptorFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */; };
+		BF215F02287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */; };
+		BF215F03287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */; };
 		BF28A9FC27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
 		BF28A9FD27E9D54100FBFCEB /* PA2AppGroupContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */; };
 		BF28A9FE27E9D54100FBFCEB /* PA2AppGroupContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */; };
@@ -638,6 +640,7 @@
 		BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_CreationExtensions.m; sourceTree = "<group>"; };
 		BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_CreationExtensions.h; sourceTree = "<group>"; };
 		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
+		BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthenticationTests.m; sourceTree = "<group>"; };
 		BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AppGroupContainer.h; sourceTree = "<group>"; };
 		BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AppGroupContainer.m; sourceTree = "<group>"; };
 		BF28AA0927EA09F000FBFCEB /* PA2SharedSessionInterface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SharedSessionInterface.h; sourceTree = "<group>"; };
@@ -1219,6 +1222,7 @@
 				BF667EC52835A0B2006E97F8 /* PowerAuthCustomHeaderRequestInterceptorTests.m */,
 				BF667EC62835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m */,
 				BF667EC72835A0B2006E97F8 /* Info.plist */,
+				BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */,
 			);
 			path = PowerAuth2Tests;
 			sourceTree = SOURCE_ROOT;
@@ -1728,9 +1732,13 @@
 				TargetAttributes = {
 					BF4DBCCC1CDF9CDE008F3A47 = {
 						CreatedOnToolsVersion = 7.3.1;
+						LastSwiftMigration = 1340;
 					};
 					BF5EB4A024C85FE200F9DDB2 = {
 						ProvisioningStyle = Automatic;
+					};
+					BF5EB54024C860A500F9DDB2 = {
+						LastSwiftMigration = 1340;
 					};
 					BF667E6228359C7C006E97F8 = {
 						TestTargetID = BFC1925427FAF28F001455C1;
@@ -1918,6 +1926,7 @@
 				BF667ED52835A13F006E97F8 /* AsyncHelper.m in Sources */,
 				BF369FCA285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED02835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
+				BF215F02287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
 				BF667EC82835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECA2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,
 				BF667ECC2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
@@ -2008,6 +2017,7 @@
 				BF667ED42835A13E006E97F8 /* AsyncHelper.m in Sources */,
 				BF369FCB285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED12835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
+				BF215F03287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
 				BF667EC92835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECB2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,
 				BF667ECD2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
@@ -2361,6 +2371,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2375,6 +2386,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -2382,6 +2395,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2396,6 +2410,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -2464,6 +2479,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2479,6 +2495,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -2486,6 +2504,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2501,6 +2520,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2Tests-tvos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

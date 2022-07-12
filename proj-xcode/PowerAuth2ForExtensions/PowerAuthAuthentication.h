@@ -207,7 +207,7 @@
 /// @param password Password used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return New instnace of authentication object configured for signing with custom possession key and knowledge factor.
-+ (nonnull PowerAuthAuthentication *) possessionWithKnowledge:(nonnull NSString*)password
++ (nonnull PowerAuthAuthentication *) possessionWithPassword:(nonnull NSString*)password
 										 customPossessionKey:(nonnull NSData*)customPossessionKey
 						NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
 

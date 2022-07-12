@@ -263,7 +263,7 @@
 {
 	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
 													   password:nil
-													   biometry:NO
+													   biometry:YES
 												 biometryPrompt:nil
 												biometryContext:context
 											customPossessionKey:nil
@@ -274,7 +274,7 @@
 {
 	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
 													   password:nil
-													   biometry:NO
+													   biometry:YES
 												 biometryPrompt:nil
 												biometryContext:context
 											customPossessionKey:customPossessionKey
@@ -295,8 +295,8 @@
 											  customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication *) possessionWithKnowledge:(NSString*)password
-								  customPossessionKey:(NSData*)customPossessionKey
++ (PowerAuthAuthentication *) possessionWithPassword:(NSString*)password
+								 customPossessionKey:(NSData*)customPossessionKey
 {
 	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
 													   password:password

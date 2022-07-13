@@ -25,7 +25,7 @@
 	self = [super init];
 	if (self) {
 		_activationData = activationData;
-		_credentials = [credentials copy];
+		_credentials = [credentials copyForSigning];
 		_activationResult = activationResult;
 	}
 	return self;
@@ -200,9 +200,7 @@ static NSString * PA_Ver = @"3.1";
 - (PowerAuthAuthentication*) authPossession
 {
 	if (_currentActivation) {
-		PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-		auth.usePossession = YES;
-		return auth;
+		return [PowerAuthAuthentication possession];
 	}
 	return nil;
 }
@@ -214,10 +212,7 @@ static NSString * PA_Ver = @"3.1";
 
 - (PowerAuthAuthentication*) badAuthPossessionWithKnowledge
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.usePassword = @"alwaysBadPassword";
-	return auth;
+	return [PowerAuthAuthentication possessionWithPassword:@"alwaysBadPassword"];
 }
 
 - (PATSInitActivationResponse*) prepareActivation:(BOOL)useSignature
@@ -484,11 +479,8 @@ static NSString * PA_Ver = @"3.1";
 - (PowerAuthAuthentication*) createAuthentication
 {
 	NSArray<NSString*> * veryCleverPasswords = @[ @"supersecure", @"nbusr123", @"8520", @"pa55w0rd" ];
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.useBiometry = NO;		// There's no human being involved in the automatic test :)
-	auth.usePassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
-	return auth;
+	NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
+	return [PowerAuthAuthentication commitWithPassword:newPassword];
 }
 
 /**
@@ -625,15 +617,7 @@ static NSString * PA_Ver = @"3.1";
 	NSString * local_uriId = uriId;
 	
 	if (cripple & 0x0001) {
-		// cripple auth object
-		if (local_auth.usePassword) {
-			local_auth.usePassword = nil;
-		} else {
-			local_auth.usePassword = @"TotallyWrongPassword";
-		}
-		if (local_auth.usePassword == nil && !local_auth.usePossession) {
-			local_auth.usePossession = YES;
-		}
+		local_auth = [local_auth copyCrippledForSigning];
 	}
 	if (cripple & 0x0010) {
 		// cripple data
@@ -747,6 +731,29 @@ static NSString * PA_Ver = @"3.1";
 		XCTAssertTrue([validationResponse.applicationId isEqualToString:_testServerApi.appDetail.applicationId]);
 	}
 	return validationResponse.tokenValid;
+}
+
+@end
+
+
+@implementation PowerAuthAuthentication (TestHelper)
+
+- (PowerAuthAuthentication*) copyForSigning
+{
+	if (self.usePassword == nil) {
+		@throw [NSException exceptionWithName:@"TestError" reason:@"Wrong PowerAuthAuthentication object" userInfo:nil];
+	}
+	return [PowerAuthAuthentication possessionWithPassword:self.usePassword];
+}
+
+- (PowerAuthAuthentication*) copyCrippledForSigning
+{
+	// cripple auth object
+	if (self.usePassword) {
+		return [PowerAuthAuthentication possession];
+	} else {
+		return [PowerAuthAuthentication possessionWithPassword:@"alwaysBadPassword"];
+	}
 }
 
 @end

@@ -87,8 +87,7 @@
 	const NSInteger number_of_tokens = 20;
 	
 	[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-		PowerAuthAuthentication * possession = [[PowerAuthAuthentication alloc] init];
-		possession.usePossession = YES;
+		PowerAuthAuthentication * possession = [PowerAuthAuthentication possession];
 		__block NSInteger attempts = 0;
 		for (NSInteger i = 0; i < number_of_tokens; i++) {
 			NSString * token_name = [NSString stringWithFormat:@"test_token_%@", @(i)];

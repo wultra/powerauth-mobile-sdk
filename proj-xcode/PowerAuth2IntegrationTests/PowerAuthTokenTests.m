@@ -87,9 +87,7 @@
 	XCTAssertTrue(tokenStore.canRequestForAccessToken);
 	
 	// Create first token...
-	PowerAuthAuthentication * possession = [[PowerAuthAuthentication alloc] init];
-	possession.usePossession = YES;
-	
+	PowerAuthAuthentication * possession = [PowerAuthAuthentication possession];
 	PowerAuthToken * preciousToken = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		[tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
 			[waiting reportCompletion:token];

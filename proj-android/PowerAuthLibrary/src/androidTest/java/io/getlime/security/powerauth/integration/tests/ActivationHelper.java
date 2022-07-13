@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
@@ -224,12 +223,8 @@ public class ActivationHelper {
      */
     public @NonNull List<String> prepareAuthentications() throws Exception {
         List<String> passwords = testHelper.getRandomGenerator().generateRandomStrings(2, 4, 16);
-        validAuthentication = new PowerAuthAuthentication();
-        validAuthentication.usePossession = true;
-        validAuthentication.usePassword = passwords.get(0);
-        invalidAuthentication = new PowerAuthAuthentication();
-        invalidAuthentication.usePossession = true;
-        invalidAuthentication.usePassword = passwords.get(1);
+        validAuthentication = PowerAuthAuthentication.possessionWithPassword(passwords.get(0));
+        invalidAuthentication = PowerAuthAuthentication.possessionWithPassword(passwords.get(1));
         return passwords;
     }
 
@@ -452,9 +447,7 @@ public class ActivationHelper {
      * @return Return new instance of {@link PowerAuthAuthentication} object with possession factor set.
      */
     public @NonNull PowerAuthAuthentication getPossessionAuthentication() {
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
-        return authentication;
+        return PowerAuthAuthentication.possession();
     }
 
     /**
@@ -475,10 +468,10 @@ public class ActivationHelper {
      * @throws Exception In case that such object is not created yet.
      */
     public @NonNull String getValidPassword() throws Exception {
-        if (validAuthentication == null || validAuthentication.usePassword == null) {
+        if (validAuthentication == null || validAuthentication.getPassword() == null) {
             throw new Exception("ActivationHelper has no activation yet.");
         }
-        return validAuthentication.usePassword;
+        return validAuthentication.getPassword();
     }
 
     /**
@@ -487,10 +480,10 @@ public class ActivationHelper {
      * @throws Exception In case that such object is not created yet.
      */
     public @NonNull String getInvalidPassword() throws Exception {
-        if (invalidAuthentication == null || invalidAuthentication.usePassword == null) {
+        if (invalidAuthentication == null || invalidAuthentication.getPassword() == null) {
             throw new Exception("ActivationHelper has no activation yet.");
         }
-        return invalidAuthentication.usePassword;
+        return invalidAuthentication.getPassword();
     }
 
     /**

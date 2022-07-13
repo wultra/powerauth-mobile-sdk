@@ -226,10 +226,6 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
      */
     private void synchronizeCounter(@NonNull final ActivationStatus status) {
 
-        // Authenticate with possession factor.
-        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
-
         // Execute signature validation request
         final ValidateSignatureRequest request = new ValidateSignatureRequest();
         request.setReason("COUNTER_SYNCHRONIZATION");
@@ -238,7 +234,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
                 request,
                 new ValidateSignatureEndpoint(),
                 cryptoHelper,
-                authentication,
+                PowerAuthAuthentication.possession(),
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(@NonNull Void aVoid) {
@@ -445,15 +441,12 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
      */
     private void commitUpgradeToV3() {
         isAutoCancelDisabled = true;
-        // Prepare auth object with possession factor.
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
         // Start HTTP request
         final ICancelable operation = httpClient.post(
                 null,
                 new UpgradeCommitV3Endpoint(),
                 cryptoHelper,
-                authentication,
+                PowerAuthAuthentication.possession(),
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(@NonNull Void o) {

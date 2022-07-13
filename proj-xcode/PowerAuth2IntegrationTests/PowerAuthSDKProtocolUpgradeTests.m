@@ -244,10 +244,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
 	status = [_helper fetchActivationStatus];
 	XCTAssertTrue(status.state == PowerAuthActivationState_Active);
 	
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.usePassword = password;
-	
+	PowerAuthAuthentication * auth = [PowerAuthAuthentication possessionWithPassword:password];
 	NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		[_sdk removeActivationWithAuthentication:auth callback:^(NSError * _Nullable error) {
 			[waiting reportCompletion:error];

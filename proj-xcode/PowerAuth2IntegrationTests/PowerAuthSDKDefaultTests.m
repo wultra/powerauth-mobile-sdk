@@ -281,9 +281,7 @@
 	NSData * body = [payload.parsedData dataUsingEncoding:NSUTF8StringEncoding];
 	NSString * nonce = payload.nonce;
 
-	PowerAuthAuthentication * sign_auth = [[PowerAuthAuthentication alloc] init];
-	sign_auth.usePassword = auth.usePassword;
-	sign_auth.usePossession = YES;
+	PowerAuthAuthentication * sign_auth = [auth copy];
 	NSString * local_signature = [_sdk offlineSignatureWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce error:NULL];
 	XCTAssertNotNil(local_signature);
 

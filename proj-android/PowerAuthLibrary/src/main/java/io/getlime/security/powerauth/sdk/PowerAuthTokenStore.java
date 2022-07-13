@@ -182,7 +182,7 @@ public class PowerAuthTokenStore {
                 if (tokenData != null) {
                     token = createAccessToken(context, tokenData, authentication);
                     task = null;
-                    error = token == null ? new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Different PowerAuthAuthentication used for the same token creation.") : null;;
+                    error = token == null ? new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Different PowerAuthAuthentication used for the same token creation.") : null;
                 } else {
                     token = null;
                     task = createAccessTokenTask(context, tokenName, authentication, listener);
@@ -387,14 +387,11 @@ public class PowerAuthTokenStore {
         final TokenRemoveRequest request = new TokenRemoveRequest();
         request.setTokenId(tokenData.identifier);
 
-        final PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        authentication.usePossession = true;
-
         return httpClient.post(
                 request,
                 new RemoveTokenEndpoint(),
                 sdk.getCryptoHelper(context),
-                authentication,
+                PowerAuthAuthentication.possession(),
                 new INetworkResponseListener<Void>() {
                     @Override
                     public void onNetworkResponse(@NonNull Void aVoid) {

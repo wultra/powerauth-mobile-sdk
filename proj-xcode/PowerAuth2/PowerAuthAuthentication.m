@@ -19,14 +19,44 @@
 
 #import <PowerAuth2/PowerAuthAuthentication.h>
 #import <PowerAuth2/PowerAuthKeychainAuthentication.h>
+#import <PowerAuth2/PowerAuthLog.h>
 #import "PowerAuthAuthentication+Private.h"
 
 @implementation PowerAuthAuthentication
+{
+	NSInteger _objectUsage;
+}
 
-- (id)copyWithZone:(NSZone *)zone
+#define AUTH_FOR_COMMIT			1
+#define AUTH_FOR_SIGN			2
+
+- (id) initWithObjectUsage:(NSInteger)objectUsage
+				  password:(NSString*)password
+				  biometry:(BOOL)biometry
+			biometryPrompt:(NSString*)biometryPrompt
+		   biometryContext:(id)biometryContext
+	   customPossessionKey:(NSData*)customPossessionKey
+		 customBiometryKey:(NSData*)customBiometryKey
+{
+	self = [super init];
+	if (self) {
+		_objectUsage = objectUsage;
+		_usePossession = YES;
+		_usePassword = password;
+		_useBiometry = biometry;
+		_biometryPrompt = biometryPrompt;
+		_biometryContext = biometryContext;
+		_overridenPossessionKey = customPossessionKey;
+		_overridenBiometryKey = customBiometryKey;
+	}
+	return self;
+}
+
+- (id) copyWithZone:(NSZone *)zone
 {
 	PowerAuthAuthentication * copy = [[[self class] allocWithZone:zone] init];
 	if (copy) {
+		copy->_objectUsage = _objectUsage;
 		copy->_usePossession = _usePossession;
 		copy->_useBiometry = _useBiometry;
 		copy->_usePassword = _usePassword;
@@ -56,6 +86,14 @@
 #if DEBUG
 - (NSString*) description
 {
+	NSString * usage_str;
+	if (_objectUsage == AUTH_FOR_SIGN) {
+		usage_str = @"for sign";
+	} else if (_objectUsage == AUTH_FOR_COMMIT) {
+		usage_str = @"for commit";
+	} else {
+		usage_str = @"legacy";
+	}
 	NSMutableArray * factors = [NSMutableArray arrayWithCapacity:3];
 	if (_usePossession) {
 		[factors addObject:@"possession"];
@@ -83,7 +121,7 @@
 		[info addObject:@"+extPK"];
 	}
 	NSString * info_str = info.count == 0 ? @"" : [@", " stringByAppendingString:[info componentsJoinedByString:@" "]];
-	return [NSString stringWithFormat:@"<PowerAuthAuthentication factors: %@%@>", factors_str, info_str];
+	return [NSString stringWithFormat:@"<PowerAuthAuthentication %@: %@%@>", usage_str, factors_str, info_str];
 }
 #endif
 
@@ -92,49 +130,195 @@
 
 @implementation PowerAuthAuthentication (EasyAccessors)
 
+// MARK: - Commit, Possession + Knowledge
+
+#if PA2_HAS_CORE_MODULE
+
++ (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+													   password:password
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
+}
+
++ (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
+							customPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+													   password:password
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:nil];
+}
+
+// MARK: Commit, Possession + Knowledge + Biometry
+
++ (PowerAuthAuthentication*) commitWithPasswordAndBiometry:(NSString*)password
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+													   password:password
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
+}
+
++ (PowerAuthAuthentication*) commitWithPasswordAndBiometry:(NSString*)password
+										 customBiometryKey:(NSData*)customBiometryKey
+									   customPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+													   password:password
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:customBiometryKey];
+}
+
+#endif // PA2_HAS_CORE_MODULE
+
+
+// MARK: - Signing, Possession only
+
 + (PowerAuthAuthentication *) possession
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	return auth;
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
 }
+
++ (PowerAuthAuthentication *) possessionWithCustomPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:nil];
+}
+
+// MARK: Signing, Possession + Biometry
 
 + (PowerAuthAuthentication *) possessionWithBiometry
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.useBiometry = YES;
-	return auth;
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
++ (PowerAuthAuthentication *) possessionWithBiometryPrompt:(NSString*)biometryPrompt
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.useBiometry = YES;
-	auth.biometryPrompt = biometryPrompt;
-	return auth;
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:biometryPrompt
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication *) possessionWithPassword:(NSString *)password
++ (PowerAuthAuthentication *) possessionWithBiometryPrompt:(NSString*)biometryPrompt
+									   customPossessionKey:(NSData*)customPossessionKey
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.usePassword = password;
-	return auth;
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:biometryPrompt
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:nil];
+}
+
++ (PowerAuthAuthentication *) possessionWithBiometryWithCustomBiometryKey:(NSData*)customBiometryKey
+													  customPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:customBiometryKey];
 }
 
 #if PA2_HAS_LACONTEXT == 1
-+ (PowerAuthAuthentication *) possessionWithBiometryWithContext:(LAContext *)context
++ (PowerAuthAuthentication *) possessionWithBiometryContext:(LAContext *)context
 {
-	PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-	auth.usePossession = YES;
-	auth.useBiometry = YES;
-	auth.biometryContext = context;
-	return auth;
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:context
+											customPossessionKey:nil
+											  customBiometryKey:nil];
+}
++ (PowerAuthAuthentication *) possessionWithBiometryContext:(LAContext*)context
+										customPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:nil
+													   biometry:YES
+												 biometryPrompt:nil
+												biometryContext:context
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:nil];
 }
 #endif // PA2_HAS_LACONTEXT
 
+// MARK: Signing, Possession + Knowledge
+
++ (PowerAuthAuthentication *) possessionWithPassword:(NSString *)password
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:password
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:nil
+											  customBiometryKey:nil];
+}
+
++ (PowerAuthAuthentication *) possessionWithPassword:(NSString*)password
+								 customPossessionKey:(NSData*)customPossessionKey
+{
+	return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_SIGN
+													   password:password
+													   biometry:NO
+												 biometryPrompt:nil
+												biometryContext:nil
+											customPossessionKey:customPossessionKey
+											  customBiometryKey:nil];
+}
+
+#pragma mark - Deprecated
+
+// PA2_DEPRECATED(1.7.0)
++ (PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
+{
+	return [self possessionWithBiometryPrompt:biometryPrompt];
+}
+// PA2_DEPRECATED(1.7.0)
++ (PowerAuthAuthentication *) possessionWithPasswordDeprecated:(NSString*)password
+{
+	return [self possessionWithPassword:password];
+}
 @end
 
 
@@ -147,6 +331,23 @@
 	if (_usePassword)   result |= 2;
 	if (_useBiometry)   result |= 4;
 	return result;
+}
+
+- (BOOL) validateUsage:(BOOL)forCommit
+{
+	if (_objectUsage == 0) {
+		PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object created with legacy constructor.");
+		return NO;
+	}
+	if (forCommit != (_objectUsage == AUTH_FOR_COMMIT)) {
+		if (forCommit) {
+			PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation commit is expected.");
+		} else {
+			PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
+		}
+		return NO;
+	}
+	return YES;
 }
 
 @end

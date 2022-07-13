@@ -22,13 +22,14 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
   - `PowerAuthAuthentication.commitWithPassword()` - create authentication object for activation commit purpose.
   - `PowerAuthAuthentication.commitWithPasswordAndBiometry()` - create authentication object for activation commit purpose.
 
-- Added `@NonNull` annotations to all public "listener" interfaces. This change may produce several warnings in application's code. The following interfaces are affected:
+- Added `@NonNull` annotations to all public "listener" interfaces:
   - `IActivationRemoveListener`
   - `IActivationStatusListener`
   - `IChangePasswordListener`
   - `IDataSignatureListener`
   - `IFetchEncryptionKeyListener`
   - `IValidatePasswordListener`
+  This change may lead to a several errors if application is written in Kotlin. This is due to fact that Kotlin will not be able to override original methods because nullable type is different than non-null. To fix this, simply remove `?` from the conflicting type, for example, if method is `onPasswordValidationFailed(t: Throwable?)`, then simply change `Throwable?` to `Throwable`.
   
 - Interface `IFetchKeysStrategy` is now deprecated and will be removed in the next major SDK release.
   - There's `IPossessionFactorEncryptionKeyProvider` that SDK is using internally as a replacement. If your application depends on `IFetchKeysStrategy`, then please contact us to find a proper solution for you.

@@ -30,6 +30,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.ProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
@@ -377,7 +378,7 @@ public class SymmetricKeyProvider {
                     .build());
             return keyGenerator.generateKey();
 
-        } catch (StrongBoxUnavailableException | NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+        } catch (ProviderException | NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             PowerAuthLog.d("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new StrongBox backed key. Exception: " + e.getMessage());
             return null;
         }
@@ -400,7 +401,7 @@ public class SymmetricKeyProvider {
             keyGenerator.init(builder.build());
             return keyGenerator.generateKey();
 
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+        } catch (ProviderException | NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
             PowerAuthLog.e("SymmetricKeyProvider: " + keyAlias + ": Failed to generate new key. Exception: " + e.getMessage());
             return null;
         }

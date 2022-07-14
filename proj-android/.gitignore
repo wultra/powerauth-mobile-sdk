@@ -46,3 +46,6 @@ proguard/
 
 # Log Files
 *.log
+
+# 1.7.x release artifacts
+configs/private*

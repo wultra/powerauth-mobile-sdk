@@ -1,2 +1,4 @@
 # Ignore developer's actual server configuration for integration tests
 PowerAuth2Tests/TestConfig/Configuration*
+# 1.7.x release artifacts
+PowerAuth2IntegrationTests/TestConfig/Configuration*

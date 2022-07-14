@@ -21,6 +21,16 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
   - `PowerAuthAuthentication.possessionWithBiometry()` - create authentication object for signing with possession and biometry factors.
   - `PowerAuthAuthentication.commitWithPassword()` - create authentication object for activation commit purpose.
   - `PowerAuthAuthentication.commitWithPasswordAndBiometry()` - create authentication object for activation commit purpose.
+  - `getPassword()` (e.g. `password` in Kotlin) is a new replacement for getting value of deprecated `usePassword`.
+  
+  If you see no deprecation warnings in your application code, then please add the following lines into your `build.gradle` file:
+  ```gradle
+  compileKotlin {
+      kotlinOptions {
+          suppressWarnings false
+      }
+  }
+  ```
 
 - Added `@NonNull` annotations to all public "listener" interfaces:
   - `IActivationRemoveListener`

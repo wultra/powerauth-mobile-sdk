@@ -26,6 +26,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Pair;
 
@@ -59,7 +60,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
     private BiometricKeyData processedBiometricKeyData;
     private boolean hasAlreadyProcessedBiometricKeyData;
-    private boolean authenticationFailedBefore;
+    private int authenticationFailedBefore = 0;
+    private long authenticationFailedTimestamp = 0L;
 
 
     /**
@@ -194,18 +196,19 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 }
                 final boolean isCancel = errorCode == BiometricPrompt.ERROR_USER_CANCELED || errorCode == BiometricPrompt.ERROR_CANCELED ||
                                          errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON;
+                final boolean isQuickCancel = isCancel && detectQuickCancelAfterFailure();
                 final boolean isLockout = errorCode == BiometricPrompt.ERROR_LOCKOUT || errorCode == BiometricPrompt.ERROR_LOCKOUT_PERMANENT;
-                if (isCancel) {
+                if (isCancel && !isQuickCancel) {
                     // User pressed the cancel button, or authentication was canceled by the system.
                     // That may happen when user hit the power button and lock the device. We can
                     // both situations report as an user initiated cancel.
                     dispatcher.dispatchUserCancel();
                 } else {
                     final PowerAuthErrorException exception;
-                    if (isLockout) {
-                        if (authenticationFailedBefore) {
+                    if (isLockout || isQuickCancel) {
+                        if (authenticationFailedBefore > 0) {
                             // Too many failed attempts, we should report the "not recognized" error after all.
-                            // If `authenticationFailedBefore` is true, then it means that sensor did a multiple failed attempts
+                            // If `authenticationFailedBefore` is greater than 0, then it means that sensor did a multiple failed attempts
                             // in this round. So we're pretty sure that biometric authentication dialog was properly displayed.
                             exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED, "Biometric image was not recognized.");
                         } else {
@@ -269,7 +272,8 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
                 biometricPromptIsProbablyVisible = true;
-                authenticationFailedBefore = true;
+                authenticationFailedBefore++;
+                authenticationFailedTimestamp = SystemClock.elapsedRealtime();
             }
         };
 
@@ -491,5 +495,37 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
         // Show fragment
         dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+    }
+
+    /**
+     * This is the delay defined in the support library to show the failure.
+     */
+    private static final long CANCEL_TIME_FOR_DIALOG_DISMISS = 2000;
+    /**
+     * How many failed attempts in a row will be treated as an attempt to trick the sensor.
+     * Normally, 5 is the default value defined by Android 6 CDD, but we don't have ability to
+     * track the attempts globally as the device's implementation do.
+     *
+     * Unfortunately, this can be tricked by the attacker by simply try 4 attempts, then cancel the
+     * dialog and try again.
+     */
+    private static final int CANCEL_MIN_FAILURE_ATTEMPTS = 5;
+
+    /**
+     * Function determines whether user is trying to trick the sensor by quick pressing cancel
+     * after last failure. The functionality is available only on devices older than Android 9,
+     * where BiometricPrompt is implemented by `androidx.biometric` support library.
+     *
+     * See issue: https://github.com/wultra/powerauth-mobile-sdk/issues/422
+     * @return true if quick cancel after failure is detected.
+     */
+    private boolean detectQuickCancelAfterFailure() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            // We're on device older than Android 9, so Support library handles the biometric prompt.
+            if (authenticationFailedBefore >= CANCEL_MIN_FAILURE_ATTEMPTS) {
+                return SystemClock.elapsedRealtime() - authenticationFailedTimestamp < CANCEL_TIME_FOR_DIALOG_DISMISS;
+            }
+        }
+        return false;
     }
 }

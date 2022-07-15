@@ -1,2 +1,5 @@
 # Ignore developer's actual server configuration for integration tests
 PowerAuth2IntegrationTests/TestConfig/Configuration*
+
+# Ignore artefacts from older SDK versions (good for branch switching)
+PowerAuth2Tests/TestConfig/*

@@ -40,7 +40,7 @@ ext {
     minSdkVersion = 19
     buildToolsVersion = "30.0.3"
     // NDK, check https://developer.android.com/ndk/downloads for updates
-    ndkVersion = "23.2.8568313" // r23c
+    ndkVersion = "25.0.8775105" // r25
 }
 
 allprojects {

@@ -28,41 +28,41 @@ namespace getlime
 {
 namespace powerAuthTests
 {
-	extern TestDirectory g_pa2Files;
-	
-	class pa2MasterSecretKeyComputation : public UnitTest
-	{
-	public:
-		pa2MasterSecretKeyComputation()
-		{
-			CC7_REGISTER_TEST_METHOD(testMasterSecretKeyComputation)
-		}
-		
-		void testMasterSecretKeyComputation()
-		{
-			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/compute-master-secret-key.json");
-			auto&& data = root.arrayAtPath("data");
-			for (const JSONValue & item : data) {
-				ByteArray   devicePrivateKey = item.dataFromBase64StringAtPath("input.devicePrivateKey");
-				ByteArray   devicePublicKey  = item.dataFromBase64StringAtPath("input.devicePublicKey");
-				ByteArray   serverPrivateKey = item.dataFromBase64StringAtPath("input.serverPrivateKey");
-				ByteArray   serverPublicKey  = item.dataFromBase64StringAtPath("input.serverPublicKey");
-				ByteArray   masterSecretKey  = item.dataFromBase64StringAtPath("output.masterSecretKey");
-				
-				protocol::ActivationData ad;
-				ad.devicePrivateKey = crypto::ECC_ImportPrivateKey(nullptr, devicePrivateKey);
-				ad.devicePrivateKey = crypto::ECC_ImportPublicKey(ad.devicePrivateKey, devicePublicKey);
-				ccstAssertNotNull(ad.devicePrivateKey);
-				ad.serverPublicKey  = crypto::ECC_ImportPublicKey(nullptr, serverPublicKey);
-				ByteArray ourMasterSecretKey = crypto::ECDH_SharedSecret(ad.serverPublicKey, ad.devicePrivateKey);
-				ByteArray reducedMasterSecretKey = protocol::ReduceSharedSecret(ourMasterSecretKey);
-				ccstAssertEqual(reducedMasterSecretKey, masterSecretKey);
-			}
-		}
-	};
-	
-	CC7_CREATE_UNIT_TEST(pa2MasterSecretKeyComputation, "pa2")
-	
+    extern TestDirectory g_pa2Files;
+    
+    class pa2MasterSecretKeyComputation : public UnitTest
+    {
+    public:
+        pa2MasterSecretKeyComputation()
+        {
+            CC7_REGISTER_TEST_METHOD(testMasterSecretKeyComputation)
+        }
+        
+        void testMasterSecretKeyComputation()
+        {
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/compute-master-secret-key.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                ByteArray   devicePrivateKey = item.dataFromBase64StringAtPath("input.devicePrivateKey");
+                ByteArray   devicePublicKey  = item.dataFromBase64StringAtPath("input.devicePublicKey");
+                ByteArray   serverPrivateKey = item.dataFromBase64StringAtPath("input.serverPrivateKey");
+                ByteArray   serverPublicKey  = item.dataFromBase64StringAtPath("input.serverPublicKey");
+                ByteArray   masterSecretKey  = item.dataFromBase64StringAtPath("output.masterSecretKey");
+                
+                protocol::ActivationData ad;
+                ad.devicePrivateKey = crypto::ECC_ImportPrivateKey(nullptr, devicePrivateKey);
+                ad.devicePrivateKey = crypto::ECC_ImportPublicKey(ad.devicePrivateKey, devicePublicKey);
+                ccstAssertNotNull(ad.devicePrivateKey);
+                ad.serverPublicKey  = crypto::ECC_ImportPublicKey(nullptr, serverPublicKey);
+                ByteArray ourMasterSecretKey = crypto::ECDH_SharedSecret(ad.serverPublicKey, ad.devicePrivateKey);
+                ByteArray reducedMasterSecretKey = protocol::ReduceSharedSecret(ourMasterSecretKey);
+                ccstAssertEqual(reducedMasterSecretKey, masterSecretKey);
+            }
+        }
+    };
+    
+    CC7_CREATE_UNIT_TEST(pa2MasterSecretKeyComputation, "pa2")
+    
 } // io::getlime::powerAuthTests
 } // io::getlime
 } // io

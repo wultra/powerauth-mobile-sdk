@@ -23,20 +23,20 @@
 
 - (instancetype) initWithDictionary:(NSDictionary *)dict
 {
-	self = [super init];
-	if (self) {
-		_encryptedData		= PA2ObjectAs(dict[@"encryptedData"], NSString);
-		_mac				= PA2ObjectAs(dict[@"mac"], NSString);
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _encryptedData      = PA2ObjectAs(dict[@"encryptedData"], NSString);
+        _mac                = PA2ObjectAs(dict[@"mac"], NSString);
+    }
+    return self;
 }
 
 - (PowerAuthCoreEciesCryptogram*) cryptogram
 {
-	PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-	cryptogram.bodyBase64 = _encryptedData;
-	cryptogram.macBase64 = _mac;
-	return cryptogram;
+    PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
+    cryptogram.bodyBase64 = _encryptedData;
+    cryptogram.macBase64 = _mac;
+    return cryptogram;
 }
 
 @end

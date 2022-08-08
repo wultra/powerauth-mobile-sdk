@@ -74,40 +74,40 @@
  then it's usualy your fault and you're using the session in wrong way.
  */
 typedef NS_ENUM(int, PowerAuthCoreErrorCode) {
-	/**
-	 Everything is OK.
-	 You can go out with your friends and enjoy the rest of the day :)
-	 */
-	PowerAuthCoreErrorCode_Ok			= 0,
-	/**
-	 The method failed on an encryption. Whatever that means it's
-	 usually very wrong and the UI response depends on what
-	 method did you call. Typically, you have to perform retry
-	 or restart for the whole process.
-	 
-	 This error code is also returned when decoding of important
-	 parameter failed. For example, if BASE64 encoded value
-	 is in wrong format, then this is considered as an attack
-	 attempt.
-	 */
-	PowerAuthCoreErrorCode_Encryption	= 1,
-	/**
-	 You have called method in wrong session's state. Usually that
-	 means that you're using session in a  wrong way. This kind
-	 of error should not be propagated to the UI. It's your
-	 responsibility to handle session states correctly.
-	 */
-	PowerAuthCoreErrorCode_WrongState	= 2,
-	/**
-	 You have called method with wrong or missing parameters.
-	 Usually this error code means that you're using Session
-	 in wrong way and you did not provide all required data.
-	 This kind of error should not be propagated to UI. It's
-	 your responsibility to handle all user's inputs
-	 and validate all responses from the server before you
-	 ask session for processing.
-	 */
-	PowerAuthCoreErrorCode_WrongParam	= 3,
+    /**
+     Everything is OK.
+     You can go out with your friends and enjoy the rest of the day :)
+     */
+    PowerAuthCoreErrorCode_Ok           = 0,
+    /**
+     The method failed on an encryption. Whatever that means it's
+     usually very wrong and the UI response depends on what
+     method did you call. Typically, you have to perform retry
+     or restart for the whole process.
+     
+     This error code is also returned when decoding of important
+     parameter failed. For example, if BASE64 encoded value
+     is in wrong format, then this is considered as an attack
+     attempt.
+     */
+    PowerAuthCoreErrorCode_Encryption   = 1,
+    /**
+     You have called method in wrong session's state. Usually that
+     means that you're using session in a  wrong way. This kind
+     of error should not be propagated to the UI. It's your
+     responsibility to handle session states correctly.
+     */
+    PowerAuthCoreErrorCode_WrongState   = 2,
+    /**
+     You have called method with wrong or missing parameters.
+     Usually this error code means that you're using Session
+     in wrong way and you did not provide all required data.
+     This kind of error should not be propagated to UI. It's
+     your responsibility to handle all user's inputs
+     and validate all responses from the server before you
+     ask session for processing.
+     */
+    PowerAuthCoreErrorCode_WrongParam   = 3,
 };
 
 
@@ -121,18 +121,18 @@ typedef NS_ENUM(int, PowerAuthCoreErrorCode) {
  to V2 servers with V3 SDK.
  */
 typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
-	/**
-	 Protocol version is not specified, or cannot be determined.
-	 */
-	PowerAuthCoreProtocolVersion_NA = 0,
-	/**
-	 Protocol version 2
-	 */
-	PowerAuthCoreProtocolVersion_V2 = 2,
-	/**
-	 Protocol version 3
-	 */
-	PowerAuthCoreProtocolVersion_V3 = 3,
+    /**
+     Protocol version is not specified, or cannot be determined.
+     */
+    PowerAuthCoreProtocolVersion_NA = 0,
+    /**
+     Protocol version 2
+     */
+    PowerAuthCoreProtocolVersion_V2 = 2,
+    /**
+     Protocol version 3
+     */
+    PowerAuthCoreProtocolVersion_V3 = 3,
 };
 
 
@@ -144,12 +144,12 @@ typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
  object.
  */
 typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
-	PowerAuthCoreSignatureFactor_Possession						= 0x0001,
-	PowerAuthCoreSignatureFactor_Knowledge						= 0x0010,
-	PowerAuthCoreSignatureFactor_Biometry						= 0x0100,
-	PowerAuthCoreSignatureFactor_Possession_Knowledge			= 0x0011,
-	PowerAuthCoreSignatureFactor_Possession_Biometry			= 0x0101,
-	PowerAuthCoreSignatureFactor_Possession_Knowledge_Biometry	= 0x0111
+    PowerAuthCoreSignatureFactor_Possession                     = 0x0001,
+    PowerAuthCoreSignatureFactor_Knowledge                      = 0x0010,
+    PowerAuthCoreSignatureFactor_Biometry                       = 0x0100,
+    PowerAuthCoreSignatureFactor_Possession_Knowledge           = 0x0011,
+    PowerAuthCoreSignatureFactor_Possession_Biometry            = 0x0101,
+    PowerAuthCoreSignatureFactor_Possession_Knowledge_Biometry  = 0x0111
 };
 
 /**
@@ -286,14 +286,14 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
  The PowerAuthCoreSigningDataKey enumeration defines key type used for signature calculation.
  */
 typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
-	/**
-	 `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
-	 */
-	PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey = 0,
-	/**
-	 `KEY_SERVER_PRIVATE` key was used for signature calculation
-	 */
-	PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
+    /**
+     `KEY_SERVER_MASTER_PRIVATE` key was used for signature calculation
+     */
+    PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey = 0,
+    /**
+     `KEY_SERVER_PRIVATE` key was used for signature calculation
+     */
+    PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
 };
 
 /**
@@ -423,31 +423,31 @@ typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
  of the PowerAuthCoreActivationStatus object.
  */
 typedef NS_ENUM(int, PowerAuthCoreActivationState) {
-	/**
-	 The activation is just created.
-	 */
-	PowerAuthCoreActivationState_Created  = 1,
-	/**
-	 The activation is not completed yet on the server.
-	 */
-	PowerAuthCoreActivationState_PendingCommit = 2,
-	/**
-	 The shared secure context is valid and active.
-	 */
-	PowerAuthCoreActivationState_Active   = 3,
-	/**
-	 The activation is blocked.
-	 */
-	PowerAuthCoreActivationState_Blocked  = 4,
-	/**
-	 The activation doesn't exist anymore.
-	 */
-	PowerAuthCoreActivationState_Removed  = 5,
-	/**
-	 The activation is technically blocked. You cannot use it anymore
-	 for the signature calculations.
-	 */
-	PowerAuthCoreActivationState_Deadlock	= 128,
+    /**
+     The activation is just created.
+     */
+    PowerAuthCoreActivationState_Created  = 1,
+    /**
+     The activation is not completed yet on the server.
+     */
+    PowerAuthCoreActivationState_PendingCommit = 2,
+    /**
+     The shared secure context is valid and active.
+     */
+    PowerAuthCoreActivationState_Active   = 3,
+    /**
+     The activation is blocked.
+     */
+    PowerAuthCoreActivationState_Blocked  = 4,
+    /**
+     The activation doesn't exist anymore.
+     */
+    PowerAuthCoreActivationState_Removed  = 5,
+    /**
+     The activation is technically blocked. You cannot use it anymore
+     for the signature calculations.
+     */
+    PowerAuthCoreActivationState_Deadlock   = 128,
 };
 
 /**
@@ -533,14 +533,14 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
  in `PowerAuthCoreSession.getEciesEncryptor()` method.
  */
 typedef NS_ENUM(int, PowerAuthCoreEciesEncryptorScope) {
-	/**
-	 An application scope means that encryptor can be constructed also when
-	 the session has no valid activation.
-	 */
-	PowerAuthCoreEciesEncryptorScope_Application  = 0,
-	/**
-	 An activation scope means that the encryptor can be constructed only when
-	 the session has a valid activation.
-	 */
-	PowerAuthCoreEciesEncryptorScope_Activation  = 1,
+    /**
+     An application scope means that encryptor can be constructed also when
+     the session has no valid activation.
+     */
+    PowerAuthCoreEciesEncryptorScope_Application  = 0,
+    /**
+     An activation scope means that the encryptor can be constructed only when
+     the session has a valid activation.
+     */
+    PowerAuthCoreEciesEncryptorScope_Activation  = 1,
 };

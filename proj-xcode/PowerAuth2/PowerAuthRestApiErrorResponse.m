@@ -22,10 +22,10 @@
 #ifdef DEBUG
 - (NSString*) description
 {
-	NSString * status_str = _status == PowerAuthRestApiResponseStatus_OK ? @"OK" : @"ERROR";
-	NSString * code_str = [@(_httpStatusCode) stringValue];
-	NSString * ro = _responseObject ? [_responseObject description] : @"<null>";
-	return [NSString stringWithFormat:@"<PowerAuthRestApiErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
+    NSString * status_str = _status == PowerAuthRestApiResponseStatus_OK ? @"OK" : @"ERROR";
+    NSString * code_str = [@(_httpStatusCode) stringValue];
+    NSString * ro = _responseObject ? [_responseObject description] : @"<null>";
+    return [NSString stringWithFormat:@"<PowerAuthRestApiErrorResponse status=%@, httpStatusCode=%@, responseObject=%@>", status_str, code_str, ro];
 }
 #endif
 
@@ -35,15 +35,15 @@
 
 - (instancetype) initWithDictionary:(NSDictionary *)dictionary
 {
-	self = [super init];
-	if (self) {
-		self.status = PowerAuthRestApiResponseStatus_ERROR;
-		NSDictionary *errorDict = [dictionary objectForKey:@"responseObject"];
-		if (errorDict != nil) {
-			self.responseObject = [[PowerAuthRestApiError alloc] initWithDictionary:errorDict];
-		}
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        self.status = PowerAuthRestApiResponseStatus_ERROR;
+        NSDictionary *errorDict = [dictionary objectForKey:@"responseObject"];
+        if (errorDict != nil) {
+            self.responseObject = [[PowerAuthRestApiError alloc] initWithDictionary:errorDict];
+        }
+    }
+    return self;
 }
 
 @end

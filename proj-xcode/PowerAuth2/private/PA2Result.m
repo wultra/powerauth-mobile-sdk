@@ -20,41 +20,41 @@
 
 - (id) initWithResult:(id)result error:(NSError*)error data:(id)data
 {
-	self = [super init];
-	if (self) {
-		_result = result;
-		_error = error;
-		_associatedData = data;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _result = result;
+        _error = error;
+        _associatedData = data;
+    }
+    return self;
 }
 
 + (id) success:(id)result
 {
-	return [[PA2Result alloc] initWithResult:result error:nil data:nil];
+    return [[PA2Result alloc] initWithResult:result error:nil data:nil];
 }
 
 + (id) success:(id)result withData:(id)data
 {
-	return [[PA2Result alloc] initWithResult:result error:nil data:data];
+    return [[PA2Result alloc] initWithResult:result error:nil data:data];
 }
 
 + (id) failure:(NSError*)failure
 {
-	return [[PA2Result alloc] initWithResult:nil error:failure data:nil];
+    return [[PA2Result alloc] initWithResult:nil error:failure data:nil];
 }
 
 + (id) failure:(NSError*)failure withData:(id)data
 {
-	return [[PA2Result alloc] initWithResult:nil error:failure data:data];
+    return [[PA2Result alloc] initWithResult:nil error:failure data:data];
 }
 
 - (id) extractResult:(NSError**)error
 {
-	if (error) {
-		*error = _error;
-	}
-	return _result;
+    if (error) {
+        *error = _error;
+    }
+    return _result;
 }
 
 @end

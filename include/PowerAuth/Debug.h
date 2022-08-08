@@ -24,13 +24,13 @@ namespace getlime
 {
 namespace powerAuth
 {
-	/**
-	 Returns true if library was compiled with a debug features. It is highly recommended
-	 to check this flag and force application to crash if the producion, final application
-	 is running against the debug featured library.
-	 */
-	bool HasDebugFeaturesTurnedOn();
-	
+    /**
+     Returns true if library was compiled with a debug features. It is highly recommended
+     to check this flag and force application to crash if the producion, final application
+     is running against the debug featured library.
+     */
+    bool HasDebugFeaturesTurnedOn();
+    
 } // io::getlime::powerAuth
 } // io::getlime
 } // io

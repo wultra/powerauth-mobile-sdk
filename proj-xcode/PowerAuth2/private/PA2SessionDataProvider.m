@@ -19,50 +19,50 @@
 
 @implementation PA2SessionDataProvider
 {
-	PowerAuthKeychain * _keychain;
-	NSString * _statusKey;
+    PowerAuthKeychain * _keychain;
+    NSString * _statusKey;
 }
 
 - (nonnull instancetype) initWithKeychain:(nonnull PowerAuthKeychain*)keychain
-								statusKey:(nonnull NSString*)statusKey
+                                statusKey:(nonnull NSString*)statusKey
 {
-	self = [super init];
-	if (self) {
-		_keychain = keychain;
-		_statusKey = statusKey;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _keychain = keychain;
+        _statusKey = statusKey;
+    }
+    return self;
 }
 
 - (NSData*) sessionData
 {
-	OSStatus status = 0;
-	NSData * result = [_keychain dataForKey:_statusKey status:&status];
-	if (status != errSecSuccess && status != errSecItemNotFound) {
-		PowerAuthLog(@"PA2SessionDataProvider: Failed to load session data. Error %@", @(status));
-	}
-	return result;
+    OSStatus status = 0;
+    NSData * result = [_keychain dataForKey:_statusKey status:&status];
+    if (status != errSecSuccess && status != errSecItemNotFound) {
+        PowerAuthLog(@"PA2SessionDataProvider: Failed to load session data. Error %@", @(status));
+    }
+    return result;
 }
 
 - (void) saveSessionData:(NSData *)sessionData
 {
-	if (sessionData) {
-		if ([_keychain containsDataForKey:_statusKey]) {
-			PowerAuthKeychainStoreItemResult r = [_keychain updateValue:sessionData forKey:_statusKey];
-			if (r != PowerAuthKeychainStoreItemResult_Ok) {
-				PowerAuthLog(@"PA2SessionDataProvider: Failed to update session data. Error %@", @(r));
-			}
-		} else {
-			PowerAuthKeychainStoreItemResult r = [_keychain addValue:sessionData forKey:_statusKey];
-			if (r != PowerAuthKeychainStoreItemResult_Ok) {
-				PowerAuthLog(@"PA2SessionDataProvider: Failed to store session data. Error %@", @(r));
-			}
-		}
-	} else {
-		if (![_keychain deleteDataForKey:_statusKey]) {
-			PowerAuthLog(@"PA2SessionDataProvider: Failed to remove session data.");
-		}
-	}
+    if (sessionData) {
+        if ([_keychain containsDataForKey:_statusKey]) {
+            PowerAuthKeychainStoreItemResult r = [_keychain updateValue:sessionData forKey:_statusKey];
+            if (r != PowerAuthKeychainStoreItemResult_Ok) {
+                PowerAuthLog(@"PA2SessionDataProvider: Failed to update session data. Error %@", @(r));
+            }
+        } else {
+            PowerAuthKeychainStoreItemResult r = [_keychain addValue:sessionData forKey:_statusKey];
+            if (r != PowerAuthKeychainStoreItemResult_Ok) {
+                PowerAuthLog(@"PA2SessionDataProvider: Failed to store session data. Error %@", @(r));
+            }
+        }
+    } else {
+        if (![_keychain deleteDataForKey:_statusKey]) {
+            PowerAuthLog(@"PA2SessionDataProvider: Failed to remove session data.");
+        }
+    }
 }
 
 @end

@@ -27,52 +27,52 @@
 @implementation PowerAuthSharingConfiguration
 
 - (instancetype) initWithAppGroup:(NSString*)appGroup
-					appIdentifier:(NSString*)appIdentifier
+                    appIdentifier:(NSString*)appIdentifier
 {
-	self = [super init];
-	if (self) {
-		_appGroup = appGroup;
-		_appIdentifier = appIdentifier;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _appGroup = appGroup;
+        _appIdentifier = appIdentifier;
+    }
+    return self;
 }
 
 - (instancetype) initWithAppGroup:(NSString*)appGroup
-					appIdentifier:(NSString*)appIdentifier
-			  keychainAccessGroup:(NSString*)keychainAccessGroup
+                    appIdentifier:(NSString*)appIdentifier
+              keychainAccessGroup:(NSString*)keychainAccessGroup
 {
-	self = [super init];
-	if (self) {
-		_appGroup = appGroup;
-		_appIdentifier = appIdentifier;
-		_keychainAccessGroup = keychainAccessGroup;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _appGroup = appGroup;
+        _appIdentifier = appIdentifier;
+        _keychainAccessGroup = keychainAccessGroup;
+    }
+    return self;
 }
 
 - (BOOL) validateConfiguration
 {
-	BOOL result = _appGroup.length > 0;
-	result = result && (_appIdentifier.length > 0);
-	result = result && ([_appIdentifier dataUsingEncoding:NSUTF8StringEncoding].length <= PADef_PowerAuthSharing_AppIdentifierMaxSize);
+    BOOL result = _appGroup.length > 0;
+    result = result && (_appIdentifier.length > 0);
+    result = result && ([_appIdentifier dataUsingEncoding:NSUTF8StringEncoding].length <= PADef_PowerAuthSharing_AppIdentifierMaxSize);
 #if PA2_HAS_CORE_MODULE
-	if (_sharedMemoryIdentifier) {
-		result = result && [PA2AppGroupContainer validateShortSharedMemoryIdentifier:_sharedMemoryIdentifier];
-	}
+    if (_sharedMemoryIdentifier) {
+        result = result && [PA2AppGroupContainer validateShortSharedMemoryIdentifier:_sharedMemoryIdentifier];
+    }
 #endif
-	return result;
+    return result;
 }
 
 - (id) copyWithZone:(NSZone *)zone
 {
-	PowerAuthSharingConfiguration * c = [[self.class allocWithZone:zone] init];
-	if (c) {
-		c->_appGroup = _appGroup;
-		c->_appIdentifier = _appIdentifier;
-		c->_keychainAccessGroup = _keychainAccessGroup;
-		c->_sharedMemoryIdentifier = _sharedMemoryIdentifier;
-	}
-	return c;
+    PowerAuthSharingConfiguration * c = [[self.class allocWithZone:zone] init];
+    if (c) {
+        c->_appGroup = _appGroup;
+        c->_appIdentifier = _appIdentifier;
+        c->_keychainAccessGroup = _keychainAccessGroup;
+        c->_sharedMemoryIdentifier = _sharedMemoryIdentifier;
+    }
+    return c;
 }
 
 @end

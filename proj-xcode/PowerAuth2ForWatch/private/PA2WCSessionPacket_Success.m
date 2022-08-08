@@ -23,35 +23,35 @@
 
 - (id) initWithCode:(NSInteger)successCode
 {
-	self = [super init];
-	if (self) {
-		_successCode = successCode;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _successCode = successCode;
+    }
+    return self;
 }
 
 - (id) initWithDictionary:(NSDictionary*)dictionary
 {
-	NSNumber * num = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_SUCCESS], NSNumber);
-	if (num == nil) {
-		return nil;
-	}
-	self = [super init];
-	if (self) {
-		_successCode = [num integerValue];
-	}
-	return self;
+    NSNumber * num = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_SUCCESS], NSNumber);
+    if (num == nil) {
+        return nil;
+    }
+    self = [super init];
+    if (self) {
+        _successCode = [num integerValue];
+    }
+    return self;
 }
 
 - (void) serializeToDictionary:(NSMutableDictionary*)dictionary
 {
-	dictionary[PA2WCSessionPacket_KEY_SUCCESS] = @(_successCode);
+    dictionary[PA2WCSessionPacket_KEY_SUCCESS] = @(_successCode);
 }
 
 - (BOOL) validatePacketData
 {
-	// always valid, because initWithDictionary returns nil when content is invalid.
-	return YES;
+    // always valid, because initWithDictionary returns nil when content is invalid.
+    return YES;
 }
 
 @end

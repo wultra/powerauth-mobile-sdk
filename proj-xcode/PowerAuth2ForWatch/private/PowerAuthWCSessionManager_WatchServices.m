@@ -23,7 +23,7 @@
  */
 void PA2WCSessionManager_RegisterDefaultHandlers(PowerAuthWCSessionManager * sessionManager)
 {
-	// On watchOS side, there's only one class registered for data processing.
-	// Check PA2WatchSynchronizationService class documentation for details.
-	[sessionManager registerDataHandler:[PA2WatchSynchronizationService sharedInstance]];
+    // On watchOS side, there's only one class registered for data processing.
+    // Check PA2WatchSynchronizationService class documentation for details.
+    [sessionManager registerDataHandler:[PA2WatchSynchronizationService sharedInstance]];
 }

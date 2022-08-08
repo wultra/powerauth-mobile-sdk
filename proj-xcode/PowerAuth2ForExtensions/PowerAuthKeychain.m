@@ -29,48 +29,48 @@
 #endif
 
 @implementation PowerAuthKeychain {
-	NSDictionary *_baseQuery;
+    NSDictionary *_baseQuery;
 }
 
 #pragma mark - Initializer
 
 - (instancetype) initWithIdentifier:(NSString*)identifier
 {
-	return [self initWithIdentifier:identifier accessGroup:nil];
+    return [self initWithIdentifier:identifier accessGroup:nil];
 }
 
 - (instancetype) initWithIdentifier:(NSString*)identifier accessGroup:(NSString*)accessGroup
 {
-	self = [super init];
-	if (self) {
-		_identifier = identifier;
-		_accessGroup = accessGroup;
-		_baseQuery = [NSMutableDictionary dictionary];
-		[_baseQuery setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
-		[_baseQuery setValue:_identifier							forKey:(__bridge id)kSecAttrService];
-		[_baseQuery setValue:@YES									forKey:(__bridge id)kSecReturnData];
+    self = [super init];
+    if (self) {
+        _identifier = identifier;
+        _accessGroup = accessGroup;
+        _baseQuery = [NSMutableDictionary dictionary];
+        [_baseQuery setValue:(__bridge id)kSecClassGenericPassword  forKey:(__bridge id)kSecClass];
+        [_baseQuery setValue:_identifier                            forKey:(__bridge id)kSecAttrService];
+        [_baseQuery setValue:@YES                                   forKey:(__bridge id)kSecReturnData];
 #if !TARGET_OS_SIMULATOR
-		if (_accessGroup != nil) {
-			[_baseQuery setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
-		}
+        if (_accessGroup != nil) {
+            [_baseQuery setValue:_accessGroup                       forKey:(__bridge id)kSecAttrAccessGroup];
+        }
 #endif
-	}
-	return self;
+    }
+    return self;
 }
 
 #pragma mark - Adding a new records
 
 - (PowerAuthKeychainStoreItemResult) addValue:(NSData *)data forKey:(NSString *)key
 {
-	return [self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None];
+    return [self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None];
 }
 
 - (PowerAuthKeychainStoreItemResult) addValue:(nonnull NSData*)data forKey:(nonnull NSString*)key access:(PowerAuthKeychainItemAccess)access
 {
-	if ([self containsDataForKey:key]) {
-		return PowerAuthKeychainStoreItemResult_Duplicate;
-	}
-	return [self implAddValue:data forKey:key access:access];
+    if ([self containsDataForKey:key]) {
+        return PowerAuthKeychainStoreItemResult_Duplicate;
+    }
+    return [self implAddValue:data forKey:key access:access];
 }
 
 
@@ -78,145 +78,145 @@
 
 - (PowerAuthKeychainStoreItemResult)updateValue:(NSData *)data forKey:(NSString *)key
 {
-	if ([self containsDataForKey:key]) {
-		return [self implUpdateValue:data forKey:key];
-	} else {
-		return PowerAuthKeychainStoreItemResult_NotFound;
-	}
+    if ([self containsDataForKey:key]) {
+        return [self implUpdateValue:data forKey:key];
+    } else {
+        return PowerAuthKeychainStoreItemResult_NotFound;
+    }
 }
 
 #pragma mark - Removing records
 
 - (BOOL)deleteDataForKey:(NSString *)key
 {
-	NSMutableDictionary *query = [_baseQuery mutableCopy];
-	[query setValue:key forKey:(__bridge id)kSecAttrAccount];
-	return SecItemDelete((__bridge CFDictionaryRef)(query)) == errSecSuccess;
+    NSMutableDictionary *query = [_baseQuery mutableCopy];
+    [query setValue:key forKey:(__bridge id)kSecAttrAccount];
+    return SecItemDelete((__bridge CFDictionaryRef)(query)) == errSecSuccess;
 }
 
 + (void) deleteAllData
 {
-	NSArray *secItemClasses = @[(__bridge id)kSecClassGenericPassword,
-								(__bridge id)kSecClassInternetPassword,
-								(__bridge id)kSecClassCertificate,
-								(__bridge id)kSecClassKey,
-								(__bridge id)kSecClassIdentity];
-	for (id secItemClass in secItemClasses) {
-		NSDictionary *spec = @{(__bridge id)kSecClass: secItemClass};
-		SecItemDelete((__bridge CFDictionaryRef)spec);
-	}
+    NSArray *secItemClasses = @[(__bridge id)kSecClassGenericPassword,
+                                (__bridge id)kSecClassInternetPassword,
+                                (__bridge id)kSecClassCertificate,
+                                (__bridge id)kSecClassKey,
+                                (__bridge id)kSecClassIdentity];
+    for (id secItemClass in secItemClasses) {
+        NSDictionary *spec = @{(__bridge id)kSecClass: secItemClass};
+        SecItemDelete((__bridge CFDictionaryRef)spec);
+    }
 }
 
 - (void) deleteAllData
 {
-	NSMutableDictionary *query = [NSMutableDictionary dictionary];
-	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
-	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
-	SecItemDelete((__bridge CFDictionaryRef)(query));
+    NSMutableDictionary *query = [NSMutableDictionary dictionary];
+    [query setValue:_identifier                             forKey:(__bridge id)kSecAttrService];
+    [query setValue:(__bridge id)kSecClassGenericPassword   forKey:(__bridge id)kSecClass];
+    SecItemDelete((__bridge CFDictionaryRef)(query));
 }
 
 #pragma mark - Obtaining record information
 
 - (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status
 {
-	return [self dataForKey:key status:status authentication:nil];
+    return [self dataForKey:key status:status authentication:nil];
 }
 
 - (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status authentication:(PowerAuthKeychainAuthentication *)authentication
 {
-	// Build query
-	NSMutableDictionary *query = [_baseQuery mutableCopy];
-	[query setValue:key forKey:(__bridge id)kSecAttrAccount];
-	
-	// Add authentication for items protected with biometry.
-	if (authentication) {
-		if (!_AddKeychainAuthentication(query, authentication)) {
-			if (status) {
-				*status = errSecUserCanceled;
-			}
-			return nil;
-		}
-	}
-	
-	// Obtain data and return result
-	CFTypeRef dataTypeRef = NULL;
-	OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
-	if (status != NULL) {
-		*status = s;
-	}
-	if (s == errSecSuccess) {
-		return (__bridge_transfer NSData *)dataTypeRef;
-	}
-	else {
-		return nil;
-	}
+    // Build query
+    NSMutableDictionary *query = [_baseQuery mutableCopy];
+    [query setValue:key forKey:(__bridge id)kSecAttrAccount];
+    
+    // Add authentication for items protected with biometry.
+    if (authentication) {
+        if (!_AddKeychainAuthentication(query, authentication)) {
+            if (status) {
+                *status = errSecUserCanceled;
+            }
+            return nil;
+        }
+    }
+    
+    // Obtain data and return result
+    CFTypeRef dataTypeRef = NULL;
+    OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
+    if (status != NULL) {
+        *status = s;
+    }
+    if (s == errSecSuccess) {
+        return (__bridge_transfer NSData *)dataTypeRef;
+    }
+    else {
+        return nil;
+    }
 }
 
 
 static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKeychainAuthentication * auth)
 {
-	NSString * prompt = auth.prompt;
+    NSString * prompt = auth.prompt;
 #if PA2_HAS_LACONTEXT == 1
-	LAContext * context = auth.context;
-	if (context) {
-		if (@available(iOS 11, macCatalyst 10.15, *)) {
-			if (context.interactionNotAllowed) {
-				PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
-				return NO;
-			}
-		}
-		query[(__bridge id)kSecUseAuthenticationContext] = context;
-		return YES;
-	}
-	if (prompt) {
-		if (@available(iOS 11, macCatalyst 10.15, *)) {
-			// kSecUseOperationPrompt is deprecated, so on iOS11+ use LAContext.
-			LAContext * context = [[LAContext alloc] init];
-			context.localizedReason = prompt;
-			query[(__bridge id)kSecUseAuthenticationContext] = context;
-			return YES;
-		}
-	}
+    LAContext * context = auth.context;
+    if (context) {
+        if (@available(iOS 11, macCatalyst 10.15, *)) {
+            if (context.interactionNotAllowed) {
+                PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
+                return NO;
+            }
+        }
+        query[(__bridge id)kSecUseAuthenticationContext] = context;
+        return YES;
+    }
+    if (prompt) {
+        if (@available(iOS 11, macCatalyst 10.15, *)) {
+            // kSecUseOperationPrompt is deprecated, so on iOS11+ use LAContext.
+            LAContext * context = [[LAContext alloc] init];
+            context.localizedReason = prompt;
+            query[(__bridge id)kSecUseAuthenticationContext] = context;
+            return YES;
+        }
+    }
 #endif // PA2_HAS_LACONTEXT
-	if (!prompt) {
-		PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
-		return NO;
-	}
-	query[(__bridge id)kSecUseOperationPrompt] = prompt;
-	return YES;
+    if (!prompt) {
+        PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
+        return NO;
+    }
+    query[(__bridge id)kSecUseOperationPrompt] = prompt;
+    return YES;
 }
 
 static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 {
-	query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
+    query[(__bridge id)kSecUseAuthenticationUI] = (__bridge id)kSecUseAuthenticationUIFail;
 }
 
 - (BOOL) containsDataForKey:(NSString *)key
 {
-	NSMutableDictionary *query = [NSMutableDictionary dictionary];
-	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
-	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
-	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
-	_AddUseNoAuthenticationUI(query);
+    NSMutableDictionary *query = [NSMutableDictionary dictionary];
+    [query setValue:_identifier                             forKey:(__bridge id)kSecAttrService];
+    [query setValue:(__bridge id)kSecClassGenericPassword   forKey:(__bridge id)kSecClass];
+    [query setValue:key                                     forKey:(__bridge id)kSecAttrAccount];
+    _AddUseNoAuthenticationUI(query);
 #if !TARGET_OS_SIMULATOR
-	if (_accessGroup != nil) {
-		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
-	}
+    if (_accessGroup != nil) {
+        [query setValue:_accessGroup                        forKey:(__bridge id)kSecAttrAccessGroup];
+    }
 #endif
-	
-	CFTypeRef dataTypeRef = NULL;
-	OSStatus const status = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
-	if (status == errSecItemNotFound
-		|| status == errSecUnimplemented
-		|| status == errSecParam
-		|| status == errSecUserCanceled
-		|| status == errSecBadReq
-		|| status == errSecNotAvailable
-		|| status == errSecDecode) {
-		return NO;
-	} else {
-		return YES;
-	}
+    
+    CFTypeRef dataTypeRef = NULL;
+    OSStatus const status = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
+    if (status == errSecItemNotFound
+        || status == errSecUnimplemented
+        || status == errSecParam
+        || status == errSecUserCanceled
+        || status == errSecBadReq
+        || status == errSecNotAvailable
+        || status == errSecDecode) {
+        return NO;
+    } else {
+        return YES;
+    }
 }
 
 
@@ -224,47 +224,47 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
 - (NSDictionary*) allItemsWithAuthentication:(PowerAuthKeychainAuthentication *)authentication withStatus:(OSStatus *)status
 {
-	// Build query to return all results
-	NSMutableDictionary *query = [_baseQuery mutableCopy];
-	[query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
-	[query setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
+    // Build query to return all results
+    NSMutableDictionary *query = [_baseQuery mutableCopy];
+    [query setObject:(__bridge id)kSecMatchLimitAll forKey:(__bridge id)kSecMatchLimit];
+    [query setObject:@YES forKey:(__bridge id)kSecReturnAttributes];
 
-	// Add authentication for items protected with biometry.
-	if (authentication) {
-		if (!_AddKeychainAuthentication(query, authentication)) {
-			if (status) {
-				*status = errSecUserCanceled;
-			}
-			return nil;
-		}
-	}
+    // Add authentication for items protected with biometry.
+    if (authentication) {
+        if (!_AddKeychainAuthentication(query, authentication)) {
+            if (status) {
+                *status = errSecUserCanceled;
+            }
+            return nil;
+        }
+    }
 
-	// Obtain data and return result
-	CFTypeRef dataTypeRef = NULL;
-	OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
-	NSArray *queryResult = (__bridge_transfer NSArray *)dataTypeRef;
-	NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    // Obtain data and return result
+    CFTypeRef dataTypeRef = NULL;
+    OSStatus s = SecItemCopyMatching((__bridge CFDictionaryRef)(query), &dataTypeRef);
+    NSArray *queryResult = (__bridge_transfer NSArray *)dataTypeRef;
+    NSMutableDictionary *result = [NSMutableDictionary dictionary];
 
-	if (status != NULL) {
-		*status = s;
-	}
+    if (status != NULL) {
+        *status = s;
+    }
 
-	if (s == errSecSuccess) {
-		for (NSDictionary *const item in queryResult) {
-			NSString *key = [item valueForKey:(__bridge id)kSecAttrAccount];
-			NSData *value = [item valueForKey:(__bridge id)kSecValueData];
-			[result setObject:value forKey:key];
-		}
-	}
-	else {
-		return nil;
-	}
-	return result;
+    if (s == errSecSuccess) {
+        for (NSDictionary *const item in queryResult) {
+            NSString *key = [item valueForKey:(__bridge id)kSecAttrAccount];
+            NSData *value = [item valueForKey:(__bridge id)kSecValueData];
+            [result setObject:value forKey:key];
+        }
+    }
+    else {
+        return nil;
+    }
+    return result;
 }
 
 - (NSDictionary*) allItems
 {
-	return [self allItemsWithAuthentication:nil withStatus:nil];
+    return [self allItemsWithAuthentication:nil withStatus:nil];
 }
 
 #pragma mark - Biometry support
@@ -280,16 +280,16 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 API_AVAILABLE(ios(11.0))
 static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 {
-	if (bt == LABiometryTypeTouchID) {
-		return PowerAuthBiometricAuthenticationType_TouchID;
-	} else if (bt == LABiometryTypeFaceID) {
-		return PowerAuthBiometricAuthenticationType_FaceID;
-	}
-	// Looks like Apple introduced a new biometry type. We should try to continue,
-	// and pretend that TouchID is available. Application's UI will probably display
-	// wrong information, but at least it may work.
-	PowerAuthLog(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
-	return PowerAuthBiometricAuthenticationType_TouchID;
+    if (bt == LABiometryTypeTouchID) {
+        return PowerAuthBiometricAuthenticationType_TouchID;
+    } else if (bt == LABiometryTypeFaceID) {
+        return PowerAuthBiometricAuthenticationType_FaceID;
+    }
+    // Looks like Apple introduced a new biometry type. We should try to continue,
+    // and pretend that TouchID is available. Application's UI will probably display
+    // wrong information, but at least it may work.
+    PowerAuthLog(@"Warning: LAContext.biometryType contains unknown biometryType %@.", @(bt));
+    return PowerAuthBiometricAuthenticationType_TouchID;
 }
 
 // Distinguish between old, deprecated "TouchID" enums and new with "biometry" in name.
@@ -303,17 +303,17 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
 // values for both, new and old definitions. Once we target iOS 11.2+, we can freely
 // remove this tweak.
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_13_0
-	#define __LABiometryTypeNone					LABiometryTypeNone
-	#define __LAErrorBiometryLockout				LAErrorBiometryLockout
-	#define __LAErrorBiometryNotEnrolled			LAErrorBiometryNotEnrolled
-	#define __kSecAccessControlBiometryAny			kSecAccessControlBiometryAny
-	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlBiometryCurrentSet
+    #define __LABiometryTypeNone                    LABiometryTypeNone
+    #define __LAErrorBiometryLockout                LAErrorBiometryLockout
+    #define __LAErrorBiometryNotEnrolled            LAErrorBiometryNotEnrolled
+    #define __kSecAccessControlBiometryAny          kSecAccessControlBiometryAny
+    #define __kSecAccessControlBiometryCurrentSet   kSecAccessControlBiometryCurrentSet
 #else
-	#define __LABiometryTypeNone					LABiometryNone
-	#define __LAErrorBiometryLockout				LAErrorTouchIDLockout
-	#define __LAErrorBiometryNotEnrolled			LAErrorTouchIDNotEnrolled
-	#define __kSecAccessControlBiometryAny			kSecAccessControlTouchIDAny
-	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlTouchIDCurrentSet
+    #define __LABiometryTypeNone                    LABiometryNone
+    #define __LAErrorBiometryLockout                LAErrorTouchIDLockout
+    #define __LAErrorBiometryNotEnrolled            LAErrorTouchIDNotEnrolled
+    #define __kSecAccessControlBiometryAny          kSecAccessControlTouchIDAny
+    #define __kSecAccessControlBiometryCurrentSet   kSecAccessControlTouchIDCurrentSet
 #endif
 
 /**
@@ -322,55 +322,55 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
  */
 static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
 {
-	PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
-	// PowerAuth SDK requires features added in iOS9, so we don't support biometry on iOS8.
-	if (@available(iOS 9, *)) {
-		LAContext * context = [[LAContext alloc] init];
-		NSError * error = nil;
-		BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
-		if (canEvaluate) {
-			// If we can evaluate, then everything is quite simple.
-			info.currentStatus = PowerAuthBiometricAuthenticationStatus_Available;
-			// Now check the type of biometry
-			if (@available(iOS 11.0, *)) {
-				info.biometryType = _LABiometryTypeToPAType(context.biometryType);
-			} else {
-				// No FaceID before iOS11, so it has to be TouchID
-				info.biometryType = PowerAuthBiometricAuthenticationType_TouchID;
-			}
-			//
-		} else {
-			// In case of error we cannot evaluate, but the type of biometry can be determined.
-			NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
-			if (@available(iOS 11.0, *)) {
-				// On iOS 11 its quite simple, we have type property available and status can be determined
-				// from the error.
-				LABiometryType bt = context.biometryType;
-				if (bt != __LABiometryTypeNone) {
-					info.biometryType = _LABiometryTypeToPAType(bt);
-					if (code == LAErrorBiometryLockout) {
-						info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
-					} else if (code == LAErrorBiometryNotEnrolled) {
-						info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
-					} else {
-						// The biometry is available, but returned error is unknown.
-						PowerAuthLog(@"LAContext.canEvaluatePolicy() failed with error: %@", error);
-						info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotAvailable;
-					}
-				}
-			} else {
-				// On older systems (IOS 8..10), only Touch ID is available.
-				if (code == __LAErrorBiometryLockout) {
-					info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
-					info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
-				} else if (code == __LAErrorBiometryNotEnrolled) {
-					info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
-					info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
-				}
-			}
-		}
-	}
-	return info;
+    PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
+    // PowerAuth SDK requires features added in iOS9, so we don't support biometry on iOS8.
+    if (@available(iOS 9, *)) {
+        LAContext * context = [[LAContext alloc] init];
+        NSError * error = nil;
+        BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
+        if (canEvaluate) {
+            // If we can evaluate, then everything is quite simple.
+            info.currentStatus = PowerAuthBiometricAuthenticationStatus_Available;
+            // Now check the type of biometry
+            if (@available(iOS 11.0, *)) {
+                info.biometryType = _LABiometryTypeToPAType(context.biometryType);
+            } else {
+                // No FaceID before iOS11, so it has to be TouchID
+                info.biometryType = PowerAuthBiometricAuthenticationType_TouchID;
+            }
+            //
+        } else {
+            // In case of error we cannot evaluate, but the type of biometry can be determined.
+            NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
+            if (@available(iOS 11.0, *)) {
+                // On iOS 11 its quite simple, we have type property available and status can be determined
+                // from the error.
+                LABiometryType bt = context.biometryType;
+                if (bt != __LABiometryTypeNone) {
+                    info.biometryType = _LABiometryTypeToPAType(bt);
+                    if (code == LAErrorBiometryLockout) {
+                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
+                    } else if (code == LAErrorBiometryNotEnrolled) {
+                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
+                    } else {
+                        // The biometry is available, but returned error is unknown.
+                        PowerAuthLog(@"LAContext.canEvaluatePolicy() failed with error: %@", error);
+                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotAvailable;
+                    }
+                }
+            } else {
+                // On older systems (IOS 8..10), only Touch ID is available.
+                if (code == __LAErrorBiometryLockout) {
+                    info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
+                    info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
+                } else if (code == __LAErrorBiometryNotEnrolled) {
+                    info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
+                    info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
+                }
+            }
+        }
+    }
+    return info;
 }
 
 /**
@@ -378,45 +378,45 @@ static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
  */
 static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeychainItemAccess access)
 {
-	if (access != PowerAuthKeychainItemAccess_None) {
-		if (@available(iOS 9, *)) {
-			// If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
-			// or use kNilOptions.
-			switch (access) {
-				case PowerAuthKeychainItemAccess_AnyBiometricSet:
-					return __kSecAccessControlBiometryAny;
-				case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
-					return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
-				case PowerAuthKeychainItemAccess_CurrentBiometricSet:
-					return __kSecAccessControlBiometryCurrentSet;
-				default:
-					break;
-			}
-		}
-	}
-	// If biometry is not supporte or not requested, use the kNilOptions.
-	return kNilOptions;
+    if (access != PowerAuthKeychainItemAccess_None) {
+        if (@available(iOS 9, *)) {
+            // If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
+            // or use kNilOptions.
+            switch (access) {
+                case PowerAuthKeychainItemAccess_AnyBiometricSet:
+                    return __kSecAccessControlBiometryAny;
+                case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
+                    return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
+                case PowerAuthKeychainItemAccess_CurrentBiometricSet:
+                    return __kSecAccessControlBiometryCurrentSet;
+                default:
+                    break;
+            }
+        }
+    }
+    // If biometry is not supporte or not requested, use the kNilOptions.
+    return kNilOptions;
 }
 
 + (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
 {
-	// Initialize mutex
-	static pthread_mutex_t biometricMutex;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-		pthread_mutex_init(&biometricMutex, NULL);
-	});
-	
-	// Try to acquire biometric lock.
-	if (pthread_mutex_trylock(&biometricMutex) != 0) {
-		PowerAuthLog(@"Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
-		return NO;
-	}
-	// Execute block
-	block();
-	// Unlock mutex and return success.
-	pthread_mutex_unlock(&biometricMutex);
-	return YES;
+    // Initialize mutex
+    static pthread_mutex_t biometricMutex;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        pthread_mutex_init(&biometricMutex, NULL);
+    });
+    
+    // Try to acquire biometric lock.
+    if (pthread_mutex_trylock(&biometricMutex) != 0) {
+        PowerAuthLog(@"Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
+        return NO;
+    }
+    // Execute block
+    block();
+    // Unlock mutex and return success.
+    pthread_mutex_unlock(&biometricMutex);
+    return YES;
 }
 
 #else  // !defined(PA2_EXTENSION_SDK)
@@ -430,8 +430,8 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
  */
 static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
 {
-	PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
-	return info;
+    PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
+    return info;
 }
 
 /**
@@ -439,7 +439,7 @@ static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
  */
 static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeychainItemAccess access)
 {
-	return kNilOptions;
+    return kNilOptions;
 }
 
 /**
@@ -447,7 +447,7 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
  */
 + (BOOL) tryLockBiometryAndExecuteBlock:(void (^_Nonnull)(void))block
 {
-	return NO;
+    return NO;
 }
 
 #endif // !defined(PA2_EXTENSION_SDK) && defined(PA2_BIOMETRY_SUPPORT)
@@ -458,23 +458,23 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
 
 + (BOOL) canUseBiometricAuthentication
 {
-	// The behavior of this property is that it returns YES, only if biometry policy can be evaluated.
-	return _getBiometryInfo().currentStatus == PowerAuthBiometricAuthenticationStatus_Available;
+    // The behavior of this property is that it returns YES, only if biometry policy can be evaluated.
+    return _getBiometryInfo().currentStatus == PowerAuthBiometricAuthenticationStatus_Available;
 }
 
 + (PowerAuthBiometricAuthenticationType) supportedBiometricAuthentication
 {
-	PowerAuthBiometricAuthenticationInfo info = _getBiometryInfo();
-	// The behavior of this property is that if the biometry policy cannot be evaluated, then returns "None".
-	if (info.currentStatus == PowerAuthBiometricAuthenticationStatus_Available) {
-		return info.biometryType;
-	}
-	return PowerAuthBiometricAuthenticationType_None;
+    PowerAuthBiometricAuthenticationInfo info = _getBiometryInfo();
+    // The behavior of this property is that if the biometry policy cannot be evaluated, then returns "None".
+    if (info.currentStatus == PowerAuthBiometricAuthenticationStatus_Available) {
+        return info.biometryType;
+    }
+    return PowerAuthBiometricAuthenticationType_None;
 }
 
 + (PowerAuthBiometricAuthenticationInfo) biometricAuthenticationInfo
 {
-	return _getBiometryInfo();
+    return _getBiometryInfo();
 }
 
 #pragma mark - Private methods
@@ -482,104 +482,104 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
 static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAddOperation, PowerAuthKeychainItemAccess access)
 {
 #if TARGET_OS_SIMULATOR
-	//
-	// Workaround for bug in iOS13 simulator (Xcode 11)
-	//
-	// iOS13 simulator are not able to store the data to keychain when AC object is present in the query.
-	// In this case, we simply skip this step.
-	//
-	// Associated ticket: https://github.com/wultra/powerauth-mobile-sdk/issues/248
-	//
-	if (@available(iOS 13, *)) {
-		return YES;
-	}
+    //
+    // Workaround for bug in iOS13 simulator (Xcode 11)
+    //
+    // iOS13 simulator are not able to store the data to keychain when AC object is present in the query.
+    // In this case, we simply skip this step.
+    //
+    // Associated ticket: https://github.com/wultra/powerauth-mobile-sdk/issues/248
+    //
+    if (@available(iOS 13, *)) {
+        return YES;
+    }
 #endif
-	SecAccessControlCreateFlags flags;
-	if (isAddOperation) {
-		// For add operation, translate requested access to control flags.
-		flags = _getBiometryAccessControlFlags(access);
-	} else {
-		// For update operation, or if biometry is not requested, use the kNilOptions.
-		flags = kNilOptions;
-	}
-	// Create access control object
-	CFErrorRef error = NULL;
-	SecAccessControlRef sacObject = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags, &error);
-	if (sacObject == NULL || error != NULL) {
-		// make sure to release the object
-		if (sacObject != NULL) {
-			CFRelease(sacObject);
-		}
-		return NO;
-	}
-	// Add the access control constraint to the query.
-	[dictionary setValue:(__bridge_transfer id)sacObject forKey:(__bridge id)kSecAttrAccessControl];
-	return YES;
+    SecAccessControlCreateFlags flags;
+    if (isAddOperation) {
+        // For add operation, translate requested access to control flags.
+        flags = _getBiometryAccessControlFlags(access);
+    } else {
+        // For update operation, or if biometry is not requested, use the kNilOptions.
+        flags = kNilOptions;
+    }
+    // Create access control object
+    CFErrorRef error = NULL;
+    SecAccessControlRef sacObject = SecAccessControlCreateWithFlags(kCFAllocatorDefault, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags, &error);
+    if (sacObject == NULL || error != NULL) {
+        // make sure to release the object
+        if (sacObject != NULL) {
+            CFRelease(sacObject);
+        }
+        return NO;
+    }
+    // Add the access control constraint to the query.
+    [dictionary setValue:(__bridge_transfer id)sacObject forKey:(__bridge id)kSecAttrAccessControl];
+    return YES;
 }
 
 - (PowerAuthKeychainStoreItemResult) implAddValue:(NSData*)data forKey:(NSString*)key access:(PowerAuthKeychainItemAccess)access
 {
-	// Return if iOS version is lower than iOS 9.0 - we cannot securely store a biometric key here.
-	// Call is moved here so that we spare further object allocations.
-	if (access != PowerAuthKeychainItemAccess_None) {
-		if (![PowerAuthKeychain canUseBiometricAuthentication]) {
-			return PowerAuthKeychainStoreItemResult_BiometryNotAvailable;
-		}
-	}
-	
-	// Build default query with base data.
-	NSMutableDictionary *query = [_baseQuery mutableCopy];
-	[query setValue:key		forKey:(__bridge id)kSecAttrAccount];
-	[query setValue:data	forKey:(__bridge id)kSecValueData];
-	_AddUseNoAuthenticationUI(query);
-	if (!_AddAccessControlObject(query, YES, access)) {
-		return PowerAuthKeychainStoreItemResult_Other;
-	}
-	
-	// Return result of kechain item add.
-	OSStatus keychainResult = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
-	switch (keychainResult) {
-		case errSecDuplicateItem:
-			return PowerAuthKeychainStoreItemResult_Duplicate;
-		case errSecSuccess:
-			return PowerAuthKeychainStoreItemResult_Ok;
-		default:
-			return PowerAuthKeychainStoreItemResult_Other;
-	}
+    // Return if iOS version is lower than iOS 9.0 - we cannot securely store a biometric key here.
+    // Call is moved here so that we spare further object allocations.
+    if (access != PowerAuthKeychainItemAccess_None) {
+        if (![PowerAuthKeychain canUseBiometricAuthentication]) {
+            return PowerAuthKeychainStoreItemResult_BiometryNotAvailable;
+        }
+    }
+    
+    // Build default query with base data.
+    NSMutableDictionary *query = [_baseQuery mutableCopy];
+    [query setValue:key     forKey:(__bridge id)kSecAttrAccount];
+    [query setValue:data    forKey:(__bridge id)kSecValueData];
+    _AddUseNoAuthenticationUI(query);
+    if (!_AddAccessControlObject(query, YES, access)) {
+        return PowerAuthKeychainStoreItemResult_Other;
+    }
+    
+    // Return result of kechain item add.
+    OSStatus keychainResult = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
+    switch (keychainResult) {
+        case errSecDuplicateItem:
+            return PowerAuthKeychainStoreItemResult_Duplicate;
+        case errSecSuccess:
+            return PowerAuthKeychainStoreItemResult_Ok;
+        default:
+            return PowerAuthKeychainStoreItemResult_Other;
+    }
 }
 
 - (PowerAuthKeychainStoreItemResult) implUpdateValue:(NSData*)data forKey:(NSString*)key
 {
-	// Build default query with base data.
-	NSMutableDictionary *query = [NSMutableDictionary dictionary];
-	[query setValue:(__bridge id)kSecClassGenericPassword	forKey:(__bridge id)kSecClass];
-	[query setValue:_identifier								forKey:(__bridge id)kSecAttrService];
-	[query setValue:key										forKey:(__bridge id)kSecAttrAccount];
+    // Build default query with base data.
+    NSMutableDictionary *query = [NSMutableDictionary dictionary];
+    [query setValue:(__bridge id)kSecClassGenericPassword   forKey:(__bridge id)kSecClass];
+    [query setValue:_identifier                             forKey:(__bridge id)kSecAttrService];
+    [query setValue:key                                     forKey:(__bridge id)kSecAttrAccount];
 #if !TARGET_OS_SIMULATOR
-	if (_accessGroup != nil) {
-		[query setValue:_accessGroup						forKey:(__bridge id)kSecAttrAccessGroup];
-	}
+    if (_accessGroup != nil) {
+        [query setValue:_accessGroup                        forKey:(__bridge id)kSecAttrAccessGroup];
+    }
 #endif
-	
-	// Data to be updated.
-	NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-	[dictionary setValue:_identifier						forKey:(__bridge id)kSecAttrService];
-	[dictionary setValue:key								forKey:(__bridge id)kSecAttrAccount];
-	[dictionary setValue:data								forKey:(__bridge id)kSecValueData];
-	if (!_AddAccessControlObject(dictionary, NO, PowerAuthKeychainItemAccess_None)) {
-		return PowerAuthKeychainStoreItemResult_Other;
-	}
-	
-	// Return result of keychain item update.
-	OSStatus keychainResult =  SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)dictionary);
-	switch (keychainResult) {
-		case errSecItemNotFound:
-			return PowerAuthKeychainStoreItemResult_NotFound;
-		case errSecSuccess:
-			return PowerAuthKeychainStoreItemResult_Ok;
-		default:
-			return PowerAuthKeychainStoreItemResult_Other;
-	}
+    
+    // Data to be updated.
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    [dictionary setValue:_identifier                        forKey:(__bridge id)kSecAttrService];
+    [dictionary setValue:key                                forKey:(__bridge id)kSecAttrAccount];
+    [dictionary setValue:data                               forKey:(__bridge id)kSecValueData];
+    if (!_AddAccessControlObject(dictionary, NO, PowerAuthKeychainItemAccess_None)) {
+        return PowerAuthKeychainStoreItemResult_Other;
+    }
+    
+    // Return result of keychain item update.
+    OSStatus keychainResult =  SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)dictionary);
+    switch (keychainResult) {
+        case errSecItemNotFound:
+            return PowerAuthKeychainStoreItemResult_NotFound;
+        case errSecSuccess:
+            return PowerAuthKeychainStoreItemResult_Ok;
+        default:
+            return PowerAuthKeychainStoreItemResult_Other;
+    }
 }
 
 @end
@@ -590,74 +590,74 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 
 - (void) addValue:(NSData*)data forKey:(NSString*)key completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
 {
-	[self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None completion:completion];
+    [self addValue:data forKey:key access:PowerAuthKeychainItemAccess_None completion:completion];
 }
 
 - (void) addValue:(NSData*)data forKey:(NSString*)key access:(PowerAuthKeychainItemAccess)access completion:(void(^)(PowerAuthKeychainStoreItemResult status))completion
 {
-	[self containsDataForKey:key completion:^(BOOL containsValue) {
-		if (containsValue) {
-			completion(PowerAuthKeychainStoreItemResult_Duplicate);
-		} else {
-			completion([self implAddValue:data forKey:key access:access]);
-		}
-	}];
+    [self containsDataForKey:key completion:^(BOOL containsValue) {
+        if (containsValue) {
+            completion(PowerAuthKeychainStoreItemResult_Duplicate);
+        } else {
+            completion([self implAddValue:data forKey:key access:access]);
+        }
+    }];
 }
 
 - (void)updateValue:(NSData *)data forKey:(NSString *)key completion:(void (^)(PowerAuthKeychainStoreItemResult))completion
 {
-	[self containsDataForKey:key completion:^(BOOL containsValue) {
-		if (containsValue) {
-			completion([self implUpdateValue:data forKey:key]);
-		} else {
-			completion(PowerAuthKeychainStoreItemResult_NotFound);
-		}
-	}];
+    [self containsDataForKey:key completion:^(BOOL containsValue) {
+        if (containsValue) {
+            completion([self implUpdateValue:data forKey:key]);
+        } else {
+            completion(PowerAuthKeychainStoreItemResult_NotFound);
+        }
+    }];
 }
 
 - (void) deleteDataForKey:(NSString*)key completion:(void(^)(BOOL deleted))completion
 {
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		completion([self deleteDataForKey:key]);
-	});
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        completion([self deleteDataForKey:key]);
+    });
 }
 
 - (NSData*) dataForKey:(NSString *)key status:(OSStatus *)status prompt:(NSString*)prompt
 {
-	PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
-	return [self dataForKey:key status:status authentication:auth];
+    PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
+    return [self dataForKey:key status:status authentication:auth];
 }
 
 - (void) dataForKey:(NSString*)key prompt:(NSString*)prompt completion:(void(^)(NSData *data, OSStatus status))completion
 {
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		OSStatus status;
-		NSData *value = [self dataForKey:key status:&status prompt:prompt];
-		completion(value, status);
-	});
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        OSStatus status;
+        NSData *value = [self dataForKey:key status:&status prompt:prompt];
+        completion(value, status);
+    });
 }
 
 - (void) dataForKey:(NSString*)key completion:(void(^)(NSData *data, OSStatus status))completion
 {
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		OSStatus status;
-		NSData *value = [self dataForKey:key status:&status];
-		completion(value, status);
-	});
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        OSStatus status;
+        NSData *value = [self dataForKey:key status:&status];
+        completion(value, status);
+    });
 }
 
 - (void) containsDataForKey:(NSString*)key completion:(void(^)(BOOL containsValue))completion
 {
-	dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		BOOL containsValue = [self containsDataForKey:key];
-		completion(containsValue);
-	});
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        BOOL containsValue = [self containsDataForKey:key];
+        completion(containsValue);
+    });
 }
 
 - (NSDictionary*) allItemsWithPrompt:(NSString*)prompt withStatus: (OSStatus *)status
 {
-	PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
-	return [self allItemsWithAuthentication:auth withStatus:status];
+    PowerAuthKeychainAuthentication * auth = [[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt];
+    return [self allItemsWithAuthentication:auth withStatus:status];
 }
 
 @end

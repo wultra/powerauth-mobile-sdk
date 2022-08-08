@@ -35,12 +35,12 @@
  Initialize object with required parameters.
  @param appGroup Name of app group that allows you sharing data between multiple applications. Be aware that the value overrides `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` property.
  @param appIdentifier Unique application identifier. This identifier helps you to determine which application
-					  currently holds the lock on activation data in a special operations.
+                      currently holds the lock on activation data in a special operations.
  @param keychainAccessGroup Keychain sharing access grorup. Be aware that the value overrides `PowerAuthKeychainConfiguration.keychainAttribute_AccessGroup` property.
  */
 - (nonnull instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-							appIdentifier:(nonnull NSString*)appIdentifier
-					  keychainAccessGroup:(nonnull NSString*)keychainAccessGroup;
+                            appIdentifier:(nonnull NSString*)appIdentifier
+                      keychainAccessGroup:(nonnull NSString*)keychainAccessGroup;
 
 /**
  Name of app group that allows you sharing data between multiple applications.

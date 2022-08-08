@@ -29,152 +29,152 @@ namespace getlime
 {
 namespace powerAuthTests
 {
-	extern TestDirectory g_pa2Files;
-	
-	class pa2SignatureCalculationTests : public UnitTest
-	{
-	public:
-		pa2SignatureCalculationTests()
-		{
-			CC7_REGISTER_TEST_METHOD(testV2Signatures)
-			CC7_REGISTER_TEST_METHOD(testV3Signatures)
-			CC7_REGISTER_TEST_METHOD(testV31Signatures)
-			CC7_REGISTER_TEST_METHOD(testDataNormalization)
-		}
-		
-		void testV2Signatures()
-		{
-			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v2.json");
-			auto&& data = root.arrayAtPath("data");
-			for (const JSONValue & item : data) {
-				
-				protocol::SignatureKeys keys;
-				keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
-				keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
-				keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
-				std::string signatureType = item.stringAtPath("input.signatureType");
-				uint64_t  counter         = std::stoull(item.stringAtPath("input.counter"));
-				ByteArray data            = item.dataFromBase64StringAtPath("input.data");
-				std::string expSignature  = item.stringAtPath("output.signature");
-				
-				SignatureFactor factor = factorFromString(signatureType);
-				ccstAssertTrue(factor != protocol::SF_FirstLock);
-				auto ctr_data = protocol::SignatureCounterToData(counter);
-				std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
-				bool match = signature == expSignature;
-				if (!match) {
-					ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
-					ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
-					ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
-					ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
-					ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
-					ccstFailure();
-					break;
-					//ccstMessage("Item %@", item); // we don't have dump of JSONValue to string
-				}
-			}
-		}
-		
-		void testV3Signatures()
-		{
-			// This is old V3 format, but we can keep the test vectors in the project.
-			// It's still valid for offline signatures.
-			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v3.json");
-			auto&& data = root.arrayAtPath("data");
-			for (const JSONValue & item : data) {
-				
-				protocol::SignatureKeys keys;
-				keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
-				keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
-				keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
-				std::string signatureType = item.stringAtPath("input.signatureType");
-				ByteArray ctr_data		  = item.dataFromBase64StringAtPath("input.counterData");
-				ByteArray data            = item.dataFromBase64StringAtPath("input.data");
-				std::string expSignature  = item.stringAtPath("output.signature");
-				
-				SignatureFactor factor = factorFromString(signatureType);
-				ccstAssertTrue(factor != protocol::SF_FirstLock);
-				std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
-				bool match = signature == expSignature;
-				if (!match) {
-					ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
-					ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
-					ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
-					ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
-					ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
-					ccstFailure();
-					break;
-					//ccstMessage("Item %@", item); // we don't have dump of JSONValue to string
-				}
-			}
-		}
-		
-		void testV31Signatures()
-		{
-			// This is new V3.1 format, based on Base64 strings.
-			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v31.json");
-			auto&& data = root.arrayAtPath("data");
-			for (const JSONValue & item : data) {
-				
-				protocol::SignatureKeys keys;
-				keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
-				keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
-				keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
-				std::string signatureType = item.stringAtPath("input.signatureType");
-				ByteArray ctr_data		  = item.dataFromBase64StringAtPath("input.counterData");
-				ByteArray data            = item.dataFromBase64StringAtPath("input.data");
-				std::string expSignature  = item.stringAtPath("output.signature");
-				
-				SignatureFactor factor = factorFromString(signatureType);
-				ccstAssertTrue(factor != protocol::SF_FirstLock);
-				std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, true);
-				bool match = signature == expSignature;
-				if (!match) {
-					ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
-					ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
-					ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
-					ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
-					ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
-					ccstFailure();
-					break;
-				}
-			}
-		}
-		
-		SignatureFactor factorFromString(const std::string & factor)
-		{
-			static const SignatureFactor allFactors[] = {
-				SF_Possession, SF_Knowledge, SF_Biometry,
-				SF_Possession_Knowledge, SF_Possession_Biometry,
-				SF_Possession_Knowledge_Biometry
-			};
-			
-			for (size_t i = 0; i < sizeof(allFactors)/sizeof(SignatureFactor); i++) {
-				std::string fa = protocol::ConvertSignatureFactorToString(allFactors[i]);
-				if (factor == fa) {
-					return allFactors[i];
-				}
-			}
-			ccstFailure("Unable to convert factor %s to enum", factor.c_str());
-			return protocol::SF_FirstLock;
-		}
-		
-		void testDataNormalization()
-		{
-			std::string method("POST");
-			std::string uri("/pa/activation/remove");
-			std::string nonceB64("fNJQBWeKTG5Zp+zrdNu/PQ==");
-			std::string secret("MDEyMzQ1Njc4OUFCQ0RFRg==");
-			ByteArray body;
-			ByteArray expectedNormalizedData(ByteRange("POST&L3BhL2FjdGl2YXRpb24vcmVtb3Zl&fNJQBWeKTG5Zp+zrdNu/PQ==&&MDEyMzQ1Njc4OUFCQ0RFRg=="));
-			
-			ByteArray normalizedData = protocol::NormalizeDataForSignature(method, uri, nonceB64, body, secret);
-			ccstAssertEqual(normalizedData, expectedNormalizedData);
-		}
-	};
-	
-	CC7_CREATE_UNIT_TEST(pa2SignatureCalculationTests, "pa2")
-	
+    extern TestDirectory g_pa2Files;
+    
+    class pa2SignatureCalculationTests : public UnitTest
+    {
+    public:
+        pa2SignatureCalculationTests()
+        {
+            CC7_REGISTER_TEST_METHOD(testV2Signatures)
+            CC7_REGISTER_TEST_METHOD(testV3Signatures)
+            CC7_REGISTER_TEST_METHOD(testV31Signatures)
+            CC7_REGISTER_TEST_METHOD(testDataNormalization)
+        }
+        
+        void testV2Signatures()
+        {
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v2.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                
+                protocol::SignatureKeys keys;
+                keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
+                keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
+                keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
+                std::string signatureType = item.stringAtPath("input.signatureType");
+                uint64_t  counter         = std::stoull(item.stringAtPath("input.counter"));
+                ByteArray data            = item.dataFromBase64StringAtPath("input.data");
+                std::string expSignature  = item.stringAtPath("output.signature");
+                
+                SignatureFactor factor = factorFromString(signatureType);
+                ccstAssertTrue(factor != protocol::SF_FirstLock);
+                auto ctr_data = protocol::SignatureCounterToData(counter);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
+                bool match = signature == expSignature;
+                if (!match) {
+                    ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
+                    ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
+                    ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
+                    ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
+                    ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
+                    ccstFailure();
+                    break;
+                    //ccstMessage("Item %@", item); // we don't have dump of JSONValue to string
+                }
+            }
+        }
+        
+        void testV3Signatures()
+        {
+            // This is old V3 format, but we can keep the test vectors in the project.
+            // It's still valid for offline signatures.
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v3.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                
+                protocol::SignatureKeys keys;
+                keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
+                keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
+                keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
+                std::string signatureType = item.stringAtPath("input.signatureType");
+                ByteArray ctr_data        = item.dataFromBase64StringAtPath("input.counterData");
+                ByteArray data            = item.dataFromBase64StringAtPath("input.data");
+                std::string expSignature  = item.stringAtPath("output.signature");
+                
+                SignatureFactor factor = factorFromString(signatureType);
+                ccstAssertTrue(factor != protocol::SF_FirstLock);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
+                bool match = signature == expSignature;
+                if (!match) {
+                    ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
+                    ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
+                    ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
+                    ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
+                    ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
+                    ccstFailure();
+                    break;
+                    //ccstMessage("Item %@", item); // we don't have dump of JSONValue to string
+                }
+            }
+        }
+        
+        void testV31Signatures()
+        {
+            // This is new V3.1 format, based on Base64 strings.
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-v31.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                
+                protocol::SignatureKeys keys;
+                keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
+                keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
+                keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
+                std::string signatureType = item.stringAtPath("input.signatureType");
+                ByteArray ctr_data        = item.dataFromBase64StringAtPath("input.counterData");
+                ByteArray data            = item.dataFromBase64StringAtPath("input.data");
+                std::string expSignature  = item.stringAtPath("output.signature");
+                
+                SignatureFactor factor = factorFromString(signatureType);
+                ccstAssertTrue(factor != protocol::SF_FirstLock);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, true);
+                bool match = signature == expSignature;
+                if (!match) {
+                    ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
+                    ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
+                    ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
+                    ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
+                    ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
+                    ccstFailure();
+                    break;
+                }
+            }
+        }
+        
+        SignatureFactor factorFromString(const std::string & factor)
+        {
+            static const SignatureFactor allFactors[] = {
+                SF_Possession, SF_Knowledge, SF_Biometry,
+                SF_Possession_Knowledge, SF_Possession_Biometry,
+                SF_Possession_Knowledge_Biometry
+            };
+            
+            for (size_t i = 0; i < sizeof(allFactors)/sizeof(SignatureFactor); i++) {
+                std::string fa = protocol::ConvertSignatureFactorToString(allFactors[i]);
+                if (factor == fa) {
+                    return allFactors[i];
+                }
+            }
+            ccstFailure("Unable to convert factor %s to enum", factor.c_str());
+            return protocol::SF_FirstLock;
+        }
+        
+        void testDataNormalization()
+        {
+            std::string method("POST");
+            std::string uri("/pa/activation/remove");
+            std::string nonceB64("fNJQBWeKTG5Zp+zrdNu/PQ==");
+            std::string secret("MDEyMzQ1Njc4OUFCQ0RFRg==");
+            ByteArray body;
+            ByteArray expectedNormalizedData(ByteRange("POST&L3BhL2FjdGl2YXRpb24vcmVtb3Zl&fNJQBWeKTG5Zp+zrdNu/PQ==&&MDEyMzQ1Njc4OUFCQ0RFRg=="));
+            
+            ByteArray normalizedData = protocol::NormalizeDataForSignature(method, uri, nonceB64, body, secret);
+            ccstAssertEqual(normalizedData, expectedNormalizedData);
+        }
+    };
+    
+    CC7_CREATE_UNIT_TEST(pa2SignatureCalculationTests, "pa2")
+    
 } // io::getlime::powerAuthTests
 } // io::getlime
 } // io

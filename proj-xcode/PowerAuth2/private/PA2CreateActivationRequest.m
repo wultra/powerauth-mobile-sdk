@@ -23,19 +23,19 @@
 - (NSDictionary*) toDictionary
 {
     NSMutableDictionary * dictionary = [NSMutableDictionary dictionaryWithCapacity:4];
-	if (_activationType) {
-		dictionary[@"type"] = _activationType;
-	}
-	if (_identityAttributes) {
-		dictionary[@"identityAttributes"] = _identityAttributes;
-	}
-	if (_customAttributes) {
-		dictionary[@"customAttributes"] = _customAttributes;
-	}
-	NSDictionary * activationData = [_activationData toDictionary];
-	if (activationData) {
-		dictionary[@"activationData"] = activationData;
-	}
+    if (_activationType) {
+        dictionary[@"type"] = _activationType;
+    }
+    if (_identityAttributes) {
+        dictionary[@"identityAttributes"] = _identityAttributes;
+    }
+    if (_customAttributes) {
+        dictionary[@"customAttributes"] = _customAttributes;
+    }
+    NSDictionary * activationData = [_activationData toDictionary];
+    if (activationData) {
+        dictionary[@"activationData"] = activationData;
+    }
     return dictionary;
 }
 

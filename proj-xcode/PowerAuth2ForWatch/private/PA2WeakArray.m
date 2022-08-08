@@ -28,20 +28,20 @@
 
 - (id) initWithInstance:(id)instance
 {
-	self = [super init];
-	if (self) {
-		_instance = instance;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _instance = instance;
+    }
+    return self;
 }
 
 - (BOOL) instanceIsEqualToObject:(id)object
 {
-	id strongInstance = _instance;
-	if (strongInstance && object) {
-		return strongInstance == object;
-	}
-	return NO;
+    id strongInstance = _instance;
+    if (strongInstance && object) {
+        return strongInstance == object;
+    }
+    return NO;
 }
 
 @end
@@ -49,105 +49,105 @@
 
 @implementation PA2WeakArray
 {
-	NSMutableArray * _array;
+    NSMutableArray * _array;
 }
 
 - (instancetype) init
 {
-	self = [super init];
-	if (self) {
-		_array = [NSMutableArray array];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _array = [NSMutableArray array];
+    }
+    return self;
 }
 
 - (instancetype) initWithCapacity:(NSUInteger)capacity
 {
-	self = [super init];
-	if (self) {
-		_array = [NSMutableArray arrayWithCapacity:capacity];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _array = [NSMutableArray arrayWithCapacity:capacity];
+    }
+    return self;
 }
 
 - (instancetype) initWithObjects:(nonnull NSArray *)objects
 {
-	self = [super init];
-	if (self) {
-		_array = [NSMutableArray arrayWithCapacity:objects.count];
-		[objects enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL * stop) {
-			[_array addObject:[[PA2WeakObject alloc] initWithInstance:obj]];
-		}];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _array = [NSMutableArray arrayWithCapacity:objects.count];
+        [objects enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL * stop) {
+            [_array addObject:[[PA2WeakObject alloc] initWithInstance:obj]];
+        }];
+    }
+    return self;
 }
 
 #pragma mark - Manipulation with array
 
 - (void) addWeakObject:(nonnull id)object
 {
-	[_array addObject:[[PA2WeakObject alloc] initWithInstance:object]];
+    [_array addObject:[[PA2WeakObject alloc] initWithInstance:object]];
 }
 
 - (void) removeWeakObject:(nonnull id)object
 {
-	[_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
-		if ([weakObj instanceIsEqualToObject:object]) {
-			[_array removeObjectAtIndex:idx];
-			*stop = YES;
-		}
-	}];
+    [_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
+        if ([weakObj instanceIsEqualToObject:object]) {
+            [_array removeObjectAtIndex:idx];
+            *stop = YES;
+        }
+    }];
 }
 
 - (void) enumerateWeakObjectsUsingBlock:(void (NS_NOESCAPE ^_Nonnull)(id item, BOOL * stop))block
 {
-	if (block) {
-		[[self allNonnullObjects] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL * stop) {
-			block(obj, stop);
-		}];
-	}
+    if (block) {
+        [[self allNonnullObjects] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL * stop) {
+            block(obj, stop);
+        }];
+    }
 }
 
 #pragma mark - Getting strong reference
 
 - (NSUInteger) count
 {
-	return [_array count];
+    return [_array count];
 }
 
 - (NSArray*) allNonnullObjects
 {
-	NSMutableArray * strongArray = [NSMutableArray arrayWithCapacity:_array.count];
-	__block NSMutableArray * cleanupIndexes = nil;
-	[_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
-		id strongInstance = weakObj.instance;
-		if (strongInstance) {
-			[strongArray addObject:strongInstance];
-		} else {
-			if (cleanupIndexes == nil) {
-				cleanupIndexes = [NSMutableArray arrayWithObject:@(idx)];
-			} else {
-				[cleanupIndexes addObject:@(idx)];
-			}
-		}
-	}];
-	// Remove victims in reverese order.
-	[cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
-		[_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
-	}];
-	return strongArray;
+    NSMutableArray * strongArray = [NSMutableArray arrayWithCapacity:_array.count];
+    __block NSMutableArray * cleanupIndexes = nil;
+    [_array enumerateObjectsUsingBlock:^(PA2WeakObject * weakObj, NSUInteger idx, BOOL * stop) {
+        id strongInstance = weakObj.instance;
+        if (strongInstance) {
+            [strongArray addObject:strongInstance];
+        } else {
+            if (cleanupIndexes == nil) {
+                cleanupIndexes = [NSMutableArray arrayWithObject:@(idx)];
+            } else {
+                [cleanupIndexes addObject:@(idx)];
+            }
+        }
+    }];
+    // Remove victims in reverese order.
+    [cleanupIndexes enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  obj, NSUInteger idx, BOOL * stop) {
+        [_array removeObjectAtIndex:[(NSNumber*)obj unsignedIntValue]];
+    }];
+    return strongArray;
 }
 
 - (id) findObjectUsingBlock:(BOOL (NS_NOESCAPE ^)(id item))block
 {
-	if (block) {
-		for (id strongInstance in [self allNonnullObjects]) {
-			if (block(strongInstance)) {
-				return strongInstance;
-			}
-		}
-	}
-	return nil;
+    if (block) {
+        for (id strongInstance in [self allNonnullObjects]) {
+            if (block(strongInstance)) {
+                return strongInstance;
+            }
+        }
+    }
+    return nil;
 }
 
 @end

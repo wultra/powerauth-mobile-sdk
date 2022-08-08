@@ -20,17 +20,17 @@
 
 - (instancetype) initWithObject:(id<PA2Encodable>)object
 {
-	self = [super init];
-	if (self) {
-		_requestObject = object;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _requestObject = object;
+    }
+    return self;
 }
 
 - (NSDictionary*) toDictionary
 {
-	NSDictionary * dict = [_requestObject toDictionary];
-	return dict ? @{ @"requestObject" : dict } : @{};
+    NSDictionary * dict = [_requestObject toDictionary];
+    return dict ? @{ @"requestObject" : dict } : @{};
 }
 
 @end

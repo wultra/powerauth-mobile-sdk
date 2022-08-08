@@ -22,11 +22,11 @@
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_alreadyConfirmed = [PA2ObjectAs(dictionary[@"alreadyConfirmed"], NSNumber) boolValue];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _alreadyConfirmed = [PA2ObjectAs(dictionary[@"alreadyConfirmed"], NSNumber) boolValue];
+    }
+    return self;
 }
 
 @end

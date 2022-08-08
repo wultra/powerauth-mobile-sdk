@@ -28,7 +28,7 @@ using namespace io::getlime::powerAuth;
 
 @implementation PowerAuthCoreEciesEncryptor
 {
-	ECIESEncryptor _encryptor;
+    ECIESEncryptor _encryptor;
 }
 
 
@@ -36,96 +36,96 @@ using namespace io::getlime::powerAuth;
 
 - (id) initWithObject:(const ECIESEncryptor &)objectRef
 {
-	self = [super init];
-	if (self) {
-		_encryptor = objectRef;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _encryptor = objectRef;
+    }
+    return self;
 }
 
 - (id) initWithPublicKey:(NSData*)publicKey
-			 sharedInfo1:(NSData*)sharedInfo1
-			 sharedInfo2:(NSData*)sharedInfo2
+             sharedInfo1:(NSData*)sharedInfo1
+             sharedInfo2:(NSData*)sharedInfo2
 {
-	auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
-	return [self initWithObject: encryptor];
+    auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
+    return [self initWithObject: encryptor];
 }
 
 - (nullable PowerAuthCoreEciesEncryptor*) copyForDecryption
 {
-	if (_encryptor.canDecryptResponse()) {
-		PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.ivForDecryption(), _encryptor.sharedInfo2())];
-		if (decryptor) {
-			decryptor->_associatedMetaData = _associatedMetaData;
-		}
-		return decryptor;
-	}
-	return nil;
+    if (_encryptor.canDecryptResponse()) {
+        PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.ivForDecryption(), _encryptor.sharedInfo2())];
+        if (decryptor) {
+            decryptor->_associatedMetaData = _associatedMetaData;
+        }
+        return decryptor;
+    }
+    return nil;
 }
 
 #pragma mark Setters & Getters
 
 - (ECIESEncryptor &) encryptorRef
 {
-	return _encryptor;
+    return _encryptor;
 }
 
 - (NSData*) publicKey
 {
-	return cc7::objc::CopyToNullableNSData(_encryptor.publicKey());
+    return cc7::objc::CopyToNullableNSData(_encryptor.publicKey());
 }
 
 - (void) setSharedInfo2:(NSData *)sharedInfo2
 {
-	_encryptor.setSharedInfo2(cc7::objc::CopyFromNSData(sharedInfo2));
+    _encryptor.setSharedInfo2(cc7::objc::CopyFromNSData(sharedInfo2));
 }
 
 - (NSData*) sharedInfo2
 {
-	return cc7::objc::CopyToNullableNSData(_encryptor.sharedInfo2());
+    return cc7::objc::CopyToNullableNSData(_encryptor.sharedInfo2());
 }
 
 - (BOOL) canEncryptRequest
 {
-	return _encryptor.canEncryptRequest();
+    return _encryptor.canEncryptRequest();
 }
 
 - (BOOL) canDecryptResponse
 {
-	return _encryptor.canDecryptResponse();
+    return _encryptor.canDecryptResponse();
 }
 
 #pragma mark - Encrypt & Decrypt
 
 - (nullable PowerAuthCoreEciesCryptogram *) encryptRequest:(nullable NSData *)data
 {
-	PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-	auto ec = _encryptor.encryptRequest(cc7::objc::CopyFromNSData(data), cryptogram.cryptogramRef);
-	PowerAuthCoreObjc_DebugDumpError(self, @"EncryptRequest", ec);
-	return ec == EC_Ok ? cryptogram : nil;
+    PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
+    auto ec = _encryptor.encryptRequest(cc7::objc::CopyFromNSData(data), cryptogram.cryptogramRef);
+    PowerAuthCoreObjc_DebugDumpError(self, @"EncryptRequest", ec);
+    return ec == EC_Ok ? cryptogram : nil;
 }
 
 - (nullable NSData *) decryptResponse:(nonnull PowerAuthCoreEciesCryptogram *)cryptogram
 {
-	cc7::ByteArray data;
-	auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, data);
-	PowerAuthCoreObjc_DebugDumpError(self, @"DecryptResponse", ec);
-	return ec == EC_Ok ? cc7::objc::CopyToNSData(data) : nil;
+    cc7::ByteArray data;
+    auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, data);
+    PowerAuthCoreObjc_DebugDumpError(self, @"DecryptResponse", ec);
+    return ec == EC_Ok ? cc7::objc::CopyToNSData(data) : nil;
 }
 
 - (BOOL) encryptRequest:(NSData *)data
-			 completion:(void (NS_NOESCAPE ^)(PowerAuthCoreEciesCryptogram * cryptogram, PowerAuthCoreEciesEncryptor * decryptor))completion
+             completion:(void (NS_NOESCAPE ^)(PowerAuthCoreEciesCryptogram * cryptogram, PowerAuthCoreEciesEncryptor * decryptor))completion
 {
-	PowerAuthCoreEciesEncryptor * decryptor;
-	PowerAuthCoreEciesCryptogram * cryptogram;
-	@synchronized (self) {
-		cryptogram = [self encryptRequest:data];
-		decryptor = cryptogram ? [self copyForDecryption] : nil;
-	}
-	if (completion) {
-		completion(cryptogram, decryptor);
-	}
-	return cryptogram != nil;
+    PowerAuthCoreEciesEncryptor * decryptor;
+    PowerAuthCoreEciesCryptogram * cryptogram;
+    @synchronized (self) {
+        cryptogram = [self encryptRequest:data];
+        decryptor = cryptogram ? [self copyForDecryption] : nil;
+    }
+    if (completion) {
+        completion(cryptogram, decryptor);
+    }
+    return cryptogram != nil;
 }
 
 @end
@@ -137,50 +137,50 @@ using namespace io::getlime::powerAuth;
 
 @implementation PowerAuthCoreEciesCryptogram
 {
-	ECIESCryptogram _c;
+    ECIESCryptogram _c;
 }
 
 - (ECIESCryptogram &) cryptogramRef
 {
-	return _c;
+    return _c;
 }
 
 // NSData setters and getters
 
 - (void) setBody:(NSData *)body
 {
-	_c.body = cc7::objc::CopyFromNSData(body);
+    _c.body = cc7::objc::CopyFromNSData(body);
 }
 - (NSData*) body
 {
-	return cc7::objc::CopyToNullableNSData(_c.body);
+    return cc7::objc::CopyToNullableNSData(_c.body);
 }
 
 - (void) setMac:(NSData *)mac
 {
-	_c.mac = cc7::objc::CopyFromNSData(mac);
+    _c.mac = cc7::objc::CopyFromNSData(mac);
 }
 - (NSData*) mac
 {
-	return cc7::objc::CopyToNullableNSData(_c.mac);
+    return cc7::objc::CopyToNullableNSData(_c.mac);
 }
 
 - (void) setKey:(NSData *)key
 {
-	_c.key = cc7::objc::CopyFromNSData(key);
+    _c.key = cc7::objc::CopyFromNSData(key);
 }
 - (NSData*) key
 {
-	return cc7::objc::CopyToNullableNSData(_c.key);
+    return cc7::objc::CopyToNullableNSData(_c.key);
 }
 
 - (void) setNonce:(NSData *)nonce
 {
-	_c.nonce = cc7::objc::CopyFromNSData(nonce);
+    _c.nonce = cc7::objc::CopyFromNSData(nonce);
 }
 - (NSData*) nonce
 {
-	return cc7::objc::CopyToNullableNSData(_c.nonce);
+    return cc7::objc::CopyToNullableNSData(_c.nonce);
 }
 
 
@@ -188,38 +188,38 @@ using namespace io::getlime::powerAuth;
 
 - (void) setBodyBase64:(NSString *)bodyBase64
 {
-	_c.body.readFromBase64String(cc7::objc::CopyFromNSString(bodyBase64));
+    _c.body.readFromBase64String(cc7::objc::CopyFromNSString(bodyBase64));
 }
 - (NSString*) bodyBase64
 {
-	return cc7::objc::CopyToNullableNSString(_c.body.base64String());
+    return cc7::objc::CopyToNullableNSString(_c.body.base64String());
 }
 
 - (void) setMacBase64:(NSString *)macBase64
 {
-	_c.mac.readFromBase64String(cc7::objc::CopyFromNSString(macBase64));
+    _c.mac.readFromBase64String(cc7::objc::CopyFromNSString(macBase64));
 }
 - (NSString*) macBase64
 {
-	return cc7::objc::CopyToNullableNSString(_c.mac.base64String());
+    return cc7::objc::CopyToNullableNSString(_c.mac.base64String());
 }
 
 - (void) setKeyBase64:(NSString *)keyBase64
 {
-	_c.key.readFromBase64String(cc7::objc::CopyFromNSString(keyBase64));
+    _c.key.readFromBase64String(cc7::objc::CopyFromNSString(keyBase64));
 }
 - (NSString*) keyBase64
 {
-	return cc7::objc::CopyToNullableNSString(_c.key.base64String());
+    return cc7::objc::CopyToNullableNSString(_c.key.base64String());
 }
 
 - (void) setNonceBase64:(NSString *)nonceBase64
 {
-	_c.nonce.readFromBase64String(cc7::objc::CopyFromNSString(nonceBase64));
+    _c.nonce.readFromBase64String(cc7::objc::CopyFromNSString(nonceBase64));
 }
 - (NSString*) nonceBase64
 {
-	return cc7::objc::CopyToNullableNSString(_c.nonce.base64String());
+    return cc7::objc::CopyToNullableNSString(_c.nonce.base64String());
 }
 
 @end
@@ -230,35 +230,35 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreEciesMetaData
 
 - (instancetype) initWithApplicationKey:(NSString*)applicationKey
-				   activationIdentifier:(NSString*)activationIdentifier
+                   activationIdentifier:(NSString*)activationIdentifier
 {
-	self = [super init];
-	if (self) {
-		_applicationKey = applicationKey;
-		_activationIdentifier = activationIdentifier;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _applicationKey = applicationKey;
+        _activationIdentifier = activationIdentifier;
+    }
+    return self;
 }
 
 - (NSString*) httpHeaderKey
 {
-	return @"X-PowerAuth-Encryption";
+    return @"X-PowerAuth-Encryption";
 }
 
 - (NSString*) httpHeaderValue
 {
-	NSString * protocolVersion = [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_NA];
-	NSString * value = [[[[@"PowerAuth version=\""
-						 stringByAppendingString:protocolVersion]
-						stringByAppendingString:@"\", application_key=\""]
-						 stringByAppendingString:_applicationKey]
-						stringByAppendingString:@"\""];
-	if (_activationIdentifier) {
-		return [[[value stringByAppendingString:@", activation_id=\""]
-				 stringByAppendingString:_activationIdentifier]
-				stringByAppendingString:@"\""];
-	}
-	return value;
+    NSString * protocolVersion = [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_NA];
+    NSString * value = [[[[@"PowerAuth version=\""
+                         stringByAppendingString:protocolVersion]
+                        stringByAppendingString:@"\", application_key=\""]
+                         stringByAppendingString:_applicationKey]
+                        stringByAppendingString:@"\""];
+    if (_activationIdentifier) {
+        return [[[value stringByAppendingString:@", activation_id=\""]
+                 stringByAppendingString:_activationIdentifier]
+                stringByAppendingString:@"\""];
+    }
+    return value;
 }
 
 @end

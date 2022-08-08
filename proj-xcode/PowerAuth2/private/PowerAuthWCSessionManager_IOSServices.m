@@ -22,5 +22,5 @@
  */
 void PA2WCSessionManager_RegisterDefaultHandlers(PowerAuthWCSessionManager * sessionManager)
 {
-	// We don't need default handlers on IOS side yet.
+    // We don't need default handlers on IOS side yet.
 }

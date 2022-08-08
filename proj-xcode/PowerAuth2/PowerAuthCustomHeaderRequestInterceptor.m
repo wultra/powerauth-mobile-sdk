@@ -20,17 +20,17 @@
 
 - (instancetype) initWithHeaderKey:(nonnull NSString*)headerKey value:(nonnull NSString*)value
 {
-	self = [super init];
-	if (self) {
-		_headerKey = headerKey;
-		_headerValue = value;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _headerKey = headerKey;
+        _headerValue = value;
+    }
+    return self;
 }
 
 - (void) processRequest:(nonnull NSMutableURLRequest *)request
 {
-	[request addValue:_headerValue forHTTPHeaderField:_headerKey];
+    [request addValue:_headerValue forHTTPHeaderField:_headerKey];
 }
 
 @end

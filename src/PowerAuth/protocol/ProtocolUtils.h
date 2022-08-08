@@ -26,153 +26,153 @@ namespace powerAuth
 {
 namespace protocol
 {
-	//
-	// MARK: - Helpers and utilities related to PA2 -
-	//
+    //
+    // MARK: - Helpers and utilities related to PA2 -
+    //
 
-	/**
-	 Validates "shortId-OTP" sequence with provided master key and signature
-	 */
-	bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk);
-	
-	/**
-	 Validates "activationCode" sequence with provided master key and signature.
-	 The code & signature may be empty for custom activation.
-	 */
-	bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk);
-	
-	/**
-	 Reduces size of shared secret produced in ECDH.
-	 */
-	cc7::ByteArray ReduceSharedSecret(const cc7::ByteRange & secret);
-	
-	/**
-	 Derives indexed secret key based on secret.
-	 */
-	cc7::ByteArray DeriveSecretKey(const cc7::ByteRange & secret, cc7::U64 index);
-	
-	/**
-	 Calculates all secret keys and vaultKey, all based on master secret.
-	 */
-	bool DeriveAllSecretKeys(SignatureKeys & keys, cc7::ByteArray & vaultKey, const cc7::ByteRange & masterSecret);
-	
-	/**
-	 Derives unlock key from password. The PBKDF2 derivation function is used.
-	 */
-	cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, const cc7::ByteRange & salt, cc7::U32 iterations);
-	
-	/**
-	 Derives a 16 bytes long key from given master key and index. Both masterKey and index parameters must point to
-	 16 bytes long arrays of bytes. The function is equal to KDF_INTERNAL described in PA2 documentation.
-	 */
-	cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const cc7::ByteRange & index);
-	
-	//
-	// MARK: - Signatures -
-	//
-	
-	/**
-	 Encrypts |plain| signature keys with using information from |request| and stores encrypted keys into |secret| structure.
-	 */
-	bool LockSignatureKeys(SignatureKeys & secret, const SignatureKeys & plain, const SignatureUnlockKeysReq & request);
-	
-	/**
-	 Decrypts |secret| signature keys with using unlock information from |request| and stores plain keys into |plain| structure.
-	 */
-	bool UnlockSignatureKeys(SignatureKeys & plain, const SignatureKeys & secret, const SignatureUnlockKeysReq & request);
-	
-	/**
-	 Adds or removes additional EEK protection to SignatureKeys structure. If |protect| is true, then the protection
-	 is added and vice versa.
-	 */
-	bool ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & eek, bool protect);
-	
-	/**
-	 Converts V2 signature sequential |counter| byte array. The result can be then passed to `CalculateSignature`
-	 function to calculate V2 signature.
-	 */
-	cc7::ByteArray SignatureCounterToData(cc7::U64 counter);
-	
-	/**
-	 Calculates next signature counter value in |pd|. The function distinguinsh between V2 and V3 signature counter.
-	 */
-	void CalculateNextCounterValue(PersistentData & pd);
-	
-	/**
-	 Calculates multi-factor online or offline signature from given |data|, for using |ctr_data| and |keys|.
-	 */
-	std::string CalculateSignature(const SignatureKeys & sk,
-								   SignatureFactor factor,
-								   const cc7::ByteRange & ctr_data,
-								   const cc7::ByteRange & data,
-								   bool base64_format);
-	
-	/**
-	 Prepares exact data for signature calculation:
-	 REQ = ${method}&${B64(uri)}&${nonceB64}&${B64(body)}&${secret}
-	 */
-	cc7::ByteArray NormalizeDataForSignature(const std::string & method,
-											 const std::string & uri,
-											 const std::string & nonce_b64,
-											 const cc7::ByteRange & body,
-											 const std::string & app_secret);
-	
-	/**
-	 Returns string representing given signature factor.
-	 */
-	std::string ConvertSignatureFactorToString(SignatureFactor factor);
-	
-	/**
-	 Calculates decimalized signature from given data. The size of provided data object
-	 must be greater or equal 4.
-	 */
-	std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature);
-	
-	/**
-	 Calculates activation fingerprint from given data. The algorithm depends
-	 on the activation version. For V2, only "device_pub_key" is used. For V3 and
-	 later, all parameters are involved into the fingerprint calculation.
-	 */
-	std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key,
-											   const cc7::ByteRange & server_pub_key,
-											   const std::string activation_id,
-											   Version v);
-	
-	//
-	// MARK: - Encrypted status -
-	//
-	
-	/**
-	 Decrypts received encrypted status blob into provided ActivationStatus structure.
-	 */
-	ErrorCode DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
-										 const cc7::ByteRange & challenge,
-										 const cc7::ByteRange & nonce,
-										 const cc7::ByteRange & transport_key,
-										 ActivationStatus & out_status);
+    /**
+     Validates "shortId-OTP" sequence with provided master key and signature
+     */
+    bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk);
+    
+    /**
+     Validates "activationCode" sequence with provided master key and signature.
+     The code & signature may be empty for custom activation.
+     */
+    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk);
+    
+    /**
+     Reduces size of shared secret produced in ECDH.
+     */
+    cc7::ByteArray ReduceSharedSecret(const cc7::ByteRange & secret);
+    
+    /**
+     Derives indexed secret key based on secret.
+     */
+    cc7::ByteArray DeriveSecretKey(const cc7::ByteRange & secret, cc7::U64 index);
+    
+    /**
+     Calculates all secret keys and vaultKey, all based on master secret.
+     */
+    bool DeriveAllSecretKeys(SignatureKeys & keys, cc7::ByteArray & vaultKey, const cc7::ByteRange & masterSecret);
+    
+    /**
+     Derives unlock key from password. The PBKDF2 derivation function is used.
+     */
+    cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, const cc7::ByteRange & salt, cc7::U32 iterations);
+    
+    /**
+     Derives a 16 bytes long key from given master key and index. Both masterKey and index parameters must point to
+     16 bytes long arrays of bytes. The function is equal to KDF_INTERNAL described in PA2 documentation.
+     */
+    cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const cc7::ByteRange & index);
+    
+    //
+    // MARK: - Signatures -
+    //
+    
+    /**
+     Encrypts |plain| signature keys with using information from |request| and stores encrypted keys into |secret| structure.
+     */
+    bool LockSignatureKeys(SignatureKeys & secret, const SignatureKeys & plain, const SignatureUnlockKeysReq & request);
+    
+    /**
+     Decrypts |secret| signature keys with using unlock information from |request| and stores plain keys into |plain| structure.
+     */
+    bool UnlockSignatureKeys(SignatureKeys & plain, const SignatureKeys & secret, const SignatureUnlockKeysReq & request);
+    
+    /**
+     Adds or removes additional EEK protection to SignatureKeys structure. If |protect| is true, then the protection
+     is added and vice versa.
+     */
+    bool ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & eek, bool protect);
+    
+    /**
+     Converts V2 signature sequential |counter| byte array. The result can be then passed to `CalculateSignature`
+     function to calculate V2 signature.
+     */
+    cc7::ByteArray SignatureCounterToData(cc7::U64 counter);
+    
+    /**
+     Calculates next signature counter value in |pd|. The function distinguinsh between V2 and V3 signature counter.
+     */
+    void CalculateNextCounterValue(PersistentData & pd);
+    
+    /**
+     Calculates multi-factor online or offline signature from given |data|, for using |ctr_data| and |keys|.
+     */
+    std::string CalculateSignature(const SignatureKeys & sk,
+                                   SignatureFactor factor,
+                                   const cc7::ByteRange & ctr_data,
+                                   const cc7::ByteRange & data,
+                                   bool base64_format);
+    
+    /**
+     Prepares exact data for signature calculation:
+     REQ = ${method}&${B64(uri)}&${nonceB64}&${B64(body)}&${secret}
+     */
+    cc7::ByteArray NormalizeDataForSignature(const std::string & method,
+                                             const std::string & uri,
+                                             const std::string & nonce_b64,
+                                             const cc7::ByteRange & body,
+                                             const std::string & app_secret);
+    
+    /**
+     Returns string representing given signature factor.
+     */
+    std::string ConvertSignatureFactorToString(SignatureFactor factor);
+    
+    /**
+     Calculates decimalized signature from given data. The size of provided data object
+     must be greater or equal 4.
+     */
+    std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature);
+    
+    /**
+     Calculates activation fingerprint from given data. The algorithm depends
+     on the activation version. For V2, only "device_pub_key" is used. For V3 and
+     later, all parameters are involved into the fingerprint calculation.
+     */
+    std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key,
+                                               const cc7::ByteRange & server_pub_key,
+                                               const std::string activation_id,
+                                               Version v);
+    
+    //
+    // MARK: - Encrypted status -
+    //
+    
+    /**
+     Decrypts received encrypted status blob into provided ActivationStatus structure.
+     */
+    ErrorCode DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
+                                         const cc7::ByteRange & challenge,
+                                         const cc7::ByteRange & nonce,
+                                         const cc7::ByteRange & transport_key,
+                                         ActivationStatus & out_status);
 
-	/**
-	 Derives IV (initialization vector) used for encrypted status blob decryption.
-	 */
-	cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
-												   const cc7::ByteRange & nonce,
-												   const cc7::ByteRange & transport_key);
-	
-	/**
-	 Calculates distance between |in_out_local_ctr_data| and |server_ctr_data_hash| (e.g. how many interations is required to
-	 move from in_out_local_ctr_data to server_ctr_data_hash). The |max_iterations| limits number of iterations to be performed.
-	 If the maximum iterations is reached, then the returned value is -1.
-	 */
-	int CalculateHashCounterDistance(cc7::ByteArray & in_out_local_ctr_data,
-									 const cc7::ByteRange & server_ctr_data_hash,
-									 const cc7::ByteRange & transport_key,
-									 int max_iterations);
+    /**
+     Derives IV (initialization vector) used for encrypted status blob decryption.
+     */
+    cc7::ByteArray DeriveIVForStatusBlobDecryption(const cc7::ByteRange & challenge,
+                                                   const cc7::ByteRange & nonce,
+                                                   const cc7::ByteRange & transport_key);
+    
+    /**
+     Calculates distance between |in_out_local_ctr_data| and |server_ctr_data_hash| (e.g. how many interations is required to
+     move from in_out_local_ctr_data to server_ctr_data_hash). The |max_iterations| limits number of iterations to be performed.
+     If the maximum iterations is reached, then the returned value is -1.
+     */
+    int CalculateHashCounterDistance(cc7::ByteArray & in_out_local_ctr_data,
+                                     const cc7::ByteRange & server_ctr_data_hash,
+                                     const cc7::ByteRange & transport_key,
+                                     int max_iterations);
 
-	/**
-	 Calculates distance between local and server counters. If the local counter is ahead, then the returned value is positive.
-	 */
-	int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr);
-	
+    /**
+     Calculates distance between local and server counters. If the local counter is ahead, then the returned value is positive.
+     */
+    int CalculateDistanceBetweenByteCounters(cc7::byte local_ctr, cc7::byte server_ctr);
+    
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth
 } // io::getlime

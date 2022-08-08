@@ -54,10 +54,10 @@
  @return initialized object
  */
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
-		 deviceRelatedKey:(NSData*)deviceRelatedKey
-		  sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
-				 delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
-			   sharedLock:(id<NSLocking>)sharedLock
-		   disableUpgrade:(BOOL)disableUpgrade;
+         deviceRelatedKey:(NSData*)deviceRelatedKey
+          sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
+                 delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
+               sharedLock:(id<NSLocking>)sharedLock
+           disableUpgrade:(BOOL)disableUpgrade;
 
 @end

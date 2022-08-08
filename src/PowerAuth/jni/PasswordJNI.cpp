@@ -18,10 +18,10 @@
 #include <algorithm>
 
 // Package: io.getlime.security.powerauth.core
-#define CC7_JNI_CLASS_PATH	    	"io/getlime/security/powerauth/core"
-#define CC7_JNI_CLASS_PACKAGE	    io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS  		Password
-#define CC7_JNI_CPP_CLASS		    Password
+#define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
+#define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
+#define CC7_JNI_JAVA_CLASS          Password
+#define CC7_JNI_CPP_CLASS           Password
 #include <cc7/jni/JniModule.inl>
 
 using namespace io::getlime::powerAuth;
@@ -34,16 +34,16 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 
 Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject)
 {
-	if (!env || !passwordObject) {
-		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-		return NULL;
-	}
-	auto cppPass = reinterpret_cast<Password*>(env->GetLongField(passwordObject, GetHandleFieldID(env)));
-	if (!cppPass) {
-		CC7_ASSERT(false, "Unable to get C++ object from 'Password' java object.");
-		return NULL;
-	}
-	return cppPass;
+    if (!env || !passwordObject) {
+        CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
+        return NULL;
+    }
+    auto cppPass = reinterpret_cast<Password*>(env->GetLongField(passwordObject, GetHandleFieldID(env)));
+    if (!cppPass) {
+        CC7_ASSERT(false, "Unable to get C++ object from 'Password' java object.");
+        return NULL;
+    }
+    return cppPass;
 }
 
 // ----------------------------------------------------------------------------
@@ -55,27 +55,27 @@ Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject)
 //
 CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass)
 {
-	auto pass = new Password();
-	if (strPass != NULL && dataPass == NULL) {
-		// initialize immutable password with string
-		auto cppData = cc7::jni::CopyFromJavaStringToByteArray(env, strPass);
-		pass->initAsImmutable(cppData);
-		//
-	} else if (strPass == NULL && dataPass != NULL) {
-		// initialize immutable password with byte array
-		auto cppData = cc7::jni::CopyFromJavaByteArray(env, dataPass);
-		pass->initAsImmutable(cppData);
-		//
-	} else if (strPass == NULL && dataPass == NULL) {
-		// initialize mutable empty password
-		pass->initAsMutable();
-		//
-	} else {
-		CC7_ASSERT(false, "Invalid combination of parameters.");
-		delete pass;
-		return 0;
-	}
-	return (jlong)pass;
+    auto pass = new Password();
+    if (strPass != NULL && dataPass == NULL) {
+        // initialize immutable password with string
+        auto cppData = cc7::jni::CopyFromJavaStringToByteArray(env, strPass);
+        pass->initAsImmutable(cppData);
+        //
+    } else if (strPass == NULL && dataPass != NULL) {
+        // initialize immutable password with byte array
+        auto cppData = cc7::jni::CopyFromJavaByteArray(env, dataPass);
+        pass->initAsImmutable(cppData);
+        //
+    } else if (strPass == NULL && dataPass == NULL) {
+        // initialize mutable empty password
+        pass->initAsMutable();
+        //
+    } else {
+        CC7_ASSERT(false, "Invalid combination of parameters.");
+        delete pass;
+        return 0;
+    }
+    return (jlong)pass;
 }
 
 //
@@ -83,12 +83,12 @@ CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass)
 //
 CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 {
-	auto pass = CC7_THIS_OBJ();
-	if (!pass || (jlong)pass != handle) {
-		CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
-		return;
-	}
-	delete pass;
+    auto pass = CC7_THIS_OBJ();
+    if (!pass || (jlong)pass != handle) {
+        CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
+        return;
+    }
+    delete pass;
 }
 
 // ----------------------------------------------------------------------------
@@ -100,8 +100,8 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 //
 CC7_JNI_METHOD(jboolean, isMutable)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->isMutable() : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->isMutable() : false;
 }
 
 //
@@ -109,8 +109,8 @@ CC7_JNI_METHOD(jboolean, isMutable)
 //
 CC7_JNI_METHOD(jint, length)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? (jint)pass->length() : 0;	
+    auto pass = CC7_THIS_OBJ();
+    return pass ? (jint)pass->length() : 0; 
 }
 
 //
@@ -118,15 +118,15 @@ CC7_JNI_METHOD(jint, length)
 //
 CC7_JNI_METHOD_PARAMS(jboolean, isEqualToPassword, jobject anotherPassword)
 {
-	auto pass = CC7_THIS_OBJ();
-	if (!pass || !anotherPassword) {
-		return false;
-	}
-	auto otherPass = GetCppPasswordFromJavaObject(env, anotherPassword);
-	if (!otherPass) {
-		return false;
-	}
-	return pass->isEqualToPassword(*otherPass);
+    auto pass = CC7_THIS_OBJ();
+    if (!pass || !anotherPassword) {
+        return false;
+    }
+    auto otherPass = GetCppPasswordFromJavaObject(env, anotherPassword);
+    if (!otherPass) {
+        return false;
+    }
+    return pass->isEqualToPassword(*otherPass);
 }
 
 // ----------------------------------------------------------------------------
@@ -138,8 +138,8 @@ CC7_JNI_METHOD_PARAMS(jboolean, isEqualToPassword, jobject anotherPassword)
 //
 CC7_JNI_METHOD(jboolean, clear)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->clear() : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->clear() : false;
 }
 
 //
@@ -147,8 +147,8 @@ CC7_JNI_METHOD(jboolean, clear)
 //
 CC7_JNI_METHOD_PARAMS(jboolean, addCharacter, jint utfCodepoint)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->addCharacter((cc7::U32)utfCodepoint) : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->addCharacter((cc7::U32)utfCodepoint) : false;
 }
 
 //
@@ -156,8 +156,8 @@ CC7_JNI_METHOD_PARAMS(jboolean, addCharacter, jint utfCodepoint)
 //
 CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter, jint utfCodepoint, jint index)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->insertCharacter((cc7::U32)utfCodepoint, (size_t)index) : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->insertCharacter((cc7::U32)utfCodepoint, (size_t)index) : false;
 }
 
 //
@@ -165,8 +165,8 @@ CC7_JNI_METHOD_PARAMS(jboolean, insertCharacter, jint utfCodepoint, jint index)
 //
 CC7_JNI_METHOD(jboolean, removeLastCharacter)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->removeLastCharacter() : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->removeLastCharacter() : false;
 }
 
 //
@@ -174,8 +174,8 @@ CC7_JNI_METHOD(jboolean, removeLastCharacter)
 //
 CC7_JNI_METHOD_PARAMS(jboolean, removeCharacter, jint index)
 {
-	auto pass = CC7_THIS_OBJ();
-	return pass ? pass->removeCharacter((size_t)index) : false;
+    auto pass = CC7_THIS_OBJ();
+    return pass ? pass->removeCharacter((size_t)index) : false;
 }
 
 CC7_JNI_MODULE_CLASS_END()

@@ -28,9 +28,9 @@
  Working with an user's passphrases is always a very delicate task. The good implementation should
  always follow several well known rules, for example:
  
-	1. Should minimize traces of the plaintext passphrase in the memory
-	2. Should not allow serialization of sensitive information to the persistent storage
-	3. Should keep the plaintext passphrase in memory as short as possible
+    1. Should minimize traces of the plaintext passphrase in the memory
+    2. Should not allow serialization of sensitive information to the persistent storage
+    3. Should keep the plaintext passphrase in memory as short as possible
  
  Achieving all these principles together is usually very difficult, especially in managed
  environments, like Java or Objective-C is. For exmaple, you can find a plenty of examples 

@@ -21,25 +21,25 @@
 
 void PowerAuthCoreLogImpl(NSString * format, ...)
 {
-	if (!PowerAuthCoreLogIsEnabled()) {
-		return;
-	}
-	va_list args;
-	va_start(args, format);
-	NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
-	va_end(args);
-	
-	NSLog(@"[PowerAuthCore] %@", message);
+    if (!PowerAuthCoreLogIsEnabled()) {
+        return;
+    }
+    va_list args;
+    va_start(args, format);
+    NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    NSLog(@"[PowerAuthCore] %@", message);
 }
 
 #endif // ENABLE_POWERAUTH_CORE_LOG
 
 void PowerAuthCoreLogSetEnabled(BOOL enabled)
 {
-	CC7_LOG_ENABLE(enabled);
+    CC7_LOG_ENABLE(enabled);
 }
 
 BOOL PowerAuthCoreLogIsEnabled(void)
 {
-	return CC7_LOG_IS_ENABLED();
+    return CC7_LOG_IS_ENABLED();
 }

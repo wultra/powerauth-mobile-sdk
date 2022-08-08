@@ -26,12 +26,12 @@
 
 /**
  Supported commands:
- 	PA2WCSessionPacket_CMD_TOKEN_GET - when watchOS is asking for token from iIOS.
- 		- response is PA2WCSessionPacket_CMD_TOKEN_PUT
- 	PA2WCSessionPacket_CMD_TOKEN_REMOVE - when IOS wants to remove token from watchOS
- 		- response is "Success" packet
- 	PA2WCSessionPacket_CMD_TOKEN_PUT - when IOS wants to push token to the watchOS
- 		- response is "Success" packet
+    PA2WCSessionPacket_CMD_TOKEN_GET - when watchOS is asking for token from iIOS.
+        - response is PA2WCSessionPacket_CMD_TOKEN_PUT
+    PA2WCSessionPacket_CMD_TOKEN_REMOVE - when IOS wants to remove token from watchOS
+        - response is "Success" packet
+    PA2WCSessionPacket_CMD_TOKEN_PUT - when IOS wants to push token to the watchOS
+        - response is "Success" packet
  */
 @property (nonatomic, strong) NSString * command;
 /**

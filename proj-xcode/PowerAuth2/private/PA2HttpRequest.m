@@ -27,132 +27,132 @@
 
 @implementation PA2HttpRequest
 {
-	PowerAuthCoreEciesEncryptor * _encryptor;
+    PowerAuthCoreEciesEncryptor * _encryptor;
 }
 
 - (instancetype) initWithEndpoint:(PA2RestApiEndpoint*)endpoint
-					requestObject:(id<PA2Encodable>)requestObject
-				   authentication:(PowerAuthAuthentication*)authentication
+                    requestObject:(id<PA2Encodable>)requestObject
+                   authentication:(PowerAuthAuthentication*)authentication
 {
-	self = [super init];
-	if (self) {
-		_endpoint = endpoint;
-		_requestObject = requestObject;
-		_authentication = [authentication copy];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _endpoint = endpoint;
+        _requestObject = requestObject;
+        _authentication = [authentication copy];
+    }
+    return self;
 }
 
 
 #pragma mark - Request -
 
 - (NSMutableURLRequest*) buildRequestWithHelper:(id<PA2PrivateCryptoHelper>)helper
-										baseUrl:(NSString*)baseUrl
-										  error:(NSError**)error
+                                        baseUrl:(NSString*)baseUrl
+                                          error:(NSError**)error
 {
-	// Sanity checks.
-	BOOL needsSignature = _endpoint.isSigned;
-	BOOL needsEncryption = _endpoint.isEncrypted;
+    // Sanity checks.
+    BOOL needsSignature = _endpoint.isSigned;
+    BOOL needsEncryption = _endpoint.isEncrypted;
 
-	// Check whether we have authentication object for signed request.
-	if (needsSignature && _authentication == nil) {
-		if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Authentication object is missing.");
-		return nil;
-	}
-	// Check whether the request object has expected type.
-	if (_endpoint.requestClass && ![_requestObject isKindOfClass:_endpoint.requestClass]) {
-		if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Unexpected type of request object.");
-		return nil;
-	}
-	// The crypto helper is in fact PowerAuthSDK instance, but PA2HttpClient
-	// keeps just a weak reference, to break possible retain loop between both objects.
-	// So, we need to check whether the instance is still valid and available for
-	// the cryptographic operations.
-	if ((needsSignature || needsEncryption) && helper == nil) {
-		if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"PowerAuthSDK instance is no longer valid.");
-		return nil;
-	}
-	
-	// Build full URL & request object
-	NSURL * url = [NSURL URLWithString:[baseUrl stringByAppendingString:_endpoint.relativePath]];
-	NSMutableURLRequest * request = [[NSMutableURLRequest alloc] initWithURL:url];
-	
-	// Now prepare body data.
-	NSData * requestData;
-	// Encrypt request if the endpoint has specified.
-	if (!needsEncryption) {
-		// Simple request, without data encryption
-		_encryptor = nil;
-		requestData = [PA2ObjectSerialization serializeRequestObject:_requestObject];
-	} else {
-		// Acquire encryptor from the helper, and keep it locally.
-		// We will use it later, for the response decryption.
-		_encryptor = [helper encryptorWithId:_endpoint.encryptor];
-		// Encrypt object
-		PA2EncryptedRequest * encrypted = [PA2ObjectSerialization encryptObject:_requestObject
-																	  encryptor:_encryptor
-																		  error:error];
-		if (!encrypted) {
-			return nil;
-		}
-		requestData = [PA2ObjectSerialization serializeObject:encrypted];
-		
-		// Set encryption HTTP headers, only if this doesn't collide with the signature.
-		// We don't sent the encryption header together with the signature header. The reason
-		// for that is fact, that signature header already contains values required for
-		// decryption on the server.
-		if (!needsSignature) {
-			PowerAuthCoreEciesMetaData * md = _encryptor.associatedMetaData;
-			[request addValue:md.httpHeaderValue forHTTPHeaderField:md.httpHeaderKey];
-		}
-	}
-	
-	// Sign data if requested
-	if (needsSignature) {
-		PowerAuthAuthorizationHttpHeader * authHeader = [helper authorizationHeaderForData:requestData
-																			endpoint:_endpoint
-																	  authentication:_authentication
-																			   error:error];
-		if (!authHeader) {
-			return nil;
-		}
-		// Set authorization headers to the request.
-		[request addValue:authHeader.value forHTTPHeaderField:authHeader.key];
-	}
-	
-	// Setup request
-	request.HTTPMethod = _endpoint.method;
-	request.HTTPBody = requestData;
-	
-	// Setup other headers
-	[request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-	[request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
-	
-	return request;
+    // Check whether we have authentication object for signed request.
+    if (needsSignature && _authentication == nil) {
+        if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Authentication object is missing.");
+        return nil;
+    }
+    // Check whether the request object has expected type.
+    if (_endpoint.requestClass && ![_requestObject isKindOfClass:_endpoint.requestClass]) {
+        if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Unexpected type of request object.");
+        return nil;
+    }
+    // The crypto helper is in fact PowerAuthSDK instance, but PA2HttpClient
+    // keeps just a weak reference, to break possible retain loop between both objects.
+    // So, we need to check whether the instance is still valid and available for
+    // the cryptographic operations.
+    if ((needsSignature || needsEncryption) && helper == nil) {
+        if (error) *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"PowerAuthSDK instance is no longer valid.");
+        return nil;
+    }
+    
+    // Build full URL & request object
+    NSURL * url = [NSURL URLWithString:[baseUrl stringByAppendingString:_endpoint.relativePath]];
+    NSMutableURLRequest * request = [[NSMutableURLRequest alloc] initWithURL:url];
+    
+    // Now prepare body data.
+    NSData * requestData;
+    // Encrypt request if the endpoint has specified.
+    if (!needsEncryption) {
+        // Simple request, without data encryption
+        _encryptor = nil;
+        requestData = [PA2ObjectSerialization serializeRequestObject:_requestObject];
+    } else {
+        // Acquire encryptor from the helper, and keep it locally.
+        // We will use it later, for the response decryption.
+        _encryptor = [helper encryptorWithId:_endpoint.encryptor];
+        // Encrypt object
+        PA2EncryptedRequest * encrypted = [PA2ObjectSerialization encryptObject:_requestObject
+                                                                      encryptor:_encryptor
+                                                                          error:error];
+        if (!encrypted) {
+            return nil;
+        }
+        requestData = [PA2ObjectSerialization serializeObject:encrypted];
+        
+        // Set encryption HTTP headers, only if this doesn't collide with the signature.
+        // We don't sent the encryption header together with the signature header. The reason
+        // for that is fact, that signature header already contains values required for
+        // decryption on the server.
+        if (!needsSignature) {
+            PowerAuthCoreEciesMetaData * md = _encryptor.associatedMetaData;
+            [request addValue:md.httpHeaderValue forHTTPHeaderField:md.httpHeaderKey];
+        }
+    }
+    
+    // Sign data if requested
+    if (needsSignature) {
+        PowerAuthAuthorizationHttpHeader * authHeader = [helper authorizationHeaderForData:requestData
+                                                                            endpoint:_endpoint
+                                                                      authentication:_authentication
+                                                                               error:error];
+        if (!authHeader) {
+            return nil;
+        }
+        // Set authorization headers to the request.
+        [request addValue:authHeader.value forHTTPHeaderField:authHeader.key];
+    }
+    
+    // Setup request
+    request.HTTPMethod = _endpoint.method;
+    request.HTTPBody = requestData;
+    
+    // Setup other headers
+    [request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    
+    return request;
 }
 
 
 #pragma mark - Response -
 
 - (id<PA2Decodable>) buildResponseObjectFrom:(NSData*)responseData
-								httpResponse:(NSHTTPURLResponse*)httpResponse
-									   error:(NSError**)error
+                                httpResponse:(NSHTTPURLResponse*)httpResponse
+                                       error:(NSError**)error
 {
-	id<PA2Decodable> object;
-	NSError * localError = nil;
-	if (httpResponse.statusCode == 200) {
-		// 200 response, try to build an object from response data.
-		object = [self buildObjectFrom:responseData httpResponse:httpResponse error:&localError];
-	} else {
-		// Non 200 status code always leads to an error.
-		localError = [self buildErrorForData:responseData httpResponse:httpResponse];
-	}
-	if (localError) {
-		// Report error & always return nil.
-		if (error) *error = localError;
-		return nil;
-	}
-	return object;
+    id<PA2Decodable> object;
+    NSError * localError = nil;
+    if (httpResponse.statusCode == 200) {
+        // 200 response, try to build an object from response data.
+        object = [self buildObjectFrom:responseData httpResponse:httpResponse error:&localError];
+    } else {
+        // Non 200 status code always leads to an error.
+        localError = [self buildErrorForData:responseData httpResponse:httpResponse];
+    }
+    if (localError) {
+        // Report error & always return nil.
+        if (error) *error = localError;
+        return nil;
+    }
+    return object;
 }
 
 // Private methods
@@ -162,60 +162,60 @@
  If response class is not specified, then return nil. The function also
  */
 - (id<PA2Decodable>) buildObjectFrom:(NSData*)responseData
-						httpResponse:(NSHTTPURLResponse*)httpResponse
-							   error:(NSError**)error
+                        httpResponse:(NSHTTPURLResponse*)httpResponse
+                               error:(NSError**)error
 {
-	NSError * localError = nil;
-	
-	// Prepare data for object deserialization
-	NSData * objectData;
-	BOOL unwrapResponse;
-	if (_encryptor) {
-		// Encrypted response. The expected object is never wrapped in PA2Response.
-		unwrapResponse = NO;
-		objectData = [PA2ObjectSerialization decryptData:responseData decryptor:_encryptor
-												   error:&localError];
-		if (localError) {
-			if (error) *error = localError;
-			return nil;
-		}
-	} else {
-		// Regular response. It's always wrapped in PA2Response object
-		unwrapResponse = YES;
-		objectData = responseData;
-	}
-	
-	// So far so good, we can continue with an object deserialization.
-	id<PA2Decodable> object = nil;
-	if (unwrapResponse) {
-		// It's expected that response object is wrapped in PA2Response
-		PA2Response * ro = [PA2ObjectSerialization deserializeResponseObject:objectData forClass:_endpoint.responseClass
-																	   error:&localError];
-		if (ro) {
-			if (ro.status == PowerAuthRestApiResponseStatus_OK) {
-				// Success. Note that responseObject may be nil, if response class is not specified.
-				object = ro.responseObject;
-			} else {
-				// Status is ERROR, we need to build NSError with an associated data.
-				localError = [self buildErrorForData:objectData httpResponse:httpResponse];
-			}
-		}
-	} else {
-		// Response object is not wrapped in PA2Response.
-		if (_endpoint.responseClass) {
-			// If class is specified, then try to deserialize object. Unlike the request deserialization,
-			// the "deserializeObject:..." method expects that the class is specified.
-			object = [PA2ObjectSerialization deserializeObject:objectData forClass:_endpoint.responseClass
-														 error:&localError];
-		} else {
-			// No action needed. If class is not specified, then "object" variable can be nil.
-		}
-	}
-	if (localError) {
-		if (error) *error = localError;
-		return nil;
-	}
-	return object;
+    NSError * localError = nil;
+    
+    // Prepare data for object deserialization
+    NSData * objectData;
+    BOOL unwrapResponse;
+    if (_encryptor) {
+        // Encrypted response. The expected object is never wrapped in PA2Response.
+        unwrapResponse = NO;
+        objectData = [PA2ObjectSerialization decryptData:responseData decryptor:_encryptor
+                                                   error:&localError];
+        if (localError) {
+            if (error) *error = localError;
+            return nil;
+        }
+    } else {
+        // Regular response. It's always wrapped in PA2Response object
+        unwrapResponse = YES;
+        objectData = responseData;
+    }
+    
+    // So far so good, we can continue with an object deserialization.
+    id<PA2Decodable> object = nil;
+    if (unwrapResponse) {
+        // It's expected that response object is wrapped in PA2Response
+        PA2Response * ro = [PA2ObjectSerialization deserializeResponseObject:objectData forClass:_endpoint.responseClass
+                                                                       error:&localError];
+        if (ro) {
+            if (ro.status == PowerAuthRestApiResponseStatus_OK) {
+                // Success. Note that responseObject may be nil, if response class is not specified.
+                object = ro.responseObject;
+            } else {
+                // Status is ERROR, we need to build NSError with an associated data.
+                localError = [self buildErrorForData:objectData httpResponse:httpResponse];
+            }
+        }
+    } else {
+        // Response object is not wrapped in PA2Response.
+        if (_endpoint.responseClass) {
+            // If class is specified, then try to deserialize object. Unlike the request deserialization,
+            // the "deserializeObject:..." method expects that the class is specified.
+            object = [PA2ObjectSerialization deserializeObject:objectData forClass:_endpoint.responseClass
+                                                         error:&localError];
+        } else {
+            // No action needed. If class is not specified, then "object" variable can be nil.
+        }
+    }
+    if (localError) {
+        if (error) *error = localError;
+        return nil;
+    }
+    return object;
 }
 
 /**
@@ -224,26 +224,26 @@
  information bundled in the "userInfo" dictionary.
  */
 - (NSError*) buildErrorForData:(NSData*)data
-				  httpResponse:(NSHTTPURLResponse*)httpResponse
+                  httpResponse:(NSHTTPURLResponse*)httpResponse
 {
-	NSError * localError = nil;
-	// Try to deserialize JSON
-	id JSONData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&localError];
-	NSDictionary * responseDictionary = data ? PA2ObjectAs(JSONData, NSDictionary) : nil;
-	// Create PA2ErrorResponse object.
-	// If there was an error with JSON decoding, then use nil for object constuction.
-	PowerAuthRestApiErrorResponse * httpResponseObject = [[PowerAuthRestApiErrorResponse alloc] initWithDictionary:localError ? nil : responseDictionary];
-	// Keep status code in response object
-	httpResponseObject.httpStatusCode = httpResponse.statusCode;
-	
-	NSDictionary * additionalInfo =
-	@{
-	  	PowerAuthErrorDomain: 					httpResponseObject,
-		PowerAuthErrorInfoKey_AdditionalInfo: 	responseDictionary ? responseDictionary : @{},
-		PowerAuthErrorInfoKey_ResponseData: 	data ? data : [NSData data],
-		NSLocalizedDescriptionKey:				PA2MakeDefaultErrorDescription(PowerAuthErrorCode_NetworkError, nil)
-	};
-	return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
+    NSError * localError = nil;
+    // Try to deserialize JSON
+    id JSONData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&localError];
+    NSDictionary * responseDictionary = data ? PA2ObjectAs(JSONData, NSDictionary) : nil;
+    // Create PA2ErrorResponse object.
+    // If there was an error with JSON decoding, then use nil for object constuction.
+    PowerAuthRestApiErrorResponse * httpResponseObject = [[PowerAuthRestApiErrorResponse alloc] initWithDictionary:localError ? nil : responseDictionary];
+    // Keep status code in response object
+    httpResponseObject.httpStatusCode = httpResponse.statusCode;
+    
+    NSDictionary * additionalInfo =
+    @{
+        PowerAuthErrorDomain:                   httpResponseObject,
+        PowerAuthErrorInfoKey_AdditionalInfo:   responseDictionary ? responseDictionary : @{},
+        PowerAuthErrorInfoKey_ResponseData:     data ? data : [NSData data],
+        NSLocalizedDescriptionKey:              PA2MakeDefaultErrorDescription(PowerAuthErrorCode_NetworkError, nil)
+    };
+    return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
 }
 
 @end

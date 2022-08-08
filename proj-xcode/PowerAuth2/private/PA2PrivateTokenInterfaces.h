@@ -67,7 +67,7 @@
  reference to store object is weak.
  */
 - (nonnull id) initWithStore:(nonnull id<PowerAuthPrivateTokenStore>)store
-						data:(nonnull PA2PrivateTokenData*)data;
+                        data:(nonnull PA2PrivateTokenData*)data;
 
 @end
 

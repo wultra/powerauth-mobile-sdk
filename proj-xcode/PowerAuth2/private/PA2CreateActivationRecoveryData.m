@@ -21,12 +21,12 @@
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_recoveryCode	= PA2ObjectAs(dictionary[@"recoveryCode"], NSString);
-		_puk		 	= PA2ObjectAs(dictionary[@"puk"], NSString);
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _recoveryCode   = PA2ObjectAs(dictionary[@"recoveryCode"], NSString);
+        _puk            = PA2ObjectAs(dictionary[@"puk"], NSString);
+    }
+    return self;
 }
 
 @end

@@ -18,31 +18,31 @@
 
 @implementation PA2ValidateSignatureRequest
 {
-	NSDictionary<NSString*, NSObject*>* _content;
+    NSDictionary<NSString*, NSObject*>* _content;
 }
 
 + (instancetype) requestWithReason:(NSString *)reason
 {
-	return [[self alloc] initWithDictionary:@{ @"reason" : reason }];
+    return [[self alloc] initWithDictionary:@{ @"reason" : reason }];
 }
 
 + (instancetype) requestWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
-	return [[self alloc] initWithDictionary:dictionary];
+    return [[self alloc] initWithDictionary:dictionary];
 }
 
 - (instancetype) initWithDictionary:(nonnull NSDictionary<NSString*, NSObject*>*)dictionary
 {
-	self = [super init];
-	if (self) {
-		_content = dictionary;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _content = dictionary;
+    }
+    return self;
 }
 
 - (NSDictionary<NSString*, NSObject*>*) toDictionary
 {
-	return _content;
+    return _content;
 }
 
 @end

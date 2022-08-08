@@ -25,7 +25,7 @@
  Private constructor with core status object and optional custom object
  */
 - (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus*)status
-					   customObject:(NSDictionary<NSString*, NSObject*>*)customObject;
+                       customObject:(NSDictionary<NSString*, NSObject*>*)customObject;
 /**
  Contains current version of activation
  */

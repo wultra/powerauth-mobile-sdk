@@ -20,13 +20,13 @@
 @implementation PowerAuthClientSslNoValidationStrategy
 
 - (void) validateSslForSession:(nonnull NSURLSession *)session
-					 challenge:(nonnull NSURLAuthenticationChallenge *)challenge
-			 completionHandler:(void (^ _Nonnull)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler
+                     challenge:(nonnull NSURLAuthenticationChallenge *)challenge
+             completionHandler:(void (^ _Nonnull)(NSURLSessionAuthChallengeDisposition, NSURLCredential * _Nullable))completionHandler
 {
-	// Allow any SSL certificate
-	PowerAuthCriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
-	NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-	completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+    // Allow any SSL certificate
+    PowerAuthCriticalWarning(@"SSL validation is disabled. This code must not be present in production!");
+    NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+    completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
 }
 
 @end

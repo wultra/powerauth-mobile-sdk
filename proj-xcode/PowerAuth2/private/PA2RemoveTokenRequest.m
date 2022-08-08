@@ -21,7 +21,7 @@
 
 - (NSDictionary*) toDictionary
 {
-	return _tokenId ? @{ @"tokenId" : _tokenId } : @{};
+    return _tokenId ? @{ @"tokenId" : _tokenId } : @{};
 }
 
 @end

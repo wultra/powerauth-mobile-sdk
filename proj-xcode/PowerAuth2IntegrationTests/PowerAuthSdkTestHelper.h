@@ -51,7 +51,7 @@
  Create default configuration.
  */
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
-						 withConfiguration:(PowerAuthConfiguration*)configuration;
+                         withConfiguration:(PowerAuthConfiguration*)configuration;
 
 @property (nonatomic, readonly, strong) PowerAuthSDK * sdk;
 @property (nonatomic, readonly, strong) PowerAuthTestServerAPI * testServerApi;
@@ -73,8 +73,8 @@
  appropriate configuration from current PowerAuthSDK will be used.
  */
 - (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
-								 keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
-								   clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
+                                 keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+                                   clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
 
 // Activation
 
@@ -117,14 +117,14 @@
  Prepare activation on server.
  */
 - (PATSInitActivationResponse*) prepareActivation:(BOOL)useSignature
-									activationOtp:(NSString*)activationOtp;
+                                    activationOtp:(NSString*)activationOtp;
 
 /**
  Creates custom `PowerAuthSdkActivation` from provided data and assign this object to the helper.
  */
 - (PowerAuthSdkActivation*) assignCustomActivationData:(PATSInitActivationResponse*)activationData
-									  activationResult:(PowerAuthActivationResult*)activationResult
-										   credentials:(PowerAuthAuthentication*)credentials;
+                                      activationResult:(PowerAuthActivationResult*)activationResult
+                                           credentials:(PowerAuthAuthentication*)credentials;
 
 /**
  Returns an activation status object. May return nil if status is not available yet, which is also valid operation.

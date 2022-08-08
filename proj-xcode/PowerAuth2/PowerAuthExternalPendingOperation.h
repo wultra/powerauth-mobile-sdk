@@ -21,18 +21,18 @@
  started in another application that share activation data.
  */
 typedef NS_ENUM(NSInteger, PowerAuthExternalPendingOperationType) {
-	/**
-	 Another application started an activation process. If you get this value,
-	 then the recommended action is to instruct the user to switch to the application that
-	 started the activation.
-	 */
-	PowerAuthExternalPendingOperationType_Activation  = 1,
-	/**
-	 Another application is working on the protocol upgrade task. If you get this value,
-	 then the recommended action is to instruct the user to switch to the application that
-	 does the protocol upgrade.
-	 */
-	PowerAuthExternalPendingOperationType_ProtocolUpgrade  = 2,
+    /**
+     Another application started an activation process. If you get this value,
+     then the recommended action is to instruct the user to switch to the application that
+     started the activation.
+     */
+    PowerAuthExternalPendingOperationType_Activation  = 1,
+    /**
+     Another application is working on the protocol upgrade task. If you get this value,
+     then the recommended action is to instruct the user to switch to the application that
+     does the protocol upgrade.
+     */
+    PowerAuthExternalPendingOperationType_ProtocolUpgrade  = 2,
 };
 
 /**

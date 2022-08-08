@@ -19,32 +19,32 @@
 
 static NSString * _ReasonToString(PA2VaultUnlockReason reason)
 {
-	switch (reason) {
-		case PA2VaultUnlockReason_ADD_BIOMETRY: 				return @"ADD_BIOMETRY";
-		case PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY:			return @"FETCH_ENCRYPTION_KEY";
-		case PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY:	return @"SIGN_WITH_DEVICE_PRIVATE_KEY";
-		case PA2VaultUnlockReason_RECOVERY_CODE:				return @"RECOVERY_CODE";
-		default:
-			break;
-	}
-	// Will cause crash on request serialization. This is internal SDK error and should never happen.
-	return nil;
+    switch (reason) {
+        case PA2VaultUnlockReason_ADD_BIOMETRY:                 return @"ADD_BIOMETRY";
+        case PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY:         return @"FETCH_ENCRYPTION_KEY";
+        case PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY: return @"SIGN_WITH_DEVICE_PRIVATE_KEY";
+        case PA2VaultUnlockReason_RECOVERY_CODE:                return @"RECOVERY_CODE";
+        default:
+            break;
+    }
+    // Will cause crash on request serialization. This is internal SDK error and should never happen.
+    return nil;
 }
 
 @implementation PA2VaultUnlockRequest
 
 - (id) initWithReason:(PA2VaultUnlockReason)reason
 {
-	self = [super init];
-	if (self) {
-		_reason = reason;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _reason = reason;
+    }
+    return self;
 }
 
 - (NSDictionary*) toDictionary
 {
-	return @{ @"reason" : _ReasonToString(_reason) };
+    return @{ @"reason" : _ReasonToString(_reason) };
 }
 
 @end

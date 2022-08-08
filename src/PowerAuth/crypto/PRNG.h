@@ -31,31 +31,31 @@ namespace powerAuth
 {
 namespace crypto
 {
-	
-	/**
-	 Generates required amount of random bytes. if |reject_sequence_of_zeros|
-	 is true, then method will check whether the generated sequence contains
-	 only zeros and regenerate the data again.
-	 */
-	cc7::ByteArray GetRandomData(size_t size, bool reject_sequence_of_zeros = false);
-	
-	/**
-	 Generates required amount of random bytes. It is guaranteed that the generated
-	 sequence is not equal to any byte sequence, provided in the |reject_byte_sequences|
-	 vector.
-	 */
-	cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<const cc7::ByteRange> & reject_byte_sequences);
-	
-	/**
-	 The method res-seeds OpenSSL's pseudo random number generator with another
-	 source of entropy. Typically, the "/dev/urandom" device is used.
-	 
-	 Note that if the library is using BoringSSL or LibreSSL as a crypto
-	 backend, then the re-seeding has no effect. These libraries doesn't 
-	 implement RAND_seed() and other related functions.
-	 */
-	void ReseedPRNG();
-	
+    
+    /**
+     Generates required amount of random bytes. if |reject_sequence_of_zeros|
+     is true, then method will check whether the generated sequence contains
+     only zeros and regenerate the data again.
+     */
+    cc7::ByteArray GetRandomData(size_t size, bool reject_sequence_of_zeros = false);
+    
+    /**
+     Generates required amount of random bytes. It is guaranteed that the generated
+     sequence is not equal to any byte sequence, provided in the |reject_byte_sequences|
+     vector.
+     */
+    cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<const cc7::ByteRange> & reject_byte_sequences);
+    
+    /**
+     The method res-seeds OpenSSL's pseudo random number generator with another
+     source of entropy. Typically, the "/dev/urandom" device is used.
+     
+     Note that if the library is using BoringSSL or LibreSSL as a crypto
+     backend, then the re-seeding has no effect. These libraries doesn't 
+     implement RAND_seed() and other related functions.
+     */
+    void ReseedPRNG();
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

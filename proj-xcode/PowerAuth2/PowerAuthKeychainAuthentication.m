@@ -23,22 +23,22 @@
 
 - (instancetype) initWithPrompt:(NSString*)prompt
 {
-	self = [super init];
-	if (self) {
-		_prompt = prompt;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _prompt = prompt;
+    }
+    return self;
 }
 
 #if PA2_HAS_LACONTEXT == 1
 
 - (instancetype) initWithContext:(LAContext*)context
 {
-	self = [super init];
-	if (self) {
-		_context = context;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _context = context;
+    }
+    return self;
 }
 
 #endif

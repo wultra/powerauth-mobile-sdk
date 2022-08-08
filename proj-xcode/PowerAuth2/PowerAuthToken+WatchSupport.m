@@ -35,55 +35,55 @@
 
 - (PA2WCSessionPacket*) prepareTokenDataPacketForWatch
 {
-	PA2PrivateTokenKeychainStore * typedStore = PA2ObjectAs(self.tokenStore, PA2PrivateTokenKeychainStore);
-	NSString * targetIdentifier = [PA2WCSessionPacket_TOKEN_TARGET stringByAppendingString:typedStore.configuration.instanceId];
-	
-	PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
-	packetData.command = PA2WCSessionPacket_CMD_TOKEN_PUT;
-	packetData.tokenName = self.tokenName;
-	packetData.tokenData = [self.privateTokenData serializedData];
-	return [PA2WCSessionPacket packetWithData:packetData target:targetIdentifier];
+    PA2PrivateTokenKeychainStore * typedStore = PA2ObjectAs(self.tokenStore, PA2PrivateTokenKeychainStore);
+    NSString * targetIdentifier = [PA2WCSessionPacket_TOKEN_TARGET stringByAppendingString:typedStore.configuration.instanceId];
+    
+    PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
+    packetData.command = PA2WCSessionPacket_CMD_TOKEN_PUT;
+    packetData.tokenName = self.tokenName;
+    packetData.tokenData = [self.privateTokenData serializedData];
+    return [PA2WCSessionPacket packetWithData:packetData target:targetIdentifier];
 }
 
 
 - (BOOL) sendToWatch
 {
-	if (@available(iOS 9, *)) {
-		if ([self.tokenStore canRequestForAccessToken]) {
-			PowerAuthWCSessionManager * manager = [PowerAuthWCSessionManager sharedInstance];
-			if (manager.validSession) {
-				[manager sendPacket:[self prepareTokenDataPacketForWatch]];
-				return YES;
-			}
-			PowerAuthLog(@"PowerAuthToken: WCSession is not ready for message sending.");
-		} else {
-			PowerAuthLog(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
-		}
-	} else {
-		PowerAuthLog(@"PowerAuthToken: WCSession is not supported on older iOS versions.");
-	}
-	return NO;
+    if (@available(iOS 9, *)) {
+        if ([self.tokenStore canRequestForAccessToken]) {
+            PowerAuthWCSessionManager * manager = [PowerAuthWCSessionManager sharedInstance];
+            if (manager.validSession) {
+                [manager sendPacket:[self prepareTokenDataPacketForWatch]];
+                return YES;
+            }
+            PowerAuthLog(@"PowerAuthToken: WCSession is not ready for message sending.");
+        } else {
+            PowerAuthLog(@"PowerAuthToken: Cannot send token to watch, because token store has no longer a valid activation.");
+        }
+    } else {
+        PowerAuthLog(@"PowerAuthToken: WCSession is not supported on older iOS versions.");
+    }
+    return NO;
 }
 
 
 - (void) sendToWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion
 {
-	if (![self.tokenStore canRequestForAccessToken]) {
-		if (completion) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				completion(PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Cannot send token to watch, because token store has no longer a valid activation."));
-			});
-		}
-		return;
-	}
-	PA2WCSessionPacket * packet = [self prepareTokenDataPacketForWatch];
-	[[PowerAuthWCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
-		if (completion) {
-			dispatch_async(dispatch_get_main_queue(), ^{
-				completion(error);
-			});
-		}
-	}];
+    if (![self.tokenStore canRequestForAccessToken]) {
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(PA2MakeError(PowerAuthErrorCode_MissingActivation, @"Cannot send token to watch, because token store has no longer a valid activation."));
+            });
+        }
+        return;
+    }
+    PA2WCSessionPacket * packet = [self prepareTokenDataPacketForWatch];
+    [[PowerAuthWCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(error);
+            });
+        }
+    }];
 }
 
 
@@ -91,46 +91,46 @@
 
 - (PA2WCSessionPacket*) prepareTokenRemovePacketForWatch
 {
-	PA2PrivateTokenKeychainStore * typedStore = PA2ObjectAs(self.tokenStore, PA2PrivateTokenKeychainStore);
-	NSString * targetIdentifier = [PA2WCSessionPacket_TOKEN_TARGET stringByAppendingString:typedStore.configuration.instanceId];
-	
-	PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
-	packetData.command = PA2WCSessionPacket_CMD_TOKEN_REMOVE;
-	packetData.tokenName = self.tokenName;
-	return [PA2WCSessionPacket packetWithData:packetData target:targetIdentifier];
+    PA2PrivateTokenKeychainStore * typedStore = PA2ObjectAs(self.tokenStore, PA2PrivateTokenKeychainStore);
+    NSString * targetIdentifier = [PA2WCSessionPacket_TOKEN_TARGET stringByAppendingString:typedStore.configuration.instanceId];
+    
+    PA2WCSessionPacket_TokenData * packetData = [[PA2WCSessionPacket_TokenData alloc] init];
+    packetData.command = PA2WCSessionPacket_CMD_TOKEN_REMOVE;
+    packetData.tokenName = self.tokenName;
+    return [PA2WCSessionPacket packetWithData:packetData target:targetIdentifier];
 }
 
 
 - (BOOL) removeFromWatch
 {
-	if (@available(iOS 9, *)) {
-		PowerAuthWCSessionManager * manager = [PowerAuthWCSessionManager sharedInstance];
-		if (manager.validSession) {
-			[manager sendPacket:[self prepareTokenRemovePacketForWatch]];
-			return YES;
-		}
-	}
-	PowerAuthLog(@"PowerAuthToken: WCSession is not ready for message sending.");
-	return NO;
+    if (@available(iOS 9, *)) {
+        PowerAuthWCSessionManager * manager = [PowerAuthWCSessionManager sharedInstance];
+        if (manager.validSession) {
+            [manager sendPacket:[self prepareTokenRemovePacketForWatch]];
+            return YES;
+        }
+    }
+    PowerAuthLog(@"PowerAuthToken: WCSession is not ready for message sending.");
+    return NO;
 }
 
 
 - (void) removeFromWatchWithCompletion:(void(^ _Nonnull)(NSError * _Nullable error))completion
 {
-	if (@available(iOS 9, *)) {
-		PA2WCSessionPacket * packet = [self prepareTokenRemovePacketForWatch];
-		[[PowerAuthWCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
-			if (completion) {
-				dispatch_async(dispatch_get_main_queue(), ^{
-					completion(error);
-				});
-			}
-		}];
-	} else {
-		if (completion) {
-			completion(PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"Not supported on older iOS versions"));
-		}
-	}
+    if (@available(iOS 9, *)) {
+        PA2WCSessionPacket * packet = [self prepareTokenRemovePacketForWatch];
+        [[PowerAuthWCSessionManager sharedInstance] sendPacketWithResponse:packet responseClass:[PA2WCSessionPacket_Success class] completion:^(PA2WCSessionPacket *response, NSError *error) {
+            if (completion) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completion(error);
+                });
+            }
+        }];
+    } else {
+        if (completion) {
+            completion(PA2MakeError(PowerAuthErrorCode_WatchConnectivity, @"Not supported on older iOS versions"));
+        }
+    }
 }
 
 @end

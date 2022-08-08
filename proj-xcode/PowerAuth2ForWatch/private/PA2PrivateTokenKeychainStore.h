@@ -70,11 +70,11 @@
  @param localLock An optional local lock that implements recursive locking. If not provided, then internal lock is created.
  */
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
-					keychain:(PowerAuthKeychain*)keychain
-			  statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
-			  remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
-					dataLock:(id<PA2TokenDataLock>)dataLock
-				   localLock:(id<NSLocking>)localLock;
+                    keychain:(PowerAuthKeychain*)keychain
+              statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
+              remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+                    dataLock:(id<PA2TokenDataLock>)dataLock
+                   localLock:(id<NSLocking>)localLock;
 
 
 // Token data identifiers

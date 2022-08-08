@@ -32,8 +32,8 @@
  and with an optional authentication credentials.
  */
 - (instancetype) initWithEndpoint:(PA2RestApiEndpoint*)endpoint
-					requestObject:(id<PA2Encodable>)requestObject
-				   authentication:(PowerAuthAuthentication*)authentication;
+                    requestObject:(id<PA2Encodable>)requestObject
+                   authentication:(PowerAuthAuthentication*)authentication;
 
 /// Contains endpoint object, provided in the object's initialization.
 @property (nonatomic, strong, readonly) PA2RestApiEndpoint * endpoint;
@@ -46,14 +46,14 @@
  Builds a mutable URL request from data, provided in the initialization.
  */
 - (NSMutableURLRequest*) buildRequestWithHelper:(id<PA2PrivateCryptoHelper>)helper
-										baseUrl:(NSString*)baseUrl
-										  error:(NSError**)error;
+                                        baseUrl:(NSString*)baseUrl
+                                          error:(NSError**)error;
 /**
  Builds a response from response data & response object.
  */
 - (id<PA2Decodable>) buildResponseObjectFrom:(NSData*)responseData
-								httpResponse:(NSHTTPURLResponse*)httpResponse
-									   error:(NSError**)error;
+                                httpResponse:(NSHTTPURLResponse*)httpResponse
+                                       error:(NSError**)error;
 
 @end
 

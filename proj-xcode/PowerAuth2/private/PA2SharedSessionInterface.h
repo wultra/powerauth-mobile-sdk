@@ -26,13 +26,13 @@
  Initialize provider with session and persistent data provider.
  */
 - (nullable instancetype) initWithSession:(nonnull PowerAuthCoreSession *)session
-							 dataProvider:(nonnull PA2SessionDataProvider *)dataProvider
-							   instanceId:(nonnull NSString *)instanceId
-							applicationId:(nonnull NSString *)applicationId
-						   sharedMemoryId:(nonnull NSString *)sharedMemoryId
-						   statusLockPath:(nonnull NSString *)statusLockPath
-						operationLockPath:(nonnull NSString *)operationLockPath
-							queueLockPath:(nonnull NSString *)queueLockPath;
+                             dataProvider:(nonnull PA2SessionDataProvider *)dataProvider
+                               instanceId:(nonnull NSString *)instanceId
+                            applicationId:(nonnull NSString *)applicationId
+                           sharedMemoryId:(nonnull NSString *)sharedMemoryId
+                           statusLockPath:(nonnull NSString *)statusLockPath
+                        operationLockPath:(nonnull NSString *)operationLockPath
+                            queueLockPath:(nonnull NSString *)queueLockPath;
 
 @end
 

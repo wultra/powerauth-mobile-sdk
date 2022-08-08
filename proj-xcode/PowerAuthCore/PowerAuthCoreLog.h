@@ -23,17 +23,17 @@
 #endif
 
 #ifdef ENABLE_POWERAUTH_CORE_LOG
-	/**
-	 PowerAuthCoreLog(...) macro prints a debug information into the debug console and is used internally
-	 in the PowerAuthCore library. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
-	 For RELEASE builds, the message is completely suppressed during the compilation.
-	 */
-	POWERAUTH_EXTERN_C void PowerAuthCoreLogImpl(NSString * format, ...);
-	#define PowerAuthCoreLog(...) PowerAuthCoreLogImpl(__VA_ARGS__)
+    /**
+     PowerAuthCoreLog(...) macro prints a debug information into the debug console and is used internally
+     in the PowerAuthCore library. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
+     For RELEASE builds, the message is completely suppressed during the compilation.
+     */
+    POWERAUTH_EXTERN_C void PowerAuthCoreLogImpl(NSString * format, ...);
+    #define PowerAuthCoreLog(...) PowerAuthCoreLogImpl(__VA_ARGS__)
 
 #else
-	// If PowerAuthCoreLog is disabled, then disable everything
-	#define PowerAuthCoreLog(...)
+    // If PowerAuthCoreLog is disabled, then disable everything
+    #define PowerAuthCoreLog(...)
 
 #endif // ENABLE_POWERAUTH_CORE_LOG
 

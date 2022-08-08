@@ -43,7 +43,7 @@
  Be aware that the lock must support recursive locking.
  */
 - (nonnull instancetype) initWithSharedLock:(nonnull id<NSLocking>)sharedLock
-								   taskName:(nullable NSString*)taskName;
+                                   taskName:(nullable NSString*)taskName;
 
 /**
  Restarts the task. Returns YES if task has been restarted and you can add more child tasks.
@@ -136,7 +136,7 @@
  Initialize the object with parent task and with the completion closure. The reference to parent task is weak.
  */
 - (nonnull instancetype) initWithParentTask:(nonnull PA2GroupedTask<ResultType>*)parentTask
-								 completion:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion;
+                                 completion:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion;
 /**
  Complete this task with result or error.
  */

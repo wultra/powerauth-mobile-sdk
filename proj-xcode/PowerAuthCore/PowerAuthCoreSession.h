@@ -178,9 +178,9 @@
  returned value is nil, then the error occured.
  
  You can determine the failure reason from DEBUG log:
-	EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
-	EC_WrongState, if called in wrong session's state
-	EC_WrongParam, if some required parameter is missing
+    EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
+    EC_WrongState, if called in wrong session's state
+    EC_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -206,10 +206,10 @@
  
  If the returned value is nil, then the error occured. You can determine the failure reason from
  DEBUG log:
-	EC_Encryption, if provided data, signature or keys are invalid.
-				   If this error occurs then the session resets its state.
-	EC_WrongState, if called in wrong session's state
-	EC_WrongParam, if required parameter is missing
+    EC_Encryption, if provided data, signature or keys are invalid.
+                   If this error occurs then the session resets its state.
+    EC_WrongState, if called in wrong session's state
+    EC_WrongParam, if required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -228,10 +228,10 @@
  
  Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
  DEBUG log:
-	EC_Encryption,  if some internal encryption failed
-					if this error occurs, then the session resets its state
-	EC_WrongState,  if called in wrong session's state
-	EC_WrongParam,  if required parameter is missing
+    EC_Encryption,  if some internal encryption failed
+                    if this error occurs, then the session resets its state
+    EC_WrongState,  if called in wrong session's state
+    EC_WrongParam,  if required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -251,7 +251,7 @@
  This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreActivationStatus*) decodeActivationStatus:(nonnull PowerAuthCoreEncryptedActivationStatus *)encryptedStatus
-															  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
 
 #pragma mark - Data signing
 
@@ -288,15 +288,15 @@
  
  Returns string with autorization header or nil if opeartion failed. You can determine the failure reason from
  DEBUG log:
-	EC_Encryption, if some cryptographic operation failed
-	EC_WrongState, if the session has no valid activation
-	EC_WrongParam, if some required parameter is missing
+    EC_Encryption, if some cryptographic operation failed
+    EC_WrongState, if the session has no valid activation
+    EC_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
 - (nullable PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(nonnull PowerAuthCoreHTTPRequestData*)requestData
-																   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-																 factor:(PowerAuthCoreSignatureFactor)factor;
+                                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                                                 factor:(PowerAuthCoreSignatureFactor)factor;
 /**
  Returns name of authorization header. The value is constant and is equal to "X-PowerAuth-Authorization".
  You can calculate appropriate value with using 'httpAuthHeaderValueForBody:...' method.
@@ -309,9 +309,9 @@
  Validates whether the data has been signed with master server private key.
  Returns YES if signature is valid. In case of error, you can determine the failure reason from
  DEBUG log:
-	 EC_Encryption	if signature is not valid or some cryptographic operation failed
-	 EC_WrongState	if session contains invalid setup
-	 EC_WrongParam	if signedData object doesn't contain signature
+     EC_Encryption  if signature is not valid or some cryptographic operation failed
+     EC_WrongState  if session contains invalid setup
+     EC_WrongParam  if signedData object doesn't contain signature
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -330,9 +330,9 @@
  
  1. ask user for an old password
  2. send HTTP request, signed with knowledge factor, use an old password for key unlock
-	- if operation fails, then you can repeat step 1 or exit the flow
+    - if operation fails, then you can repeat step 1 or exit the flow
  3. ask user for a new password as usual (e.g. ask for passwd for twice, compare both,
-	check minimum length, entropy, etc...)
+    check minimum length, entropy, etc...)
  4. call `changeUserPassword` with old and new password
  5. save session's state
  
@@ -343,9 +343,9 @@
  
  Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
  DEBUG log:
-	EC_Encryption,  if underlying cryptograhic operation did fail or
-					if you provided too short passwords.
-	EC_WrongState,  if the session has no valid activation
+    EC_Encryption,  if underlying cryptograhic operation did fail or
+                    if you provided too short passwords.
+    EC_WrongState,  if the session has no valid activation
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -359,14 +359,14 @@
  
  Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
  DEBUG log:
-	 EC_Encryption, if general encryption error occurs
-	 EC_WrongState, if the session has no valid activation
-	 EC_WrongParam, if some required parameter is missing
+     EC_Encryption, if general encryption error occurs
+     EC_WrongState, if the session has no valid activation
+     EC_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
 - (BOOL) addBiometryFactor:(nonnull NSString *)cVaultKey
-					  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+                      keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
 
 /** Checks if there is a biometry factor present in a current session.
  
@@ -380,7 +380,7 @@
  Removes existing key for biometric signatures from the session. You have to save state of the session
  after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
  the failure reason from DEBUG log:
-	EC_WrongState, if the session has no valid activation
+    EC_WrongState, if the session has no valid activation
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -405,15 +405,15 @@
  
  Retuns NSData object with a derived cryptographic key or nil in case of failure. You can determine
  the failure reason from DEBUG log:
-	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation
-	EC_WrongParam,	if some required parameter is missing
+    EC_Encryption,  if general encryption error occurs
+    EC_WrongState,  if the session has no valid activation
+    EC_WrongParam,  if some required parameter is missing
  
  This function access the session's state, so read access must be guaranteed.
  */
 - (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
-												   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-											   keyIndex:(UInt64)keyIndex;
+                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                               keyIndex:(UInt64)keyIndex;
 /**
  Computes a ECDSA-SHA256 signature of given |data| with using device's private key. You have to provide
  encrypted |cVaultKey| and |unlockKeys| structure with a valid possessionUnlockKey.
@@ -425,15 +425,15 @@
  
  Retuns NSData object with calculated signature or nil in case of failure. You can determine the failure
  reason from DEBUG log:
-	EC_Encryption,	if general encryption error occurs
-	EC_WrongState,	if the session has no valid activation
-	EC_WrongParam,	if some required parameter is missing
+    EC_Encryption,  if general encryption error occurs
+    EC_WrongState,  if the session has no valid activation
+    EC_WrongParam,  if some required parameter is missing
  
  This function access the session's state, so read access must be guaranteed.
  */
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
-											 keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-											 data:(nonnull NSData*)data;
+                                             keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                             data:(nonnull NSData*)data;
 
 #pragma mark - External Encryption Key
 
@@ -453,9 +453,9 @@
  
  Returns YES if operation succeeded or NO in case of failure. You can determine the failure
  reason from DEBUG log:
-	 EC_WrongParam	if key is already set and new EEK is different, or
-					if provided key has invalid length.
-	 EC_WrongState	if you're setting key to activated session which doesn't use EEK
+     EC_WrongParam  if key is already set and new EEK is different, or
+                    if provided key has invalid length.
+     EC_WrongState  if you're setting key to activated session which doesn't use EEK
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -470,10 +470,10 @@
  
  Returns YES if operation succeeded or NO in case of failure. You can determine the failure
  reason from DEBUG log:
-	EC_WrongParam	if the EEK has wrong size
-	EC_WrongState	if session has no valid activation, or
-					if the EEK is already set.
-	EC_Encryption	if internal cryptographic operation failed
+    EC_WrongParam   if the EEK has wrong size
+    EC_WrongState   if session has no valid activation, or
+                    if the EEK is already set.
+    EC_Encryption   if internal cryptographic operation failed
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -483,14 +483,14 @@
  Removes existing external encryption key from the activated Session. The method removes EEK permanently
  and clears internal EEK usage flag from the persistent data. The session has to be activated and EEK
  must be set at the time of call (e.g. 'hasExternalEncryptionKey' returns true).
-	
+    
  You have to save state of the session after the operation.
  
  Returns YES if operation succeeded or NO in case of failure. You can determine the failure
  reason from DEBUG log:
-	EC_WrongState	if session has no valid activation, or
-					if session has no EEK set
-	EC_Encryption	if internal cryptographic operation failed
+    EC_WrongState   if session has no valid activation, or
+                    if session has no EEK set
+    EC_Encryption   if internal cryptographic operation failed
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -506,8 +506,8 @@
  This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
-															keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-													 sharedInfo1:(nullable NSData*)sharedInfo1;
+                                                            keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                                     sharedInfo1:(nullable NSData*)sharedInfo1;
 
 #pragma mark - Utilities for generic keys
 
@@ -615,6 +615,6 @@
  This function access the session's state, so read access must be guaranteed.
  */
 - (nullable PowerAuthCoreRecoveryData*) activationRecoveryData:(nonnull NSString*)cVaultKey
-														  keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+                                                          keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
 
 @end

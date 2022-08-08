@@ -28,46 +28,46 @@ namespace powerAuth
 {
 namespace jni
 {
-	/**
-	 * Object that contains reference to private EC_KEY.
-	 */
-	class EcPrivateKeyJNI {
-	public:
-		/**
-		 * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
-		 * nullptr if provided data doesn't represent private key.
-		 */
-		static EcPrivateKeyJNI * createFromBytes(const cc7::ByteRange & private_key_data, BN_CTX * ctx = nullptr) {
-			auto ec_key = crypto::ECC_ImportPrivateKey(nullptr, private_key_data, ctx);
-			return ec_key != nullptr ? new EcPrivateKeyJNI(ec_key) : nullptr;
-		}
+    /**
+     * Object that contains reference to private EC_KEY.
+     */
+    class EcPrivateKeyJNI {
+    public:
+        /**
+         * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
+         * nullptr if provided data doesn't represent private key.
+         */
+        static EcPrivateKeyJNI * createFromBytes(const cc7::ByteRange & private_key_data, BN_CTX * ctx = nullptr) {
+            auto ec_key = crypto::ECC_ImportPrivateKey(nullptr, private_key_data, ctx);
+            return ec_key != nullptr ? new EcPrivateKeyJNI(ec_key) : nullptr;
+        }
 
-		~EcPrivateKeyJNI() {
-			EC_KEY_free(ec_key);
-		}
+        ~EcPrivateKeyJNI() {
+            EC_KEY_free(ec_key);
+        }
 
-		/**
-		 * Return private key bytes. If empty array is returned, then this object doesn't
-		 * have valid private key.
-		 */
-		cc7::ByteArray privateKeyBytes() const {
-			return crypto::ECC_ExportPrivateKey(ec_key);
-		}
+        /**
+         * Return private key bytes. If empty array is returned, then this object doesn't
+         * have valid private key.
+         */
+        cc7::ByteArray privateKeyBytes() const {
+            return crypto::ECC_ExportPrivateKey(ec_key);
+        }
 
-		/**
-		 * Return pointer to private key implementation.
-		 */
-		EC_KEY * keyPtr() const {
-			return ec_key;
-		}
+        /**
+         * Return pointer to private key implementation.
+         */
+        EC_KEY * keyPtr() const {
+            return ec_key;
+        }
 
-	private:
+    private:
 
-		EcPrivateKeyJNI(EC_KEY * ec_key) : ec_key(ec_key) {}
+        EcPrivateKeyJNI(EC_KEY * ec_key) : ec_key(ec_key) {}
 
-		EC_KEY * ec_key;
-	};
-	
+        EC_KEY * ec_key;
+    };
+    
 } // io::getlime::powerAuth::jni
 } // io::getlime::powerAuth
 } // io::getlime

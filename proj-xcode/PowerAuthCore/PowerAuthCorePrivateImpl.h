@@ -114,10 +114,10 @@ CC7_EXTERN_C PowerAuthCoreRecoveryData * PowerAuthCoreRecoveryDataToObject(const
 #pragma mark - Debug functions
 
 #if defined(DEBUG)
-	CC7_EXTERN_C void PowerAuthCoreObjc_DebugDumpErrorImpl(id instance, NSString * message, io::getlime::powerAuth::ErrorCode code);
-	#define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code)	PowerAuthCoreObjc_DebugDumpErrorImpl(instance, message, error_code)
+    CC7_EXTERN_C void PowerAuthCoreObjc_DebugDumpErrorImpl(id instance, NSString * message, io::getlime::powerAuth::ErrorCode code);
+    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code) PowerAuthCoreObjc_DebugDumpErrorImpl(instance, message, error_code)
 #else
-	#define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code)
+    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code)
 #endif
 
 

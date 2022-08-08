@@ -21,34 +21,34 @@
 
 - (instancetype)init
 {
-	self = [super init];
-	if (self) {
-		_defaultRequestTimeout = 20.0;
-		_userAgent = [PowerAuthSystem defaultUserAgent];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _defaultRequestTimeout = 20.0;
+        _userAgent = [PowerAuthSystem defaultUserAgent];
+    }
+    return self;
 }
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	PowerAuthClientConfiguration * c = [[self.class allocWithZone:zone] init];
-	if (c) {
-		c->_defaultRequestTimeout = _defaultRequestTimeout;
-		c->_sslValidationStrategy = _sslValidationStrategy;
-		c->_requestInterceptors = [_requestInterceptors copyWithZone:zone];
-		c->_userAgent = _userAgent;
-	}
-	return c;
+    PowerAuthClientConfiguration * c = [[self.class allocWithZone:zone] init];
+    if (c) {
+        c->_defaultRequestTimeout = _defaultRequestTimeout;
+        c->_sslValidationStrategy = _sslValidationStrategy;
+        c->_requestInterceptors = [_requestInterceptors copyWithZone:zone];
+        c->_userAgent = _userAgent;
+    }
+    return c;
 }
 
 + (instancetype) sharedInstance
 {
-	static dispatch_once_t onceToken;
-	static PowerAuthClientConfiguration *inst;
-	dispatch_once(&onceToken, ^{
-		inst = [[PowerAuthClientConfiguration alloc] init];
-	});
-	return inst;
+    static dispatch_once_t onceToken;
+    static PowerAuthClientConfiguration *inst;
+    dispatch_once(&onceToken, ^{
+        inst = [[PowerAuthClientConfiguration alloc] init];
+    });
+    return inst;
 }
 
 @end

@@ -28,46 +28,46 @@ namespace powerAuth
 {
 namespace jni
 {
-	/**
-	 * Object that contains reference to public EC_KEY.
-	 */
-	class EcPublicKeyJNI {
-	public:
-		/**
-		 * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
-		 * nullptr if provided data doesn't represent private key.
-		 */
-		static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data, BN_CTX * ctx = nullptr) {
-			auto ec_key = crypto::ECC_ImportPublicKey(nullptr, public_key_data, ctx);
-			return ec_key != nullptr ? new EcPublicKeyJNI(ec_key) : nullptr;
-		}
+    /**
+     * Object that contains reference to public EC_KEY.
+     */
+    class EcPublicKeyJNI {
+    public:
+        /**
+         * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
+         * nullptr if provided data doesn't represent private key.
+         */
+        static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data, BN_CTX * ctx = nullptr) {
+            auto ec_key = crypto::ECC_ImportPublicKey(nullptr, public_key_data, ctx);
+            return ec_key != nullptr ? new EcPublicKeyJNI(ec_key) : nullptr;
+        }
 
-		~EcPublicKeyJNI() {
-			EC_KEY_free(ec_key);
-		}
+        ~EcPublicKeyJNI() {
+            EC_KEY_free(ec_key);
+        }
 
-		/**
-		 * Return public key bytes. If empty array is returned, then this object doesn't
-		 * have valid public key.
-		 */
-		cc7::ByteArray publicKeyBytes() const {
-			return crypto::ECC_ExportPublicKey(ec_key);
-		}
+        /**
+         * Return public key bytes. If empty array is returned, then this object doesn't
+         * have valid public key.
+         */
+        cc7::ByteArray publicKeyBytes() const {
+            return crypto::ECC_ExportPublicKey(ec_key);
+        }
 
-		/**
-		 * Return pointer to public key implementation.
-		 */
-		EC_KEY * keyPtr() const {
-			return ec_key;
-		}
+        /**
+         * Return pointer to public key implementation.
+         */
+        EC_KEY * keyPtr() const {
+            return ec_key;
+        }
 
-	private:
+    private:
 
-		EcPublicKeyJNI(EC_KEY * ec_key) : ec_key(ec_key) {}
+        EcPublicKeyJNI(EC_KEY * ec_key) : ec_key(ec_key) {}
 
-		EC_KEY * ec_key;
-	};
-	
+        EC_KEY * ec_key;
+    };
+    
 } // io::getlime::powerAuth::jni
 } // io::getlime::powerAuth
 } // io::getlime

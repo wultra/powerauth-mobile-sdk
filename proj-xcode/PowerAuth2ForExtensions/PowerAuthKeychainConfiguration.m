@@ -20,59 +20,59 @@
 #import "PowerAuthKeychainConfiguration.h"
 #import "PA2PrivateConstants.h"
 
-NSString *const PowerAuthKeychain_Initialized		= PA2Def_PowerAuthKeychain_Initialized;
-NSString *const PowerAuthKeychain_Status			= PA2Def_PowerAuthKeychain_Status;
-NSString *const PowerAuthKeychain_Possession		= PA2Def_PowerAuthKeychain_Possession;
-NSString *const PowerAuthKeychain_Biometry			= PA2Def_PowerAuthKeychain_Biometry;
-NSString *const PowerAuthKeychain_TokenStore		= PA2Def_PowerAuthKeychain_TokenStore;
-NSString *const PowerAuthKeychainKey_Possession		= PA2Def_PowerAuthKeychainKey_Possession;
+NSString *const PowerAuthKeychain_Initialized       = PA2Def_PowerAuthKeychain_Initialized;
+NSString *const PowerAuthKeychain_Status            = PA2Def_PowerAuthKeychain_Status;
+NSString *const PowerAuthKeychain_Possession        = PA2Def_PowerAuthKeychain_Possession;
+NSString *const PowerAuthKeychain_Biometry          = PA2Def_PowerAuthKeychain_Biometry;
+NSString *const PowerAuthKeychain_TokenStore        = PA2Def_PowerAuthKeychain_TokenStore;
+NSString *const PowerAuthKeychainKey_Possession     = PA2Def_PowerAuthKeychainKey_Possession;
 
 @implementation PowerAuthKeychainConfiguration
 
 - (instancetype)init
 {
-	self = [super init];
-	if (self) {
-		// Initialize default value for keychain service keys
-		_keychainInstanceName_Status		= PowerAuthKeychain_Status;
-		_keychainInstanceName_Possession	= PowerAuthKeychain_Possession;
-		_keychainInstanceName_Biometry		= PowerAuthKeychain_Biometry;
-		_keychainInstanceName_TokenStore	= PowerAuthKeychain_TokenStore;
-		
-		// Initialize default values for keychain service record item keys
-		_keychainKey_Possession				= PowerAuthKeychainKey_Possession;
-		// Default config for biometry protected items
-		_linkBiometricItemsToCurrentSet = NO;
-		_allowBiometricAuthenticationFallbackToDevicePasscode = NO;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        // Initialize default value for keychain service keys
+        _keychainInstanceName_Status        = PowerAuthKeychain_Status;
+        _keychainInstanceName_Possession    = PowerAuthKeychain_Possession;
+        _keychainInstanceName_Biometry      = PowerAuthKeychain_Biometry;
+        _keychainInstanceName_TokenStore    = PowerAuthKeychain_TokenStore;
+        
+        // Initialize default values for keychain service record item keys
+        _keychainKey_Possession             = PowerAuthKeychainKey_Possession;
+        // Default config for biometry protected items
+        _linkBiometricItemsToCurrentSet = NO;
+        _allowBiometricAuthenticationFallbackToDevicePasscode = NO;
+    }
+    return self;
 }
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	PowerAuthKeychainConfiguration * c = [[self.class allocWithZone:zone] init];
-	if (c) {
-		c->_keychainAttribute_AccessGroup = _keychainAttribute_AccessGroup;
-		c->_keychainAttribute_UserDefaultsSuiteName = _keychainAttribute_UserDefaultsSuiteName;
-		c->_keychainInstanceName_Status = _keychainInstanceName_Status;
-		c->_keychainInstanceName_Possession = _keychainInstanceName_Possession;
-		c->_keychainInstanceName_Biometry = _keychainInstanceName_Biometry;
-		c->_keychainInstanceName_TokenStore = _keychainInstanceName_TokenStore;
-		c->_keychainKey_Possession = _keychainKey_Possession;
-		c->_linkBiometricItemsToCurrentSet = _linkBiometricItemsToCurrentSet;
-		c->_allowBiometricAuthenticationFallbackToDevicePasscode = _allowBiometricAuthenticationFallbackToDevicePasscode;
-	}
-	return c;
+    PowerAuthKeychainConfiguration * c = [[self.class allocWithZone:zone] init];
+    if (c) {
+        c->_keychainAttribute_AccessGroup = _keychainAttribute_AccessGroup;
+        c->_keychainAttribute_UserDefaultsSuiteName = _keychainAttribute_UserDefaultsSuiteName;
+        c->_keychainInstanceName_Status = _keychainInstanceName_Status;
+        c->_keychainInstanceName_Possession = _keychainInstanceName_Possession;
+        c->_keychainInstanceName_Biometry = _keychainInstanceName_Biometry;
+        c->_keychainInstanceName_TokenStore = _keychainInstanceName_TokenStore;
+        c->_keychainKey_Possession = _keychainKey_Possession;
+        c->_linkBiometricItemsToCurrentSet = _linkBiometricItemsToCurrentSet;
+        c->_allowBiometricAuthenticationFallbackToDevicePasscode = _allowBiometricAuthenticationFallbackToDevicePasscode;
+    }
+    return c;
 }
 
 + (instancetype)sharedInstance
 {
-	static dispatch_once_t onceToken;
-	static PowerAuthKeychainConfiguration *inst;
-	dispatch_once(&onceToken, ^{
-		inst = [[PowerAuthKeychainConfiguration alloc] init];
-	});
-	return inst;
+    static dispatch_once_t onceToken;
+    static PowerAuthKeychainConfiguration *inst;
+    dispatch_once(&onceToken, ^{
+        inst = [[PowerAuthKeychainConfiguration alloc] init];
+    });
+    return inst;
 }
 
 @end

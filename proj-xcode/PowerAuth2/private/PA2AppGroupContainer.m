@@ -26,62 +26,62 @@
 
 + (nullable PA2AppGroupContainer*) containerWithAppGroup:(nonnull NSString*)appGroup;
 {
-	// Acquire URL with path to the shared directory.
-	NSURL * containerUrl = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:appGroup];
-	if (!containerUrl) {
-		PowerAuthLog(@"PA2AppGroupContainer: Failed to get container URL for app group '%@'", appGroup);
-		return nil;
-	}
-	// Create container
-	return [[PA2AppGroupContainer alloc] initWithAppGroup:appGroup containerUrl: containerUrl];
+    // Acquire URL with path to the shared directory.
+    NSURL * containerUrl = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:appGroup];
+    if (!containerUrl) {
+        PowerAuthLog(@"PA2AppGroupContainer: Failed to get container URL for app group '%@'", appGroup);
+        return nil;
+    }
+    // Create container
+    return [[PA2AppGroupContainer alloc] initWithAppGroup:appGroup containerUrl: containerUrl];
 }
 
 - (nullable NSString*) pathToFileLockWithIdentifier:(nonnull NSString*)lockIdentifier
 {
-	// Calculate hash from identifier.
-	NSString * fullIdentifier = _CalculateHashedIdentifier(lockIdentifier);
-	// Build lock file name as "PowerAuthSharedLock-" + SHA256(lockIdentifier).base64String
-	NSString * lockFile = [@"PowerAuthSharedLock-" stringByAppendingString:fullIdentifier];
-	// Locate file in container
-	NSURL * fileUrl = [_containerUrl URLByAppendingPathComponent:lockFile isDirectory:NO];
-	if (!fileUrl) {
-		PowerAuthLog(@"PA2AppGroupContainer: Failed to build lock file path. App group '%@', lockFile '%@'", _appGroup, lockFile);
-		return nil;
-	}
-	return fileUrl.path;
+    // Calculate hash from identifier.
+    NSString * fullIdentifier = _CalculateHashedIdentifier(lockIdentifier);
+    // Build lock file name as "PowerAuthSharedLock-" + SHA256(lockIdentifier).base64String
+    NSString * lockFile = [@"PowerAuthSharedLock-" stringByAppendingString:fullIdentifier];
+    // Locate file in container
+    NSURL * fileUrl = [_containerUrl URLByAppendingPathComponent:lockFile isDirectory:NO];
+    if (!fileUrl) {
+        PowerAuthLog(@"PA2AppGroupContainer: Failed to build lock file path. App group '%@', lockFile '%@'", _appGroup, lockFile);
+        return nil;
+    }
+    return fileUrl.path;
 }
 
 - (nullable NSString*) sharedMemoryIdentifier:(nonnull NSString*)shortIdentifier
 {
-	if (_ValidateSharedMemoryIdentifier(shortIdentifier)) {
-		return [[_appGroup stringByAppendingString:@"."] stringByAppendingString:shortIdentifier];
-	}
-	PowerAuthLog(@"PA2AppGroupContainer: Invalid shared memory identifier");
-	return nil;
+    if (_ValidateSharedMemoryIdentifier(shortIdentifier)) {
+        return [[_appGroup stringByAppendingString:@"."] stringByAppendingString:shortIdentifier];
+    }
+    PowerAuthLog(@"PA2AppGroupContainer: Invalid shared memory identifier");
+    return nil;
 }
 
 + (nonnull NSString*) shortSharedMemoryIdentifier:(nonnull NSString*)instanceIdentifier
 {
-	return [_CalculateHashedIdentifier(instanceIdentifier) substringToIndex:PADef_PowerAuthSharing_MemIdentifierMaxSize];
+    return [_CalculateHashedIdentifier(instanceIdentifier) substringToIndex:PADef_PowerAuthSharing_MemIdentifierMaxSize];
 }
 
 + (BOOL) validateShortSharedMemoryIdentifier:(nonnull NSString*)shortIdentifier
 {
-	return _ValidateSharedMemoryIdentifier(shortIdentifier);
+    return _ValidateSharedMemoryIdentifier(shortIdentifier);
 }
 
 
 #pragma mark - Private
 
 - (nullable instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-							  containerUrl:(nonnull NSURL*)containerUrl
+                              containerUrl:(nonnull NSURL*)containerUrl
 {
-	self = [super init];
-	if (self) {
-		_containerUrl = containerUrl;
-		_appGroup = appGroup;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _containerUrl = containerUrl;
+        _appGroup = appGroup;
+    }
+    return self;
 }
 
 /**
@@ -89,10 +89,10 @@
  */
 static NSString * _CalculateHashedIdentifier(NSString * identifier)
 {
-	return [[[[PowerAuthCoreCryptoUtils hashSha256:[identifier dataUsingEncoding:NSUTF8StringEncoding]]
-			  base64EncodedStringWithOptions:0]
-			 stringByReplacingOccurrencesOfString:@"/" withString:@"-"]	// slash should not appear in filename
-			substringToIndex:43]; // remove trailing '=' character
+    return [[[[PowerAuthCoreCryptoUtils hashSha256:[identifier dataUsingEncoding:NSUTF8StringEncoding]]
+              base64EncodedStringWithOptions:0]
+             stringByReplacingOccurrencesOfString:@"/" withString:@"-"] // slash should not appear in filename
+            substringToIndex:43]; // remove trailing '=' character
 }
 
 /**
@@ -100,17 +100,17 @@ static NSString * _CalculateHashedIdentifier(NSString * identifier)
  */
 static BOOL _ValidateSharedMemoryIdentifier(NSString * identifier)
 {
-	NSUInteger i = 0;
-	const char * ptr = identifier.UTF8String;
-	if (ptr) {
-		while (ptr[i]) {
-			if (!(isalnum(ptr[i]) || ptr[i] == '-' || ptr[i] == '+')) {
-				return NO;
-			}
-			++i;
-		}
-	}
-	return i > 0 && i <= PADef_PowerAuthSharing_MemIdentifierMaxSize;
+    NSUInteger i = 0;
+    const char * ptr = identifier.UTF8String;
+    if (ptr) {
+        while (ptr[i]) {
+            if (!(isalnum(ptr[i]) || ptr[i] == '-' || ptr[i] == '+')) {
+                return NO;
+            }
+            ++i;
+        }
+    }
+    return i > 0 && i <= PADef_PowerAuthSharing_MemIdentifierMaxSize;
 }
 
 @end

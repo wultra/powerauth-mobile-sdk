@@ -26,64 +26,64 @@
 
 @implementation PowerAuthExtensionSDK
 {
-	PowerAuthConfiguration * _configuration;
+    PowerAuthConfiguration * _configuration;
     id<NSLocking> _lock;
-	PowerAuthKeychain * _statusKeychain;
-	NSUserDefaults * _userDefaults;
+    PowerAuthKeychain * _statusKeychain;
+    NSUserDefaults * _userDefaults;
 }
 
 #pragma mark - Initialization
 
 - (instancetype) initWithConfiguration:(PowerAuthConfiguration *)configuration
-				 keychainConfiguration:(PowerAuthKeychainConfiguration *)keychainConfiguration
+                 keychainConfiguration:(PowerAuthKeychainConfiguration *)keychainConfiguration
 {
-	self = [super init];
-	if (self) {
-		_configuration = [configuration copy];
+    self = [super init];
+    if (self) {
+        _configuration = [configuration copy];
         _lock = [[NSRecursiveLock alloc] init];
         
-		// Create status keychain
-		_statusKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
-															accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-		// Create token store keychain
-		PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
-																				   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
-		// ...and finally, create a token store
-		PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:_configuration
-																									   keychain:tokenStoreKeychain
-																								 statusProvider:self
-																								 remoteProvider:nil
+        // Create status keychain
+        _statusKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_Status
+                                                            accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+        // Create token store keychain
+        PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:keychainConfiguration.keychainInstanceName_TokenStore
+                                                                                   accessGroup:keychainConfiguration.keychainAttribute_AccessGroup];
+        // ...and finally, create a token store
+        PA2PrivateTokenKeychainStore * tokenStore = [[PA2PrivateTokenKeychainStore alloc] initWithConfiguration:_configuration
+                                                                                                       keychain:tokenStoreKeychain
+                                                                                                 statusProvider:self
+                                                                                                 remoteProvider:nil
                                                                                                        dataLock:self
                                                                                                       localLock:_lock];
-		// For extensions, it's better to always access token data directly from keychain
-		tokenStore.allowInMemoryCache = NO;
-		_tokenStore = tokenStore;
-		if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName) {
-			_userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
-		} else {
-			_userDefaults = nil;
-		}
-	}
-	return self;
+        // For extensions, it's better to always access token data directly from keychain
+        tokenStore.allowInMemoryCache = NO;
+        _tokenStore = tokenStore;
+        if (keychainConfiguration.keychainAttribute_UserDefaultsSuiteName) {
+            _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+        } else {
+            _userDefaults = nil;
+        }
+    }
+    return self;
 }
 
 #pragma mark - Getters
 
 - (PowerAuthConfiguration*) configuration
 {
-	return [_configuration copy];
+    return [_configuration copy];
 }
 
 #pragma mark - PA2SessionStatus implementation
 
 - (BOOL) canStartActivation
 {
-	return NO;
+    return NO;
 }
 
 - (BOOL) hasPendingActivation
 {
-	return NO;
+    return NO;
 }
 
 - (BOOL) hasValidActivation
@@ -93,12 +93,12 @@
 
 - (BOOL) hasPendingProtocolUpgrade
 {
-	return NO;
+    return NO;
 }
 
 - (BOOL) hasProtocolUpgradeAvailable
 {
-	return NO;
+    return NO;
 }
 
 - (NSString*) activationIdentifier

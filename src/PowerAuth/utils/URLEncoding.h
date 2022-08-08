@@ -27,11 +27,11 @@ namespace powerAuth
 namespace utils
 {
 
-	/**
-	 Converts UTF8 string into URL encoded data.
-	 */
-	cc7::ByteArray ConvertStringToUrlEncodedData(const std::string & str);
-	
+    /**
+     Converts UTF8 string into URL encoded data.
+     */
+    cc7::ByteArray ConvertStringToUrlEncodedData(const std::string & str);
+    
 } // io::getlime::powerAuth::utils
 } // io::getlime::powerAuth
 } // io::getlime

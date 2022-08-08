@@ -21,12 +21,12 @@
 
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_tokenId 		= PA2ObjectAs(dictionary[@"tokenId"], NSString);
-		_tokenSecret 	= PA2ObjectAs(dictionary[@"tokenSecret"], NSString);
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _tokenId        = PA2ObjectAs(dictionary[@"tokenId"], NSString);
+        _tokenSecret    = PA2ObjectAs(dictionary[@"tokenSecret"], NSString);
+    }
+    return self;
 }
 
 @end

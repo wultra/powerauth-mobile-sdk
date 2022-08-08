@@ -30,8 +30,8 @@
  @return `PA2SharedMemory` instance or `nil` in case of failure.
  */
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier
-								   withSize:(NSUInteger)requestedSize
-								  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL create))setupBlock;
+                                   withSize:(NSUInteger)requestedSize
+                                  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL create))setupBlock;
 /**
  Pointer to bytes shared between processes.
  

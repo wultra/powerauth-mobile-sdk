@@ -30,60 +30,60 @@ namespace getlime
 {
 namespace powerAuthTests
 {
-	class pa2RecoveryCodeTests : public UnitTest
-	{
-	public:
-		
-		pa2RecoveryCodeTests()
-		{
-			CC7_REGISTER_TEST_METHOD(testGoodRecoveryData)
-			CC7_REGISTER_TEST_METHOD(testBadRecoveryData)
-		}
-		
-		// unit tests
-		
-		void testGoodRecoveryData()
-		{
-			RecoveryData rd;
-			
-			ccstAssertTrue(protocol::ValidateRecoveryData(rd));
-			
-			rd.recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA";
-			rd.puk = "1111122222";
-			
-			ccstAssertTrue(protocol::ValidateRecoveryData(rd));
-		}
-		
-		void testBadRecoveryData()
-		{
-			static struct TestData {
-				const char * recovery_code;
-				const char * puk;
-			} bad_data[] = {
-				{ "VVVVV-VVVVV-VVVVV-VTFVA", "" },
-				{ "", "111112222" },
-				{ "VVVVV-VVVVV-VVVVV-VTFVA", "111112222" },
-				{ "VVVVV-VVVVV-VVVVV-VTFVA", "11111222233" },
-				{ "VVVVV-VVVVV-VVVVV-VTFVA", "11111A2223" },
-				{ "VVVVV-VVVVV-VVVVV-VTFVA", "11111 2223" },
-				{ "VAVVV-VVVVV-VVVVV-VTFVA", "1111122222" },
-				{ nullptr, nullptr }
-			};
-			
-			const TestData * td = bad_data;
-			while (td->recovery_code && td->puk) {
-				RecoveryData rd;
-				rd.recoveryCode = td->recovery_code;
-				rd.puk = td->puk;
-				ccstAssertFalse(protocol::ValidateRecoveryData(rd));
-				td++;
-			}
-		}
-		
-	};
-	
-	CC7_CREATE_UNIT_TEST(pa2RecoveryCodeTests, "pa2")
-	
+    class pa2RecoveryCodeTests : public UnitTest
+    {
+    public:
+        
+        pa2RecoveryCodeTests()
+        {
+            CC7_REGISTER_TEST_METHOD(testGoodRecoveryData)
+            CC7_REGISTER_TEST_METHOD(testBadRecoveryData)
+        }
+        
+        // unit tests
+        
+        void testGoodRecoveryData()
+        {
+            RecoveryData rd;
+            
+            ccstAssertTrue(protocol::ValidateRecoveryData(rd));
+            
+            rd.recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA";
+            rd.puk = "1111122222";
+            
+            ccstAssertTrue(protocol::ValidateRecoveryData(rd));
+        }
+        
+        void testBadRecoveryData()
+        {
+            static struct TestData {
+                const char * recovery_code;
+                const char * puk;
+            } bad_data[] = {
+                { "VVVVV-VVVVV-VVVVV-VTFVA", "" },
+                { "", "111112222" },
+                { "VVVVV-VVVVV-VVVVV-VTFVA", "111112222" },
+                { "VVVVV-VVVVV-VVVVV-VTFVA", "11111222233" },
+                { "VVVVV-VVVVV-VVVVV-VTFVA", "11111A2223" },
+                { "VVVVV-VVVVV-VVVVV-VTFVA", "11111 2223" },
+                { "VAVVV-VVVVV-VVVVV-VTFVA", "1111122222" },
+                { nullptr, nullptr }
+            };
+            
+            const TestData * td = bad_data;
+            while (td->recovery_code && td->puk) {
+                RecoveryData rd;
+                rd.recoveryCode = td->recovery_code;
+                rd.puk = td->puk;
+                ccstAssertFalse(protocol::ValidateRecoveryData(rd));
+                td++;
+            }
+        }
+        
+    };
+    
+    CC7_CREATE_UNIT_TEST(pa2RecoveryCodeTests, "pa2")
+    
 } // io::getlime::powerAuthTests
 } // io::getlime
 } // io

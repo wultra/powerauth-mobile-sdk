@@ -26,7 +26,7 @@
  Initialize storage with keychain and key to store the status data.
  */
 - (nonnull instancetype) initWithKeychain:(nonnull PowerAuthKeychain*)keychain
-								statusKey:(nonnull NSString*)statusKey;
+                                statusKey:(nonnull NSString*)statusKey;
 
 /**
  Read session status data.

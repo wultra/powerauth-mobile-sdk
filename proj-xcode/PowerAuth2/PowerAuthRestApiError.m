@@ -22,10 +22,10 @@
 #ifdef DEBUG
 - (NSString*) description
 {
-	NSString * info = _additionalInfo ? [@", info=" stringByAppendingString:[_additionalInfo description]] : @"";
-	NSString * code = _code ? _code : @"<null>";
-	NSString * message = _message ? _message : @"<null>";
-	return [NSString stringWithFormat:@"<PowerAuthRestApiError code=%@, message=%@%@>", code, message, info];
+    NSString * info = _additionalInfo ? [@", info=" stringByAppendingString:[_additionalInfo description]] : @"";
+    NSString * code = _code ? _code : @"<null>";
+    NSString * message = _message ? _message : @"<null>";
+    return [NSString stringWithFormat:@"<PowerAuthRestApiError code=%@, message=%@%@>", code, message, info];
 }
 #endif
 
@@ -35,15 +35,15 @@
 
 - (instancetype) initWithDictionary:(NSDictionary *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_code		= PA2ObjectAs(dictionary[@"code"], NSString);
-		_message    = PA2ObjectAs(dictionary[@"message"], NSString);
-		NSMutableDictionary * info = [dictionary mutableCopy];
-		[info removeObjectsForKeys:@[@"code", @"message"]];
-		_additionalInfo = info;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _code       = PA2ObjectAs(dictionary[@"code"], NSString);
+        _message    = PA2ObjectAs(dictionary[@"message"], NSString);
+        NSMutableDictionary * info = [dictionary mutableCopy];
+        [info removeObjectsForKeys:@[@"code", @"message"]];
+        _additionalInfo = info;
+    }
+    return self;
 }
 
 @end
@@ -52,8 +52,8 @@
 
 - (NSInteger) currentRecoveryPukIndex
 {
-	NSNumber * value = PA2ObjectAs(_additionalInfo[@"currentRecoveryPukIndex"], NSNumber);
-	return value ? [value integerValue] : -1;
+    NSNumber * value = PA2ObjectAs(_additionalInfo[@"currentRecoveryPukIndex"], NSNumber);
+    return value ? [value integerValue] : -1;
 }
 
 @end

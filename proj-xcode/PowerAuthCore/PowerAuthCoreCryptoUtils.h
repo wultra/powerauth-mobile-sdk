@@ -30,8 +30,8 @@
  Validates ECDSA signature for given data and EC public key.
  */
 + (BOOL) ecdsaValidateSignature:(nonnull NSData*)signature
-						forData:(nonnull NSData*)data
-				   forPublicKey:(nonnull PowerAuthCoreECPublicKey*)publicKey;
+                        forData:(nonnull NSData*)data
+                   forPublicKey:(nonnull PowerAuthCoreECPublicKey*)publicKey;
 /**
  Compute ECDSA siganture for given data with using EC private key.
  */
@@ -59,15 +59,15 @@
  implementation fail.
  */
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data 
-						   key:(nonnull NSData*)key;
+                           key:(nonnull NSData*)key;
 
 /**
  Computes HMAC-SHA-256 with requested length for given data and key. Returns nil in
  case that underlying implementation fail.
  */
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data
-						   key:(nonnull NSData*)key
-						length:(NSUInteger)length;
+                           key:(nonnull NSData*)key
+                        length:(NSUInteger)length;
 
 /**
  Generates a required amount of random bytes. Returns nil in case that 

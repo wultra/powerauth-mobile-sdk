@@ -24,13 +24,13 @@
 
 - (void) testBasicAuthenticationRequestInterceptor
 {
-	PowerAuthBasicHttpAuthenticationRequestInterceptor * basicAuth = [[PowerAuthBasicHttpAuthenticationRequestInterceptor alloc] initWithUsername:@"Aladdin" password:@"OpenSesame"];
-	XCTAssertTrue([basicAuth.headerKey isEqualToString:@"Authorization"]);
-	XCTAssertTrue([basicAuth.headerValue isEqualToString:@"Basic QWxhZGRpbjpPcGVuU2VzYW1l"]);
-	
-	NSMutableURLRequest * request = [[NSMutableURLRequest alloc] init];
-	[basicAuth processRequest: request];
-	XCTAssertTrue([request.allHTTPHeaderFields[@"Authorization"] isEqualToString:@"Basic QWxhZGRpbjpPcGVuU2VzYW1l"]);
+    PowerAuthBasicHttpAuthenticationRequestInterceptor * basicAuth = [[PowerAuthBasicHttpAuthenticationRequestInterceptor alloc] initWithUsername:@"Aladdin" password:@"OpenSesame"];
+    XCTAssertTrue([basicAuth.headerKey isEqualToString:@"Authorization"]);
+    XCTAssertTrue([basicAuth.headerValue isEqualToString:@"Basic QWxhZGRpbjpPcGVuU2VzYW1l"]);
+    
+    NSMutableURLRequest * request = [[NSMutableURLRequest alloc] init];
+    [basicAuth processRequest: request];
+    XCTAssertTrue([request.allHTTPHeaderFields[@"Authorization"] isEqualToString:@"Basic QWxhZGRpbjpPcGVuU2VzYW1l"]);
 }
 
 @end

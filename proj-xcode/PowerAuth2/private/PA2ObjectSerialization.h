@@ -65,21 +65,21 @@
  Encrypts given object with provided encryptor and returns encrypted request object.
  */
 + (PA2EncryptedRequest*) encryptObject:(id<PA2Encodable>)object
-							 encryptor:(PowerAuthCoreEciesEncryptor*)encryptor
-								 error:(NSError**)error;
+                             encryptor:(PowerAuthCoreEciesEncryptor*)encryptor
+                                 error:(NSError**)error;
 
 /**
  TODO: missing doc
  */
 + (id<PA2Decodable>) decryptObject:(PA2EncryptedResponse*)response
-						  forClass:(Class)aClass
-						 decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
-							 error:(NSError**)error;
+                          forClass:(Class)aClass
+                         decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
+                             error:(NSError**)error;
 /**
  TODO: missing doc
  */
 + (NSData*) decryptData:(NSData*)data
-			  decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
-				  error:(NSError**)error;
+              decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
+                  error:(NSError**)error;
 
 @end

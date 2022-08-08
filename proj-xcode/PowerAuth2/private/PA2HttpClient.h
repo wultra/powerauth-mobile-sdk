@@ -37,10 +37,10 @@
  base url, crypto helper and session interface.
  */
 - (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
-							   completionQueue:(nonnull dispatch_queue_t)queue
-									   baseUrl:(nonnull NSString*)baseUrl
-						  coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
-										helper:(nonnull id<PA2PrivateCryptoHelper>)helper;
+                               completionQueue:(nonnull dispatch_queue_t)queue
+                                       baseUrl:(nonnull NSString*)baseUrl
+                          coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
+                                        helper:(nonnull id<PA2PrivateCryptoHelper>)helper;
 
 @property (nonatomic, weak, nullable, readonly) id<PA2PrivateCryptoHelper> cryptoHelper;
 @property (nonatomic, strong, nonnull, readonly) id<PA2SessionInterface> sessionInterface;
@@ -71,17 +71,17 @@
  The completion block is always issued to the "completionQueue", provided in the object's initialization.
  */
 - (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
-								 to:(nonnull PA2RestApiEndpoint*)endpoint
-							   auth:(nullable PowerAuthAuthentication*)authentication
-						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
+                                 to:(nonnull PA2RestApiEndpoint*)endpoint
+                               auth:(nullable PowerAuthAuthentication*)authentication
+                         completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
 
 /**
  Post a HTTP request to the the given endpoint. The object parameter is optional.
  The completion block is always issued to the "completionQueue", provided in the object's initialization.
  */
 - (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
-								 to:(nonnull PA2RestApiEndpoint*)endpoint
-						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
+                                 to:(nonnull PA2RestApiEndpoint*)endpoint
+                         completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion;
 
 /**
  Post a HTTP request to the the given endpoint. The object and authentication parameters are optional.
@@ -91,9 +91,9 @@
  special cases, where the consistency needs to be guaranteed.
  */
 - (nonnull NSOperation*) postObject:(nullable id<PA2Encodable>)object
-								 to:(nonnull PA2RestApiEndpoint*)endpoint
-							   auth:(nullable PowerAuthAuthentication*)authentication
-						 completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion
-							 cancel:(void(^ _Nullable)(void))cancel;
+                                 to:(nonnull PA2RestApiEndpoint*)endpoint
+                               auth:(nullable PowerAuthAuthentication*)authentication
+                         completion:(void(^ _Nonnull)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> _Nullable response, NSError * _Nullable error))completion
+                             cancel:(void(^ _Nullable)(void))cancel;
 
 @end

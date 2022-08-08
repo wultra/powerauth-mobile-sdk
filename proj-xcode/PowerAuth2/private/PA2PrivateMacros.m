@@ -22,26 +22,26 @@
 
 id PA2CastToImpl(id instance, Class desiredClass)
 {
-	if ([instance isKindOfClass:desiredClass]) {
-		return instance;
-	}
-	return nil;
+    if ([instance isKindOfClass:desiredClass]) {
+        return instance;
+    }
+    return nil;
 }
 
 id PA2CastToProtoImpl(id instance, Protocol * proto)
 {
-	if ([instance conformsToProtocol:proto]) {
-		return instance;
-	}
-	return nil;
+    if ([instance conformsToProtocol:proto]) {
+        return instance;
+    }
+    return nil;
 }
 
 #if DEBUG
 void PA2PrintErrno(NSString * location)
 {
-	char buffer[256];
-	strerror_r(errno, buffer, sizeof(buffer));
-	NSString * error = [NSString stringWithUTF8String:buffer];
-	PowerAuthLog(@"%@ failed: %@", location, error);
+    char buffer[256];
+    strerror_r(errno, buffer, sizeof(buffer));
+    NSString * error = [NSString stringWithUTF8String:buffer];
+    PowerAuthLog(@"%@ failed: %@", location, error);
 }
 #endif // DEBUG

@@ -89,19 +89,19 @@
 
 
 typedef enum _PATSActivationStatusEnum {
-	// "unknown" must be defined, tests expects that 0 is not a valid state.
-	PATSActivationStatus_Unknown,
-	PATSActivationStatus_CREATED,
-	PATSActivationStatus_PENDING_COMMIT,
-	PATSActivationStatus_ACTIVE,
-	PATSActivationStatus_BLOCKED,
-	PATSActivationStatus_REMOVED,
+    // "unknown" must be defined, tests expects that 0 is not a valid state.
+    PATSActivationStatus_Unknown,
+    PATSActivationStatus_CREATED,
+    PATSActivationStatus_PENDING_COMMIT,
+    PATSActivationStatus_ACTIVE,
+    PATSActivationStatus_BLOCKED,
+    PATSActivationStatus_REMOVED,
 } PATSActivationStatusEnum;
 
 typedef enum _PATSActivationOtpValidationEnum {
-	PATSActivationOtpValidation_NONE,
-	PATSActivationOtpValidation_ON_KEY_EXCHANGE,
-	PATSActivationOtpValidation_ON_COMMIT
+    PATSActivationOtpValidation_NONE,
+    PATSActivationOtpValidation_ON_KEY_EXCHANGE,
+    PATSActivationOtpValidation_ON_COMMIT
 } PATSActivationOtpValidationEnum;
 
 extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValidationEnum val);
@@ -179,7 +179,7 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 @property (nonatomic, strong) NSString * tokenIdentifier;
 @property (nonatomic, strong) NSString * tokenDigest;
 @property (nonatomic, strong) NSString * nonce;
-@property (nonatomic, strong) NSString * timestamp;	// must be correctly converted
+@property (nonatomic, strong) NSString * timestamp; // must be correctly converted
 
 @end
 

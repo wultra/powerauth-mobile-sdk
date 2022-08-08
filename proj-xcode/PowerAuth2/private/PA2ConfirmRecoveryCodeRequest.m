@@ -20,7 +20,7 @@
 
 - (NSDictionary*) toDictionary
 {
-	return _recoveryCode ? @{ @"recoveryCode" : _recoveryCode } : @{};
+    return _recoveryCode ? @{ @"recoveryCode" : _recoveryCode } : @{};
 }
 
 @end

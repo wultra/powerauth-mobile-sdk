@@ -20,10 +20,10 @@
 #include "EcPrivateKeyJNI.h"
 
 // Package: io.getlime.security.powerauth.core
-#define CC7_JNI_CLASS_PATH	    	"io/getlime/security/powerauth/core"
-#define CC7_JNI_CLASS_PACKAGE	    io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS  		CryptoUtils
-#define CC7_JNI_CPP_CLASS		    NA
+#define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
+#define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
+#define CC7_JNI_JAVA_CLASS          CryptoUtils
+#define CC7_JNI_CPP_CLASS           NA
 #include <cc7/jni/JniModule.inl>
 
 using namespace io::getlime::powerAuth;
@@ -36,49 +36,49 @@ extern "C" {
 //
 CC7_JNI_METHOD(jobject, ecGenerateKeyPair)
 {
-	jobject result = nullptr;
-	EC_KEY * key_pair = nullptr;
-	EcPrivateKeyJNI * cpp_private_key = nullptr;
-	EcPublicKeyJNI * cpp_public_key = nullptr;
-	crypto::BNContext ctx;
+    jobject result = nullptr;
+    EC_KEY * key_pair = nullptr;
+    EcPrivateKeyJNI * cpp_private_key = nullptr;
+    EcPublicKeyJNI * cpp_public_key = nullptr;
+    crypto::BNContext ctx;
 
-	do {
-		key_pair = crypto::ECC_GenerateKeyPair();
-		if (key_pair == nullptr) {
-			CC7_ASSERT(false, "Failed to generate EC key-pair");
-			break;
-		}
-		cpp_private_key = EcPrivateKeyJNI::createFromBytes(crypto::ECC_ExportPrivateKey(key_pair, ctx), ctx);
-		if (cpp_private_key == nullptr) {
-			break;
-		}
-		cpp_public_key = EcPublicKeyJNI::createFromBytes(crypto::ECC_ExportPublicKey(key_pair, ctx), ctx);
-		if (cpp_public_key == nullptr) {
-			break;
-		}
-		auto java_private_key = CreateJavaEcPrivateKeyFromCppObject(env, cpp_private_key);
-		cpp_private_key = nullptr;  // already captured or deleted in "Create" function
-		if (java_private_key == nullptr) {
-			break;
-		}
-		auto java_public_key = CreateJavaEcPublicKeyFromCppObject(env, cpp_public_key);
-		cpp_public_key = nullptr;   // already captured or deleted in "Create" function
-		if (java_public_key == nullptr) {
-			break;
-		}
-		auto private_key_object_signature = std::string(CC7_JNI_MODULE_CLASS_SIGNATURE("EcPrivateKey"));
-		auto public_key_object_signature = std::string(CC7_JNI_MODULE_CLASS_SIGNATURE("EcPublicKey"));
-		std::string constructor_signature = "(" + private_key_object_signature + public_key_object_signature + ")V";
-		result = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EcKeyPair"), constructor_signature.c_str(), java_private_key, java_public_key);
+    do {
+        key_pair = crypto::ECC_GenerateKeyPair();
+        if (key_pair == nullptr) {
+            CC7_ASSERT(false, "Failed to generate EC key-pair");
+            break;
+        }
+        cpp_private_key = EcPrivateKeyJNI::createFromBytes(crypto::ECC_ExportPrivateKey(key_pair, ctx), ctx);
+        if (cpp_private_key == nullptr) {
+            break;
+        }
+        cpp_public_key = EcPublicKeyJNI::createFromBytes(crypto::ECC_ExportPublicKey(key_pair, ctx), ctx);
+        if (cpp_public_key == nullptr) {
+            break;
+        }
+        auto java_private_key = CreateJavaEcPrivateKeyFromCppObject(env, cpp_private_key);
+        cpp_private_key = nullptr;  // already captured or deleted in "Create" function
+        if (java_private_key == nullptr) {
+            break;
+        }
+        auto java_public_key = CreateJavaEcPublicKeyFromCppObject(env, cpp_public_key);
+        cpp_public_key = nullptr;   // already captured or deleted in "Create" function
+        if (java_public_key == nullptr) {
+            break;
+        }
+        auto private_key_object_signature = std::string(CC7_JNI_MODULE_CLASS_SIGNATURE("EcPrivateKey"));
+        auto public_key_object_signature = std::string(CC7_JNI_MODULE_CLASS_SIGNATURE("EcPublicKey"));
+        std::string constructor_signature = "(" + private_key_object_signature + public_key_object_signature + ")V";
+        result = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EcKeyPair"), constructor_signature.c_str(), java_private_key, java_public_key);
 
-	} while (false);
+    } while (false);
 
-	if (key_pair != nullptr) {
-		EC_KEY_free(key_pair);
-	}
-	delete cpp_private_key;
-	delete cpp_public_key;
-	return result;
+    if (key_pair != nullptr) {
+        EC_KEY_free(key_pair);
+    }
+    delete cpp_private_key;
+    delete cpp_public_key;
+    return result;
 }
 
 //
@@ -86,23 +86,23 @@ CC7_JNI_METHOD(jobject, ecGenerateKeyPair)
 //
 CC7_JNI_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, jbyteArray signature, jobject publicKey)
 {
-	if (data == nullptr || signature == nullptr || publicKey == nullptr || env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return false;
-	}
+    if (data == nullptr || signature == nullptr || publicKey == nullptr || env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return false;
+    }
 
-	bool result = false;
+    bool result = false;
 
-	// Convert data objects
-	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
-	auto cpp_signature = cc7::jni::CopyFromJavaByteArray(env, signature);
-	auto cpp_publicKey = GetEcPublicKeyFromJavaObject(env, publicKey);
+    // Convert data objects
+    auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto cpp_signature = cc7::jni::CopyFromJavaByteArray(env, signature);
+    auto cpp_publicKey = GetEcPublicKeyFromJavaObject(env, publicKey);
 
-	if (cpp_publicKey != nullptr) {
-		// Validate signature
-		result = crypto::ECDSA_ValidateSignature(cpp_data, cpp_signature, cpp_publicKey->keyPtr());
-	}
-	return result;
+    if (cpp_publicKey != nullptr) {
+        // Validate signature
+        result = crypto::ECDSA_ValidateSignature(cpp_data, cpp_signature, cpp_publicKey->keyPtr());
+    }
+    return result;
 }
 
 //
@@ -110,25 +110,25 @@ CC7_JNI_METHOD_PARAMS(jboolean, ecdsaValidateSignature, jbyteArray data, jbyteAr
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, ecdsaComputeSignature, jbyteArray data, jobject privateKey)
 {
-	if (data == nullptr || privateKey == nullptr || env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return nullptr;
-	}
+    if (data == nullptr || privateKey == nullptr || env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return nullptr;
+    }
 
-	jbyteArray result = nullptr;
+    jbyteArray result = nullptr;
 
-	// Convert data objects
-	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
-	auto cpp_privateKey = GetEcPrivateKeyFromJavaObject(env, privateKey);
+    // Convert data objects
+    auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto cpp_privateKey = GetEcPrivateKeyFromJavaObject(env, privateKey);
 
-	if (cpp_privateKey != nullptr) {
-		// Validate signature
-		cc7::ByteArray cpp_result;
-		if (crypto::ECDSA_ComputeSignature(cpp_data, cpp_privateKey->keyPtr(), cpp_result)) {
-			result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
-		}
-	}
-	return result;
+    if (cpp_privateKey != nullptr) {
+        // Validate signature
+        cc7::ByteArray cpp_result;
+        if (crypto::ECDSA_ComputeSignature(cpp_data, cpp_privateKey->keyPtr(), cpp_result)) {
+            result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
+        }
+    }
+    return result;
 }
 
 //
@@ -136,25 +136,25 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, ecdsaComputeSignature, jbyteArray data, jobjec
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, ecdhComputeSharedSecret, jobject publicKey, jobject privateKey)
 {
-	if (privateKey == nullptr || publicKey == nullptr || env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return nullptr;
-	}
+    if (privateKey == nullptr || publicKey == nullptr || env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return nullptr;
+    }
 
-	jbyteArray result = nullptr;
+    jbyteArray result = nullptr;
 
-	// Convert data objects
-	auto cpp_privateKey = GetEcPrivateKeyFromJavaObject(env, privateKey);
-	auto cpp_publicKey = GetEcPublicKeyFromJavaObject(env, publicKey);
+    // Convert data objects
+    auto cpp_privateKey = GetEcPrivateKeyFromJavaObject(env, privateKey);
+    auto cpp_publicKey = GetEcPublicKeyFromJavaObject(env, publicKey);
 
-	if (cpp_privateKey != nullptr && cpp_publicKey != nullptr) {
-		// Compute shared secret
-		cc7::ByteArray cpp_result = crypto::ECDH_SharedSecret(cpp_publicKey->keyPtr(), cpp_privateKey->keyPtr());
-		if (!cpp_result.empty()) {
-			result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
-		}
-	}
-	return result;
+    if (cpp_privateKey != nullptr && cpp_publicKey != nullptr) {
+        // Compute shared secret
+        cc7::ByteArray cpp_result = crypto::ECDH_SharedSecret(cpp_publicKey->keyPtr(), cpp_privateKey->keyPtr());
+        if (!cpp_result.empty()) {
+            result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
+        }
+    }
+    return result;
 }
 
 //
@@ -162,15 +162,15 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, ecdhComputeSharedSecret, jobject publicKey, jo
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, hashSha256, jbyteArray data)
 {
-	if (data == nullptr || env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return nullptr;
-	}
+    if (data == nullptr || env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return nullptr;
+    }
 
-	// Convert data objects & calculate hash
-	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
-	auto hash = crypto::SHA256(cpp_data);
-	return cc7::jni::CopyToJavaByteArray(env, hash);
+    // Convert data objects & calculate hash
+    auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto hash = crypto::SHA256(cpp_data);
+    return cc7::jni::CopyToJavaByteArray(env, hash);
 }
 
 //
@@ -178,19 +178,19 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, hashSha256, jbyteArray data)
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray key, jint outputLength)
 {
-	if (data == nullptr || key == nullptr || env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return nullptr;
-	}
-	if (outputLength < 0) {
-		CC7_ASSERT(false, "Invalid 'outputLength' parameter.");
-		return nullptr;
-	}
-	// Convert data objects
-	auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
-	auto cpp_key = cc7::jni::CopyFromJavaByteArray(env, key);
-	auto mac = crypto::HMAC_SHA256(cpp_data, cpp_key, (size_t)outputLength);
-	return cc7::jni::CopyToNullableJavaByteArray(env, mac);
+    if (data == nullptr || key == nullptr || env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return nullptr;
+    }
+    if (outputLength < 0) {
+        CC7_ASSERT(false, "Invalid 'outputLength' parameter.");
+        return nullptr;
+    }
+    // Convert data objects
+    auto cpp_data = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto cpp_key = cc7::jni::CopyFromJavaByteArray(env, key);
+    auto mac = crypto::HMAC_SHA256(cpp_data, cpp_key, (size_t)outputLength);
+    return cc7::jni::CopyToNullableJavaByteArray(env, mac);
 }
 
 //
@@ -198,17 +198,17 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, hmacSha256, jbyteArray data, jbyteArray key, j
 //
 CC7_JNI_METHOD_PARAMS(jbyteArray, randomBytes, jint count)
 {
-	if (env == nullptr) {
-		CC7_ASSERT(false, "Missing required parameter.");
-		return nullptr;
-	}
-	if (count < 0) {
-		CC7_ASSERT(false, "Invalid 'count' parameter.");
-		return nullptr;
-	}
-	// Generate random data
-	auto random_bytes = crypto::GetRandomData((size_t)count, true);
-	return cc7::jni::CopyToNullableJavaByteArray(env, random_bytes);
+    if (env == nullptr) {
+        CC7_ASSERT(false, "Missing required parameter.");
+        return nullptr;
+    }
+    if (count < 0) {
+        CC7_ASSERT(false, "Invalid 'count' parameter.");
+        return nullptr;
+    }
+    // Generate random data
+    auto random_bytes = crypto::GetRandomData((size_t)count, true);
+    return cc7::jni::CopyToNullableJavaByteArray(env, random_bytes);
 }
 
 } // extern "C"

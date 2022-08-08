@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#import <cc7/objc/ObjcHelper.h>		// must be first included
+#import <cc7/objc/ObjcHelper.h>     // must be first included
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
-#include "CryptoUtils.h"			// Accessing private header; will be fixed by moving crypto to cc7
+#include "CryptoUtils.h"            // Accessing private header; will be fixed by moving crypto to cc7
 
 
 using namespace io::getlime::powerAuth;
@@ -36,12 +36,12 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreCryptoUtils
 
 + (BOOL) ecdsaValidateSignature:(NSData *)signature
-						forData:(NSData *)data
-				   forPublicKey:(PowerAuthCoreECPublicKey *)publicKey
+                        forData:(NSData *)data
+                   forPublicKey:(PowerAuthCoreECPublicKey *)publicKey
 {
-	auto cpp_data = cc7::objc::CopyFromNSData(data);
-	auto cpp_signature = cc7::objc::CopyFromNSData(signature);
-	return (BOOL) crypto::ECDSA_ValidateSignature(cpp_data, cpp_signature, publicKey.ecKeyRef);
+    auto cpp_data = cc7::objc::CopyFromNSData(data);
+    auto cpp_signature = cc7::objc::CopyFromNSData(signature);
+    return (BOOL) crypto::ECDSA_ValidateSignature(cpp_data, cpp_signature, publicKey.ecKeyRef);
 }
 
 + (nullable NSData*) ecdsaComputeSignature:(nonnull NSData*)data
@@ -84,32 +84,32 @@ using namespace io::getlime::powerAuth;
 
 + (NSData*) hashSha256:(NSData *)data
 {
-	auto cpp_data = cc7::objc::CopyFromNSData(data);
-	auto cpp_hash = crypto::SHA256(cpp_data);
-	return cc7::objc::CopyToNSData(cpp_hash);
+    auto cpp_data = cc7::objc::CopyFromNSData(data);
+    auto cpp_hash = crypto::SHA256(cpp_data);
+    return cc7::objc::CopyToNSData(cpp_hash);
 }
 
 
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data 
-						   key:(nonnull NSData*)key
+                           key:(nonnull NSData*)key
 {
-	auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), 0);
-	return cc7::objc::CopyToNullableNSData(result);
+    auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), 0);
+    return cc7::objc::CopyToNullableNSData(result);
 }
 
 
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data
-						   key:(nonnull NSData*)key
-						length:(NSUInteger)length
+                           key:(nonnull NSData*)key
+                        length:(NSUInteger)length
 {
-	auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), length);
-	return cc7::objc::CopyToNullableNSData(result);
+    auto result = crypto::HMAC_SHA256(cc7::objc::CopyFromNSData(data), cc7::objc::CopyFromNSData(key), length);
+    return cc7::objc::CopyToNullableNSData(result);
 }
 
 
 + (nullable NSData*) randomBytes:(NSUInteger)count
 {
-	return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));
+    return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));
 }
 
 @end
@@ -120,30 +120,30 @@ using namespace io::getlime::powerAuth;
 
 @implementation PowerAuthCoreECPublicKey
 {
-	EC_KEY * _key;
+    EC_KEY * _key;
 }
 
 - (void) dealloc
 {
-	EC_KEY_free(_key);
-	_key = nullptr;
+    EC_KEY_free(_key);
+    _key = nullptr;
 }
 
 - (id) initWithData:(NSData *)publicKeyData
 {
-	self = [super init];
-	if (self) {
-		_key = crypto::ECC_ImportPublicKey(nullptr, cc7::objc::CopyFromNSData(publicKeyData));
-		if (!_key) {
-			return nil;
-		}
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _key = crypto::ECC_ImportPublicKey(nullptr, cc7::objc::CopyFromNSData(publicKeyData));
+        if (!_key) {
+            return nil;
+        }
+    }
+    return self;
 }
 
 - (EC_KEY*) ecKeyRef
 {
-	return _key;
+    return _key;
 }
 
 - (NSData*) publicKeyBytes

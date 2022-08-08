@@ -53,7 +53,7 @@
  then you have to always provide the reply handler to this method.
  */
 - (BOOL) processReceivedMessageData:(nonnull NSData *)data
-					   replyHandler:(void (^ _Nullable)(NSData * _Nonnull reply))replyHandler;
+                       replyHandler:(void (^ _Nullable)(NSData * _Nonnull reply))replyHandler;
 
 /**
  Processes a received user info and returns YES if information has been consumed (e.g. PowerAuth

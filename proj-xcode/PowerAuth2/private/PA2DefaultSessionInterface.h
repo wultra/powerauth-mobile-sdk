@@ -26,6 +26,6 @@
  Initialize provider with session and persistent data provider.
  */
 - (nonnull instancetype) initWithSession:(nonnull PowerAuthCoreSession*)session
-							dataProvider:(nonnull PA2SessionDataProvider*)dataProvider;
+                            dataProvider:(nonnull PA2SessionDataProvider*)dataProvider;
 
 @end

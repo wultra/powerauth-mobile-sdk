@@ -33,23 +33,14 @@
 
 /**
  Initialize object with required parameters.
- @param appGroup Name of app group that allows you sharing data between multiple applications.
+ @param appGroup Name of app group that allows you sharing data between multiple applications. Be aware that the value overrides `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` property.
  @param appIdentifier Unique application identifier. This identifier helps you to determine which application
                       currently holds the lock on activation data in a special operations.
+ @param keychainAccessGroup Keychain sharing access grorup. Be aware that the value overrides `PowerAuthKeychainConfiguration.keychainAttribute_AccessGroup` property.
  */
 - (nonnull instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-							appIdentifier:(nonnull NSString*)appIdentifier;
-
-/**
- Initialize object with required parameters.
- @param appGroup Name of app group that allows you sharing data between multiple applications.
- @param appIdentifier Unique application identifier. This identifier helps you to determine which application
-					  currently holds the lock on activation data in a special operations.
- @param keychainAccessGroup Keychain sharing access grorup. If provided, then you don't need to alter `PowerAuthKeychainConfiguration`.
- */
-- (nonnull instancetype) initWithAppGroup:(nonnull NSString*)appGroup
-							appIdentifier:(nonnull NSString*)appIdentifier
-					  keychainAccessGroup:(nonnull NSString*)keychainAccessGroup;
+                            appIdentifier:(nonnull NSString*)appIdentifier
+                      keychainAccessGroup:(nonnull NSString*)keychainAccessGroup;
 
 /**
  Name of app group that allows you sharing data between multiple applications.
@@ -64,12 +55,10 @@
  own applications.
  */
 @property (nonatomic, strong, nonnull, readonly) NSString * appIdentifier;
-
 /**
- Keychain access group name used by the PowerAuthSDK keychain instances. If you provide this value, then
- you don't need to alter the default `PowerAuthKeychainConfiguration` to properly configure activation sharing.
+ Keychain access group name used by the PowerAuthSDK keychain instances.
  */
-@property (nonatomic, strong, nullable) NSString * keychainAccessGroup;
+@property (nonatomic, strong, nonnull, readonly) NSString * keychainAccessGroup;
 /**
  Optional identifier of memory shared between the applications in app group. If identifier is not provided
  then PowerAuthSDK calculate unique identifier based on `PowerAuthConfiguration.instanceId`.

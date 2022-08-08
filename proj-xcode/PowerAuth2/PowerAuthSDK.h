@@ -70,7 +70,7 @@
  doesn't affect this SDK instance.
  */
 @property (nonatomic, strong, nonnull, readonly) PowerAuthKeychainConfiguration *keychainConfiguration;
-	
+    
 /**
  Instance of the token store object, which provides interface for generating token based authentication headers.
  The current implementation is keeping acquired tokens in the PowerAuthKeychain under the `PowerAuthKeychainConfiguration.keychainInstanceName_TokenStore` service name.
@@ -88,13 +88,13 @@
  @exception NSException thrown in case configuration is not valid.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
-						  keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
-							clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
+                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
 
 /**
  Creates an instance of SDK and initializes it with given configuration.
  The appropriate shared configs are used for object's `clientConfiguration` and `keychainConfiguration` properties.
-	 
+     
  @param configuration to be used for initialization.
  @return Initialized instance.
  @exception NSException thrown in case configuration is not valid.
@@ -117,8 +117,8 @@
  @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then `PowerAuthClientConfiguration.sharedInstance()` is used.
  */
 + (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration
-	  keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
-		clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
+      keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+        clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
 
 /** Return the default shared instance of the PowerAuth SDK.
  
@@ -142,7 +142,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivation:(nonnull PowerAuthActivation*)activation
-												callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
+                                                callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
  Create a new standard activation with given name and activation code.
@@ -154,8 +154,8 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
-												  activationCode:(nonnull NSString*)activationCode
-														callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
+                                                  activationCode:(nonnull NSString*)activationCode
+                                                        callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
  Create a new standard activation with given name, activation code and additional extras information.
@@ -168,9 +168,9 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
-												  activationCode:(nonnull NSString*)activationCode
-														  extras:(nullable NSString*)extras
-														callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
+                                                  activationCode:(nonnull NSString*)activationCode
+                                                          extras:(nullable NSString*)extras
+                                                        callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 /**
  Create a new custom activation with given name and custom activation.
  
@@ -182,9 +182,9 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
-											  identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-														  extras:(nullable NSString*)extras
-														callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
+                                              identityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
+                                                          extras:(nullable NSString*)extras
+                                                        callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
  Create a new recovery activation with given name, recovery code, puk and additional extras information.
@@ -198,10 +198,10 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) createActivationWithName:(nullable NSString*)name
-													recoveryCode:(nonnull NSString*)recoveryCode
-															 puk:(nonnull NSString*)puk
-														  extras:(nullable NSString*)extras
-														callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
+                                                    recoveryCode:(nonnull NSString*)recoveryCode
+                                                             puk:(nonnull NSString*)puk
+                                                          extras:(nullable NSString*)extras
+                                                        callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
  Commit activation that was created and store related data using provided authentication instance.
@@ -211,7 +211,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) commitActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-									  error:(NSError * _Nullable * _Nullable)error;
+                                      error:(NSError * _Nullable * _Nullable)error;
 
 /** Commit activation that was created and store related data using default authentication instance setup with provided password.
  
@@ -222,7 +222,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) commitActivationWithPassword:(nonnull NSString*)password
-								error:(NSError * _Nullable * _Nullable)error;
+                                error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.
@@ -236,7 +236,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) getActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSError * _Nullable error))callback
-	NS_SWIFT_NAME(fetchActivationStatus(callback:));
+    NS_SWIFT_NAME(fetchActivationStatus(callback:));
 
 
 /**
@@ -272,7 +272,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) removeActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-																  callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Removes existing activation from the device.
  
@@ -296,9 +296,9 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable PowerAuthAuthorizationHttpHeader*) requestGetSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-																			   uriId:(nonnull NSString*)uriId
-																			  params:(nullable NSDictionary<NSString*, NSString*>*)params
-																			   error:(NSError * _Nullable * _Nullable)error;
+                                                                               uriId:(nonnull NSString*)uriId
+                                                                              params:(nullable NSDictionary<NSString*, NSString*>*)params
+                                                                               error:(NSError * _Nullable * _Nullable)error;
 
 /** Compute the HTTP signature header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
@@ -313,10 +313,10 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable PowerAuthAuthorizationHttpHeader*) requestSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-																		   method:(nonnull NSString*)method
-																			uriId:(nonnull NSString*)uriId
-																			 body:(nullable NSData*)body
-																			error:(NSError * _Nullable * _Nullable)error;
+                                                                           method:(nonnull NSString*)method
+                                                                            uriId:(nonnull NSString*)uriId
+                                                                             body:(nullable NSData*)body
+                                                                            error:(NSError * _Nullable * _Nullable)error;
 
 /** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
@@ -331,10 +331,10 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-													uriId:(nonnull NSString*)uriId
-													 body:(nullable NSData*)body
-													nonce:(nonnull NSString*)nonce
-													error:(NSError * _Nullable * _Nullable)error;
+                                                    uriId:(nonnull NSString*)uriId
+                                                     body:(nullable NSData*)body
+                                                    nonce:(nonnull NSString*)nonce
+                                                    error:(NSError * _Nullable * _Nullable)error;
 /**
  Validates whether the data has been signed with master server private key or personalized server's private key.
  @param data An arbitrary data
@@ -342,8 +342,8 @@
  @param masterKey If YES, then master server public key is used for validation, otherwise personalized server's public key.
  */
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
-					  signature:(nonnull NSString*)signature
-					  masterKey:(BOOL)masterKey;
+                      signature:(nonnull NSString*)signature
+                      masterKey:(BOOL)masterKey;
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
@@ -357,7 +357,7 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
-							   to:(nonnull NSString*)newPassword;
+                               to:(nonnull NSString*)newPassword;
 
 /** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
  
@@ -368,8 +368,8 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (nullable id<PowerAuthOperationTask>) changePasswordFrom:(nonnull NSString*)oldPassword
-														to:(nonnull NSString*)newPassword
-												  callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                        to:(nonnull NSString*)newPassword
+                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Regenerate a biometry related factor key.
  
@@ -380,7 +380,7 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) addBiometryFactor:(nonnull NSString*)password
-												 callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Checks if a biometry related factor is present.
  
@@ -406,7 +406,7 @@
  @param callback A callback with result, always executed on the main thread.
  */
 - (void) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
-									callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback;
+                                    callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback;
 
 /** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
  
@@ -418,21 +418,21 @@
  @param callback A callback with result, always executed on the main thread.
  */
 - (void) authenticateUsingBiometryWithContext:(nonnull LAContext *)context
-									 callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback API_UNAVAILABLE(tvos);
+                                     callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback API_UNAVAILABLE(tvos);
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
  There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
 - (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt
-							withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block;
+                            withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block;
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
  There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
 - (void) unlockBiometryKeysWithContext:(nonnull LAContext*)context
-							 withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block API_UNAVAILABLE(tvos);
+                             withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block API_UNAVAILABLE(tvos);
 
 /** Generate an derived encryption key with given index.
  
@@ -444,8 +444,8 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) fetchEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
-													 index:(UInt64)index
-												  callback:(nonnull void(^)(NSData * _Nullable encryptionKey, NSError * _Nullable error))callback;
+                                                     index:(UInt64)index
+                                                  callback:(nonnull void(^)(NSData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
 /** Sign given data with the original device private key (asymetric signature).
  
@@ -457,8 +457,8 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
-																data:(nullable NSData*)data
-															callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
+                                                                data:(nullable NSData*)data
+                                                            callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
 
 /** Validate a user password.
  
@@ -469,7 +469,7 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) validatePasswordCorrect:(nonnull NSString*)password
-													   callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 @end
 
@@ -608,7 +608,7 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) activationRecoveryData:(nonnull PowerAuthAuthentication*)authentication
-													  callback:(nonnull void(^)(PowerAuthActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback;
+                                                      callback:(nonnull void(^)(PowerAuthActivationRecoveryData * _Nullable recoveryData, NSError * _Nullable error))callback;
 
 /**
  Confirm given recovery code on the server.
@@ -625,8 +625,8 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) confirmRecoveryCode:(nonnull NSString*)recoveryCode
-											 authentication:(nonnull PowerAuthAuthentication*)authentication
-												   callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback;
+                                             authentication:(nonnull PowerAuthAuthentication*)authentication
+                                                   callback:(nonnull void(^)(BOOL alreadyConfirmed, NSError * _Nullable error))callback;
 
 @end
 
@@ -664,7 +664,7 @@
  @param externalEncryptionKey EEK to be set to the internal configuration.
  */
 - (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
-							error:(NSError * _Nullable * _Nullable)error;
+                            error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Add a new external encryption key permanently to the activated PowerAuthSDK and to the configuration object. The method
@@ -672,7 +672,7 @@
  @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.
  */
 - (BOOL) addExternalEncryptionKey:(nonnull NSData*)externalEncryptionKey
-							error:(NSError * _Nullable * _Nullable)error;
+                            error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Remove existing external encryption key from the activated PowerAuthSDK and from the configuration object. The valid

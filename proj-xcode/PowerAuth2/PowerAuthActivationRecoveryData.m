@@ -20,34 +20,34 @@
 
 @implementation PowerAuthActivationRecoveryData
 {
-	PowerAuthCoreRecoveryData * _recoveryData;
+    PowerAuthCoreRecoveryData * _recoveryData;
 }
 
 - (instancetype) initWithRecoveryData:(PowerAuthCoreRecoveryData*)recoveryData
 {
-	self = [super init];
-	if (self) {
-		_recoveryData = recoveryData;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _recoveryData = recoveryData;
+    }
+    return self;
 }
 
 - (NSString*) recoveryCode
 {
-	return _recoveryData.recoveryCode;
+    return _recoveryData.recoveryCode;
 }
 
 - (NSString*) puk
 {
-	return _recoveryData.puk;
+    return _recoveryData.puk;
 }
 
 #ifdef DEBUG
 - (NSString*) description
 {
-	NSString * rc = _recoveryData.recoveryCode ? _recoveryData.recoveryCode : @"<null>";
-	NSString * puk = _recoveryData.puk ? _recoveryData.puk : @"<null>";
-	return [NSString stringWithFormat:@"<PowerAuthActivationRecoveryData code=%@, puk=%@>", rc, puk];
+    NSString * rc = _recoveryData.recoveryCode ? _recoveryData.recoveryCode : @"<null>";
+    NSString * puk = _recoveryData.puk ? _recoveryData.puk : @"<null>";
+    return [NSString stringWithFormat:@"<PowerAuthActivationRecoveryData code=%@, puk=%@>", rc, puk];
 }
 #endif
 

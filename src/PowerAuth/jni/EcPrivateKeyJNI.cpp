@@ -17,10 +17,10 @@
 #include "EcPrivateKeyJNI.h"
 
 // Package: io.getlime.security.powerauth.core
-#define CC7_JNI_CLASS_PATH	    	"io/getlime/security/powerauth/core"
-#define CC7_JNI_CLASS_PACKAGE	    io_getlime_security_powerauth_core
-#define CC7_JNI_JAVA_CLASS  		EcPrivateKey
-#define CC7_JNI_CPP_CLASS		    EcPrivateKeyJNI
+#define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
+#define CC7_JNI_CLASS_PACKAGE       io_getlime_security_powerauth_core
+#define CC7_JNI_JAVA_CLASS          EcPrivateKey
+#define CC7_JNI_CPP_CLASS           EcPrivateKeyJNI
 #include <cc7/jni/JniModule.inl>
 
 using namespace io::getlime::powerAuth;
@@ -37,12 +37,12 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 //
 CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 {
-	auto object = CC7_THIS_OBJ();
-	if (!object || (jlong)object != handle) {
-		CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
-		return;
-	}
-	delete object;
+    auto object = CC7_THIS_OBJ();
+    if (!object || (jlong)object != handle) {
+        CC7_ASSERT(false, "Internal object is already destroyed, or provided handle is not ours.");
+        return;
+    }
+    delete object;
 }
 
 //
@@ -50,9 +50,9 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 //
 CC7_JNI_METHOD_PARAMS(jlong, init, jbyteArray privateKeyData)
 {
-	auto cppPrivateKeyData = cc7::jni::CopyFromJavaByteArray(env, privateKeyData);
+    auto cppPrivateKeyData = cc7::jni::CopyFromJavaByteArray(env, privateKeyData);
     auto object = EcPrivateKeyJNI::createFromBytes(cppPrivateKeyData);
-	return object != nullptr ? reinterpret_cast<jlong>(object) : 0;
+    return object != nullptr ? reinterpret_cast<jlong>(object) : 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -64,12 +64,12 @@ CC7_JNI_METHOD_PARAMS(jlong, init, jbyteArray privateKeyData)
 //
 CC7_JNI_METHOD(jbyteArray, getPrivateKeyData)
 {
-	auto object = CC7_THIS_OBJ();
-	if (!object) {
-		CC7_ASSERT(false, "Missing internal handle.");
-		return nullptr;
-	}
-	return cc7::jni::CopyToNullableJavaByteArray(env, object->privateKeyBytes());
+    auto object = CC7_THIS_OBJ();
+    if (!object) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return nullptr;
+    }
+    return cc7::jni::CopyToNullableJavaByteArray(env, object->privateKeyBytes());
 }
 
 // ----------------------------------------------------------------------------
@@ -78,23 +78,23 @@ CC7_JNI_METHOD(jbyteArray, getPrivateKeyData)
 
 EcPrivateKeyJNI * GetEcPrivateKeyFromJavaObject(JNIEnv * env, jobject thiz)
 {
-	auto object = CC7_THIS_OBJ();
-	return object;
+    auto object = CC7_THIS_OBJ();
+    return object;
 }
 
 jobject CreateJavaEcPrivateKeyFromCppObject(JNIEnv * env, EcPrivateKeyJNI * object)
 {
-	if (!env || !object) {
-		CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
-		delete object;
-		return nullptr;
-	}
-	auto object_ptr_long = reinterpret_cast<jlong>(object);
-	jobject java_object = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EcPrivateKey"), "(J)V", object_ptr_long);
-	if (nullptr == java_object) {
-		delete object;
-	}
-	return java_object;
+    if (!env || !object) {
+        CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
+        delete object;
+        return nullptr;
+    }
+    auto object_ptr_long = reinterpret_cast<jlong>(object);
+    jobject java_object = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EcPrivateKey"), "(J)V", object_ptr_long);
+    if (nullptr == java_object) {
+        delete object;
+    }
+    return java_object;
 }
 
 CC7_JNI_MODULE_CLASS_END()

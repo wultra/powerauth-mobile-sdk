@@ -28,23 +28,23 @@ namespace powerAuth
 namespace crypto
 {
 
-	// -------------------------------------------------------------------------------------------
-	// MARK: - SHA256 -
-	//
-	
-	cc7::ByteArray SHA256(const cc7::ByteRange & data)
-	{
-		cc7::ByteArray hash(SHA256_DIGEST_LENGTH, 0);
-		
-		SHA256_CTX sha256;
-		SHA256_Init(&sha256);
-		SHA256_Update(&sha256, data.data(), data.size());
-		SHA256_Final(hash.data(), &sha256);
-		OPENSSL_cleanse(&sha256, sizeof(sha256));
-		
-		return hash;
-	}
-	
+    // -------------------------------------------------------------------------------------------
+    // MARK: - SHA256 -
+    //
+    
+    cc7::ByteArray SHA256(const cc7::ByteRange & data)
+    {
+        cc7::ByteArray hash(SHA256_DIGEST_LENGTH, 0);
+        
+        SHA256_CTX sha256;
+        SHA256_Init(&sha256);
+        SHA256_Update(&sha256, data.data(), data.size());
+        SHA256_Final(hash.data(), &sha256);
+        OPENSSL_cleanse(&sha256, sizeof(sha256));
+        
+        return hash;
+    }
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

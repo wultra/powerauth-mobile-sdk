@@ -94,7 +94,7 @@
 /// @param password Password used for the knowledge factor.
 /// @return Instance of authentication object configured for activation commit with password.
 + (nonnull PowerAuthAuthentication*) commitWithPassword:(nonnull NSString*)password
-						NS_SWIFT_NAME(commitWithPassword(password:));
+                        NS_SWIFT_NAME(commitWithPassword(password:));
 
 /// Create a new instance of authentication object configured for activation commit with password and custom possession key.
 ///
@@ -104,8 +104,8 @@
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of authentication object configured for activation commit with password and custom possession key.
 + (nonnull PowerAuthAuthentication*) commitWithPassword:(nonnull NSString*)password
-									customPossessionKey:(nonnull NSData*)customPossessionKey
-						NS_SWIFT_NAME(commitWithPassword(password:customPossessionKey:));
+                                    customPossessionKey:(nonnull NSData*)customPossessionKey
+                        NS_SWIFT_NAME(commitWithPassword(password:customPossessionKey:));
 
 // Commit, Possession + Knowledge + Biometry
 
@@ -116,7 +116,7 @@
 /// @param password Password used for the knowledge factor.
 /// @return Instance of authentication object configured for activation commit with password and biometry.
 + (nonnull PowerAuthAuthentication*) commitWithPasswordAndBiometry:(nonnull NSString*)password
-						NS_SWIFT_NAME(commitWithPasswordAndBiometry(password:));
+                        NS_SWIFT_NAME(commitWithPasswordAndBiometry(password:));
 
 /// Create a new instance of authentication object configured for activation commit with password and with biometry.
 /// This variant of function allows you to use custom keys for biometry and possession factors.
@@ -128,9 +128,9 @@
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of authentication object configured for activation commit with password and biometry, allowing to use custom keys for possession and biometry factors.
 + (nonnull PowerAuthAuthentication*) commitWithPasswordAndBiometry:(nonnull NSString*)password
-												 customBiometryKey:(nullable NSData*)customBiometryKey
-											   customPossessionKey:(nullable NSData*)customPossessionKey
-						NS_SWIFT_NAME(commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:));
+                                                 customBiometryKey:(nullable NSData*)customBiometryKey
+                                               customPossessionKey:(nullable NSData*)customPossessionKey
+                        NS_SWIFT_NAME(commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:));
 
 #endif // PA2_HAS_CORE_MODULE
 
@@ -144,7 +144,7 @@
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return Instance of PowerAuthAuthentication configured for signing with a possession factor with using custom possession key.
 + (nonnull PowerAuthAuthentication *) possessionWithCustomPossessionKey:(nonnull NSData*)customPossessionKey
-						NS_SWIFT_NAME(possession(customPossessionKey:));
+                        NS_SWIFT_NAME(possession(customPossessionKey:));
 
 // Signing, Possession + Biometry
 
@@ -158,31 +158,31 @@
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return New instance of authentication object configured for signing with a possession and biometry factors, with custom biometry and possession keys.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryWithCustomBiometryKey:(nullable NSData*)customBiometryKey
-															  customPossessionKey:(nullable NSData*)customPossessionKey
-						NS_SWIFT_NAME(possessionWithBiometry(customBiometryKey:customPossessionKey:));
+                                                              customPossessionKey:(nullable NSData*)customPossessionKey
+                        NS_SWIFT_NAME(possessionWithBiometry(customBiometryKey:customPossessionKey:));
 
 /// Create a new instance of authentication object preconfigured for signign with combination of possession and biometry factors and with prompt,
 /// displayed in the system biometric authentication dialog.
 /// @param biometryPrompt Prompt displayed in the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a possession and biometry factors, with custom prompt displayed in the system biometric authentication dialog.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryPrompt:(nonnull NSString*)biometryPrompt
-						NS_SWIFT_NAME(possessionWithBiometry(prompt:));
+                        NS_SWIFT_NAME(possessionWithBiometry(prompt:));
 
 /// Create a new instance of authentication object preconfigured for signign with combination of possession and biometry factors and with prompt,
 /// displayed in the system biometric authentication dialog. This variant of function allows you also use the custom possession key for the possession factor.
 /// @param biometryPrompt Prompt displayed in the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a custom possession key and biometry factors, with custom prompt displayed in the system biometric authentication dialog.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryPrompt:(nonnull NSString*)biometryPrompt
-											   customPossessionKey:(nonnull NSData*)customPossessionKey
-						NS_SWIFT_NAME(possessionWithBiometry(prompt:customPossessionKey:));
+                                               customPossessionKey:(nonnull NSData*)customPossessionKey
+                        NS_SWIFT_NAME(possessionWithBiometry(prompt:customPossessionKey:));
 
 /// Create a new instance of authentication object preconfigured for signing with combination of possession and biometry factors and with local
 /// authentication context. The context allows you to better customize the system biometric authentication dialog.
 /// @param context LAContext for the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a possession and biometry factors, with local authentication context.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryContext:(nonnull LAContext*)context
-						NS_SWIFT_NAME(possessionWithBiometry(context:))
-						API_UNAVAILABLE(watchos, tvos);
+                        NS_SWIFT_NAME(possessionWithBiometry(context:))
+                        API_UNAVAILABLE(watchos, tvos);
 
 /// Create a new instance of authentication object preconfigured for signing with combination of possession and biometry factors and with local
 /// authentication context. The context allows you to better customize the system biometric authentication dialog. This variant of function allows
@@ -190,9 +190,9 @@
 /// @param context LAContext for the system biometric authentication dialog.
 /// @return New instance of authentication object configured for signing with a custom possession key and biometry factor, with local authentication context.
 + (nonnull PowerAuthAuthentication *) possessionWithBiometryContext:(nonnull LAContext*)context
-												customPossessionKey:(nonnull NSData*)customPossessionKey
-						NS_SWIFT_NAME(possessionWithBiometry(context:customPossessionKey:))
-						API_UNAVAILABLE(watchos, tvos);
+                                                customPossessionKey:(nonnull NSData*)customPossessionKey
+                        NS_SWIFT_NAME(possessionWithBiometry(context:customPossessionKey:))
+                        API_UNAVAILABLE(watchos, tvos);
 
 
 // Signing, Possession + Knowledge
@@ -201,15 +201,15 @@
 /// @param password Password used for the knowledge factor.
 /// @return New instance of authentication object configured for signing with a possession and knowledge factors.
 + (nonnull PowerAuthAuthentication *) possessionWithPassword:(nonnull NSString*)password
-						NS_SWIFT_NAME(possessionWithPassword(password:));
+                        NS_SWIFT_NAME(possessionWithPassword(password:));
 
 /// Create a new instance of authentication object preconfigured for combination of possesion and knowledge factors, with using custom possession key.
 /// @param password Password used for the knowledge factor.
 /// @param customPossessionKey Custom key used for possession factor.
 /// @return New instnace of authentication object configured for signing with custom possession key and knowledge factor.
 + (nonnull PowerAuthAuthentication *) possessionWithPassword:(nonnull NSString*)password
-										 customPossessionKey:(nonnull NSData*)customPossessionKey
-						NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
+                                         customPossessionKey:(nonnull NSData*)customPossessionKey
+                        NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
 
 // Deprecated variants
 
@@ -230,6 +230,6 @@
 /// @return New instance of authentication object configured for signing with a possession and knowledge factors.
 ///
 + (nonnull PowerAuthAuthentication *) possessionWithPasswordDeprecated:(nonnull NSString*)password
-						NS_SWIFT_NAME(possession(withPassword:))
-						PA2_DEPRECATED(1.7.0);
+                        NS_SWIFT_NAME(possession(withPassword:))
+                        PA2_DEPRECATED(1.7.0);
 @end

@@ -37,13 +37,13 @@ PA2_EXTERN_C id PA2CastToProtoImpl(id object, Protocol * desiredProtocol);
 /**
  This macro returns the provided instance if it's kind of desiredClass, otherwise nil.
  Typical usage:
-	NSDictionary * goodDictionary = @{ @"stringKey" : @"hello world" }
-  	NSDictionary * baadDictionary = @{ @"stringKey" : @(42) }
- 	NSString * correct = PA2ObjectAs(goodDictionary[@"stringKey", NSString);
- 	NSString * wrong   = PA2ObjectAs(baadDictionary[@"stringKey", NSString);
- 	// ..at the end of the day,
- 	//    "correct" is "hello world"
- 	// 	  and "wrong" is nil
+    NSDictionary * goodDictionary = @{ @"stringKey" : @"hello world" }
+    NSDictionary * baadDictionary = @{ @"stringKey" : @(42) }
+    NSString * correct = PA2ObjectAs(goodDictionary[@"stringKey", NSString);
+    NSString * wrong   = PA2ObjectAs(baadDictionary[@"stringKey", NSString);
+    // ..at the end of the day,
+    //    "correct" is "hello world"
+    //    and "wrong" is nil
  */
 #define PA2ObjectAs(object, requiredClass) ((requiredClass*)(PA2CastToImpl(object, [requiredClass class])))
 

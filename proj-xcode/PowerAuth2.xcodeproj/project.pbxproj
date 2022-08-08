@@ -1194,7 +1194,7 @@
 				BFA585C7201F9CEE000DCD22 /* Frameworks */,
 			);
 			sourceTree = "<group>";
-			usesTabs = 1;
+			usesTabs = 0;
 			wrapsLines = 1;
 		};
 		BF4DBB9C1CDF3130008F3A47 /* Products */ = {

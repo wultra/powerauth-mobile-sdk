@@ -33,27 +33,27 @@
  Macro for making a whole protocol as deprecated. You have to provide a version in which was this
  deprecation introduced. For example: PA2_DEPRECATED_PROTOCOL(1.6.0, OldProtocol, NewProtocol)
  */
-#define PA2_DEPRECATED_PROTOCOL(deprecated_in_version, old, replacement)	\
-	PA2_DEPRECATED(deprecated_in_version)									\
-	@protocol old <replacement>												\
-	@end
+#define PA2_DEPRECATED_PROTOCOL(deprecated_in_version, old, replacement)    \
+    PA2_DEPRECATED(deprecated_in_version)                                   \
+    @protocol old <replacement>                                             \
+    @end
 
 /**
  Macro for making a structure or enumeration as deprecated. You have to provide a version in
  which was this deprecation introduced. For example: PA2_DEPRECATED_TYPE(1.6.0, OldType, NewType)
  */
-#define PA2_DEPRECATED_TYPE(deprecated_in_version, old, replacement)		\
-	typedef replacement old PA2_DEPRECATED(deprecated_in_version);
+#define PA2_DEPRECATED_TYPE(deprecated_in_version, old, replacement)        \
+    typedef replacement old PA2_DEPRECATED(deprecated_in_version);
 
 /**
  Macro for making a whole class as deprecated. You have to provide a version in which was this
  deprecation introduced. For example: PA2_DEPRECATED_CLASS(1.6.0, OldClass, NewClass).
  This macro must be used in pair with PA2_DEPRECATED_CLASS_IMPL() to provide an implementation.
  */
-#define PA2_DEPRECATED_CLASS(deprecated_in_version, old, replacement)		\
-	PA2_DEPRECATED(deprecated_in_version)									\
-	@interface old : replacement											\
-	@end
+#define PA2_DEPRECATED_CLASS(deprecated_in_version, old, replacement)       \
+    PA2_DEPRECATED(deprecated_in_version)                                   \
+    @interface old : replacement                                            \
+    @end
 
 /**
  Macro for making an implementation for previously declared deprecated class.
@@ -67,63 +67,63 @@
  
  #pragma clang diagnostic pop
  */
-#define PA2_DEPRECATED_CLASS_IMPL(deprecated_in_version, old, replacement)	\
-	@implementation old														\
-	@end
+#define PA2_DEPRECATED_CLASS_IMPL(deprecated_in_version, old, replacement)  \
+    @implementation old                                                     \
+    @end
 
 #pragma mark - Extern declaration
 
 #ifdef __cplusplus
-	// C++
-	#define PA2_EXTERN_C				extern "C"
-	#define PA2_EXTERN_C_BEGIN          extern "C" {
-	#define PA2_EXTERN_C_END			}
+    // C++
+    #define PA2_EXTERN_C                extern "C"
+    #define PA2_EXTERN_C_BEGIN          extern "C" {
+    #define PA2_EXTERN_C_END            }
 #else
-	// C
-	#define PA2_EXTERN_C				extern
-	#define PA2_EXTERN_C_BEGIN
-	#define PA2_EXTERN_C_END
+    // C
+    #define PA2_EXTERN_C                extern
+    #define PA2_EXTERN_C_BEGIN
+    #define PA2_EXTERN_C_END
 #endif
 
 
 #pragma mark - Apple platforms
 
 #if TARGET_OS_TV == 0 && TARGET_OS_OSX == 0
-	#define PA2_WATCH_SUPPORT
-	#define PA2_BIOMETRY_SUPPORT
+    #define PA2_WATCH_SUPPORT
+    #define PA2_BIOMETRY_SUPPORT
 #endif
 
 // PowerAuthCore module availability
 #if !defined(PA2_EXTENSION_SDK)
-	#define PA2_HAS_CORE_MODULE 1
+    #define PA2_HAS_CORE_MODULE 1
 #else
-	#define PA2_HAS_CORE_MODULE 0
+    #define PA2_HAS_CORE_MODULE 0
 #endif
 
 // LAContext availability
 #if TARGET_OS_IOS == 1 || TARGET_OS_MACCATALYST == 1
-	#define PA2_HAS_LACONTEXT 1
+    #define PA2_HAS_LACONTEXT 1
 #else
-	#define PA2_HAS_LACONTEXT 0
-	#define LAContext NSObject
+    #define PA2_HAS_LACONTEXT 0
+    #define LAContext NSObject
 #endif
 
 // SDK modules availability
 #if PA2_HAS_CORE_MODULE
-	// PowerAuth2 module
-	#define PA2_MODULE_MAIN_SDK			1
-	#define PA2_MODULE_WATCH_SDK		0
-	#define PA2_MODULE_APPEXT_SDK		0
+    // PowerAuth2 module
+    #define PA2_MODULE_MAIN_SDK         1
+    #define PA2_MODULE_WATCH_SDK        0
+    #define PA2_MODULE_APPEXT_SDK       0
 #else
-	#if TARGET_OS_WATCH
-		// PowerAuth2ForWatch module
-		#define PA2_MODULE_MAIN_SDK		0
-		#define PA2_MODULE_WATCH_SDK	1
-		#define PA2_MODULE_APPEXT_SDK	0
-	#else
-		// PowerAuth2ForExtensions module
-		#define PA2_MODULE_MAIN_SDK		0
-		#define PA2_MODULE_WATCH_SDK	0
-		#define PA2_MODULE_APPEXT_SDK	1
-	#endif
+    #if TARGET_OS_WATCH
+        // PowerAuth2ForWatch module
+        #define PA2_MODULE_MAIN_SDK     0
+        #define PA2_MODULE_WATCH_SDK    1
+        #define PA2_MODULE_APPEXT_SDK   0
+    #else
+        // PowerAuth2ForExtensions module
+        #define PA2_MODULE_MAIN_SDK     0
+        #define PA2_MODULE_WATCH_SDK    0
+        #define PA2_MODULE_APPEXT_SDK   1
+    #endif
 #endif

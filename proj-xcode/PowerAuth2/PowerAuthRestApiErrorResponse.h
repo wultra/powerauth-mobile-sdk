@@ -20,8 +20,8 @@
  Enum representing the response status: OK, or ERROR
  */
 typedef NS_ENUM(NSInteger, PowerAuthRestApiResponseStatus) {
-	PowerAuthRestApiResponseStatus_OK = 0,
-	PowerAuthRestApiResponseStatus_ERROR = 1,
+    PowerAuthRestApiResponseStatus_OK = 0,
+    PowerAuthRestApiResponseStatus_ERROR = 1,
 };
 
 /**

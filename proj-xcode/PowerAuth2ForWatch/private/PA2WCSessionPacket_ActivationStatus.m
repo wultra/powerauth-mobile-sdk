@@ -23,32 +23,32 @@
 
 - (void) serializeToDictionary:(NSMutableDictionary *)dictionary
 {
-	if (_command) {
-		dictionary[PA2WCSessionPacket_KEY_ACTIVATION_CMD] = _command;
-	}
-	if (_activationId) {
-		dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID] = _activationId;
-	}
+    if (_command) {
+        dictionary[PA2WCSessionPacket_KEY_ACTIVATION_CMD] = _command;
+    }
+    if (_activationId) {
+        dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID] = _activationId;
+    }
 }
 
 - (id) initWithDictionary:(NSDictionary *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_command = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_CMD], NSString);
-		_activationId = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID], NSString);
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _command = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_CMD], NSString);
+        _activationId = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_ACTIVATION_ID], NSString);
+    }
+    return self;
 }
 
 - (BOOL) validatePacketData
 {
-	if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_PUT]) {
-		return YES;
-	} else if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_GET]) {
-		return YES;
-	}
-	return NO;
+    if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_PUT]) {
+        return YES;
+    } else if ([_command isEqualToString:PA2WCSessionPacket_CMD_SESSION_GET]) {
+        return YES;
+    }
+    return NO;
 }
 
 @end

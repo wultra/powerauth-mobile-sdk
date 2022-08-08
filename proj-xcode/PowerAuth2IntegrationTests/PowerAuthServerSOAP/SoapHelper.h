@@ -38,7 +38,7 @@
  The |url| defines endpoint, where the server listens for messages.
  */
 - (id) initWithBundle:(NSBundle*)bundle
-			   config:(PowerAuthTestServerConfig*)config;
+               config:(PowerAuthTestServerConfig*)config;
 
 /**
  Sends synchronous HTTP request to SOAP endpoint. The |reqiestName| and |params| parameters are
@@ -50,9 +50,9 @@
  when the error occurs during the processing.
  */
 - (id) soapRequest:(NSString*)requestName
-			params:(NSArray*)params
-		  response:(NSString*)responseNodeName
-		 transform:(id (^)(CXMLNode * responseObject, NSDictionary * xmlNamespaceMapping))transformBlock;
+            params:(NSArray*)params
+          response:(NSString*)responseNodeName
+         transform:(id (^)(CXMLNode * responseObject, NSDictionary * xmlNamespaceMapping))transformBlock;
 
 
 @end

@@ -96,6 +96,6 @@
  @param queue Dispatch queue to use to run the block when the current thread is in the middle of session provider's task.
  */
 - (void) executeOutsideOfTask:(void (^ _Nonnull)(void))block
-						queue:(dispatch_queue_t _Nonnull)queue;
+                        queue:(dispatch_queue_t _Nonnull)queue;
 
 @end

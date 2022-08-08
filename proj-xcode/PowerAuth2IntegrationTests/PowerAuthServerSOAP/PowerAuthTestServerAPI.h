@@ -109,8 +109,8 @@
  Initializes an activation with desired OTP validation mode.
  */
 - (PATSInitActivationResponse*) initializeActivation:(NSString*)userId
-									   otpValidation:(PATSActivationOtpValidationEnum)otpValidation
-												 otp:(NSString*)otp;
+                                       otpValidation:(PATSActivationOtpValidationEnum)otpValidation
+                                                 otp:(NSString*)otp;
 /**
  Returns status of the activation.
  */
@@ -159,18 +159,18 @@
  Returns result object created from SOAP response or nil in case of failure.
  */
 - (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
-											data:(NSString*)normalizedData
-									   signature:(NSString*)signature
-								   signatureType:(NSString*)signatureType
-								signatureVersion:(NSString*)signatureVersion;
+                                            data:(NSString*)normalizedData
+                                       signature:(NSString*)signature
+                                   signatureType:(NSString*)signatureType
+                                signatureVersion:(NSString*)signatureVersion;
 
 /**
  Returns normalized data from given parameters.
  */
 - (NSString*) normalizeDataForSignatureWithMethod:(NSString*)httpMethod
-											uriId:(NSString*)uriId
-											nonce:(NSString*)nonceB64
-											 data:(NSData*)data;
+                                            uriId:(NSString*)uriId
+                                            nonce:(NSString*)nonceB64
+                                             data:(NSData*)data;
 // Offline signatures
 
 /**
@@ -178,23 +178,23 @@
  Returns result object created from SOAP response or nil in case of failure.
  */
 - (PATSOfflineSignaturePayload*) createNonPersonalizedOfflineSignaturePayload:(NSString*)applicationId
-																		 data:(NSString*)data;
+                                                                         data:(NSString*)data;
 
 /**
  Request creates a data for offline personalized signature QR code.
  Returns result object created from SOAP response or nil in case of failure.
  */
 - (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
-																	  data:(NSString*)data;
+                                                                      data:(NSString*)data;
 
 /**
  Request for PA2 signature calculation.
  Returns result object created from SOAP response or nil in case of failure.
  */
 - (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
-												   data:(NSString*)normalizedData
-											  signature:(NSString*)signature
-										  allowBiometry:(BOOL)allowBiometry;
+                                                   data:(NSString*)normalizedData
+                                              signature:(NSString*)signature
+                                          allowBiometry:(BOOL)allowBiometry;
 
 /**
  Request for the asymmetric signature (ECDSA) validation procedure.

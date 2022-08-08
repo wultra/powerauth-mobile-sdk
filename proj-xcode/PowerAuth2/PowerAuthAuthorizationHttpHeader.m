@@ -23,22 +23,22 @@
 
 - (instancetype)initWithKey:(NSString*)key value:(NSString*)value
 {
-	self = [super init];
-	if (self) {
-		_key = key;
-		_value = value;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _key = key;
+        _value = value;
+    }
+    return self;
 }
 
 + (PowerAuthAuthorizationHttpHeader*) authorizationHeaderWithValue:(NSString *)value
 {
-	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Authorization" value:value];
+    return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Authorization" value:value];
 }
 
 + (PowerAuthAuthorizationHttpHeader*) tokenHeaderWithValue:(NSString *)value
 {
-	return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Token" value:value];
+    return !value ? nil : [[self alloc] initWithKey:@"X-PowerAuth-Token" value:value];
 }
 
 @end

@@ -28,28 +28,28 @@ namespace powerAuth
 namespace crypto
 {
 
-	// -------------------------------------------------------------------------------------------
-	// MARK: - HMAC
-	//
-	
-	cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes)
-	{
-		const unsigned char * key_ptr = key.empty() ? NULL : key.data();
-		
-		cc7::ByteArray digest(SHA256_DIGEST_LENGTH, 0);
-		unsigned int digest_length = SHA256_DIGEST_LENGTH;
-		const unsigned char * result = HMAC(EVP_sha256(), key_ptr, (int)key.size(), data.data(), (int)data.size(), digest.data(), &digest_length);
-		
-		if ((result != NULL) && (digest_length == digest.size())) {
-			if (outputBytes > 0 && outputBytes < SHA256_DIGEST_LENGTH) {
-				digest.resize(outputBytes);
-			}
-			return digest;
-		}
-		CC7_LOG("HMAC_SHA256 has failed!");
-		return cc7::ByteArray();
-	}	
-	
+    // -------------------------------------------------------------------------------------------
+    // MARK: - HMAC
+    //
+    
+    cc7::ByteArray HMAC_SHA256(const cc7::ByteRange & data, const cc7::ByteRange & key, size_t outputBytes)
+    {
+        const unsigned char * key_ptr = key.empty() ? NULL : key.data();
+        
+        cc7::ByteArray digest(SHA256_DIGEST_LENGTH, 0);
+        unsigned int digest_length = SHA256_DIGEST_LENGTH;
+        const unsigned char * result = HMAC(EVP_sha256(), key_ptr, (int)key.size(), data.data(), (int)data.size(), digest.data(), &digest_length);
+        
+        if ((result != NULL) && (digest_length == digest.size())) {
+            if (outputBytes > 0 && outputBytes < SHA256_DIGEST_LENGTH) {
+                digest.resize(outputBytes);
+            }
+            return digest;
+        }
+        CC7_LOG("HMAC_SHA256 has failed!");
+        return cc7::ByteArray();
+    }   
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

@@ -21,10 +21,10 @@
 
 - (NSDictionary*) toDictionary
 {
-	if (_activationId && _challenge) {
-		return @{ @"activationId" : _activationId, @"challenge" : _challenge };
-	}
-	return @{};
+    if (_activationId && _challenge) {
+        return @{ @"activationId" : _activationId, @"challenge" : _challenge };
+    }
+    return @{};
 }
 
 

@@ -30,15 +30,15 @@ static BOOL s_log_enabled = NO;
 static BOOL s_log_verbose = NO;
 void PowerAuthLogImpl(NSString * format, ...)
 {
-	if (!s_log_enabled) {
-		return;
-	}
-	va_list args;
-	va_start(args, format);
-	NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
-	va_end(args);
-	
-	NSLog(@"[PowerAuth] %@", message);
+    if (!s_log_enabled) {
+        return;
+    }
+    va_list args;
+    va_start(args, format);
+    NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    NSLog(@"[PowerAuth] %@", message);
 }
 #endif // ENABLE_PA2_LOG
 
@@ -46,43 +46,43 @@ void PowerAuthLogImpl(NSString * format, ...)
 void PowerAuthLogSetEnabled(BOOL enabled)
 {
 #ifdef ENABLE_PA2_LOG
-	s_log_enabled = enabled;
-	// Also apply to PowerAuthCoreLog (which internally uses CC7_LOG flag)
-	PowerAuthCoreLogSetEnabled(enabled);
+    s_log_enabled = enabled;
+    // Also apply to PowerAuthCoreLog (which internally uses CC7_LOG flag)
+    PowerAuthCoreLogSetEnabled(enabled);
 #endif
 }
 
 BOOL PowerAuthLogIsEnabled(void)
 {
 #ifdef ENABLE_PA2_LOG
-	return s_log_enabled;
+    return s_log_enabled;
 #else
-	return NO;
+    return NO;
 #endif
 }
 
 void PowerAuthLogSetVerbose(BOOL verbose)
 {
 #ifdef ENABLE_PA2_LOG
-	s_log_verbose = verbose;
+    s_log_verbose = verbose;
 #endif
 }
 
 BOOL PowerAuthLogIsVerbose(void)
 {
 #ifdef ENABLE_PA2_LOG
-	return s_log_verbose;
+    return s_log_verbose;
 #else
-	return NO;
+    return NO;
 #endif
 }
 
 void PowerAuthCriticalWarning(NSString * format, ...)
 {
-	va_list args;
-	va_start(args, format);
-	NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
-	va_end(args);
-	
-	NSLog(@"[PowerAuth] CRITICAL WARNING: %@", message);
+    va_list args;
+    va_start(args, format);
+    NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
+    va_end(args);
+    
+    NSLog(@"[PowerAuth] CRITICAL WARNING: %@", message);
 }

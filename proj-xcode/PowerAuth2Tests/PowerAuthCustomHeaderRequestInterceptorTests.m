@@ -24,13 +24,13 @@
 
 - (void) testCustomHeaderRequestInterceptor
 {
-	PowerAuthCustomHeaderRequestInterceptor * interceptor = [[PowerAuthCustomHeaderRequestInterceptor alloc] initWithHeaderKey:@"X-Custom" value:@"CustomHeaderValue"];
-	XCTAssertEqualObjects(interceptor.headerKey, @"X-Custom");
-	XCTAssertEqualObjects(interceptor.headerValue, @"CustomHeaderValue");
-	
-	NSMutableURLRequest * request = [[NSMutableURLRequest alloc] init];
-	[interceptor processRequest: request];
-	XCTAssertTrue([request.allHTTPHeaderFields[@"X-Custom"] isEqualToString:@"CustomHeaderValue"]);
+    PowerAuthCustomHeaderRequestInterceptor * interceptor = [[PowerAuthCustomHeaderRequestInterceptor alloc] initWithHeaderKey:@"X-Custom" value:@"CustomHeaderValue"];
+    XCTAssertEqualObjects(interceptor.headerKey, @"X-Custom");
+    XCTAssertEqualObjects(interceptor.headerValue, @"CustomHeaderValue");
+    
+    NSMutableURLRequest * request = [[NSMutableURLRequest alloc] init];
+    [interceptor processRequest: request];
+    XCTAssertTrue([request.allHTTPHeaderFields[@"X-Custom"] isEqualToString:@"CustomHeaderValue"]);
 }
 
 @end

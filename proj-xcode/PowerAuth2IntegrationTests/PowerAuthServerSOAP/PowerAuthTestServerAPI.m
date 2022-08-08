@@ -21,595 +21,595 @@
 
 @implementation PowerAuthTestServerAPI
 {
-	NSURL * _testServerUrl;
-	SoapHelper * _helper;
+    NSURL * _testServerUrl;
+    SoapHelper * _helper;
 }
 
 #pragma mark - Object initilization
 
 - (id) initWithConfiguration:(PowerAuthTestServerConfig*)testServerConfig
 {
-	self = [super init];
-	if (self) {
-		_serverVersion = testServerConfig.soapApiVersion;
-		_testServerUrl = [NSURL URLWithString:testServerConfig.soapApiUrl];
-		_applicationNameString = testServerConfig.powerAuthAppName;
-		_applicationVersionString = testServerConfig.powerAuthAppVersion;
-		
-		NSBundle * mainBundle = [NSBundle bundleForClass:[self class]];
-		NSURL * soapBundleUrl = [mainBundle URLForResource:@"SoapRequests" withExtension:@"bundle"];
-		NSBundle * soapBundle = [NSBundle bundleWithURL:soapBundleUrl];
-		
-		_helper = [[SoapHelper alloc] initWithBundle:soapBundle config:testServerConfig];
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _serverVersion = testServerConfig.soapApiVersion;
+        _testServerUrl = [NSURL URLWithString:testServerConfig.soapApiUrl];
+        _applicationNameString = testServerConfig.powerAuthAppName;
+        _applicationVersionString = testServerConfig.powerAuthAppVersion;
+        
+        NSBundle * mainBundle = [NSBundle bundleForClass:[self class]];
+        NSURL * soapBundleUrl = [mainBundle URLForResource:@"SoapRequests" withExtension:@"bundle"];
+        NSBundle * soapBundle = [NSBundle bundleWithURL:soapBundleUrl];
+        
+        _helper = [[SoapHelper alloc] initWithBundle:soapBundle config:testServerConfig];
+    }
+    return self;
 }
 
 - (BOOL) validateConnection
 {
-	_hasValidConnection = NO;
-	
-	PATSSystemStatus * systemStatus = [self getSystemStatus];
-	if (![systemStatus.status isEqualToString:@"OK"]) {
-		NSLog(@"System status is not OK, but '%@'", systemStatus.status);
-		return NO;
-	}
-	
-	NSArray<PATSApplication*>* applicationList = [self getApplicationList];
-	__block PATSApplication * foundRequiredApp = nil;
-	[applicationList enumerateObjectsUsingBlock:^(PATSApplication * app, NSUInteger idx, BOOL * stop) {
-		if ([app.applicationName isEqualToString:_applicationNameString]) {
-			foundRequiredApp = app;
-			*stop = YES;
-		}
-	}];
-	if (!foundRequiredApp) {
-		// Version not found,
-		foundRequiredApp = [self createApplication:_applicationNameString];
-	}
-	// Get Application detail
-	_appDetail = [self getApplicationDetail:foundRequiredApp.applicationId];
-	// Look for appropriate version
-	[_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
-		if ([obj.applicationVersionName isEqualToString:_applicationVersionString]) {
-			_appVersion = obj;
-			*stop = YES;
-		}
-	}];
-	//
-	if (!_appVersion) {
-		// We need to create requested app version
-		_appVersion = [self createApplicationVersion:_appDetail.applicationId versionName:_applicationVersionString];
-		
-	}
-	if (![_appDetail.applicationName isEqualToString:_applicationNameString]) {
-		NSLog(@"Application name doesn't match: %@ vs %@", _appDetail.applicationName, _applicationNameString);
-		return NO;
-	}
-	if (![_appVersion.applicationVersionName isEqualToString:_applicationVersionString]) {
-		NSLog(@"Application version name doesn't match: %@ vs %@", _appVersion.applicationVersionName, _applicationVersionString);
-		return NO;
-	}
-	if (!_appVersion.supported) {
-		NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
-		return NO;
-	}
-	
-	_hasValidConnection = YES;
-	
-	return YES;
+    _hasValidConnection = NO;
+    
+    PATSSystemStatus * systemStatus = [self getSystemStatus];
+    if (![systemStatus.status isEqualToString:@"OK"]) {
+        NSLog(@"System status is not OK, but '%@'", systemStatus.status);
+        return NO;
+    }
+    
+    NSArray<PATSApplication*>* applicationList = [self getApplicationList];
+    __block PATSApplication * foundRequiredApp = nil;
+    [applicationList enumerateObjectsUsingBlock:^(PATSApplication * app, NSUInteger idx, BOOL * stop) {
+        if ([app.applicationName isEqualToString:_applicationNameString]) {
+            foundRequiredApp = app;
+            *stop = YES;
+        }
+    }];
+    if (!foundRequiredApp) {
+        // Version not found,
+        foundRequiredApp = [self createApplication:_applicationNameString];
+    }
+    // Get Application detail
+    _appDetail = [self getApplicationDetail:foundRequiredApp.applicationId];
+    // Look for appropriate version
+    [_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
+        if ([obj.applicationVersionName isEqualToString:_applicationVersionString]) {
+            _appVersion = obj;
+            *stop = YES;
+        }
+    }];
+    //
+    if (!_appVersion) {
+        // We need to create requested app version
+        _appVersion = [self createApplicationVersion:_appDetail.applicationId versionName:_applicationVersionString];
+        
+    }
+    if (![_appDetail.applicationName isEqualToString:_applicationNameString]) {
+        NSLog(@"Application name doesn't match: %@ vs %@", _appDetail.applicationName, _applicationNameString);
+        return NO;
+    }
+    if (![_appVersion.applicationVersionName isEqualToString:_applicationVersionString]) {
+        NSLog(@"Application version name doesn't match: %@ vs %@", _appVersion.applicationVersionName, _applicationVersionString);
+        return NO;
+    }
+    if (!_appVersion.supported) {
+        NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
+        return NO;
+    }
+    
+    _hasValidConnection = YES;
+    
+    return YES;
 }
 
 - (void) checkForValidConnection
 {
-	if (!_hasValidConnection) {
-		@throw [NSException exceptionWithName:@"SoapError" reason:@"API object has no valid connection to the server." userInfo:nil];
-	}
+    if (!_hasValidConnection) {
+        @throw [NSException exceptionWithName:@"SoapError" reason:@"API object has no valid connection to the server." userInfo:nil];
+    }
 }
 
 #pragma mark - System status
 
 - (PATSSystemStatus*) getSystemStatus
 {
-	PATSSystemStatus * response = [_helper soapRequest:@"GetSystemStatus" params:nil response:@"GetSystemStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSSystemStatus * obj = [[PATSSystemStatus alloc] init];
-		if (!localError) obj.status					= [[resp nodeForXPath:@"pa:status" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationName		= [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationDisplayName	= [[resp nodeForXPath:@"pa:applicationDisplayName" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationEnvironment	= [[resp nodeForXPath:@"pa:applicationEnvironment" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.timestamp				= [[resp nodeForXPath:@"pa:timestamp" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.version				= [[resp nodeForXPath:@"pa:version" namespaceMappings:ns error:&localError] stringValue];
-		return !localError ? obj : nil;
-	}];
-	return response;
+    PATSSystemStatus * response = [_helper soapRequest:@"GetSystemStatus" params:nil response:@"GetSystemStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSSystemStatus * obj = [[PATSSystemStatus alloc] init];
+        if (!localError) obj.status                 = [[resp nodeForXPath:@"pa:status" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationName        = [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationDisplayName = [[resp nodeForXPath:@"pa:applicationDisplayName" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationEnvironment = [[resp nodeForXPath:@"pa:applicationEnvironment" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.timestamp              = [[resp nodeForXPath:@"pa:timestamp" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.version                = [[resp nodeForXPath:@"pa:version" namespaceMappings:ns error:&localError] stringValue];
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 #pragma mark - SOAP Application
 
 static NSString * _ToXmlBool(BOOL value)
 {
-	return value ? @"true" : @"false";
+    return value ? @"true" : @"false";
 }
 
 static BOOL _BoolValue(CXMLNode * node)
 {
-	if (node) {
-		NSString * strValue = [node stringValue];
-		if ([strValue isEqualToString:@"true"]) {
-			return YES;
-		} else if ([strValue isEqualToString:@"false"]) {
-			return NO;
-		}
-	}
-	NSLog(@"Unable to convert XML boolean to BOOL");
-	return NO;
+    if (node) {
+        NSString * strValue = [node stringValue];
+        if ([strValue isEqualToString:@"true"]) {
+            return YES;
+        } else if ([strValue isEqualToString:@"false"]) {
+            return NO;
+        }
+    }
+    NSLog(@"Unable to convert XML boolean to BOOL");
+    return NO;
 }
 
 static NSInteger _IntegerValue(CXMLNode * node)
 {
-	if (node) {
-		NSString * strValue = [node stringValue];
-		NSInteger i = [strValue integerValue];
-		if ([[@(i) stringValue] isEqualToString:strValue]) {
-			return i;
-		}
-	}
-	NSLog(@"Unable to convert XML node to NSInteger");
-	return NSIntegerMax;
+    if (node) {
+        NSString * strValue = [node stringValue];
+        NSInteger i = [strValue integerValue];
+        if ([[@(i) stringValue] isEqualToString:strValue]) {
+            return i;
+        }
+    }
+    NSLog(@"Unable to convert XML node to NSInteger");
+    return NSIntegerMax;
 }
 
 ////////////////////////////
 
 static PATSApplication * _XML_to_PATSApplication_V1_0(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
-	PATSApplication * appObj = [[PATSApplication alloc] init];
-	if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:id" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) appObj.applicationName = [[node nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:localError] stringValue];
-	return appObj;
+    PATSApplication * appObj = [[PATSApplication alloc] init];
+    if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:id" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) appObj.applicationName = [[node nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:localError] stringValue];
+    return appObj;
 }
 
 static PATSApplication * _XML_to_PATSApplication_V1_3(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
-	PATSApplication * appObj = [[PATSApplication alloc] init];
-	if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) appObj.applicationName = appObj.applicationId;
-	return appObj;
+    PATSApplication * appObj = [[PATSApplication alloc] init];
+    if (!*localError) appObj.applicationId   = [[node nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) appObj.applicationName = appObj.applicationId;
+    return appObj;
 }
 
 static PATSApplication * _XML_to_PATSApplication(CXMLNode * node, NSDictionary * ns, NSError ** localError, PowerAuthTestServerVersion version)
 {
-	if (version < PATS_V1_3) {
-		return _XML_to_PATSApplication_V1_0(node, ns, localError);
-	} else {
-		return _XML_to_PATSApplication_V1_3(node, ns, localError);
-	}
+    if (version < PATS_V1_3) {
+        return _XML_to_PATSApplication_V1_0(node, ns, localError);
+    } else {
+        return _XML_to_PATSApplication_V1_3(node, ns, localError);
+    }
 }
 
 - (NSArray<PATSApplication*>*) getApplicationList
 {
-	NSArray * response = [_helper soapRequest:@"GetApplicationList" params:nil response:@"GetApplicationListResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		__block NSError * localError = nil;
-		NSArray * xmlApps = [resp nodesForXPath:@"pa:applications" namespaceMappings:ns error:&localError];
-		NSMutableArray * objApps = [NSMutableArray arrayWithCapacity:xmlApps.count];
-		[xmlApps enumerateObjectsUsingBlock:^(CXMLNode * appNode, NSUInteger idx, BOOL * stop) {
-			PATSApplication * appObj = _XML_to_PATSApplication(appNode, ns, &localError, _serverVersion);
-			if (!localError) {
-				[objApps addObject:appObj];
-			} else {
-				*stop = YES;
-			}
-		}];
-		return !localError ? objApps : nil;
-	}];
-	return response;
+    NSArray * response = [_helper soapRequest:@"GetApplicationList" params:nil response:@"GetApplicationListResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        __block NSError * localError = nil;
+        NSArray * xmlApps = [resp nodesForXPath:@"pa:applications" namespaceMappings:ns error:&localError];
+        NSMutableArray * objApps = [NSMutableArray arrayWithCapacity:xmlApps.count];
+        [xmlApps enumerateObjectsUsingBlock:^(CXMLNode * appNode, NSUInteger idx, BOOL * stop) {
+            PATSApplication * appObj = _XML_to_PATSApplication(appNode, ns, &localError, _serverVersion);
+            if (!localError) {
+                [objApps addObject:appObj];
+            } else {
+                *stop = YES;
+            }
+        }];
+        return !localError ? objApps : nil;
+    }];
+    return response;
 }
 
 ////////////////////////////
 
 static PATSApplicationVersion * _XML_to_PATSApplicationVersion_V1_0(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
-	PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
-	if (!*localError) verObj.applicationVersionId	= [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.applicationVersionName	= [[node nodeForXPath:@"pa:applicationVersionName" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.applicationKey			= [[node nodeForXPath:@"pa:applicationKey" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.applicationSecret		= [[node nodeForXPath:@"pa:applicationSecret" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.supported				= _BoolValue([node nodeForXPath:@"pa:supported" namespaceMappings:ns error:localError]);
-	return verObj;
+    PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
+    if (!*localError) verObj.applicationVersionId   = [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.applicationVersionName = [[node nodeForXPath:@"pa:applicationVersionName" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.applicationKey         = [[node nodeForXPath:@"pa:applicationKey" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.applicationSecret      = [[node nodeForXPath:@"pa:applicationSecret" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.supported              = _BoolValue([node nodeForXPath:@"pa:supported" namespaceMappings:ns error:localError]);
+    return verObj;
 }
 
 static PATSApplicationVersion * _XML_to_PATSApplicationVersion_V1_3(CXMLNode * node, NSDictionary * ns, NSError ** localError)
 {
-	PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
-	if (!*localError) verObj.applicationVersionId	= [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.applicationVersionName	= verObj.applicationVersionId;
-	if (!*localError) verObj.applicationKey			= [[node nodeForXPath:@"pa:applicationKey" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.applicationSecret		= [[node nodeForXPath:@"pa:applicationSecret" namespaceMappings:ns error:localError] stringValue];
-	if (!*localError) verObj.supported				= _BoolValue([node nodeForXPath:@"pa:supported" namespaceMappings:ns error:localError]);
-	return verObj;
+    PATSApplicationVersion * verObj = [[PATSApplicationVersion alloc] init];
+    if (!*localError) verObj.applicationVersionId   = [[node nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.applicationVersionName = verObj.applicationVersionId;
+    if (!*localError) verObj.applicationKey         = [[node nodeForXPath:@"pa:applicationKey" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.applicationSecret      = [[node nodeForXPath:@"pa:applicationSecret" namespaceMappings:ns error:localError] stringValue];
+    if (!*localError) verObj.supported              = _BoolValue([node nodeForXPath:@"pa:supported" namespaceMappings:ns error:localError]);
+    return verObj;
 }
 
 static PATSApplicationVersion * _XML_to_PATSApplicationVersion(CXMLNode * node, NSDictionary * ns, NSError ** localError, PowerAuthTestServerVersion version)
 {
-	if (version < PATS_V1_3) {
-		return _XML_to_PATSApplicationVersion_V1_0(node, ns, localError);
-	} else {
-		return _XML_to_PATSApplicationVersion_V1_3(node, ns, localError);
-	}
+    if (version < PATS_V1_3) {
+        return _XML_to_PATSApplicationVersion_V1_0(node, ns, localError);
+    } else {
+        return _XML_to_PATSApplicationVersion_V1_3(node, ns, localError);
+    }
 }
 
 - (PATSApplicationDetail*) getApplicationDetail:(NSString*)applicationId
 {
-	PATSApplicationDetail * response = [_helper soapRequest:@"GetApplicationDetail" params:@[applicationId] response:@"GetApplicationDetailResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		__block NSError * localError = nil;
-		PATSApplicationDetail * appObj = [[PATSApplicationDetail alloc] init];
-		if (_serverVersion < PATS_V1_3) {
-			if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-			if (!localError) appObj.applicationName = [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
-			if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
-		} else {
-			if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-			if (!localError) appObj.applicationName = appObj.applicationId;
-			if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
-		}
-		NSArray * xmlVersions = [resp nodesForXPath:@"pa:versions" namespaceMappings:ns error:&localError];
-		NSMutableArray<PATSApplicationVersion*>* objVersions = [NSMutableArray arrayWithCapacity:xmlVersions.count];
-		[xmlVersions enumerateObjectsUsingBlock:^(CXMLNode * verNode, NSUInteger idx, BOOL * stop) {
-			PATSApplicationVersion * verObj = _XML_to_PATSApplicationVersion(verNode, ns, &localError, _serverVersion);
-			if (!localError) {
-				[objVersions addObject:verObj];
-			} else {
-				*stop = YES;
-			}
-		}];
-		if (!localError) appObj.versions = objVersions;
-		return !localError ? appObj : nil;
-	}];
-	return response;
+    PATSApplicationDetail * response = [_helper soapRequest:@"GetApplicationDetail" params:@[applicationId] response:@"GetApplicationDetailResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        __block NSError * localError = nil;
+        PATSApplicationDetail * appObj = [[PATSApplicationDetail alloc] init];
+        if (_serverVersion < PATS_V1_3) {
+            if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+            if (!localError) appObj.applicationName = [[resp nodeForXPath:@"pa:applicationName" namespaceMappings:ns error:&localError] stringValue];
+            if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
+        } else {
+            if (!localError) appObj.applicationId   = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+            if (!localError) appObj.applicationName = appObj.applicationId;
+            if (!localError) appObj.masterPublicKey = [[resp nodeForXPath:@"pa:masterPublicKey" namespaceMappings:ns error:&localError] stringValue];
+        }
+        NSArray * xmlVersions = [resp nodesForXPath:@"pa:versions" namespaceMappings:ns error:&localError];
+        NSMutableArray<PATSApplicationVersion*>* objVersions = [NSMutableArray arrayWithCapacity:xmlVersions.count];
+        [xmlVersions enumerateObjectsUsingBlock:^(CXMLNode * verNode, NSUInteger idx, BOOL * stop) {
+            PATSApplicationVersion * verObj = _XML_to_PATSApplicationVersion(verNode, ns, &localError, _serverVersion);
+            if (!localError) {
+                [objVersions addObject:verObj];
+            } else {
+                *stop = YES;
+            }
+        }];
+        if (!localError) appObj.versions = objVersions;
+        return !localError ? appObj : nil;
+    }];
+    return response;
 }
 
 - (PATSApplication*) createApplication:(NSString*)applicationName
 {
-	PATSApplication * response = [_helper soapRequest:@"CreateApplication" params:@[applicationName] response:@"CreateApplicationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSApplication * appObj = _XML_to_PATSApplication(resp, ns, &localError, _serverVersion);
-		return !localError ? appObj : nil;
-	}];
-	return response;
+    PATSApplication * response = [_helper soapRequest:@"CreateApplication" params:@[applicationName] response:@"CreateApplicationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSApplication * appObj = _XML_to_PATSApplication(resp, ns, &localError, _serverVersion);
+        return !localError ? appObj : nil;
+    }];
+    return response;
 }
 
 #pragma mark - SOAP Application Versions
 
 - (PATSApplicationVersion*) createApplicationVersion:(NSString*)applicationId versionName:(NSString*)versionName
 {
-	PATSApplicationVersion * response = [_helper soapRequest:@"CreateApplicationVersion" params:@[applicationId, versionName] response:@"CreateApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSApplicationVersion * appVer = _XML_to_PATSApplicationVersion(resp, ns, &localError, _serverVersion);
-		return !localError ? appVer : nil;
-	}];
-	return response;
+    PATSApplicationVersion * response = [_helper soapRequest:@"CreateApplicationVersion" params:@[applicationId, versionName] response:@"CreateApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSApplicationVersion * appVer = _XML_to_PATSApplicationVersion(resp, ns, &localError, _serverVersion);
+        return !localError ? appVer : nil;
+    }];
+    return response;
 }
 
 - (PATSApplicationVersion*) createApplicationVersionIfDoesntExist:(NSString*)versionName
 {
-	[self checkForValidConnection];
-	// Update app detail
-	_appDetail = [self getApplicationDetail:_appDetail.applicationId];
-	// Look for version
-	__block PATSApplicationVersion * response = nil;
-	[_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
-		if ([obj.applicationVersionName isEqualToString:versionName]) {
-			if (obj.supported) {
-				response = obj;
-				*stop = YES;
-			}
-		}
-	}];
-	if (!response) {
-		response = [self createApplicationVersion:_appDetail.applicationId versionName:versionName];
-	}
-	return response;
+    [self checkForValidConnection];
+    // Update app detail
+    _appDetail = [self getApplicationDetail:_appDetail.applicationId];
+    // Look for version
+    __block PATSApplicationVersion * response = nil;
+    [_appDetail.versions enumerateObjectsUsingBlock:^(PATSApplicationVersion * obj, NSUInteger idx, BOOL * stop) {
+        if ([obj.applicationVersionName isEqualToString:versionName]) {
+            if (obj.supported) {
+                response = obj;
+                *stop = YES;
+            }
+        }
+    }];
+    if (!response) {
+        response = [self createApplicationVersion:_appDetail.applicationId versionName:versionName];
+    }
+    return response;
 }
 
 - (BOOL) supportApplicationVersion:(NSString*)applicationVersionId
 {
-	NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
-	PATSApplicationVersionSupport * response = [_helper soapRequest:@"SupportApplicationVersion" params:params response:@"SupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
-		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.supported				= _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
-		return !localError ? obj : nil;
-	}];
-	BOOL result = response.supported == YES;
-	if (!result) {
-		NSLog(@"Changing version '%@' status to 'supported' failed.", applicationVersionId);
-	}
-	return result;
+    NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
+    PATSApplicationVersionSupport * response = [_helper soapRequest:@"SupportApplicationVersion" params:params response:@"SupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
+        if (!localError) obj.applicationVersionId   = [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.supported              = _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
+        return !localError ? obj : nil;
+    }];
+    BOOL result = response.supported == YES;
+    if (!result) {
+        NSLog(@"Changing version '%@' status to 'supported' failed.", applicationVersionId);
+    }
+    return result;
 }
 
 - (BOOL) unsupportApplicationVersion:(NSString*)applicationVersionId
 {
-	NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
-	PATSApplicationVersionSupport * response = [_helper soapRequest:@"UnsupportApplicationVersion" params:params response:@"UnsupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
-		if (!localError) obj.applicationVersionId	= [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.supported				= _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
-		return !localError ? obj : nil;
-	}];
-	BOOL result = response.supported == NO;
-	if (!result) {
-		NSLog(@"Changing version '%@' status to 'unsupported' failed.", applicationVersionId);
-	}
-	return result;
+    NSArray * params = _serverVersion < PATS_V1_3 ? @[applicationVersionId] : @[_appDetail.applicationId, applicationVersionId];
+    PATSApplicationVersionSupport * response = [_helper soapRequest:@"UnsupportApplicationVersion" params:params response:@"UnsupportApplicationVersionResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSApplicationVersionSupport * obj = [[PATSApplicationVersionSupport alloc] init];
+        if (!localError) obj.applicationVersionId   = [[resp nodeForXPath:@"pa:applicationVersionId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.supported              = _BoolValue([resp nodeForXPath:@"pa:supported" namespaceMappings:ns error:&localError]);
+        return !localError ? obj : nil;
+    }];
+    BOOL result = response.supported == NO;
+    if (!result) {
+        NSLog(@"Changing version '%@' status to 'unsupported' failed.", applicationVersionId);
+    }
+    return result;
 }
 
 #pragma mark - SOAP Activation
 
 - (PATSInitActivationResponse*) initializeActivation:(NSString *)userId
 {
-	return [self initializeActivation:userId
-						otpValidation:PATSActivationOtpValidation_NONE
-								  otp:nil];
+    return [self initializeActivation:userId
+                        otpValidation:PATSActivationOtpValidation_NONE
+                                  otp:nil];
 }
 
 - (PATSInitActivationResponse*) initializeActivation:(NSString *)userId
-									   otpValidation:(PATSActivationOtpValidationEnum)otpValidation
-												 otp:(NSString*)otp;
+                                       otpValidation:(PATSActivationOtpValidationEnum)otpValidation
+                                                 otp:(NSString*)otp;
 {
-	[self checkForValidConnection];
-	NSString * soapMethod;
-	NSArray * soapMethodParams;
-	if (otpValidation != PATSActivationOtpValidation_NONE && otp.length > 0) {
-		soapMethod = @"InitActivation_OTP";
-		soapMethodParams = @[userId, _appDetail.applicationId, PATSActivationOtpValidationEnumToString(otpValidation), otp];
-	} else {
-		soapMethod = @"InitActivation";
-		soapMethodParams = @[userId, _appDetail.applicationId];
-	}
-	PATSInitActivationResponse * response = [_helper soapRequest:soapMethod params:soapMethodParams response:@"InitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSInitActivationResponse * obj = [[PATSInitActivationResponse alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (PATSProtoVer(_serverVersion) == PATS_P2) {
-			// V2 server
-			if (!localError) obj.activationIdShort	= [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
-			if (!localError) obj.activationOTP		= [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
-		} else {
-			// V3 server, has only "activationCode", but we can emulate idShort & OTP
-			if (!localError) obj.activationCode		= [[resp nodeForXPath:@"pa:activationCode" namespaceMappings:ns error:&localError] stringValue];
-			if (!localError) {
-				obj.activationIdShort = [obj.activationCode substringToIndex:11];
-				obj.activationOTP     = [obj.activationCode substringFromIndex:12];
-			}
-		}
-		if (!localError) obj.activationSignature	= [[resp nodeForXPath:@"pa:activationSignature" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationId			= [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSString * soapMethod;
+    NSArray * soapMethodParams;
+    if (otpValidation != PATSActivationOtpValidation_NONE && otp.length > 0) {
+        soapMethod = @"InitActivation_OTP";
+        soapMethodParams = @[userId, _appDetail.applicationId, PATSActivationOtpValidationEnumToString(otpValidation), otp];
+    } else {
+        soapMethod = @"InitActivation";
+        soapMethodParams = @[userId, _appDetail.applicationId];
+    }
+    PATSInitActivationResponse * response = [_helper soapRequest:soapMethod params:soapMethodParams response:@"InitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSInitActivationResponse * obj = [[PATSInitActivationResponse alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (PATSProtoVer(_serverVersion) == PATS_P2) {
+            // V2 server
+            if (!localError) obj.activationIdShort  = [[resp nodeForXPath:@"pa:activationIdShort" namespaceMappings:ns error:&localError] stringValue];
+            if (!localError) obj.activationOTP      = [[resp nodeForXPath:@"pa:activationOTP" namespaceMappings:ns error:&localError] stringValue];
+        } else {
+            // V3 server, has only "activationCode", but we can emulate idShort & OTP
+            if (!localError) obj.activationCode     = [[resp nodeForXPath:@"pa:activationCode" namespaceMappings:ns error:&localError] stringValue];
+            if (!localError) {
+                obj.activationIdShort = [obj.activationCode substringToIndex:11];
+                obj.activationOTP     = [obj.activationCode substringFromIndex:12];
+            }
+        }
+        if (!localError) obj.activationSignature    = [[resp nodeForXPath:@"pa:activationSignature" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.userId                 = [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationId          = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (BOOL) removeActivation:(NSString *)activationId
 {
-	return [self removeActivation:activationId revokeRecoveryCodes:NO];
+    return [self removeActivation:activationId revokeRecoveryCodes:NO];
 }
 
 - (BOOL) removeActivation:(NSString*)activationId revokeRecoveryCodes:(BOOL)revokeRecoveryCodes
 {
-	[self checkForValidConnection];
-	NSDictionary * response = [_helper soapRequest:@"RemoveActivation" params:@[activationId, _ToXmlBool(revokeRecoveryCodes)] response:@"RemoveActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
-		if (!localError) obj[@"activationId"]		= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj[@"removed"]			= @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
-		return !localError ? obj : nil;
-	}];
-	if (![response[@"removed"] boolValue]) {
-		NSLog(@"The requested activation '%@' was not removed.", activationId);
-		return NO;
-	}
-	return YES;
+    [self checkForValidConnection];
+    NSDictionary * response = [_helper soapRequest:@"RemoveActivation" params:@[activationId, _ToXmlBool(revokeRecoveryCodes)] response:@"RemoveActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+        if (!localError) obj[@"activationId"]       = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj[@"removed"]            = @(_BoolValue([resp nodeForXPath:@"pa:removed" namespaceMappings:ns error:&localError]));
+        return !localError ? obj : nil;
+    }];
+    if (![response[@"removed"] boolValue]) {
+        NSLog(@"The requested activation '%@' was not removed.", activationId);
+        return NO;
+    }
+    return YES;
 }
 
 static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 {
-	if ([str isEqualToString:@"CREATED"]) {
-		return PATSActivationStatus_CREATED;
-	} else if ([str isEqualToString:@"PENDING_COMMIT"]) {
-		return PATSActivationStatus_PENDING_COMMIT;
-	} else if ([str isEqualToString:@"ACTIVE"]) {
-		return PATSActivationStatus_ACTIVE;
-	} else if ([str isEqualToString:@"BLOCKED"]) {
-		return PATSActivationStatus_BLOCKED;
-	} else if ([str isEqualToString:@"REMOVED"]) {
-		return PATSActivationStatus_REMOVED;
-	}
-	return PATSActivationStatus_Unknown;
+    if ([str isEqualToString:@"CREATED"]) {
+        return PATSActivationStatus_CREATED;
+    } else if ([str isEqualToString:@"PENDING_COMMIT"]) {
+        return PATSActivationStatus_PENDING_COMMIT;
+    } else if ([str isEqualToString:@"ACTIVE"]) {
+        return PATSActivationStatus_ACTIVE;
+    } else if ([str isEqualToString:@"BLOCKED"]) {
+        return PATSActivationStatus_BLOCKED;
+    } else if ([str isEqualToString:@"REMOVED"]) {
+        return PATSActivationStatus_REMOVED;
+    }
+    return PATSActivationStatus_Unknown;
 }
 
 - (PATSActivationStatus*) getActivationStatus:(NSString*)activationId challenge:(NSString*)challenge
 {
-	[self checkForValidConnection];
-	NSString * templateName = challenge == nil ? @"GetActivationStatus" : @"GetActivationStatus_Challenge";
-	NSArray * templateParams = challenge == nil ? @[activationId]  : @[activationId, challenge];
-	PATSActivationStatus * response = [_helper soapRequest:templateName params:templateParams response:@"GetActivationStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSActivationStatus * obj = [[PATSActivationStatus alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
-		if (!localError) obj.activationName			= [[resp nodeForXPath:@"pa:activationName" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationId			= [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.timestampCreated		= [[resp nodeForXPath:@"pa:timestampCreated" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.timestampLastUsed		= [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.encryptedStatusBlob	= [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
-		if (PATSProtoVer(_serverVersion) != PATS_P2) {
-			if (!localError) obj.protocolVersion 	= _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
-		} else {
-			obj.protocolVersion = 0;
-		}
-		if (challenge != nil) {
-			if (!localError) obj.encryptedStatusBlobNonce = [[resp nodeForXPath:@"pa:encryptedStatusBlobNonce" namespaceMappings:ns error:&localError] stringValue];
-		}
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSString * templateName = challenge == nil ? @"GetActivationStatus" : @"GetActivationStatus_Challenge";
+    NSArray * templateParams = challenge == nil ? @[activationId]  : @[activationId, challenge];
+    PATSActivationStatus * response = [_helper soapRequest:templateName params:templateParams response:@"GetActivationStatusResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSActivationStatus * obj = [[PATSActivationStatus alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatus       = [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatusEnum   = _String_to_ActivationStatusEnum(obj.activationStatus);
+        if (!localError) obj.activationName         = [[resp nodeForXPath:@"pa:activationName" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.userId                 = [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationId          = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.timestampCreated       = [[resp nodeForXPath:@"pa:timestampCreated" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.timestampLastUsed      = [[resp nodeForXPath:@"pa:timestampLastUsed" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.encryptedStatusBlob    = [[resp nodeForXPath:@"pa:encryptedStatusBlob" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.devicePublicKeyFingerprint = [[resp nodeForXPath:@"pa:devicePublicKeyFingerprint" namespaceMappings:ns error:&localError] stringValue];
+        if (PATSProtoVer(_serverVersion) != PATS_P2) {
+            if (!localError) obj.protocolVersion    = _IntegerValue([resp nodeForXPath:@"pa:protocolVersion" namespaceMappings:ns error:&localError]);
+        } else {
+            obj.protocolVersion = 0;
+        }
+        if (challenge != nil) {
+            if (!localError) obj.encryptedStatusBlobNonce = [[resp nodeForXPath:@"pa:encryptedStatusBlobNonce" namespaceMappings:ns error:&localError] stringValue];
+        }
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (PATSActivationStatus*) getActivationStatus:(NSString*)activationId
 {
-	return [self getActivationStatus:activationId challenge:nil];
+    return [self getActivationStatus:activationId challenge:nil];
 }
 
 - (PATSSimpleActivationStatus*) blockActivation:(NSString*)activationId
 {
-	[self checkForValidConnection];
-	PATSSimpleActivationStatus * response = [_helper soapRequest:@"BlockActivation" params:@[activationId] response:@"BlockActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSSimpleActivationStatus * obj = [[PATSActivationStatus alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    PATSSimpleActivationStatus * response = [_helper soapRequest:@"BlockActivation" params:@[activationId] response:@"BlockActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSSimpleActivationStatus * obj = [[PATSActivationStatus alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatus       = [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatusEnum   = _String_to_ActivationStatusEnum(obj.activationStatus);
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (PATSSimpleActivationStatus*) unblockActivation:(NSString*)activationId;
 {
-	[self checkForValidConnection];
-	PATSSimpleActivationStatus * response = [_helper soapRequest:@"UnblockActivation" params:@[activationId] response:@"UnblockActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSSimpleActivationStatus * obj = [[PATSActivationStatus alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    PATSSimpleActivationStatus * response = [_helper soapRequest:@"UnblockActivation" params:@[activationId] response:@"UnblockActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSSimpleActivationStatus * obj = [[PATSActivationStatus alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatus       = [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatusEnum   = _String_to_ActivationStatusEnum(obj.activationStatus);
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (BOOL) commitActivation:(NSString*)activationId
 {
-	[self checkForValidConnection];
-	NSDictionary * response = [_helper soapRequest:@"CommitActivation" params:@[activationId] response:@"CommitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
-		if (!localError) obj[@"activationId"]		= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj[@"activated"]			= @(_BoolValue([resp nodeForXPath:@"pa:activated" namespaceMappings:ns error:&localError]));
-		return !localError ? obj : nil;
-	}];
-	if (![response[@"activated"] boolValue]) {
-		NSLog(@"The requested activation '%@' was not commited.", activationId);
-		return NO;
-	}
-	return YES;
+    [self checkForValidConnection];
+    NSDictionary * response = [_helper soapRequest:@"CommitActivation" params:@[activationId] response:@"CommitActivationResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+        if (!localError) obj[@"activationId"]       = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj[@"activated"]          = @(_BoolValue([resp nodeForXPath:@"pa:activated" namespaceMappings:ns error:&localError]));
+        return !localError ? obj : nil;
+    }];
+    if (![response[@"activated"] boolValue]) {
+        NSLog(@"The requested activation '%@' was not commited.", activationId);
+        return NO;
+    }
+    return YES;
 }
 
 #pragma mark - SOAP Signatures
 
 - (PATSVerifySignatureResponse*) verifySignature:(NSString*)activationId
-											data:(NSString*)normalizedData
-									   signature:(NSString*)signature
-								   signatureType:(NSString*)signatureType
-								signatureVersion:(NSString*)signatureVersion
+                                            data:(NSString*)normalizedData
+                                       signature:(NSString*)signature
+                                   signatureType:(NSString*)signatureType
+                                signatureVersion:(NSString*)signatureVersion
 {
-	[self checkForValidConnection];
-	NSArray * params;
-	params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString, signatureVersion];
-	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifySignature" params:params response:@"VerifySignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
-		if (!localError) obj.remainingAttempts		= _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
-		if (!localError) obj.signatureValid			= _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
-		return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSArray * params;
+    params = @[activationId, _appVersion.applicationKey, normalizedData, signature, signatureType.uppercaseString, signatureVersion];
+    PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifySignature" params:params response:@"VerifySignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.userId                 = [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatus       = [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatusEnum   = _String_to_ActivationStatusEnum(obj.activationStatus);
+        if (!localError) obj.remainingAttempts      = _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
+        if (!localError) obj.signatureValid         = _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
+        return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
+    }];
+    return response;
 }
 
 - (NSString*) normalizeDataForSignatureWithMethod:(NSString*)httpMethod
-											uriId:(NSString*)uriId
-											nonce:(NSString*)nonceB64
-											 data:(NSData*)data
+                                            uriId:(NSString*)uriId
+                                            nonce:(NSString*)nonceB64
+                                             data:(NSData*)data
 {
-	NSString * dataB64 = [data base64EncodedStringWithOptions:0];
-	NSString * uriIdB64 = [[uriId dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
-	NSArray * components = @[httpMethod, uriIdB64, nonceB64, dataB64 ];
-	return [components componentsJoinedByString:@"&"];
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * uriIdB64 = [[uriId dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0];
+    NSArray * components = @[httpMethod, uriIdB64, nonceB64, dataB64 ];
+    return [components componentsJoinedByString:@"&"];
 }
 
 - (PATSOfflineSignaturePayload*) createNonPersonalizedOfflineSignaturePayload:(NSString*)applicationId
-																		 data:(NSString*)data
+                                                                         data:(NSString*)data
 {
-	[self checkForValidConnection];
-	NSArray * params = @[applicationId, data];
-	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreateNonPersonalizedOfflineSignaturePayload" params:params response:@"CreateNonPersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
-		if (!localError) obj.offlineData	= [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.nonce			= [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSArray * params = @[applicationId, data];
+    PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreateNonPersonalizedOfflineSignaturePayload" params:params response:@"CreateNonPersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
+        if (!localError) obj.offlineData    = [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.nonce          = [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (PATSOfflineSignaturePayload*) createPersonalizedOfflineSignaturePayload:(NSString*)activationId
-																	  data:(NSString*)data
+                                                                      data:(NSString*)data
 {
-	[self checkForValidConnection];
-	NSArray * params = @[activationId, data];
-	PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreatePersonalizedOfflineSignaturePayload" params:params response:@"CreatePersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
-		if (!localError) obj.offlineData	= [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.nonce			= [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
-		return !localError ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSArray * params = @[activationId, data];
+    PATSOfflineSignaturePayload * response = [_helper soapRequest:@"CreatePersonalizedOfflineSignaturePayload" params:params response:@"CreatePersonalizedOfflineSignaturePayloadResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSOfflineSignaturePayload * obj = [[PATSOfflineSignaturePayload alloc] init];
+        if (!localError) obj.offlineData    = [[resp nodeForXPath:@"pa:offlineData" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.nonce          = [[resp nodeForXPath:@"pa:nonce" namespaceMappings:ns error:&localError] stringValue];
+        return !localError ? obj : nil;
+    }];
+    return response;
 }
 
 - (PATSVerifySignatureResponse*) verifyOfflineSignature:(NSString*)activationId
-												   data:(NSString*)dataHash
-											  signature:(NSString*)signature
-										  allowBiometry:(BOOL)allowBiometry
+                                                   data:(NSString*)dataHash
+                                              signature:(NSString*)signature
+                                          allowBiometry:(BOOL)allowBiometry
 {
-	[self checkForValidConnection];
-	NSArray * params = @[activationId, dataHash, signature, allowBiometry ? @"true" : @"false"];
-	PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifyOfflineSignature" params:params response:@"VerifyOfflineSignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatus		= [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.activationStatusEnum	= _String_to_ActivationStatusEnum(obj.activationStatus);
-		if (!localError) obj.remainingAttempts		= _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
-		if (!localError) obj.signatureValid			= _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
-		return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSArray * params = @[activationId, dataHash, signature, allowBiometry ? @"true" : @"false"];
+    PATSVerifySignatureResponse * response = [_helper soapRequest:@"VerifyOfflineSignature" params:params response:@"VerifyOfflineSignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSVerifySignatureResponse * obj = [[PATSVerifySignatureResponse alloc] init];
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.userId                 = [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatus       = [[resp nodeForXPath:@"pa:activationStatus" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.activationStatusEnum   = _String_to_ActivationStatusEnum(obj.activationStatus);
+        if (!localError) obj.remainingAttempts      = _IntegerValue([resp nodeForXPath:@"pa:remainingAttempts" namespaceMappings:ns error:&localError]);
+        if (!localError) obj.signatureValid         = _BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]);
+        return (!localError && obj.remainingAttempts != NSIntegerMax) ? obj : nil;
+    }];
+    return response;
 }
 
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
 {
-	NSString * dataB64 = [data base64EncodedStringWithOptions:0];
-	NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
-	
-	NSDictionary * response = [_helper soapRequest:@"VerifyECDSASignature" params:@[activationId, dataB64, signatureB64] response:@"VerifyECDSASignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
-		if (!localError) obj[@"signatureValid"] = @(_BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]));
-		return !localError ? obj : nil;
-	}];
-	return [response[@"signatureValid"] boolValue];
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+    
+    NSDictionary * response = [_helper soapRequest:@"VerifyECDSASignature" params:@[activationId, dataB64, signatureB64] response:@"VerifyECDSASignatureResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        NSMutableDictionary * obj = [NSMutableDictionary dictionaryWithCapacity:2];
+        if (!localError) obj[@"signatureValid"] = @(_BoolValue([resp nodeForXPath:@"pa:signatureValid" namespaceMappings:ns error:&localError]));
+        return !localError ? obj : nil;
+    }];
+    return [response[@"signatureValid"] boolValue];
 }
 
 
@@ -617,47 +617,47 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
 {
-	[self checkForValidConnection];
-	NSArray * params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp ];
-	PATSTokenValidationResponse * response = [_helper soapRequest:@"ValidateToken" params:params response:@"ValidateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
-		NSError * localError = nil;
-		PATSTokenValidationResponse * obj = [[PATSTokenValidationResponse alloc] init];
-		if (!localError) obj.tokenValid				= _BoolValue([resp nodeForXPath:@"pa:tokenValid" namespaceMappings:ns error:&localError]);
-		if (!localError) obj.activationId			= [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.userId					= [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.applicationId			= [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
-		if (!localError) obj.signatureType			= [[resp nodeForXPath:@"pa:signatureType" namespaceMappings:ns error:&localError] stringValue];
-		return (!localError && obj.tokenValid) ? obj : nil;
-	}];
-	return response;
+    [self checkForValidConnection];
+    NSArray * params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp ];
+    PATSTokenValidationResponse * response = [_helper soapRequest:@"ValidateToken" params:params response:@"ValidateTokenResponse" transform:^id(CXMLNode *resp, NSDictionary *ns) {
+        NSError * localError = nil;
+        PATSTokenValidationResponse * obj = [[PATSTokenValidationResponse alloc] init];
+        if (!localError) obj.tokenValid             = _BoolValue([resp nodeForXPath:@"pa:tokenValid" namespaceMappings:ns error:&localError]);
+        if (!localError) obj.activationId           = [[resp nodeForXPath:@"pa:activationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.userId                 = [[resp nodeForXPath:@"pa:userId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.applicationId          = [[resp nodeForXPath:@"pa:applicationId" namespaceMappings:ns error:&localError] stringValue];
+        if (!localError) obj.signatureType          = [[resp nodeForXPath:@"pa:signatureType" namespaceMappings:ns error:&localError] stringValue];
+        return (!localError && obj.tokenValid) ? obj : nil;
+    }];
+    return response;
 }
 
 
 #pragma mark - ECIES helper
 
 - (id) decryptECIESResponseWithDecryptor:(PowerAuthCoreEciesEncryptor*)decryptor resp:(CXMLNode *)resp ns:(NSDictionary *)ns
-									  as:(Class)requiredClass
+                                      as:(Class)requiredClass
 {
-	if (!decryptor.canDecryptResponse) {
-		return nil;
-	}
-	PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-	NSError * localError = nil;
-	if (!localError) cryptogram.macBase64	= [[resp nodeForXPath:@"pa:mac" namespaceMappings:ns error:&localError] stringValue];
-	if (!localError) cryptogram.bodyBase64	= [[resp nodeForXPath:@"pa:encryptedData" namespaceMappings:ns error:&localError] stringValue];
-	if (localError) {
-		return nil;
-	}
-	NSData * responseData = [decryptor decryptResponse:cryptogram];
-	if (!responseData) {
-		return nil;
-	}
-	// OK, we have a response data, which is normally a JSON, so try to parse it.
-	id jsonObject = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&localError];
-	if (!jsonObject || localError) {
-		return nil;
-	}
-	return [jsonObject isKindOfClass:requiredClass] ? jsonObject : nil;
+    if (!decryptor.canDecryptResponse) {
+        return nil;
+    }
+    PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
+    NSError * localError = nil;
+    if (!localError) cryptogram.macBase64   = [[resp nodeForXPath:@"pa:mac" namespaceMappings:ns error:&localError] stringValue];
+    if (!localError) cryptogram.bodyBase64  = [[resp nodeForXPath:@"pa:encryptedData" namespaceMappings:ns error:&localError] stringValue];
+    if (localError) {
+        return nil;
+    }
+    NSData * responseData = [decryptor decryptResponse:cryptogram];
+    if (!responseData) {
+        return nil;
+    }
+    // OK, we have a response data, which is normally a JSON, so try to parse it.
+    id jsonObject = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&localError];
+    if (!jsonObject || localError) {
+        return nil;
+    }
+    return [jsonObject isKindOfClass:requiredClass] ? jsonObject : nil;
 }
 
 @end

@@ -31,29 +31,29 @@ namespace powerAuth
 {
 namespace crypto
 {
-	/**
-	 Adds a PKCS7 padding to given SafeData object.
-	 */
-	void PKCS7_Add(cc7::ByteArray & inout_data, size_t padding_size);
-	
-	/**
-	 Adds a PKCS7 padding to given SafeData object and returns new instance of SafeData object
-	 with padded data.
-	 */
-	cc7::ByteArray PKCS7_GetPaddedData(const cc7::ByteRange & data, size_t padding_size);
-	
-	/**
-	 Validates PKCS7 padding in given data object. Returns how many bytes were added or 0
-	 if error.
-	 */
-	size_t PKCS7_Validate(const cc7::ByteRange & data, size_t padding_size);
-	
-	/**
-	 Validates PKCS7 padding in given data object and updates its size if padding is valid.
-	 */
-	bool PKCS7_ValidateAndUpdateData(cc7::ByteArray & inout_data, size_t padding_size);
+    /**
+     Adds a PKCS7 padding to given SafeData object.
+     */
+    void PKCS7_Add(cc7::ByteArray & inout_data, size_t padding_size);
+    
+    /**
+     Adds a PKCS7 padding to given SafeData object and returns new instance of SafeData object
+     with padded data.
+     */
+    cc7::ByteArray PKCS7_GetPaddedData(const cc7::ByteRange & data, size_t padding_size);
+    
+    /**
+     Validates PKCS7 padding in given data object. Returns how many bytes were added or 0
+     if error.
+     */
+    size_t PKCS7_Validate(const cc7::ByteRange & data, size_t padding_size);
+    
+    /**
+     Validates PKCS7 padding in given data object and updates its size if padding is valid.
+     */
+    bool PKCS7_ValidateAndUpdateData(cc7::ByteArray & inout_data, size_t padding_size);
 
-	
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

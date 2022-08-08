@@ -22,8 +22,8 @@
 - (instancetype)initWithDictionary:(NSDictionary *)dictionary {
     self = [super init];
     if (self) {
-        _activationId					= PA2ObjectAs(dictionary[@"activationId"], NSString);
-        _encryptedVaultEncryptionKey	= PA2ObjectAs(dictionary[@"encryptedVaultEncryptionKey"], NSString);
+        _activationId                   = PA2ObjectAs(dictionary[@"activationId"], NSString);
+        _encryptedVaultEncryptionKey    = PA2ObjectAs(dictionary[@"encryptedVaultEncryptionKey"], NSString);
     }
     return self;
 }

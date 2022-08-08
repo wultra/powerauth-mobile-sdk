@@ -23,50 +23,50 @@
 @implementation PowerAuthCorePassword
 {
 @protected
-	io::getlime::powerAuth::Password _password;
+    io::getlime::powerAuth::Password _password;
 }
 
 + (instancetype) passwordWithString:(NSString *)string
 {
-	PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
-	if (pass) {
-		pass->_password.initAsImmutable(cc7::MakeRange(string.UTF8String));
-	}
-	return pass;
+    PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
+    if (pass) {
+        pass->_password.initAsImmutable(cc7::MakeRange(string.UTF8String));
+    }
+    return pass;
 }
 
 + (instancetype) passwordWithData:(NSData *)data
 {
-	PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
-	if (pass) {
-		pass->_password.initAsImmutable(cc7::ByteRange(data.bytes, data.length));
-	}
-	return pass;
+    PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
+    if (pass) {
+        pass->_password.initAsImmutable(cc7::ByteRange(data.bytes, data.length));
+    }
+    return pass;
 }
 
 - (NSUInteger) length
 {
-	return _password.length();
+    return _password.length();
 }
 
 - (BOOL) isEqualToPassword:(PowerAuthCorePassword *)password
 {
-	if (self == password) {
-		return YES;
-	} else if (!password) {
-		return NO;
-	}
-	return _password.isEqualToPassword(password->_password);
+    if (self == password) {
+        return YES;
+    } else if (!password) {
+        return NO;
+    }
+    return _password.isEqualToPassword(password->_password);
 }
 
 - (BOOL) validatePasswordComplexity:(BOOL (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
 {
-	BOOL result = NO;
-	const cc7::byte * plaintext_bytes = _password.passwordData().data();
-	if (validationBlock && plaintext_bytes) {
-		result = validationBlock(plaintext_bytes, _password.passwordData().size());
-	}
-	return result;
+    BOOL result = NO;
+    const cc7::byte * plaintext_bytes = _password.passwordData().data();
+    if (validationBlock && plaintext_bytes) {
+        result = validationBlock(plaintext_bytes, _password.passwordData().size());
+    }
+    return result;
 }
 
 @end
@@ -79,7 +79,7 @@
 
 - (io::getlime::powerAuth::Password &) passObjRef
 {
-	return _password;
+    return _password;
 }
 
 @end
@@ -93,41 +93,41 @@
 
 - (id) init
 {
-	self = [super init];
-	if (self) {
-		_password.initAsMutable();
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _password.initAsMutable();
+    }
+    return self;
 }
 
 + (instancetype) mutablePassword
 {
-	return [[PowerAuthCoreMutablePassword alloc] init];
+    return [[PowerAuthCoreMutablePassword alloc] init];
 }
 
 - (void) clear
 {
-	_password.clear();
+    _password.clear();
 }
 
 - (BOOL) addCharacter:(UInt32)character
 {
-	return _password.addCharacter(character);
+    return _password.addCharacter(character);
 }
 
 - (BOOL) insertCharacter:(UInt32)character atIndex:(NSUInteger)index
 {
-	return _password.insertCharacter(character, index);
+    return _password.insertCharacter(character, index);
 }
 
 - (BOOL) removeLastCharacter
 {
-	return _password.removeLastCharacter();
+    return _password.removeLastCharacter();
 }
 
 - (BOOL) removeCharacterAtIndex:(NSUInteger)index
 {
-	return _password.removeCharacter(index);
+    return _password.removeCharacter(index);
 }
 
 @end

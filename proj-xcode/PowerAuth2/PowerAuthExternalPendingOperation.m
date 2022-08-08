@@ -19,14 +19,14 @@
 @implementation PowerAuthExternalPendingOperation
 
 - (id) initWithOperationType:(PowerAuthExternalPendingOperationType)operationType
-			   applicationId:(NSString*)applicationId
+               applicationId:(NSString*)applicationId
 {
-	self = [super init];
-	if (self) {
-		_externalOperationType = operationType;
-		_externalApplicationId = applicationId;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _externalOperationType = operationType;
+        _externalApplicationId = applicationId;
+    }
+    return self;
 }
 
 @end

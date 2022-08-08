@@ -23,9 +23,9 @@
 {
     self = [super init];
     if (self) {
-		NSDictionary * activationDataDict	= PA2ObjectAs(dictionary[@"activationData"], NSDictionary);
-		_activationData = [[PA2EncryptedResponse alloc] initWithDictionary:activationDataDict];
- 		_customAttributes					= PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
+        NSDictionary * activationDataDict   = PA2ObjectAs(dictionary[@"activationData"], NSDictionary);
+        _activationData = [[PA2EncryptedResponse alloc] initWithDictionary:activationDataDict];
+        _customAttributes                   = PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
     }
     return self;
 }

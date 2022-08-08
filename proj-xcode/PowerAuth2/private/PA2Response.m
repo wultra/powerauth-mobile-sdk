@@ -23,20 +23,20 @@
 {
     self = [super init];
     if (self) {
-		// Handle response status
-		NSString * statusString 		= PA2ObjectAs(dictionary[@"status"], NSString);
-		NSDictionary * objectDictionary = PA2ObjectAs(dictionary[@"responseObject"], NSDictionary);
-		// Check status
-		if ([statusString isEqualToString:@"OK"]) {
-			// Deserialize expected response object type
-			_status = PowerAuthRestApiResponseStatus_OK;
-			_responseObject = [[responseObjectType alloc] initWithDictionary:objectDictionary];
-		} else {
-			// Deserialize error object
-			_status = PowerAuthRestApiResponseStatus_ERROR;
-			// TODO: looks like we're not using this property at all.
-			_responseError = [[PowerAuthRestApiError alloc] initWithDictionary:objectDictionary];
-		}
+        // Handle response status
+        NSString * statusString         = PA2ObjectAs(dictionary[@"status"], NSString);
+        NSDictionary * objectDictionary = PA2ObjectAs(dictionary[@"responseObject"], NSDictionary);
+        // Check status
+        if ([statusString isEqualToString:@"OK"]) {
+            // Deserialize expected response object type
+            _status = PowerAuthRestApiResponseStatus_OK;
+            _responseObject = [[responseObjectType alloc] initWithDictionary:objectDictionary];
+        } else {
+            // Deserialize error object
+            _status = PowerAuthRestApiResponseStatus_ERROR;
+            // TODO: looks like we're not using this property at all.
+            _responseError = [[PowerAuthRestApiError alloc] initWithDictionary:objectDictionary];
+        }
     }
     return self;
 }

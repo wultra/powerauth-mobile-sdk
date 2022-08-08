@@ -41,11 +41,11 @@
  @param sharedLock Shared recursive lock.
  */
 - (id) initWithProvider:(id<PA2PrivateRemoteTokenProvider>)provider
-			 tokenStore:(id<PowerAuthPrivateTokenStore>)tokenStore
-		 authentication:(PowerAuthAuthentication*)authentication
-		   activationId:(NSString*)activationId
-			  tokenName:(NSString*)tokenName
-			 sharedLock:(id<NSLocking>)sharedLock;
+             tokenStore:(id<PowerAuthPrivateTokenStore>)tokenStore
+         authentication:(PowerAuthAuthentication*)authentication
+           activationId:(NSString*)activationId
+              tokenName:(NSString*)tokenName
+             sharedLock:(id<NSLocking>)sharedLock;
 
 /**
  Contains name of token to be created.

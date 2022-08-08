@@ -23,33 +23,33 @@
 
 - (BOOL) validateConfiguration
 {
-	BOOL result = YES;
-	result = result && (_instanceId != nil);
-	result = result && (_appKey != nil);
-	result = result && (_appSecret != nil);
-	result = result && (_masterServerPublicKey != nil);
-	result = result && (_baseEndpointUrl != nil);
-	if (_sharingConfiguration) {
-		result = result && [_sharingConfiguration validateConfiguration];
-	}
-	return result;
+    BOOL result = YES;
+    result = result && (_instanceId != nil);
+    result = result && (_appKey != nil);
+    result = result && (_appSecret != nil);
+    result = result && (_masterServerPublicKey != nil);
+    result = result && (_baseEndpointUrl != nil);
+    if (_sharingConfiguration) {
+        result = result && [_sharingConfiguration validateConfiguration];
+    }
+    return result;
 }
 
 - (id)copyWithZone:(NSZone *)zone
 {
-	PowerAuthConfiguration * c = [[self.class allocWithZone:zone] init];
-	if (c) {
-		c->_instanceId = _instanceId;
-		c->_baseEndpointUrl = _baseEndpointUrl;
-		c->_appKey = _appKey;
-		c->_appSecret = _appSecret;
-		c->_masterServerPublicKey = _masterServerPublicKey;
-		c->_keychainKey_Biometry = _keychainKey_Biometry;
-		c->_externalEncryptionKey = _externalEncryptionKey;
-		c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
-		c->_sharingConfiguration = [_sharingConfiguration copy];
-	}
-	return c;
+    PowerAuthConfiguration * c = [[self.class allocWithZone:zone] init];
+    if (c) {
+        c->_instanceId = _instanceId;
+        c->_baseEndpointUrl = _baseEndpointUrl;
+        c->_appKey = _appKey;
+        c->_appSecret = _appSecret;
+        c->_masterServerPublicKey = _masterServerPublicKey;
+        c->_keychainKey_Biometry = _keychainKey_Biometry;
+        c->_externalEncryptionKey = _externalEncryptionKey;
+        c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
+        c->_sharingConfiguration = [_sharingConfiguration copy];
+    }
+    return c;
 }
 
 @end

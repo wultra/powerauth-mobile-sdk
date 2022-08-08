@@ -31,22 +31,22 @@
 
 #ifdef ENABLE_PA2_LOG
 
-	// Implementations
+    // Implementations
 
-	PA2_EXTERN_C void PowerAuthLogImpl(NSString * format, ...);
+    PA2_EXTERN_C void PowerAuthLogImpl(NSString * format, ...);
 
-	// Macros
+    // Macros
 
-	/**
-	 PowerAuthLog(...) macro prints a debug information into the debug console and is used internally
-	 in the PowerAuth SDK. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
-	 For RELEASE builds, the message is completely suppressed during the compilation.
-	 */
-	#define PowerAuthLog(...) 				PowerAuthLogImpl(__VA_ARGS__)
+    /**
+     PowerAuthLog(...) macro prints a debug information into the debug console and is used internally
+     in the PowerAuth SDK. For DEBUG builds, the macro is expanded to internal function which uses NSLog().
+     For RELEASE builds, the message is completely suppressed during the compilation.
+     */
+    #define PowerAuthLog(...)               PowerAuthLogImpl(__VA_ARGS__)
 
 #else
-	// If PA2Log is disabled, then suppress whole log statement
-	#define PowerAuthLog(...)
+    // If PA2Log is disabled, then suppress whole log statement
+    #define PowerAuthLog(...)
 
 #endif // ENABLE_PA2_LOG
 

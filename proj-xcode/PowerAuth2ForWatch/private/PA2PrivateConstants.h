@@ -22,25 +22,25 @@
 
 // Error constants
 
-#define PA2Def_PowerAuthErrorDomain					@"PowerAuthErrorDomain"
-#define PA2Def_PowerAuthErrorInfoKey_AdditionalInfo	@"PowerAuthErrorInfoKey_AdditionalInfo"
-#define PA2Def_PowerAuthErrorInfoKey_ResponseData	@"PowerAuthErrorInfoKey_ResponseData"
-#define PA2Def_PowerAuthErrorInfoKey_ResponseData	@"PowerAuthErrorInfoKey_ResponseData"
-#define PA2Def_PowerAuthErrorInfoKey_ExtPendingApp	@"PowerAuthErrorInfoKey_ExternalPendingApplication"
+#define PA2Def_PowerAuthErrorDomain                 @"PowerAuthErrorDomain"
+#define PA2Def_PowerAuthErrorInfoKey_AdditionalInfo @"PowerAuthErrorInfoKey_AdditionalInfo"
+#define PA2Def_PowerAuthErrorInfoKey_ResponseData   @"PowerAuthErrorInfoKey_ResponseData"
+#define PA2Def_PowerAuthErrorInfoKey_ResponseData   @"PowerAuthErrorInfoKey_ResponseData"
+#define PA2Def_PowerAuthErrorInfoKey_ExtPendingApp  @"PowerAuthErrorInfoKey_ExternalPendingApplication"
 
 // Keychain constants, must keep PA2* naming to maintaing a compatibility with older SDK versions
 
-#define PA2Def_PowerAuthKeychainKey_Possession		@"PA2KeychainKey_Possession"
-#define PA2Def_PowerAuthKeychain_Initialized		@"io.getlime.PowerAuthKeychain.Initialized"
-#define PA2Def_PowerAuthKeychain_Status				@"io.getlime.PowerAuthKeychain.StatusKeychain"
-#define PA2Def_PowerAuthKeychain_Possession			@"io.getlime.PowerAuthKeychain.PossessionKeychain"
-#define PA2Def_PowerAuthKeychain_Biometry			@"io.getlime.PowerAuthKeychain.BiometryKeychain"
-#define PA2Def_PowerAuthKeychain_TokenStore			@"io.getlime.PowerAuthKeychain.TokenStore"
+#define PA2Def_PowerAuthKeychainKey_Possession      @"PA2KeychainKey_Possession"
+#define PA2Def_PowerAuthKeychain_Initialized        @"io.getlime.PowerAuthKeychain.Initialized"
+#define PA2Def_PowerAuthKeychain_Status             @"io.getlime.PowerAuthKeychain.StatusKeychain"
+#define PA2Def_PowerAuthKeychain_Possession         @"io.getlime.PowerAuthKeychain.PossessionKeychain"
+#define PA2Def_PowerAuthKeychain_Biometry           @"io.getlime.PowerAuthKeychain.BiometryKeychain"
+#define PA2Def_PowerAuthKeychain_TokenStore         @"io.getlime.PowerAuthKeychain.TokenStore"
 
 // Maximum length in bytes reserved for appIdentifier.
-#define PADef_PowerAuthSharing_AppIdentifierMaxSize	127
+#define PADef_PowerAuthSharing_AppIdentifierMaxSize 127
 
 // Maximum length in bytes reserved for sharedMemoryIdentifier.
-#define PADef_PowerAuthSharing_MemIdentifierMaxSize	4
+#define PADef_PowerAuthSharing_MemIdentifierMaxSize 4
 
 #endif // PA2PrivateConstants_Included

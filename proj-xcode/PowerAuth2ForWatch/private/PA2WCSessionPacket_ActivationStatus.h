@@ -26,9 +26,9 @@
 
 /**
  Supported commands:
- 	PA2WCSessionPacket_CMD_SESSION_GET - when watchOS is asking for actual status of the session
- 		- response is PA2WCSessionPacket_CMD_SESSION_PUT
- 	PA2WCSessionPacket_CMD_SESSION_PUT - when IOS is pushing status to the watchOS.
+    PA2WCSessionPacket_CMD_SESSION_GET - when watchOS is asking for actual status of the session
+        - response is PA2WCSessionPacket_CMD_SESSION_PUT
+    PA2WCSessionPacket_CMD_SESSION_PUT - when IOS is pushing status to the watchOS.
  */
 @property (nonatomic, strong) NSString * command;
 

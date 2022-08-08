@@ -18,29 +18,29 @@
 
 #import "PA2WCSessionPacket_Constants.h"
 
-NSString * const PA2WCSessionPacket_USER_INFO_KEY		= @"io.getlime.PowerAuth.PA2WCSessionPacket";
+NSString * const PA2WCSessionPacket_USER_INFO_KEY       = @"io.getlime.PowerAuth.PA2WCSessionPacket";
 
-NSString * const PA2WCSessionPacket_RESPONSE_TARGET		= @"*";
-NSString * const PA2WCSessionPacket_SESSION_TARGET		= @"session:";
-NSString * const PA2WCSessionPacket_TOKEN_TARGET		= @"token:";
+NSString * const PA2WCSessionPacket_RESPONSE_TARGET     = @"*";
+NSString * const PA2WCSessionPacket_SESSION_TARGET      = @"session:";
+NSString * const PA2WCSessionPacket_TOKEN_TARGET        = @"token:";
 
 
-NSString * const PA2WCSessionPacket_KEY_TARGET			= @"target";
-NSString * const PA2WCSessionPacket_KEY_ERROR_CODE		= @"errorCode";
-NSString * const PA2WCSessionPacket_KEY_ERROR_DOM		= @"errorDomain";
-NSString * const PA2WCSessionPacket_KEY_ERROR_MSG		= @"errorMsg";
+NSString * const PA2WCSessionPacket_KEY_TARGET          = @"target";
+NSString * const PA2WCSessionPacket_KEY_ERROR_CODE      = @"errorCode";
+NSString * const PA2WCSessionPacket_KEY_ERROR_DOM       = @"errorDomain";
+NSString * const PA2WCSessionPacket_KEY_ERROR_MSG       = @"errorMsg";
 
-NSString * const PA2WCSessionPacket_KEY_ACTIVATION_CMD	= @"activationCmd";
-NSString * const PA2WCSessionPacket_KEY_ACTIVATION_ID	= @"activationId";
-NSString * const PA2WCSessionPacket_CMD_SESSION_GET		= @"get_session";
-NSString * const PA2WCSessionPacket_CMD_SESSION_PUT		= @"put_session";
+NSString * const PA2WCSessionPacket_KEY_ACTIVATION_CMD  = @"activationCmd";
+NSString * const PA2WCSessionPacket_KEY_ACTIVATION_ID   = @"activationId";
+NSString * const PA2WCSessionPacket_CMD_SESSION_GET     = @"get_session";
+NSString * const PA2WCSessionPacket_CMD_SESSION_PUT     = @"put_session";
 
-NSString * const PA2WCSessionPacket_KEY_TOKEN_CMD		= @"tokenCmd";
-NSString * const PA2WCSessionPacket_KEY_TOKEN_NAME		= @"tokenName";
-NSString * const PA2WCSessionPacket_KEY_TOKEN_DATA		= @"tokenData";
-NSString * const PA2WCSessionPacket_KEY_TOKEN_NA		= @"tokenNotFound";
-NSString * const PA2WCSessionPacket_CMD_TOKEN_GET		= @"get_token";
-NSString * const PA2WCSessionPacket_CMD_TOKEN_PUT		= @"put_token";
-NSString * const PA2WCSessionPacket_CMD_TOKEN_REMOVE	= @"remove_token";
+NSString * const PA2WCSessionPacket_KEY_TOKEN_CMD       = @"tokenCmd";
+NSString * const PA2WCSessionPacket_KEY_TOKEN_NAME      = @"tokenName";
+NSString * const PA2WCSessionPacket_KEY_TOKEN_DATA      = @"tokenData";
+NSString * const PA2WCSessionPacket_KEY_TOKEN_NA        = @"tokenNotFound";
+NSString * const PA2WCSessionPacket_CMD_TOKEN_GET       = @"get_token";
+NSString * const PA2WCSessionPacket_CMD_TOKEN_PUT       = @"put_token";
+NSString * const PA2WCSessionPacket_CMD_TOKEN_REMOVE    = @"remove_token";
 
-NSString * const PA2WCSessionPacket_KEY_SUCCESS			= @"successCode";
+NSString * const PA2WCSessionPacket_KEY_SUCCESS         = @"successCode";

@@ -25,23 +25,23 @@
 
 /** Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
  */
-@property (nonatomic, strong, nonnull) NSString	*instanceId;
+@property (nonatomic, strong, nonnull) NSString *instanceId;
 
 /** Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
  */
-@property (nonatomic, strong, nonnull) NSString	*baseEndpointUrl;
+@property (nonatomic, strong, nonnull) NSString *baseEndpointUrl;
 
 /** APPLICATION_KEY as defined in PowerAuth specification - a key identifying an application version.
  */
-@property (nonatomic, strong, nonnull) NSString	*appKey;
+@property (nonatomic, strong, nonnull) NSString *appKey;
 
 /** APPLICATION_SECRET as defined in PowerAuth specification - a secret associated with an application version.
  */
-@property (nonatomic, strong, nonnull) NSString	*appSecret;
+@property (nonatomic, strong, nonnull) NSString *appSecret;
 
 /** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth specification - a master server public key.
  */
-@property (nonatomic, strong, nonnull) NSString	*masterServerPublicKey;
+@property (nonatomic, strong, nonnull) NSString *masterServerPublicKey;
 
 /** This value specifies 'key' used to store this PowerAuthSDK instance biometry related key in the biometry key keychain.
  */
@@ -49,7 +49,7 @@
 
 /** Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
  */
-@property (nonatomic, strong, nullable) NSData	*externalEncryptionKey;
+@property (nonatomic, strong, nullable) NSData  *externalEncryptionKey;
 
 /**
  If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.

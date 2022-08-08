@@ -21,11 +21,11 @@
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_ctrData = PA2ObjectAs(dictionary[@"ctrData"], NSString);
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _ctrData = PA2ObjectAs(dictionary[@"ctrData"], NSString);
+    }
+    return self;
 }
 
 @end

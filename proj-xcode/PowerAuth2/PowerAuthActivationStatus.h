@@ -22,31 +22,31 @@
  of the PowerAuthActivationStatus object.
  */
 typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
-	/**
-	 The activation is just created.
-	 */
-	PowerAuthActivationState_Created  = 1,
-	/**
-	 The activation is not completed yet on the server.
-	 */
-	PowerAuthActivationState_PendingCommit = 2,
-	/**
-	 The shared secure context is valid and active.
-	 */
-	PowerAuthActivationState_Active   = 3,
-	/**
-	 The activation is blocked.
-	 */
-	PowerAuthActivationState_Blocked  = 4,
-	/**
-	 The activation doesn't exist anymore.
-	 */
-	PowerAuthActivationState_Removed  = 5,
-	/**
-	 The activation is technically blocked. You cannot use it anymore
-	 for the signature calculations.
-	 */
-	PowerAuthActivationState_Deadlock	= 128,
+    /**
+     The activation is just created.
+     */
+    PowerAuthActivationState_Created  = 1,
+    /**
+     The activation is not completed yet on the server.
+     */
+    PowerAuthActivationState_PendingCommit = 2,
+    /**
+     The shared secure context is valid and active.
+     */
+    PowerAuthActivationState_Active   = 3,
+    /**
+     The activation is blocked.
+     */
+    PowerAuthActivationState_Blocked  = 4,
+    /**
+     The activation doesn't exist anymore.
+     */
+    PowerAuthActivationState_Removed  = 5,
+    /**
+     The activation is technically blocked. You cannot use it anymore
+     for the signature calculations.
+     */
+    PowerAuthActivationState_Deadlock   = 128,
 };
 
 /**

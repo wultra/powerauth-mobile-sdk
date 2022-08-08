@@ -33,42 +33,42 @@
 @implementation PowerAuthSystem
 
 + (BOOL) isInDebug {
-	BOOL result = _CoreModuleIsDebug();
+    BOOL result = _CoreModuleIsDebug();
 #if defined(ENABLE_PA2_LOG) || defined(DEBUG)
-	result |= YES;
+    result |= YES;
 #endif
-	return result;
+    return result;
 }
 
 + (NSString*) platform
 {
 #if TARGET_OS_OSX == 1
-	return @"macOS";
+    return @"macOS";
 #elif TARGET_OS_IOS == 1
-	return @"iOS";
+    return @"iOS";
 #elif TARGET_OS_WATCH == 1
-	return @"watchOS";
+    return @"watchOS";
 #elif TARGET_OS_TV == 1
-	return @"tvOS";
+    return @"tvOS";
 #elif TARGET_OS_MACCATALYST == 1
-	return "macCatalyst";
+    return "macCatalyst";
 #else
-	unknown_platform // Compilation must fail here.
+    unknown_platform // Compilation must fail here.
 #endif
 }
 
 + (NSString*) deviceInfo
 {
 #if TARGET_OS_SIMULATOR == 0
-	struct utsname utsname;
-	int err = uname(&utsname);
-	if (err != 0) {
-		PowerAuthLog(@"PA2System.deviceInfo: uname() failed with code %d", errno);
-		return @"iDeviceUnknown";
-	}
-	return [NSString stringWithUTF8String:utsname.machine];
+    struct utsname utsname;
+    int err = uname(&utsname);
+    if (err != 0) {
+        PowerAuthLog(@"PA2System.deviceInfo: uname() failed with code %d", errno);
+        return @"iDeviceUnknown";
+    }
+    return [NSString stringWithUTF8String:utsname.machine];
  #else
-	return @"simulator";
+    return @"simulator";
 #endif
 }
 
@@ -77,16 +77,16 @@
  */
 + (NSString*) bundleVersion:(NSBundle*)bundle
 {
-	NSString * infoPath = [bundle pathForResource:@"Info" ofType:@"plist"];
-	if (infoPath) {
-		NSDictionary * dictionary = [NSDictionary dictionaryWithContentsOfFile:infoPath];
-		NSString * libraryName    = dictionary[@"CFBundleExecutable"];
-		NSString * libraryVersion = dictionary[@"CFBundleShortVersionString"];
-		if (libraryName && libraryVersion) {
-			return [[libraryName stringByAppendingString:@"/"] stringByAppendingString:libraryVersion];
-		}
-	}
-	return nil;
+    NSString * infoPath = [bundle pathForResource:@"Info" ofType:@"plist"];
+    if (infoPath) {
+        NSDictionary * dictionary = [NSDictionary dictionaryWithContentsOfFile:infoPath];
+        NSString * libraryName    = dictionary[@"CFBundleExecutable"];
+        NSString * libraryVersion = dictionary[@"CFBundleShortVersionString"];
+        if (libraryName && libraryVersion) {
+            return [[libraryName stringByAppendingString:@"/"] stringByAppendingString:libraryVersion];
+        }
+    }
+    return nil;
 }
 
 /**
@@ -94,32 +94,32 @@
  */
 + (NSString*) osVersion
 {
-	NSProcessInfo * processInfo = [NSProcessInfo processInfo];
-	NSOperatingSystemVersion version = processInfo.operatingSystemVersion;
-	return version.patchVersion != 0
-				? [NSString stringWithFormat:@"%@ %@.%@.%@", [self platform], @(version.majorVersion), @(version.minorVersion), @(version.patchVersion)]
-				: [NSString stringWithFormat:@"%@ %@.%@", [self platform], @(version.majorVersion), @(version.minorVersion)];
+    NSProcessInfo * processInfo = [NSProcessInfo processInfo];
+    NSOperatingSystemVersion version = processInfo.operatingSystemVersion;
+    return version.patchVersion != 0
+                ? [NSString stringWithFormat:@"%@ %@.%@.%@", [self platform], @(version.majorVersion), @(version.minorVersion), @(version.patchVersion)]
+                : [NSString stringWithFormat:@"%@ %@.%@", [self platform], @(version.majorVersion), @(version.minorVersion)];
 }
 
 + (NSString*) defaultUserAgent
 {
-	// Get PowerAuth library version
-	NSString * libraryVersion = [self bundleVersion:[NSBundle bundleForClass:self]];
-	// Get main bundle version (e.g. application's executable and version)
-	NSString * appVersion = [[self bundleVersion:[NSBundle mainBundle]] stringByReplacingOccurrencesOfString:@" " withString:@"_"];
-	NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
-	if (appVersion) {
-		[components addObject:appVersion];
-	}
-	if (libraryVersion) {
-		[components addObject:libraryVersion];
-	}
-	if (components.count > 0) {
-		[components addObject:[NSString stringWithFormat:@"(%@, %@)", [self osVersion], [self deviceInfo]]];
-		return [components componentsJoinedByString:@" "];
-	}
-	// Essential information is missing, so return nil to use default user agent provided by the system.
-	return nil;
+    // Get PowerAuth library version
+    NSString * libraryVersion = [self bundleVersion:[NSBundle bundleForClass:self]];
+    // Get main bundle version (e.g. application's executable and version)
+    NSString * appVersion = [[self bundleVersion:[NSBundle mainBundle]] stringByReplacingOccurrencesOfString:@" " withString:@"_"];
+    NSMutableArray * components = [NSMutableArray arrayWithCapacity:3];
+    if (appVersion) {
+        [components addObject:appVersion];
+    }
+    if (libraryVersion) {
+        [components addObject:libraryVersion];
+    }
+    if (components.count > 0) {
+        [components addObject:[NSString stringWithFormat:@"(%@, %@)", [self osVersion], [self deviceInfo]]];
+        return [components componentsJoinedByString:@" "];
+    }
+    // Essential information is missing, so return nil to use default user agent provided by the system.
+    return nil;
 }
 
 @end

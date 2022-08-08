@@ -23,45 +23,45 @@
 
 - (void) serializeToDictionary:(NSMutableDictionary *)dictionary
 {
-	if (_command) {
-		dictionary[PA2WCSessionPacket_KEY_TOKEN_CMD] = _command;
-	}
-	if (_tokenName) {
-		dictionary[PA2WCSessionPacket_KEY_TOKEN_NAME] = _tokenName;
-	}
-	if (_tokenData) {
-		dictionary[PA2WCSessionPacket_KEY_TOKEN_DATA] = [_tokenData base64EncodedStringWithOptions:0];
-	}
-	if (_tokenNotFound) {
-		dictionary[PA2WCSessionPacket_KEY_TOKEN_NA] = @YES;
-	}
+    if (_command) {
+        dictionary[PA2WCSessionPacket_KEY_TOKEN_CMD] = _command;
+    }
+    if (_tokenName) {
+        dictionary[PA2WCSessionPacket_KEY_TOKEN_NAME] = _tokenName;
+    }
+    if (_tokenData) {
+        dictionary[PA2WCSessionPacket_KEY_TOKEN_DATA] = [_tokenData base64EncodedStringWithOptions:0];
+    }
+    if (_tokenNotFound) {
+        dictionary[PA2WCSessionPacket_KEY_TOKEN_NA] = @YES;
+    }
 }
 
 - (id) initWithDictionary:(NSDictionary *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_command = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_CMD], NSString);
-		_tokenName = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_NAME], NSString);
-		NSString * tokenDataStr = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_DATA], NSString);
-		_tokenData = tokenDataStr ? [[NSData alloc] initWithBase64EncodedString:tokenDataStr options:0] : nil;
-		_tokenNotFound = PA2ObjectAs([dictionary objectForKey:PA2WCSessionPacket_KEY_TOKEN_NA], NSNumber).boolValue;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _command = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_CMD], NSString);
+        _tokenName = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_NAME], NSString);
+        NSString * tokenDataStr = PA2ObjectAs(dictionary[PA2WCSessionPacket_KEY_TOKEN_DATA], NSString);
+        _tokenData = tokenDataStr ? [[NSData alloc] initWithBase64EncodedString:tokenDataStr options:0] : nil;
+        _tokenNotFound = PA2ObjectAs([dictionary objectForKey:PA2WCSessionPacket_KEY_TOKEN_NA], NSNumber).boolValue;
+    }
+    return self;
 }
 
 - (BOOL) validatePacketData
 {
-	BOOL hasName = _tokenName.length > 0;
-	if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_GET]) {
-		return hasName;
-	} else if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_PUT]) {
-		BOOL hasContent = _tokenData.length > 0 || _tokenNotFound;
-		return hasName && hasContent;
-	} else if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_REMOVE]) {
-		return hasName;
-	}
-	return NO;
+    BOOL hasName = _tokenName.length > 0;
+    if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_GET]) {
+        return hasName;
+    } else if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_PUT]) {
+        BOOL hasContent = _tokenData.length > 0 || _tokenNotFound;
+        return hasName && hasContent;
+    } else if ([_command isEqualToString:PA2WCSessionPacket_CMD_TOKEN_REMOVE]) {
+        return hasName;
+    }
+    return NO;
 }
 
 @end

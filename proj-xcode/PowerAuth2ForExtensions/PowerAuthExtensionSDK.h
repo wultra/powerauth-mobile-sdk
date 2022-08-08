@@ -40,6 +40,6 @@
  A designated initializer.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration*)configuration
-						  keychainConfiguration:(nonnull PowerAuthKeychainConfiguration*)keychainConfiguration;
+                          keychainConfiguration:(nonnull PowerAuthKeychainConfiguration*)keychainConfiguration;
 
 @end

@@ -31,10 +31,10 @@ namespace powerAuth
 {
 namespace crypto
 {
-	// SHA256
-	cc7::ByteArray SHA256(const cc7::ByteRange & data);
+    // SHA256
+    cc7::ByteArray SHA256(const cc7::ByteRange & data);
 
-	
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

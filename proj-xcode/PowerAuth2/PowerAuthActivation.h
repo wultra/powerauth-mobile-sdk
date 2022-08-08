@@ -41,8 +41,8 @@
  @return New instance of `PowerAuthActivation` or `nil` in case that activation code is invalid.
  */
 + (nullable instancetype) activationWithActivationCode:(nonnull NSString*)activationCode
-												  name:(nullable NSString*)name
-												 error:(NSError * _Nullable * _Nullable)error;
+                                                  name:(nullable NSString*)name
+                                                 error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Creates an instance of `PowerAuthActivation` with an identity attributes for the custom activation purposes.
@@ -57,8 +57,8 @@
  @return New instance of `PowerAuthActivation` or `nil` in case that identity attributes are empty.
  */
 + (nullable instancetype) activationWithIdentityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
-													  name:(nullable NSString*)name
-													 error:(NSError * _Nullable * _Nullable)error;
+                                                      name:(nullable NSString*)name
+                                                     error:(NSError * _Nullable * _Nullable)error;
 
 /**
  Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
@@ -74,9 +74,9 @@
  @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
  */
 + (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
-										 recoveryPuk:(nonnull NSString*)recoveryPuk
-												name:(nullable NSString*)name
-											   error:(NSError * _Nullable * _Nullable)error;
+                                         recoveryPuk:(nonnull NSString*)recoveryPuk
+                                                name:(nullable NSString*)name
+                                               error:(NSError * _Nullable * _Nullable)error;
 
 
 #pragma mark - Activation customization
@@ -89,7 +89,7 @@
  @return The same object instance.
  */
 - (nonnull instancetype) withExtras:(nonnull NSString*)extras
-						 NS_SWIFT_NAME(with(extras:));
+                         NS_SWIFT_NAME(with(extras:));
 
 /**
  Sets custom attributes dictionary that are processed on Intermediate Server Application.
@@ -99,7 +99,7 @@
  @return The same object instance.
  */
 - (nonnull instancetype) withCustomAttributes:(nonnull NSDictionary<NSString*, id>*)customAttributes
-						 NS_SWIFT_NAME(with(customAttributes:));
+                         NS_SWIFT_NAME(with(customAttributes:));
 
 /**
  Sets an additional activation OTP that can be used only with a regular activation, by activation code.
@@ -108,7 +108,7 @@
  @return The same object instance.
  */
 - (nonnull instancetype) withAdditionalActivationOtp:(nonnull NSString*)additionalActivationOtp
-						 NS_SWIFT_NAME(with(additionalActivationOtp:));
+                         NS_SWIFT_NAME(with(additionalActivationOtp:));
 
 
 #pragma mark - Properties

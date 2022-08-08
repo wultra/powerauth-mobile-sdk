@@ -46,13 +46,13 @@
  
  Current format:
  ------------------
- code without signature:	CCCCC-CCCCC-CCCCC-CCCCC
- code with signature:		CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
+ code without signature:    CCCCC-CCCCC-CCCCC-CCCCC
+ code with signature:       CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
  
- recovery code:				CCCCC-CCCCC-CCCCC-CCCCC
- recovery code from QR:		R:CCCCC-CCCCC-CCCCC-CCCCC
+ recovery code:             CCCCC-CCCCC-CCCCC-CCCCC
+ recovery code from QR:     R:CCCCC-CCCCC-CCCCC-CCCCC
  
- recovery PUK:				DDDDDDDDDD
+ recovery PUK:              DDDDDDDDDD
  
  - Where the 'C' is Base32 sequence of characters, fully decodable into the sequence of bytes.
    The validator then compares CRC-16 checksum calculated for the first 10 bytes and compares

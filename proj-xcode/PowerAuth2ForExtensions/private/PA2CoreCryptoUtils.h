@@ -35,7 +35,7 @@
  Computes HMAC-SHA-256 for given data and key.
  */
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data
-						   key:(nonnull NSData*)key;
+                           key:(nonnull NSData*)key;
 
 /**
  Generates a required amount of random bytes. Returns nil in case that

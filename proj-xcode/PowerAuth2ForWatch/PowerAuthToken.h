@@ -104,8 +104,8 @@
  and available (e.g. doesn't need to be acquired from the server) or in case of error.
  */
 - (nullable id<PowerAuthOperationTask>) requestAccessTokenWithName:(nonnull NSString*)name
-													authentication:(nonnull PowerAuthAuthentication*)authentication
-														completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
+                                                    authentication:(nonnull PowerAuthAuthentication*)authentication
+                                                        completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
 
 /**
  Create a new access token with given name without needing an authentication object. The method
@@ -120,7 +120,7 @@
  and available (e.g. doesn't need to be acquired from the server) or in case of error.
  */
 - (nullable id<PowerAuthOperationTask>) requestAccessTokenWithName:(nonnull NSString*)name
-														completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
+                                                        completion:(nonnull void(^)(PowerAuthToken * _Nullable token, NSError * _Nullable error))completion;
 
 /**
  Removes previously created access token from the server and from local database.
@@ -133,7 +133,7 @@
  block was executed synchronously. That typically happens in case of error.
  */
 - (nullable id<PowerAuthOperationTask>) removeAccessTokenWithName:(nonnull NSString*)name
-													   completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
+                                                       completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
 
 /**
  Cancels previously created store task. Note that cancelling may lead to inconsistent state,

@@ -21,5 +21,5 @@
  Initialize object with operation type and application id.
  */
 - (instancetype) initWithOperationType:(PowerAuthExternalPendingOperationType)operationType
-						 applicationId:(NSString*)applicationId;
+                         applicationId:(NSString*)applicationId;
 @end

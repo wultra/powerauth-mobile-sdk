@@ -73,26 +73,26 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
 /**
  Name of the Keychain service used to store statuses for different PowerAuth instances.
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Status;
+@property (nonatomic, strong, nonnull) NSString *keychainInstanceName_Status;
 
 /**
  Name of the Keychain service used to store possession factor related key (one value for all PowerAuthSDK instances).
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Possession;
+@property (nonatomic, strong, nonnull) NSString *keychainInstanceName_Possession;
 
 /**
  Name of the Keychain service used to store biometry related keys for different PowerAuth instances.
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_Biometry;
+@property (nonatomic, strong, nonnull) NSString *keychainInstanceName_Biometry;
 /**
  Name of the Keychain service used to store content of PowerAuthToken objects.
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainInstanceName_TokenStore;
+@property (nonatomic, strong, nonnull) NSString *keychainInstanceName_TokenStore;
 
 /**
  Name of the Keychain key used to store possession fator related key in an associated service.
  */
-@property (nonatomic, strong, nonnull) NSString	*keychainKey_Possession;
+@property (nonatomic, strong, nonnull) NSString *keychainKey_Possession;
 
 /**
  If set, then the item protected with the biometry is invalidated if fingers are added or removed

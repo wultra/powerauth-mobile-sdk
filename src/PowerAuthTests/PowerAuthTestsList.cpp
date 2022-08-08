@@ -24,41 +24,41 @@ namespace getlime
 {
 namespace powerAuthTests
 {
-	cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
-	{
-		cc7::tests::UnitTestCreationInfoList list;
-		
-		// High level objects
-		CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
-		CC7_ADD_UNIT_TEST(pa2SessionTests, list);
-		CC7_ADD_UNIT_TEST(pa2PasswordTests, list);
-		CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
-		CC7_ADD_UNIT_TEST(pa2ECIESTests, list);
-		
-		// Crypto tests
-		CC7_ADD_UNIT_TEST(pa2CryptoPKCS7PaddingTests, list);
-		CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
-		CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
-		CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);
-		CC7_ADD_UNIT_TEST(pa2CryptoECCTests, list);
-		CC7_ADD_UNIT_TEST(pa2CryptoECDSATests, list);
-		
-		// Protocol tests
-		CC7_ADD_UNIT_TEST(pa2ProtocolUtilsTests, list);
-		CC7_ADD_UNIT_TEST(pa2RecoveryCodeTests, list);
-		CC7_ADD_UNIT_TEST(pa2URLEncodingTests, list);
-		CC7_ADD_UNIT_TEST(pa2SignatureKeysDerivationTest, list);
-		CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);
-		CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
-		CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
-		CC7_ADD_UNIT_TEST(pa2ActivationStatusBlobTests, list);
-		
-		// Misc
-		CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
+    cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
+    {
+        cc7::tests::UnitTestCreationInfoList list;
+        
+        // High level objects
+        CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
+        CC7_ADD_UNIT_TEST(pa2SessionTests, list);
+        CC7_ADD_UNIT_TEST(pa2PasswordTests, list);
+        CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
+        CC7_ADD_UNIT_TEST(pa2ECIESTests, list);
+        
+        // Crypto tests
+        CC7_ADD_UNIT_TEST(pa2CryptoPKCS7PaddingTests, list);
+        CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
+        CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
+        CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);
+        CC7_ADD_UNIT_TEST(pa2CryptoECCTests, list);
+        CC7_ADD_UNIT_TEST(pa2CryptoECDSATests, list);
+        
+        // Protocol tests
+        CC7_ADD_UNIT_TEST(pa2ProtocolUtilsTests, list);
+        CC7_ADD_UNIT_TEST(pa2RecoveryCodeTests, list);
+        CC7_ADD_UNIT_TEST(pa2URLEncodingTests, list);
+        CC7_ADD_UNIT_TEST(pa2SignatureKeysDerivationTest, list);
+        CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);
+        CC7_ADD_UNIT_TEST(pa2SignatureCalculationTests, list);
+        CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
+        CC7_ADD_UNIT_TEST(pa2ActivationStatusBlobTests, list);
+        
+        // Misc
+        CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
 
-		return list;
-	}
-	
+        return list;
+    }
+    
 } // io::getlime::powerAuthTests
 } // io::getlime
 } // io

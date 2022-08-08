@@ -26,18 +26,18 @@ namespace powerAuth
 {
 namespace utils
 {
-	/**
-	 Calculates CRC-16/ARC checksum from given |bytes|
-	 */
-	cc7::U16 CRC16_Calculate(const cc7::ByteRange & bytes);
-	
-	/**
-	 Validates CRC-16/ARC checksum from given |bytes|. The function is expecting
-	 that the last two bytes, contains the checksum in big endian order, calculated
-	 from bytes before.
-	 */
-	bool CRC16_Validate(const cc7::ByteRange & data);
-	
+    /**
+     Calculates CRC-16/ARC checksum from given |bytes|
+     */
+    cc7::U16 CRC16_Calculate(const cc7::ByteRange & bytes);
+    
+    /**
+     Validates CRC-16/ARC checksum from given |bytes|. The function is expecting
+     that the last two bytes, contains the checksum in big endian order, calculated
+     from bytes before.
+     */
+    bool CRC16_Validate(const cc7::ByteRange & data);
+    
 } // io::getlime::powerAuth::utils
 } // io::getlime::powerAuth
 } // io::getlime

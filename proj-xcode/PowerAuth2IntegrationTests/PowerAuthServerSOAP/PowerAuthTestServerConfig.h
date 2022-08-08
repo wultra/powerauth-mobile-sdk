@@ -20,27 +20,27 @@
  The `PowerAuthTestServerVersion` defines version of PowerAuth SOAP API.
  */
 typedef NS_ENUM(int, PowerAuthTestServerVersion) {
-	PATS_V0_18,		// V2 crypto
-	PATS_V0_21,		// V3 crypto
-	PATS_V0_22,		// V3 crypto + RC
-	PATS_V0_22_2,	// V3 crypto + RC + revoke RC on removeActivation
-	PATS_V0_23,		// V3.1 crypto
-	PATS_V0_23_2,	// V3.1 crypto + revoke RC on removeActivation
-	PATS_V0_24,		// V3.1 crypto + Activation OTP
-	PATS_V1_0,		// V3.1 crypto + Activation OTP
-	PATS_V1_1,		// V3.1 crypto + Activation OTP
-	PATS_V1_2,		// V3.1 crypto + Activation OTP
-	PATS_V1_2_5,	// V3.1 crypto + Activation OTP
-	PATS_V1_3,		// V3.1 crypto + Activation OTP, applicationId as String
+    PATS_V0_18,     // V2 crypto
+    PATS_V0_21,     // V3 crypto
+    PATS_V0_22,     // V3 crypto + RC
+    PATS_V0_22_2,   // V3 crypto + RC + revoke RC on removeActivation
+    PATS_V0_23,     // V3.1 crypto
+    PATS_V0_23_2,   // V3.1 crypto + revoke RC on removeActivation
+    PATS_V0_24,     // V3.1 crypto + Activation OTP
+    PATS_V1_0,      // V3.1 crypto + Activation OTP
+    PATS_V1_1,      // V3.1 crypto + Activation OTP
+    PATS_V1_2,      // V3.1 crypto + Activation OTP
+    PATS_V1_2_5,    // V3.1 crypto + Activation OTP
+    PATS_V1_3,      // V3.1 crypto + Activation OTP, applicationId as String
 };
 
 /**
  The `PowerAuthProtocolVersion` defines version of PowerAuth Protocol.
  */
 typedef NS_ENUM(int, PowerAuthProtocolVersion) {
-	PATS_P2,		// V2 crypto
-	PATS_P3,		// V3 crypto
-	PATS_P31,		// V3.1 crypto
+    PATS_P2,        // V2 crypto
+    PATS_P3,        // V3 crypto
+    PATS_P31,       // V3.1 crypto
 };
 
 /**

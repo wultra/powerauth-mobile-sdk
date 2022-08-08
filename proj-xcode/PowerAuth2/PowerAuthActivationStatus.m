@@ -21,27 +21,27 @@
 
 @implementation PowerAuthActivationStatus
 {
-	PowerAuthCoreActivationStatus * _Nonnull _status;
+    PowerAuthCoreActivationStatus * _Nonnull _status;
 }
 
 - (PowerAuthActivationState) state
 {
-	return (PowerAuthActivationState) _status.state;
+    return (PowerAuthActivationState) _status.state;
 }
 
 - (UInt32) failCount
 {
-	return _status.failCount;
+    return _status.failCount;
 }
 
 - (UInt32) maxFailCount
 {
-	return _status.maxFailCount;
+    return _status.maxFailCount;
 }
 
 - (UInt32) remainingAttempts
 {
-	return _status.remainingAttempts;
+    return _status.remainingAttempts;
 }
 
 @end
@@ -49,39 +49,39 @@
 @implementation PowerAuthActivationStatus (Private)
 
 - (instancetype) initWithCoreStatus:(PowerAuthCoreActivationStatus *)status
-					   customObject:(NSDictionary<NSString *,NSObject *> *)customObject
+                       customObject:(NSDictionary<NSString *,NSObject *> *)customObject
 {
-	self = [super init];
-	if (self) {
-		_status = status;
-		_customObject = customObject;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _status = status;
+        _customObject = customObject;
+    }
+    return self;
 }
 
 - (UInt8) currentActivationVersion
 {
-	return _status.currentActivationVersion;
+    return _status.currentActivationVersion;
 }
 
 - (UInt8) upgradeActivationVersion
 {
-	return _status.upgradeActivationVersion;
+    return _status.upgradeActivationVersion;
 }
 
 - (BOOL) isProtocolUpgradeAvailable
 {
-	return _status.isProtocolUpgradeAvailable;
+    return _status.isProtocolUpgradeAvailable;
 }
 
 - (BOOL) isSignatureCalculationRecommended
 {
-	return _status.isSignatureCalculationRecommended;
+    return _status.isSignatureCalculationRecommended;
 }
 
 - (BOOL) needsSerializeSessionState
 {
-	return _status.needsSerializeSessionState;
+    return _status.needsSerializeSessionState;
 }
 
 @end

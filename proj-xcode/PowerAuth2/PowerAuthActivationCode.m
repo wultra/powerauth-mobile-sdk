@@ -18,31 +18,31 @@
 
 @implementation PowerAuthActivationCode
 {
-	PowerAuthCoreOtp * _coreActivationCode;
+    PowerAuthCoreOtp * _coreActivationCode;
 }
 
 - (id) initWithCoreActivationCode:(PowerAuthCoreOtp*)otp
 {
-	self = [super init];
-	if (self) {
-		_coreActivationCode = otp;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _coreActivationCode = otp;
+    }
+    return self;
 }
 
 - (PowerAuthCoreOtp*) coreActivationCode
 {
-	return _coreActivationCode;
+    return _coreActivationCode;
 }
 
 - (NSString*) activationCode
 {
-	return _coreActivationCode.activationCode;
+    return _coreActivationCode.activationCode;
 }
 
 - (NSString*) activationSignature
 {
-	return _coreActivationCode.activationSignature;
+    return _coreActivationCode.activationSignature;
 }
 
 @end
@@ -53,37 +53,37 @@
 
 + (BOOL) validateTypedCharacter:(UInt32)utfCodepoint
 {
-	return [PowerAuthCoreOtpUtil validateTypedCharacter:utfCodepoint];
+    return [PowerAuthCoreOtpUtil validateTypedCharacter:utfCodepoint];
 }
 
 + (UInt32) validateAndCorrectTypedCharacter:(UInt32)utfCodepoint
 {
-	return [PowerAuthCoreOtpUtil validateAndCorrectTypedCharacter:utfCodepoint];
+    return [PowerAuthCoreOtpUtil validateAndCorrectTypedCharacter:utfCodepoint];
 }
 
 + (BOOL) validateActivationCode:(NSString*)activationCode
 {
-	return [PowerAuthCoreOtpUtil validateActivationCode:activationCode];
+    return [PowerAuthCoreOtpUtil validateActivationCode:activationCode];
 }
 
 + (BOOL) validateRecoveryCode:(NSString*)recoveryCode
 {
-	return [PowerAuthCoreOtpUtil validateRecoveryCode:recoveryCode];
+    return [PowerAuthCoreOtpUtil validateRecoveryCode:recoveryCode];
 }
 
 + (BOOL) validateRecoveryPuk:(NSString*)recoveryCode
 {
-	return [PowerAuthCoreOtpUtil validateRecoveryPuk:recoveryCode];
+    return [PowerAuthCoreOtpUtil validateRecoveryPuk:recoveryCode];
 }
 
 + (PowerAuthActivationCode*) parseFromActivationCode:(NSString*)activationCode
 {
-	return [[PowerAuthCoreOtpUtil parseFromActivationCode:activationCode] toSdkActivationCode];
+    return [[PowerAuthCoreOtpUtil parseFromActivationCode:activationCode] toSdkActivationCode];
 }
 
 + (PowerAuthActivationCode*) parseFromRecoveryCode:(NSString*)recoveryCode
 {
-	return [[PowerAuthCoreOtpUtil parseFromRecoveryCode:recoveryCode] toSdkActivationCode];
+    return [[PowerAuthCoreOtpUtil parseFromRecoveryCode:recoveryCode] toSdkActivationCode];
 }
 
 @end
@@ -94,7 +94,7 @@
 
 - (PowerAuthActivationCode*) toSdkActivationCode
 {
-	return [[PowerAuthActivationCode alloc] initWithCoreActivationCode:self];
+    return [[PowerAuthActivationCode alloc] initWithCoreActivationCode:self];
 }
 
 @end

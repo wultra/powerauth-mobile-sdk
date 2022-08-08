@@ -44,8 +44,8 @@
  when the request can be signed during the pending protocol upgrade.
  */
 - (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
-												authentication:(PowerAuthAuthentication*)authentication
-														 error:(NSError**)error;
+                                                authentication:(PowerAuthAuthentication*)authentication
+                                                         error:(NSError**)error;
 
 @end
 

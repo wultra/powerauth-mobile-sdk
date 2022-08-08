@@ -20,15 +20,15 @@
  AsyncHelper allows you to linearize execution of any asynchronous operation.
  The typical usage pattern for this class looks like this:
  
-	 id result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper * waiting) {
-		// Start any asynchronous operation in the block
-		Operation * op = [YourClass yourAsyncOperation:^(BOOL success) {
-			// This is a completion block for your async operation
-			[waiting reportCompletion:@"SUCCESS"];
-		}];
-		[op start];
-	 }];
-	 NSLog(@"Operation ended with %@", result);		// Will print: "Operation ended with: SUCCESS"
+     id result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper * waiting) {
+        // Start any asynchronous operation in the block
+        Operation * op = [YourClass yourAsyncOperation:^(BOOL success) {
+            // This is a completion block for your async operation
+            [waiting reportCompletion:@"SUCCESS"];
+        }];
+        [op start];
+     }];
+     NSLog(@"Operation ended with %@", result);     // Will print: "Operation ended with: SUCCESS"
 
  WARNING: Do not use this class in the production application. The internal implementation is
           sufficient for the testing purposes, but it's still kind of multithread anti-pattern.
@@ -56,7 +56,7 @@
  The method returns the same |resultObject| as you previously passed to `-reportCompletion:`.
  */
 + (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
-							   wait:(NSTimeInterval)interval;
+                               wait:(NSTimeInterval)interval;
 
 /**
  Reports completion to a waiting object and breaks the waiting loop. The result can be reported
@@ -97,7 +97,7 @@
  Increment counter and if limit is reached, then call block.
  */
 - (int32_t) incrementUpTo:(int32_t)limit
-			   completion:(void(^)(void))block;
+               completion:(void(^)(void))block;
 /**
  The current value of the counter.
  */

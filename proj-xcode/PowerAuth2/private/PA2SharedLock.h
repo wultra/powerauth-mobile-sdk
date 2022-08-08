@@ -28,7 +28,7 @@
  for multiple times from the same thread.
  */
 - (nullable instancetype) initWithPath:(nonnull NSString*)path
-							 recursive:(BOOL)recursive;
+                             recursive:(BOOL)recursive;
 
 /**
  Attempts to acquire a lock, and immediately returns a Boolean value that indicates

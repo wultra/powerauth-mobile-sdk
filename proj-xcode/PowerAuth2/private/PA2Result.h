@@ -44,7 +44,7 @@
  Create result object with success and associated data.
  */
 + (nonnull PA2Result<ResultType>*) success:(nonnull ResultType)result
-								  withData:(nonnull id)data;
+                                  withData:(nonnull id)data;
 /**
  Create result object with failure.
  */
@@ -54,7 +54,7 @@
  Create result object with failure and associated data.
  */
 + (nonnull PA2Result<ResultType>*) failure:(nonnull ResultType)result
-								  withData:(nonnull id)data;
+                                  withData:(nonnull id)data;
 
 /**
  Return result and set error to provided NSError pointer in case result is failure.

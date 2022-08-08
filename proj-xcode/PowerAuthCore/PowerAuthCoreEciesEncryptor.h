@@ -35,8 +35,8 @@
  The initialized instance can be used for both encryption and decryption tasks.
  */
 - (nullable instancetype) initWithPublicKey:(nonnull NSData*)publicKey
-								sharedInfo1:(nullable NSData*)sharedInfo1
-								sharedInfo2:(nullable NSData*)sharedInfo2;
+                                sharedInfo1:(nullable NSData*)sharedInfo1
+                                sharedInfo2:(nullable NSData*)sharedInfo2;
 
 /**
  Returns a new instance of PowerAuthCoreEciesEncryptor, suitable only for data decryption or nil if current encryptor is not
@@ -111,7 +111,7 @@
  Returns YES if encryption succeeded or NO in case of error.
  */
 - (BOOL) encryptRequest:(nullable NSData *)data
-			 completion:(void (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreEciesCryptogram * _Nullable cryptogram, PowerAuthCoreEciesEncryptor * _Nullable decryptor))completion;
+             completion:(void (NS_NOESCAPE ^_Nonnull)(PowerAuthCoreEciesCryptogram * _Nullable cryptogram, PowerAuthCoreEciesEncryptor * _Nullable decryptor))completion;
 
 
 #pragma mark Associated metadata
@@ -187,7 +187,7 @@
  Initializes object with required `applicationKey` and with optional `activationIdentifier`
  */
 - (nonnull instancetype) initWithApplicationKey:(nonnull NSString*)applicationKey
-						   activationIdentifier:(nullable NSString*)activationIdentifier;
+                           activationIdentifier:(nullable NSString*)activationIdentifier;
 
 /**
  Contains required application key required for the HTTP header construction.

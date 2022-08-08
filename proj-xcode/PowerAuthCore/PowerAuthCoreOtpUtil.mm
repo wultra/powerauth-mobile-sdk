@@ -23,26 +23,26 @@ using namespace io::getlime::powerAuth;
 
 @implementation PowerAuthCoreOtp
 {
-	OtpComponents _components;
+    OtpComponents _components;
 }
 
 - (id) initWithOtpComponents:(const OtpComponents &)components
 {
-	self = [super init];
-	if (self) {
-		_components = components;
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _components = components;
+    }
+    return self;
 }
 
 - (NSString*) activationCode
 {
-	return cc7::objc::CopyToNSString(_components.activationCode);
+    return cc7::objc::CopyToNSString(_components.activationCode);
 }
 
 - (NSString*) activationSignature
 {
-	return cc7::objc::CopyToNullableNSString(_components.activationSignature);
+    return cc7::objc::CopyToNullableNSString(_components.activationSignature);
 }
 
 @end
@@ -53,47 +53,47 @@ using namespace io::getlime::powerAuth;
 
 + (BOOL) validateTypedCharacter:(UInt32)character
 {
-	return OtpUtil::validateTypedCharacter(character);
+    return OtpUtil::validateTypedCharacter(character);
 }
 
 + (UInt32) validateAndCorrectTypedCharacter:(UInt32)character
 {
-	return OtpUtil::validateAndCorrectTypedCharacter(character);
+    return OtpUtil::validateAndCorrectTypedCharacter(character);
 }
 
 + (BOOL) validateActivationCode:(NSString*)activationCode
 {
-	return OtpUtil::validateActivationCode(cc7::objc::CopyFromNSString(activationCode));
+    return OtpUtil::validateActivationCode(cc7::objc::CopyFromNSString(activationCode));
 }
 
 + (BOOL) validateRecoveryCode:(nonnull NSString*)recoveryCode
 {
-	return OtpUtil::validateRecoveryCode(cc7::objc::CopyFromNSString(recoveryCode));
+    return OtpUtil::validateRecoveryCode(cc7::objc::CopyFromNSString(recoveryCode));
 }
 
 + (BOOL) validateRecoveryPuk:(nonnull NSString*)recoveryPuk
 {
-	return OtpUtil::validateRecoveryPuk(cc7::objc::CopyFromNSString(recoveryPuk));
+    return OtpUtil::validateRecoveryPuk(cc7::objc::CopyFromNSString(recoveryPuk));
 }
 
 + (PowerAuthCoreOtp*) parseFromActivationCode:(NSString*)activationCode
 {
-	auto cppActivationCode = cc7::objc::CopyFromNSString(activationCode);
-	OtpComponents cppComponents;
-	if (OtpUtil::parseActivationCode(cppActivationCode, cppComponents)) {
-		return [[PowerAuthCoreOtp alloc] initWithOtpComponents:cppComponents];
-	}
-	return nil;
+    auto cppActivationCode = cc7::objc::CopyFromNSString(activationCode);
+    OtpComponents cppComponents;
+    if (OtpUtil::parseActivationCode(cppActivationCode, cppComponents)) {
+        return [[PowerAuthCoreOtp alloc] initWithOtpComponents:cppComponents];
+    }
+    return nil;
 }
 
 + (PowerAuthCoreOtp*) parseFromRecoveryCode:(NSString *)recoveryCode
 {
-	auto cppRecoveryCode = cc7::objc::CopyFromNSString(recoveryCode);
-	OtpComponents cppComponents;
-	if (OtpUtil::parseRecoveryCode(cppRecoveryCode, cppComponents)) {
-		return [[PowerAuthCoreOtp alloc] initWithOtpComponents:cppComponents];
-	}
-	return nil;
+    auto cppRecoveryCode = cc7::objc::CopyFromNSString(recoveryCode);
+    OtpComponents cppComponents;
+    if (OtpUtil::parseRecoveryCode(cppRecoveryCode, cppComponents)) {
+        return [[PowerAuthCoreOtp alloc] initWithOtpComponents:cppComponents];
+    }
+    return nil;
 }
 
 @end

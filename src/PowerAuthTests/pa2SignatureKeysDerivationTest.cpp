@@ -27,45 +27,45 @@ namespace getlime
 {
 namespace powerAuthTests
 {
-	extern TestDirectory g_pa2Files;
-	
-	class pa2SignatureKeysDerivationTest : public UnitTest
-	{
-	public:
-		pa2SignatureKeysDerivationTest()
-		{
-			CC7_REGISTER_TEST_METHOD(testKeyDerivation)
-		}
-		
-		void testKeyDerivation()
-		{
-			JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/compute-derived-keys.json");
-			auto&& data = root.arrayAtPath("data");
-			for (const JSONValue & item : data) {
-				ByteArray masterSecret   = item.dataFromBase64StringAtPath("input.masterSecretKey");
-				ByteArray outPosssession = item.dataFromBase64StringAtPath("output.signaturePossessionKey");
-				ByteArray outKnowledge   = item.dataFromBase64StringAtPath("output.signatureKnowledgeKey");
-				ByteArray outBiometry    = item.dataFromBase64StringAtPath("output.signatureBiometryKey");
-				ByteArray outTransport   = item.dataFromBase64StringAtPath("output.transportKey");
-				ByteArray outVault       = item.dataFromBase64StringAtPath("output.vaultEncryptionKey");
-				
-				protocol::SignatureKeys keys;
-				ByteArray vault_key;
-				bool result = protocol::DeriveAllSecretKeys(keys, vault_key, masterSecret);
-				ccstAssertTrue(result);
-				
-				ccstAssertEqual(keys.possessionKey, outPosssession);
-				ccstAssertEqual(keys.knowledgeKey, outKnowledge);
-				ccstAssertEqual(keys.biometryKey, outBiometry);
-				ccstAssertEqual(keys.transportKey, outTransport);
-				ccstAssertEqual(vault_key, outVault);
+    extern TestDirectory g_pa2Files;
+    
+    class pa2SignatureKeysDerivationTest : public UnitTest
+    {
+    public:
+        pa2SignatureKeysDerivationTest()
+        {
+            CC7_REGISTER_TEST_METHOD(testKeyDerivation)
+        }
+        
+        void testKeyDerivation()
+        {
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/compute-derived-keys.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                ByteArray masterSecret   = item.dataFromBase64StringAtPath("input.masterSecretKey");
+                ByteArray outPosssession = item.dataFromBase64StringAtPath("output.signaturePossessionKey");
+                ByteArray outKnowledge   = item.dataFromBase64StringAtPath("output.signatureKnowledgeKey");
+                ByteArray outBiometry    = item.dataFromBase64StringAtPath("output.signatureBiometryKey");
+                ByteArray outTransport   = item.dataFromBase64StringAtPath("output.transportKey");
+                ByteArray outVault       = item.dataFromBase64StringAtPath("output.vaultEncryptionKey");
+                
+                protocol::SignatureKeys keys;
+                ByteArray vault_key;
+                bool result = protocol::DeriveAllSecretKeys(keys, vault_key, masterSecret);
+                ccstAssertTrue(result);
+                
+                ccstAssertEqual(keys.possessionKey, outPosssession);
+                ccstAssertEqual(keys.knowledgeKey, outKnowledge);
+                ccstAssertEqual(keys.biometryKey, outBiometry);
+                ccstAssertEqual(keys.transportKey, outTransport);
+                ccstAssertEqual(vault_key, outVault);
 
-			}
-		}
-	};
-	
-	CC7_CREATE_UNIT_TEST(pa2SignatureKeysDerivationTest, "pa2")
-	
+            }
+        }
+    };
+    
+    CC7_CREATE_UNIT_TEST(pa2SignatureKeysDerivationTest, "pa2")
+    
 } // io::getlime::powerAuthTests
 } // io::getlime
 } // io

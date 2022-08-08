@@ -31,7 +31,7 @@
 @property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
 
 - (void) prepareConfigs:(PowerAuthConfiguration*)configuration
-		 keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
-		   clientConfig:(PowerAuthClientConfiguration*)clientConfiguration;
+         keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
+           clientConfig:(PowerAuthClientConfiguration*)clientConfiguration;
 
 @end

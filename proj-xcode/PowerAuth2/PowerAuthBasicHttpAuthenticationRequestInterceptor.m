@@ -27,13 +27,13 @@
  */
 static NSString * _Nonnull _BasicHttpHeaderValue(NSString *  _Nonnull username, NSString *  _Nonnull password)
 {
-	NSData * payload = [[[username stringByAppendingString:@":"] stringByAppendingString:password] dataUsingEncoding:NSUTF8StringEncoding];
-	return [@"Basic " stringByAppendingString:[payload base64EncodedStringWithOptions:0]];
+    NSData * payload = [[[username stringByAppendingString:@":"] stringByAppendingString:password] dataUsingEncoding:NSUTF8StringEncoding];
+    return [@"Basic " stringByAppendingString:[payload base64EncodedStringWithOptions:0]];
 }
 
 - (instancetype) initWithUsername:(nonnull NSString*)username password:(nonnull NSString*)password
 {
-	return [super initWithHeaderKey:@"Authorization" value:_BasicHttpHeaderValue(username, password)];
+    return [super initWithHeaderKey:@"Authorization" value:_BasicHttpHeaderValue(username, password)];
 }
 
 @end

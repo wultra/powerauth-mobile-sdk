@@ -22,17 +22,17 @@
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
-	self = [super init];
-	if (self) {
-		_activationId 		= PA2ObjectAs(dictionary[@"activationId"], NSString);
-		_serverPublicKey 	= PA2ObjectAs(dictionary[@"serverPublicKey"], NSString);
-		_ctrData			= PA2ObjectAs(dictionary[@"ctrData"], NSString);
-		NSDictionary * arDictionary = PA2ObjectAs(dictionary[@"activationRecovery"], NSDictionary);
-		if (arDictionary) {
-			_activationRecovery = [[PA2CreateActivationRecoveryData alloc] initWithDictionary:arDictionary];
-		}
-	}
-	return self;
+    self = [super init];
+    if (self) {
+        _activationId       = PA2ObjectAs(dictionary[@"activationId"], NSString);
+        _serverPublicKey    = PA2ObjectAs(dictionary[@"serverPublicKey"], NSString);
+        _ctrData            = PA2ObjectAs(dictionary[@"ctrData"], NSString);
+        NSDictionary * arDictionary = PA2ObjectAs(dictionary[@"activationRecovery"], NSDictionary);
+        if (arDictionary) {
+            _activationRecovery = [[PA2CreateActivationRecoveryData alloc] initWithDictionary:arDictionary];
+        }
+    }
+    return self;
 }
 
 @end

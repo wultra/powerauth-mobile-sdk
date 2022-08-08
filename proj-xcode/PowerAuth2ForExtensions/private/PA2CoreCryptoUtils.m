@@ -27,39 +27,39 @@
 
 + (nonnull NSData*) hashSha256:(nonnull NSData*)data
 {
-	unsigned char md[CC_SHA256_DIGEST_LENGTH];
-	CC_SHA256(data.bytes, (CC_LONG)data.length, md);
-	return [NSData dataWithBytes:md length:sizeof(md)];
+    unsigned char md[CC_SHA256_DIGEST_LENGTH];
+    CC_SHA256(data.bytes, (CC_LONG)data.length, md);
+    return [NSData dataWithBytes:md length:sizeof(md)];
 }
 
 + (nonnull NSData*) hmacSha256:(nonnull NSData*)data
-						   key:(nonnull NSData*)key
+                           key:(nonnull NSData*)key
 {
-	char mac[CC_SHA256_DIGEST_LENGTH];
-	CCHmac(kCCHmacAlgSHA256, key.bytes, key.length, data.bytes, data.length, mac);
-	return [NSData dataWithBytes:mac length:sizeof(mac)];
+    char mac[CC_SHA256_DIGEST_LENGTH];
+    CCHmac(kCCHmacAlgSHA256, key.bytes, key.length, data.bytes, data.length, mac);
+    return [NSData dataWithBytes:mac length:sizeof(mac)];
 }
 
 + (nullable NSData*) randomBytes:(NSUInteger)count
 {
-	if (count == 0) {
-		return nil;
-	}
-	NSMutableData * zeros = [NSMutableData dataWithLength:count];
-	NSMutableData * data  = [NSMutableData dataWithLength:count];
-	void * dest_ptr = data.mutableBytes;
-	size_t dest_len = data.length;
-	NSUInteger attempts = 16;
-	while (attempts-- != 0) {
-		if (kCCSuccess != CCRandomGenerateBytes(dest_ptr, dest_len)) {
-			arc4random_buf(dest_ptr, dest_len);
-		}
-		if (![data isEqualToData:zeros]) {
-			return data;
-		}
-	}
-	PowerAuthLog(@"PA2CoreCryptoUtils: Failed to generat %@ random bytes.", @(count));
-	return nil;
+    if (count == 0) {
+        return nil;
+    }
+    NSMutableData * zeros = [NSMutableData dataWithLength:count];
+    NSMutableData * data  = [NSMutableData dataWithLength:count];
+    void * dest_ptr = data.mutableBytes;
+    size_t dest_len = data.length;
+    NSUInteger attempts = 16;
+    while (attempts-- != 0) {
+        if (kCCSuccess != CCRandomGenerateBytes(dest_ptr, dest_len)) {
+            arc4random_buf(dest_ptr, dest_len);
+        }
+        if (![data isEqualToData:zeros]) {
+            return data;
+        }
+    }
+    PowerAuthLog(@"PA2CoreCryptoUtils: Failed to generat %@ random bytes.", @(count));
+    return nil;
 }
 
 @end

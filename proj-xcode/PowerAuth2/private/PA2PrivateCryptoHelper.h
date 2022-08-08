@@ -38,8 +38,8 @@
  Calculates PowerAuth signature for data & endpoint.
  */
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForData:(NSData*)data
-												  endpoint:(PA2RestApiEndpoint*)endpoint
-											authentication:(PowerAuthAuthentication*)authentication
-													 error:(NSError**)error;
+                                                  endpoint:(PA2RestApiEndpoint*)endpoint
+                                            authentication:(PowerAuthAuthentication*)authentication
+                                                     error:(NSError**)error;
 
 @end

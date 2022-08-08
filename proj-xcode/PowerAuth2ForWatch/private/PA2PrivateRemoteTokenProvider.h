@@ -50,8 +50,8 @@
  block was executed synchronously. That typically happens in case of error.
  */
 - (nullable id<PowerAuthOperationTask>) requestTokenWithName:(nonnull NSString*)name
-											  authentication:(nullable PowerAuthAuthentication*)authentication
-												  completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion;
+                                              authentication:(nullable PowerAuthAuthentication*)authentication
+                                                  completion:(nonnull void(^)(PA2PrivateTokenData * _Nullable tokenData, NSError * _Nullable error))completion;
 
 /**
  Removes previously created access token from the remote location.
@@ -60,6 +60,6 @@
  block was executed synchronously. That typically happens in case of error.
  */
 - (nullable id<PowerAuthOperationTask>) removeTokenData:(nonnull PA2PrivateTokenData*)tokenData
-											 completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
+                                             completion:(nonnull void(^)(BOOL removed, NSError * _Nullable error))completion;
 
 @end

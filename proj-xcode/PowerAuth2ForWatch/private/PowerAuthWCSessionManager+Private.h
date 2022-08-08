@@ -61,7 +61,7 @@
  The counterpart device must be reachable, otherwise an error is produced.
  */
 - (void) sendPacketWithResponse:(PA2WCSessionPacket*)packet
-				  responseClass:(Class)responseClass
-					 completion:(void(^)(PA2WCSessionPacket * response, NSError * error))completion;
+                  responseClass:(Class)responseClass
+                     completion:(void(^)(PA2WCSessionPacket * response, NSError * error))completion;
 
 @end

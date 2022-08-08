@@ -24,58 +24,58 @@
  Enum encapsulating possible Keychain query result.
  */
 typedef NS_ENUM(NSInteger, PowerAuthKeychainStoreItemResult) {
-	PowerAuthKeychainStoreItemResult_Ok = 0,
-	PowerAuthKeychainStoreItemResult_BiometryNotAvailable = 1,
-	PowerAuthKeychainStoreItemResult_Duplicate = 2,
-	PowerAuthKeychainStoreItemResult_NotFound = 3,
-	PowerAuthKeychainStoreItemResult_Other = 4,
+    PowerAuthKeychainStoreItemResult_Ok = 0,
+    PowerAuthKeychainStoreItemResult_BiometryNotAvailable = 1,
+    PowerAuthKeychainStoreItemResult_Duplicate = 2,
+    PowerAuthKeychainStoreItemResult_NotFound = 3,
+    PowerAuthKeychainStoreItemResult_Other = 4,
 };
 
 /**
  Enum encapsulating supported biometric authentication types.
  */
 typedef NS_ENUM(NSInteger, PowerAuthBiometricAuthenticationType) {
-	/**
-	 Biometric authentication is not supported on the current system.
-	 */
-	PowerAuthBiometricAuthenticationType_None,
-	/**
-	 Touch ID is supported on the current system.
-	 */
-	PowerAuthBiometricAuthenticationType_TouchID,
-	/**
-	 Face ID is supported on the current system.
-	 */
-	PowerAuthBiometricAuthenticationType_FaceID,
+    /**
+     Biometric authentication is not supported on the current system.
+     */
+    PowerAuthBiometricAuthenticationType_None,
+    /**
+     Touch ID is supported on the current system.
+     */
+    PowerAuthBiometricAuthenticationType_TouchID,
+    /**
+     Face ID is supported on the current system.
+     */
+    PowerAuthBiometricAuthenticationType_FaceID,
 };
 
 /**
  Enum encapsulating status of biometric authentication on the system.
  */
 typedef NS_ENUM(NSInteger, PowerAuthBiometricAuthenticationStatus) {
-	/**
-	 Biometric authentication is not present on the system
-	 */
-	PowerAuthBiometricAuthenticationStatus_NotSupported,
-	/**
-	 Biometric authentication is available on the system, but for an unknown
-	 reason is not available right now. This may happen on iOS 11+, when an
-	 unknown error is returned from `LAContext.canEvaluatePolicy()`.
-	 */
-	PowerAuthBiometricAuthenticationStatus_NotAvailable,
-	/**
-	 Biometric authentication is supported, but not enrolled on the system.
-	 */
-	PowerAuthBiometricAuthenticationStatus_NotEnrolled,
-	/**
-	 Biometric authentication is supported, but too many failed attempts caused its lockout.
-	 User has to authenticate with the password or passcode.
-	 */
-	PowerAuthBiometricAuthenticationStatus_Lockout,
-	/**
-	 Biometric authentication is supported and can be evaluated on the system.
-	 */
-	PowerAuthBiometricAuthenticationStatus_Available,
+    /**
+     Biometric authentication is not present on the system
+     */
+    PowerAuthBiometricAuthenticationStatus_NotSupported,
+    /**
+     Biometric authentication is available on the system, but for an unknown
+     reason is not available right now. This may happen on iOS 11+, when an
+     unknown error is returned from `LAContext.canEvaluatePolicy()`.
+     */
+    PowerAuthBiometricAuthenticationStatus_NotAvailable,
+    /**
+     Biometric authentication is supported, but not enrolled on the system.
+     */
+    PowerAuthBiometricAuthenticationStatus_NotEnrolled,
+    /**
+     Biometric authentication is supported, but too many failed attempts caused its lockout.
+     User has to authenticate with the password or passcode.
+     */
+    PowerAuthBiometricAuthenticationStatus_Lockout,
+    /**
+     Biometric authentication is supported and can be evaluated on the system.
+     */
+    PowerAuthBiometricAuthenticationStatus_Available,
 };
 
 /**
@@ -83,15 +83,15 @@ typedef NS_ENUM(NSInteger, PowerAuthBiometricAuthenticationStatus) {
  supported type of biometry and its current status on the system.
  */
 typedef struct PowerAuthBiometricAuthenticationInfo {
-	/**
-	 Current status of supported biometry on the system.
-	 */
-	PowerAuthBiometricAuthenticationStatus currentStatus;
-	/**
-	 Type of supported biometric authentication on the system.
-	 */
-	PowerAuthBiometricAuthenticationType biometryType;
-	
+    /**
+     Current status of supported biometry on the system.
+     */
+    PowerAuthBiometricAuthenticationStatus currentStatus;
+    /**
+     Type of supported biometric authentication on the system.
+     */
+    PowerAuthBiometricAuthenticationType biometryType;
+    
 } PowerAuthBiometricAuthenticationInfo;
 
 
@@ -99,23 +99,23 @@ typedef struct PowerAuthBiometricAuthenticationInfo {
  Enum encapsulating type of additional protection of item stored in the keychain.
  */
 typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
-	/**
-	 No additional authentication is required to access the item.
-	 */
-	PowerAuthKeychainItemAccess_None,
-	/**
-	 Constraint to access an item with Touch ID for currently enrolled fingers,
-	 or from Face ID with the currently enrolled user.
-	 */
-	PowerAuthKeychainItemAccess_CurrentBiometricSet,
-	/**
-	 Constraint to access an item with Touch ID for any enrolled fingers, or Face ID.
-	 */
-	PowerAuthKeychainItemAccess_AnyBiometricSet,
-	/**
-	 Constraint to access an item with any enrolled biometry or device's passcode.
-	 */
-	PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode,
+    /**
+     No additional authentication is required to access the item.
+     */
+    PowerAuthKeychainItemAccess_None,
+    /**
+     Constraint to access an item with Touch ID for currently enrolled fingers,
+     or from Face ID with the currently enrolled user.
+     */
+    PowerAuthKeychainItemAccess_CurrentBiometricSet,
+    /**
+     Constraint to access an item with Touch ID for any enrolled fingers, or Face ID.
+     */
+    PowerAuthKeychainItemAccess_AnyBiometricSet,
+    /**
+     Constraint to access an item with any enrolled biometry or device's passcode.
+     */
+    PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode,
 };
 
 /** Simple wrapper on top of an iOS Keychain.
@@ -155,7 +155,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Operation result.
  */
 - (PowerAuthKeychainStoreItemResult) addValue:(nonnull NSData*)data
-									   forKey:(nonnull NSString*)key;
+                                       forKey:(nonnull NSString*)key;
 
 /**
  Store data for given key in the Keychain synchronously.
@@ -170,8 +170,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Operation result.
 */
 - (PowerAuthKeychainStoreItemResult) addValue:(nonnull NSData*)data
-									   forKey:(nonnull NSString*)key
-									   access:(PowerAuthKeychainItemAccess)access;
+                                       forKey:(nonnull NSString*)key
+                                       access:(PowerAuthKeychainItemAccess)access;
 
 /**
  Updates data for given key in the Keychain synchronously. If a value for given key does not exist, 'PowerAuthKeychainStoreItemResult_NotFound' is returned.
@@ -181,7 +181,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Operation result.
  */
 - (PowerAuthKeychainStoreItemResult) updateValue:(nonnull NSData*)data
-										  forKey:(nonnull NSString*)key;
+                                          forKey:(nonnull NSString*)key;
 
 /** Removes a record with a specified key synchronously.
  
@@ -209,8 +209,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Data for given key, or 'nil' in case no data are present or when an error occurred.
  */
 - (nullable NSData*) dataForKey:(nonnull NSString *)key
-						 status:(nullable OSStatus *)status
-				 authentication:(nullable PowerAuthKeychainAuthentication*)authentication;
+                         status:(nullable OSStatus *)status
+                 authentication:(nullable PowerAuthKeychainAuthentication*)authentication;
 
 /**
  Retrieve the data for given key in the Keychain synchronously.
@@ -220,7 +220,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Data for given key, or 'nil' in case no data are present or when an error occurred.
  */
 - (nullable NSData*) dataForKey:(nonnull NSString*)key
-						 status:(nullable OSStatus *)status;
+                         status:(nullable OSStatus *)status;
 
 /**
  Checks if a value exists for given key in Keychain synchronously.
@@ -249,10 +249,10 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param authentication Keychain authentication in case that items are protected with biometry.
  @param status Status that was returned when obtaining keychain item.
  @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
-		 operation is cancelled or any error occurs.
+         operation is cancelled or any error occurs.
  */
 - (nullable NSDictionary*) allItemsWithAuthentication:(nullable PowerAuthKeychainAuthentication*)authentication
-										   withStatus:(nullable OSStatus *)status;
+                                           withStatus:(nullable OSStatus *)status;
 /**
  Convenience static property that checks if Touch ID or Face ID can be used on the current system.
  
@@ -311,8 +311,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the operation result.
  */
 - (void) addValue:(nonnull NSData*)data
-		   forKey:(nonnull NSString*)key
-	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+           forKey:(nonnull NSString*)key
+       completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Store data for given key in the Keychain asynchronously, return the result in a callback.
@@ -329,9 +329,9 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the operation result.
  */
 - (void) addValue:(nonnull NSData*)data
-		   forKey:(nonnull NSString*)key
-		   access:(PowerAuthKeychainItemAccess)access
-	   completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+           forKey:(nonnull NSString*)key
+           access:(PowerAuthKeychainItemAccess)access
+       completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Updates data for given key in the Keychain asynchronously, returns the result in a callback. If a value for given key does not exist,
@@ -344,8 +344,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the operation result.
  */
 - (void) updateValue:(nonnull NSData*)data
-			  forKey:(nonnull NSString*)key
-		  completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
+              forKey:(nonnull NSString*)key
+          completion:(nonnull void(^)(PowerAuthKeychainStoreItemResult status))completion PA2_DEPRECATED(1.7.0);
 
 /** Removes a record with a specified key asynchronously, returns the result in a callback.
  
@@ -355,7 +355,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the operation result - YES if the record was deleted, NO otherwise.
  */
 - (void) deleteDataForKey:(nonnull NSString*)key
-			   completion:(nonnull void(^)(BOOL deleted))completion PA2_DEPRECATED(1.7.0);
+               completion:(nonnull void(^)(BOOL deleted))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Retrieve the data for given key in the Keychain synchronously, in case record requires Touch ID, use given prompt in the dialog.
@@ -368,8 +368,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @return Data for given key, or 'nil' in case no data are present or when an error occurred.
  */
 - (nullable NSData*) dataForKey:(nonnull NSString *)key
-						 status:(nullable OSStatus *)status
-						 prompt:(nullable NSString*)prompt PA2_DEPRECATED(1.7.0);
+                         status:(nullable OSStatus *)status
+                         prompt:(nullable NSString*)prompt PA2_DEPRECATED(1.7.0);
 
 /**
  Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
@@ -381,8 +381,8 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the retrieved data.
  */
 - (void) dataForKey:(nonnull NSString*)key
-			 prompt:(nullable NSString*)prompt
-		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
+             prompt:(nullable NSString*)prompt
+         completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Retrieve the data for given key in the Keychain asynchronously, return result in a callback.
@@ -393,7 +393,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the retrieved data.
  */
 - (void) dataForKey:(nonnull NSString*)key
-		 completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
+         completion:(nonnull void(^)(NSData * _Nullable data, OSStatus status))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Checks if a value exists for given key in Keychain asynchronously, return result in a callback.
@@ -404,7 +404,7 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param completion Callback with the information about value presence.
  */
 - (void) containsDataForKey:(nonnull NSString*)key
-				 completion:(nonnull void(^)(BOOL containsValue))completion PA2_DEPRECATED(1.7.0);
+                 completion:(nonnull void(^)(BOOL containsValue))completion PA2_DEPRECATED(1.7.0);
 
 /**
  Return all items that are stored in this Keychain.
@@ -417,9 +417,9 @@ typedef NS_ENUM(NSInteger, PowerAuthKeychainItemAccess) {
  @param prompt Prompt displayed in case that Touch ID authentication is required.
  @param status Status that was returned when obtaining keychain item.
  @return Dictionary with all keychain items (account name as a key, secret as a value), or null of there are no items,
-		 operation is cancelled or any error occurs.
+         operation is cancelled or any error occurs.
  */
 - (nullable NSDictionary*) allItemsWithPrompt:(nullable NSString*)prompt
-								   withStatus:(nullable OSStatus *)status PA2_DEPRECATED(1.7.0);
+                                   withStatus:(nullable OSStatus *)status PA2_DEPRECATED(1.7.0);
 
 @end

@@ -32,15 +32,15 @@ namespace powerAuth
 namespace crypto
 {
 
-	// Simple CBC
-	cc7::ByteArray AES_CBC_Decrypt(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
-	cc7::ByteArray AES_CBC_Encrypt(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
-	
-	// CBC + PKCS7 padding
-	cc7::ByteArray AES_CBC_Decrypt_Padding(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data, bool * error = nullptr);
-	cc7::ByteArray AES_CBC_Encrypt_Padding(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
+    // Simple CBC
+    cc7::ByteArray AES_CBC_Decrypt(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
+    cc7::ByteArray AES_CBC_Encrypt(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
+    
+    // CBC + PKCS7 padding
+    cc7::ByteArray AES_CBC_Decrypt_Padding(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data, bool * error = nullptr);
+    cc7::ByteArray AES_CBC_Encrypt_Padding(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data);
 
-	
+    
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

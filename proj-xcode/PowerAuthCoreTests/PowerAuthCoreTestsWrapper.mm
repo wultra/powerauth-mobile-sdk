@@ -31,27 +31,27 @@ using namespace cc7;
 
 @implementation PowerAuthCoreTestsWrapper
 {
-	tests::TestManager * _manager;
+    tests::TestManager * _manager;
 }
 
 - (void) dealloc
 {
-	tests::TestManager::releaseManager(_manager);
-	_manager = nullptr;
+    tests::TestManager::releaseManager(_manager);
+    _manager = nullptr;
 }
 
 - (void) setUp
 {
-	_manager = tests::TestManager::createDefaultManager();
-	_manager->addUnitTestList(io::getlime::powerAuthTests::GetPowerAuthTestCreationInfoList());
-	_manager->tl().setDumpToSystemLogEnabled(true);
-	_manager->setLogCapturingEnabled(true);
+    _manager = tests::TestManager::createDefaultManager();
+    _manager->addUnitTestList(io::getlime::powerAuthTests::GetPowerAuthTestCreationInfoList());
+    _manager->tl().setDumpToSystemLogEnabled(true);
+    _manager->setLogCapturingEnabled(true);
 }
 
 - (void) tearDown
 {
-	tests::TestManager::releaseManager(_manager);
-	_manager = nullptr;
+    tests::TestManager::releaseManager(_manager);
+    _manager = nullptr;
 }
 
 /**
@@ -62,18 +62,18 @@ using namespace cc7;
  */
 - (BOOL) runTestWithFilter:(const char *)included excluded:(const char *)excluded testName:(const char*)name
 {
-	if (name) {
-		_manager->setTestManagerName(std::string(name));
-	}
-	bool result = _manager->runTestsWithFilter(std::string(included), std::string(excluded));
-	tests::TestLogData log_data = _manager->tl().logData();
-	if (!result) {
-		NSLog(@"Incidents:\n%@", [NSString stringWithUTF8String:log_data.incidents.c_str()]);
-	}
-	NSLog(@"Full test log\n");
-	_manager->tl().printLog();
+    if (name) {
+        _manager->setTestManagerName(std::string(name));
+    }
+    bool result = _manager->runTestsWithFilter(std::string(included), std::string(excluded));
+    tests::TestLogData log_data = _manager->tl().logData();
+    if (!result) {
+        NSLog(@"Incidents:\n%@", [NSString stringWithUTF8String:log_data.incidents.c_str()]);
+    }
+    NSLog(@"Full test log\n");
+    _manager->tl().printLog();
 
-	return result;
+    return result;
 }
 
 /**
@@ -81,8 +81,8 @@ using namespace cc7;
  */
 - (void) testRunCC7Tests
 {
-	BOOL result = [self runTestWithFilter:"cc7" excluded:"" testName:nullptr];
-	XCTAssertTrue(result);
+    BOOL result = [self runTestWithFilter:"cc7" excluded:"" testName:nullptr];
+    XCTAssertTrue(result);
 }
 
 /**
@@ -90,8 +90,8 @@ using namespace cc7;
  */
 - (void) testRunPA2Tests
 {
-	BOOL result = [self runTestWithFilter:"pa2" excluded:"" testName:"PowerAuth"];
-	XCTAssertTrue(result);
+    BOOL result = [self runTestWithFilter:"pa2" excluded:"" testName:"PowerAuth"];
+    XCTAssertTrue(result);
 }
 
 @end

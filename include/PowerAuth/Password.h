@@ -75,9 +75,9 @@ namespace powerAuth
         size_t length() const;
         
         /**
-         Returns reference to plaintext password data.
+         Returns copy of plaintext password data.
          */
-        const cc7::ByteArray & passwordData() const;
+        cc7::ByteArray passwordData() const;
         
         /**
          Returns true when both objects contains equal passphrase.
@@ -128,7 +128,10 @@ namespace powerAuth
         typedef std::vector<size_t> PosVector;
         
         /**
-         Passphrase
+         Buffer with passphrase, where first `randomKeySize` bytes represents
+         a key for simple XOR cipher. The rest of the _pass array
+         contains actual password XOR'ed with the key. See `inplaceXor()`
+         function for more details.
          */
         cc7::ByteArray  _pass;
         
@@ -149,12 +152,20 @@ namespace powerAuth
          */
         void updateIndexes(size_t begin, ptrdiff_t offset);
         
+        // MARK: Password protection
+        
+        /**
+         Size of key for XOR function.
+         */
+        const size_t randomKeySize = 16;
+        
+        /**
+         Modify _pass buffer from begin position to the end of the buffer,
+         by xoring with appropriate value from range <0, randomKeySize).
+         */
+        void inplaceXor(size_t begin);
     };
-    
-    
-    
 
-    
 } // io::getlime::powerAuth
 } // io::getlime
 } // io

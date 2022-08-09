@@ -16,6 +16,10 @@
 
 package io.getlime.security.powerauth.core;
 
+import java.util.Arrays;
+
+import androidx.annotation.NonNull;
+
 /**
  * The {@code Password} is an object representing an arbitrary passphrase. The underlying implementation
  * guarantees that the sensitive information is cleared from the memory when the object is destroyed.
@@ -84,7 +88,7 @@ public class Password {
      * the full password already prepared and you want to pass it to the Session
      * as a parameter.
      *
-     * @param passphrase string with password
+     * @param passphrase string with password.
      */
     public Password(String passphrase) {
         this.handle = this.initPassword(passphrase, null);
@@ -142,8 +146,7 @@ public class Password {
      * Internal JNI destroy. You have to provide handle created during the initialization.
      */
     private native void destroy(long handle);
-    
-    
+
     //
     // Methods for immutable operations
     //
@@ -167,7 +170,16 @@ public class Password {
      * @return true when this object and another password object contains equal passphrase.
      */
     public native boolean isEqualToPassword(Password anotherPassword);
-    
+
+    public boolean equals(Object anObject) {
+        if (this == anObject) {
+            return true;
+        }
+        if (anObject instanceof Password) {
+            return isEqualToPassword((Password) anObject);
+        }
+        return false;
+    }
     
     //
     // Mutable operations
@@ -218,4 +230,52 @@ public class Password {
      *         mutable, or index is out of the range.
      */
     public native boolean removeCharacter(int index);
+
+    //
+    // Password complexity validation
+    //
+
+    /**
+     * Function provide password in the plaintext form. It's expected that function that acquire
+     * plaintext password does safe content cleanup after the array is no longer needed.
+     *
+     * @return Array of bytes with plaintext password.
+     */
+    private native byte[] getPlaintextPassword();
+
+    /**
+     * The {@code IPasswordComplexityValidator} provides simple interface to validate password
+     * complexity.
+     */
+    public interface IPasswordComplexityValidator {
+        /**
+         * Method is called from {@link Password#validatePasswordComplexity(IPasswordComplexityValidator)}
+         * function to determine the complexity of the stored password. The PowerAuth SDK doesn't provide
+         * such functionality, so it's up to your application to implement the actual validation.
+         *
+         * @param passwordBytes Array of bytes with plaintext password. It's not recommended to copy
+         *                      the plaintext password to another array or to the String, to minimize
+         *                      traces of the password in the memory.
+         * @return Value representing a complexity of password. The actual meaning is up to the provided
+         * implementation.
+         */
+        int validatePasswordComplexity(@NonNull byte[] passwordBytes);
+    }
+
+    /**
+     * Validate complexity of stored password. The function
+     * @param complexityValidator Object that implement password complexity validation.
+     * @return Value returned from the complexity validation.
+     * @throws IllegalStateException in case that underlying C++ object is already destroyed.
+     */
+    public int validatePasswordComplexity(@NonNull IPasswordComplexityValidator complexityValidator) {
+        final byte[] passwordBytes = getPlaintextPassword();
+        if (passwordBytes == null) {
+            throw new IllegalStateException("Password object is no longer valid");
+        }
+        final int result = complexityValidator.validatePasswordComplexity(passwordBytes);
+        // cleanup array of bytes
+        Arrays.fill(passwordBytes, (byte) 0);
+        return result;
+    }
 }

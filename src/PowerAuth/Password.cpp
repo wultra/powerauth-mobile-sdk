@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Password.h>
 #include <iterator>
+#include "crypto/PRNG.h"
 
 namespace io
 {
@@ -76,7 +77,12 @@ namespace powerAuth
         // We're very paranoid here, Let's clear previous content
         // and assign new one
         _pass.secureClear();
-        _pass.assign(data);
+        _pass.assign(crypto::GetRandomData(randomKeySize * 2));
+        _pass.resize(randomKeySize);
+        // Now append the plaintext data
+        _pass.append(data);
+        // And finally, hide the stored content.
+        inplaceXor(randomKeySize);
     }
     
     void Password::initAsMutable()
@@ -87,6 +93,11 @@ namespace powerAuth
             _char_pos = new PosVector();
         }
         _pass.secureClear();
+        // Generate twice as required random bytes
+        _pass.assign(crypto::GetRandomData(randomKeySize * 2));
+        // Resize buffer to randomKeySize, so the mutable
+        // password will be empty.
+        _pass.resize(randomKeySize);
     }
     
     
@@ -102,18 +113,25 @@ namespace powerAuth
         if (isMutable()) {
             return _char_pos->size();
         } else {
-            return _pass.size();
+            return _pass.size() - randomKeySize;
         }
     }
     
-    const cc7::ByteArray & Password::passwordData() const
+    cc7::ByteArray Password::passwordData() const
     {
-        return _pass;
+        // Pre-allos result ByteArray with actual stored data size.
+        const size_t data_size = _pass.size() - randomKeySize;
+        cc7::ByteArray plaintext(data_size);
+        // Reveal plaintext bytes to result ByteArray
+        for (size_t offset = 0; offset < data_size; ++offset) {
+            plaintext[offset] = _pass[offset % randomKeySize] ^ _pass[offset + randomKeySize];
+        }
+        return plaintext;
     }
     
     bool Password::isEqualToPassword(const Password & p) const
     {
-        return _pass == p.passwordData();
+        return passwordData() == p.passwordData();
     }
     
     
@@ -121,7 +139,7 @@ namespace powerAuth
     
     bool Password::clear()
     {
-        if (CC7_CHECK(isMutable(), "Object is immutable")) {
+        if (isMutable()) {
             initAsMutable();
             return true;
         }
@@ -130,14 +148,17 @@ namespace powerAuth
     
     bool Password::addCharacter(cc7::U32 utf_codepoint)
     {
-        if (CC7_CHECK(isMutable(), "Object is immutable")) {
+        if (isMutable()) {
             cc7::ByteArray bytes;
             bytes.reserve(4);
             if (CC7_CHECK(_UTF8Encode(utf_codepoint, bytes), "Wrong codepoint")) {
                 // store current position (e.g. current size of pass)
-                _char_pos->push_back(_pass.size());
+                size_t offset = _pass.size();
+                _char_pos->push_back(offset);
                 // append bytes...
                 _pass.append(bytes);
+                // Hide bytes from offset to the end
+                inplaceXor(offset);
                 return true;
             }
         }
@@ -146,16 +167,20 @@ namespace powerAuth
     
     bool Password::insertCharacter(cc7::U32 utf_codepoint, size_t index)
     {
-        if (CC7_CHECK(isMutable(), "Object is immutable")) {
-            if (CC7_CHECK(index <= _char_pos->size(), "Index is out of range")) {
+        if (isMutable()) {
+            if (index <= _char_pos->size()) {
                 cc7::ByteArray bytes;
                 bytes.reserve(4);
                 if (CC7_CHECK(_UTF8Encode(utf_codepoint, bytes), "Wrong codepoint")) {
                     size_t offset = indexToPos(index);
                     // store actual position to the positions
                     _char_pos->insert(_char_pos->begin() + index, offset);
+                    // Reveal bytes from offset to the end
+                    inplaceXor(offset);
                     // insert bytes
                     _pass.insert(_pass.begin() + offset, bytes.begin(), bytes.end());
+                    // Hide bytes from offset to the end
+                    inplaceXor(offset);
                     // update positions after the inserted one
                     updateIndexes(index + 1, bytes.size());
                     return true;
@@ -167,8 +192,8 @@ namespace powerAuth
     
     bool Password::removeLastCharacter()
     {
-        if (CC7_CHECK(isMutable(), "Object is immutable")) {
-            if (CC7_CHECK(length() > 0, "Password is already empty")) {
+        if (isMutable()) {
+            if (length() > 0) {
                 size_t offset = indexToPos(_char_pos->size() - 1);
                 // remove bytes from the password
                 _pass.erase(_pass.begin() + offset, _pass.end());
@@ -182,12 +207,16 @@ namespace powerAuth
     
     bool Password::removeCharacter(size_t index)
     {
-        if (CC7_CHECK(isMutable(), "Object is immutable")) {
-            if (CC7_CHECK(index < _char_pos->size(), "Index is out of range")) {
+        if (isMutable()) {
+            if (index < _char_pos->size()) {
                 size_t offset = indexToPos(index);
                 size_t bytes  = indexToPos(index + 1) - offset;
+                // decrypt all bytes from offset + bytes to the end
+                inplaceXor(offset + bytes);
                 // remove bytes from the password
                 _pass.erase(_pass.begin() + offset, _pass.begin() + offset + bytes);
+                // re-encrypt all bytes from offset to the end
+                inplaceXor(offset);
                 // remove the position
                 _char_pos->erase(_char_pos->begin() + index);
                 // update positions after the removed one
@@ -199,7 +228,7 @@ namespace powerAuth
     }
 
     // MARK: - Private interface -
-    
+
     size_t Password::indexToPos(size_t index)
     {
         if (index < _char_pos->size()) {
@@ -207,7 +236,7 @@ namespace powerAuth
         }
         return _pass.size();
     }
-        
+    
     void Password::updateIndexes(size_t begin, ptrdiff_t offset)
     {
         while (begin < _char_pos->size()) {
@@ -216,6 +245,15 @@ namespace powerAuth
         }
     }
 
+    // MARK: Password protection
+
+    void Password::inplaceXor(size_t begin)
+    {
+        while (begin < _pass.size()) {
+            _pass[begin] ^= _pass[begin % randomKeySize];
+            ++begin;
+        }
+    }
 
 } // io::getlime::powerAuth
 } // io::getlime

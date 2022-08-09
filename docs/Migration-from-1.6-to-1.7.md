@@ -113,6 +113,10 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
   - You can see how's user agent string constructed by reading a new `userAgent` property of `PowerAuthClientConfiguration` object.
   - To set the previous networking behavior, you can set `nil` 
 
+### Other changes in 1.7.2+
+
+- Changed value returned from `PowerAuthCorePassword.validatePasswordComplexity()` function, includiding the prototype of the validation block. 
+
 ## iOS & tvOS App Extensions
 
 ### API changes

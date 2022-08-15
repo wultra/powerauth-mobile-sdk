@@ -98,11 +98,13 @@
 /**
  The method validates stored passphrase with using provided validation block. The raw bytes of 
  the passphrase are revealed to the block, which can decide whether the passphrase's complexity 
- is sufficient or not.
+ is sufficient or not. It's not recommended to copy the plaintext password to another memory
+ location, to minimize traces of the password in the memory.
  
- Returns NO if passphrase is empty, or result returned from the block.
+ Returns value provided by the validation block. The meaning of returned integer depends on
+ validation block's implementation.
  */
-- (BOOL) validatePasswordComplexity:(BOOL (NS_NOESCAPE ^_Nullable)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
 
 @end
 

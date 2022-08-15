@@ -90,9 +90,9 @@ namespace powerAuthTests
             ccstAssertTrue(result);
             result = p1.addCharacter(1);
             ccstAssertTrue(result);
-            result = p1.addCharacter(2);
+            result = p1.insertCharacter(3, 2);
             ccstAssertTrue(result);
-            result = p1.addCharacter(3);
+            result = p1.insertCharacter(2, 2);
             ccstAssertTrue(result);
             ccstAssertEqual(p1.length(), 4);
             ccstAssertEqual(p1.passwordData(), cc7::ByteArray({0, 1, 2, 3}));
@@ -115,6 +115,7 @@ namespace powerAuthTests
             ccstAssertFalse(result);
             result = p1.insertCharacter(11, 1);
             ccstAssertFalse(result);
+            ccstAssertEqual(0, p1.length());
         }
 
         void testMutableUnicode()

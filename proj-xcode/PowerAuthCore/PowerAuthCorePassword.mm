@@ -59,14 +59,21 @@
     return _password.isEqualToPassword(password->_password);
 }
 
-- (BOOL) validatePasswordComplexity:(BOOL (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
+- (BOOL) isEqual:(id)object
 {
-    BOOL result = NO;
-    const cc7::byte * plaintext_bytes = _password.passwordData().data();
-    if (validationBlock && plaintext_bytes) {
-        result = validationBlock(plaintext_bytes, _password.passwordData().size());
+    if (object == self) {
+        return YES;
     }
-    return result;
+    if ([object isKindOfClass:[PowerAuthCorePassword class]]) {
+        return [self isEqualToPassword:object];
+    }
+    return NO;
+}
+
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
+{
+    auto plaintext = _password.passwordData();
+    return validationBlock(plaintext.data(), plaintext.size());
 }
 
 @end

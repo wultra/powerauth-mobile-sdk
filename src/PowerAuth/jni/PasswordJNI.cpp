@@ -178,4 +178,13 @@ CC7_JNI_METHOD_PARAMS(jboolean, removeCharacter, jint index)
     return pass ? pass->removeCharacter((size_t)index) : false;
 }
 
+//
+// private native byte[] getPlaintextPassword();
+//
+CC7_JNI_METHOD(jbyteArray , getPlaintextPassword)
+{
+	auto pass = CC7_THIS_OBJ();
+	return pass ? cc7::jni::CopyToJavaByteArray(env, pass->passwordData()) : nullptr;
+}
+
 CC7_JNI_MODULE_CLASS_END()

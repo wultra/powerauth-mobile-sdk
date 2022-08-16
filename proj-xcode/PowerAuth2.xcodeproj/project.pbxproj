@@ -376,6 +376,10 @@
 		BF8CF50B2032EB41002A6B6E /* PowerAuthRestApiError.h in Headers */ = {isa = PBXBuildFile; fileRef = 1B0A23911D6C487C00D24167 /* PowerAuthRestApiError.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF8CF50D2032EB41002A6B6E /* PA2PrivateMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 1B7A3A531D8FCC0D002D1043 /* PA2PrivateMacros.h */; };
 		BF8D4BF721661AA400AD896C /* PA2RestApiObjects.h in Headers */ = {isa = PBXBuildFile; fileRef = BF8D4BF621661A5C00AD896C /* PA2RestApiObjects.h */; };
+		BF97A72A28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
+		BF97A72B28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
+		BF97A72C28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
+		BF97A72D28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
 		BF9C1F7522411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9C1F7322411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.h */; };
 		BF9C1F7622411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = BF9C1F7422411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m */; };
 		BF9D9C412174E3C7004FAE9C /* PA2UpgradeStartV3Response.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C3F2174E3C7004FAE9C /* PA2UpgradeStartV3Response.h */; };
@@ -725,6 +729,8 @@
 		BF8BFBEB215BBA7B001D6852 /* PowerAuthClientConfiguration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthClientConfiguration.m; sourceTree = "<group>"; };
 		BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuth2.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF8D4BF621661A5C00AD896C /* PA2RestApiObjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2RestApiObjects.h; sourceTree = "<group>"; };
+		BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCorePasswordHelper.m; sourceTree = "<group>"; };
+		BF97A72928A3E594002F3ACE /* PowerAuthCorePasswordHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCorePasswordHelper.h; sourceTree = "<group>"; };
 		BF9C1F7322411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2ConfirmRecoveryCodeResponse.h; sourceTree = "<group>"; };
 		BF9C1F7422411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2ConfirmRecoveryCodeResponse.m; sourceTree = "<group>"; };
 		BF9D9C3F2174E3C7004FAE9C /* PA2UpgradeStartV3Response.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2UpgradeStartV3Response.h; sourceTree = "<group>"; };
@@ -935,6 +941,8 @@
 			children = (
 				BFD386611F2B528600F74FF9 /* TestConfig */,
 				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
+				BF97A72928A3E594002F3ACE /* PowerAuthCorePasswordHelper.h */,
+				BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */,
 				BFE341C027F6F035005337B1 /* PowerAuthSdkTestHelper.h */,
 				BFE341C127F6F035005337B1 /* PowerAuthSdkTestHelper.m */,
 				BFE341C427F71AC0005337B1 /* PowerAuthSDKDefaultTests.h */,
@@ -1221,8 +1229,8 @@
 				BF667EC32835A0B2006E97F8 /* PowerAuthActivationTests.m */,
 				BF667EC52835A0B2006E97F8 /* PowerAuthCustomHeaderRequestInterceptorTests.m */,
 				BF667EC62835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m */,
-				BF667EC72835A0B2006E97F8 /* Info.plist */,
 				BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */,
+				BF667EC72835A0B2006E97F8 /* Info.plist */,
 			);
 			path = PowerAuth2Tests;
 			sourceTree = SOURCE_ROOT;
@@ -1927,6 +1935,7 @@
 				BF369FCA285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED02835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
 				BF215F02287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
+				BF97A72A28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667EC82835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECA2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,
 				BF667ECC2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
@@ -2018,6 +2027,7 @@
 				BF369FCB285370DD0004C454 /* PA2GroupedTaskTests.m in Sources */,
 				BF667ED12835A0B2006E97F8 /* PowerAuthBasicHttpAuthenticationRequestInterceptorTests.m in Sources */,
 				BF215F03287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m in Sources */,
+				BF97A72B28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667EC92835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */,
 				BF667ECB2835A0B2006E97F8 /* PowerAuthActivationTests.m in Sources */,
 				BF667ECD2835A0B2006E97F8 /* PA2AsyncOperationTests.m in Sources */,
@@ -2034,6 +2044,7 @@
 				BF667E6B28359C7C006E97F8 /* SoapHelper.m in Sources */,
 				BF667E6C28359C7C006E97F8 /* PowerAuthTestServerConfig.m in Sources */,
 				BF667E6D28359C7C006E97F8 /* CXMLNode_XPathExtensions.m in Sources */,
+				BF97A72C28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667E6E28359C7C006E97F8 /* CXMLUnsupportedNode.m in Sources */,
 				BF667E7028359C7C006E97F8 /* PowerAuthTestServerAPI.m in Sources */,
 				BF667E7128359C7C006E97F8 /* PowerAuthSdkTestHelper.m in Sources */,
@@ -2066,6 +2077,7 @@
 				BF667E9A28359C93006E97F8 /* SoapHelper.m in Sources */,
 				BF667E9B28359C93006E97F8 /* PowerAuthTestServerConfig.m in Sources */,
 				BF667E9C28359C93006E97F8 /* CXMLNode_XPathExtensions.m in Sources */,
+				BF97A72D28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
 				BF667E9D28359C93006E97F8 /* CXMLUnsupportedNode.m in Sources */,
 				BF667E9E28359C93006E97F8 /* PowerAuthTestServerModel.m in Sources */,
 				BF667E9F28359C93006E97F8 /* PowerAuthTestServerAPI.m in Sources */,

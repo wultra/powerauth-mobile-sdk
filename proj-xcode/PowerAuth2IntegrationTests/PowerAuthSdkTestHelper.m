@@ -488,8 +488,16 @@ static NSString * PA_Ver = @"3.1";
  */
 - (BOOL) checkForPassword:(NSString*)password
 {
+    return [self checkForCorePassword:[PowerAuthCorePassword passwordWithString:password]];
+}
+
+/**
+ Validates password on server. Returns YES if password is valid.
+ */
+- (BOOL) checkForCorePassword:(PowerAuthCorePassword*)password
+{
     BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -589,7 +597,7 @@ static NSString * PA_Ver = @"3.1";
     if (auth.usePossession) {
         [components addObject:@"POSSESSION"];
     }
-    if (auth.usePassword) {
+    if (auth.password) {
         [components addObject:@"KNOWLEDGE"];
     }
     if (auth.useBiometry) {
@@ -740,16 +748,16 @@ static NSString * PA_Ver = @"3.1";
 
 - (PowerAuthAuthentication*) copyForSigning
 {
-    if (self.usePassword == nil) {
+    if (self.password == nil) {
         @throw [NSException exceptionWithName:@"TestError" reason:@"Wrong PowerAuthAuthentication object" userInfo:nil];
     }
-    return [PowerAuthAuthentication possessionWithPassword:self.usePassword];
+    return [PowerAuthAuthentication possessionWithCorePassword:self.password];
 }
 
 - (PowerAuthAuthentication*) copyCrippledForSigning
 {
     // cripple auth object
-    if (self.usePassword) {
+    if (self.password) {
         return [PowerAuthAuthentication possession];
     } else {
         return [PowerAuthAuthentication possessionWithPassword:@"alwaysBadPassword"];

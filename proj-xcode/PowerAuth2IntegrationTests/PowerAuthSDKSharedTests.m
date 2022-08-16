@@ -147,14 +147,14 @@
                         }];
                     } else {
                         completionCount += 2;
-                        [self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [waiting extendWaitingTime];
                             if (!--completionCount) {
                                 [waiting reportCompletion:nil];
                             }
                         }];
-                        id<PowerAuthOperationTask> paTask = [self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+                        id<PowerAuthOperationTask> paTask = [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [_waitForQueuesTask extendWaitingTime];
                             if (!--completionCount) {
@@ -188,14 +188,14 @@
                         }];
                     } else {
                         completionCount += 2;
-                        [self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [waiting extendWaitingTime];
                             if (!--completionCount) {
                                 [waiting reportCompletion:nil];
                             }
                         }];
-                        [self.sdk validatePasswordCorrect:credentials.usePassword callback:^(NSError * error) {
+                        [self.sdk validateCorePassword:credentials.password callback:^(NSError * error) {
                             XCTAssertNil(error);
                             [_waitForQueuesTask extendWaitingTime];
                             if (!--completionCount) {
@@ -264,7 +264,7 @@
     XCTAssertEqual(PowerAuthExternalPendingOperationType_Activation, extOp2.externalOperationType);
     XCTAssertTrue([_app1 isEqualToString:extOp2.externalApplicationId]);
     
-    BOOL result = [self.sdk commitActivationWithPassword:credentials.usePassword error:nil];
+    BOOL result = [self.sdk commitActivationWithCorePassword:credentials.password error:nil];
     XCTAssertTrue(result);
     
     XCTAssertTrue([self.sdk hasValidActivation]);

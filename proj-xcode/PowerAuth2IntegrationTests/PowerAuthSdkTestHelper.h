@@ -17,10 +17,13 @@
 #import <XCTest/XCTest.h>
 #import "PowerAuthTestServerAPI.h"
 #import "PowerAuthTestServerConfig.h"
+#import "PowerAuthCorePasswordHelper.h"
 #import "AsyncHelper.h"
 
 @import PowerAuth2;
 @import PowerAuthCore;
+
+#import <PowerAuth2/PowerAuthMacros.h> // Expose SDK macros, to allow platform specific #if-defs
 
 /**
  Object containing activation data.
@@ -173,6 +176,10 @@
  */
 - (BOOL) checkForPassword:(NSString*)password;
 
+/**
+ Validates password on server. Returns YES if password is valid.
+ */
+- (BOOL) checkForCorePassword:(PowerAuthCorePassword*)password;
 
 /**
  Converts factors from auth object to string.

@@ -71,18 +71,37 @@
 @interface PowerAuthCorePassword : NSObject
 
 /**
+ Constructor with no parameters is not available.
+ */
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
+/**
+ Initialize PowerAuthCorePassword object with UTF8 data from the given string. The method is useful
+ for scenarios, when you have the full password already prepared and you want to pass it to the Session
+ as a parameter.
+ */
+- (nonnull instancetype) initWithString:(nonnull NSString*)string;
+
+/**
+ Initialize PowerAuthCorePassword object with the content copied from given data object.
+ The password object will contain an immutable passphrase, created exactly from the bytes,
+ provided by the data object.
+ */
+- (nonnull instancetype) initWithData:(nonnull NSData*)data;
+
+/**
  Returns a new instance of PowerAuthCorePassword object, initialized with UTF8 data
  from the given string. The method is useful for scenarios, when you have
  the full password already prepared and you want to pass it to the Session
  as a parameter.
  */
-+ (nullable instancetype) passwordWithString:(nonnull NSString*)string;
++ (nonnull instancetype) passwordWithString:(nonnull NSString*)string;
 /**
  Creates a new instance of PowerAuthCorePassword object, initialized with the content
  copied from given data object. The password object will contain an immutable 
  passphrase, created exactly from the bytes, provided by the data object.
  */
-+ (nullable instancetype) passwordWithData:(nonnull NSData*)data;
++ (nonnull instancetype) passwordWithData:(nonnull NSData*)data;
 
 /**
  Returns length of the password (in bytes).
@@ -118,9 +137,24 @@
 @interface PowerAuthCoreMutablePassword : PowerAuthCorePassword
 
 /**
+ Initialize PowerAuthCoreMutablePassword object with empty passphrase.
+ */
+- (nonnull instancetype) init;
+
+/**
+ Mutable password cannot be created with predefined string.
+ */
+- (nonnull instancetype) initWithString:(nonnull NSString*)string NS_UNAVAILABLE;
+
+/**
+ Mutable password cannot be created with predefined data.
+ */
+- (nonnull instancetype) initWithData:(nonnull NSData*)data NS_UNAVAILABLE;
+
+/**
  Returns a new insntace of PowerAuthCoreMutablePassword object.
  */
-+ (nullable instancetype) mutablePassword;
++ (nonnull instancetype) mutablePassword;
 
 /**
  Clears current content of the password

@@ -274,17 +274,4 @@
 	}];
 }
 
-- (void) testReUseToken
-{
-	CHECK_TEST_CONFIG();
-	
-	// This test validates whether created and saved token can be used
-	// from fresh new SDK instance
-	
-	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
-	if (!activation) {
-		return;
-	}
-}
-
 @end

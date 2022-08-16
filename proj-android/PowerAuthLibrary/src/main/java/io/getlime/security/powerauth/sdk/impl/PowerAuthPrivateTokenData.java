@@ -138,14 +138,14 @@ public class PowerAuthPrivateTokenData {
         final byte[] secret = Base64.decode(components[1], Base64.NO_WRAP);
         final String name = new String(Base64.decode(components[2], Base64.NO_WRAP));
         final String activationId;
-        if (components.length == 4) {
+        if (components.length >= 4) {
             activationId = components[3];
         } else {
             activationId = null;
         }
         final int authenticationFactors;
-        if (components.length == 5) {
-            authenticationFactors = Integer.parseInt(components[0]);
+        if (components.length >= 5) {
+            authenticationFactors = Integer.parseInt(components[4]);
         } else {
             authenticationFactors = 0;
         }

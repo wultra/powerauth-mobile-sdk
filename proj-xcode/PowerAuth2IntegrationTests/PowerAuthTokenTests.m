@@ -112,7 +112,23 @@
 	header = [anotherToken generateHeader];
 	result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
 	XCTAssertTrue(result);
-
+	
+	// Try to re-create SDK. This simulates application restart.
+	_sdk = [_helper reCreateSdkInstanceWithConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+	tokenStore = _sdk.tokenStore;
+	
+	// Now ask for the same token
+	XCTAssertTrue([tokenStore hasLocalTokenWithName:@"MyPreciousToken"]);
+	PowerAuthToken * tokenAfterRestart = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+		[tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
+			[waiting reportCompletion:token];
+		}];
+	}];
+	// And try to generate header
+	header = [tokenAfterRestart generateHeader];
+	result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+	XCTAssertTrue(result);
+	
 	// Remove token
 	BOOL tokenRemoved = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
 		[tokenStore removeAccessTokenWithName:@"MyPreciousToken" completion:^(BOOL removed, NSError * _Nullable error) {
@@ -256,6 +272,19 @@
 			}
 		}];
 	}];
+}
+
+- (void) testReUseToken
+{
+	CHECK_TEST_CONFIG();
+	
+	// This test validates whether created and saved token can be used
+	// from fresh new SDK instance
+	
+	PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+	if (!activation) {
+		return;
+	}
 }
 
 @end

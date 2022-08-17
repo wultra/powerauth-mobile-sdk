@@ -20,6 +20,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import io.getlime.security.powerauth.integration.support.client.PowerAuthClientFactory;
@@ -45,7 +46,7 @@ public class PowerAuthTestHelper {
     private final @NonNull PowerAuthServerApi serverApi;
     private final @NonNull RandomGenerator randomGenerator;
 
-    private final @NonNull PowerAuthSDK sharedSdk;
+    private @NonNull PowerAuthSDK sharedSdk;
     private final @NonNull PowerAuthConfiguration sharedConfiguration;
     private final @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration;
     private final @NonNull PowerAuthClientConfiguration sharedClientConfiguration;
@@ -436,6 +437,29 @@ public class PowerAuthTestHelper {
         if (resetActivation && sdk.hasValidActivation()) {
             sdk.removeActivationLocal(getContext(), true);
         }
+        return sdk;
+    }
+
+    /**
+     * Re-create a new instance of shared {@link PowerAuthSDK} with provided configurations.
+     * @param configuration If null, then shared configuration will be used.
+     * @param clientConfiguration If null, then shared client configuration will be used.
+     * @param keychainConfiguration If null, then shared keychain configuration will be used.
+     * @return New instance of {@link PowerAuthSDK} that will be also used as new shared instance.
+     * @throws Exception In case that instance creation failed.
+     */
+    public @NonNull PowerAuthSDK reCreateSdk(
+            @Nullable PowerAuthConfiguration configuration,
+            @Nullable PowerAuthClientConfiguration clientConfiguration,
+            @Nullable PowerAuthKeychainConfiguration keychainConfiguration) throws Exception {
+        final PowerAuthConfiguration newConfiguration = configuration != null ? configuration : getSharedPowerAuthConfiguration();
+        final PowerAuthClientConfiguration newClientConfiguration = clientConfiguration != null ? clientConfiguration : getSharedPowerAuthClientConfiguration();
+        final PowerAuthKeychainConfiguration newKeychainConfiguration = keychainConfiguration != null ? keychainConfiguration : getSharedPowerAuthKeychainConfiguration();
+        final PowerAuthSDK sdk = new PowerAuthSDK.Builder(newConfiguration)
+                .clientConfiguration(newClientConfiguration)
+                .keychainConfiguration(newKeychainConfiguration)
+                .build(getContext());
+        sharedSdk = sdk;
         return sdk;
     }
 

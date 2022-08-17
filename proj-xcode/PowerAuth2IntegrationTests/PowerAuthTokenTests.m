@@ -113,6 +113,18 @@
     result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
     XCTAssertTrue(result);
 
+    // Now ask for the same token
+    XCTAssertTrue([tokenStore hasLocalTokenWithName:@"MyPreciousToken"]);
+    PowerAuthToken * tokenAfterRestart = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [tokenStore requestAccessTokenWithName:@"MyPreciousToken" authentication:possession completion:^(PowerAuthToken * token, NSError * error) {
+            [waiting reportCompletion:token];
+        }];
+    }];
+    // And try to generate header
+    header = [tokenAfterRestart generateHeader];
+    result = [_helper validateTokenHeader:header activationId:activationData.activationId expectedResult:YES];
+    XCTAssertTrue(result);
+    
     // Remove token
     BOOL tokenRemoved = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
         [tokenStore removeAccessTokenWithName:@"MyPreciousToken" completion:^(BOOL removed, NSError * _Nullable error) {

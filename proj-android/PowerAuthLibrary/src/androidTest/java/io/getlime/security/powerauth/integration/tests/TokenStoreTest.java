@@ -122,6 +122,19 @@ public class TokenStoreTest {
 
         assertTrue(calculateAndValidateTokenDigest(token2, SignatureType.POSSESSION_KNOWLEDGE));
 
+        // Try to re-create SDK. This simulates application restart.
+        powerAuthSDK = testHelper.reCreateSdk(null, null, null);
+        tokenStore = powerAuthSDK.getTokenStore();
+
+        // Now ask for the same tokens
+        assertTrue(tokenStore.hasLocalToken(context, TOKEN_NAME_POSSESSION));
+        token1 = requestAccessToken(TOKEN_NAME_POSSESSION, activationHelper.getPossessionAuthentication(), true);
+        token2 = requestAccessToken(TOKEN_NAME_POSSESSION_KNOWLEDGE, activationHelper.getValidAuthentication(), true);
+        assertNotNull(token1);
+        assertNotNull(token2);
+        assertTrue(calculateAndValidateTokenDigest(token1, SignatureType.POSSESSION));
+        assertTrue(calculateAndValidateTokenDigest(token2, SignatureType.POSSESSION_KNOWLEDGE));
+
         // Invalid password
         assertFalse(tokenStore.hasLocalToken(context, TOKEN_NAME_OTHER));
         assertNull(requestAccessToken(TOKEN_NAME_OTHER, activationHelper.getInvalidAuthentication(), false));

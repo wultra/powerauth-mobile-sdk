@@ -19,6 +19,7 @@
   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
+- [Working with passwords securely](#working-with-passwords-securely)
 - [Biometric Authentication Setup](#biometric-authentication-setup)
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
@@ -1493,7 +1494,7 @@ Log.d("TAG", (password1.equals(password2)).toString())             // true
 
 ### Validate password complexity
 
-The `PowerAuthCorePassword` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
+The `Password` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
 
 ```kotlin
 enum class PasswordComplexity(val value: Int) {

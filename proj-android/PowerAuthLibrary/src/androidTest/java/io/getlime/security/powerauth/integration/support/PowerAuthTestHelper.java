@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
@@ -93,6 +94,8 @@ public class PowerAuthTestHelper {
         private ApplicationDetail sharedApplication;
         private ApplicationVersion sharedApplicationVersion;
 
+        private boolean authenticationUsageStrictMode = true;
+
         /**
          * Creates a new default builder. Note that the method does a synchronous communication
          * with PowerAuth Server REST API.
@@ -158,6 +161,17 @@ public class PowerAuthTestHelper {
         }
 
         /**
+         * Enable or disable strict mode for PowerAuthAuthentication usage. The default value is that
+         * strict mode is enabled. See {@link io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper#setStrictModeForUsageValidation(boolean)}.
+         * @param strictMode Enable or disable strict mode.
+         * @return Instance of this builder.
+         */
+        public @NonNull Builder powerAuthAuthenticationUsageValidationMode(boolean strictMode) {
+            this.authenticationUsageStrictMode = strictMode;
+            return this;
+        }
+
+        /**
          * Build {@link PowerAuthTestHelper} instance. Note that the method does a synchronous communication with
          * PowerAuth Server REST API.
          * @return Prepared instance of {@link PowerAuthTestHelper}
@@ -178,6 +192,8 @@ public class PowerAuthTestHelper {
             // Prepare logger
             PowerAuthLog.setEnabled(true);
             PowerAuthLog.setVerbose(true);
+            // Prepare authentication validation mode
+            PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(authenticationUsageStrictMode);
             // Prepare PowerAuthSDK configurations.
             final PowerAuthConfiguration configuration = prepareConfiguration();
             final PowerAuthClientConfiguration clientConfiguration = prepareClientConfiguration();

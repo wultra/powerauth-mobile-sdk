@@ -19,9 +19,11 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
+import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.Logger;
@@ -38,6 +40,7 @@ import io.getlime.security.powerauth.networking.response.ICreateActivationListen
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.assertFalse;
@@ -57,6 +60,10 @@ public class ActivationHelper {
     private PowerAuthAuthentication validAuthentication;
     private PowerAuthAuthentication invalidAuthentication;
     private CreateActivationResult createActivationResult;
+
+    public static final int TF_CREATE_WITH_SIGNATURE           = 0x0001;
+    public static final int TF_COMMIT_WITH_PASSWORD            = 0x0002;
+    public static final int TF_COMMIT_WITH_CORE_PASSWORD       = 0x0004;
 
     /**
      * Helper's state.
@@ -238,6 +245,23 @@ public class ActivationHelper {
      * @throws Exception In case of failure.
      */
     public @NonNull ActivationDetail createStandardActivation(boolean codeWithSignature, @Nullable String extras) throws Exception {
+        return createStandardActivation(codeWithSignature ? TF_CREATE_WITH_SIGNATURE : 0, extras);
+    }
+
+    /**
+     * Create a standard activation on the server and locally. The result is prepared PowerAuthSDK
+     * instance for other tests.
+     *
+     * @param flags Use {@code TF_} constants from this class to specify flags.
+     * @param extras Extra attributes associated with the activation.
+     * @return Information about activation.
+     * @throws Exception In case of failure.
+     */
+    public @NonNull ActivationDetail createStandardActivation(int flags, @Nullable String extras) throws Exception {
+
+        final boolean codeWithSignature = (flags & TF_CREATE_WITH_SIGNATURE) != 0;
+        final boolean commitWithPassword = (flags & TF_COMMIT_WITH_PASSWORD) != 0;
+        final boolean commitWithCorePassword = (flags & TF_COMMIT_WITH_CORE_PASSWORD) != 0;
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -259,24 +283,21 @@ public class ActivationHelper {
         final PowerAuthActivation paActivation = PowerAuthActivation.Builder.activation(activationCode, testHelper.getDeviceInfo())
                 .setExtras(extras)
                 .build();
-        createActivationResult = AsyncHelper.await(new AsyncHelper.Execution<CreateActivationResult>() {
-            @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<CreateActivationResult> resultCatcher) throws Exception {
-                powerAuthSDK.createActivation(paActivation, new ICreateActivationListener() {
-                    @Override
-                    public void onActivationCreateSucceed(@NonNull CreateActivationResult result) {
-                        resultCatcher.completeWithResult(result);
-                    }
+        createActivationResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.createActivation(paActivation, new ICreateActivationListener() {
+                @Override
+                public void onActivationCreateSucceed(@NonNull CreateActivationResult result) {
+                    resultCatcher.completeWithResult(result);
+                }
 
-                    @Override
-                    public void onActivationCreateFailed(@NonNull Throwable t) {
-                        resultCatcher.completeWithError(t);
-                    }
-                });
-                assertFalse(powerAuthSDK.hasValidActivation());
-                assertTrue(powerAuthSDK.hasPendingActivation());
-                assertFalse(powerAuthSDK.canStartActivation());
-            }
+                @Override
+                public void onActivationCreateFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+            assertFalse(powerAuthSDK.hasValidActivation());
+            assertTrue(powerAuthSDK.hasPendingActivation());
+            assertFalse(powerAuthSDK.canStartActivation());
         });
 
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -284,7 +305,14 @@ public class ActivationHelper {
         assertFalse(powerAuthSDK.canStartActivation());
 
         // Commit activation locally
-        int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        int resultCode;
+        if (commitWithPassword) {
+            resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        } else if (commitWithCorePassword) {
+            resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
+        } else {
+            resultCode = powerAuthSDK.commitActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.commitWithPassword(passwords.get(0)));
+        }
         if (resultCode != PowerAuthErrorCodes.SUCCEED) {
             throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
         }
@@ -357,30 +385,53 @@ public class ActivationHelper {
      * @return {@code true} if password is equal to password that was used during PowerAuthSDK activation creation.
      * @throws Exception In case of other failure.
      */
-    public boolean validateUserPassword(@NonNull final String password) throws Exception {
-        return AsyncHelper.await(new AsyncHelper.Execution<Boolean>() {
+    public boolean validateUserPassword(@NonNull final Password password) throws Exception {
+        return AsyncHelper.await(resultCatcher -> powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
             @Override
-            public void execute(@NonNull final AsyncHelper.ResultCatcher<Boolean> resultCatcher) throws Exception {
-                powerAuthSDK.validatePasswordCorrect(testHelper.getContext(), password, new IValidatePasswordListener() {
-                    @Override
-                    public void onPasswordValid() {
-                        resultCatcher.completeWithResult(true);
-                    }
-
-                    @Override
-                    public void onPasswordValidationFailed(@NonNull Throwable t) {
-                        if (t instanceof ErrorResponseApiException) {
-                            final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
-                            if (apiException.getResponseCode() == 401) {
-                                resultCatcher.completeWithResult(false);
-                                return;
-                            }
-                        }
-                        resultCatcher.completeWithError(t);
-                    }
-                });
+            public void onPasswordValid() {
+                resultCatcher.completeWithResult(true);
             }
-        });
+
+            @Override
+            public void onPasswordValidationFailed(@NonNull Throwable t) {
+                if (t instanceof ErrorResponseApiException) {
+                    final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
+                    if (apiException.getResponseCode() == 401) {
+                        resultCatcher.completeWithResult(false);
+                        return;
+                    }
+                }
+                resultCatcher.completeWithError(t);
+            }
+        }));
+    }
+
+    /**
+     * Validate user password on server.
+     *
+     * @param password Password to validate.
+     * @return {@code true} if password is equal to password that was used during PowerAuthSDK activation creation.
+     * @throws Exception In case of other failure.
+     */
+    public boolean validateUserPassword(@NonNull final String password) throws Exception {
+        return AsyncHelper.await(resultCatcher -> powerAuthSDK.validatePassword(testHelper.getContext(), password, new IValidatePasswordListener() {
+            @Override
+            public void onPasswordValid() {
+                resultCatcher.completeWithResult(true);
+            }
+
+            @Override
+            public void onPasswordValidationFailed(@NonNull Throwable t) {
+                if (t instanceof ErrorResponseApiException) {
+                    final ErrorResponseApiException apiException = (ErrorResponseApiException)t;
+                    if (apiException.getResponseCode() == 401) {
+                        resultCatcher.completeWithResult(false);
+                        return;
+                    }
+                }
+                resultCatcher.completeWithError(t);
+            }
+        }));
     }
 
     /**
@@ -467,7 +518,7 @@ public class ActivationHelper {
      * @return Valid password.
      * @throws Exception In case that such object is not created yet.
      */
-    public @NonNull String getValidPassword() throws Exception {
+    public @NonNull Password getValidPassword() throws Exception {
         if (validAuthentication == null || validAuthentication.getPassword() == null) {
             throw new Exception("ActivationHelper has no activation yet.");
         }
@@ -479,7 +530,7 @@ public class ActivationHelper {
      * @return Invalid password.
      * @throws Exception In case that such object is not created yet.
      */
-    public @NonNull String getInvalidPassword() throws Exception {
+    public @NonNull Password getInvalidPassword() throws Exception {
         if (invalidAuthentication == null || invalidAuthentication.getPassword() == null) {
             throw new Exception("ActivationHelper has no activation yet.");
         }
@@ -496,5 +547,15 @@ public class ActivationHelper {
             throw new Exception("ActivationHelper has no activation yet.");
         }
         return createActivationResult;
+    }
+
+    /**
+     * Extract plaintext password from Password object.
+     * @param password Password object.
+     * @return Extracted password or null if no password object was provided.
+     */
+    @NonNull
+    public static String extractPlaintextPassword(@NonNull Password password) {
+        return PowerAuthAuthenticationHelper.extractPlaintextPassword(password);
     }
 }

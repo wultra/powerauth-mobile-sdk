@@ -16,11 +16,15 @@
 
 package io.getlime.security.powerauth.sdk;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import io.getlime.security.powerauth.core.Password;
+import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.RandomGenerator;
+import io.getlime.security.powerauth.integration.tests.ActivationHelper;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import static org.junit.Assert.*;
@@ -31,15 +35,23 @@ public class PowerAuthAuthenticationTests {
     final RandomGenerator randomGenerator;
     final byte[] customPossessionKey;
     final byte[] biometryKey;
-    final String password;
+    final Password password;
+    final String stringPassword;
 
     public PowerAuthAuthenticationTests() {
         this.randomGenerator = new RandomGenerator();
         this.customPossessionKey = randomGenerator.generateBytes(16);
         this.biometryKey = randomGenerator.generateBytes(16);
-        this.password = "1234";
+        this.stringPassword = "1234";
+        this.password = new Password(stringPassword);
 
         PowerAuthLog.setEnabled(true);
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        // disable strict validation mode, we would like to return failures instead of throwing an exception.
+        PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(false);
     }
 
     @Test
@@ -49,6 +61,15 @@ public class PowerAuthAuthenticationTests {
         assertEquals(password, authentication.getPassword());
 
         authentication = PowerAuthAuthentication.commitWithPassword(password, customPossessionKey);
+        assertTrue(authentication.validateAuthenticationUsage(true));
+        assertEquals(password, authentication.getPassword());
+        assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
+
+        authentication = PowerAuthAuthentication.commitWithPassword(stringPassword);
+        assertTrue(authentication.validateAuthenticationUsage(true));
+        assertEquals(password, authentication.getPassword());
+
+        authentication = PowerAuthAuthentication.commitWithPassword(stringPassword, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(true));
         assertEquals(password, authentication.getPassword());
         assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
@@ -62,6 +83,17 @@ public class PowerAuthAuthenticationTests {
         assertArrayEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
 
         authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(password, biometryKey, customPossessionKey);
+        assertTrue(authentication.validateAuthenticationUsage(true));
+        assertEquals(password, authentication.getPassword());
+        assertArrayEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
+        assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
+
+        authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(stringPassword, biometryKey);
+        assertTrue(authentication.validateAuthenticationUsage(true));
+        assertEquals(password, authentication.getPassword());
+        assertArrayEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
+
+        authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(stringPassword, biometryKey, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(true));
         assertEquals(password, authentication.getPassword());
         assertArrayEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
@@ -92,6 +124,17 @@ public class PowerAuthAuthenticationTests {
         assertEquals(password, authentication.getPassword());
         assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
         assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+
+        authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword);
+        assertTrue(authentication.validateAuthenticationUsage(false));
+        assertEquals(password, authentication.getPassword());
+        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+
+        authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword, customPossessionKey);
+        assertTrue(authentication.validateAuthenticationUsage(false));
+        assertEquals(password, authentication.getPassword());
+        assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
+        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
     }
 
     @Test
@@ -113,5 +156,17 @@ public class PowerAuthAuthenticationTests {
         PowerAuthAuthentication authentication = new PowerAuthAuthentication();
         assertFalse(authentication.validateAuthenticationUsage(false));
         assertFalse(authentication.validateAuthenticationUsage(true));
+    }
+
+    @Test
+    public void testLegacyObjectConstructorWithStrictMode() throws Exception {
+        PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(true);
+        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
+        try {
+            authentication.validateAuthenticationUsage(false);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // Ignore exception
+        }
     }
 }

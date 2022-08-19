@@ -22,7 +22,7 @@
 - (NSString*) extractedPassword
 {
     __block NSString * password = nil;
-    [self validatePasswordComplexity:^NSInteger(const UInt8 * passphrase, NSUInteger length) {
+    [self validatePasswordComplexity:^NSInteger(const char * passphrase, NSInteger length) {
         password = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
         return 0;
     }];

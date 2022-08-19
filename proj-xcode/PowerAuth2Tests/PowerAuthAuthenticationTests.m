@@ -67,6 +67,28 @@
     XCTAssertNil(auth.overridenBiometryKey);
     XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
+    
+    // core password variants
+    
+    auth = [PowerAuthAuthentication commitWithCorePassword:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertFalse(auth.useBiometry);
+    XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertNil(auth.overridenBiometryKey);
+    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:YES]);
+
+    auth = [PowerAuthAuthentication commitWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertFalse(auth.useBiometry);
+    XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertNil(auth.overridenBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:YES]);
 }
 
 - (void) testCommitWithPasswordAndBiometry
@@ -82,6 +104,28 @@
     XCTAssertTrue([auth validateUsage:YES]);
     
     auth = [PowerAuthAuthentication commitWithPasswordAndBiometry:@"4321" customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertTrue(auth.useBiometry);
+    XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertEqualObjects(self.customBiometryKey, auth.overridenBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:YES]);
+    
+    // core password variants
+    
+    auth = [PowerAuthAuthentication commitWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertTrue(auth.useBiometry);
+    XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertNil(auth.overridenBiometryKey);
+    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:YES]);
+    
+    auth = [PowerAuthAuthentication commitWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
     XCTAssertTrue(auth.usePossession);
     XCTAssertTrue(auth.useBiometry);
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
@@ -118,6 +162,28 @@
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithPassword:@"4321" customPossessionKey:_customPossessionKey];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertFalse(auth.useBiometry);
+    XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertNil(auth.overridenBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:NO]);
+    
+    // core password variants
+    
+    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:@"1234"]];
+    XCTAssertTrue(auth.usePossession);
+    XCTAssertFalse(auth.useBiometry);
+    XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
+    XCTAssertNil(auth.biometryPrompt);
+    XCTAssertContextNil(auth.biometryContext);
+    XCTAssertNil(auth.overridenBiometryKey);
+    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertTrue([auth validateUsage:NO]);
+    
+    auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
     XCTAssertTrue(auth.usePossession);
     XCTAssertFalse(auth.useBiometry);
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
@@ -198,6 +264,8 @@
     PowerAuthAuthentication * auth = [PowerAuthAuthentication possession];
     XCTAssertFalse([auth validateUsage:YES]);
     auth = [PowerAuthAuthentication commitWithPassword:@"Hello"];
+    XCTAssertFalse([auth validateUsage:NO]);
+    auth = [PowerAuthAuthentication commitWithCorePassword:[PowerAuthCorePassword passwordWithString:@"Hello"]];
     XCTAssertFalse([auth validateUsage:NO]);
 }
 

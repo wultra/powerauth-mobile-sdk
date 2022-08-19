@@ -115,15 +115,21 @@
 - (BOOL) isEqualToPassword:(nullable PowerAuthCorePassword*)password;
 
 /**
- The method validates stored passphrase with using provided validation block. The raw bytes of 
- the passphrase are revealed to the block, which can decide whether the passphrase's complexity 
- is sufficient or not. It's not recommended to copy the plaintext password to another memory
- location, to minimize traces of the password in the memory.
+ The method allows you to validate stored passphrase with using provided validation block.
+ The raw characters and the length of the passphrase are revealed to the block, and the validation
+ block can decide whether the passphrase's complexity is sufficient or not.
  
- Returns value provided by the validation block. The meaning of returned integer depends on
+ The provided pointer to the passhphrase is always null terminated, so it's safe to pass it
+ to functions that accept the null terminated string. On opposite to that, it's not recommended
+ to use this validation function on passwords created form an arbitrary data.
+ 
+ It's not recommended to copy the plaintext password to another memory location, to minimize traces
+ of the password in the memory.
+ 
+ @return Returns value provided by the validation block. The meaning of returned integer depends on
  validation block's implementation.
  */
-- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const UInt8 * _Nonnull  passphrase, NSUInteger length))validationBlock;
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const char * _Nonnull  passphrase, NSInteger length))validationBlock;
 
 @end
 

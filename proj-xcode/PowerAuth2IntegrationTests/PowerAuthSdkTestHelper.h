@@ -25,6 +25,15 @@
 
 #import <PowerAuth2/PowerAuthMacros.h> // Expose SDK macros, to allow platform specific #if-defs
 
+typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
+    TestActivationFlags_None                    = 0,
+    TestActivationFlags_UseSignature            = 1 << 0,
+    TestActivationFlags_CommitWithPlainPassword = 1 << 1,
+    TestActivationFlags_CommitWithCorePassword  = 1 << 2,
+    TestActivationFlags_CommitWithBiometry      = 1 << 3,
+    TestActivationFlags_RemoveAfter             = 1 << 31,
+};
+
 /**
  Object containing activation data.
  */
@@ -116,6 +125,9 @@
 - (PowerAuthSdkActivation*) createActivation:(BOOL)useSignature
                                activationOtp:(NSString*)activationOtp;
 
+- (PowerAuthSdkActivation*) createActivationWithFlags:(TestActivationFlags)flags
+                                        activationOtp:(NSString*)activationOtp;
+
 /**
  Prepare activation on server.
  */
@@ -201,9 +213,15 @@
 
 
 /**
- Creates a new PowerAuthAuthentication object with default configuration.
+ Creates a new PowerAuthAuthentication object for commit with default configuration.
  */
 - (PowerAuthAuthentication*) createAuthentication;
+
+/**
+ Creates a new PowerAuthAuthentication object for commit with biometry.
+ */
+- (PowerAuthAuthentication*) createAuthenticationWithBiometry;
+
 
 // Tokens
 

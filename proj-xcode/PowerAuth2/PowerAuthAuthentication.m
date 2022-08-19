@@ -132,7 +132,7 @@
         // The purpose of 'validatePasswordComplexity' is quite different, but there's no other API to extract
         // plaintext passphrase from PowerAuthCorePassword. We're keeping this only for a compatibility reasons,
         // so the implementation will be removed in 1.8.x release.
-        [_password validatePasswordComplexity:^NSInteger(const UInt8 * passphrase, NSUInteger length) {
+        [_password validatePasswordComplexity:^NSInteger(const char * passphrase, NSInteger length) {
             result = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
             return 0;
         }];

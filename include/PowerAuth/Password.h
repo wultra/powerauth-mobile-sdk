@@ -120,6 +120,13 @@ namespace powerAuth
          mutable, or index is out of the range.
          */
         bool removeCharacter(size_t index);
+
+		/**
+		 * Clear stored passphrase securely. Unlike clear(), this method
+		 * also clears content of immutable Password. In this case, the result
+		 * is immutable empty password.
+		 */
+		void secureClear();
         
     private:
         

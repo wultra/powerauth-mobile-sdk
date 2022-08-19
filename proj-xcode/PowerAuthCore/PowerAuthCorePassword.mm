@@ -89,10 +89,15 @@
     return NO;
 }
 
-- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const char* passphrase, NSInteger length))validationBlock
 {
     auto plaintext = _password.passwordData();
-    return validationBlock(plaintext.data(), plaintext.size());
+    auto size = plaintext.size();
+    // Append null terminator in case that consumer would like to use the pointer
+    // in functions that accept c-style strings. The validation block still gets
+    // the correct size.
+    plaintext.append(0);
+    return validationBlock((const char*)plaintext.data(), size);
 }
 
 @end

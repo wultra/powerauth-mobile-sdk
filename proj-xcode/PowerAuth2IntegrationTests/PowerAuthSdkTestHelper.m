@@ -224,15 +224,13 @@ static NSString * PA_Ver = @"3.1";
                                             otp:activationOtp];
 }
 
-/**
- Returns object with activation data, authentication object,
- and result of activation. You can configure whether the activation can use optional signature during the activation
- and whether the activation should be removed automatically after the creation.
- */
-- (PowerAuthSdkActivation*) createActivation:(BOOL)useSignature
-                               activationOtp:(NSString*)activationOtp
-                                 removeAfter:(BOOL)removeAfter
+- (PowerAuthSdkActivation*) createActivationWithFlags:(TestActivationFlags)flags activationOtp:(NSString *)activationOtp
 {
+    BOOL useSignature = (flags & TestActivationFlags_UseSignature) != 0;
+    BOOL removeAfter = (flags & TestActivationFlags_RemoveAfter) != 0;
+    BOOL commitWithPass = (flags & TestActivationFlags_CommitWithPlainPassword) != 0;
+    BOOL commitWithCorePass = (flags & TestActivationFlags_CommitWithCorePassword) != 0;
+    BOOL commitWithBio  = (flags & TestActivationFlags_CommitWithBiometry) != 0;
     _currentActivation = nil;
     
     XCTAssertFalse([_sdk hasPendingActivation]);
@@ -293,8 +291,15 @@ static NSString * PA_Ver = @"3.1";
     XCTAssertFalse([_sdk hasValidActivation]);
     
     // 3) CLIENT: Now it's time to commit activation locally
-    PowerAuthAuthentication * auth = [self createAuthentication];
-    result = [_sdk commitActivationWithAuthentication:auth error:&error];
+    PowerAuthAuthentication * auth = commitWithBio ? [self createAuthenticationWithBiometry] : [self createAuthentication];
+    if (commitWithPass) {
+        result = [_sdk commitActivationWithPassword:auth.password.extractedPassword error:&error];
+    } else if (commitWithCorePass) {
+        result = [_sdk commitActivationWithCorePassword:auth.password error:&error];
+    } else {
+        // By default, use authentication for commit
+        result = [_sdk commitActivationWithAuthentication:auth error:&error];
+    }
     if (!result) {
         return nil;
     }
@@ -364,6 +369,15 @@ static NSString * PA_Ver = @"3.1";
         [_currentActivation setAlreadyRemoved];
     }
     return _currentActivation;
+}
+
+- (PowerAuthSdkActivation*) createActivation:(BOOL)useSignature
+                               activationOtp:(NSString*)activationOtp
+                                 removeAfter:(BOOL)removeAfter
+{
+    TestActivationFlags flags = (useSignature ? TestActivationFlags_UseSignature : 0) |
+                                (removeAfter ? TestActivationFlags_RemoveAfter : 0);
+    return [self createActivationWithFlags:flags activationOtp:activationOtp];
 }
 
 - (PowerAuthSdkActivation*) createActivation:(BOOL)useSignature removeAfter:(BOOL)removeAfter
@@ -473,14 +487,29 @@ static NSString * PA_Ver = @"3.1";
 
 #pragma mark - Utils
 
+- (NSArray<NSString*>*) veryStrongPasswords
+{
+    return @[ @"supersecure", @"nbusr123", @"8520", @"pa55w0rd" ];
+}
+
 /**
  Creates a new PowerAuthAuthentication object with default configuration.
  */
 - (PowerAuthAuthentication*) createAuthentication
 {
-    NSArray<NSString*> * veryCleverPasswords = @[ @"supersecure", @"nbusr123", @"8520", @"pa55w0rd" ];
+    NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
     NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
     return [PowerAuthAuthentication commitWithPassword:newPassword];
+}
+
+/**
+ Creates a new PowerAuthAuthentication object with default configuration.
+ */
+- (PowerAuthAuthentication*) createAuthenticationWithBiometry
+{
+    NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
+    NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
+    return [PowerAuthAuthentication commitWithPasswordAndBiometry:newPassword];
 }
 
 /**
@@ -488,7 +517,13 @@ static NSString * PA_Ver = @"3.1";
  */
 - (BOOL) checkForPassword:(NSString*)password
 {
-    return [self checkForCorePassword:[PowerAuthCorePassword passwordWithString:password]];
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk validatePassword:password callback:^(NSError * error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        XCTAssertNotNil(task);
+    }] boolValue];
+    return result;
 }
 
 /**

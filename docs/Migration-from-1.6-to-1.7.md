@@ -21,7 +21,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
   - `PowerAuthAuthentication.possessionWithBiometry()` - create authentication object for signing with possession and biometry factors.
   - `PowerAuthAuthentication.commitWithPassword()` - create authentication object for activation commit purpose.
   - `PowerAuthAuthentication.commitWithPasswordAndBiometry()` - create authentication object for activation commit purpose.
-  - `getPassword()` (e.g. `password` in Kotlin) is a new replacement for getting value of deprecated `usePassword`.
+  - `getPassword()` (e.g. `password` in Kotlin) is a new replacement for getting value of deprecated `usePassword`. The function returns `Password` object since SDK version 1.7.2.
   
   If you see no deprecation warnings in your application code, then please add the following lines into your `build.gradle` file:
   ```gradle
@@ -68,6 +68,8 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - `IOException` is no longer reported from SDK's internal networking. Now all such exceptions are wrapped into `PowerAuthErrorException` with `NETWORK_ERROR` code set.
 
+- Please read also [Changes introduced in 1.7.2](#changes-in-172) version.
+
 ## iOS & tvOS
 
 ### API changes
@@ -111,11 +113,9 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - PowerAuth mobile SDK is now using custom "User-Agent" for all HTTP requests initiated from the library.
   - You can see how's user agent string constructed by reading a new `userAgent` property of `PowerAuthClientConfiguration` object.
-  - To set the previous networking behavior, you can set `nil` 
-
-### Other changes in 1.7.2+
-
-- Changed value returned from `PowerAuthCorePassword.validatePasswordComplexity()` function, including the prototype of the validation block. 
+  - To set the previous networking behavior, you can set `nil`
+  
+- Please read also [Changes introduced in 1.7.2](#changes-in-172) version.
 
 ## iOS & tvOS App Extensions
 
@@ -132,3 +132,26 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 - `PowerAuthWatchSDK.activationId` property is now deprecated. Please use `activationIdentifier` as a replacement.
 - All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
 - `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.
+
+
+## Changes in 1.7.2+
+
+### Android
+
+The following interfaces are marked as deprecated since 1.7.2 version:
+
+- `PowerAuthSDK.validatePasswordCorrect()` function is now deprecated. You can use `validatePassword()` function as a replacement.
+
+- Direct access to `PowerAuthAuthentication.usePassword` property is no longer possible. Application written in Kotlin will report warning, due to mapping to new, but already deprecated `setUsePassword()` or `getUsePassword()` functions. To test whether knowledge factor is set in authentication object, use `getPassword()` function. The function was introduced in version 1.7.0, but it's returned value is now `Password` object, instead of `String`.
+
+### iOS & tvOS
+
+- Changed value returned from `PowerAuthCorePassword.validatePasswordComplexity()` function, including the prototype of the validation block. 
+
+The following interfaces are marked as deprecated since 1.7.2 version:
+
+- `PowerAuthSDK.validatePasswordCorrect(_, callback:)` is deprecated, use `validatePassword(password:, callback:)` as a replacement.
+
+- `PowerAuthSDK.addBiometryFactor(_, callback)` is deprecated, use `addBiometryFactor(password:, callback:)` as a replacement.
+
+- Using `PowerAuthAuthentication.usePassword` property is now deprecated. To test whether authentication has the knowledge factor set, use `password` property, which contains nullable `PowerAuthCorePassword` object.

@@ -64,6 +64,15 @@
         return obj;             \
     }
 
+/**
+  Checks whether biometry is available for testing.
+ */
+#define CHECK_BIOMETRY()        \
+    if (![PowerAuthKeychain canUseBiometricAuthentication]) { \
+        XCTFail(@"Biometric authentication is not available on this simulator. Please go to Device Simulator and make sure that `Features -> Face/Touch ID -> Enrolled` is ON"); \
+        return;                 \
+    }
+
 
 #pragma mark - Integration tests
 
@@ -101,6 +110,25 @@
                                                         removeAfter:YES];
     XCTAssertTrue(activation.success);
 }
+
+- (void) testCreateActivationAndCommitWithPassword
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_RemoveAfter
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+}
+
+- (void) testCreateActivationAndCommitWithCorePassword
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithCorePassword | TestActivationFlags_RemoveAfter
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+}
+
 
 - (void) testRemoveActivation
 {
@@ -169,6 +197,24 @@
     
     // 2) Now validate that new password
     result = [_helper checkForCorePassword:newPassword];
+    XCTAssertTrue(result);
+    
+    // Now use string version instead of core password
+    
+    NSString * oldStringPassword = newPassword.extractedPassword;
+    NSString * newStringPassword = auth.password.extractedPassword;
+    // 1) At first, change password
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk changePasswordFrom:oldStringPassword to:newStringPassword callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        // Returned task should not be cancelled
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForPassword:newStringPassword];
     XCTAssertTrue(result);
 }
 
@@ -1059,18 +1105,32 @@
 
 // MARK: - Biometry
 
+- (void) testCreateActivationWithBiometry
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates whether it's possible to create activation with biometry factor set.
+    //
+    
+    CHECK_BIOMETRY();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+}
+
 - (void) testAddingBiometryFactor
 {
     CHECK_TEST_CONFIG();
     
     //
-    // This test validates whether it's possible to add biometry factor.
+    // This test validates whether it's possible to add biometry factor later.
     //
     
-    if (![PowerAuthKeychain canUseBiometricAuthentication]) {
-        XCTFail(@"Biometric authentication is not available on this simulator. Please go to Device Simulator and make sure that `Features -> Face/Touch ID -> Enrolled` is ON");
-        return;
-    }
+    CHECK_BIOMETRY();
     
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
@@ -1087,7 +1147,21 @@
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    XCTAssertTrue([_sdk removeBiometryFactor]);
+    
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword callback:^(NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+    
+    XCTAssertTrue([_sdk hasBiometryFactor]);
 }
+
 #endif // PA2_BIOMETRY_SUPPORT
 
 @end

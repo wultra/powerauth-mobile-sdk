@@ -25,6 +25,7 @@
    - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
    - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
+- [Working with passwords securely](#working-with-passwords-securely)
 - [Biometry Setup](#biometry-setup)
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
@@ -704,7 +705,7 @@ PowerAuth mobile SDK uses `PowerAuthCorePassword` object behind the scene, to st
 
 ### Problem explanation
 
-If you store user's password in simpe string then there's a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
+If you store the user's password in simpe string then there's a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
 
 - If your application is using system keyboard to enter the password or PIN, then the sensitive data will remain in memory in multiple copies for a while. 
 
@@ -817,6 +818,61 @@ let passwordData = Data(base64Encoded: "bmJ1c3IxMjMK")!
 let password = PowerAuthCorePassword(data: passwordData)
 ```
 
+### Compare two passwords
+
+To compare two passwords, use `isEqual(to:)` method:
+
+```swift
+let password1 = PowerAuthCorePassword(string: "1234")
+let password2 = PowerAuthCorePassword(string: "Hello")
+let password3 = PowerAuthCoreMutablePassword()
+password3.addCharacter(0x31)
+password3.addCharacter(0x32)
+password3.addCharacter(0x33)
+password3.addCharacter(0x34)
+print("\(password1.isEqual(to: password2))")    // false
+print("\(password1.isEqual(to: password3))")    // true
+```
+
+### Validate password complexity
+
+The `PowerAuthCorePassword` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
+
+```swift
+enum PasswordComplexity: Int {
+    case weak = 0
+    case good = 1
+    case strong = 2
+}
+
+// This is an actual complexity validator that also accepts pointer at its input. You should avoid
+// converting provided memory into Data or String due to fact, that it will lead to an uncontrolled
+// passphrase copy to foundation objects' buffers.
+func superPasswordValidator(passwordPtr: UnsafePointer<Int8>, size: Int) -> PasswordComplexity {
+    // This is just an example, please do not use such trivial validation in your
+    // production application :)
+    if size < 4 {
+        return .weak
+    } else if size < 8 {
+        return .good
+    }
+    return .strong
+}
+
+extension PowerAuthCorePassword {
+    // Convenient wrapper to validateComplexity() method
+    func validateComplexity() -> PasswordComplexity {
+        let validationResult = self.validateComplexity { ptr, size in
+            return superPasswordValidator(passwordPtr: ptr, size: size).rawValue
+        }
+        guard let complexity = PasswordComplexity(rawValue: validationResult) else { fatalError() }
+        return complexity
+    }
+}
+```
+<!-- begin box info -->
+You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
+<!-- end -->
 
 ## Biometry Setup
 

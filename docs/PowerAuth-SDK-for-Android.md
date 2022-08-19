@@ -1372,7 +1372,7 @@ If your application is using system numberic keyboard to enter user's PIN then y
 
 - Make sure that password object is allocated and referenced only in the PIN keyboard controller and is deallocated when user leaves the controller.
 
-- Use `PowerAuthCoreMutablePassword` that allows you to manipulate with the content of the PIN 
+- Use `Password()` object that allows you to manipulate with the content of the PIN 
 
 Here's the simple pseudo-controller example:
 
@@ -1383,7 +1383,8 @@ class EnterPinScene(val desiredPinLength: Int = 4) {
     private val pin: Password get() = pinInstance ?: throw IllegalStateException()
 
     fun onEnterScene() {
-        // Allocate password when entering to the scene
+        // Allocate password when entering to the scene.
+        // Constructor with no parameters create mutable Password.
         pinInstance = Password()
     }
 

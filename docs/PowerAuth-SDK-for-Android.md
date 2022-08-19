@@ -1255,7 +1255,7 @@ For this purpose, you can use the following code:
 val oldPassword = "1234"
 
 // [2] Validate password on the server
-powerAuthSDK.validatePasswordCorrect(context, oldPassword, object: IValidatePasswordListener {
+powerAuthSDK.validatePassword(context, oldPassword, object: IValidatePasswordListener {
     override fun onPasswordValid() {
         // Proceed to the new password setup
     }
@@ -1276,7 +1276,7 @@ powerAuthSDK.changePasswordUnsafe(oldPassword, newPassword)
 String oldPassword = "1234";
 
 // [2] Validate password on the server
-powerAuthSDK.validatePasswordCorrect(context, oldPassword, new IValidatePasswordListener() {
+powerAuthSDK.validatePassword(context, oldPassword, new IValidatePasswordListener() {
     @Override
     public void onPasswordValid() {
         // Proceed to the new password setup
@@ -1528,6 +1528,7 @@ fun Password.validateComplexity(): PasswordComplexity {
     return PasswordComplexity.fromInt(resultValue)
 }
 ```
+
 <!-- begin box info -->
 You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
 <!-- end -->

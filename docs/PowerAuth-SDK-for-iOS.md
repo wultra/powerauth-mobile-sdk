@@ -870,6 +870,7 @@ extension PowerAuthCorePassword {
     }
 }
 ```
+
 <!-- begin box info -->
 You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
 <!-- end -->

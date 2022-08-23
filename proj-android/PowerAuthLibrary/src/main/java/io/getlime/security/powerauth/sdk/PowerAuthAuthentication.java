@@ -263,7 +263,7 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * Biometry key data, or nil if biometry factor is not used.
+     * @return Biometry key data, or nil if biometry factor is not used.
      */
     @Nullable
     public byte[] getBiometryFactorRelatedKey() {
@@ -271,7 +271,7 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * Password to be used for knowledge factor, or nil if knowledge factor is not used.
+     * @return Password to be used for knowledge factor, or nil if knowledge factor is not used.
      */
     @Nullable
     public Password getPassword() {
@@ -297,6 +297,8 @@ public class PowerAuthAuthentication {
      * Direct access to {@code usePassword} property is no longer possible. Use static authentication
      * object functions to construct appropriate authentication object, or {@link #getPassword()}
      * function to test, whether the knowledge factor is used.
+     *
+     * @return User password in plaintext form.
      */
     @Deprecated // 1.7.2
     @Nullable
@@ -316,7 +318,7 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * If non-null, then custom key is specified for the possession factor.
+     * @return If non-null, then custom key is specified for the possession factor.
      */
     @Nullable
     public byte[] getOverriddenPossessionKey() {

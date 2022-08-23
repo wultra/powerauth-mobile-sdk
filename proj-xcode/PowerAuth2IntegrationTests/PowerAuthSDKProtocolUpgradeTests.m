@@ -132,7 +132,7 @@
 - (NSError*) checkForPassword:(NSString*)password
 {
     NSError * result = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        PA2TestsOperationTask task = [_sdk validatePasswordCorrect:password callback:^(NSError * error) {
+        PA2TestsOperationTask task = [_sdk validatePassword:password callback:^(NSError * error) {
             [waiting reportCompletion:error];
         }];
         XCTAssertNotNil(task);
@@ -176,7 +176,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
     
     NSString * activationStateData = [[_helper sessionCoreSerializedState] base64EncodedStringWithOptions:0];
     NSUserDefaults * defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:auth.usePassword forKey:s_PossessionFactorKey];
+    [defaults setObject:auth.password.extractedPassword forKey:s_PossessionFactorKey];
     [defaults setObject:activationData.activationId forKey:s_ActivationIdKey];
     [defaults setObject:activationStateData forKey:s_StateDataKey];
     [defaults synchronize];
@@ -186,7 +186,7 @@ static NSString * const s_StateDataKey = @"upgradeTest_stateDataKey";
     
     NSLog(@"=======================================================================");
     NSLog(@"Upgrade params (for old SDK step):");
-    NSLog(@"  - password    %@", auth.usePassword);
+    NSLog(@"  - password    %@", auth.password.extractedPassword);
     NSLog(@"  - act-id      %@", activationData.activationId);
     NSLog(@"=======================================================================");
 }

@@ -19,6 +19,7 @@
   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
+- [Working with passwords securely](#working-with-passwords-securely)
 - [Biometric Authentication Setup](#biometric-authentication-setup)
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
@@ -1255,7 +1256,7 @@ For this purpose, you can use the following code:
 val oldPassword = "1234"
 
 // [2] Validate password on the server
-powerAuthSDK.validatePasswordCorrect(context, oldPassword, object: IValidatePasswordListener {
+powerAuthSDK.validatePassword(context, oldPassword, object: IValidatePasswordListener {
     override fun onPasswordValid() {
         // Proceed to the new password setup
     }
@@ -1276,7 +1277,7 @@ powerAuthSDK.changePasswordUnsafe(oldPassword, newPassword)
 String oldPassword = "1234";
 
 // [2] Validate password on the server
-powerAuthSDK.validatePasswordCorrect(context, oldPassword, new IValidatePasswordListener() {
+powerAuthSDK.validatePassword(context, oldPassword, new IValidatePasswordListener() {
     @Override
     public void onPasswordValid() {
         // Proceed to the new password setup
@@ -1299,6 +1300,241 @@ powerAuthSDK.changePasswordUnsafe(oldPassword, newPassword);
 <!-- begin box warning -->
 **Now, beware!** Since the device does not know the actual old password, you need to make sure that the old password is validated before you use it in `unsafeChangePassword`. In case you provide the wrong old password, it will be used to decrypt the original data, and these data will be encrypted using a new password. As a result, the activation data will be broken and irreversibly lost.
 <!-- end -->
+
+
+## Working with passwords securely
+
+PowerAuth mobile SDK uses `io.getlime.security.powerauth.core.Password` object behind the scene, to store user's password or PIN securely. The object automatically wipes out the plaintext password on its destroy, so there are no traces of sensitive data left in the memory. You can easily enhance your application's runtime security by adopting this object in your code and this chapter explains in detail how to do it.
+
+### Problem explanation
+
+If you store the user's password in simpe string then there's a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
+
+- If your application is using system keyboard to enter the password or PIN, then the sensitive data will remain in memory in multiple copies for a while. 
+
+- If the device's memory is not stressed enough, then the application may remain in memory active for days.
+
+The situation that the user's password stays in memory for days may be critical in situations when the attacker has the device in possession. For example, if device is lost or is in repair shop. To minimize the risks, the `Password` object does the following things:
+
+- Always keeps user's password scrambled with a random data, so it cannot be easily found by simple string search. The password in plaintext is revealed only for a short and well defined time when it's needed for the cryptographic operation.
+
+- Always clears buffer with the sensitive data before the object's destruction.
+
+- Doesn't provide a simple interface to reveal the password in plaintext<sup>1)</sup> and therefore it minimizes the risks of revealing the password by accident (like print it to the log).
+
+<!-- begin box note -->
+**Note 1:** There's `validatePasswordComplexity()` function that reveal the password in plaintext for the limited time for the complexity validation purposes. The straightforward naming of the function allows you to find all its usages in your code and properly validate all codepaths.
+<!-- end -->
+
+### Special password object usage
+
+PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation is using strings for the passwords, but all code examples can be changed to utilize `Password` object as well. For example, this is the modified code for [Password Change](#password-change):
+
+<!-- begin codetabs Kotlin Java -->
+```kotlin
+// Change password from "oldPassword" to "newPassword".
+val oldPass = Password("oldPassword")
+val newPass = Password("newPassword")
+powerAuthSDK.changePassword(context, oldPass, newPass, object: IChangePasswordListener {
+    override fun onPasswordChangeSucceed() {
+        // Password was changed
+    }
+
+    override fun onPasswordChangeFailed(t: Throwable) {
+        // Error occurred
+    }
+})
+```
+```java
+// Change password from "oldPassword" to "newPassword".
+Password oldPass = new Password("oldPassword");
+Password newPass = new Password("newPassword")
+powerAuthSDK.changePassword(context, oldPass, newPass, new IChangePasswordListener() {
+    @Override
+    public void onPasswordChangeSucceed() {
+        // Password was changed
+    }
+
+    @Override
+    public void onPasswordChangeFailed(Throwable t) {
+        // Error occurred
+    }
+})
+```
+<!-- end -->
+
+
+### Entering PIN
+
+If your application is using system numberic keyboard to enter user's PIN then you can migrate to `Password` object right now. We recommend you to do the following things:
+
+- Implement your own PIN keyboard UI
+
+- Make sure that password object is allocated and referenced only in the PIN keyboard controller and is deallocated when user leaves the controller.
+
+- Use `Password()` object that allows you to manipulate with the content of the PIN 
+
+Here's the simple pseudo-controller example:
+
+```kotlin
+class EnterPinScene(val desiredPinLength: Int = 4) {
+
+    private var pinInstance: Password? = null
+    private val pin: Password get() = pinInstance ?: throw IllegalStateException()
+
+    fun onEnterScene() {
+        // Allocate password when entering to the scene.
+        // Constructor with no parameters create mutable Password.
+        pinInstance = Password()
+    }
+
+    fun onLeaveScene() {
+        // Dereference and destroy the password object, when user is leaving
+        // the scene to safely wipe the content out of the memory.
+        //
+        // Make sure that this is done only after PowerAuth SDK finishes all operations
+        // started with this object at input.
+        pinInstance?.destroy()
+        pinInstance = null
+    }
+
+    fun onDeleteButtonAction() {
+        pin.removeLastCharacter()
+    }
+
+    fun onPinButtonAction(pinCharacter: Char) {
+        // Mutable password works with unicode scalars, this is the example
+        // that works with an arbitrary character up to code-point 0xFFFF.
+        // To add an arbitrary unicode character, you need to convert it to code point first.
+        // See https://stackoverflow.com/questions/9834964/char-to-unicode-more-than-uffff-in-java
+        pin.addCharacter(pinCharacter.code)
+        if (pin.length() == desiredPinLength) {
+            onContinueAction(pin)
+        }
+    }
+
+    fun onPinButtonActionSimplified(pinIndex: Int) {
+        // This is a simplified version of onPinButtonAction() that use
+        // simple PIN button index as input.
+        if (pinIndex < 0 || pinIndex > 9) {
+            throw IllegalArgumentException("Wrong PIN index")
+        }
+        // You don't need to add 48 (code for character "0") to the index, 
+        // unless your previous implementation was using number characters.
+        pin.addCharacter(48 + pinIndex)
+        if (pin.length() == desiredPinLength) {
+            onContinueAction(pin)
+        }
+    }
+
+    fun onContinueAction(pin: Password) {
+        // Do something with entered pin...
+    }
+}
+```
+
+### Entering arbitrary password
+
+Unfortunately, there's no simple solution for this scenario. It's quite difficult to re-implement the whole keyboard on your own, so we recommend you to keep using the system keyboard. You can still create the `Password` object from already entered string:
+
+<!-- begin codetabs Kotlin Java -->
+```kotlin
+val passwordString = "nbusr123"
+val password = Password(passwordString)
+```
+```java
+final String passwordString = "nbusr123";
+final Password password = new Password(passwordString);
+```
+<!-- end -->
+
+### Create password from data
+
+In case that passphrase is somehow created externally in form of array of bytes, then you can instantiate it from the `Data` object directly:
+
+<!-- begin codetabs Kotlin Java -->
+```kotlin
+val passwordData = Base64.decode("bmJ1c3IxMjMK", Base64.NO_WRAP)
+val password = Password(passwordData)
+```
+```java
+final byte[] passwordData = Base64.decode("bmJ1c3IxMjMK", Base64.NO_WRAP);
+final Password password = new Password(passwordData);
+```
+<!-- end -->
+
+
+### Compare two passwords
+
+To compare two passwords, use `isEqual(to:)` method:
+
+<!-- begin codetabs Kotlin Java -->
+```kotlin
+val password1 = Password("1234")
+val password2 = Password("Hello")
+val password3 = Password()
+password3.addCharacter(0x31)
+password3.addCharacter(0x32)
+password3.addCharacter(0x33)
+password3.addCharacter(0x34)
+print("${password1.isEqualToPassword(password2)}")  // false
+print("${password1 == password3}")                  // true
+```
+```java
+final Password password1 = new Password("1234")
+final Password password2 = new Password("Hello")
+final Password password3 = new Password()
+password3.addCharacter(0x31)
+password3.addCharacter(0x32)
+password3.addCharacter(0x33)
+password3.addCharacter(0x34)
+Log.d("TAG", (password1.isEqualToPassword(password2)).toString())  // false
+Log.d("TAG", (password1.equals(password2)).toString())             // true
+```
+<!-- end -->
+
+### Validate password complexity
+
+The `Password` object doesn't provide functions that validate password complexity, but allows you to implement such functionality on your own:
+
+```kotlin
+enum class PasswordComplexity(val value: Int) {
+    WEAK(0),
+    GOOD(1),
+    STRONG(2);
+
+    companion object {
+        fun fromInt(value: Int): PasswordComplexity = values().first { it.value == value }
+    }
+}
+
+// This is an actual complexity validator that also accepts pointer at its input. You should avoid
+// converting provided memory into Data or String due to fact, that it will lead to an uncontrolled
+// passphrase copy to foundation objects' buffers.
+fun superPasswordValidator(password: ByteArray): PasswordComplexity {
+    // This is just an example, please do not use such trivial validation in your
+    // production application :)
+    if (password.size < 4) {
+        return PasswordComplexity.WEAK
+    } else if (password.size < 8) {
+        return PasswordComplexity.GOOD
+    }
+    return PasswordComplexity.STRONG
+}
+
+// Convenient wrapper to validatePasswordComplexity() method
+fun Password.validateComplexity(): PasswordComplexity {
+    val resultValue = validatePasswordComplexity { passwordBytes ->
+        superPasswordValidator(passwordBytes).value
+    }
+    return PasswordComplexity.fromInt(resultValue)
+}
+```
+
+<!-- begin box info -->
+You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
+<!-- end -->
+
 
 ## Biometric Authentication Setup
 

@@ -318,7 +318,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     // Generate signature key encryption keys
     NSData *possessionKey = nil;
     NSData *biometryKey = nil;
-    PowerAuthCorePassword *knowledgeKey = nil;
     if (authentication.usePossession) {
         if (authentication.overridenPossessionKey) {
             possessionKey = authentication.overridenPossessionKey;
@@ -344,15 +343,12 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
             }
         }
     }
-    if (authentication.usePassword) {
-        knowledgeKey = [PowerAuthCorePassword passwordWithString:authentication.usePassword];
-    }
     
     // Prepare signature unlock keys structure
     PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
     keys.possessionUnlockKey = possessionKey;
     keys.biometryUnlockKey = biometryKey;
-    keys.userPassword = knowledgeKey;
+    keys.userPassword = authentication.password;
     return keys;
 }
 
@@ -362,7 +358,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     if (authentication.usePossession) {
         factor |= PowerAuthCoreSignatureFactor_Possession;
     }
-    if (authentication.usePassword != nil) {
+    if (authentication.password != nil) {
         factor |= PowerAuthCoreSignatureFactor_Knowledge;
     }
     if (authentication.useBiometry) {
@@ -631,8 +627,15 @@ static PowerAuthSDK * s_inst;
 - (BOOL) commitActivationWithPassword:(NSString*)password
                                 error:(NSError**)error
 {
-    PowerAuthAuthentication *authentication = [PowerAuthAuthentication commitWithPassword:password];
-    return [self commitActivationWithAuthentication:authentication error:error];
+    return [self commitActivationWithAuthentication:[PowerAuthAuthentication commitWithPassword:password]
+                                              error:error];
+}
+
+- (BOOL) commitActivationWithCorePassword:(PowerAuthCorePassword *)password
+                                    error:(NSError **)error
+{
+    return [self commitActivationWithAuthentication:[PowerAuthAuthentication commitWithCorePassword:password]
+                                              error:error];
 }
 
 - (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
@@ -651,22 +654,18 @@ static PowerAuthSDK * s_inst;
         // Prepare key encryption keys
         NSData *possessionKey = nil;
         NSData *biometryKey = nil;
-        PowerAuthCorePassword *knowledgeKey = nil;
         if (authentication.usePossession) {
             possessionKey = [self deviceRelatedKey];
         }
         if (authentication.useBiometry) {
             biometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
         }
-        if (authentication.usePassword) {
-            knowledgeKey = [PowerAuthCorePassword passwordWithString:authentication.usePassword];
-        }
         
         // Prepare signature unlock keys structure
         PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
         keys.possessionUnlockKey = possessionKey;
         keys.biometryUnlockKey = biometryKey;
-        keys.userPassword = knowledgeKey;
+        keys.userPassword = authentication.password;
         
         // Complete the activation
         BOOL result = [session completeActivation:keys];
@@ -1042,25 +1041,25 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark - Password
 
-- (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
-                               to:(NSString*)newPassword
+// PowerAuthCorePassword versions
+
+- (BOOL) unsafeChangeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
+                                   to:(PowerAuthCorePassword*)newPassword
 {
     return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-        return [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
-                               newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
+        return [session changeUserPassword:oldPassword newPassword:newPassword];
     }];
 }
 
-- (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword
-                                               to:(NSString*)newPassword
-                                         callback:(void(^)(NSError *error))callback
+- (id<PowerAuthOperationTask>) changeCorePasswordFrom:(PowerAuthCorePassword*)oldPassword
+                                                   to:(PowerAuthCorePassword*)newPassword
+                                             callback:(void(^)(NSError *error))callback
 {
-    return [self validatePasswordCorrect:oldPassword callback:^(NSError * error) {
+    return [self validateCorePassword:oldPassword callback:^(NSError * error) {
         if (!error) {
             error = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
                 // Let's change the password
-                BOOL result = [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
-                                              newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
+                BOOL result = [session changeUserPassword:oldPassword newPassword:newPassword];
                 return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
             }];
         }
@@ -1069,28 +1068,57 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
-- (id<PowerAuthOperationTask>) validatePasswordCorrect:(NSString*)password callback:(void(^)(NSError * error))callback
+- (id<PowerAuthOperationTask>) validateCorePassword:(PowerAuthCorePassword*)password callback:(void(^)(NSError * error))callback
 {
     [self checkForValidSetup];
     return [_client postObject:[PA2ValidateSignatureRequest requestWithReason:@"VALIDATE_PASSWORD"]
                             to:[PA2RestApiEndpoint validateSignature]
-                          auth:[PowerAuthAuthentication possessionWithPassword:password]
+                          auth:[PowerAuthAuthentication possessionWithCorePassword:password]
                     completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
                         callback(error);
                     }];
 }
 
+// NSString versions
+
+- (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
+                               to:(NSString*)newPassword
+{
+    return [self unsafeChangeCorePasswordFrom:[PowerAuthCorePassword passwordWithString:oldPassword]
+                                           to:[PowerAuthCorePassword passwordWithString:newPassword]];
+}
+
+- (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword
+                                               to:(NSString*)newPassword
+                                         callback:(void(^)(NSError *error))callback
+{
+    return [self changeCorePasswordFrom:[PowerAuthCorePassword passwordWithString:oldPassword]
+                                     to:[PowerAuthCorePassword passwordWithString:newPassword]
+                               callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) validatePassword:(NSString*)password callback:(void (^)(NSError *))callback
+{
+    return [self validateCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
+}
+
+// PA2_DEPRECATED(1.7.2)
+- (id<PowerAuthOperationTask>) validatePasswordCorrect:(NSString *)password callback:(void (^)(NSError *))callback
+{
+    return [self validatePassword:password callback:callback];
+}
+
 #pragma mark - Biometry
 
-- (id<PowerAuthOperationTask>) addBiometryFactor:(NSString*)password
-                                        callback:(void(^)(NSError *error))callback
+- (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
+                                                        callback:(void(^)(NSError *error))callback
 {
     // Check if biometry can be used
     if (![PowerAuthKeychain canUseBiometricAuthentication]) {
         callback(PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
         return nil;
     }
-    PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithPassword:password];
+    PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithCorePassword:password];
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_ADD_BIOMETRY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
         if (!error) {
             // Let's add the biometry key
@@ -1112,6 +1140,17 @@ static PowerAuthSDK * s_inst;
         // Call back to application
         callback(error);
     }];
+}
+
+- (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
+{
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
+}
+
+// PA2_DEPRECATED(1.7.2)
+- (id<PowerAuthOperationTask>) addBiometryFactor:(NSString *)password callback:(void (^)(NSError * _Nullable))callback
+{
+    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
 }
 
 - (BOOL) hasBiometryFactor

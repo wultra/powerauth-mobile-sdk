@@ -33,7 +33,7 @@
 #import <PowerAuth2/PowerAuthDeprecated.h>
 
 // Core classes
-@class PowerAuthCoreSession, PowerAuthCoreEciesEncryptor;
+@class PowerAuthCoreSession, PowerAuthCorePassword, PowerAuthCoreEciesEncryptor;
 
 @interface PowerAuthSDK : NSObject<PowerAuthSessionStatusProvider>
 
@@ -76,6 +76,11 @@
  The current implementation is keeping acquired tokens in the PowerAuthKeychain under the `PowerAuthKeychainConfiguration.keychainInstanceName_TokenStore` service name.
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
+
+/**
+ Constructor with no parameters is not available.
+ */
+- (instancetype _Null_unspecified) init NS_UNAVAILABLE;
 
 /**
  Creates an instance of SDK and initializes it with given configuration objects.
@@ -215,15 +220,27 @@
 
 /** Commit activation that was created and store related data using default authentication instance setup with provided password.
  
- Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use all factors and provided password.
+ Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) commitActivationWithPassword:(nonnull NSString*)password
-                                error:(NSError * _Nullable * _Nullable)error;
+                                error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(commitActivation(withPassword:));
 
+/** Commit activation that was created and store related data using default authentication instance setup with provided password.
+ 
+ Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
+ 
+ @param password Password to be used for the knowledge related authentication factor.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) commitActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                    error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(commitActivation(withPassword:));
 /**
  Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.
  */
@@ -357,7 +374,23 @@
  @exception NSException thrown in case configuration is not present.
  */
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
-                               to:(nonnull NSString*)newPassword;
+                               to:(nonnull NSString*)newPassword
+                        NS_SWIFT_NAME(unsafeChangePassword(from:to:));
+
+/** Change the password using local re-encryption, do not validate old password by calling any endpoint.
+ 
+ You are responsible for validating the old password against some server endpoint yourself before using it in this method.
+ If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
+ existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
+ 
+ @param oldPassword Old password, currently set to store the data.
+ @param newPassword New password, to be set in case authentication with old password passes.
+ @return Returns YES in case password was changed without error, NO otherwise.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) unsafeChangeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
+                                   to:(nonnull PowerAuthCorePassword*)newPassword
+                        NS_SWIFT_NAME(unsafeChangePassword(from:to:));
 
 /** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
  
@@ -369,18 +402,95 @@
  */
 - (nullable id<PowerAuthOperationTask>) changePasswordFrom:(nonnull NSString*)oldPassword
                                                         to:(nonnull NSString*)newPassword
-                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(changePassword(from:to:callback:));
+
+/** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
+ 
+ @param oldPassword Old password, currently set to store the data.
+ @param newPassword New password, to be set in case authentication with old password passes.
+ @param callback The callback method with the password change result.
+ @return PowerAuthOperationTask associated with the running request.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (nullable id<PowerAuthOperationTask>) changeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
+                                                            to:(nonnull PowerAuthCorePassword*)newPassword
+                                                      callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(changePassword(from:to:callback:));
+
+/** Validate a user password.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
+ 
+ @param password Password to be verified.
+ @param callback The callback method with error associated with the password validation.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) validateCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                    callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(validatePassword(password:callback:));
+
+/** Validate a user password.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
+ 
+ @param password Password to be verified.
+ @param callback The callback method with error associated with the password validation.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) validatePassword:(nonnull NSString*)password
+                                                callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(validatePassword(password:callback:));
+
+/** Validate a user password.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value. The method
+ is deprecated in favor of `validatePassword(password:callback:)` variant.
+ 
+ @param password Password to be verified.
+ @param callback The callback method with error associated with the password validation.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) validatePasswordCorrect:(nonnull NSString*)password
+                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback PA2_DEPRECATED(1.7.2);
 
 /** Regenerate a biometry related factor key.
  
  This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
+ 
+ @param password Password used for authentication during vault unlocking call.
+ @param callback The callback method with the biometry key adding operation result.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(nonnull NSString*)password
+                                                             callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(addBiometryFactor(password:callback:));
+
+/** Regenerate a biometry related factor key.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
+ 
+ @param password Password used for authentication during vault unlocking call.
+ @param callback The callback method with the biometry key adding operation result.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback
+                            NS_SWIFT_NAME(addBiometryFactor(password:callback:));
+
+/** Regenerate a biometry related factor key.
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
+ The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
  
  @param password Password used for authentication during vault unlocking call.
  @param callback The callback method with the biometry key adding operation result.
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) addBiometryFactor:(nonnull NSString*)password
-                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback;
+                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback PA2_DEPRECATED(1.7.2);
 
 /** Checks if a biometry related factor is present.
  
@@ -459,17 +569,6 @@
 - (nullable id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
                                                                 data:(nullable NSData*)data
                                                             callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
-
-/** Validate a user password.
- 
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
- 
- @param password Password to be verified.
- @param callback The callback method with error associated with the password validation.
- @return PowerAuthOperationTask associated with the running request.
- */
-- (nullable id<PowerAuthOperationTask>) validatePasswordCorrect:(nonnull NSString*)password
-                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 @end
 

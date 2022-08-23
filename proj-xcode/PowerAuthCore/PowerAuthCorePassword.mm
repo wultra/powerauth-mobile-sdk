@@ -26,22 +26,41 @@
     io::getlime::powerAuth::Password _password;
 }
 
+- (instancetype) initWithString:(NSString *)string
+{
+    self = [super init];
+    if (self) {
+        _password.initAsImmutable(cc7::MakeRange(string.UTF8String));
+    }
+    return self;
+}
+
+- (instancetype) initWithData:(NSData *)data
+{
+    self = [super init];
+    if (self) {
+        _password.initAsImmutable(cc7::ByteRange(data.bytes, data.length));
+    }
+    return self;
+}
+
+- (instancetype) initMutable
+{
+    self = [super init];
+    if (self) {
+        _password.initAsMutable();
+    }
+    return self;
+}
+
 + (instancetype) passwordWithString:(NSString *)string
 {
-    PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
-    if (pass) {
-        pass->_password.initAsImmutable(cc7::MakeRange(string.UTF8String));
-    }
-    return pass;
+    return [[PowerAuthCorePassword alloc] initWithString:string];
 }
 
 + (instancetype) passwordWithData:(NSData *)data
 {
-    PowerAuthCorePassword * pass = [[PowerAuthCorePassword alloc] init];
-    if (pass) {
-        pass->_password.initAsImmutable(cc7::ByteRange(data.bytes, data.length));
-    }
-    return pass;
+    return [[PowerAuthCorePassword alloc] initWithData:data];
 }
 
 - (NSUInteger) length
@@ -70,10 +89,15 @@
     return NO;
 }
 
-- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const UInt8* passphrase, NSUInteger length))validationBlock
+- (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^)(const char* passphrase, NSInteger length))validationBlock
 {
     auto plaintext = _password.passwordData();
-    return validationBlock(plaintext.data(), plaintext.size());
+    auto size = plaintext.size();
+    // Append null terminator in case that consumer would like to use the pointer
+    // in functions that accept c-style strings. The validation block still gets
+    // the correct size.
+    plaintext.append(0);
+    return validationBlock((const char*)plaintext.data(), size);
 }
 
 @end
@@ -98,13 +122,9 @@
 
 @implementation PowerAuthCoreMutablePassword
 
-- (id) init
+- (instancetype) init
 {
-    self = [super init];
-    if (self) {
-        _password.initAsMutable();
-    }
-    return self;
+    return [super initMutable];
 }
 
 + (instancetype) mutablePassword

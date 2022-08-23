@@ -163,7 +163,7 @@
 - (NSString*) extractStringFromPassword:(PowerAuthCorePassword*)password
 {
     __block NSString * stringPassword = nil;
-    [password validatePasswordComplexity:^NSInteger(const UInt8 * _Nonnull passphrase, NSUInteger length) {
+    [password validatePasswordComplexity:^NSInteger(const char * _Nonnull passphrase, NSInteger length) {
         stringPassword = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
         return 0;
     }];
@@ -173,7 +173,7 @@
 - (NSData*) extractBytesFromPassword:(PowerAuthCorePassword*)password
 {
     __block NSData * passwordData = nil;
-    [password validatePasswordComplexity:^NSInteger(const UInt8 * _Nonnull passphrase, NSUInteger length) {
+    [password validatePasswordComplexity:^NSInteger(const char * _Nonnull passphrase, NSInteger length) {
         passwordData = [NSData dataWithBytes:passphrase length:length];
         return 0;
     }];

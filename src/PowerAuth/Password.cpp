@@ -119,7 +119,7 @@ namespace powerAuth
     
     cc7::ByteArray Password::passwordData() const
     {
-        // Pre-allos result ByteArray with actual stored data size.
+        // Pre-allocate ByteArray with actual stored password size.
         const size_t data_size = _pass.size() - randomKeySize;
         cc7::ByteArray plaintext(data_size);
         // Reveal plaintext bytes to result ByteArray
@@ -226,6 +226,15 @@ namespace powerAuth
         }
         return false;
     }
+
+	void Password::secureClear()
+	{
+		if (isMutable()) {
+			initAsMutable();
+		} else {
+			initAsImmutable(cc7::ByteRange());
+		}
+	}
 
     // MARK: - Private interface -
 

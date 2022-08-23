@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-#import <PowerAuth2/PowerAuthAuthentication.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
-@interface PowerAuthAuthentication (Private)
-/**
- Contains numeric value representing a combination of used factors.
- */
-@property (nonatomic, readonly) NSInteger signatureFactorMask;
+@interface PowerAuthCorePassword (PowerAuthCorePasswordHelper)
 
-/// Function validates whether PowerAuthAuthentication was created for the right object usage.
-/// @param forCommit Specifies whether commit or sign operation is required.
-/// @return YES if object is correct for the specified usage.
-- (BOOL) validateUsage:(BOOL)forCommit;
+@property (nonatomic, strong, readonly, nullable) NSString * extractedPassword;
 
 @end

@@ -64,6 +64,15 @@
         return obj;             \
     }
 
+/**
+  Checks whether biometry is available for testing.
+ */
+#define CHECK_BIOMETRY()        \
+    if (![PowerAuthKeychain canUseBiometricAuthentication]) { \
+        XCTFail(@"Biometric authentication is not available on this simulator. Please go to Device Simulator and make sure that `Features -> Face/Touch ID -> Enrolled` is ON"); \
+        return;                 \
+    }
+
 
 #pragma mark - Integration tests
 
@@ -102,6 +111,25 @@
     XCTAssertTrue(activation.success);
 }
 
+- (void) testCreateActivationAndCommitWithPassword
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_RemoveAfter
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+}
+
+- (void) testCreateActivationAndCommitWithCorePassword
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithCorePassword | TestActivationFlags_RemoveAfter
+                                                               activationOtp:nil];
+    XCTAssertTrue(activation.success);
+}
+
+
 - (void) testRemoveActivation
 {
     CHECK_TEST_CONFIG();
@@ -139,7 +167,7 @@
     XCTAssertFalse(result); // if YES then something is VERY wrong. The wrong password passed the test.
     
     // 2) Now use a valid password
-    result = [_helper checkForPassword:auth.usePassword];
+    result = [_helper checkForCorePassword:auth.password];
     XCTAssertTrue(result);  // if NO then a valid password did not pass the test.
 }
 
@@ -155,11 +183,11 @@
     }
     PowerAuthAuthentication * auth = activation.credentials;
     
-    NSString * newPassword = @"nbusr321";
+    PowerAuthCorePassword * newPassword = [PowerAuthCorePassword passwordWithString:@"nbusr321"];
     
     // 1) At first, change password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk changePasswordFrom:auth.usePassword to:newPassword callback:^(NSError * _Nullable error) {
+        id<PowerAuthOperationTask> task = [_sdk changeCorePasswordFrom:auth.password to:newPassword callback:^(NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         // Returned task should not be cancelled
@@ -168,7 +196,25 @@
     XCTAssertTrue(result);
     
     // 2) Now validate that new password
-    result = [_helper checkForPassword:newPassword];
+    result = [_helper checkForCorePassword:newPassword];
+    XCTAssertTrue(result);
+    
+    // Now use string version instead of core password
+    
+    NSString * oldStringPassword = newPassword.extractedPassword;
+    NSString * newStringPassword = auth.password.extractedPassword;
+    // 1) At first, change password
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        id<PowerAuthOperationTask> task = [_sdk changePasswordFrom:oldStringPassword to:newStringPassword callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+        // Returned task should not be cancelled
+        XCTAssertNotNil(task);
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    // 2) Now validate that new password
+    result = [_helper checkForPassword:newStringPassword];
     XCTAssertTrue(result);
 }
 
@@ -222,7 +268,7 @@
     // Do more valid signatures. Count is important, due to fact that we have 8-bit local counter sice V3.1
     for (int i = 1; i < 264; i++) {
         result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-            id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+            id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
                 [waiting reportCompletion:@(error == nil)];
             }];
             XCTAssertNotNil(task);
@@ -452,7 +498,7 @@
     PowerAuthAuthentication * just_possession = _helper.authPossession;
     
     // Correct AUTH with knowledge
-    result = [_helper checkForPassword:auth.usePassword];
+    result = [_helper checkForCorePassword:auth.password];
     XCTAssertTrue(result);
     PowerAuthActivationStatus * status_after_correct = [_helper fetchActivationStatus];
     
@@ -478,7 +524,7 @@
     
     // Now try valid password
     // Fail attempt
-    result = [_helper checkForPassword:auth.usePassword];
+    result = [_helper checkForCorePassword:auth.password];
     XCTAssertTrue(result);
     status_after_correct = [_helper fetchActivationStatus];
     XCTAssertNotNil(status_after_correct);
@@ -501,7 +547,7 @@
     PowerAuthAuthentication * auth = activation.credentials;
     
     // Correct AUTH with knowledge
-    result = [_helper checkForPassword:auth.usePassword];
+    result = [_helper checkForCorePassword:auth.password];
     XCTAssertTrue(result);
     PowerAuthActivationStatus * status_after_correct = [_helper fetchActivationStatus];
     PowerAuthActivationStatus * after = status_after_correct;
@@ -611,7 +657,7 @@
     status = [_helper fetchActivationStatus];
     XCTAssertNotNil(status);
     XCTAssertEqual(status.state, PowerAuthActivationState_Active);
-    BOOL password_result = [_helper checkForPassword:auth.usePassword];
+    BOOL password_result = [_helper checkForCorePassword:auth.password];
     XCTAssertTrue(password_result);
     
     // Negative
@@ -833,7 +879,7 @@
     
     // 2) At first, use invalid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:@"MustBeWrong" callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk validatePassword:@"MustBeWrong" callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -842,7 +888,7 @@
     
     // 3) Now use a valid password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -855,7 +901,7 @@
     
     // 5) Test password
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:auth.usePassword callback:^(NSError * error) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:auth.password callback:^(NSError * error) {
             [waiting reportCompletion:@(error == nil)];
         }];
         XCTAssertNotNil(task);
@@ -889,6 +935,8 @@
     }
 }
 
+// MARK: - EEK
+
 - (void) testExternalEncryptionKey
 {
     CHECK_TEST_CONFIG();
@@ -903,7 +951,7 @@
     }
     
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     
@@ -913,14 +961,14 @@
     XCTAssertNil(error);
     
     XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     result = [_sdk removeExternalEncryptionKey:&error];
     XCTAssertTrue(result);
     XCTAssertNil(error);
     
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
 
 - (void) testEEKFromConfiguration
@@ -942,7 +990,7 @@
         return;
     }
     
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     NSError * error = nil;
     BOOL result = [_sdk removeExternalEncryptionKey:&error];
@@ -950,7 +998,7 @@
     XCTAssertNil(error);
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
 
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
 
 - (void) testSetEEKBeforeActivation
@@ -973,14 +1021,14 @@
         return;
     }
     
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     result = [_sdk removeExternalEncryptionKey:&error];
     XCTAssertTrue(result);
     XCTAssertNil(error);
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
 
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
 
 - (void) testSetEEKAfterActivation
@@ -997,7 +1045,7 @@
     }
     
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
     NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     
@@ -1007,7 +1055,7 @@
     XCTAssertNil(error);
     
     XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 
     // Now re-instantiate SDK and try to set EEK manually
     PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
@@ -1023,8 +1071,10 @@
     XCTAssertNil(error);
     
     XCTAssertTrue(_sdk.hasExternalEncryptionKey);
-    XCTAssertTrue([_helper checkForPassword:activation.credentials.usePassword]);
+    XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
+
+// MARK: - Request synchronization
 
 - (void) testCancelEnqueuedHttpOperation
 {
@@ -1040,15 +1090,78 @@
         return;
     }
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk validatePasswordCorrect:activation.credentials.usePassword callback:^(NSError * _Nullable error) {
+        [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:nil];
         }];
-        id<PowerAuthOperationTask> task = [_sdk validatePasswordCorrect:activation.credentials.usePassword callback:^(NSError * _Nullable error) {
+        id<PowerAuthOperationTask> task = [_sdk validateCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
             XCTFail();
         }];
         [task cancel];
     }];
 }
+
+#if defined(PA2_BIOMETRY_SUPPORT)
+
+// MARK: - Biometry
+
+- (void) testCreateActivationWithBiometry
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates whether it's possible to create activation with biometry factor set.
+    //
+    
+    CHECK_BIOMETRY();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+}
+
+- (void) testAddingBiometryFactor
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates whether it's possible to add biometry factor later.
+    //
+    
+    CHECK_BIOMETRY();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk addBiometryFactorWithCorePassword:activation.credentials.password callback:^(NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+    
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+    
+    XCTAssertTrue([_sdk removeBiometryFactor]);
+    
+    XCTAssertFalse([_sdk hasBiometryFactor]);
+    
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk addBiometryFactorWithPassword:activation.credentials.password.extractedPassword callback:^(NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+    
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+}
+
+#endif // PA2_BIOMETRY_SUPPORT
 
 @end

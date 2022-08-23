@@ -16,6 +16,9 @@
 
 import SwiftUI
 
+import PowerAuth2
+import PowerAuthCore
+
 struct ContentView: View {
     var body: some View {
         Text("Executing PowerAuth integration tests.")
@@ -27,4 +30,16 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
+}
+
+/// This function is useful only for test whether our Objective-C API
+/// is properly exposed to Swift. You can prototype any code you want
+/// here to see, whether our API makes sense in Swift.
+///
+/// Please revert your changes in this file before you commit & push
+/// the rest of your work into the repository.
+fileprivate func dummyFunction() {
+    let config = PowerAuthConfiguration()
+    let sdk = PowerAuthSDK(configuration: config)!
+    _ = sdk.hasBiometryFactor()
 }

@@ -97,6 +97,26 @@ public class StandardActivationTest {
         assertEquals(PowerAuthSystem.getDeviceInfo(), activationDetail.getDeviceInfo());
     }
 
+    @Test
+    public void testCreateAndCommitWithPassword() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_PASSWORD, null);
+        // Validate valid and invalid password
+        boolean passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getValidPassword()));
+        assertTrue(passwordValid);
+        passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getInvalidPassword()));
+        assertFalse(passwordValid);
+    }
+
+    @Test
+    public void testCreateAndCommitWithCorePassword() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_CORE_PASSWORD, null);
+        // Validate valid and invalid password
+        boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
+        assertTrue(passwordValid);
+        passwordValid = activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+        assertFalse(passwordValid);
+    }
+
     // Using legacy method
 
     @Test

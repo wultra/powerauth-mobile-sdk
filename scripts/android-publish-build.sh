@@ -28,6 +28,8 @@ function USAGE
     echo ""
     echo "  central             Publish Android SDK to Maven Central"
     echo "  local               Publish Android SDK to local Maven cache"
+    echo "  test                Build library with all publishing artifacts"
+    echo "                      without actual publishing to repository"
     echo ""
     echo "options:"
     echo ""
@@ -87,8 +89,10 @@ function LOAD_CURRENT_VERSION
     LOG_LINE
     if [ $REPO == 'local' ]; then
         LOG "Going to publish library to local Maven cache"
-    else
+    elif [ $REPO = 'central' ]; then
         LOG "Going to publish library to Sonatype Repository"
+    else
+        LOG "Going to test build for publish"
     fi
     LOG " - Version     : ${VERSION_NAME}"
     LOG " - Dependency  : ${GROUP_ID}:${ARTIFACT_ID}:${VERSION_NAME}"
@@ -131,7 +135,7 @@ do
             DO_CLEAN='' ;;
         -ns | --no-sign)
             DO_SIGN=0 ;;
-        central | local)
+        central | local | test)
             DO_REPO=$opt ;;
         -v*)
             SET_VERBOSE_LEVEL_FROM_SWITCH $opt ;;
@@ -149,6 +153,9 @@ case "$DO_REPO" in
         ;;  
     central)
         DO_PUBLISH='publishReleasePublicationToSonatypeRepository'
+        ;;
+    test)
+        DO_PUBLISH='signReleasePublication verifyDebugSymbolsForRelease'
         ;;
     *)
         FAILURE "You must specify repository where publish to."
@@ -188,6 +195,7 @@ if [ x$DO_SIGN == x1 ]; then
     GRADLE_PARAMS+=" -Pnexus.stagingProfileId=${NEXUS_STAGING_PROFILE_ID}"
 else
     [[ $DO_REPO == 'central' ]] && FAILURE "Signing is required for publishing to Maven Central."
+    [[ $DO_REPO == 'test' ]] && FAILURE "Signing is required for test publishing."
 fi
 
 LOAD_CURRENT_VERSION $DO_REPO

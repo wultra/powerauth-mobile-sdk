@@ -14,14 +14,10 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 function USAGE
 {
     echo ""
-    echo "Usage:  $CMD  [options] platform version"
+    echo "Usage:  $CMD  [options] version"
     echo ""
-    echo "version             is version to be published to repositories"
+    echo "  version             is version to be published to repositories"
     echo "                      Only X.Y.Z format is accepted"
-    echo ""
-    echo "platform            is at least one supported platform:"
-    echo "    android           for deployment to Maven Central"
-    echo "    ios               for deployment to CocoaPods"
     echo ""
     echo "options are:"
     echo "    -v0               turn off all prints to stdout"
@@ -64,8 +60,6 @@ GIT_VALIDATE_DEVELOPMENT_BRANCH=1
 GIT_SKIP_TAGS=0
 GIT_ONLY_TAGS=0
 STANDARD_BRANCH=0
-DO_IOS=0
-DO_ANDROID=0
 
 # -----------------------------------------------------------------------------
 # Validate whether git branch is 'develop'
@@ -114,54 +108,39 @@ function PREPARE_VERSIONING_FILES
 {
     PUSH_DIR "${SRC_ROOT}"
     ####
-    if [ x$DO_IOS == x1 ]; then
-        # PowerAuth2
-        LOG "----- Generating ${PODSPEC}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
-        git add ${PODSPEC}
-        # PowerAuthCore
-        LOG "----- Generating ${PODSPEC_COR}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_COR}" > "$SRC_ROOT/${PODSPEC_COR}" 
-        git add ${PODSPEC_COR}
-        # PowerAuth2ForWatch
-        LOG "----- Generating ${PODSPEC_WOS}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
-        git add ${PODSPEC_WOS}
-        # PowerAuth2ForExtensions
-        LOG "----- Generating ${PODSPEC_EXT}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
-        git add ${PODSPEC_EXT}
-        # Info.plist files
-        LOG "----- Generating ${INFO_PLIST}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
-        LOG "----- Generating ${INFO_PLIST_COR}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PAC-Info.plist" > "$SRC_ROOT/${INFO_PLIST_COR}"
-        LOG "----- Generating ${INFO_PLIST_WOS}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Watch-Info.plist" > "$SRC_ROOT/${INFO_PLIST_WOS}"
-        LOG "----- Generating ${INFO_PLIST_EXT}..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Ext-Info.plist" > "$SRC_ROOT/${INFO_PLIST_EXT}"
-        git add ${INFO_PLIST} ${INFO_PLIST_COR} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
-    fi
-    if [ x$DO_ANDROID == x1 ]; then
-        LOG "----- Generating gradle.properties..."
-        sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
-        git add ${GRADLE_PROP}
-    fi
-    local TAG_MESSAGE=""
-    case "$DO_IOS$DO_ANDROID" in
-        10)
-            TAG_MESSAGE="ios version $VERSION"
-            ;;
-        01)
-            TAG_MESSAGE="android version $VERSION" 
-            ;;
-        11)
-            TAG_MESSAGE="ios+android version $VERSION"
-            ;;
-        *)
-            FAILURE "Internal script error 1"
-            ;;
-    esac
+
+    # PowerAuth2
+    LOG "----- Generating ${PODSPEC}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC}" > "$SRC_ROOT/${PODSPEC}" 
+    git add ${PODSPEC}
+    # PowerAuthCore
+    LOG "----- Generating ${PODSPEC_COR}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_COR}" > "$SRC_ROOT/${PODSPEC_COR}" 
+    git add ${PODSPEC_COR}
+    # PowerAuth2ForWatch
+    LOG "----- Generating ${PODSPEC_WOS}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
+    git add ${PODSPEC_WOS}
+    # PowerAuth2ForExtensions
+    LOG "----- Generating ${PODSPEC_EXT}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
+    git add ${PODSPEC_EXT}
+    # Info.plist files
+    LOG "----- Generating ${INFO_PLIST}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
+    LOG "----- Generating ${INFO_PLIST_COR}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PAC-Info.plist" > "$SRC_ROOT/${INFO_PLIST_COR}"
+    LOG "----- Generating ${INFO_PLIST_WOS}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Watch-Info.plist" > "$SRC_ROOT/${INFO_PLIST_WOS}"
+    LOG "----- Generating ${INFO_PLIST_EXT}..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Ext-Info.plist" > "$SRC_ROOT/${INFO_PLIST_EXT}"
+    git add ${INFO_PLIST} ${INFO_PLIST_COR} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
+
+    LOG "----- Generating gradle.properties..."
+    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
+    git add ${GRADLE_PROP}
+    
+    local TAG_MESSAGE="ios+android version $VERSION"
 
     LOG "----- Commiting versioning files..."
     git commit -m "Deployment: Update versioning file[s] to ${VERSION}"
@@ -200,56 +179,105 @@ function PUSH_VERSIONING_FILES
 }
 
 # -----------------------------------------------------------------------------
-# Deploys recently tagged version to CocoaPods Specs repo
+# Validate build before library publishing
 # -----------------------------------------------------------------------------
-function DEPLOY_IOS
+function VALIDATE_BEFORE_PUBLISH
 {
-    if [ x$DO_IOS == x0 ]; then
-        return
-    fi
+    PUSH_DIR "${SRC_ROOT}"
+    ####
+    LOG_LINE
+    LOG "Validating build for Apple platforms..."
+    LOG_LINE
     
     # Validate shared sources before publishing
     "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
     
-    PUSH_DIR "${SRC_ROOT}"
-    ####
-    LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
-    pod trunk push ${PODSPEC_COR}
-    
-    # There's now way to test whether core has been really published.
-    #
-    # We can use --synchronized option, but it will clone the gigantic
-    # git repository with all specs, so update will take the same time
-    # as a plain wait.
-    
+    pod lib lint PowerAuth2.podspec --include-podspecs=PowerAuthCore.podspec
+
     LOG_LINE
-    LOG "Waiting for several minutes to propagate ${PODSPEC_COR} to trunk..."
-    for c in {20..1}; do
-        LOG " - $c minute(s) to go..."
-        sleep 60
-    done
+    LOG "Validating extensions build for Apple platforms..."
+    LOG_LINE
+
+    pod lib lint PowerAuth2ForExtensions.podspec
+    pod lib lint PowerAuth2ForWatch.podspec
+     
+    LOG_LINE
+    LOG "Validating build for Android platform..."
     LOG_LINE
     
-    LOG "----- Publishing ${PODSPEC} to CocoaPods..."
-    pod trunk push ${PODSPEC}
-    LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-    pod trunk push ${PODSPEC_WOS}
-    LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
-    pod trunk push ${PODSPEC_EXT}
+    "${TOP}/android-publish-build.sh" test
+    
     ####
     POP_DIR
 }
 
 # -----------------------------------------------------------------------------
-# Deploys recently tagged version to jcenter
+# Deploys recently tagged version to repositories
 # -----------------------------------------------------------------------------
-function DEPLOY_ANDROID
+function DEPLOY_BUILD
 {
-    if [ x$DO_ANDROID == x0 ]; then
-        return
-    fi
+    PUSH_DIR "${SRC_ROOT}"
+    ####
+    
+    # At first, publis PowerAuthCore.podspec, then we have to wait about
+    # 20 minutes to publish PowerAuth2.podspec
+    
+    # There's now way to test whether core has been really published.
+    # 
+    # We can use --synchronized option, but it will clone the gigantic
+    # git repository with all specs, so update will take the same time
+    # as a plain wait.
+    
+    LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
+    pod trunk push ${PODSPEC_COR}
+
+    # Now publish extensions & watchOS libs
+    
+    # 1200 - 20 minutes
+    local WAIT_TIME=1200
+    local END_TIME=$((`date +%s` + $WAIT_TIME))
+    
+    LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
+    pod trunk push ${PODSPEC_WOS}
+    LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
+    pod trunk push ${PODSPEC_EXT}
+    
+    # Also publish Android library
     
     "${TOP}/android-publish-build.sh" central
+    
+    LOG ""
+    LOG_LINE
+    LOG "We're still need to wait for PowerAuthCore.podspec publication."
+    LOG "              Meanwhile, you can to go to"
+    LOG ""
+    LOG "          --> https://s01.oss.sonatype.org <--"
+    LOG ""
+    LOG "    and switch Android build to the production manually."
+    LOG_LINE
+    
+    LOG "Waiting for several minutes to propagate ${PODSPEC_COR} to trunk..."
+    while [ `date +%s` -lt $END_TIME ]
+    do
+        local remaining=$(( ($END_TIME - `date +%s`) / 60 ))
+        LOG " - $remaining minute(s) to go..."
+        sleep 60
+    done
+    
+    # Now finally try to publish
+    
+    LOG_LINE
+    LOG "Going to publish ${PODSPEC} to CocoaPods. In case of failure"
+    LOG "then  please try to run the publishing manually: "
+    LOG ""
+    LOG "   pod trunk push ${PODSPEC}"
+    LOG ""
+    LOG_LINE
+    LOG "----- Publishing ${PODSPEC} to CocoaPods..."
+    pod trunk push ${PODSPEC}
+
+    ####
+    POP_DIR
 }
 
 # -----------------------------------------------------------------------------
@@ -298,12 +326,6 @@ do
         --create-tag)
             GIT_ONLY_TAGS=1
             ;;
-        android)
-            DO_ANDROID=1
-            ;;
-        ios)
-            DO_IOS=1
-            ;;
         *)
             VALIDATE_AND_SET_VERSION_STRING $opt
             ;;
@@ -316,9 +338,6 @@ done
 if [ -z "$VERSION" ]; then
     FAILURE "You have to provide version string."
 fi
-if [ $DO_IOS$DO_ANDROID == 00 ]; then
-    FAILURE "You have to specify at least one supported platform."
-fi
 #
 # Main job starts here...
 #
@@ -329,8 +348,8 @@ case "$TOP" in
         ;;
 esac
 VALIDATE_GIT_STATUS
+VALIDATE_BEFORE_PUBLISH
 PUSH_VERSIONING_FILES
-DEPLOY_IOS
-DEPLOY_ANDROID
+DEPLOY_BUILD
 MERGE_TO_MASTER
 

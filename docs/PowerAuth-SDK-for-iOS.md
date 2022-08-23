@@ -785,7 +785,7 @@ class EnterPinScene {
     func onPinButtonActionSimplified(pinIndex: Int) {
         // This is a simplified version of onPinButtonAction() that use
         // simple PIN button index as input.
-        guard pinIndex >= 0 && pinIndex >= 9 else { fatalError() }
+        guard pinIndex >= 0 && pinIndex <= 9 else { fatalError() }
         // You don't need to add 48 (code for character "0") to the index, 
         // unless your previous implementation was using number characters.
         pin.addCharacter(UInt32(pinIndex) + 48)

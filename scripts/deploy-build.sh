@@ -233,8 +233,8 @@ function DEPLOY_BUILD
 
     # Now publish extensions & watchOS libs
     
-    # 1200 - 20 minutes
-    local WAIT_TIME=1200
+    # 1260 - 21 minutes
+    local WAIT_TIME=1260
     local END_TIME=$((`date +%s` + $WAIT_TIME))
     
     LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."

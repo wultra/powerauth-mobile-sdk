@@ -1508,9 +1508,9 @@ enum class PasswordComplexity(val value: Int) {
     }
 }
 
-// This is an actual complexity validator that also accepts pointer at its input. You should avoid
-// converting provided memory into Data or String due to fact, that it will lead to an uncontrolled
-// passphrase copy to foundation objects' buffers.
+// This is an actual complexity validator that also accepts ByteArray at its input. You should avoid
+// converting provided bytes into String or copy passphrase to another byte array to minimize risk
+// of leaking the password in memory.
 fun superPasswordValidator(password: ByteArray): PasswordComplexity {
     // This is just an example, please do not use such trivial validation in your
     // production application :)

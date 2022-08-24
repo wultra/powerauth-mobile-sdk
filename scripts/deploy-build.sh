@@ -60,6 +60,8 @@ GIT_VALIDATE_DEVELOPMENT_BRANCH=1
 GIT_SKIP_TAGS=0
 GIT_ONLY_TAGS=0
 STANDARD_BRANCH=0
+SCRIPT_VERBOSE=
+POD_VERBOSE=
 
 # -----------------------------------------------------------------------------
 # Validate whether git branch is 'develop'
@@ -183,32 +185,7 @@ function PUSH_VERSIONING_FILES
 # -----------------------------------------------------------------------------
 function VALIDATE_BEFORE_PUBLISH
 {
-    PUSH_DIR "${SRC_ROOT}"
-    ####
-    LOG_LINE
-    LOG "Validating build for Apple platforms..."
-    LOG_LINE
-    
-    # Validate shared sources before publishing
-    "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
-    
-    pod lib lint PowerAuth2.podspec --include-podspecs=PowerAuthCore.podspec
-
-    LOG_LINE
-    LOG "Validating extensions build for Apple platforms..."
-    LOG_LINE
-
-    pod lib lint PowerAuth2ForExtensions.podspec
-    pod lib lint PowerAuth2ForWatch.podspec
-     
-    LOG_LINE
-    LOG "Validating build for Android platform..."
-    LOG_LINE
-    
-    "${TOP}/android-publish-build.sh" test
-    
-    ####
-    POP_DIR
+    "${TOP}/test-build.sh" $SCRIPT_VERBOSE lint
 }
 
 # -----------------------------------------------------------------------------
@@ -229,7 +206,7 @@ function DEPLOY_BUILD
     # as a plain wait.
     
     LOG "----- Publishing ${PODSPEC_COR} to CocoaPods..."
-    pod trunk push ${PODSPEC_COR}
+    pod $POD_VERBOSE trunk push ${PODSPEC_COR}
 
     # Now publish extensions & watchOS libs
     
@@ -238,13 +215,13 @@ function DEPLOY_BUILD
     local END_TIME=$((`date +%s` + $WAIT_TIME))
     
     LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-    pod trunk push ${PODSPEC_WOS}
+    pod $POD_VERBOSE trunk push ${PODSPEC_WOS}
     LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
-    pod trunk push ${PODSPEC_EXT}
+    pod $POD_VERBOSE trunk push ${PODSPEC_EXT}
     
     # Also publish Android library
     
-    "${TOP}/android-publish-build.sh" central
+    "${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE central
     
     LOG ""
     LOG_LINE
@@ -274,7 +251,7 @@ function DEPLOY_BUILD
     LOG ""
     LOG_LINE
     LOG "----- Publishing ${PODSPEC} to CocoaPods..."
-    pod trunk push ${PODSPEC}
+    pod $POD_VERBOSE trunk push ${PODSPEC}
 
     ####
     POP_DIR
@@ -315,7 +292,9 @@ do
             USAGE 0
             ;;
         -v*)
-            SET_VERBOSE_LEVEL_FROM_SWITCH $opt 
+            SET_VERBOSE_LEVEL_FROM_SWITCH $opt
+            SCRIPT_VERBOSE=$opt
+            POD_VERBOSE=$VERBOSE_VARIANT3
             ;;
         --any-branch)
             GIT_VALIDATE_DEVELOPMENT_BRANCH=0

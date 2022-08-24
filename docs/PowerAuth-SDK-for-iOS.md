@@ -719,7 +719,7 @@ The situation that the user's password stays in memory for days may be critical 
 
 - Doesn't provide a simple interface to reveal the password in plaintext<sup>1)</sup> and therefore it minimizes the risks of revealing the password by accident (like print it to the log).
 
-<!-- begin box note -->
+<!-- begin box info -->
 **Note 1:** There's `validatePasswordComplexity()` function that reveal the password in plaintext for the limited time for the complexity validation purposes. The straightforward naming of the function allows you to find all its usages in your code and properly validate all codepaths.
 <!-- end -->
 

@@ -255,7 +255,9 @@ function BUILD_COMMAND
 function BUILD_PLATFORMS
 {
     LOG_LINE
-    LOG "Building platforms..."
+    LOG "Building $OUT_FW for supported platforms..."
+    LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
+    LOG "  - Xcode $(GET_XCODE_VERSION --full)"
     LOG_LINE
 
     ALL_FAT_LIBS=()

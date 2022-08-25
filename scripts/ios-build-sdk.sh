@@ -283,6 +283,8 @@ function BUILD_LIB
     
     LOG_LINE
     LOG "Building $LIB_NAME for supported platforms..."
+    LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
+    LOG "  - Xcode $(GET_XCODE_VERSION --full)"
     LOG_LINE
 
     ALL_FAT_LIBS=()

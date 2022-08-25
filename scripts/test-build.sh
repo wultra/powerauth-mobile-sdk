@@ -113,7 +113,7 @@ LOG_LINE -a
 LOG "Validating build for Android platform..."
 LOG_LINE
 
-"${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE test
+"${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE test --no-sign
 
 ####
 POP_DIR

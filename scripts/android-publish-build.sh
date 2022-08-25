@@ -195,7 +195,6 @@ if [ x$DO_SIGN == x1 ]; then
     GRADLE_PARAMS+=" -Pnexus.stagingProfileId=${NEXUS_STAGING_PROFILE_ID}"
 else
     [[ $DO_REPO == 'central' ]] && FAILURE "Signing is required for publishing to Maven Central."
-    [[ $DO_REPO == 'test' ]] && FAILURE "Signing is required for test publishing."
 fi
 
 LOAD_CURRENT_VERSION $DO_REPO

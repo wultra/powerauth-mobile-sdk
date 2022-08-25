@@ -25,5 +25,5 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'gradle'
-      - name: Build the app
+      - name: Build library
         run: ./scripts/test-build.sh script -v2

@@ -8,7 +8,7 @@ on:
       - releases/*
   pull_request:
   schedule:
-    - cron: '25 6 * * *'
+    - cron: '30 6 * * 1'
 
 jobs:
   build:

@@ -529,7 +529,7 @@ namespace powerAuth
         
         // Counter byte is available, so it's possible to estimate distance between the counters.
         // Negative 'byte_distance' means that the server is ahead. On opposite to that, positive value indicates
-        // that the clients's ahead.
+        // that the client's ahead.
         auto byte_distance = protocol::CalculateDistanceBetweenByteCounters(_pd->signatureCounterByte, status.ctrByte);
         if (hash_distance == 0 && byte_distance == 0) {
             // Everything's OK.

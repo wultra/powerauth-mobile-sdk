@@ -32,6 +32,7 @@
 # -----------------------------------------------------------------------------
 TOP=$(dirname $0)
 source "${TOP}/common-functions.sh"
+source "${TOP}/config-apple.sh"
 SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 #
@@ -43,16 +44,6 @@ SOURCE_FILES="${SRC_ROOT}/proj-xcode/PowerAuth2"
 # Platforms & CPU architectures
 #
 PLATFORMS="iOS iOS_Simulator tvOS tvOS_Simulator macOS_Catalyst"
-# Platform architectures
-ARCH_IOS="armv7 armv7s arm64 arm64e"
-ARCH_IOS_SIM="i386 x86_64"
-ARCH_CATALYST="x86_64"
-ARCH_TVOS="arm64"
-ARCH_TVOS_SIM="x86_64"
-# Minimum OS version
-MIN_VER_IOS="9.0"
-MIN_VER_TVOS="9.0"
-MIN_VER_CATALYST="10.15"
 
 # Variables loaded from command line
 VERBOSE=1
@@ -63,6 +54,8 @@ TMP_DIR=''
 DO_BUILDCORE=0
 DO_BUILDSDK=0
 DO_COPYSDK=0
+OPT_LEGACY_ARCH=0
+OPT_USE_BITCODE=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -81,6 +74,7 @@ function USAGE
     echo "  buildSdk          Build PowerAuth2.xcframework to out directory"
     echo ""
     echo "options are:"
+    echo ""
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
     echo "                    also disables temporary data cleanup after build"
     echo "  -v0               turn off all prints to stdout"
@@ -90,6 +84,16 @@ function USAGE
     echo "                    will be stored"
     echo "  --tmp-dir path    changes temporary directory to |path|"
     echo "  -h | --help       prints this help information"
+    echo ""
+    echo "legacy options:"
+    echo ""
+    echo "  --legacy-archs    compile also legacy architectures"
+    echo "  --use-bitcode     compile with enabled bitcode"
+    echo ""
+    echo "  Be aware that if you use legacy options then the script will"
+    echo "  rebuild OpenSSL library and will left changes in 'cc7' submodule."
+    echo "  If you want to switch back to regular build, then please revert"
+    echo "  all changed files in 'cc7' folder."
     echo ""
     exit $1
 }
@@ -181,6 +185,20 @@ function GET_PLATFORM_SCHEME
         *) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
     esac
 }
+function GET_DEPLOYMENT_TARGETS
+{
+    local target=
+    target+=" IPHONEOS_DEPLOYMENT_TARGET=${MIN_VER_IOS}"
+    target+=" TVOS_DEPLOYMENT_TARGET=${MIN_VER_TVOS}"
+    target+=" MACOSX_DEPLOYMENT_TARGET=${MIN_VER_CATALYST}"
+    target+=" WATCHOS_DEPLOYMENT_TARGET=${MIN_VER_WATCHOS}"
+    echo $target
+}
+function GET_BITCODE_OPTION
+{
+    [[ x$OPT_USE_BITCODE == x0 ]] && echo "ENABLE_BITCODE=NO"
+    [[ x$OPT_USE_BITCODE == x1 ]] && echo "ENABLE_BITCODE=YES"
+}
 
 # -----------------------------------------------------------------------------
 # Copy all source files in SDK to destination directory
@@ -222,6 +240,68 @@ function COPY_SOURCE_FILES
 }
 
 # -----------------------------------------------------------------------------
+# Prepare legacy / regular OpenSSL build
+# -----------------------------------------------------------------------------
+function PREPARE_LEGACY_OPENSSL
+{
+    LOG_LINE
+    LOG "|            Going to prepare OpenSSL library for legacy build.             |"
+    LOG_LINE
+    LOG "|     Be aware that if you use legacy options then the script will          |"
+    LOG "|     rebuild OpenSSL library and will left changes in 'cc7' submodule.     |"
+    LOG "|     If you want to switch back to regular build, then please revert       |"
+    LOG "|     all changed files in 'cc7' folder.                                    |"
+    LOG_LINE
+    
+    local opts="apple --local $CC7_VERSION_EXT"
+    [[ x$OPT_USE_BITCODE == x1 ]] && opts+=' --apple-enable-bitcode'
+    [[ x$OPT_LEGACY_ARCH == x1 ]] && opts+=' --apple-legacy-archs'
+    
+    "$SRC_ROOT/cc7/openssl-build/build.sh" $opts
+}
+function PEPARE_REGULAR_OPENSSL
+{
+    LOG_LINE
+    LOG "|            Going to prepare OpenSSL library for regular build.            |"
+    LOG_LINE
+    
+    REQUIRE_COMMAND git
+    
+    PUSH_DIR "$SRC_ROOT/cc7"
+    git checkout .
+    POP_DIR
+}
+function PREPARE_OPENSSL
+{
+    # Load cc7 version
+    source "$SRC_ROOT/cc7/openssl-build/version.sh"
+    local DEFAULT_STATUS="${CC7_VERSION_EXT}-a00"
+    # Load status from file if status file exists
+    local STATUS_FILE="$SRC_ROOT/cc7/.apple-legacy-build"
+    if [ -f "$STATUS_FILE" ]; then
+        local OLD_STATUS=`cat $STATUS_FILE`
+    else
+        local OLD_STATUS=$DEFAULT_STATUS
+    fi
+    # Compare old and new status and decide what to do...
+    local NEW_STATUS="${CC7_VERSION_EXT}-a$OPT_USE_BITCODE$OPT_LEGACY_ARCH"
+    if [ $OLD_STATUS == $NEW_STATUS ]; then
+        # There's no change in status.
+        return
+    elif [ $NEW_STATUS != $DEFAULT_STATUS ]; then
+        # Status is different than default, so re-build OpenSSL 
+        # and then store status to file.
+        PREPARE_LEGACY_OPENSSL
+        echo $NEW_STATUS > $STATUS_FILE
+    else
+        # Status is default, so revert changes in 'cc7' and remove
+        # status file. 
+        PEPARE_REGULAR_OPENSSL
+        [[ -f "$STATUS_FILE" ]] && $RM "$STATUS_FILE"
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
 # Parameters:
 #   $1   - platform (iOS, iOS_Simulator, etc...)
@@ -241,6 +321,8 @@ function BUILD_COMMAND
     local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
     local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
     local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
+    local DEPLOYMENT_TARGETS=$(GET_DEPLOYMENT_TARGETS)
+    local BITCODE_OPTION=$(GET_BITCODE_OPTION)
     
     LOG_LINE
     LOG "Building ${PLATFORM} (${MIN_SDK_VER}+) for architectures ${PLATFORM_ARCHS}"
@@ -252,6 +334,7 @@ function BUILD_COMMAND
     COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
     COMMAND_LINE+=" -destination \"${PLATFORM_DEST}\""
     COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
+    COMMAND_LINE+=" ${DEPLOYMENT_TARGETS} ${BITCODE_OPTION}"
     [[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
     [[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
     
@@ -286,6 +369,8 @@ function BUILD_LIB
     LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
     LOG "  - Xcode $(GET_XCODE_VERSION --full)"
     LOG_LINE
+    
+    PREPARE_OPENSSL
 
     ALL_FAT_LIBS=()
     
@@ -322,32 +407,6 @@ function COPY_SDK_SOURCES
     
     # Copy source files...
     COPY_SOURCE_FILES "${SOURCE_FILES}" "${OUT_DIR}"
-}
-
-# -----------------------------------------------------------------------------
-# Adjust CPU architectures supported in Xcode, depending on Xcode version.
-# -----------------------------------------------------------------------------
-function BUILD_PATCH_ARCHITECTURES
-{
-    local xcodever=( $(GET_XCODE_VERSION --split) )
-    if (( ${xcodever[0]} == -1 )); then
-        FAILURE "Invalid Xcode installation."
-    fi
-    if (( ${xcodever[0]} >= 12 )); then
-        # Greater and equal than 12.0
-        DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
-        ARCH_IOS_SIM+=" arm64"
-        ARCH_TVOS_SIM+=" arm64"
-        if [[ (${xcodever[0]} == 12 && ${xcodever[1]} < 2) ]]; then
-            # 12.0 or 12.1
-            WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
-        else
-            # Greater and equal than 12.2
-            ARCH_CATALYST+=" arm64"
-        fi
-    else
-        WARNING "Building library on older than Xcode 12. Several ARM64 architectures will be omitted."
-    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -398,6 +457,12 @@ do
         --out-dir)
             OUT_DIR="$2"
             shift
+            ;;
+        --legacy-archs)
+            OPT_LEGACY_ARCH=1
+            ;;
+        --use-bitcode)
+            OPT_USE_BITCODE=1
             ;;
         -v*)
             SET_VERBOSE_LEVEL_FROM_SWITCH $opt

@@ -25,8 +25,8 @@ Pod::Spec.new do |s|
     }
     
     # Library build
-    s.ios.deployment_target  = '9.0'
-    s.tvos.deployment_target = '9.0'
+    s.ios.deployment_target  = '11.0'
+    s.tvos.deployment_target = '11.0'
     
     s.prepare_command = <<-CMD
         ./scripts/ios-build-extensions.sh --out-dir Build/PowerAuth2ForExtensions extensions

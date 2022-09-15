@@ -785,6 +785,8 @@
 		BFE341C127F6F035005337B1 /* PowerAuthSdkTestHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSdkTestHelper.m; sourceTree = "<group>"; };
 		BFE341C427F71AC0005337B1 /* PowerAuthSDKDefaultTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthSDKDefaultTests.h; sourceTree = "<group>"; };
 		BFE341C527F71BDF005337B1 /* PowerAuthSDKSharedTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthSDKSharedTests.m; sourceTree = "<group>"; };
+		BFE35A2528D33C5700687057 /* PowerAuth2TestsHostApp-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PowerAuth2TestsHostApp-ios.entitlements"; sourceTree = "<group>"; };
+		BFE35A2C28D33C8300687057 /* PowerAuth2TestsHostApp-tvos.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PowerAuth2TestsHostApp-tvos.entitlements"; sourceTree = "<group>"; };
 		BFEC963821B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthBasicHttpAuthenticationRequestInterceptor.h; sourceTree = "<group>"; };
 		BFEC963921B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthBasicHttpAuthenticationRequestInterceptor.m; sourceTree = "<group>"; };
 		BFEC963C21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCustomHeaderRequestInterceptor.h; sourceTree = "<group>"; };
@@ -1357,6 +1359,8 @@
 		BFC1926427FAF2E3001455C1 /* PowerAuth2TestsHostApp */ = {
 			isa = PBXGroup;
 			children = (
+				BFE35A2528D33C5700687057 /* PowerAuth2TestsHostApp-ios.entitlements */,
+				BFE35A2C28D33C8300687057 /* PowerAuth2TestsHostApp-tvos.entitlements */,
 				BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */,
 				BFC1925927FAF28F001455C1 /* ContentView.swift */,
 				BFC1925B27FAF292001455C1 /* Assets-iOS.xcassets */,
@@ -2747,10 +2751,11 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "PowerAuth2TestsHostApp/PowerAuth2TestsHostApp-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = KTT9G859MR;
 				ENABLE_PREVIEWS = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2788,6 +2793,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "PowerAuth2TestsHostApp/PowerAuth2TestsHostApp-ios.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
@@ -2829,6 +2835,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "PowerAuth2TestsHostApp/PowerAuth2TestsHostApp-tvos.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;
@@ -2867,6 +2874,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "PowerAuth2TestsHostApp/PowerAuth2TestsHostApp-tvos.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = PowerAuth2TestsHostApp/DevelopmentAssets;

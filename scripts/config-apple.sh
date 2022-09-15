@@ -5,7 +5,7 @@ ARCH_CATALYST="x86_64"
 ARCH_TVOS="arm64"
 ARCH_TVOS_SIM="x86_64 arm64"
 ARCH_WATCHOS="armv7k arm64_32"
-ARCH_WATCHOS_SIM="x86_64 arm64"
+ARCH_WATCHOS_SIM="x86_64 i386 arm64"
 
 # Minimum OS version
 MIN_VER_IOS="11.0"
@@ -53,7 +53,6 @@ function BUILD_PATCH_ARCHITECTURES
         WARNING "Enabling legacy 32-bit architectures."
         ARCH_IOS+=" $ARCH_LEGACY_IOS"
         ARCH_IOS_SIM+=" $ARCH_LEGACY_SIM"
-        ARCH_WATCHOS_SIM+=" $ARCH_LEGACY_SIM"
         WARNING "Changing minimum supported OS versions due to support for 32-bit architectures."
         MIN_VER_IOS=$MIN_LEGACY_VER_IOS
         MIN_VER_TVOS=$MIN_LEGACY_VER_TVOS

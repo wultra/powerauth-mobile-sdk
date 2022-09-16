@@ -198,12 +198,4 @@ If you still have to compile our SDK for older operating systems, then you need 
    ./scripts/ios-build-extensions.sh extensions watchos --legacy-archs --use-bitcode --out-dir ./Build
    ```
 
-If you use cocoapds for PowerAuth SDK integration, then you can apply the following additional steps:
-
-1. Fork `wultra/powerauth-mobile-sdk` repository 
-1. Change `PowerAuth2.podspec` and `PowerAuthCore.podspec` in your fork:
-   - Update iOS & tvOS `deployment_target` to `9.0`
-   - In `PowerAuthCore.podspec`, alter `prepare_command` by adding `--legacy-archs` or `--use-bitcode` switch
-1. In your application, alter dependency on `PowerAuth2` (you need to add additional dependency on `PowerAuthCore`, otherwise pod tool will use our official build):
-   - `pod 'PowerAuth2', :git => 'https://github.com/{your-fork}.git', :branch => 'develop', :submodules => true`
-   - `pod 'PowerAuthCore', :git => 'https://github.com/{your-fork}.git', :branch => 'develop', :submodules => true`
+If you use cocoapds for PowerAuth mobile SDK integration, then please let us know and we'll prepare a special release branch for you.

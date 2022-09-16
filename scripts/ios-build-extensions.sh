@@ -52,6 +52,8 @@ OUT_FW=''
 TMP_DIR=''
 OPT_LEGACY_ARCH=0
 OPT_USE_BITCODE=0
+DO_WATCHOS=0
+DO_EXTENSIONS=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -61,7 +63,7 @@ OPT_USE_BITCODE=0
 function USAGE
 {
     echo ""
-    echo "Usage:  $CMD  [options] platform"
+    echo "Usage:  $CMD  [options] platforms"
     echo ""
     echo "platform is:"
     echo ""
@@ -261,9 +263,9 @@ function BUILD_COMMAND
 
 
 # -----------------------------------------------------------------------------
-# Build scheme for both plaforms and create FAT libraries
+# Build xcframework
 # -----------------------------------------------------------------------------
-function BUILD_PLATFORMS
+function BUILD_LIBRARY
 {
     LOG_LINE
     LOG "Building $OUT_FW for supported platforms..."
@@ -319,6 +321,20 @@ function CLEAN_COMMAND
     eval $COMMAND_LINE
 }
 
+function DO_BUILD_APPEXT
+{
+    OUT_FW=${EXT_FRAMEWORK}
+    PLATFORMS="${EXT_PLATFORMS}"
+    BUILD_LIBRARY
+}
+
+function DO_BUILD_WATCHOS
+{
+    OUT_FW=${WOS_FRAMEWORK}
+    PLATFORMS="${WOS_PLATFORMS}"
+    BUILD_LIBRARY
+}
+
 ###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
@@ -327,12 +343,10 @@ do
     opt="$1"
     case "$opt" in
         watchos)
-            OUT_FW=${WOS_FRAMEWORK}
-            PLATFORMS="${WOS_PLATFORMS}"
+            DO_WATCHOS=1
             ;;
         extensions)
-            OUT_FW=${EXT_FRAMEWORK}
-            PLATFORMS="${EXT_PLATFORMS}"
+            DO_EXTENSIONS=1
             ;;
         -nc | --no-clean)
             FULL_REBUILD=0 
@@ -366,9 +380,7 @@ do
 done
 
 # Check required parameters
-if [ -z "$PLATFORMS" ]; then
-    FAILURE "You have to specify platform (watchos or extensions)"
-fi
+[[ x$DO_EXTENSIONS$DO_WATCHOS == x00 ]] && FAILURE "You have to specify platform (watchos and/or extensions)"
 
 # Defaulting out & temporary folders
 if [ -z "$OUT_DIR" ]; then
@@ -397,7 +409,8 @@ $MD "${TMP_DIR}"
 #
 # Build
 #
-BUILD_PLATFORMS
+[[ x$DO_EXTENSIONS == x1 ]] && DO_BUILD_APPEXT
+[[ x$DO_WATCHOS == x1    ]] && DO_BUILD_WATCHOS
 
 #
 # Remove temporary data

@@ -94,9 +94,8 @@ if [ x$DO_SCRIPT == x1 ]; then
     LOG_LINE -a
     LOG "Validating build for Apple platforms (script mode)..."
     LOG_LINE
-    "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk
-    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE extensions
-    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE watchos
+    "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk buildCore
+    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE extensions watchos
 fi
 
 if [ x$DO_LINT = x1 ]; then

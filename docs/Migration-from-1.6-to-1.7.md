@@ -72,6 +72,10 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ## iOS & tvOS
 
+<!-- begin box warning -->
+Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0.
+<!-- end -->
+
 ### API changes
 
 - All mutable properties in `PowerAuthAuthentication` are now deprecated, including `PowerAuthAuthentication()` (constructor with no parameters). You can use the following static methods as a replacement:
@@ -126,6 +130,10 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 ## watchOS
 
+<!-- begin box warning -->
+Version 1.7.3 increased minimum required watchOS deployment target to 4.0.
+<!-- end -->
+
 ### API changes
 
 - All asynchronous methods in `PowerAuthKeychain` are now deprecated. You should use synchronous methods as a replacement.
@@ -155,3 +163,47 @@ The following interfaces are marked as deprecated since 1.7.2 version:
 - `PowerAuthSDK.addBiometryFactor(_, callback)` is deprecated, use `addBiometryFactor(password:, callback:)` as a replacement.
 
 - Using `PowerAuthAuthentication.usePassword` property is now deprecated. To test whether authentication has the knowledge factor set, use `password` property, which contains nullable `PowerAuthCorePassword` object.
+
+
+## Changes in 1.7.3+
+
+### Xcode14 support
+
+Due to changes in Xcode 14, bitcode is no longer supported and we had to increase minimum supported OS to the following versions:
+
+- iOS 11.0
+- tvOS 11.0
+- watchOS 4.0
+
+If you still have to compile our SDK for older operating systems, then you need to build the library manually with Xcode older than 14.0. For example:
+
+1. Clone repository
+   ```bash
+   git clone --recursive https://github.com/wultra/powerauth-mobile-sdk.git
+   cd powerauth-mobile-sdk
+   git submodule update
+   ```
+1. Make sure that xcodebuild is older than 14.0:
+   ```bash
+   % xcodebuild -version
+   Xcode 13.2.1
+   Build version 13C100
+   ```
+1. Build library with legacy architectures and bitcode:
+   ```bash
+   ./scripts/ios-build-sdk.sh buildCore buildSdk --legacy-archs --use-bitcode --out-dir ./Build
+   ```
+   Similar command is available for app extensions and watchos:
+   ```bash
+   ./scripts/ios-build-extensions.sh extensions watchos --legacy-archs --use-bitcode --out-dir ./Build
+   ```
+
+If you use cocoapds for PowerAuth SDK integration, then you can apply the following additional steps:
+
+1. Fork `wultra/powerauth-mobile-sdk` repository 
+1. Change `PowerAuth2.podspec` and `PowerAuthCore.podspec` in your fork:
+   - Update iOS & tvOS `deployment_target` to `9.0`
+   - In `PowerAuthCore.podspec`, alter `prepare_command` by adding `--legacy-archs` or `--use-bitcode` switch
+1. In your application, alter dependency on `PowerAuth2` (you need to add additional dependency on `PowerAuthCore`, otherwise pod tool will use our official build):
+   - `pod 'PowerAuth2', :git => 'https://github.com/{your-fork}.git', :branch => 'develop', :submodules => true`
+   - `pod 'PowerAuthCore', :git => 'https://github.com/{your-fork}.git', :branch => 'develop', :submodules => true`

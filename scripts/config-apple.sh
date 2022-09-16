@@ -24,8 +24,11 @@ ARCH_LEGACY_SIM="i386"
 # -----------------------------------------------------------------------------
 # Adjust CPU architectures supported in Xcode, depending on Xcode version.
 # -----------------------------------------------------------------------------
+ARCH_PATCHED=0
 function BUILD_PATCH_ARCHITECTURES
 {
+    [[ x$ARCH_PATCHED == x1 ]] && return
+    ARCH_PATCHED=1
     local xcodever=( $(GET_XCODE_VERSION --split) )
     if (( ${xcodever[0]} == -1 )); then
         FAILURE "Invalid Xcode installation."

@@ -130,10 +130,7 @@
     
     // Add authentication for items protected with biometry.
     if (authentication) {
-        if (!_AddKeychainAuthentication(query, authentication)) {
-            if (status) {
-                *status = errSecUserCanceled;
-            }
+        if (!_AddKeychainAuthentication(query, authentication, status)) {
             return nil;
         }
     }
@@ -153,7 +150,7 @@
 }
 
 
-static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKeychainAuthentication * auth)
+static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKeychainAuthentication * auth, OSStatus * status)
 {
     NSString * prompt = auth.prompt;
 #if PA2_HAS_LACONTEXT == 1
@@ -162,6 +159,7 @@ static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKey
         if (@available(iOS 11, macCatalyst 10.15, *)) {
             if (context.interactionNotAllowed) {
                 PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
+                if (status) { *status = errSecInvalidContext; }
                 return NO;
             }
         }
@@ -180,6 +178,7 @@ static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKey
 #endif // PA2_HAS_LACONTEXT
     if (!prompt) {
         PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
+        if (status) { *status = errSecInvalidContext; }
         return NO;
     }
     query[(__bridge id)kSecUseOperationPrompt] = prompt;
@@ -231,10 +230,7 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 
     // Add authentication for items protected with biometry.
     if (authentication) {
-        if (!_AddKeychainAuthentication(query, authentication)) {
-            if (status) {
-                *status = errSecUserCanceled;
-            }
+        if (!_AddKeychainAuthentication(query, authentication, status)) {
             return nil;
         }
     }

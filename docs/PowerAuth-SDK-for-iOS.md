@@ -1063,7 +1063,17 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: laContext) 
 The usage of `LAContext` has the following limitations:
 
 - It's effective from iOS 11 because on the older operating systems the context doesn't support essential properties, such as `localizedReason`.
-- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects the context and reports user cancel error.
+- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects the context and the biometry cancel is reported.
+
+Be aware that PowerAuth automatically invalidates the application provided `LAContext` after use. This is because once the context is successfully evaluated then it can be used for a quite long time to fetch the data protected with the biometry with no prompt displayed. The exact time of validity is undocumented, but our experiments show that iOS prompts for biometric authentication after more than 5 minutes.
+
+If you plan to pre-authorize `LAContext` and use it for multiple biometry signature calculations in a row, then please consider the following things first:
+
+- Make sure that you make context invalid once it's no longer needed.
+- Multiple signatures in a row could be problematic from the PSD2 legislative perspective. 
+- It would be difficult to prove that the user authorized the request if your application contains a bug and do the signature on the user's behalf or with the wrong context.
+
+If you still insist to re-use `LAContext` then you have to alter `PowerAuthKeychainConfiguration` and set `invalidateLocalAuthenticationContextAfterUse` to `false`.
 
 
 ## Activation Removal

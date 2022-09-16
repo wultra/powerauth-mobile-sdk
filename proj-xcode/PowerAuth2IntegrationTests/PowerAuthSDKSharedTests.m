@@ -46,7 +46,7 @@
     _appGroupId = @"group.com.wultra.testGroup";
     _instanceId = @"SharedInstanceTests-Catalyst";
 #else
-    _appGroupId = @"com.dummyGroup";
+    _appGroupId = @"group.com.wultra.testGroup";
     _instanceId = @"SharedInstanceTests";
 #endif
     [super setUp];

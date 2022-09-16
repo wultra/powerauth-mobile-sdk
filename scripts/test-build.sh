@@ -88,15 +88,15 @@ LOG_LINE
 LOG "Validating shared sources on Apple platform..."
 LOG_LINE
 
-"${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
+# "${SRC_ROOT}/proj-xcode/copy-shared-sources.sh" --test
+WARNING "'proj-xcode/copy-shared-sources.sh --test' is disabled (see bug #482)"
 
 if [ x$DO_SCRIPT == x1 ]; then       
     LOG_LINE -a
     LOG "Validating build for Apple platforms (script mode)..."
     LOG_LINE
-    "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk
-    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE extensions
-    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE watchos
+    "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk buildCore
+    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE extensions watchos
 fi
 
 if [ x$DO_LINT = x1 ]; then

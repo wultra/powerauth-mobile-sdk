@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1073,8 +1073,8 @@
 		BF3ACC7D2073DBA500B8107E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1340;
-				ORGANIZATIONNAME = "Lime - HighTech Solutions";
+				LastUpgradeCheck = 1400;
+				ORGANIZATIONNAME = "Wultra s.r.o.";
 				TargetAttributes = {
 					BF3ACC842073DBA500B8107E = {
 						CreatedOnToolsVersion = 9.3;
@@ -1091,7 +1091,7 @@
 				};
 			};
 			buildConfigurationList = BF3ACC802073DBA500B8107E /* Build configuration list for PBXProject "PowerAuthCore" */;
-			compatibilityVersion = "Xcode 9.3";
+			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -1510,7 +1510,7 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1519,7 +1519,7 @@
 					openssl,
 				);
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1574,7 +1574,7 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -1582,7 +1582,7 @@
 					openssl,
 				);
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

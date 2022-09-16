@@ -62,9 +62,9 @@ This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running 
 
 The library is available for the following Apple platforms:
 
-- **iOS**
-- **mac Catalyst**
-- **tvOS**
+- **iOS** 11.0+
+- **mac Catalyst** 10.15+
+- **tvOS** 11.0+
 
 To simplify the documentation, we'll use **iOS** for the rest of the documentation and highlight the exceptions only. For example, **tvOS** doesn't support biometry and watch connectivity.
 
@@ -78,7 +78,7 @@ $ gem install cocoapods
 To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
-platform :ios, '9.0'
+platform :ios, '11.0'
 target '<Your Target App>' do
   pod 'PowerAuth2'
 end

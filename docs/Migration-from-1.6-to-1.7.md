@@ -68,12 +68,12 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - `IOException` is no longer reported from SDK's internal networking. Now all such exceptions are wrapped into `PowerAuthErrorException` with `NETWORK_ERROR` code set.
 
-- Please read also [Changes introduced in 1.7.2](#changes-in-172) version.
+- Please read also changes introduced in [1.7.2](#changes-in-172) and [1.7.3](#changes-in-173) versions.
 
 ## iOS & tvOS
 
 <!-- begin box warning -->
-Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0.
+Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0. See [Xcode 14 support](#xcode14-support).
 <!-- end -->
 
 ### API changes
@@ -119,7 +119,7 @@ Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0.
   - You can see how's user agent string constructed by reading a new `userAgent` property of `PowerAuthClientConfiguration` object.
   - To set the previous networking behavior, you can set `nil`
   
-- Please read also [Changes introduced in 1.7.2](#changes-in-172) version.
+- Please read also changes introduced in [1.7.2](#changes-in-172) and [1.7.3](#changes-in-173) versions.
 
 ## iOS & tvOS App Extensions
 
@@ -131,7 +131,7 @@ Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0.
 ## watchOS
 
 <!-- begin box warning -->
-Version 1.7.3 increased minimum required watchOS deployment target to 4.0.
+Version 1.7.3 increased minimum required watchOS deployment target to 4.0. See [Xcode 14 support](#xcode14-support).
 <!-- end -->
 
 ### API changes

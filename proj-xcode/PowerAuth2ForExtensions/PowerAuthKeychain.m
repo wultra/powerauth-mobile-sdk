@@ -405,7 +405,7 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
     
     // Try to acquire biometric lock.
     if (pthread_mutex_trylock(&biometricMutex) != 0) {
-        PowerAuthLog(@"Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
+        PowerAuthLog(@"WARNING: Cannot execute more than one biometric authentication request at the same time. This request is going to be canceled.");
         return NO;
     }
     // Execute block

@@ -27,6 +27,7 @@
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
 - [Biometry Setup](#biometry-setup)
+- [Biometry Troubleshooting](#biometry-troubleshooting)
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
@@ -982,10 +983,6 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticat
 }
 ```
 
-<!-- begin box warning -->
-Note that if the biometric authentication fails with too many attempts in a row (e.g. biometry is locked out), then PowerAuth SDK will generate an invalid biometry factor related key and the success is reported. This is an intended behavior and as the result, it typically lead to unsuccessful authentication on the server and increased counter of failed attempts. The purpose of this is to limit the number of attempts for attacker to deceive the biometry sensor.
-<!-- end -->
-
 ### Biometry Factor-Related Key Lifetime
 
 By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
@@ -1063,18 +1060,57 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: laContext) 
 The usage of `LAContext` has the following limitations:
 
 - It's effective from iOS 11 because on the older operating systems the context doesn't support essential properties, such as `localizedReason`.
-- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects the context and the biometry cancel is reported.
+- Don't alter `interactionNotAllowed` property. If you do, then the internal SDK implementation rejects the context and error is reported.
 
-Be aware that PowerAuth automatically invalidates the application provided `LAContext` after use. This is because once the context is successfully evaluated then it can be used for a quite long time to fetch the data protected with the biometry with no prompt displayed. The exact time of validity is undocumented, but our experiments show that iOS prompts for biometric authentication after more than 5 minutes.
+Be aware that PowerAuth automatically invalidates the application provided `LAContext` after use. This is because once the context is successfully evaluated then it can be used for a quite long time to fetch the data protected with the biometry with no prompt displayed. The exact time of validity is undocumented, but our experiments show that iOS prompts for biometric authentication again after more than 5 minutes.
 
 If you plan to pre-authorize `LAContext` and use it for multiple biometry signature calculations in a row, then please consider the following things first:
 
 - Make sure that you make context invalid once it's no longer needed.
-- Multiple signatures in a row could be problematic from the PSD2 legislative perspective. 
+- Multiple signatures in a row could be problematic if your application falls under EU banking regulations.
 - It would be difficult to prove that the user authorized the request if your application contains a bug and do the signature on the user's behalf or with the wrong context.
 
 If you still insist to re-use `LAContext` then you have to alter `PowerAuthKeychainConfiguration` and set `invalidateLocalAuthenticationContextAfterUse` to `false`.
 
+
+## Biometry troubleshooting
+
+### Biometry lockout
+
+<!-- begin box warning -->
+Note that if the biometric authentication fails with too many attempts in a row (e.g. biometry is locked out), then PowerAuth SDK will generate an invalid biometry factor related key and the success is reported back to the application. This is an intended behavior and as the result, it typically lead to unsuccessful authentication on the server and increased counter of failed attempts. The purpose of this is to limit the number of attempts for attacker to deceive the biometry sensor.
+<!-- end -->
+
+### Thread blocking operation
+
+Be aware that if you try to calculate PowerAuth Symmetric Signature with biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such operation on the main thread. For example:
+
+```swift
+let authentication = PowerAuthAuthentication.possessionWithBiometry()
+let header = try? sdk.requestSignature(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
+// The thread is blocked during the system biometric dialog is displayed
+```
+
+### Parallel biometric authentications
+
+It's not recommended to calculate more than one signature with the biometric factor at the same time, or in a row in quick pace. The PowerAuth SDK cound behave in unexpected ways if you do. 
+
+
+### Use pre-authorized LAContext
+
+If you want more control on biometric authentication UI flow, then you can prepare `LAContext` and evaluate it on your own. The pre-authorized context can be then used to construct `PowerAuthAuthentication`:
+
+```swift
+let context = LAContext()
+context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Please authenticate with biometry") { result, error in
+    guard result && error == nil else {
+        // Biometric error handling
+        return
+    }
+    let authentication = PowerAuthAuthentication.possessionWithBiometry(context: context)
+    // Now you can use authentication object in any SDK function that accept authentication with biometric factor.
+}
+```
 
 ## Activation Removal
 

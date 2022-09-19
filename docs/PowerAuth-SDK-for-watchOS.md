@@ -46,12 +46,12 @@ To integrate PowerAuth library into your Xcode project using CocoaPods, specify 
 
 ```ruby
 target 'YourAppTarget' do
-  platform :ios, '8.0'
+  platform :ios, '11.0'
   pod 'PowerAuth2'
 end
 
 target 'YourWatchAppTarget' do
-  platform :watchos, '2.0'
+  platform :watchos, '4.0'
   pod 'PowerAuth2ForWatch'
 end
 ```

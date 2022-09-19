@@ -1083,27 +1083,31 @@ Note that if the biometric authentication fails with too many attempts in a row 
 
 ### Thread blocking operation
 
-Be aware that if you try to calculate PowerAuth Symmetric Signature with biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such operation on the main thread. For example:
+Be aware that if you try to calculate PowerAuth Symmetric Signature with a biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such an operation on the main thread. For example:
 
 ```swift
 let authentication = PowerAuthAuthentication.possessionWithBiometry()
 let header = try? sdk.requestSignature(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
-// The thread is blocked during the system biometric dialog is displayed
+// The thread is blocked while the biometric dialog is displayed.
 ```
 
 ### Parallel biometric authentications
 
-It's not recommended to calculate more than one signature with the biometric factor at the same time, or in a row in quick pace. The PowerAuth SDK cound behave in unexpected ways if you do. 
+It's not recommended to calculate more than one signature with the biometric factor at the same time, or in a row at a quick pace. Both scenarios are considered an issue in the application's logic.
 
+To prevent the first case, PowerAuth mobile SDK is using a global mutex that guarantees that only one attempt to get the biometry-protected data at the time is performed. If your application issue another signing operation while the system dialog is displayed, then this attempt ends with `.biometryCancel` error.
+
+There's another similar issue on devices supporting FaceID. The FaceID technology behaves slightly differently than TouchID and if you try to use biometry too soon after previous successful authentication, then the 2nd attempt will fail with an authentication error. This is undocumented, but we believe it's related to the animation presented to the user after successful authentication. You simply cannot request another biometric authentication while the animation is still playing.
+ 
 
 ### Use pre-authorized LAContext
 
-If you want more control on biometric authentication UI flow, then you can prepare `LAContext` and evaluate it on your own. The pre-authorized context can be then used to construct `PowerAuthAuthentication`:
+If you want more control over biometric authentication UI flow, then you can prepare `LAContext` and evaluate it on your own. The pre-authorized context can be then used to construct `PowerAuthAuthentication`:
 
 ```swift
 let context = LAContext()
-context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Please authenticate with biometry") { result, error in
-    guard result && error == nil else {
+context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Please authenticate with biometry") { success, error in
+    guard success && error == nil else {
         // Biometric error handling
         return
     }
@@ -1111,6 +1115,7 @@ context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason
     // Now you can use authentication object in any SDK function that accept authentication with biometric factor.
 }
 ```
+
 
 ## Activation Removal
 

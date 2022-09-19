@@ -162,11 +162,11 @@ List of renamed interfaces:
 
 ## watchOS
 
+The `PowerAuth2ForWatch` is now distributed as a dynamic module, instead of static framework.
+
 <!-- begin box warning -->
 Version 1.6.6 increased minimum required watchOS deployment target to 4.0. See [Xcode14 support](#xcode14-support).
 <!-- end -->
-
-The `PowerAuth2ForWatch` is now distributed as a dynamic module, instead of static framework.
 
 ### API changes
 

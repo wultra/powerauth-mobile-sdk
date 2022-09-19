@@ -21,6 +21,7 @@ set +v
 # -----------------------------------------------------------------------------
 TOP=$(dirname $0)
 source "${TOP}/common-functions.sh"
+source "${TOP}/config-apple.sh"
 SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 
 #
@@ -34,27 +35,12 @@ XCODE_DIR="${SRC_ROOT}/proj-xcode"
 
 # iOS / tvOS
 EXT_FRAMEWORK="PowerAuth2ForExtensions"
-EXT_PLATFORMS="macOS_Catalyst iOS iOS_Simulator tvOS tvOS_Simulator"
+EXT_PLATFORMS="iOS iOS_Simulator tvOS tvOS_Simulator macOS_Catalyst"
 EXT_PROJECT="${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj"
 # WatchOS
 WOS_FRAMEWORK="PowerAuth2ForWatch"
 WOS_PLATFORMS="watchOS watchOS_Simulator"
 WOS_PROJECT="${XCODE_DIR}/PowerAuth2ForWatch.xcodeproj"
-
-# Platform CPU architectures
-ARCH_IOS="armv7 armv7s arm64 arm64e"
-ARCH_IOS_SIM="i386 x86_64"
-ARCH_CATALYST="x86_64"
-ARCH_TVOS="arm64"
-ARCH_TVOS_SIM="x86_64"
-ARCH_WATCHOS="armv7k arm64_32"
-ARCH_WATCHOS_SIM="i386 x86_64"
-
-# Minimum OS version
-MIN_VER_IOS="9.0"
-MIN_VER_TVOS="9.0"
-MIN_VER_CATALYST="10.15"
-MIN_VER_WATCHOS="2.0"
 
 # Variables loaded from command line
 PLATFORMS=''
@@ -64,6 +50,10 @@ CLEANUP_AFTER=1
 OUT_DIR=''
 OUT_FW=''
 TMP_DIR=''
+OPT_LEGACY_ARCH=0
+OPT_USE_BITCODE=0
+DO_WATCHOS=0
+DO_EXTENSIONS=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -73,13 +63,15 @@ TMP_DIR=''
 function USAGE
 {
     echo ""
-    echo "Usage:  $CMD  [options] platform"
+    echo "Usage:  $CMD  [options] platforms"
     echo ""
     echo "platform is:"
+    echo ""
     echo "  watchos           for watchOS library build"
     echo "  extensions        for iOS and tvOS extensions build"
     echo ""
     echo "options are:"
+    echo ""
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
     echo "                    also disables temporary data cleanup after build"
     echo "  -v0               turn off all prints to stdout"
@@ -89,6 +81,11 @@ function USAGE
     echo "                    and source codes will be copied"
     echo "  --tmp-dir path    changes temporary directory to |path|"
     echo "  -h | --help       prints this help information"
+    echo ""
+    echo "legacy options:"
+    echo ""
+    echo "  --legacy-archs    compile also legacy architectures"
+    echo "  --use-bitcode     compile with enabled bitcode"
     echo ""
     exit $1
 }
@@ -101,6 +98,11 @@ function USAGE
 # GET_PLATFORM_SDK
 #   Print a list of architectures for given build platform. For example,
 #    for 'iOS' function prints 'iphoneos'.
+#
+# GET_PLATFORM_DESTINATION
+#   Print a value for -destination parameter used to set proper build
+#   target for xcodebuild. For example, for 'iOS' function prints
+#   'generic/platform=iOS'.
 #
 # GET_PLATFORM_TARGET
 #   Print a build target for given build platform. For example, for 'iOS'
@@ -147,6 +149,19 @@ function GET_PLATFORM_SDK
         *) FAILURE "Cannot determine platform SDK. Unsupported platform: '$1'" ;;
     esac
 }
+function GET_PLATFORM_DESTINATION
+{
+    case $1 in
+        iOS)                echo 'generic/platform=iOS' ;;
+        iOS_Simulator)      echo 'generic/platform=iOS Simulator' ;;
+        macOS_Catalyst)     echo 'generic/platform=macOS,variant=Mac Catalyst' ;;
+        tvOS)               echo 'generic/platform=tvOS' ;;
+        tvOS_Simulator)     echo 'generic/platform=tvOS Simulator' ;;
+        watchOS)            echo 'generic/platform=watchOS' ;;
+        watchOS_Simulator)  echo 'generic/platform=watchOS Simulator' ;;
+        *) FAILURE "Cannot determine platform destination. Unsupported platform: '$1'" ;;
+    esac
+}
 function GET_PLATFORM_TARGET
 {
     case $1 in
@@ -184,7 +199,20 @@ function GET_PLATFORM_SCHEME
         *) FAILURE "Cannot determine build scheme. Unsupported platform: '$1'" ;;
     esac
 }
-
+function GET_DEPLOYMENT_TARGETS
+{
+    local target=
+    target+=" IPHONEOS_DEPLOYMENT_TARGET=${MIN_VER_IOS}"
+    target+=" TVOS_DEPLOYMENT_TARGET=${MIN_VER_TVOS}"
+    target+=" MACOSX_DEPLOYMENT_TARGET=${MIN_VER_CATALYST}"
+    target+=" WATCHOS_DEPLOYMENT_TARGET=${MIN_VER_WATCHOS}"
+    echo $target
+}
+function GET_BITCODE_OPTION
+{
+    [[ x$OPT_USE_BITCODE == x0 ]] && echo "ENABLE_BITCODE=NO"
+    [[ x$OPT_USE_BITCODE == x1 ]] && echo "ENABLE_BITCODE=YES"
+}
 
 # -----------------------------------------------------------------------------
 # Performs xcodebuild command for a single platform (iphone / simulator)
@@ -203,9 +231,12 @@ function BUILD_COMMAND
     local PLATFORM_ARCHS="$(GET_PLATFORM_ARCH $PLATFORM)"
     local PLATFORM_SDK="$(GET_PLATFORM_SDK $PLATFORM)"
     local PLATFORM_TARGET="$(GET_PLATFORM_TARGET $PLATFORM)"
+    local PLATFORM_DEST="$(GET_PLATFORM_DESTINATION $PLATFORM)"
     local MIN_SDK_VER="$(GET_PLATFORM_MIN_OS_VER $PLATFORM)"
     local PROJECT="$(GET_PLATFORM_PROJECT $PLATFORM)"
     local SCHEME=$(GET_PLATFORM_SCHEME $PLATFORM)
+    local DEPLOYMENT_TARGETS=$(GET_DEPLOYMENT_TARGETS)
+    local BITCODE_OPTION=$(GET_BITCODE_OPTION)
     
     LOG_LINE
     LOG "Building ${PLATFORM} (${MIN_SDK_VER}+) for architectures ${PLATFORM_ARCHS}"
@@ -215,7 +246,9 @@ function BUILD_COMMAND
     local COMMAND_LINE="xcodebuild archive -project \"${PROJECT}\" -scheme ${SCHEME}"
     COMMAND_LINE+=" -archivePath \"${ARCHIVE_PATH}\""
     COMMAND_LINE+=" -sdk ${PLATFORM_SDK} ARCHS=\"${PLATFORM_ARCHS}\""
+    COMMAND_LINE+=" -destination \"${PLATFORM_DEST}\""
     COMMAND_LINE+=" SKIP_INSTALL=NO BUILD_LIBRARIES_FOR_DISTRIBUTION=YES"
+    COMMAND_LINE+=" ${DEPLOYMENT_TARGETS} ${BITCODE_OPTION}"
     [[ $PLATFORM == 'macOS_Catalyst' ]] && COMMAND_LINE+=" SUPPORTS_MACCATALYST=YES"
     [[ $VERBOSE -lt 2 ]] && COMMAND_LINE+=" -quiet"
     
@@ -230,12 +263,14 @@ function BUILD_COMMAND
 
 
 # -----------------------------------------------------------------------------
-# Build scheme for both plaforms and create FAT libraries
+# Build xcframework
 # -----------------------------------------------------------------------------
-function BUILD_PLATFORMS
+function BUILD_LIBRARY
 {
     LOG_LINE
-    LOG "Building platforms..."
+    LOG "Building $OUT_FW for supported platforms..."
+    LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
+    LOG "  - Xcode $(GET_XCODE_VERSION --full)"
     LOG_LINE
 
     ALL_FAT_LIBS=()
@@ -263,33 +298,6 @@ function BUILD_PLATFORMS
 }
 
 # -----------------------------------------------------------------------------
-# Adjust CPU architectures supported in Xcode, depending on Xcode version.
-# -----------------------------------------------------------------------------
-function BUILD_PATCH_ARCHITECTURES
-{
-    local xcodever=( $(GET_XCODE_VERSION --split) )
-    if (( ${xcodever[0]} == -1 )); then
-        FAILURE "Invalid Xcode installation."
-    fi
-    if (( ${xcodever[0]} >= 12 )); then
-        # Greater and equal than 12.0
-        DEBUG_LOG "Adding arm64 architectures to targets, due to support in Xcode."
-        ARCH_IOS_SIM+=" arm64"
-        ARCH_TVOS_SIM+=" arm64"
-        ARCH_WATCHOS_SIM+=" arm64"
-        if [[ (${xcodever[0]} == 12 && ${xcodever[1]} < 2) ]]; then
-            # 12.0 or 12.1
-            WARNING "Building library on older than Xcode 12.2. ARM64 for Catalyst will be omitted."
-        else
-            # Greater and equal than 12.2
-            ARCH_CATALYST+=" arm64"
-        fi
-    else
-        WARNING "Building library on older than Xcode 12. Several ARM64 architectures will be omitted."
-    fi
-}
-
-# -----------------------------------------------------------------------------
 # Clear project for specific scheme
 # Parameters:
 #   $1  -   configuration name
@@ -306,10 +314,25 @@ function CLEAN_COMMAND
     local ALL_PLATFORMS=( $PLATFORMS )
     local SCHEME=$(GET_PLATFORM_SCHEME ${ALL_PLATFORMS[0]})
     local PROJECT=$(GET_PLATFORM_PROJECT ${ALL_PLATFORMS[0]})
-    local COMMAND_LINE="xcodebuild clean -project \"${PROJECT}\" -scheme ${SCHEME} ${QUIET}"
+    local DESTINATION="$(GET_PLATFORM_DESTINATION ${ALL_PLATFORMS[0]})"
+    local COMMAND_LINE="xcodebuild clean -project \"${PROJECT}\" -scheme ${SCHEME} ${QUIET} -destination ${DESTINATION}"
     
     DEBUG_LOG $COMMAND_LINE
     eval $COMMAND_LINE
+}
+
+function DO_BUILD_APPEXT
+{
+    OUT_FW=${EXT_FRAMEWORK}
+    PLATFORMS="${EXT_PLATFORMS}"
+    BUILD_LIBRARY
+}
+
+function DO_BUILD_WATCHOS
+{
+    OUT_FW=${WOS_FRAMEWORK}
+    PLATFORMS="${WOS_PLATFORMS}"
+    BUILD_LIBRARY
 }
 
 ###############################################################################
@@ -320,16 +343,20 @@ do
     opt="$1"
     case "$opt" in
         watchos)
-            OUT_FW=${WOS_FRAMEWORK}
-            PLATFORMS="${WOS_PLATFORMS}"
+            DO_WATCHOS=1
             ;;
         extensions)
-            OUT_FW=${EXT_FRAMEWORK}
-            PLATFORMS="${EXT_PLATFORMS}"
+            DO_EXTENSIONS=1
             ;;
         -nc | --no-clean)
             FULL_REBUILD=0 
             CLEANUP_AFTER=0
+            ;;
+        --legacy-archs)
+            OPT_LEGACY_ARCH=1
+            ;;
+        --use-bitcode)
+            OPT_USE_BITCODE=1
             ;;
         --tmp-dir)
             TMP_DIR="$2"
@@ -353,9 +380,7 @@ do
 done
 
 # Check required parameters
-if [ -z "$PLATFORMS" ]; then
-    FAILURE "You have to specify platform (watchos or extensions)"
-fi
+[[ x$DO_EXTENSIONS$DO_WATCHOS == x00 ]] && FAILURE "You have to specify platform (watchos and/or extensions)"
 
 # Defaulting out & temporary folders
 if [ -z "$OUT_DIR" ]; then
@@ -384,7 +409,8 @@ $MD "${TMP_DIR}"
 #
 # Build
 #
-BUILD_PLATFORMS
+[[ x$DO_EXTENSIONS == x1 ]] && DO_BUILD_APPEXT
+[[ x$DO_WATCHOS == x1    ]] && DO_BUILD_WATCHOS
 
 #
 # Remove temporary data

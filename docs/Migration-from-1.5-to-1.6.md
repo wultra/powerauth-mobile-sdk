@@ -54,6 +54,10 @@ The main change in this SDK version is that SDK is now composed from two dynamic
 - `PowerAuthCore` - module contains low level implementation and has embedded OpenSSL.
 - `PowerAuth2` - module contains all high level SDK source codes and depends on `PowerAuthCore`
 
+<!-- begin box warning -->
+Version 1.6.6 increased minimum required iOS & tvOS deployment target to 11.0. See [Xcode14 support](#xcode14-support).
+<!-- end -->
+
 ### API changes
 
 - All public objects, protocols, enums, constants and functions now have `PowerAuth` prefix. All previously declared `PA2*` interfaces are now declared as deprecated. 
@@ -133,6 +137,10 @@ List of renamed interfaces:
 
 The `PowerAuth2ForExtensions` is now distributed as a dynamic module, instead of static framework.
 
+<!-- begin box warning -->
+Version 1.6.6 increased minimum required iOS & tvOS deployment target to 11.0. See [Xcode14 support](#xcode14-support).
+<!-- end -->
+
 ### API changes
 
 - All public objects, protocols, enums, constants and functions now have `PowerAuth` prefix. All previously declared `PA2*` interfaces are now declared as deprecated.
@@ -153,6 +161,10 @@ List of renamed interfaces:
 - `PA2LogIsVerbose()` function is now `PowerAuthLogIsVerbose()`
 
 ## watchOS
+
+<!-- begin box warning -->
+Version 1.6.6 increased minimum required watchOS deployment target to 4.0. See [Xcode14 support](#xcode14-support).
+<!-- end -->
 
 The `PowerAuth2ForWatch` is now distributed as a dynamic module, instead of static framework.
 
@@ -175,3 +187,39 @@ List of renamed interfaces:
 - `PA2LogIsEnabled()` function is now `PowerAuthLogIsEnabled()`
 - `PA2LogSetVerbose()` function is now `PowerAuthLogSetVerbose()`
 - `PA2LogIsVerbose()` function is now `PowerAuthLogIsVerbose()`
+
+
+## Changes in 1.6.6+
+
+### Xcode14 support
+
+Due to changes in Xcode 14, bitcode is no longer supported and we had to increase minimum supported OS to the following versions:
+
+- iOS 11.0
+- tvOS 11.0
+- watchOS 4.0
+
+If you still have to compile our SDK for older operating systems, then you need to build the library manually with Xcode older than 14.0. For example:
+
+1. Clone repository
+   ```bash
+   git clone --recursive https://github.com/wultra/powerauth-mobile-sdk.git
+   cd powerauth-mobile-sdk
+   git submodule update
+   ```
+1. Make sure that xcodebuild is older than 14.0:
+   ```bash
+   % xcodebuild -version
+   Xcode 13.2.1
+   Build version 13C100
+   ```
+1. Build library with legacy architectures and bitcode:
+   ```bash
+   ./scripts/ios-build-sdk.sh buildCore buildSdk --legacy-archs --use-bitcode --out-dir ./Build
+   ```
+   Similar command is available for app extensions and watchos:
+   ```bash
+   ./scripts/ios-build-extensions.sh extensions watchos --legacy-archs --use-bitcode --out-dir ./Build
+   ```
+
+If you use cocoapds for PowerAuth mobile SDK integration, then please let us know and we'll prepare a special release branch for you.

@@ -1352,7 +1352,7 @@
 		BF4DBB931CDF3130008F3A47 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1340;
+				LastUpgradeCheck = 1400;
 				ORGANIZATIONNAME = "Lime - HighTech Solutions s.r.o.";
 				TargetAttributes = {
 					BF4DBCCC1CDF9CDE008F3A47 = {
@@ -1778,13 +1778,13 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -1837,12 +1837,12 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 				VALIDATE_PRODUCT = YES;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};

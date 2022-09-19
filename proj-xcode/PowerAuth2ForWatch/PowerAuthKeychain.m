@@ -325,18 +325,28 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
 // The most important thing is that it's just a matter of constants that have the same
 // values for both, new and old definitions. Once we target iOS 11.2+, we can freely
 // remove this tweak.
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_13_0
-	#define __LABiometryTypeNone					LABiometryTypeNone
-	#define __LAErrorBiometryLockout				LAErrorBiometryLockout
-	#define __LAErrorBiometryNotEnrolled			LAErrorBiometryNotEnrolled
-	#define __kSecAccessControlBiometryAny			kSecAccessControlBiometryAny
-	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlBiometryCurrentSet
+
+// 11.2+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_2
+	#define __LABiometryTypeNone                    LABiometryTypeNone
 #else
-	#define __LABiometryTypeNone					LABiometryNone
-	#define __LAErrorBiometryLockout				LAErrorTouchIDLockout
-	#define __LAErrorBiometryNotEnrolled			LAErrorTouchIDNotEnrolled
-	#define __kSecAccessControlBiometryAny			kSecAccessControlTouchIDAny
-	#define __kSecAccessControlBiometryCurrentSet	kSecAccessControlTouchIDCurrentSet
+	#define __LABiometryTypeNone                    LABiometryNone
+#endif
+// 11.3+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_3
+	#define __kSecAccessControlBiometryAny          kSecAccessControlBiometryAny
+	#define __kSecAccessControlBiometryCurrentSet   kSecAccessControlBiometryCurrentSet
+#else
+	#define __kSecAccessControlBiometryAny          kSecAccessControlTouchIDAny
+	#define __kSecAccessControlBiometryCurrentSet   kSecAccessControlTouchIDCurrentSet
+#endif
+// 11.0+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0
+	#define __LAErrorBiometryLockout                LAErrorBiometryLockout
+	#define __LAErrorBiometryNotEnrolled            LAErrorBiometryNotEnrolled
+#else
+	#define __LAErrorBiometryLockout                LAErrorTouchIDLockout
+	#define __LAErrorBiometryNotEnrolled            LAErrorTouchIDNotEnrolled
 #endif
 
 /**

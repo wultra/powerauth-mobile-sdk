@@ -253,6 +253,27 @@
 			remoteGlobalIDString = BF6ADD8E24C84FE0001B3E5E;
 			remoteInfo = "PowerAuthCoreLibTests-tvos";
 		};
+		BFA959AE28D869220099B5C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEC0E26662A01009AC5FD;
+			remoteInfo = "cc7-macos";
+		};
+		BFA959B028D869220099B5C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEC2F26662A0B009AC5FD;
+			remoteInfo = "cc7tests-macos";
+		};
+		BFA959B228D869220099B5C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BF8EEBFA266629ED009AC5FD;
+			remoteInfo = "CC7TestsWrapper-macos";
+		};
 		BFB47D4420753444008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFB47D3E20753444008A6A52 /* cc7.xcodeproj */;
@@ -819,10 +840,13 @@
 			children = (
 				BFB47D4520753444008A6A52 /* libcc7-ios.a */,
 				BF734A852485250D001F46BA /* libcc7-tvos.a */,
+				BFA959AF28D869220099B5C4 /* libcc7-macos.a */,
 				BFB47D4720753444008A6A52 /* libcc7tests-ios.a */,
 				BF734A892485250D001F46BA /* libcc7tests-tvos.a */,
+				BFA959B128D869220099B5C4 /* libcc7tests-macos.a */,
 				BFB47D4920753444008A6A52 /* CC7TestsWrapper-ios.xctest */,
 				BF734A8D2485250D001F46BA /* CC7TestsWrapper-tvos.xctest */,
+				BFA959B328D869220099B5C4 /* CC7TestsWrapper-macos.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1103,6 +1127,27 @@
 			fileType = wrapper.cfbundle;
 			path = "CC7TestsWrapper-tvos.xctest";
 			remoteRef = BF734A8C2485250D001F46BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BFA959AF28D869220099B5C4 /* libcc7-macos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7-macos.a";
+			remoteRef = BFA959AE28D869220099B5C4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BFA959B128D869220099B5C4 /* libcc7tests-macos.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcc7tests-macos.a";
+			remoteRef = BFA959B028D869220099B5C4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BFA959B328D869220099B5C4 /* CC7TestsWrapper-macos.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CC7TestsWrapper-macos.xctest";
+			remoteRef = BFA959B228D869220099B5C4 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		BFB47D4520753444008A6A52 /* libcc7-ios.a */ = {
@@ -1447,7 +1492,7 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1456,7 +1501,7 @@
 					openssl,
 				);
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1511,7 +1556,7 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -1519,7 +1564,7 @@
 					openssl,
 				);
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 9.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

@@ -28,7 +28,7 @@
 		}];
 		[op start];
 	 }];
-	 NSLog(@"Operation ended with %@", result);		// Will print: "Operation ended with: SUCCESS"
+	 NSLog(@"Operation ended with %@", result);     // Will print: "Operation ended with: SUCCESS"
 
  WARNING: Do not use this class in the production application. The internal implementation is
 		  sufficient for the testing purposes, but it's still kind of multithread anti-pattern.

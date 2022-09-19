@@ -15,7 +15,7 @@
  */
 
 #import "AsyncHelper.h"
-#include <libkern/OSAtomic.h>
+#include <stdatomic.h>
 
 @implementation AsyncHelper
 {
@@ -136,15 +136,23 @@
 @end
 
 @implementation AtomicCounter
+{
+	volatile atomic_int_fast32_t _value;
+}
+
+- (int32_t) value
+{
+	return _value;
+}
 
 - (int32_t) increment
 {
-	return OSAtomicIncrement32(&_value);
+	return atomic_fetch_add(&_value, 1) + 1;
 }
 
 - (int32_t) incrementUpTo:(int32_t)limit completion:(void (^)(void))block
 {
-	int32_t next = OSAtomicIncrement32(&_value);
+	atomic_int_fast32_t next = atomic_fetch_add(&_value, 1) + 1;
 	if (next >= limit) {
 		block();
 	}

@@ -327,7 +327,7 @@ namespace powerAuthTests
 					uint32_t v = ((hash[off] & 0x7f) << 24) | (hash[off+1] << 16) | (hash[off+2] << 8) | hash[off+3];
 					v = v % 100000000;
 					char buffer[32];
-					sprintf(buffer, "%08d", v);
+					snprintf(buffer, sizeof(buffer), "%08d", v);
 					ACTIVATION_FINGERPRINT = buffer;
 					
 					ccstMessage("Shared secret: %s", MASTER_SHARED_SECRET.hexString().c_str());
@@ -1375,7 +1375,7 @@ namespace powerAuthTests
 					dbc = dbc % 100000000;
 					
 					char decimalized[32];
-					sprintf(decimalized, "%08d", dbc);
+					snprintf(decimalized, sizeof(decimalized), "%08d", dbc);
 					if (!result_string.empty()) {
 						result_string.append("-");
 					}

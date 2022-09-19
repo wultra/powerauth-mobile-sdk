@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1340"
+   LastUpgradeVersion = "1400"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,18 +14,18 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BF6ADD3A24C84A3D001B3E5E"
-               BuildableName = "PowerAuthCore.framework"
-               BlueprintName = "PowerAuthCore-tvos"
-               ReferencedContainer = "container:PowerAuthCore.xcodeproj">
+               BlueprintIdentifier = "BF5EB4A024C85FE200F9DDB2"
+               BuildableName = "PowerAuth2.framework"
+               BlueprintName = "PowerAuth2-tvos"
+               ReferencedContainer = "container:PowerAuth2.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "BF5EB54024C860A500F9DDB2"
@@ -88,15 +88,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "BF6ADD3A24C84A3D001B3E5E"
-            BuildableName = "PowerAuthCore.framework"
-            BlueprintName = "PowerAuthCore-tvos"
-            ReferencedContainer = "container:PowerAuthCore.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

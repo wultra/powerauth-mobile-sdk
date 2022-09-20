@@ -1101,9 +1101,30 @@
     }];
 }
 
-#if defined(PA2_BIOMETRY_SUPPORT)
-
 // MARK: - Biometry
+
+- (void) testBiometrySignatureWhenNotConfigured
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates that signing with biometry doesn't work when
+    // no biometry is configured.
+    //
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithBiometry];
+    NSError * error = nil;
+    PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    XCTAssertNil(header);
+    XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+}
+
+#if defined(PA2_BIOMETRY_SUPPORT)
 
 - (void) testCreateActivationWithBiometry
 {
@@ -1160,6 +1181,38 @@
     }];
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
+}
+
+- (void) testWithWrongLAContext
+{
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates that LAContext with wrong configuration should not work.
+    //
+    
+    CHECK_BIOMETRY();
+    
+    // Use context with `interactionNotAllowed`
+    LAContext * context = [[LAContext alloc] init];
+    if (@available(iOS 11, macCatalyst 10.15, *)) {
+        context.interactionNotAllowed = YES;
+    } else {
+        XCTFail(@"This test require iOS11+");
+        return;
+    }
+    
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
+    if (!activation) {
+        return;
+    }
+    XCTAssertTrue([_sdk hasBiometryFactor]);
+
+    PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithBiometryContext:context];
+    NSError * error = nil;
+    PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    XCTAssertNil(header);
+    XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
 }
 
 #endif // PA2_BIOMETRY_SUPPORT

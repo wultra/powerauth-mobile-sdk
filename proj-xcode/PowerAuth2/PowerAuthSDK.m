@@ -285,32 +285,35 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     return possessionKey;
 }
 
-- (NSData*) biometryRelatedKeyUserCancelled:(BOOL *)userCancelled authentication:(PowerAuthKeychainAuthentication*)authentication
+- (NSData*) biometryRelatedKeyWithAuthentication:(nonnull PowerAuthKeychainAuthentication*)authentication status:(nonnull OSStatus *)status
 {
     if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
-        __block OSStatus status = errSecUserCanceled;
         __block NSData *key = nil;
         BOOL executed = [PowerAuthKeychain tryLockBiometryAndExecuteBlock:^{
-            key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status authentication:authentication];
+            key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:status authentication:authentication];
         }];
-        if (userCancelled != NULL) {
-            if (!executed || status == errSecUserCanceled) {
-                *userCancelled = YES;
-            } else {
-                *userCancelled = NO;
-            }
+        if (key) {
+            // Key has been successfully retrieved.
+            *status = errSecSuccess;
+        } else if (!executed) {
+            // Failed to acquire biometric lock. Simulate cancel in this case.
+            *status = errSecUserCanceled;
         }
+#if PA2_HAS_LACONTEXT
+        if (key && _keychainConfiguration.invalidateLocalAuthenticationContextAfterUse) {
+            [authentication.context invalidate];
+        }
+#endif
         return key;
     } else {
-        if (userCancelled != NULL) {
-            *userCancelled = NO;
-        }
+        // Item is not present in keychain.
+        *status = errSecItemNotFound;
         return nil;
     }
 }
 
-- (PowerAuthCoreSignatureUnlockKeys*) signatureKeysForAuthentication:(PowerAuthAuthentication*)authentication
-                                                       userCancelled:(BOOL *)userCancelled
+- (PowerAuthCoreSignatureUnlockKeys*) signatureKeysForAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                               error:(NSError **)error
 {
     // Validate authentication object usage
     [authentication validateUsage:NO];
@@ -326,20 +329,42 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
         }
     }
     if (authentication.useBiometry) {
-        if (authentication.overridenBiometryKey) { // user specified a custom biometry key
+        if (authentication.overridenBiometryKey) {
+            // application specified a custom biometry key
             biometryKey = authentication.overridenBiometryKey;
-        } else { // default biometry key should be fetched
-            biometryKey = [self biometryRelatedKeyUserCancelled:userCancelled authentication:authentication.keychainAuthentication];
-            if (*userCancelled) {
-                return nil;
-            }
-            // If the key was not fetched (and not because of user cancel action) and biometry
-            // was requested, generate a "fake key" so that signature can silently fail
-            else {
-                if (biometryKey == nil) {
-                    PowerAuthLog(@"ERROR! Biometric authentication failed or there's no biometric key in the keychain.");
-                    biometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
+        } else {
+            // default biometry key should be fetched
+            OSStatus status;
+            biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication status:&status];
+            if (biometryKey == nil) {
+                PowerAuthLog(@"ERROR: Getting key for biometric authentication failed with OSStatus = %@.", @(status));
+                NSError * localError;
+                // The key was not fetched, try to translate OSStatus to a reasonable meaning.
+                if (status == errSecUserCanceled) {
+                    // User canceled the operation.
+                    localError = PA2MakeError(PowerAuthErrorCode_BiometryCancel, nil);
+                } else if (status == errSecItemNotFound) {
+                    // Biometric key was not found.
+                    // Note, that previously we treated this as an authentication error, but this might be
+                    // an issue in application logic. For example, if app try to authenticate and immediately
+                    // remove the biometry key.
+                    localError = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"Biometric key not found");
+                } else if (status == errSecInvalidContext) {
+                    // Invalid LAContext provided.
+                    // Be aware that this code is generated in our keychain impl. Don't be confused with the naming,
+                    // if LAContext is already invalidated, then general `errSecAuthFailed` is returned.
+                    localError = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"Invalid LAContext");
+                } else {
+                    localError = nil;
                 }
+                // If localError variable is set, then we need to report an error.
+                if (localError) {
+                    if (error) { *error = localError; }
+                    return nil;
+                }
+                // No error generated, so create a fake biometry key to fail on the server.
+                PowerAuthLog(@"WARNING: Generating fake biometry key to increase failed attempts counter on the server.");
+                biometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
             }
         }
     }
@@ -349,6 +374,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     keys.possessionUnlockKey = possessionKey;
     keys.biometryUnlockKey = biometryKey;
     keys.userPassword = authentication.password;
+    if (error) { *error = nil; }
     return keys;
 }
 
@@ -1007,10 +1033,10 @@ static PowerAuthSDK * s_inst;
         }
         
         // Generate signature key encryption keys
-        BOOL userCancelled = NO;
-        PowerAuthCoreSignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication userCancelled:&userCancelled];
+        NSError * localError = nil;
+        PowerAuthCoreSignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication error:&localError];
         if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
-            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_BiometryCancel, nil)];
+            return [PA2Result failure:localError];
         }
         
         // Compute signature for provided values and return result.
@@ -1223,8 +1249,8 @@ static PowerAuthSDK * s_inst;
         PowerAuthAuthentication * authentication;
         NSError * error;
         // Acquire key to unlock biometric factor
-        BOOL userCancelled = NO;
-        NSData * biometryKey = [self biometryRelatedKeyUserCancelled:&userCancelled authentication:keychainAuthentication];
+        OSStatus status;
+        NSData * biometryKey = [self biometryRelatedKeyWithAuthentication:keychainAuthentication status:&status];
         if (biometryKey) {
             // The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
             // with possession+biometry factors.
@@ -1234,7 +1260,7 @@ static PowerAuthSDK * s_inst;
         } else {
             // Otherwise report an error depending on whether the operation was canceled by the user.
             authentication = nil;
-            error = PA2MakeError(userCancelled ? PowerAuthErrorCode_BiometryCancel : PowerAuthErrorCode_BiometryFailed, nil);
+            error = PA2MakeError(status == errSecUserCanceled ? PowerAuthErrorCode_BiometryCancel : PowerAuthErrorCode_BiometryFailed, nil);
         }
         // Report result back to the main thread
         dispatch_async(dispatch_get_main_queue(), ^{

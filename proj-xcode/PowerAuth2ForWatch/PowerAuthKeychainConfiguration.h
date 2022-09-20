@@ -108,6 +108,12 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
  */
 @property (nonatomic, assign) BOOL allowBiometricAuthenticationFallbackToDevicePasscode;
 
+/**
+ If set to YES, then the LAContext object provided by application is invalidated after the use in SDK.
+ The default value is YES, so `LAContext` cannot be reused for getting keys protected with biometry.
+ */
+@property (nonatomic, assign) BOOL invalidateLocalAuthenticationContextAfterUse;
+
 /** Return the shared in stance of a Keychain configuration object.
  
  @return Shared instance of a Keychain configuration.

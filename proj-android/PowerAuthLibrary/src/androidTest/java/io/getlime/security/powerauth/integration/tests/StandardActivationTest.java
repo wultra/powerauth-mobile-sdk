@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.Activation;
@@ -38,6 +39,7 @@ import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
+import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -359,6 +361,36 @@ public class StandardActivationTest {
         assertSame(status1[0], status2[0]);
         assertSame(status1[0], status3[0]);
         assertSame(status2[0], status3[0]);
+    }
+
+    @Test
+    public void testCallToCreateActivationInWrongState() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        int result = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), "1234");
+        assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, result);
+        assertTrue(powerAuthSDK.hasValidActivation());
+
+        AsyncHelper.await((AsyncHelper.Execution<Boolean>) resultCatcher -> {
+            final PowerAuthActivation activation = PowerAuthActivation.Builder.activation("MMMMM-MMMMM-MMMMM-MUTOA", null).build();
+            powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
+                @Override
+                public void onActivationCreateSucceed(@NonNull CreateActivationResult result) {
+                    fail("Create activation should not pass");
+                }
+
+                @Override
+                public void onActivationCreateFailed(@NonNull Throwable t) {
+                    if (t instanceof PowerAuthErrorException) {
+                        assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, ((PowerAuthErrorException) t).getPowerAuthErrorCode());
+                        resultCatcher.completeWithSuccess();
+                    } else {
+                        fail("Unexpected error received");
+                    }
+                }
+            });
+        });
+        assertTrue(powerAuthSDK.hasValidActivation());
     }
 
 }

@@ -909,7 +909,7 @@
     XCTAssertTrue(result);  // Must pass, valid password, activation is active again
 }
 
-- (void) testWrongAPIUsage
+- (void) testCallToCreateActivationInWrongState
 {
     CHECK_TEST_CONFIG();
     
@@ -920,19 +920,29 @@
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
     if (!activation) {
         return;
-    }   
-    //PowerAuthAuthentication * auth = activation[1];
-    //BOOL result;
-    {
-        // Test for auth object without signature factors
-        PowerAuthAuthentication * emptyAuth = [[PowerAuthAuthentication alloc] init];
-        NSError * error = nil;
-        PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:emptyAuth method:@"POST" uriId:@"some/uri/id" body:nil error:&error];
-        XCTAssertNil(header);
-        XCTAssertNotNil(error);
-        XCTAssertEqualObjects(error.domain,PowerAuthErrorDomain);
-        XCTAssertEqual(error.powerAuthErrorCode, PowerAuthErrorCode_WrongParameter);
     }
+    
+    XCTAssertTrue(_sdk.hasValidActivation);
+    
+    NSError * err = nil;
+    BOOL res = [_sdk commitActivationWithPassword:@"1234" error:&err];
+    XCTAssertFalse(res);
+    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, err.powerAuthErrorCode);
+    
+    XCTAssertTrue(_sdk.hasValidActivation);
+    
+    err = nil;
+    PowerAuthActivation * newActivationRequest = [PowerAuthActivation activationWithActivationCode:@"MMMMM-MMMMM-MMMMM-MUTOA" name:nil error:&err];
+    XCTAssertNil(err);
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk createActivation:newActivationRequest callback:^(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error) {
+            XCTAssertNil(result);
+            XCTAssertNotNil(error);
+            XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, error.powerAuthErrorCode);
+            [waiting reportCompletion:nil];
+        }];
+    }];
+    XCTAssertTrue(_sdk.hasValidActivation);
 }
 
 // MARK: - EEK

@@ -738,6 +738,7 @@ static PowerAuthSDK * s_inst;
                                                    requestData:(PA2CreateActivationRequestData*)requestData
                                                        session:(PowerAuthCoreSession*)session
 {
+    BOOL resetState = YES;
     NSError * localError = nil;
     // Check if activation can be started
     if ([session canStartActivation]) {
@@ -769,9 +770,12 @@ static PowerAuthSDK * s_inst;
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
         }
     } else {
+        resetState = NO; // Don't reset state, there's already existing or pendign activation
         localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
     }
-    [session resetSession];
+    if (resetState) {
+        [session resetSession];
+    }
     return [PA2Result failure:localError];
 }
 

@@ -45,6 +45,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -267,6 +268,8 @@ public class ActivationHelper {
         assertFalse(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
         assertTrue(powerAuthSDK.canStartActivation());
+        assertNull(powerAuthSDK.getActivationIdentifier());
+        assertNull(powerAuthSDK.getActivationFingerprint());
 
         final List<String> passwords = prepareAuthentications();
 
@@ -298,11 +301,15 @@ public class ActivationHelper {
             assertFalse(powerAuthSDK.hasValidActivation());
             assertTrue(powerAuthSDK.hasPendingActivation());
             assertFalse(powerAuthSDK.canStartActivation());
+            assertNull(powerAuthSDK.getActivationIdentifier());
+            assertNull(powerAuthSDK.getActivationFingerprint());
         });
 
         assertFalse(powerAuthSDK.hasValidActivation());
         assertTrue(powerAuthSDK.hasPendingActivation());
         assertFalse(powerAuthSDK.canStartActivation());
+        assertNotNull(powerAuthSDK.getActivationIdentifier());
+        assertNotNull(powerAuthSDK.getActivationFingerprint());
 
         // Commit activation locally
         int resultCode;
@@ -320,6 +327,8 @@ public class ActivationHelper {
         assertTrue(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
         assertFalse(powerAuthSDK.canStartActivation());
+        assertNotNull(powerAuthSDK.getActivationIdentifier());
+        assertNotNull(powerAuthSDK.getActivationFingerprint());
 
         // Fetch status to test whether it's in "pending commit" or "active" state, depending on server's configuration.
         final boolean isAutoCommit = testHelper.getTestConfig().isServerAutoCommit();

@@ -86,7 +86,7 @@ namespace powerAuthTests
                 "KLMNO-PQRST-UVWXY-Z234",
                 "KLMNO-PQRST-UVWXY-Z2345 ",
                 "KLMNO-PQRST-UVWXY-Z2345#",
-                "67AAA-B0BCC-DDEEF-GGHHI"
+                "67AAA-B0BCC-DDEEF-GGHHI",
                 "67AAA-BB1CC-DDEEF-GGHHI",
                 "67AAA-BBBC8-DDEEF-GGHHI",
                 "67AAA-BBBCC-DDEEF-GGHH9",
@@ -259,7 +259,7 @@ namespace powerAuthTests
                 "KLMNO-PQRST-UVWXY-Z2345#",
                 "NQHGX-LNM2S-EQ4NT-G3NAA#aGVsbG8td29ybGQ=",
                 "R:NQHGX-LNM2S-EQ4NT-G3NAA#aGVsbG8td29ybGQ=",
-                "67AAA-B0BCC-DDEEF-GGHHI"
+                "67AAA-B0BCC-DDEEF-GGHHI",
                 "67AAA-BB1CC-DDEEF-GGHHI",
                 "67AAA-BBBC8-DDEEF-GGHHI",
                 "67AAA-BBBCC-DDEEF-GGHH9",

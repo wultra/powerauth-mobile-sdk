@@ -228,10 +228,10 @@ CC7_JNI_METHOD(jboolean, hasValidActivation)
 CC7_JNI_METHOD(jstring, getActivationIdentifier)
 {
     auto session = CC7_THIS_OBJ();
-    if (!session || !session->hasValidActivation()) {
+    if (!session) {
         return NULL;
     }
-    return cc7::jni::CopyToJavaString(env, session->activationIdentifier());
+    return cc7::jni::CopyToNullableJavaString(env, session->activationIdentifier());
 }
 
 //
@@ -240,7 +240,7 @@ CC7_JNI_METHOD(jstring, getActivationIdentifier)
 CC7_JNI_METHOD(jstring, getActivationFingerprint)
 {
     auto session = CC7_THIS_OBJ();
-    if (!session || !session->hasValidActivation()) {
+    if (!session) {
         return NULL;
     }
     return cc7::jni::CopyToNullableJavaString(env, session->activationFingerprint());

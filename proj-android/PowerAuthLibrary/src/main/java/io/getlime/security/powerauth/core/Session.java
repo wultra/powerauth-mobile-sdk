@@ -269,6 +269,9 @@ public class Session {
      * @return normalized byte array, prepared for data signing
      */
     public byte[] prepareKeyValueDictionaryForDataSigning(Map<String, String> keyValueMap) {
+        if (keyValueMap == null) {
+            return null;
+        }
         ArrayList<String> keys = new ArrayList<>();
         ArrayList<String> values = new ArrayList<>();
         for (Map.Entry<String, String> entry : keyValueMap.entrySet()) {

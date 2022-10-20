@@ -923,7 +923,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password) {
-        return commitActivationWithAuthentication(context, PowerAuthAuthentication.possessionWithPassword(password));
+        return commitActivationWithAuthentication(context, PowerAuthAuthentication.commitWithPassword(password));
     }
 
     /**
@@ -937,7 +937,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password) {
-        return commitActivationWithAuthentication(context, PowerAuthAuthentication.possessionWithPassword(password));
+        return commitActivationWithAuthentication(context, PowerAuthAuthentication.commitWithPassword(password));
     }
 
     /**

@@ -62,9 +62,24 @@ public class ActivationHelper {
     private PowerAuthAuthentication invalidAuthentication;
     private CreateActivationResult createActivationResult;
 
+    /**
+     * Create activation with activation code and signature. If not used, then just unsigned
+     * activation code will be used.
+     */
     public static final int TF_CREATE_WITH_SIGNATURE           = 0x0001;
+    /**
+     * Commit method with String password will be used.
+     */
     public static final int TF_COMMIT_WITH_PASSWORD            = 0x0002;
+    /**
+     * Commit method with core/Password will be used.
+     */
     public static final int TF_COMMIT_WITH_CORE_PASSWORD       = 0x0004;
+    /**
+     * Alternate method that accept biometric key will be used for commit. Must be combined with
+     * TF_COMMIT_WITH_PASSWORD or TF_COMMIT_WITH_CORE_PASSWORD.
+     */
+    public static final int TF_COMMIT_WITH_ALTERNATE_METHOD    = 0x0008;
 
     /**
      * Helper's state.
@@ -263,6 +278,7 @@ public class ActivationHelper {
         final boolean codeWithSignature = (flags & TF_CREATE_WITH_SIGNATURE) != 0;
         final boolean commitWithPassword = (flags & TF_COMMIT_WITH_PASSWORD) != 0;
         final boolean commitWithCorePassword = (flags & TF_COMMIT_WITH_CORE_PASSWORD) != 0;
+        final boolean commitWithAlternateMethod = (flags & TF_COMMIT_WITH_ALTERNATE_METHOD) != 0;
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -314,9 +330,17 @@ public class ActivationHelper {
         // Commit activation locally
         int resultCode;
         if (commitWithPassword) {
-            resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+            if (commitWithAlternateMethod) {
+                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+            } else {
+                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0));
+            }
         } else if (commitWithCorePassword) {
-            resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
+            if (commitWithAlternateMethod) {
+                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
+            } else {
+                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)));
+            }
         } else {
             resultCode = powerAuthSDK.commitActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.commitWithPassword(passwords.get(0)));
         }

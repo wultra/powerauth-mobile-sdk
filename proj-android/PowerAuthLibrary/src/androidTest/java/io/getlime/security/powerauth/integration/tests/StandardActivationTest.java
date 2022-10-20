@@ -110,8 +110,28 @@ public class StandardActivationTest {
     }
 
     @Test
+    public void testCreateAndCommitWithPasswordAlt() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_PASSWORD | ActivationHelper.TF_COMMIT_WITH_ALTERNATE_METHOD, null);
+        // Validate valid and invalid password
+        boolean passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getValidPassword()));
+        assertTrue(passwordValid);
+        passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getInvalidPassword()));
+        assertFalse(passwordValid);
+    }
+
+    @Test
     public void testCreateAndCommitWithCorePassword() throws Exception {
         activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_CORE_PASSWORD, null);
+        // Validate valid and invalid password
+        boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
+        assertTrue(passwordValid);
+        passwordValid = activationHelper.validateUserPassword(activationHelper.getInvalidPassword());
+        assertFalse(passwordValid);
+    }
+
+    @Test
+    public void testCreateAndCommitWithCorePasswordAlt() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_CORE_PASSWORD | ActivationHelper.TF_COMMIT_WITH_ALTERNATE_METHOD, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);

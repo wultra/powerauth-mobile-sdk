@@ -354,6 +354,11 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
                     // Be aware that this code is generated in our keychain impl. Don't be confused with the naming,
                     // if LAContext is already invalidated, then general `errSecAuthFailed` is returned.
                     localError = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"Invalid LAContext");
+                } else if (status == errSecUnimplemented) {
+                    // PowerAuthKeychainAuthentication was provided on platform that doesn't support it.
+                    // This may happen only if tvOS application proactively create biometric key in the biometry keychain.
+                    // In regular and expected setup, accessing biometry protected item on tvOS fails with errSecItemNotFound.
+                    localError = PA2MakeError(PowerAuthErrorCode_BiometryFailed, @"PowerAuthKeychainAuthentication not supported");
                 } else {
                     localError = nil;
                 }

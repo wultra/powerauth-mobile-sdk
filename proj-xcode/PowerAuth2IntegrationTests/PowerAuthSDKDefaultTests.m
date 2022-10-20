@@ -1127,9 +1127,18 @@
         return;
     }
     
-    PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithBiometry];
+    PowerAuthAuthentication * authentication;
+    PowerAuthAuthorizationHttpHeader * header;
+    
     NSError * error = nil;
-    PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    authentication = [PowerAuthAuthentication possessionWithBiometry];
+    header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    XCTAssertNil(header);
+    XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+    
+    error = nil;
+    authentication = [PowerAuthAuthentication possessionWithBiometryPrompt:@"Authenticate with biometry"];
+    header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
 }
@@ -1205,12 +1214,7 @@
     
     // Use context with `interactionNotAllowed`
     LAContext * context = [[LAContext alloc] init];
-    if (@available(iOS 11, macCatalyst 10.15, *)) {
-        context.interactionNotAllowed = YES;
-    } else {
-        XCTFail(@"This test require iOS11+");
-        return;
-    }
+    context.interactionNotAllowed = YES;
     
     PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
     if (!activation) {

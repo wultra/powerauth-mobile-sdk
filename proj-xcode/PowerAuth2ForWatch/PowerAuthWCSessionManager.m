@@ -444,15 +444,11 @@ static WCSession * _PrepareSession()
 
 static WCSession * _ValidateSession(WCSession * session)
 {
-    if (@available(watchOS 2.2, *)) {
-        if (session.activationState == WCSessionActivationStateActivated) {
-            return session;
-        } else {
-            PowerAuthLog(@"PA2WCSessionManager: WCSession is not activated on this device.");
-            return nil;
-        }
+    if (session.activationState == WCSessionActivationStateActivated) {
+        return session;
     }
-    return session;
+    PowerAuthLog(@"PA2WCSessionManager: WCSession is not activated on this device.");
+    return nil;
 }
 
 #endif // defined(PA2_WATCH_SDK)
@@ -466,11 +462,8 @@ static WCSession * _ValidateSession(WCSession * session)
 
 static WCSession * _PrepareSession()
 {
-    // On IOS, check if session is supported
-    if (@available(iOS 9.0, *)) {
-        if ([WCSession isSupported]) {
-            return [WCSession defaultSession];
-        }
+    if ([WCSession isSupported]) {
+        return [WCSession defaultSession];
     }
     return nil;
 }
@@ -479,11 +472,7 @@ static WCSession * _ValidateSession(WCSession * session)
 {
     // Check if session is paired and watch App is installed
     if (session.isPaired && session.isWatchAppInstalled) {
-        if (@available(iOS 9.3, *)) {
-            if (session.activationState == WCSessionActivationStateActivated) {
-                return session;
-            }
-        } else {
+        if (session.activationState == WCSessionActivationStateActivated) {
             return session;
         }
     }

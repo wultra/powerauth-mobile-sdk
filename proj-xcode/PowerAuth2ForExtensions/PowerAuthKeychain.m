@@ -152,37 +152,35 @@
 
 static BOOL _AddKeychainAuthentication(NSMutableDictionary * query, PowerAuthKeychainAuthentication * auth, OSStatus * status)
 {
-    NSString * prompt = auth.prompt;
 #if PA2_HAS_LACONTEXT == 1
     LAContext * context = auth.context;
     if (context) {
-        if (@available(iOS 11, macCatalyst 10.15, *)) {
-            if (context.interactionNotAllowed) {
-                PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
-                if (status) { *status = errSecInvalidContext; }
-                return NO;
-            }
+        if (context.interactionNotAllowed) {
+            PowerAuthLog(@"LAContext.interactionNotAllowed should not be set to true");
+            if (status) { *status = errSecInvalidContext; }
+            return NO;
         }
         query[(__bridge id)kSecUseAuthenticationContext] = context;
         return YES;
     }
+    NSString * prompt = auth.prompt;
     if (prompt) {
-        if (@available(iOS 11, macCatalyst 10.15, *)) {
-            // kSecUseOperationPrompt is deprecated, so on iOS11+ use LAContext.
-            LAContext * context = [[LAContext alloc] init];
-            context.localizedReason = prompt;
-            query[(__bridge id)kSecUseAuthenticationContext] = context;
-            return YES;
-        }
+        // kSecUseOperationPrompt is deprecated, so on iOS11+ use LAContext.
+        LAContext * context = [[LAContext alloc] init];
+        context.localizedReason = prompt;
+        query[(__bridge id)kSecUseAuthenticationContext] = context;
+        return YES;
     }
+    // Missing prompt and context, report errSecInvalidContext as the most reasonable error code.
+    PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
+    if (status) { *status = errSecInvalidContext; }
+    return NO;
+#else
+    // PowerAuthKeychainAuthentication is not supported on this platform.
+    PowerAuthLog(@"PowerAuthKeychainAuthentication is not supported.");
+    if (status) { *status = errSecUnimplemented; }
+    return NO;
 #endif // PA2_HAS_LACONTEXT
-    if (!prompt) {
-        PowerAuthLog(@"PowerAuthKeychainAuthentication has no prompt or LAContext set.");
-        if (status) { *status = errSecInvalidContext; }
-        return NO;
-    }
-    query[(__bridge id)kSecUseOperationPrompt] = prompt;
-    return YES;
 }
 
 static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
@@ -273,7 +271,6 @@ static void _AddUseNoAuthenticationUI(NSMutableDictionary * query)
 /**
  Private helper function to convert LABiometryType enum into our PowerAuthBiometricAuthenticationType
  */
-API_AVAILABLE(ios(11.0))
 static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryType bt)
 {
     if (bt == LABiometryTypeTouchID) {
@@ -313,14 +310,6 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
     #define __kSecAccessControlBiometryAny          kSecAccessControlTouchIDAny
     #define __kSecAccessControlBiometryCurrentSet   kSecAccessControlTouchIDCurrentSet
 #endif
-// 11.0+
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0
-    #define __LAErrorBiometryLockout                LAErrorBiometryLockout
-    #define __LAErrorBiometryNotEnrolled            LAErrorBiometryNotEnrolled
-#else
-    #define __LAErrorBiometryLockout                LAErrorTouchIDLockout
-    #define __LAErrorBiometryNotEnrolled            LAErrorTouchIDNotEnrolled
-#endif
 
 /**
  Private function returns full information about biometric support on the system. The method internally
@@ -329,50 +318,28 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
 static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
 {
     PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
-    // PowerAuth SDK requires features added in iOS9, so we don't support biometry on iOS8.
-    if (@available(iOS 9, *)) {
-        LAContext * context = [[LAContext alloc] init];
-        NSError * error = nil;
-        BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
-        if (canEvaluate) {
-            // If we can evaluate, then everything is quite simple.
-            info.currentStatus = PowerAuthBiometricAuthenticationStatus_Available;
-            // Now check the type of biometry
-            if (@available(iOS 11.0, *)) {
-                info.biometryType = _LABiometryTypeToPAType(context.biometryType);
+    LAContext * context = [[LAContext alloc] init];
+    NSError * error = nil;
+    BOOL canEvaluate = [context canEvaluatePolicy:kLAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error];
+    if (canEvaluate) {
+        // If we can evaluate, then everything is quite simple.
+        info.currentStatus = PowerAuthBiometricAuthenticationStatus_Available;
+        info.biometryType = _LABiometryTypeToPAType(context.biometryType);
+        //
+    } else {
+        // In case of error we cannot evaluate, but the type of biometry can be determined.
+        NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
+        LABiometryType bt = context.biometryType;
+        if (bt != __LABiometryTypeNone) {
+            info.biometryType = _LABiometryTypeToPAType(bt);
+            if (code == LAErrorBiometryLockout) {
+                info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
+            } else if (code == LAErrorBiometryNotEnrolled) {
+                info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
             } else {
-                // No FaceID before iOS11, so it has to be TouchID
-                info.biometryType = PowerAuthBiometricAuthenticationType_TouchID;
-            }
-            //
-        } else {
-            // In case of error we cannot evaluate, but the type of biometry can be determined.
-            NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
-            if (@available(iOS 11.0, *)) {
-                // On iOS 11 its quite simple, we have type property available and status can be determined
-                // from the error.
-                LABiometryType bt = context.biometryType;
-                if (bt != __LABiometryTypeNone) {
-                    info.biometryType = _LABiometryTypeToPAType(bt);
-                    if (code == LAErrorBiometryLockout) {
-                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
-                    } else if (code == LAErrorBiometryNotEnrolled) {
-                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
-                    } else {
-                        // The biometry is available, but returned error is unknown.
-                        PowerAuthLog(@"LAContext.canEvaluatePolicy() failed with error: %@", error);
-                        info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotAvailable;
-                    }
-                }
-            } else {
-                // On older systems (IOS 8..10), only Touch ID is available.
-                if (code == __LAErrorBiometryLockout) {
-                    info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
-                    info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
-                } else if (code == __LAErrorBiometryNotEnrolled) {
-                    info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotEnrolled;
-                    info.biometryType  = PowerAuthBiometricAuthenticationType_TouchID;
-                }
+                // The biometry is available, but returned error is unknown.
+                PowerAuthLog(@"LAContext.canEvaluatePolicy() failed with error: %@", error);
+                info.currentStatus = PowerAuthBiometricAuthenticationStatus_NotAvailable;
             }
         }
     }
@@ -385,19 +352,15 @@ static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
 static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeychainItemAccess access)
 {
     if (access != PowerAuthKeychainItemAccess_None) {
-        if (@available(iOS 9, *)) {
-            // If the system version is iOS 9.0+, use biometry if requested (kSecAccessControlBiometryAny),
-            // or use kNilOptions.
-            switch (access) {
-                case PowerAuthKeychainItemAccess_AnyBiometricSet:
-                    return __kSecAccessControlBiometryAny;
-                case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
-                    return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
-                case PowerAuthKeychainItemAccess_CurrentBiometricSet:
-                    return __kSecAccessControlBiometryCurrentSet;
-                default:
-                    break;
-            }
+        switch (access) {
+            case PowerAuthKeychainItemAccess_AnyBiometricSet:
+                return __kSecAccessControlBiometryAny;
+            case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
+                return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
+            case PowerAuthKeychainItemAccess_CurrentBiometricSet:
+                return __kSecAccessControlBiometryCurrentSet;
+            default:
+                break;
         }
     }
     // If biometry is not supporte or not requested, use the kNilOptions.

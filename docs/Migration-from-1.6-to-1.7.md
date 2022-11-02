@@ -108,6 +108,8 @@ Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0. S
 - All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
 
 - `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.
+
+- `PowerAuthSDK.authenticateUsingBiometry()` is no longer available on tvOS platform (1.7.5+)
     
 ### Other changes
 

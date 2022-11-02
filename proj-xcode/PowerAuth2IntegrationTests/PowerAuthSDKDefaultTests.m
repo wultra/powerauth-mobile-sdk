@@ -1116,6 +1116,12 @@
 - (void) testBiometrySignatureWhenNotConfigured
 {
     CHECK_TEST_CONFIG();
+
+#if defined(PA2_BIOMETRY_SUPPORT)
+    BOOL supportsBiometry = YES;
+#else
+    BOOL supportsBiometry = NO;
+#endif
     
     //
     // This test validates that signing with biometry doesn't work when
@@ -1134,13 +1140,22 @@
     authentication = [PowerAuthAuthentication possessionWithBiometry];
     header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
-    XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+    if (supportsBiometry) {
+        XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+    } else {
+        XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
+    }
     
     error = nil;
     authentication = [PowerAuthAuthentication possessionWithBiometryPrompt:@"Authenticate with biometry"];
     header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
-    XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+    
+    if (supportsBiometry) {
+        XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
+    } else {
+        XCTAssertEqual(PowerAuthErrorCode_BiometryNotAvailable, error.powerAuthErrorCode);
+    }
 }
 
 #if defined(PA2_BIOMETRY_SUPPORT)

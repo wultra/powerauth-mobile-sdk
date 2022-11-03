@@ -1266,7 +1266,7 @@ static PowerAuthSDK * s_inst;
         return;
     }
     
-    // Check biometric status in advance, do do not increase failed attempts counter
+    // Check biometric status in advance, to do not increase failed attempts counter
     // in case that biometry is already locked out.
     if (![PowerAuthKeychain canUseBiometricAuthentication]) {
         callback(nil, PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
@@ -1295,10 +1295,13 @@ static PowerAuthSDK * s_inst;
     }
     // Prepare policy based on keychain configuration.
     LAPolicy policy;
-    if (_keychainConfiguration.biometricItemAccess != PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode) {
-        policy = LAPolicyDeviceOwnerAuthenticationWithBiometrics;
-    } else {
+    if (_keychainConfiguration.biometricItemAccess == PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode) {
+        // The naming is awkward, but 'LAPolicyDeviceOwnerAuthentication' really means that
+        // we're requesting biometry and the device's passcode
         policy = LAPolicyDeviceOwnerAuthentication;
+    } else {
+        // In this case, only biometry can be used.
+        policy = LAPolicyDeviceOwnerAuthenticationWithBiometrics;
     }
     // Now evaluate the policy
     [context evaluatePolicy:policy localizedReason:prompt reply:^(BOOL success, NSError * _Nullable error) {

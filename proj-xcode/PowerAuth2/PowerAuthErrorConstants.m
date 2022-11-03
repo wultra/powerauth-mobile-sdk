@@ -43,6 +43,7 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
         _CODE_DESC(PowerAuthErrorCode_ActivationPending, @"Pending activation")
         _CODE_DESC(PowerAuthErrorCode_BiometryNotAvailable, @"Biometry is not supported or is unavailable")
         _CODE_DESC(PowerAuthErrorCode_BiometryCancel, @"User did cancel biometry authentication dialog")
+        _CODE_DESC(PowerAuthErrorCode_BiometryFallback, @"Used did press fallback at biometry authentication dialog")
         _CODE_DESC(PowerAuthErrorCode_BiometryFailed, @"Biometry authentication failed")
         _CODE_DESC(PowerAuthErrorCode_OperationCancelled, @"Operation was cancelled by SDK")
         _CODE_DESC(PowerAuthErrorCode_Encryption, @"General encryption failure")

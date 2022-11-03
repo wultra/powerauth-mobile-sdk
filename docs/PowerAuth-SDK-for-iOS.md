@@ -1127,6 +1127,8 @@ PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: context) { 
         if nsError.domain == PowerAuthErrorDomain {
             if (nsError.powerAuthErrorCode == .biometryCancel) {
                 // cancel, app cancel, system cancel...
+            } else if (nsError.powerAuthErrorCode == .biometryFallback) {
+                // fallback button pressed
             }
             // If you're interested in exact failure reason, then extract
             // the underlying LAError.
@@ -1808,7 +1810,10 @@ if error == nil {
 
         case .biometryCancel:
             print("Error code for TouchID/FaceID action cancel error")
-
+        
+        case .biometryFallback:
+            print("Error code for TouchID/FaceID fallback action")
+            
         case .biometryFailed:
             print("Error code for TouchID/FaceID action failure")
 
@@ -1848,6 +1853,7 @@ Note that you typically don't need to handle all error codes reported in the `Er
 Here's the list of important error codes, which the application should properly handle:
 
 - `PowerAuthErrorCode.biometryCancel` is reported when the user cancels the biometric authentication dialog
+- `PowerAuthErrorCode.biometryFallback` is reported when the user cancels the biometric authentication dialog with a fallback button
 - `PowerAuthErrorCode.protocolUpgrade` is reported when SDK failed to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatus()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
 - `PowerAuthErrorCode.pendingProtocolUpgrade` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in the situations when SDK is performing protocol upgrade on the background (as a part of activation status fetch), and the application want's to calculate PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 - `PowerAuthErrorCode.externalPendingOperation` is reported when the requested operation collide with the same operation type already started in the external application.

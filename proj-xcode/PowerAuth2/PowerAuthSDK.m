@@ -1340,9 +1340,13 @@ static PowerAuthSDK * s_inst;
                     case LAErrorSystemCancel:           // Systme cancel (e.g. user pressed power or home button)
                     case LAErrorAppCancel:              // App cancel, (e.g. application called invalidate on its context)
                     case LAErrorUserCancel:             // User tapped on cancel button
-                    case LAErrorUserFallback:           // Canceled, because user tapped on the fallback button.
                         // All cancel types leads to our cancel
                         error = PA2MakeErrorInfo(PowerAuthErrorCode_BiometryCancel, nil, errorInfo);
+                        break;
+                        
+                    case LAErrorUserFallback:           // Canceled, because user tapped on the fallback button.
+                        // All cancel types leads to our cancel
+                        error = PA2MakeErrorInfo(PowerAuthErrorCode_BiometryFallback, nil, errorInfo);
                         break;
                         
                     case LAErrorNotInteractive:         // App should not set interactionNotAllowed property to true

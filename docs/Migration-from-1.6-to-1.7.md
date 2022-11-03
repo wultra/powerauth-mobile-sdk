@@ -68,7 +68,7 @@ PowerAuth Mobile SDK in version `1.7.0` is a maintenance release that brings mul
 
 - `IOException` is no longer reported from SDK's internal networking. Now all such exceptions are wrapped into `PowerAuthErrorException` with `NETWORK_ERROR` code set.
 
-- Please read also changes introduced in [1.7.2](#changes-in-172) and [1.7.3](#changes-in-173) versions.
+- Please read also changes introduced in [1.7.2](#changes-in-172), [1.7.3](#changes-in-173) and [1.7.5](#changes-in-175) versions.
 
 ## iOS & tvOS
 
@@ -108,8 +108,6 @@ Version 1.7.3 increased minimum required iOS & tvOS deployment target to 11.0. S
 - All asynchronous methods from `PowerAuthTokenStore` protocol now returns objects conforming to `PowerAuthOperationTask` and therefore the returned operation can be canceled directly.
 
 - `PowerAuthTokenStore.cancelTask()` is now deprecated. You can cancel the returned asynchronous operation directly.
-
-- `PowerAuthSDK.authenticateUsingBiometry()` is no longer available on tvOS platform (1.7.5+)
     
 ### Other changes
 
@@ -201,3 +199,18 @@ If you still have to compile our SDK for older operating systems, then you need 
    ```
 
 If you use cocoapds for PowerAuth mobile SDK integration, then please let us know and we'll prepare a special release branch for you.
+
+## Changes in 1.7.5+
+
+### iOS
+
+The behavior of `PowerAuthSDK.authenticateUsingBiometry()` has been slightly changed and improved:
+
+- Function now properly treat biometry lockout and increase failed attempts counter on the server, See [Biometry lockout](PowerAuth-SDK-for-iOS.md#biometry-lockout) chapter.
+- Function now returns new `PowerAuthErrorCode_BiometryFallback` error code in case that user tap on the fallback button.
+- As a benefit, function now properly handles situations when the user press home or power button during the biometric authentication.
+- You can also cancel the pending authentication via the application provided `LAContext` object.
+
+### tvOS
+
+The `PowerAuthSDK.authenticateUsingBiometry()` function is no longer available on tvOS platform.

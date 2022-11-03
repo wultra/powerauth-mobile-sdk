@@ -1266,6 +1266,13 @@ static PowerAuthSDK * s_inst;
         return;
     }
     
+    // Check biometric status in advance, do do not increase failed attempts counter
+    // in case that biometry is already locked out.
+    if (![PowerAuthKeychain canUseBiometricAuthentication]) {
+        callback(nil, PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
+        return;
+    }
+    
     // Use app provided, or create a new LAContext if "prompt" variant is used.
     NSString * prompt = keychainAuthentication.prompt;
     LAContext * context = keychainAuthentication.context;

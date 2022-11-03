@@ -1280,16 +1280,17 @@ static PowerAuthSDK * s_inst;
         // No context is provided, so we have to create a new one and re-create keychain authentication
         // to use this context.
         if (!prompt) {
-            prompt = @"< missing >";
+            prompt = @"< missing prompt >";
         }
         context = [[LAContext alloc] init];
         context.localizedReason = prompt;
+        context.localizedFallbackTitle = @""; // hide fallback button to match our original behavior
         keychainAuthentication = [[PowerAuthKeychainAuthentication alloc] initWithContext:context];
     } else {
         // Application provided context is available, simply make sure that some prompt is set.
         prompt = context.localizedReason;
         if (!prompt) {
-            prompt = @"< missing >";
+            prompt = @"< missing prompt >";
         }
     }
     // Prepare policy based on keychain configuration.

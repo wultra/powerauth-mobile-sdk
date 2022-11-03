@@ -209,7 +209,7 @@ The behavior of `PowerAuthSDK.authenticateUsingBiometry()` has been slightly cha
 - Function now properly treat biometry lockout and increase failed attempts counter on the server, See [Biometry lockout](PowerAuth-SDK-for-iOS.md#biometry-lockout) chapter.
 - Function now returns new `PowerAuthErrorCode_BiometryFallback` error code in case that user tap on the fallback button.
 - As a benefit, function now properly handles situations when the user press home or power button during the biometric authentication.
-- You can also cancel the pending authentication via the application provided `LAContext` object.
+- You can also cancel the pending authentication with using `LAContext.invalidate()` method.
 
 ### tvOS
 

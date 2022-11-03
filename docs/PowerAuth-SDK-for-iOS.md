@@ -1123,18 +1123,19 @@ let context = LAContext()
 context.localizedReason = "Please authenticate with biometry"
 PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: context) { authentication, error in
     guard let authentication = authentication else {
-        let nsError = error! as NSError
-        if nsError.domain == PowerAuthErrorDomain {
-            if (nsError.powerAuthErrorCode == .biometryCancel) {
-                // cancel, app cancel, system cancel...
-            } else if (nsError.powerAuthErrorCode == .biometryFallback) {
-                // fallback button pressed
-            }
-            // If you're interested in exact failure reason, then extract
-            // the underlying LAError.
-            if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
-                // Investigate error codes...
-            }
+        if let nsError = error as? NSError {
+            if nsError.domain == PowerAuthErrorDomain {
+                if nsError.powerAuthErrorCode == .biometryCancel {
+                    // cancel, app cancel, system cancel...
+                } else if nsError.powerAuthErrorCode == .biometryFallback {
+                    // fallback button pressed
+                }
+                // If you're interested in exact failure reason, then extract
+                // the underlying LAError.
+                if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
+                    // Investigate error codes...
+                }
+            }   
         }
         return
     }

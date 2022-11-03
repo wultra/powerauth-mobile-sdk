@@ -66,7 +66,7 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 
 NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary * info)
 {
-    NSMutableDictionary * mutableInfo = [info mutableCopy];
+    NSMutableDictionary * mutableInfo = info ? [info mutableCopy] : [NSMutableDictionary dictionary];
     mutableInfo[NSLocalizedDescriptionKey] = PA2MakeDefaultErrorDescription(errorCode, message);
     return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:mutableInfo];
 }

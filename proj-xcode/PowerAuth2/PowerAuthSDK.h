@@ -517,7 +517,8 @@
  */
 - (void) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
                                     callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback
-                                NS_SWIFT_NAME(authenticateUsingBiometry(withPrompt:callback:));
+                                NS_SWIFT_NAME(authenticateUsingBiometry(withPrompt:callback:))
+                                API_UNAVAILABLE(tvos);
 
 /** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
  
@@ -539,7 +540,8 @@
  */
 - (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt
                             withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block
-                         NS_SWIFT_NAME(unlockBiometryKeys(withPrompt:callback:));
+                         NS_SWIFT_NAME(unlockBiometryKeys(withPrompt:callback:))
+                         API_UNAVAILABLE(tvos);
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  

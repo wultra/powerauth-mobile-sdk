@@ -43,6 +43,7 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
         _CODE_DESC(PowerAuthErrorCode_ActivationPending, @"Pending activation")
         _CODE_DESC(PowerAuthErrorCode_BiometryNotAvailable, @"Biometry is not supported or is unavailable")
         _CODE_DESC(PowerAuthErrorCode_BiometryCancel, @"User did cancel biometry authentication dialog")
+        _CODE_DESC(PowerAuthErrorCode_BiometryFallback, @"Used did press fallback at biometry authentication dialog")
         _CODE_DESC(PowerAuthErrorCode_BiometryFailed, @"Biometry authentication failed")
         _CODE_DESC(PowerAuthErrorCode_OperationCancelled, @"Operation was cancelled by SDK")
         _CODE_DESC(PowerAuthErrorCode_Encryption, @"General encryption failure")
@@ -66,7 +67,7 @@ NSError * PA2MakeError(NSInteger errorCode, NSString * message)
 
 NSError * PA2MakeErrorInfo(NSInteger errorCode, NSString * message, NSDictionary * info)
 {
-    NSMutableDictionary * mutableInfo = [info mutableCopy];
+    NSMutableDictionary * mutableInfo = info ? [info mutableCopy] : [NSMutableDictionary dictionary];
     mutableInfo[NSLocalizedDescriptionKey] = PA2MakeDefaultErrorDescription(errorCode, message);
     return [NSError errorWithDomain:PowerAuthErrorDomain code:errorCode userInfo:mutableInfo];
 }

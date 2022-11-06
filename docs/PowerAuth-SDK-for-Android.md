@@ -1308,7 +1308,7 @@ PowerAuth mobile SDK uses `io.getlime.security.powerauth.core.Password` object b
 
 ### Problem explanation
 
-If you store the user's password in simpe string then there's a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
+If you store the user's password in simple string, there is a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
 
 - If your application is using system keyboard to enter the password or PIN, then the sensitive data will remain in memory in multiple copies for a while. 
 

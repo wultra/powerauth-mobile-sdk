@@ -706,7 +706,7 @@ PowerAuth mobile SDK uses `PowerAuthCorePassword` object behind the scene, to st
 
 ### Problem explanation
 
-If you store the user's password in simpe string then there's a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
+If you store the user's password in simple string, there is a high probabilty that the content of the string will remain in the memory until the same region is reused by the underlying memory allocator. This is due the fact that the general memory allocator doesn't cleanup the region of memory being freed. It just update its linked-list of free memory regions for future reuse, so the content of allocated object typically remains intact. This has the following implications to your application:
 
 - If your application is using system keyboard to enter the password or PIN, then the sensitive data will remain in memory in multiple copies for a while. 
 
@@ -727,6 +727,7 @@ The situation that the user's password stays in memory for days may be critical 
 ### Special password object usage
 
 PowerAuth mobile SDK allows you to use both strings and special password objects at input, so it's up to you which way fits best for your purposes. For simplicity, this documentation is using strings for the passwords, but all code examples can be changed to utilize `PowerAuthCorePassword` object as well. For example, this is the modified code for [Password Change](#password-change):
+
 ```swift
 import PowerAuthCore
 

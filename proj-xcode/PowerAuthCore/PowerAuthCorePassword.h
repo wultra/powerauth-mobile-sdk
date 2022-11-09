@@ -131,6 +131,19 @@
  */
 - (NSInteger) validatePasswordComplexity:(NSInteger (NS_NOESCAPE ^_Nonnull)(const char * _Nonnull  passphrase, NSInteger length))validationBlock;
 
+/**
+ The method wipes out the passphrase stored in the object from the memory. If the object is immutable,
+ then it's no longer usable for the cryptographic operations. If the object is mutable, then
+ the function is equal to `clear()`.
+ */
+- (void) secureClear;
+
+/**
+ The method creates a new `PowerAuthCorePassword` immutable instance that will contain the same passphrase
+ as the receiver.
+ */
+- (nonnull PowerAuthCorePassword*) copyToImmutable;
+
 @end
 
 

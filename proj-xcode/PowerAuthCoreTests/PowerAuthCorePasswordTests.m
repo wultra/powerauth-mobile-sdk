@@ -160,6 +160,53 @@
     XCTAssertNotEqualObjects(p1, @"fixed");
 }
 
+- (void) testPasswordCopyAndSecureClear
+{
+    // Prepare data
+    DATA_BYTES(p2data, { 'f', 'i', 'x', 'e', 'd' });
+    PowerAuthCorePassword * p1 = [PowerAuthCorePassword passwordWithString:@"fixed"];
+    PowerAuthCorePassword * p2 = [PowerAuthCorePassword passwordWithData:p2data];
+    PowerAuthCoreMutablePassword * p3 = [PowerAuthCoreMutablePassword mutablePassword];
+    [p3 addCharacter:'f'];
+    [p3 addCharacter:'i'];
+    [p3 addCharacter:'x'];
+    [p3 addCharacter:'e'];
+    [p3 addCharacter:'d'];
+    // Now make copy from passwords
+    PowerAuthCorePassword * p1copy = [p1 copyToImmutable];
+    PowerAuthCorePassword * p2copy = [p2 copyToImmutable];
+    PowerAuthCorePassword * p3copy = [p3 copyToImmutable];
+    XCTAssertTrue([p1copy isEqualToPassword:p1]);
+    XCTAssertTrue([p2copy isEqualToPassword:p2]);
+    XCTAssertTrue([p3copy isEqualToPassword:p3]);
+    // Make sure original objects are not modified
+    XCTAssertEqualObjects(@"fixed", [self extractStringFromPassword: p1]);
+    XCTAssertEqualObjects(@"fixed", [self extractStringFromPassword: p2]);
+    XCTAssertEqualObjects(@"fixed", [self extractStringFromPassword: p3]);
+    
+    // Now secure clear all passwords
+    [p1 secureClear];
+    [p2 secureClear];
+    [p3 secureClear];
+    [p1copy secureClear];
+    [p2copy secureClear];
+    [p3copy secureClear];
+    XCTAssertEqual(0, [p1 length]);
+    XCTAssertEqual(0, [p2 length]);
+    XCTAssertEqual(0, [p3 length]);
+    XCTAssertEqual(0, [p1copy length]);
+    XCTAssertEqual(0, [p2copy length]);
+    XCTAssertEqual(0, [p3copy length]);
+    XCTAssertTrue([p1copy isEqualToPassword:p1]);
+    XCTAssertTrue([p2copy isEqualToPassword:p2]);
+    XCTAssertTrue([p3copy isEqualToPassword:p3]);
+    // P3 should still work as mutable
+    [p3 addCharacter:'f'];
+    [p3 addCharacter:'i'];
+    [p3 addCharacter:'x'];
+    XCTAssertEqualObjects(@"fix", [self extractStringFromPassword: p3]);
+}
+
 - (NSString*) extractStringFromPassword:(PowerAuthCorePassword*)password
 {
     __block NSString * stringPassword = nil;

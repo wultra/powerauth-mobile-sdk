@@ -91,7 +91,7 @@ public class Password {
      * @param passphrase string with password.
      */
     public Password(String passphrase) {
-        this.handle = this.initPassword(passphrase, null);
+        this(initPassword(passphrase, null, null));
     }
     
     /**
@@ -102,14 +102,22 @@ public class Password {
      * @param passphrase bytes with password
      */
     public Password(byte[] passphrase) {
-        this.handle = this.initPassword(null, passphrase);
+       this(initPassword(null, passphrase, null));
     }
     
     /**
      * Constructs a new instance of empty, <b>mutable</b> Password object.
      */
     public Password() {
-        this.handle = this.initPassword(null, null);
+        this(initPassword(null, null, null));
+    }
+
+    /**
+     * Construct a password with an already created handle pointing to a native object.
+     * @param handle Handle, or 0, if the object is already destroyed.
+     */
+    private Password(long handle) {
+        this.handle = handle;
     }
     
     /**
@@ -119,8 +127,9 @@ public class Password {
      *
      * @param strPass password in string representation
      * @param dataPass raw password bytes
+     * @param other Other password to copy.
      */
-    private native long initPassword(String strPass, byte[] dataPass);
+    private static native long initPassword(String strPass, byte[] dataPass, Password other);
     
     
     /**
@@ -133,6 +142,16 @@ public class Password {
             destroy(this.handle);
             this.handle = 0;
         }
+    }
+
+    /**
+     * Create an immutable copy from this Password. If the password object is already destroyed,
+     * then the created copy is also marked as a destroyed.
+     * @return Immutable
+     */
+    @NonNull
+    public synchronized Password copyToImmutable() {
+        return new Password(initPassword(null, null, this));
     }
     
     /**

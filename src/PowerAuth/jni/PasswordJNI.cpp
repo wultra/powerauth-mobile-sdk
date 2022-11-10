@@ -51,30 +51,42 @@ Password * GetCppPasswordFromJavaObject(JNIEnv * env, jobject passwordObject)
 // ----------------------------------------------------------------------------
 
 //
-// private native long initPassword(String strPass, byte[] dataPass)
+// private static native long initPassword(String strPass, byte[] dataPass, long handle)
 //
-CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass)
+CC7_JNI_METHOD_PARAMS(jlong, initPassword, jstring strPass, jbyteArray dataPass, jobject other)
 {
-    auto pass = new Password();
-    if (strPass != NULL && dataPass == NULL) {
+	auto pass = new Password();
+	bool fail = false;
+    if (strPass != nullptr && dataPass == nullptr && other == nullptr) {
         // initialize immutable password with string
         auto cppData = cc7::jni::CopyFromJavaStringToByteArray(env, strPass);
         pass->initAsImmutable(cppData);
         //
-    } else if (strPass == NULL && dataPass != NULL) {
+    } else if (strPass == nullptr && dataPass != nullptr && other == nullptr) {
         // initialize immutable password with byte array
         auto cppData = cc7::jni::CopyFromJavaByteArray(env, dataPass);
         pass->initAsImmutable(cppData);
         //
-    } else if (strPass == NULL && dataPass == NULL) {
-        // initialize mutable empty password
-        pass->initAsMutable();
-        //
+    } else if (strPass == nullptr && dataPass == nullptr && other == nullptr) {
+	    // initialize mutable empty password
+	    pass->initAsMutable();
+	    //
+    } else if (other != nullptr) {
+		// Initialize as copy from another password
+		auto otherPass = GetCppPasswordFromJavaObject(env, other);
+		if (otherPass) {
+			pass->initAsImmutable(otherPass->passwordData());
+		} else {
+			fail = true;
+		}
     } else {
         CC7_ASSERT(false, "Invalid combination of parameters.");
-        delete pass;
-        return 0;
+		fail = true;
     }
+	if (fail) {
+		delete pass;
+		return 0;
+	}
     return (jlong)pass;
 }
 

@@ -44,6 +44,15 @@
     return self;
 }
 
+- (instancetype) initWithCopy:(nonnull PowerAuthCorePassword*)other
+{
+    self = [super init];
+    if (self) {
+        _password.initAsImmutable(other->_password.passwordData());
+    }
+    return self;
+}
+
 - (instancetype) initMutable
 {
     self = [super init];
@@ -98,6 +107,16 @@
     // the correct size.
     plaintext.append(0);
     return validationBlock((const char*)plaintext.data(), size);
+}
+
+- (void) secureClear
+{
+    _password.secureClear();
+}
+
+- (PowerAuthCorePassword*) copyToImmutable
+{
+    return [[PowerAuthCorePassword alloc] initWithCopy:self];
 }
 
 @end

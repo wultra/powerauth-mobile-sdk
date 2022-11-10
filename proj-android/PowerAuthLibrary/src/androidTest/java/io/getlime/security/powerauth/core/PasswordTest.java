@@ -187,6 +187,38 @@ public class PasswordTest {
         assertNotEquals(p1, "fixed");
     }
 
+    @Test
+    public void testPasswordCopy() {
+        Password p1 = new Password("fixed");
+        Password p2 = new Password(new byte[] { 'f', 'i', 'x', 'e', 'd' });
+        Password p3 = new Password();
+        Password p4 = new Password("tested");
+        p3.addCharacter('f');
+        p3.addCharacter('i');
+        p3.addCharacter('x');
+        p3.addCharacter('e');
+        p3.addCharacter('d');
+        p4.destroy();
+
+        assertEquals(p1, p1);
+        assertEquals(p2, p2);
+        assertEquals(p3, p3);
+        assertEquals(p1, p2);
+        assertEquals(p1, p3);
+        assertEquals(p2, p3);
+
+        // Now make copy
+        Password p1copy = p1.copyToImmutable();
+        Password p2copy = p2.copyToImmutable();
+        Password p3copy = p3.copyToImmutable();
+        Password p4copy = p4.copyToImmutable();
+        assertEquals(p1, p1copy);
+        assertEquals(p2, p2copy);
+        assertEquals(p3, p3copy);
+        assertEquals(0, p4.length());
+        assertNotEquals(p4, p4copy); // compare to destroyed is always false
+    }
+
     private String extractStringFromPassword(Password password) {
         final String[] result = new String[1];
         password.validatePasswordComplexity(passwordBytes -> {

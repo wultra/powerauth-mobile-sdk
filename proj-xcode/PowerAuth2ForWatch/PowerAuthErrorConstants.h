@@ -139,6 +139,10 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
      object available via `NSError.powerAuthExternalPendingOperation` property.
      */
     PowerAuthErrorCode_ExternalPendingOperation     = 18,
+    /**
+     User canceled the biometric authentication dialog with a fallback button.
+     */
+    PowerAuthErrorCode_BiometryFallback             = 19,
 };
 
 @interface NSError (PowerAuthErrorCode)

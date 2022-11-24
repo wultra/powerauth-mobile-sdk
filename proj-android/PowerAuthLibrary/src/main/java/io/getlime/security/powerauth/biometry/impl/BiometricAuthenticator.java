@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.biometry.impl;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -127,7 +128,10 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         final int status = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG);
         switch (status) {
             case BiometricManager.BIOMETRIC_SUCCESS:
-                return BiometricStatus.OK;
+                // Take KeyguardManager's state into account. If device is secured and is not locker right now,
+                // then return OK, otherwise NO_AVAILABLE. It makes no sense to try to authenticate with
+                // the biometry if the device is locked or is not secured.
+                return isDeviceSecuredAndUnlocked() ? BiometricStatus.OK : BiometricStatus.NOT_AVAILABLE;
 
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
             case BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED:
@@ -297,6 +301,16 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         });
         // Return composite cancelable object, that can handle cancel on various stages of authentication.
         return dispatcher.getCancelableTask();
+    }
+
+    /**
+     * Determine whether device is secured (e.g. user has unlock PIN, password or pattern set) and
+     * is not locked right now. The function is using {@link KeyguardManager} internally.
+     * @return {@code true} if device is secured and is not locked right now.
+     */
+    private boolean isDeviceSecuredAndUnlocked() {
+        final KeyguardManager keyguardManager = context.getSystemService(KeyguardManager.class);
+        return keyguardManager.isDeviceSecure() && !keyguardManager.isDeviceLocked();
     }
 
     /**

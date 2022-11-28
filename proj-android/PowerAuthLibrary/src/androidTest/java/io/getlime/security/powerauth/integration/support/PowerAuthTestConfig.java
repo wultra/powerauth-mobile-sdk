@@ -16,8 +16,8 @@
 
 package io.getlime.security.powerauth.integration.support;
 
+import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
@@ -166,8 +166,8 @@ public class PowerAuthTestConfig {
      * @throws Exception In case that required parameters are not set or are invalid.
      */
     public static @NonNull PowerAuthTestConfig loadDefaultConfig() throws Exception {
-        final String restApiUrl = getInstrumentationParameter("restApiUrl");
-        final String serverApiUrl = getInstrumentationParameter("serverApiUrl");
+        final String restApiUrl = patchLocalhostUrl(getInstrumentationParameter("restApiUrl"));
+        final String serverApiUrl = patchLocalhostUrl(getInstrumentationParameter("serverApiUrl"));
         final String serverVersionString = getInstrumentationParameter("serverVersion", ServerVersion.LATEST.version);
         final ServerVersion serverVersion = ServerVersion.versionFromString(serverVersionString, true);
         final String powerAuthAppName = getInstrumentationParameter("appName", "AutomaticTest-Android");
@@ -231,5 +231,34 @@ public class PowerAuthTestConfig {
             throw new Exception("Parameter name must not be empty.");
         }
         return "test.powerauth." + paramName;
+    }
+
+    /**
+     * Function patch URL containing "localhost" to "10.0.2.2" if device is Emulator, otherwise
+     * return the original URL. If URL contains "localhost" and device is not emulator, then throw
+     * an exception.
+     * @param url URL to patch.
+     * @return Patched URL.
+     */
+    private static @NonNull String patchLocalhostUrl(@NonNull String url) {
+        if (url.contains("://localhost/") || url.contains("://localhost:")) {
+            boolean isEmulator =
+                    Build.HARDWARE.equals("ranchu") ||
+                    Build.HARDWARE.equals("goldfish") ||
+                    Build.MODEL.contains("sdk") ||
+                    Build.MODEL.contains("Emulator") ||
+                    Build.MODEL.contains("Android SDK") ||
+                    Build.PRODUCT.contains("sdk");
+            if (isEmulator) {
+                if (url.contains("://localhost:")) {
+                    return url.replace("://localhost:", "://10.0.2.2:");
+                } else {
+                    return url.replace("://localhost/", "://10.0.2.2/");
+                }
+            } else {
+                throw new IllegalStateException("Configuration URL is `localhost` and that doesn't work on real device.");
+            }
+        }
+        return url;
     }
 }

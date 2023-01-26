@@ -964,6 +964,9 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+/**
+ Clear in-memory cached data.
+ */
 - (void) clearCachedData
 {
     [_lock lock];

@@ -1397,6 +1397,9 @@ public class PowerAuthSDK {
         clearCachedData();
     }
 
+    /**
+     * Clear in-memory cached data.
+     */
     private void clearCachedData() {
         try {
             mLock.lock();

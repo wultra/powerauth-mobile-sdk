@@ -70,6 +70,8 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
         case PATS_V1_2:
         case PATS_V1_2_5:
         case PATS_V1_3:
+        case PATS_V1_4:
+        case PATS_V1_5:
             return PATS_P31;
         default:
             // Older versions, defaulting to V2
@@ -98,6 +100,8 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
             @"1.2"    : @(PATS_V1_2),
             @"1.2.5"  : @(PATS_V1_2_5),
             @"1.3"    : @(PATS_V1_3),
+            @"1.4"    : @(PATS_V1_4),
+            @"1.5"    : @(PATS_V1_5),
          };
     }
     // Remove "V" character from the beginning of the string.

@@ -419,6 +419,11 @@
     // 5) Fetch last status
     status = [_helper fetchActivationStatus];
     XCTAssertEqual(status.state, PowerAuthActivationState_Removed);
+    
+    // Test whether cached activation status is properly removed from memory
+    XCTAssertNotNil(_sdk.lastFetchedActivationStatus);
+    [_sdk removeActivationLocal];
+    XCTAssertNil(_sdk.lastFetchedActivationStatus);
 }
 
 - (void) testActivationStatusConcurrent

@@ -950,6 +950,7 @@ static PowerAuthSDK * s_inst;
 {
     [self checkForValidSetup];
     [self cancelAllPendingTasks];
+    [self clearCachedData];
     [_sessionInterface writeVoidTaskWithSession:^(PowerAuthCoreSession * session) {
         BOOL error = NO;
         if ([_biometryOnlyKeychain containsDataForKey:_biometryKeyIdentifier]) {
@@ -963,6 +964,12 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (void) clearCachedData
+{
+    [_lock lock];
+    _lastFetchedActivationStatus = nil;
+    [_lock unlock];
+}
 
 #pragma mark - Computing signatures
 

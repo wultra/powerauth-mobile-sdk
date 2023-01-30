@@ -1393,6 +1393,20 @@ public class PowerAuthSDK {
         saveSerializedState();
         // Cancel possible pending activation status task
         cancelGetActivationStatusTask();
+        // Clear possible cached data
+        clearCachedData();
+    }
+
+    /**
+     * Clear in-memory cached data.
+     */
+    private void clearCachedData() {
+        try {
+            mLock.lock();
+            mLastFetchedActivationStatus = null;
+        } finally {
+            mLock.unlock();
+        }
     }
 
     /**

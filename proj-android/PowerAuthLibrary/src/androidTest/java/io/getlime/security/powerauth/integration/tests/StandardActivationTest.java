@@ -306,6 +306,10 @@ public class StandardActivationTest {
         testHelper.getServerApi().activationRemove(activationHelper.getActivation());
         status = activationHelper.fetchActivationStatus();
         assertEquals(ActivationStatus.State_Removed, status.state);
+
+        assertNotNull(powerAuthSDK.getLastFetchedActivationStatus());
+        powerAuthSDK.removeActivationLocal(testHelper.getContext());
+        assertNull(powerAuthSDK.getLastFetchedActivationStatus());
     }
 
     @Test

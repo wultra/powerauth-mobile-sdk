@@ -48,6 +48,7 @@
    - [Password Strength Indicator](#password-strength-indicator)
    - [Debug Build Detection](#debug-build-detection)
    - [Request Interceptors](#request-interceptors)   
+- [Troubleshooting](#troubleshooting)
 
 Related documents:
 
@@ -1947,3 +1948,14 @@ clientConfig.userAgent = "MyClient/1.0.0"
 The default value of the property is composed as "APP-EXECUTABLE/APP-VERSION PowerAuth2/PA-VERSION (OS/OS-VERSION, DEVICE-INFO)", for example: "MyApp/1.0 PowerAuth2/1.7.0 (iOS 15.2, iPhone12.1)". The information about application executable and version is get from main bundle and its `Info.plist`.
 
 If you set `nil` to the `userAgent` property, then the default "User-Agent" provided by the operating system will be used. 
+
+
+## Troubleshooting
+
+### tvOS support in CocoaPods
+
+The tvOS SDK is not required by default since the SDK version 1.7.7. If your build or development machine doesn't have tvOS SDK installed, then the `PowerAuthCore` module is precompiled with no tvOS platform included in the final xcframework. Due to fact that CocoaPods keep various build artefacts in its cache, then this might be problematic in case you'll add support for tvOS later, during the development. To fix such possible issues, please remove `PowerAuthCore` pod from the cache:
+
+```sh
+pod cache clean 'PowerAuthCore' --all
+```

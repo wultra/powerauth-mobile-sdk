@@ -29,7 +29,7 @@ Pod::Spec.new do |s|
     s.tvos.deployment_target = '11.0'
     
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-extensions.sh --out-dir Build/PowerAuth2ForExtensions extensions
+        ./scripts/ios-build-extensions.sh --out-dir Build/PowerAuth2ForExtensions extensions --optional-tvos
     CMD
     
     # Produced files

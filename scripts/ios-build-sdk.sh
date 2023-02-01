@@ -38,12 +38,14 @@ SRC_ROOT="`( cd \"$TOP/..\" && pwd )`"
 #
 # Source headers & Xcode project location
 #
-SOURCE_FILES="${SRC_ROOT}/proj-xcode/PowerAuth2"
+XCODE_DIR="${SRC_ROOT}/proj-xcode"
+SOURCE_FILES="${XCODE_DIR}/PowerAuth2"
 
 #
 # Platforms & CPU architectures
 #
-PLATFORMS="iOS iOS_Simulator tvOS tvOS_Simulator macOS_Catalyst"
+PLATFORMS="iOS iOS_Simulator macOS_Catalyst"
+PLATFORMS_TVOS="tvOS tvOS_Simulator"
 
 # Variables loaded from command line
 VERBOSE=1
@@ -56,6 +58,7 @@ DO_BUILDSDK=0
 DO_COPYSDK=0
 OPT_LEGACY_ARCH=0
 OPT_USE_BITCODE=0
+OPT_WEAK_TVOS=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -77,6 +80,7 @@ function USAGE
     echo ""
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
     echo "                    also disables temporary data cleanup after build"
+    echo "  --optional-tvos   tvOS is not required when SDK is not installed"
     echo "  -v0               turn off all prints to stdout"
     echo "  -v1               print only basic log about build progress"
     echo "  -v2               print full build log with rich debug info"
@@ -429,6 +433,63 @@ function CLEAN_COMMAND
     xcodebuild clean -project "${XCODE_PROJECT}" -scheme ${XCODE_SCHEME_IOS} -destination ${DESTINATION} ${QUIET}
 }
 
+# -----------------------------------------------------------------------------
+# Teste whether tvOS SDK is installed locally. Prints "1" to stdout if yes,
+# otherwise "0".
+# -----------------------------------------------------------------------------
+function FIND_TVOS_SDK
+{
+    PUSH_DIR "$XCODE_DIR"
+    local project='PowerAuthCore.xcodeproj'
+    local scheme='PowerAuthCore_tvOS'
+    # This is quite hardcore, but unfortunatelly there's no command line option to test whether SDK is really installed.
+    # The idea behind this is that when tvOS SDK is installed, then there are already a some run or build destinations for it.
+    # If tvOS SDK is not installed, then the placeholder SDK is reported, with "not installed" error in the description. 
+    set +e
+    xcodebuild -showdestinations -project $project -scheme $scheme -quiet 2>/dev/null | grep 'not installed' > /dev/null 2>&1;
+    if (($? == 0)); then
+        echo "0"    # Grep found 'not installed' so SDK is not available
+    else
+        echo "1"    # Grep did not find the requested string, so SDK is not available
+    fi
+    set -e
+    POP_DIR
+}
+
+# -----------------------------------------------------------------------------
+# Patch PLATFORMS list depending on the current Xcode capability
+# -----------------------------------------------------------------------------
+function DO_PATCH_TARGETS
+{
+    # tvOS is enforced (the default behavior)
+    local use_tvos=1
+    if (( $(GET_XCODE_VERSION --major) >= 14 )); then
+        # If Xcode version is greater or equal to 14, then additional SDKs are optional
+        if [ $(FIND_TVOS_SDK) == '1' ]; then
+            # The grep did not find the requested string, so SDK is available
+            DEBUG_LOG "tvOS SDK appears to be installed"
+        elif [ x$OPT_WEAK_TVOS == x0 ]; then
+            LOG_LINE
+            LOG "tvOS SDK is optional since Xcode 14 but is required by PowerAuth mobile SDK."
+            LOG "You can use the following solutions to fix this problem:"
+            LOG ""
+            LOG " 1. download all optional platform SDKs:"
+            LOG "      xcodebuild -downloadAllPlatforms"
+            LOG ""
+            LOG " 2. Skip tvOS platform if it's not important to your project:"
+            LOG "      add '--optional-tvos' switch to this build script"
+            LOG_LINE
+            FAILURE "tvOS SDK is not installed."
+        else
+            WARNING "tvOS SDK is not installed, so skipping this platform in the build."
+            use_tvos=0
+        fi
+    fi
+    if [ x$use_tvos == x1 ]; then
+        PLATFORMS+=" $PLATFORMS_TVOS"
+    fi
+}
+
 ###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
@@ -457,6 +518,9 @@ do
         --out-dir)
             OUT_DIR="$2"
             shift
+            ;;
+        --optional-tvos)
+            OPT_WEAK_TVOS=1
             ;;
         --legacy-archs)
             OPT_LEGACY_ARCH=1
@@ -507,6 +571,9 @@ $MD "${TMP_DIR}"
 #
 # Build core or copy SDK
 #
+if [[ x$DO_BUILDCORE == x1 ]] || [[ x$DO_BUILDSDK == x1 ]]; then
+    DO_PATCH_TARGETS
+fi
 [[ x$DO_BUILDCORE == x1 ]] && BUILD_LIB PowerAuthCore
 [[ x$DO_BUILDSDK == x1 ]] && BUILD_LIB PowerAuth2
 [[ x$DO_COPYSDK == x1 ]] && COPY_SDK_SOURCES

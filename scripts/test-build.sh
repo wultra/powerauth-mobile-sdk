@@ -85,6 +85,10 @@ PUSH_DIR "${SRC_ROOT}"
 ####
 
 LOG_LINE
+LOG "Testing SDK for supported platforms..."
+LOG "  - macOS $(sw_vers -productVersion) ($(uname -m))"
+LOG "  - Xcode $(GET_XCODE_VERSION --full)"
+LOG_LINE
 LOG "Validating shared sources on Apple platform..."
 LOG_LINE
 

@@ -35,7 +35,8 @@ XCODE_DIR="${SRC_ROOT}/proj-xcode"
 
 # iOS / tvOS
 EXT_FRAMEWORK="PowerAuth2ForExtensions"
-EXT_PLATFORMS="iOS iOS_Simulator tvOS tvOS_Simulator macOS_Catalyst"
+EXT_PLATFORMS="iOS iOS_Simulator macOS_Catalyst"
+EXT_PLATFORMS_TVOS="tvOS tvOS_Simulator"
 EXT_PROJECT="${XCODE_DIR}/PowerAuth2ForExtensions.xcodeproj"
 # WatchOS
 WOS_FRAMEWORK="PowerAuth2ForWatch"
@@ -52,6 +53,7 @@ OUT_FW=''
 TMP_DIR=''
 OPT_LEGACY_ARCH=0
 OPT_USE_BITCODE=0
+OPT_WEAK_TVOS=0
 DO_WATCHOS=0
 DO_EXTENSIONS=0
 
@@ -74,6 +76,7 @@ function USAGE
     echo ""
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
     echo "                    also disables temporary data cleanup after build"
+    echo "  --optional-tvos   tvOS is not required when SDK is not installed"
     echo "  -v0               turn off all prints to stdout"
     echo "  -v1               print only basic log about build progress"
     echo "  -v2               print full build log with rich debug info"
@@ -335,6 +338,68 @@ function DO_BUILD_WATCHOS
     BUILD_LIBRARY
 }
 
+# -----------------------------------------------------------------------------
+# Test whether tvOS SDK is installed locally. Prints "1" to stdout if yes,
+# otherwise "0".
+# -----------------------------------------------------------------------------
+function FIND_TVOS_SDK
+{
+    local old_VERBOSE=$VERBOSE; 
+    VERBOSE=0; PUSH_DIR "$XCODE_DIR"
+    local project='PowerAuthCore.xcodeproj'
+    local scheme='PowerAuthCore_tvOS'
+    # This is quite hardcore, but unfortunatelly there's no command line option to test whether SDK is really installed.
+    # The idea behind this is that when tvOS SDK is installed, then there are already a some run or build destinations for it.
+    # If tvOS SDK is not installed, then the placeholder SDK is reported, with "not installed" error in the description. 
+    set +e
+    xcodebuild -showdestinations -project $project -scheme $scheme -quiet 2>/dev/null | grep 'not installed' > /dev/null 2>&1;
+    if (($? == 0)); then
+        echo "0"    # Grep found 'not installed' so SDK is not available
+    else
+        echo "1"    # Grep did not find the requested string, so SDK is not available
+    fi
+    set -e
+    POP_DIR; VERBOSE=$old_VERBOSE
+}
+
+# -----------------------------------------------------------------------------
+# Patch PLATFORMS list depending on the current Xcode capability
+# -----------------------------------------------------------------------------
+function DO_PATCH_TARGETS
+{
+    # tvOS is enforced (the default behavior)
+    local use_tvos=1
+    if (( $(GET_XCODE_VERSION --major) >= 14 )); then
+        # If Xcode version is greater or equal to 14, then additional SDKs are optional
+        local tvos=$(FIND_TVOS_SDK)
+        case "$tvos" in
+            0)
+                if [ x$OPT_WEAK_TVOS == x0 ]; then
+                    LOG_LINE
+                    LOG "tvOS SDK is optional since Xcode 14 but is required by PowerAuth mobile SDK."
+                    LOG "You can use the following solutions to fix this problem:"
+                    LOG ""
+                    LOG " 1. download all optional platform SDKs:"
+                    LOG "      xcodebuild -downloadAllPlatforms"
+                    LOG ""
+                    LOG " 2. Skip tvOS platform if it's not important to your project:"
+                    LOG "      add '--optional-tvos' switch to this build script"
+                    LOG_LINE
+                    FAILURE "tvOS SDK is not installed."
+                else
+                    WARNING "tvOS SDK is not installed, so skipping this platform in the build."
+                    use_tvos=0
+                fi
+                ;;
+            1) DEBUG_LOG "tvOS SDK appears to be installed" ;;
+            *) FAILURE "Unexpected result from tvOS SDK evaluation: $tvos" ;;
+        esac
+    fi
+    if [ x$use_tvos == x1 ]; then
+        EXT_PLATFORMS+=" $EXT_PLATFORMS_TVOS"
+    fi
+}
+
 ###############################################################################
 # Script's main execution starts here...
 # -----------------------------------------------------------------------------
@@ -365,6 +430,9 @@ do
         --out-dir)
             OUT_DIR="$2"
             shift
+            ;;
+        --optional-tvos)
+            OPT_WEAK_TVOS=1
             ;;
         -v*)
             SET_VERBOSE_LEVEL_FROM_SWITCH $opt
@@ -409,6 +477,7 @@ $MD "${TMP_DIR}"
 #
 # Build
 #
+[[ x$DO_EXTENSIONS == x1 ]] && DO_PATCH_TARGETS
 [[ x$DO_EXTENSIONS == x1 ]] && DO_BUILD_APPEXT
 [[ x$DO_WATCHOS == x1    ]] && DO_BUILD_WATCHOS
 

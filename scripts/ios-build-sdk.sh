@@ -465,25 +465,33 @@ function DO_PATCH_TARGETS
     local use_tvos=1
     if (( $(GET_XCODE_VERSION --major) >= 14 )); then
         # If Xcode version is greater or equal to 14, then additional SDKs are optional
-        if [ $(FIND_TVOS_SDK) == '1' ]; then
-            # The grep did not find the requested string, so SDK is available
-            DEBUG_LOG "tvOS SDK appears to be installed"
-        elif [ x$OPT_WEAK_TVOS == x0 ]; then
-            LOG_LINE
-            LOG "tvOS SDK is optional since Xcode 14 but is required by PowerAuth mobile SDK."
-            LOG "You can use the following solutions to fix this problem:"
-            LOG ""
-            LOG " 1. download all optional platform SDKs:"
-            LOG "      xcodebuild -downloadAllPlatforms"
-            LOG ""
-            LOG " 2. Skip tvOS platform if it's not important to your project:"
-            LOG "      add '--optional-tvos' switch to this build script"
-            LOG_LINE
-            FAILURE "tvOS SDK is not installed."
-        else
-            WARNING "tvOS SDK is not installed, so skipping this platform in the build."
-            use_tvos=0
-        fi
+        local tvos=$(FIND_TVOS_SDK)
+        case "$tvos" in
+            0)
+                if [ x$OPT_WEAK_TVOS == x0 ]; then
+                    LOG_LINE
+                    LOG "tvOS SDK is optional since Xcode 14 but is required by PowerAuth mobile SDK."
+                    LOG "You can use the following solutions to fix this problem:"
+                    LOG ""
+                    LOG " 1. download all optional platform SDKs:"
+                    LOG "      xcodebuild -downloadAllPlatforms"
+                    LOG ""
+                    LOG " 2. Skip tvOS platform if it's not important to your project:"
+                    LOG "      add '--optional-tvos' switch to this build script"
+                    LOG_LINE
+                    FAILURE "tvOS SDK is not installed."
+                else
+                    WARNING "tvOS SDK is not installed, so skipping this platform in the build."
+                    use_tvos=0
+                fi
+                ;;
+            1)
+                DEBUG_LOG "tvOS SDK appears to be installed"
+                ;;
+            *)
+                WARNING "Unexpected result from tvOS SDK evaluation: $tvos"
+                ;;
+        esac
     fi
     if [ x$use_tvos == x1 ]; then
         PLATFORMS+=" $PLATFORMS_TVOS"

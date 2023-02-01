@@ -339,12 +339,13 @@ function DO_BUILD_WATCHOS
 }
 
 # -----------------------------------------------------------------------------
-# Teste whether tvOS SDK is installed locally. Prints "1" to stdout if yes,
+# Test whether tvOS SDK is installed locally. Prints "1" to stdout if yes,
 # otherwise "0".
 # -----------------------------------------------------------------------------
 function FIND_TVOS_SDK
 {
-    PUSH_DIR "$XCODE_DIR"
+    local old_VERBOSE=$VERBOSE; 
+    VERBOSE=0; PUSH_DIR "$XCODE_DIR"
     local project='PowerAuthCore.xcodeproj'
     local scheme='PowerAuthCore_tvOS'
     # This is quite hardcore, but unfortunatelly there's no command line option to test whether SDK is really installed.
@@ -358,7 +359,7 @@ function FIND_TVOS_SDK
         echo "1"    # Grep did not find the requested string, so SDK is not available
     fi
     set -e
-    POP_DIR
+    POP_DIR; VERBOSE=$old_VERBOSE
 }
 
 # -----------------------------------------------------------------------------
@@ -390,12 +391,8 @@ function DO_PATCH_TARGETS
                     use_tvos=0
                 fi
                 ;;
-            1)
-                DEBUG_LOG "tvOS SDK appears to be installed"
-                ;;
-            *)
-                WARNING "Unexpected result from tvOS SDK evaluation: $tvos"
-                ;;
+            1) DEBUG_LOG "tvOS SDK appears to be installed" ;;
+            *) FAILURE "Unexpected result from tvOS SDK evaluation: $tvos" ;;
         esac
     fi
     if [ x$use_tvos == x1 ]; then

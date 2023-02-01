@@ -130,6 +130,15 @@
                                           authUriId:@"/pa/recovery/confirm"];
 }
 
++ (instancetype) getUserInfo
+{
+    return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/user/info"
+                                            request:nil
+                                           response:[PowerAuthUserInfo class]
+                                          encryptor:PA2EncryptorId_GenericActivationScope
+                                          authUriId:nil];
+}
+
 #pragma mark - Public getters
 
 - (BOOL) isEncrypted

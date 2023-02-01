@@ -22,6 +22,7 @@
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 #import "PowerAuthAuthentication+Private.h"
+#import "PowerAuthUserInfo+Private.h"
 
 @import PowerAuthCore;
 

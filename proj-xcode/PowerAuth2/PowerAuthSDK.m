@@ -70,6 +70,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     /// Current pending status task.
     PA2GetActivationStatusTask * _getStatusTask;
     PowerAuthActivationStatus * _lastFetchedActivationStatus;
+    /// User info
+    PowerAuthUserInfo * _lastFetchedUserInfo;
 }
 
 #pragma mark - Private methods
@@ -835,6 +837,7 @@ static PowerAuthSDK * s_inst;
             result.activationFingerprint = resultStep2.activationFingerprint;
             result.customAttributes = response.customAttributes;
             result.activationRecovery = activationRecoveryData;
+            result.userInfo = [[PowerAuthUserInfo alloc] initWithDictionary:response.userInfo];
             return [PA2Result success:result];
         } else {
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Failed to verify response from the server");
@@ -971,6 +974,7 @@ static PowerAuthSDK * s_inst;
 {
     [_lock lock];
     _lastFetchedActivationStatus = nil;
+    _lastFetchedUserInfo = nil;
     [_lock unlock];
 }
 
@@ -1697,6 +1701,46 @@ static PowerAuthSDK * s_inst;
         *error = failure;
     }
     return !failure;
+}
+
+@end
+
+#pragma mark - User Info
+
+@implementation PowerAuthSDK (UserInfo)
+
+- (PowerAuthUserInfo*) lastFetchedUserInfo
+{
+    [_lock lock];
+    PowerAuthUserInfo * info = _lastFetchedUserInfo;
+    [_lock unlock];
+    return info;
+}
+
+- (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo
+{
+    [_lock lock];
+    _lastFetchedUserInfo = lastFetchedUserInfo;
+    [_lock unlock];
+}
+
+- (id<PowerAuthOperationTask>) fetchUserInfo:(void (^)(PowerAuthUserInfo *, NSError *))callback
+{
+    [self checkForValidSetup];
+
+    // Post request
+    return [_client postObject:nil
+                            to:[PA2RestApiEndpoint getUserInfo]
+                    completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+                        PowerAuthUserInfo * result;
+                        if (status == PowerAuthRestApiResponseStatus_OK) {
+                            result = (PowerAuthUserInfo*)response;
+                            [self setLastFetchedUserInfo:result];
+                        } else {
+                            result = nil;
+                        }
+                        callback(result, error);
+                    }];
 }
 
 @end

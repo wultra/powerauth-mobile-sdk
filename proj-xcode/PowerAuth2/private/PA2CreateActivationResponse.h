@@ -32,4 +32,10 @@
  */
 @property (nonatomic, strong) NSDictionary<NSString*, NSObject*>* customAttributes;
 
+/**
+ Additional user information. The value may be nil in case that server doesn't
+ provide such information.
+ */
+@property (nonatomic, strong) NSDictionary<NSString*, NSObject*>* userInfo;
+
 @end

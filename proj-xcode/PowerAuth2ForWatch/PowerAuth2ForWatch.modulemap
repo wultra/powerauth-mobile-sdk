@@ -1,6 +1,0 @@
-framework module PowerAuth2ForWatch {
-  umbrella header "PowerAuth2ForWatch.h"
-
-  export *
-  module * { export * }
-}

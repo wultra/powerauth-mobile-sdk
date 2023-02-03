@@ -49,8 +49,6 @@ PODSPEC_EXT="PowerAuth2ForExtensions.podspec"
 PODSPEC_WOS="PowerAuth2ForWatch.podspec"
 INFO_PLIST="proj-xcode/PowerAuth2/Info.plist"
 INFO_PLIST_COR="proj-xcode/PowerAuthCore/Info.plist"
-INFO_PLIST_EXT="proj-xcode/PowerAuth2ForExtensions/Info.plist"
-INFO_PLIST_WOS="proj-xcode/PowerAuth2ForWatch/Info.plist"
 
 GRADLE_PROP="proj-android/PowerAuthLibrary/gradle.properties"
 MASTER_BRANCH="master"
@@ -119,24 +117,12 @@ function PREPARE_VERSIONING_FILES
     LOG "----- Generating ${PODSPEC_COR}..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_COR}" > "$SRC_ROOT/${PODSPEC_COR}" 
     git add ${PODSPEC_COR}
-    # PowerAuth2ForWatch
-    LOG "----- Generating ${PODSPEC_WOS}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_WOS}" > "$SRC_ROOT/${PODSPEC_WOS}"
-    git add ${PODSPEC_WOS}
-    # PowerAuth2ForExtensions
-    LOG "----- Generating ${PODSPEC_EXT}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/${PODSPEC_EXT}" > "$SRC_ROOT/${PODSPEC_EXT}"
-    git add ${PODSPEC_EXT}
     # Info.plist files
     LOG "----- Generating ${INFO_PLIST}..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2-Info.plist" > "$SRC_ROOT/${INFO_PLIST}"
     LOG "----- Generating ${INFO_PLIST_COR}..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PAC-Info.plist" > "$SRC_ROOT/${INFO_PLIST_COR}"
-    LOG "----- Generating ${INFO_PLIST_WOS}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Watch-Info.plist" > "$SRC_ROOT/${INFO_PLIST_WOS}"
-    LOG "----- Generating ${INFO_PLIST_EXT}..."
-    sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/PA2Ext-Info.plist" > "$SRC_ROOT/${INFO_PLIST_EXT}"
-    git add ${INFO_PLIST} ${INFO_PLIST_COR} ${INFO_PLIST_WOS} ${INFO_PLIST_EXT}
+    git add ${INFO_PLIST} ${INFO_PLIST_COR}
 
     LOG "----- Generating gradle.properties..."
     sed -e "s/%DEPLOY_VERSION%/$VERSION/g" "${TOP}/templates/gradle.properties" > "$SRC_ROOT/${GRADLE_PROP}" 
@@ -215,9 +201,9 @@ function DEPLOY_BUILD
     local END_TIME=$((`date +%s` + $WAIT_TIME))
     
     LOG "----- Publishing ${PODSPEC_WOS} to CocoaPods..."
-    pod $POD_VERBOSE trunk push ${PODSPEC_WOS}
+    # TODO ...
     LOG "----- Publishing ${PODSPEC_EXT} to CocoaPods..."
-    pod $POD_VERBOSE trunk push ${PODSPEC_EXT}
+    # TODO ...
     
     # Also publish Android library
     

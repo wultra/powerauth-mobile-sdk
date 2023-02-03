@@ -100,7 +100,6 @@ if [ x$DO_SCRIPT == x1 ]; then
     LOG "Validating build for Apple platforms (script mode)..."
     LOG_LINE
     "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk buildCore
-    "${TOP}/ios-build-extensions.sh" $SCRIPT_VERBOSE extensions watchos
 fi
 
 if [ x$DO_LINT = x1 ]; then
@@ -108,8 +107,6 @@ if [ x$DO_LINT = x1 ]; then
     LOG "Validating build for Apple platforms (lint mode)..."
     LOG_LINE
     pod $POD_VERBOSE lib lint PowerAuth2.podspec --include-podspecs=PowerAuthCore.podspec
-    pod $POD_VERBOSE lib lint PowerAuth2ForExtensions.podspec
-    pod $POD_VERBOSE lib lint PowerAuth2ForWatch.podspec
 fi
 
 LOG_LINE -a

@@ -777,12 +777,13 @@ static PowerAuthSDK * s_inst;
             requestData.devicePublicKey = resultStep1.devicePublicKey;
 
             // Now we need to ecrypt request data with the Layer2 encryptor.
-            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload];
-            
-            // Encrypt payload and put it directly to the request object.
-            request.activationData = [PA2ObjectSerialization encryptObject:requestData
-                                                                 encryptor:privateEncryptor
-                                                                     error:&localError];
+            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];
+            if (!localError) {
+                // Encrypt payload and put it directly to the request object.
+                request.activationData = [PA2ObjectSerialization encryptObject:requestData
+                                                                     encryptor:privateEncryptor
+                                                                         error:&localError];
+            }
             if (!localError) {
                 // Everything looks OS, so finally, try notify other apps that this instance started the activation.
                 localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
@@ -1483,7 +1484,7 @@ static PowerAuthSDK * s_inst;
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
 {
     PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:nil];
-    return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope];
+    return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope error:nil];
 }
 
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
@@ -1495,7 +1496,7 @@ static PowerAuthSDK * s_inst;
         }
         NSData * deviceKey = [self deviceRelatedKey];
         PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:deviceKey];
-        return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+        return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope error:nil];
     }];
 }
 

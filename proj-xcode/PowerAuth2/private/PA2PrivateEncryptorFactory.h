@@ -99,6 +99,6 @@ typedef NS_ENUM(int, PA2EncryptorId) {
  The returned encryptor must not be reused, so the encryptor object has to be
  newly constructed.
  */
-- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId;
+- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId error:(NSError**)error;
 
 @end

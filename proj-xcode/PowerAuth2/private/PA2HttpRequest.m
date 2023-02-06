@@ -87,7 +87,10 @@
     } else {
         // Acquire encryptor from the helper, and keep it locally.
         // We will use it later, for the response decryption.
-        _encryptor = [helper encryptorWithId:_endpoint.encryptor];
+        _encryptor = [helper encryptorWithId:_endpoint.encryptor error:error];
+        if (!_encryptor) {
+            return nil;
+        }
         // Encrypt object
         PA2EncryptedRequest * encrypted = [PA2ObjectSerialization encryptObject:_requestObject
                                                                       encryptor:_encryptor

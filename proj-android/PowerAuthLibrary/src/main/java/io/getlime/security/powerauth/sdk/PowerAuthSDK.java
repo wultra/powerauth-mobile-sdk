@@ -70,6 +70,7 @@ import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.endpoints.ConfirmRecoveryCodeEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoint;
+import io.getlime.security.powerauth.networking.endpoints.GetUserInfoEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
@@ -95,7 +96,9 @@ import io.getlime.security.powerauth.networking.response.ICreateActivationListen
 import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
 import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
 import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListener;
+import io.getlime.security.powerauth.networking.response.IUserInfoListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
+import io.getlime.security.powerauth.networking.response.UserInfo;
 import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
 import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
 import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
@@ -745,7 +748,9 @@ public class PowerAuthSDK {
                                 final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
                                 //
                                 if (step2Result.errorCode == ErrorCode.OK) {
-                                    final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData);
+                                    final UserInfo userInfo = response.getUserInfo() != null ? new UserInfo(response.getUserInfo()) : null;
+                                    final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData, userInfo);
+                                    setLastFetchedUserInfo(userInfo);
                                     listener.onActivationCreateSucceed(result);
                                     return;
                                 }
@@ -1166,6 +1171,82 @@ public class PowerAuthSDK {
     }
 
     //
+    // User Info
+    //
+
+    /**
+     * Variable keeping last fetched information about user.
+     */
+    private UserInfo mLastFetchedUserInfo = null;
+
+    /**
+     * Return last fetched information about the user. The information about user is optional and
+     * must be supported by the server. The value is updated during the activation process or by
+     * calling {@link #fetchUserInfo(Context, IUserInfoListener)}.
+     *
+     * @return {@link UserInfo} object or {@code null} if information is not retrieved yet.
+     */
+    public @Nullable UserInfo getLastFetchedUserInfo() {
+        try {
+            mLock.lock();
+            return mLastFetchedUserInfo;
+        } finally {
+            mLock.unlock();
+        }
+    }
+
+    /**
+     * Store retrieved information about the user.
+     * @param userInfo New instance of {@link UserInfo} object to keep.
+     */
+    private void setLastFetchedUserInfo(@Nullable UserInfo userInfo) {
+        try {
+            mLock.lock();
+            mLastFetchedUserInfo = userInfo;
+        } finally {
+            mLock.unlock();
+        }
+    }
+
+    /**
+     * Fetch information about the user from the server. If operation succeed, then the user
+     * information object is also internally stored and available in {@link #getLastFetchedUserInfo()}
+     * method.
+     *
+     * @param context Android context.
+     * @param listener A callback called once the user info is retrieved from the server.
+     * @return {@link ICancelable} object associated with the pending HTTP request.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @Nullable
+    public ICancelable fetchUserInfo(@NonNull Context context, @NonNull IUserInfoListener listener) {
+        // State validations
+        checkForValidSetup();
+        // Execute HTTP request.
+        return mClient.post(
+                null,
+                new GetUserInfoEndpoint(),
+                getCryptoHelper(context),
+                new INetworkResponseListener<Map<String, Object>>() {
+                    @Override
+                    public void onNetworkResponse(@NonNull Map<String, Object> response) {
+                        final UserInfo userInfo = new UserInfo(response);
+                        setLastFetchedUserInfo(userInfo);
+                        listener.onUserInfoSucceed(userInfo);
+                    }
+
+                    @Override
+                    public void onNetworkError(@NonNull Throwable throwable) {
+                        listener.onUserInfoFailed(throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+                });
+    }
+
+    //
     // Activation Status
     //
 
@@ -1404,6 +1485,7 @@ public class PowerAuthSDK {
         try {
             mLock.lock();
             mLastFetchedActivationStatus = null;
+            mLastFetchedUserInfo = null;
         } finally {
             mLock.unlock();
         }

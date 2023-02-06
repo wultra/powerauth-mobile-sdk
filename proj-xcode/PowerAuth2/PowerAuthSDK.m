@@ -839,6 +839,7 @@ static PowerAuthSDK * s_inst;
             result.customAttributes = response.customAttributes;
             result.activationRecovery = activationRecoveryData;
             result.userInfo = [[PowerAuthUserInfo alloc] initWithDictionary:response.userInfo];
+            [self setLastFetchedUserInfo:result.userInfo];
             return [PA2Result success:result];
         } else {
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Failed to verify response from the server");

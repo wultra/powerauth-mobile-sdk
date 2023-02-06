@@ -47,6 +47,10 @@
 - (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
                                                 authentication:(PowerAuthAuthentication*)authentication
                                                          error:(NSError**)error;
+/**
+ Update last fetched user info.
+ */
+- (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo;
 
 @end
 

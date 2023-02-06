@@ -95,6 +95,13 @@ CLAIMS_GETTER(zoneInfo, @"zoneinfo")
 CLAIMS_GETTER(locale, @"locale")
 CLAIMS_GETTER_TIMESTAMP(updatedAt, @"updated_at")
 
+#ifdef DEBUG
+- (NSString*) description
+{
+    return [NSString stringWithFormat:@"<PowerAuthUserInfo: %@>", _allClaims];
+}
+#endif // DEBUG
+
 @end
 
 
@@ -118,5 +125,12 @@ CLAIMS_GETTER(locality, @"locality")
 CLAIMS_GETTER(region, @"region")
 CLAIMS_GETTER(postalCode, @"postal_code")
 CLAIMS_GETTER(country, @"country")
+
+#ifdef DEBUG
+- (NSString*) description
+{
+    return [NSString stringWithFormat:@"<PowerAuthUserAddress: %@>", _allClaims];
+}
+#endif // DEBUG
 
 @end

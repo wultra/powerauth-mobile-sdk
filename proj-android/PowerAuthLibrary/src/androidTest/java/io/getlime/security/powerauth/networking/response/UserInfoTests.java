@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -122,10 +123,11 @@ public class UserInfoTests {
         assertEquals("Hello world!", info.getAllClaims().get("custom_claim"));
 
         // Construct 1984-02-21
-        final Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.MONTH, 2);
-        calendar.set(Calendar.DAY_OF_MONTH, 21);
+        final Calendar calendar = new GregorianCalendar();
+        calendar.clear();
         calendar.set(Calendar.YEAR, 1984);
+        calendar.set(Calendar.MONTH, 1);
+        calendar.set(Calendar.DAY_OF_MONTH, 21);
         assertEquals(calendar.getTime(), info.getBirthdate());
 
         info = deserializeFromJson("{" +

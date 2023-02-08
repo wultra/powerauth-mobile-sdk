@@ -346,7 +346,7 @@ public class PowerAuthSDK {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, "Context object is not set.");
                 }
                 // Prepare request
-                final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null);
+                final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null, 0);
                 // And calculate signature
                 final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, availableInProtocolUpgrade);
                 return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
@@ -1440,7 +1440,7 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null);
+            final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
             final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
             return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
 
@@ -1470,7 +1470,7 @@ public class PowerAuthSDK {
         }
 
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce);
+            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineSignatureComponentLength());
             final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
             // In case of success, just return the signature code.
             return signatureResult.signatureCode;

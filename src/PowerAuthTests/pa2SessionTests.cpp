@@ -578,7 +578,7 @@ namespace powerAuthTests
                     keys.possessionUnlockKey = possessionUnlock;
                     keys.userPassword        = cc7::MakeRange(new_password);
                     
-                    HTTPRequestData requestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", "Q2hhcm1pbmdOb25jZTEyMw==");
+                    HTTPRequestData requestData(cc7::MakeRange("My creativity ends here!"), "POST", "/hack.me/if-you-can", "Q2hhcm1pbmdOb25jZTEyMw==", 8);
                     HTTPRequestDataSignature sigData;
                     ec = s1.signHTTPRequestData(requestData, keys, SF_Possession_Knowledge, sigData);
                     std::string sigValue = sigData.buildAuthHeaderValue();

@@ -25,6 +25,14 @@ using namespace io::getlime::powerAuth;
 @end
 
 @implementation PowerAuthCoreHTTPRequestData
+- (id) init
+{
+    self = [super init];
+    if (self) {
+        _offlineSignatureSize = 8;
+    }
+    return self;
+}
 @end
 
 @implementation PowerAuthCoreHTTPRequestDataSignature
@@ -299,6 +307,7 @@ void PowerAuthCoreHTTPRequestDataToStruct(PowerAuthCoreHTTPRequestData * req, io
     cpp_req.method                  = cc7::objc::CopyFromNSString(req.method);
     cpp_req.uri                     = cc7::objc::CopyFromNSString(req.uri);
     cpp_req.offlineNonce            = cc7::objc::CopyFromNSString(req.offlineNonce);
+    cpp_req.offlineSignatureLength  = req.offlineSignatureSize;
 }
 
 void PowerAuthCoreEncryptedActivationStatusToStruct(PowerAuthCoreEncryptedActivationStatus * status, io::getlime::powerAuth::EncryptedActivationStatus& cpp_status)

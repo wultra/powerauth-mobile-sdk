@@ -648,7 +648,7 @@ namespace powerAuth
         cc7::ByteArray data = protocol::NormalizeDataForSignature(request.method, request.uri, out.nonce, request.body, app_secret);
         cc7::ByteArray ctr_data = _pd->isV3() ? _pd->signatureCounterData : protocol::SignatureCounterToData(_pd->signatureCounter);
         const bool base64_sig_format = !request.isOfflineRequest() && _pd->isV3();
-        out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, base64_sig_format);
+        out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, base64_sig_format, request.offlineSignatureLength);
         if (out.signature.empty()) {
             CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
             return EC_Encryption;

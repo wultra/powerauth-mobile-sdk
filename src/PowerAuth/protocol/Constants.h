@@ -94,6 +94,13 @@ namespace protocol
     const size_t LOOK_AHEAD_DEFAULT = 20;
     // Maximum supported look ahead.
     const size_t LOOK_AHEAD_MAX = 64;
+
+    // 16 bytes encoded in Base64 equals to 24 characters long string.
+    const size_t OFFLINE_SIGNATURE_NONCE_LENGTH = 24;
+    // Minimum decimal signature component length.
+    const size_t DECIMAL_SIGNATURE_MIN_LENGTH = 4;
+    // Maximum decimal signature component length.
+    const size_t DECIMAL_SIGNATURE_MAX_LENGTH = 8;
     
 } // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth

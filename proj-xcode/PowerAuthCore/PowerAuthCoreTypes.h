@@ -242,6 +242,12 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
  */
 @property (nonatomic, strong, nullable) NSString * offlineNonce;
 
+/**
+ Length of offline signature component. The values between 4 and 8 are allowed.
+ The default value is 8.
+ */
+@property (nonatomic, assign) NSUInteger offlineSignatureSize;
+
 @end
 
 

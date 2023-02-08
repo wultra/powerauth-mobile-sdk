@@ -64,7 +64,12 @@
 - (void) prepareConfigs:(PowerAuthConfiguration *)configuration
          keychainConfig:(PowerAuthKeychainConfiguration *)keychainConfiguration
            clientConfig:(PowerAuthClientConfiguration *)clientConfiguration
+            forTestName:(NSString*)testName
 {
+    [super prepareConfigs:configuration
+           keychainConfig:keychainConfiguration
+             clientConfig:clientConfiguration
+              forTestName:testName];
     configuration.instanceId = _instanceId;
     PowerAuthSharingConfiguration * sharingConfig = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app1 keychainAccessGroup:_keychainAccessGroup];
     configuration.sharingConfiguration = sharingConfig;

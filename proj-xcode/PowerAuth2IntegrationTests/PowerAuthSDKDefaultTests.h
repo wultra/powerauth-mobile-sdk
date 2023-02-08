@@ -32,6 +32,9 @@
 
 - (void) prepareConfigs:(PowerAuthConfiguration*)configuration
          keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration*)clientConfiguration;
+           clientConfig:(PowerAuthClientConfiguration*)clientConfiguration
+            forTestName:(NSString*)testName;
+
+- (void) reconfigureForTest:(NSString*)testName;
 
 @end

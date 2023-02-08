@@ -166,6 +166,13 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
+### Additional configuration properties
+
+- `offlineSignatureComponentLength` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
+- `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
+- `keychainKey_Biometry` - Specifies 'key' used to store this PowerAuthSDK instance biometry related key in the biometry key keychain. If not set, then `instanceId` is applied.
+- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for the debugging purposes.
+
 ## Activation
 
 After you configure the SDK instance, you are ready to make your first activation.
@@ -629,7 +636,11 @@ do {
 }
 ```
 
-The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for verification.
+The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for verification. 
+
+<!-- begin box info -->
+You can alter the lenght of the signature components in `offlineSignatureComponentLength` property of `PowerAuthConfiguration` object.
+<!-- end -->
 
 ### Verify Server-Signed Data
 

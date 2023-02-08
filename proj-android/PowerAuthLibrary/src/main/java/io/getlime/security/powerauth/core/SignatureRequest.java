@@ -40,17 +40,29 @@ public class SignatureRequest {
      * signing purposes only. The Base64 string is expected.
      */
     public final String offlineNonce;
+    /**
+     * Length of offline signature component. The value is required and is validated only if
+     * {@link #offlineNonce} is not {@code null}.
+     */
+    public final int offlineSignatureLength;
 
     /**
      * @param body bytes with HTTP request's body, or normalized bytes for GET requests
      * @param method HTTP method
      * @param uriIdentifier Cryptographic constant representing relative HTTP path
      * @param offlineNonce Optional nonce, required for offline signatures.
+     * @param offlineSignatureLength Length of offline signature component.
      */
-    public SignatureRequest(byte[] body, String method, String uriIdentifier, String offlineNonce) {
+    public SignatureRequest(
+            byte[] body,
+            String method,
+            String uriIdentifier,
+            String offlineNonce,
+            int offlineSignatureLength) {
         this.body = body;
         this.method = method;
         this.uriIdentifier = uriIdentifier;
         this.offlineNonce = offlineNonce;
+        this.offlineSignatureLength = offlineSignatureLength;
     }
 }

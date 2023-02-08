@@ -1035,6 +1035,7 @@ static PowerAuthSDK * s_inst;
         requestData.method = @"POST";
         requestData.uri = uriId;
         requestData.offlineNonce = nonce;
+        requestData.offlineSignatureSize = _configuration.offlineSignatureComponentLength;
         PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
                                                                        authentication:authentication
                                                                                 error:&localError];

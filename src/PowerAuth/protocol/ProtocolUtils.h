@@ -105,7 +105,8 @@ namespace protocol
                                    SignatureFactor factor,
                                    const cc7::ByteRange & ctr_data,
                                    const cc7::ByteRange & data,
-                                   bool base64_format);
+                                   bool base64_format,
+                                   size_t offline_size);
     
     /**
      Prepares exact data for signature calculation:
@@ -126,7 +127,8 @@ namespace protocol
      Calculates decimalized signature from given data. The size of provided data object
      must be greater or equal 4.
      */
-    std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature);
+    std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature,
+                                              size_t component_size);
     
     /**
      Calculates activation fingerprint from given data. The algorithm depends

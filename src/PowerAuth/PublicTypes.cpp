@@ -28,7 +28,8 @@ namespace powerAuth
     // MARK: - HTTPRequestData -
     //
     
-    HTTPRequestData::HTTPRequestData()
+    HTTPRequestData::HTTPRequestData() :
+        offlineSignatureLength(protocol::DECIMAL_SIGNATURE_MAX_LENGTH)
     {
     }
     
@@ -37,18 +38,21 @@ namespace powerAuth
                                      const std::string & uri) :
         body(body),
         method(method),
-        uri(uri)
+        uri(uri),
+        offlineSignatureLength(protocol::DECIMAL_SIGNATURE_MAX_LENGTH)
     {
     }
     
     HTTPRequestData::HTTPRequestData(const cc7::ByteRange & body,
                                      const std::string & method,
                                      const std::string & uri,
-                                     const std::string & nonce) :
+                                     const std::string & offlineNonce,
+                                     size_t offlineLength) :
         body(body),
         method(method),
         uri(uri),
-        offlineNonce(nonce)
+        offlineNonce(offlineNonce),
+        offlineSignatureLength(offlineLength)
     {
     }
     
@@ -60,9 +64,14 @@ namespace powerAuth
         if (!(method == "GET" || method == "POST" || method == "HEAD" || method == "PUT" || method == "DELETE")) {
             return false;
         }
-        // 24 magic value is actually 16 bytes encoded in Base64.
-        if (!offlineNonce.empty() && offlineNonce.size() != 24) {
-            return false;
+        if (!offlineNonce.empty()) {
+            if (offlineNonce.size() != protocol::OFFLINE_SIGNATURE_NONCE_LENGTH) {
+                return false;
+            }
+            if (offlineSignatureLength < protocol::DECIMAL_SIGNATURE_MIN_LENGTH ||
+                offlineSignatureLength > protocol::DECIMAL_SIGNATURE_MAX_LENGTH) {
+                return false;
+            }
         }
         return true;
     }

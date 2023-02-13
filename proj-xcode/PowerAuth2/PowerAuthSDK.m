@@ -70,6 +70,8 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     /// Current pending status task.
     PA2GetActivationStatusTask * _getStatusTask;
     PowerAuthActivationStatus * _lastFetchedActivationStatus;
+    /// User info
+    PowerAuthUserInfo * _lastFetchedUserInfo;
 }
 
 #pragma mark - Private methods
@@ -775,12 +777,13 @@ static PowerAuthSDK * s_inst;
             requestData.devicePublicKey = resultStep1.devicePublicKey;
 
             // Now we need to ecrypt request data with the Layer2 encryptor.
-            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload];
-            
-            // Encrypt payload and put it directly to the request object.
-            request.activationData = [PA2ObjectSerialization encryptObject:requestData
-                                                                 encryptor:privateEncryptor
-                                                                     error:&localError];
+            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];
+            if (!localError) {
+                // Encrypt payload and put it directly to the request object.
+                request.activationData = [PA2ObjectSerialization encryptObject:requestData
+                                                                     encryptor:privateEncryptor
+                                                                         error:&localError];
+            }
             if (!localError) {
                 // Everything looks OS, so finally, try notify other apps that this instance started the activation.
                 localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
@@ -835,6 +838,8 @@ static PowerAuthSDK * s_inst;
             result.activationFingerprint = resultStep2.activationFingerprint;
             result.customAttributes = response.customAttributes;
             result.activationRecovery = activationRecoveryData;
+            result.userInfo = [[PowerAuthUserInfo alloc] initWithDictionary:response.userInfo];
+            [self setLastFetchedUserInfo:result.userInfo];
             return [PA2Result success:result];
         } else {
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, @"Failed to verify response from the server");
@@ -971,6 +976,7 @@ static PowerAuthSDK * s_inst;
 {
     [_lock lock];
     _lastFetchedActivationStatus = nil;
+    _lastFetchedUserInfo = nil;
     [_lock unlock];
 }
 
@@ -1480,7 +1486,7 @@ static PowerAuthSDK * s_inst;
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
 {
     PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:nil];
-    return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope];
+    return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope error:nil];
 }
 
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
@@ -1492,7 +1498,7 @@ static PowerAuthSDK * s_inst;
         }
         NSData * deviceKey = [self deviceRelatedKey];
         PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:deviceKey];
-        return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope];
+        return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope error:nil];
     }];
 }
 
@@ -1698,6 +1704,46 @@ static PowerAuthSDK * s_inst;
         *error = failure;
     }
     return !failure;
+}
+
+@end
+
+#pragma mark - User Info
+
+@implementation PowerAuthSDK (UserInfo)
+
+- (PowerAuthUserInfo*) lastFetchedUserInfo
+{
+    [_lock lock];
+    PowerAuthUserInfo * info = _lastFetchedUserInfo;
+    [_lock unlock];
+    return info;
+}
+
+- (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo
+{
+    [_lock lock];
+    _lastFetchedUserInfo = lastFetchedUserInfo;
+    [_lock unlock];
+}
+
+- (id<PowerAuthOperationTask>) fetchUserInfo:(void (^)(PowerAuthUserInfo *, NSError *))callback
+{
+    [self checkForValidSetup];
+
+    // Post request
+    return [_client postObject:nil
+                            to:[PA2RestApiEndpoint getUserInfo]
+                    completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+                        PowerAuthUserInfo * result;
+                        if (status == PowerAuthRestApiResponseStatus_OK) {
+                            result = (PowerAuthUserInfo*)response;
+                            [self setLastFetchedUserInfo:result];
+                        } else {
+                            result = nil;
+                        }
+                        callback(result, error);
+                    }];
 }
 
 @end

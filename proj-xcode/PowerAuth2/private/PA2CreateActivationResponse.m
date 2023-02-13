@@ -26,6 +26,7 @@
         NSDictionary * activationDataDict   = PA2ObjectAs(dictionary[@"activationData"], NSDictionary);
         _activationData = [[PA2EncryptedResponse alloc] initWithDictionary:activationDataDict];
         _customAttributes                   = PA2ObjectAs(dictionary[@"customAttributes"], NSDictionary);
+        _userInfo                           = PA2ObjectAs(dictionary[@"userInfo"], NSDictionary);
     }
     return self;
 }

@@ -15,6 +15,8 @@
  */
 
 #import "PA2PrivateEncryptorFactory.h"
+#import "PA2Result.h"
+#import "PA2PrivateMacros.h"
 @import PowerAuthCore;
 
 @implementation PA2PrivateEncryptorFactory
@@ -33,28 +35,31 @@
     return self;
 }
 
-- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
+- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId error:(NSError**)error
 {
     switch (encryptorId) {
         // Generic
         case PA2EncryptorId_GenericApplicationScope:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES error:error];
         case PA2EncryptorId_GenericActivationScope:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES error:error];
         // Private
         case PA2EncryptorId_ActivationRequest:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES error:error];
         case PA2EncryptorId_ActivationPayload:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/activation" meta:NO];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/activation" meta:NO error:error];
         case PA2EncryptorId_UpgradeStart:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/upgrade" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/upgrade" meta:YES error:error];
         case PA2EncryptorId_VaultUnlock:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES error:error];
         case PA2EncryptorId_TokenCreate:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES error:error];
         case PA2EncryptorId_ConfirmRecoveryCode:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/recovery/confirm" meta:YES];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/recovery/confirm" meta:YES error:error];
         default:
+            if (error) {
+                *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Unsupported encryptor");
+            }
             return nil;
     }
 }
@@ -64,14 +69,19 @@
 - (PowerAuthCoreEciesEncryptor*) encryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
                                                sh1:(NSString*)sharedInfo1
                                               meta:(BOOL)metaData
+                                             error:(NSError**)error
 {
-    return [_sessionProvider readTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+    return [[_sessionProvider readTaskWithSession:^PA2Result<PowerAuthCoreEciesEncryptor*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
         // Prepare data required for encryptor construction
         NSString * activationId = nil;
         PowerAuthCoreSignatureUnlockKeys * unlockKeys = nil;
         if (scope == PowerAuthCoreEciesEncryptorScope_Activation) {
             // For activation scope, also prepare activation ID and possession unlock key.
             activationId = session.activationIdentifier;
+            if (!activationId) {
+                PowerAuthErrorCode ec = session.hasPendingActivation ? PowerAuthErrorCode_ActivationPending : PowerAuthErrorCode_MissingActivation;
+                return [PA2Result failure:PA2MakeError(ec, nil)];
+            }
             unlockKeys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
             unlockKeys.possessionUnlockKey = _deviceRelatedKey;
         }
@@ -82,13 +92,16 @@
         PowerAuthCoreEciesEncryptor * encryptor = [session eciesEncryptorForScope:scope
                                                                              keys:unlockKeys
                                                                       sharedInfo1:sharedInfo1Data];
+        if (!encryptor) {
+            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to create ECIES encryptor")];
+        }
         if (metaData) {
             // And assign the associated metadata
             encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
                                                                                  activationIdentifier:activationId];
         }
-        return encryptor;
-    }];
+        return [PA2Result success:encryptor];
+    }] extractResult:error];
 }
 
 @end

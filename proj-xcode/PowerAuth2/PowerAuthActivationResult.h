@@ -15,6 +15,7 @@
  */
 
 #import <PowerAuth2/PowerAuthActivationRecoveryData.h>
+#import <PowerAuth2/PowerAuthUserInfo.h>
 
 /**
  The PowerAuthActivationResult object represents successfull result from the activation
@@ -36,5 +37,10 @@
  are no custom attributes available.
  */
 @property (nonatomic, strong, nullable) NSDictionary<NSString*, NSObject*>* customAttributes;
+/**
+ Information about user's identity. The value is optional and depending on whether the server
+ implementation provide such information in the time of activation.
+ */
+@property (nonatomic, strong, nullable) PowerAuthUserInfo * userInfo;
 
 @end

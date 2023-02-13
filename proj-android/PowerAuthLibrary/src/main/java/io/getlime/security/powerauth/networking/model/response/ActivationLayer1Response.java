@@ -27,6 +27,7 @@ public class ActivationLayer1Response {
 
     private EciesEncryptedResponse activationData;
     private Map<String, Object> customAttributes;
+    private Map<String, Object> userInfo;
 
     /**
      * Get encrypted activation data.
@@ -58,5 +59,21 @@ public class ActivationLayer1Response {
      */
     public void setCustomAttributes(Map<String, Object> customAttributes) {
         this.customAttributes = customAttributes;
+    }
+
+    /**
+     * Get map containing information about user.
+     * @return Map containing information about user.
+     */
+    public Map<String, Object> getUserInfo() {
+        return userInfo;
+    }
+
+    /**
+     * Set map containing information about user.
+     * @param userInfo ap containing information about user.
+     */
+    public void setUserInfo(Map<String, Object> userInfo) {
+        this.userInfo = userInfo;
     }
 }

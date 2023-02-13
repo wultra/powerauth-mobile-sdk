@@ -1281,4 +1281,32 @@
 
 #endif // PA2_BIOMETRY_SUPPORT
 
+#pragma mark - User Info
+
+- (void) testUserInfo
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    PowerAuthUserInfo * infoFromActivation = activation.activationResult.userInfo;
+    NSString * userId = _helper.testServerConfig.userIdentifier;
+    XCTAssertNotNil(_sdk.lastFetchedUserInfo);
+    XCTAssertNotNil(infoFromActivation);
+    XCTAssertEqualObjects(userId, _sdk.lastFetchedUserInfo.subject);
+    XCTAssertEqualObjects(userId, infoFromActivation.subject);
+    
+    PowerAuthUserInfo * info = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchUserInfo:^(PowerAuthUserInfo * userInfo, NSError * error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:userInfo];
+        }];
+    }];
+    XCTAssertNotNil(info);
+    XCTAssertEqualObjects(info.subject, _helper.testServerConfig.userIdentifier);
+    XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
+}
+
 @end

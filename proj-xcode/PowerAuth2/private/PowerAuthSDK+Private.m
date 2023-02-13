@@ -22,12 +22,12 @@
 
 @implementation PowerAuthSDK (CryptoHelper)
 
-- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
+- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId error:(NSError **)error
 {
     // The encryptors factory requires PowerAuthCoreSession & possesion unlock key for a proper operation.
     // After the enctyptor is created, we can destroy it.
     return [[[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:self.sessionProvider deviceRelatedKey:[self deviceRelatedKey]]
-            encryptorWithId:encryptorId];
+            encryptorWithId:encryptorId error:error];
 }
 
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForData:(NSData*)data

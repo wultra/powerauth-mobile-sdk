@@ -72,4 +72,6 @@
 
 + (instancetype) confirmRecoveryCode;
 
++ (instancetype) getUserInfo;
+
 @end

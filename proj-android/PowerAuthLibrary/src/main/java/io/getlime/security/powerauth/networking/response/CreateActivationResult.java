@@ -49,6 +49,12 @@ public class CreateActivationResult {
     private final @Nullable RecoveryData recoveryData;
 
     /**
+     * Optional information about user. The value may be null in case that feature is not supported
+     * on the server.
+     */
+    private final @Nullable UserInfo userInfo;
+
+    /**
      * @param activationFingerprint       Decimalized fingerprint calculated from data constructed
      *                                    from device's public key, server's public key and activation
      *                                    identifier.
@@ -57,11 +63,18 @@ public class CreateActivationResult {
      * @param recoveryData                {@link RecoveryData} object with information about activation
      *                                    recovery. The value may be null if feature is not supported,
      *                                    or configured on the server.
+     * @param userInfo                    {@link UserInfo} object with optional information
+     *                                    about user.
      */
-    public CreateActivationResult(@NonNull String activationFingerprint, @Nullable Map<String, Object> customActivationAttributes, @Nullable RecoveryData recoveryData) {
+    public CreateActivationResult(
+            @NonNull String activationFingerprint,
+            @Nullable Map<String, Object> customActivationAttributes,
+            @Nullable RecoveryData recoveryData,
+            @Nullable UserInfo userInfo) {
         this.activationFingerprint = activationFingerprint;
         this.customActivationAttributes = customActivationAttributes;
         this.recoveryData = recoveryData;
+        this.userInfo = userInfo;
     }
 
     /**
@@ -93,5 +106,13 @@ public class CreateActivationResult {
      */
     public @Nullable RecoveryData getRecoveryData() {
         return recoveryData;
+    }
+
+    /**
+     * @return {@link UserInfo} with optional information about user. The value is available
+     * only if the server provide such information about the user.
+     */
+    public @Nullable UserInfo getUserInfo() {
+        return userInfo;
     }
 }

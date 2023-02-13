@@ -22,6 +22,7 @@
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 #import "PowerAuthAuthentication+Private.h"
+#import "PowerAuthUserInfo+Private.h"
 
 @import PowerAuthCore;
 
@@ -46,6 +47,10 @@
 - (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
                                                 authentication:(PowerAuthAuthentication*)authentication
                                                          error:(NSError**)error;
+/**
+ Update last fetched user info.
+ */
+- (void) setLastFetchedUserInfo:(PowerAuthUserInfo*)lastFetchedUserInfo;
 
 @end
 

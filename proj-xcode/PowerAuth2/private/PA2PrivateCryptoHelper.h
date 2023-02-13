@@ -32,7 +32,8 @@
 /**
  Returns ECIES encryptor for given identifier.
  */
-- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId;
+- (PowerAuthCoreEciesEncryptor*) encryptorWithId:(PA2EncryptorId)encryptorId
+                                           error:(NSError**)error;
 
 /**
  Calculates PowerAuth signature for data & endpoint.

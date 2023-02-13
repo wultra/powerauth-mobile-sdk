@@ -39,6 +39,8 @@ import io.getlime.security.powerauth.networking.response.CreateActivationResult;
 import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
 import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
 import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
+import io.getlime.security.powerauth.networking.response.IUserInfoListener;
+import io.getlime.security.powerauth.networking.response.UserInfo;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
@@ -417,4 +419,33 @@ public class StandardActivationTest {
         assertTrue(powerAuthSDK.hasValidActivation());
     }
 
+    // UserInfo
+
+    @Test
+    public void testUserInfo() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        final String userId = activationHelper.getUserId();
+        assertNotNull(activationHelper.getCreateActivationResult().getUserInfo());
+        assertNotNull(powerAuthSDK.getLastFetchedUserInfo());
+        assertEquals(userId, powerAuthSDK.getLastFetchedUserInfo().getSubject());
+        assertEquals(userId, activationHelper.getCreateActivationResult().getUserInfo().getSubject());
+
+        // Now fetch user info from the server
+        UserInfo info = AsyncHelper.await((AsyncHelper.Execution<UserInfo>) resultCatcher -> {
+            powerAuthSDK.fetchUserInfo(testHelper.getContext(), new IUserInfoListener() {
+                @Override
+                public void onUserInfoSucceed(@NonNull UserInfo userInfo) {
+                    resultCatcher.completeWithResult(userInfo);
+                }
+
+                @Override
+                public void onUserInfoFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertEquals(userId, info.getSubject());
+        assertEquals(info, powerAuthSDK.getLastFetchedUserInfo());
+    }
 }

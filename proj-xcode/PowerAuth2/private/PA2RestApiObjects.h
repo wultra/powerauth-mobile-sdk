@@ -34,3 +34,4 @@
 #import "PA2EncryptedResponse.h"
 #import "PA2UpgradeStartV3Response.h"
 #import "PA2ConfirmRecoveryCodeResponse.h"
+#import <PowerAuth2/PowerAuthUserInfo.h>

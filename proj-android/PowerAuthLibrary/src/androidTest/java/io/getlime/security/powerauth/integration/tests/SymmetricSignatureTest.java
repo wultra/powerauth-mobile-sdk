@@ -17,6 +17,8 @@
 package io.getlime.security.powerauth.integration.tests;
 
 import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
@@ -35,6 +37,9 @@ import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
+import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
+import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.*;
@@ -93,6 +98,39 @@ public class SymmetricSignatureTest {
             assertTrue(verifyResult.isSignatureValid());
             assertEquals(SignatureType.POSSESSION_KNOWLEDGE, verifyResult.getSignatureType());
         }
+    }
+
+    @Test
+    public void testCustomOfflineSignatureCalculation() throws Exception {
+        final int OFFLINE_SIGNATURE_LENGTH = 4;
+        // Re-configure test helper
+        testHelper = new PowerAuthTestHelper.Builder()
+                .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
+                    @Override
+                    public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
+                        builder.offlineSignatureComponentLength(OFFLINE_SIGNATURE_LENGTH);
+                    }
+
+                    @Override
+                    public void adjustPowerAuthClientConfiguration(@NonNull PowerAuthClientConfiguration.Builder builder) {
+                    }
+
+                    @Override
+                    public void adjustPowerAuthKeychainConfiguration(@NonNull PowerAuthKeychainConfiguration.Builder builder) {
+                    }
+                })
+                .build();
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper);
+
+        // Create activation and test the signature calculation
+        activationHelper.createStandardActivation(true, null);
+
+        final PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
+        final String nonce = testHelper.getRandomGenerator().generateBase64Bytes(16);
+        final String signature = powerAuthSDK.offlineSignatureWithAuthentication(testHelper.getContext(), authentication, "/some/uri-id", null, nonce);
+        assertNotNull(signature);
+        assertEquals(OFFLINE_SIGNATURE_LENGTH, signature.length());
     }
 
     @Test

@@ -23,11 +23,7 @@
 - (void)setUp
 {
     [super setUp];
-    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration *configuration, PowerAuthKeychainConfiguration *keychainConfiguration, PowerAuthClientConfiguration *clientConfiguration) {
-        [self prepareConfigs:configuration keychainConfig:keychainConfiguration clientConfig:clientConfiguration];
-    }];
-    [_helper printConfig];
-    _sdk = _helper.sdk;
+    [self reconfigureForTest:nil];
 }
 
 - (void) tearDown
@@ -40,8 +36,20 @@
 - (void) prepareConfigs:(PowerAuthConfiguration*)configuration
          keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
            clientConfig:(PowerAuthClientConfiguration*)clientConfiguration
+            forTestName:(NSString*)testName
 {
-    // Do nothing...
+    if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
+        configuration.offlineSignatureComponentLength = 4;
+    }
+}
+
+- (void) reconfigureForTest:(NSString *)testName
+{
+    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration *configuration, PowerAuthKeychainConfiguration *keychainConfiguration, PowerAuthClientConfiguration *clientConfiguration) {
+        [self prepareConfigs:configuration keychainConfig:keychainConfiguration clientConfig:clientConfiguration forTestName:testName];
+    }];
+    [_helper printConfig];
+    _sdk = _helper.sdk;
 }
 
 #pragma mark - Helper utilities
@@ -280,6 +288,28 @@
     }
     // One last status check
     XCTAssertTrue(PowerAuthActivationState_Active == [_helper fetchActivationStatus].state);
+}
+
+- (void) testCustomOfflineSignature
+{
+    [self reconfigureForTest:@"testCustomOfflineSignature"];
+    
+    CHECK_TEST_CONFIG();
+    
+    //
+    // This test validates offline signatures with custom length.
+    //
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
+    NSError * error = nil;
+    NSString * signature = [_sdk offlineSignatureWithAuthentication:[PowerAuthAuthentication possession] uriId:@"/some/uriId" body:nil nonce:nonce error:&error];
+    XCTAssertNotNil(signature);
+    XCTAssertEqual(4, signature.length);
 }
 
 - (void) testVerifyServerSignedData

@@ -60,6 +60,13 @@
 @property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
 
 /**
+ Length of offline signature component. The value between 4 and 8 is allowed.
+ 
+ Default value is 8.
+ */
+@property (nonatomic, assign) NSUInteger offlineSignatureComponentLength;
+
+/**
  If set, then this instance of PowerAuthSDK can be shared between multiple vendor applications.
  */
 @property (nonatomic, strong, nullable) PowerAuthSharingConfiguration * sharingConfiguration;

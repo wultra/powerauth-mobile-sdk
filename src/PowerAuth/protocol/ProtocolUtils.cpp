@@ -381,7 +381,12 @@ namespace protocol
     }
     
     
-    std::string CalculateSignature(const SignatureKeys & sk, SignatureFactor factor, const cc7::ByteRange & ctr_data, const cc7::ByteRange & data, bool base64_format)
+    std::string CalculateSignature(const SignatureKeys & sk,
+                                   SignatureFactor factor,
+                                   const cc7::ByteRange & ctr_data,
+                                   const cc7::ByteRange & data,
+                                   bool base64_format,
+                                   size_t offline_size)
     {
         // Prepare keys into one linear vector
         std::vector<const cc7::ByteArray*> keys;
@@ -433,7 +438,7 @@ namespace protocol
                 signature_bytes.append(signature_factor_bytes.byteRange().subRangeFrom(16));
             } else {
                 // Offline signature is using old, decimalized format.
-                auto signature_factor = CalculateDecimalizedSignature(signature_factor_bytes);
+                auto signature_factor = CalculateDecimalizedSignature(signature_factor_bytes, offline_size);
                 if (!signature_string.empty()) {
                     signature_string.append(DASH);
                 }
@@ -498,29 +503,11 @@ namespace protocol
         }
     }
 
-
-    /**
-     Convers |val| to normalized string. Zero characters are used for the indentation padding
-     when the string representation is shorter than 8 characters (e.g. 123 is converted to "00000123").
-     */
-    static std::string _ValToNormString(cc7::U32 val)
+    std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature, size_t component_size)
     {
-        std::string result = std::to_string(val);
-        static const std::string zero("00000000");
-        if (result.length() < protocol::ACTIVATION_FINGERPRINT_SIZE) {
-            result.insert(0, zero.substr(0, protocol::ACTIVATION_FINGERPRINT_SIZE - result.length()));
-        }
-        CC7_ASSERT(result.length() == protocol::ACTIVATION_FINGERPRINT_SIZE, "Wrong normalized size");
-        return result;
-    }
-    
-    
-    
-    std::string CalculateDecimalizedSignature(const cc7::ByteRange & signature)
-    {
-        if (signature.size() < 4) {
+        if (signature.size() < 4 || component_size < protocol::DECIMAL_SIGNATURE_MIN_LENGTH || component_size > protocol::DECIMAL_SIGNATURE_MAX_LENGTH) {
             // This must be handled on higher level.
-            CC7_ASSERT(false, "The signature is too short");
+            CC7_ASSERT(false, "The signature is too short or component size is out of range");
             return std::string();
         }
         size_t offset = signature.size() - 4;
@@ -529,7 +516,15 @@ namespace protocol
                         signature[offset + 1] << 16 |
                         signature[offset + 2] << 8  |
                         signature[offset + 3];
-        return _ValToNormString(dbc % 100000000);
+        // Convert DBC value to string
+        static const cc7::U32 magnitude[] = { 10000, 100000, 1000000, 10000000, 100000000 };
+        static const std::string zero("00000000");
+        std::string result = std::to_string(dbc % magnitude[component_size - protocol::DECIMAL_SIGNATURE_MIN_LENGTH]);
+        if (result.length() < component_size) {
+            result.insert(0, zero.substr(0, component_size - result.length()));
+        }
+        CC7_ASSERT(result.length() == component_size, "Wrong normalized size");
+        return result;
     }
 
     std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key, const cc7::ByteRange & server_pub_key, const std::string activation_id, Version v)
@@ -570,7 +565,7 @@ namespace protocol
                 data.append(server_coord_x);
             }
             // Now calculate decimalized signature
-            result = protocol::CalculateDecimalizedSignature(crypto::SHA256(data));
+            result = protocol::CalculateDecimalizedSignature(crypto::SHA256(data), protocol::DECIMAL_SIGNATURE_MAX_LENGTH);
             if (result.size() != protocol::ACTIVATION_FINGERPRINT_SIZE) {
                 result.clear();
             }

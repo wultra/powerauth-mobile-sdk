@@ -278,6 +278,10 @@ namespace powerAuth
          data signing purposes only. The Base64 string is expected.
          */
         std::string offlineNonce;
+        /**
+         Length of offline signature component. The default value is 8.
+         */
+        size_t offlineSignatureLength;
         
         /**
          Constructs an empty HTTPRequestData structure.
@@ -293,13 +297,14 @@ namespace powerAuth
                         const std::string & uri);
         
         /**
-         Constructs a HTTPRequestData structure with provided |body|, |method|, |uri|
-         and |nonce| parameters.
+         Constructs a HTTPRequestData structure with provided |body|, |method|, |uri|,
+         |offlineNonce| and |offlineLength| parameters.
          */
         HTTPRequestData(const cc7::ByteRange & body,
                         const std::string & method,
                         const std::string & uri,
-                        const std::string & nonce);
+                        const std::string & offlineNonce,
+                        size_t offlineLength);
         
         /**
          Returns true when structure contains valid data.

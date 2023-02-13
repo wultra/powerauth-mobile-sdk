@@ -67,6 +67,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
+        assertEquals(8, configuration.getOfflineSignatureComponentLength());
     }
 
     @Test
@@ -92,5 +93,37 @@ public class PowerAuthConfigurationBuilderTest {
         // Test EEK after modify
         expectedEEK[0] = 'X';
         assertEquals('0', Objects.requireNonNull(configuration.getExternalEncryptionKey())[0]);
+    }
+
+    @Test
+    public void testOfflineSignatureComponentLength() throws Exception {
+        PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
+                null,
+                "http://wultra.com",
+                "aaa",
+                "bbb",
+                "ccc")
+                .offlineSignatureComponentLength(4)
+                .build();
+        assertEquals(4, configuration.getOfflineSignatureComponentLength());
+        // Invalid values
+        configuration = new PowerAuthConfiguration.Builder(
+                null,
+                "http://wultra.com",
+                "aaa",
+                "bbb",
+                "ccc")
+                .offlineSignatureComponentLength(3)
+                .build();
+        assertFalse(configuration.validateConfiguration());
+        configuration = new PowerAuthConfiguration.Builder(
+                null,
+                "http://wultra.com",
+                "aaa",
+                "bbb",
+                "ccc")
+                .offlineSignatureComponentLength(9)
+                .build();
+        assertFalse(configuration.validateConfiguration());
     }
 }

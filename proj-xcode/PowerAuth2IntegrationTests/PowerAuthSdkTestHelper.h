@@ -60,7 +60,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  */
 + (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration * configuration, PowerAuthKeychainConfiguration * keychainConfiguration, PowerAuthClientConfiguration * clientConfiguration))configurator;
 /**
- Create default configuration.
+ Clone the existing test helper but with altered configuration.
  */
 + (PowerAuthSdkTestHelper*) clone:(PowerAuthSdkTestHelper*)testHelper
                          withConfiguration:(PowerAuthConfiguration*)configuration;

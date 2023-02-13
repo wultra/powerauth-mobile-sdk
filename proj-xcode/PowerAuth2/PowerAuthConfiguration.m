@@ -21,6 +21,18 @@
 
 @implementation PowerAuthConfiguration
 
+#define MIN_OFFLINE_SIGNATURE_COMPONENT_LEN 4
+#define MAX_OFFLINE_SIGNATURE_COMPONENT_LEN 8
+
+- (id) init
+{
+    self = [super init];
+    if (self) {
+        _offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LEN;
+    }
+    return self;
+}
+
 - (BOOL) validateConfiguration
 {
     BOOL result = YES;
@@ -29,6 +41,8 @@
     result = result && (_appSecret != nil);
     result = result && (_masterServerPublicKey != nil);
     result = result && (_baseEndpointUrl != nil);
+    result = result && (_offlineSignatureComponentLength >= MIN_OFFLINE_SIGNATURE_COMPONENT_LEN &&
+                        _offlineSignatureComponentLength <= MAX_OFFLINE_SIGNATURE_COMPONENT_LEN);
     if (_sharingConfiguration) {
         result = result && [_sharingConfiguration validateConfiguration];
     }
@@ -47,6 +61,7 @@
         c->_keychainKey_Biometry = _keychainKey_Biometry;
         c->_externalEncryptionKey = _externalEncryptionKey;
         c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
+        c->_offlineSignatureComponentLength = _offlineSignatureComponentLength;
         c->_sharingConfiguration = [_sharingConfiguration copy];
     }
     return c;

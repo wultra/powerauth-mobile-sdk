@@ -39,6 +39,7 @@ namespace powerAuthTests
             CC7_REGISTER_TEST_METHOD(testV2Signatures)
             CC7_REGISTER_TEST_METHOD(testV3Signatures)
             CC7_REGISTER_TEST_METHOD(testV31Signatures)
+            CC7_REGISTER_TEST_METHOD(testOfflineSignatures)
             CC7_REGISTER_TEST_METHOD(testDataNormalization)
         }
         
@@ -60,7 +61,7 @@ namespace powerAuthTests
                 SignatureFactor factor = factorFromString(signatureType);
                 ccstAssertTrue(factor != protocol::SF_FirstLock);
                 auto ctr_data = protocol::SignatureCounterToData(counter);
-                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false, 8);
                 bool match = signature == expSignature;
                 if (!match) {
                     ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
@@ -94,7 +95,7 @@ namespace powerAuthTests
                 
                 SignatureFactor factor = factorFromString(signatureType);
                 ccstAssertTrue(factor != protocol::SF_FirstLock);
-                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false, 8);
                 bool match = signature == expSignature;
                 if (!match) {
                     ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
@@ -127,7 +128,7 @@ namespace powerAuthTests
                 
                 SignatureFactor factor = factorFromString(signatureType);
                 ccstAssertTrue(factor != protocol::SF_FirstLock);
-                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, true);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, true, 0);
                 bool match = signature == expSignature;
                 if (!match) {
                     ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
@@ -137,6 +138,37 @@ namespace powerAuthTests
                     ccstMessage("factor     : %04x (%s)", factor, signatureType.c_str());
                     ccstFailure();
                     break;
+                }
+            }
+        }
+        
+        void testOfflineSignatures()
+        {
+            // This is new offline signatures with variable length format.
+            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/signatures-offline.json");
+            auto&& data = root.arrayAtPath("data");
+            for (const JSONValue & item : data) {
+                protocol::SignatureKeys keys;
+                keys.possessionKey = item.dataFromBase64StringAtPath("input.signaturePossessionKey");
+                keys.knowledgeKey  = item.dataFromBase64StringAtPath("input.signatureKnowledgeKey");
+                keys.biometryKey   = item.dataFromBase64StringAtPath("input.signatureBiometryKey");
+                std::string signatureType = item.stringAtPath("input.signatureType");
+                ByteArray ctr_data        = item.dataFromBase64StringAtPath("input.counterData");
+                ByteArray data            = item.dataFromBase64StringAtPath("input.data");
+                std::string length        = item.stringAtPath("input.signatureComponentLength");
+                std::string expSignature  = item.stringAtPath("output.signature");
+                size_t signatureLength = std::stoi(length);
+                SignatureFactor factor = factorFromString(signatureType);
+                ccstAssertTrue(factor != protocol::SF_FirstLock);
+                std::string signature = protocol::CalculateSignature(keys, factor, ctr_data, data, false, signatureLength);
+                bool match = signature == expSignature;
+                if (!match) {
+                    ccstMessage("Doesn't match: Expected %s vs %s", expSignature.c_str(), signature.c_str());
+                    ccstMessage("possession : %s", keys.possessionKey.base64String().c_str());
+                    ccstMessage("knowledge  : %s", keys.knowledgeKey.base64String().c_str());
+                    ccstMessage("biometry   : %s", keys.biometryKey.base64String().c_str());
+                    ccstMessage("factor     : %04x (%s) (len %s)", factor, signatureType.c_str(), length.c_str());
+                    ccstFailure();
                 }
             }
         }

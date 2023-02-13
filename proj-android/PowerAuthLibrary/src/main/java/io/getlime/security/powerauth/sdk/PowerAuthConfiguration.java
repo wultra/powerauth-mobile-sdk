@@ -38,8 +38,9 @@ public class PowerAuthConfiguration {
     private final @NonNull String appSecret;
     private final @NonNull String masterServerPublicKey;
     private final @Nullable byte[] externalEncryptionKey;
-    private final @NonNull IFetchKeysStrategy fetchKeysStrategy;
+    private final @Nullable IFetchKeysStrategy fetchKeysStrategy;
     private final boolean disableAutomaticProtocolUpgrade;
+    private final int offlineSignatureComponentLength;
 
     /**
      * Constant for default PowerAuthSDK instance identifier.
@@ -106,6 +107,23 @@ public class PowerAuthConfiguration {
     }
 
     /**
+     * @return Length of offline signature component.
+     */
+    public int getOfflineSignatureComponentLength() {
+        return offlineSignatureComponentLength;
+    }
+
+    /**
+     * Minimum allowed length of offline signature component.
+     */
+    public static final int MIN_OFFLINE_SIGNATURE_COMPONENT_LENGTH = 4;
+
+    /**
+     * Maximum allowed length of offline signature component.
+     */
+    public static final int MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH = 8;
+
+    /**
      * Validate the configuration. Be aware that the method performs just a formal validation, so it cannot detect if you
      * provide a wrong cryptographic keys or secrets.
      *
@@ -115,7 +133,8 @@ public class PowerAuthConfiguration {
         if (externalEncryptionKey != null) {
             return externalEncryptionKey.length == 16;
         }
-        return true;
+        return offlineSignatureComponentLength >= MIN_OFFLINE_SIGNATURE_COMPONENT_LENGTH &&
+                offlineSignatureComponentLength <= MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
     }
 
     /**
@@ -138,7 +157,8 @@ public class PowerAuthConfiguration {
             @NonNull String masterServerPublicKey,
             @Nullable byte[] externalEncryptionKey,
             @Nullable IFetchKeysStrategy fetchKeysStrategy,
-            boolean disableAutomaticProtocolUpgrade) {
+            boolean disableAutomaticProtocolUpgrade,
+            int offlineSignatureComponentLength) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
         this.appKey = appKey;
@@ -147,6 +167,7 @@ public class PowerAuthConfiguration {
         this.externalEncryptionKey = externalEncryptionKey;
         this.fetchKeysStrategy = fetchKeysStrategy;
         this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
+        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
     }
 
     /**
@@ -163,6 +184,7 @@ public class PowerAuthConfiguration {
         private IFetchKeysStrategy fetchKeysStrategy = null;
         private byte[] externalEncryptionKey = null;
         private boolean disableAutomaticProtocolUpgrade = false;
+        private int offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
 
         /**
          * Creates a builder for {@link PowerAuthConfiguration}.
@@ -230,6 +252,16 @@ public class PowerAuthConfiguration {
         }
 
         /**
+         * Set the alternative length for offline signature component.
+         * @param length New value for offline signature component length.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder offlineSignatureComponentLength(int length) {
+            this.offlineSignatureComponentLength = length;
+            return this;
+        }
+
+        /**
          * Build a final {@link PowerAuthConfiguration} instance.
          * @return New instance of {@link PowerAuthConfiguration}.
          */
@@ -242,7 +274,8 @@ public class PowerAuthConfiguration {
                     masterServerPublicKey,
                     externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null,
                     fetchKeysStrategy,
-                    disableAutomaticProtocolUpgrade);
+                    disableAutomaticProtocolUpgrade,
+                    offlineSignatureComponentLength);
         }
     }
 }

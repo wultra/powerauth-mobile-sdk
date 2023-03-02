@@ -70,6 +70,11 @@
 /// Contains full collection of standard claims received from the server.
 @property (nonatomic, readonly, nonnull) NSDictionary<NSString*, NSObject*>* allClaims;
 
+/// Construct object with claims dictionary.
+/// - Parameter dictionary: Collection of standard claims.
+- (nonnull instancetype) initWithDictionary:(nonnull NSDictionary<NSString*, NSObject*>*)dictionary
+                            NS_SWIFT_NAME(init(with:));
+
 @end
 
 /// The `PowerAuthUserAddress` object contains address of end-user.
@@ -91,5 +96,10 @@
 
 /// Contains full collection of standard claims received from the server.
 @property (nonatomic, readonly, nonnull) NSDictionary<NSString*, NSObject*>* allClaims;
+
+/// Construct object with claims dictionary.
+/// - Parameter dictionary: Collection of standard claims.
+- (nonnull instancetype) initWithDictionary:(nonnull NSDictionary<NSString*, NSObject*>*)dictionary
+                            NS_SWIFT_NAME(init(with:));
 
 @end

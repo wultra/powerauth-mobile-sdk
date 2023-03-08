@@ -92,6 +92,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
         this.cryptoHelper = cryptoHelper;
         this.completionListener = completionListener;
         this.isUpgradeDisabled = isUpgradeDisabled;
+        this.protocolUpgradeAttempts = 3;
     }
 
     //

@@ -315,7 +315,7 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
  Private function returns full information about biometric support on the system. The method internally
  uses `LAContext.canEvaluatePolicy()`.
  */
-static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
+static PowerAuthBiometricAuthenticationInfo _getBiometryInfo(void)
 {
     PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
     LAContext * context = [[LAContext alloc] init];
@@ -397,7 +397,7 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
  Returns information about biometric support on the system. This is a special implementation
  returning information that biometry is not supported on watchOS & IOS App Extension.
  */
-static PowerAuthBiometricAuthenticationInfo _getBiometryInfo()
+static PowerAuthBiometricAuthenticationInfo _getBiometryInfo(void)
 {
     PowerAuthBiometricAuthenticationInfo info = { PowerAuthBiometricAuthenticationStatus_NotSupported, PowerAuthBiometricAuthenticationType_None };
     return info;

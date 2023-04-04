@@ -436,7 +436,7 @@ static NSData * _SerializePacket(PA2WCSessionPacket * packet)
 
 #if defined(PA2_WATCH_SDK)
 
-static WCSession * _PrepareSession()
+static WCSession * _PrepareSession(void)
 {
     // On watcOS, we can always return defaultSession.
     return [WCSession defaultSession];
@@ -460,7 +460,7 @@ static WCSession * _ValidateSession(WCSession * session)
 
 #if !defined(PA2_WATCH_SDK)
 
-static WCSession * _PrepareSession()
+static WCSession * _PrepareSession(void)
 {
     if ([WCSession isSupported]) {
         return [WCSession defaultSession];

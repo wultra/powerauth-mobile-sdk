@@ -28,7 +28,7 @@
 /**
  Returns a shared, concurrent queue.
  */
-static NSOperationQueue * _GetSharedConcurrentQueue()
+static NSOperationQueue * _GetSharedConcurrentQueue(void)
 {
     static dispatch_once_t onceToken;
     static NSOperationQueue * s_queue;

@@ -1215,7 +1215,7 @@ PowerAuthSDK.sharedInstance().removeActivation(with: auth) { (error) in
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on the ECIES scheme:
 
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.
-- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) in "sign-then-encrypt" mode.
+- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) in "encrypt-then-sign" mode.
 
 For both scenarios, you need to acquire the `PowerAuthCoreEciesEncryptor` object, which will then provide interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
 

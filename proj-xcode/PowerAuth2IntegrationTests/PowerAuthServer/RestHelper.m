@@ -189,8 +189,12 @@
         }
     }];
     if (!mappingKey) {
-        NSLog(@"Mapping for server %@ not found in known versions.", serverVersion);
-        return nil;
+        mappingKey = versions[@"*"];
+        if (!mappingKey) {
+            NSLog(@"Mapping for server %@ not found in known versions and fallback is not specified.", serverVersion);
+            return nil;
+        }
+        NSLog(@"Mapping for server %@ not found in known versions. The latest known specification will be used.", serverVersion);
     }
     NSDictionary * endpointsMapping = mappings[mappingKey];
     if (!endpointsMapping) {

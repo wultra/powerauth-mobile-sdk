@@ -1,0 +1,15 @@
+{
+    "path": "/rest/v3/activation/block",
+    "parameters": [ 
+        "activationId",
+        "reason",
+        "externalUserId"
+    ],
+    "response": {
+        "class": "PATSSimpleActivationStatus",
+        "properties": {
+            "activationId":                 { "class": "string" },
+            "activationStatus":             { "class": "string" }
+        }
+    }
+}

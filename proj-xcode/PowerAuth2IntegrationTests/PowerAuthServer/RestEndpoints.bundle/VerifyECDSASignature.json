@@ -1,0 +1,11 @@
+{
+    "path": "/rest/v3/signature/ecdsa/verify",
+    "parameters": [
+        "activationId",
+        "data",
+        "signature"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

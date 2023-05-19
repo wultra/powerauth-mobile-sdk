@@ -1,0 +1,6 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+   $HDR
+   <soapenv:Body>
+      <pow:GetSystemStatusRequest/>
+   </soapenv:Body>
+</soapenv:Envelope>

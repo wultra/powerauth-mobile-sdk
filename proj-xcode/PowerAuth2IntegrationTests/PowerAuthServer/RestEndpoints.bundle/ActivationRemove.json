@@ -1,0 +1,10 @@
+{
+    "path": "/rest/v3/activation/remove",
+    "parameters": [ 
+        "activationId",
+        "revokeRecoveryCodes"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "path": "/rest/v3/activation/status",
+    "parameters": [ 
+        "activationId",
+        "challenge"
+    ],
+    "response": {
+        "class": "PATSActivationStatus",
+        "properties": {
+            "activationId":                 { "class": "string" },
+            "activationStatus":             { "class": "string" },
+            "activationName":               { "class": "string" },
+            "userId":                       { "class": "string" },
+            "applicationId":                { "class": "string" },
+            "timestampCreated":             { "class": "string" },
+            "timestampLastUsed":            { "class": "string" },
+            "encryptedStatusBlob":          { "class": "string" },
+            "devicePublicKeyFingerprint":   { "class": "string" },
+            "encryptedStatusBlobNonce":     { "class": "string" },
+            "protocolVersion":              { "class": "int" }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "path": "/rest/v3/status",
+    "parameters": [ ],
+    "response": {
+        "class": "PATSSystemStatus",
+        "properties": {
+            "status":                   { "class" : "string" },
+            "applicationName":          { "class" : "string" },
+            "applicationDisplayName":   { "class" : "string" },
+            "applicationEnvironment":   { "class" : "string" },
+            "timestamp":                { "class" : "string" },
+            "version":                  { "class" : "string" }
+        }
+    }
+}

@@ -223,63 +223,33 @@
 		BF5EB53F24C8604700F9DDB2 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49824C85D6300F9DDB2 /* PowerAuthCore.framework */; };
 		BF5EB56824C860A500F9DDB2 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
 		BF5EB58424C8659C00F9DDB2 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB53B24C85FE200F9DDB2 /* PowerAuth2.framework */; };
-		BF667E6828359C7C006E97F8 /* CXMLNode_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */; };
 		BF667E6A28359C7C006E97F8 /* PowerAuthInvalidCurveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */; };
-		BF667E6B28359C7C006E97F8 /* SoapHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73121EAA8986005E7572 /* SoapHelper.m */; };
 		BF667E6C28359C7C006E97F8 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
-		BF667E6D28359C7C006E97F8 /* CXMLNode_XPathExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */; };
-		BF667E6E28359C7C006E97F8 /* CXMLUnsupportedNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */; };
 		BF667E7028359C7C006E97F8 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
 		BF667E7128359C7C006E97F8 /* PowerAuthSdkTestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFE341C127F6F035005337B1 /* PowerAuthSdkTestHelper.m */; };
-		BF667E7228359C7C006E97F8 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */; };
-		BF667E7328359C7C006E97F8 /* CXMLElement_ElementTreeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */; };
-		BF667E7528359C7C006E97F8 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
-		BF667E7728359C7C006E97F8 /* CXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA751EACB17600733D91 /* CXMLElement.m */; };
 		BF667E7828359C7C006E97F8 /* PowerAuthSDKDefaultTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKDefaultTests.m */; };
 		BF667E7928359C7C006E97F8 /* PowerAuthTokenTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */; };
-		BF667E7A28359C7C006E97F8 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */; };
 		BF667E7B28359C7C006E97F8 /* PowerAuthSDKProtocolUpgradeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF3C3FF324938A9A0062D739 /* PowerAuthSDKProtocolUpgradeTests.m */; };
-		BF667E7D28359C7C006E97F8 /* CXMLNamespaceNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */; };
-		BF667E7E28359C7C006E97F8 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
-		BF667E7F28359C7C006E97F8 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */; };
 		BF667E8028359C7C006E97F8 /* PowerAuthConcurrencyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF9EED2020372AEB001D8DF8 /* PowerAuthConcurrencyTests.m */; };
 		BF667E8228359C7C006E97F8 /* AsyncHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */; };
-		BF667E8328359C7C006E97F8 /* CXMLElement_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */; };
-		BF667E8428359C7C006E97F8 /* CXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7D1EACB17600733D91 /* CXMLNode.m */; };
 		BF667E8528359C7C006E97F8 /* PowerAuthSDKSharedTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFE341C527F71BDF005337B1 /* PowerAuthSDKSharedTests.m */; };
 		BF667E8728359C7C006E97F8 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8CF5122032EB41002A6B6E /* PowerAuth2.framework */; };
 		BF667E8828359C7C006E97F8 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49624C85D6300F9DDB2 /* PowerAuthCore.framework */; };
 		BF667E8A28359C7C006E97F8 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
-		BF667E8B28359C7C006E97F8 /* SoapRequests.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */; };
-		BF667E9728359C93006E97F8 /* CXMLNode_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */; };
 		BF667E9928359C93006E97F8 /* PowerAuthInvalidCurveTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD27D8621144DA20020ABA4 /* PowerAuthInvalidCurveTests.m */; };
-		BF667E9A28359C93006E97F8 /* SoapHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73121EAA8986005E7572 /* SoapHelper.m */; };
 		BF667E9B28359C93006E97F8 /* PowerAuthTestServerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */; };
-		BF667E9C28359C93006E97F8 /* CXMLNode_XPathExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */; };
-		BF667E9D28359C93006E97F8 /* CXMLUnsupportedNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */; };
 		BF667E9E28359C93006E97F8 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
 		BF667E9F28359C93006E97F8 /* PowerAuthTestServerAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */; };
 		BF667EA028359C93006E97F8 /* PowerAuthSdkTestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BFE341C127F6F035005337B1 /* PowerAuthSdkTestHelper.m */; };
-		BF667EA128359C93006E97F8 /* CXMLDocument_PrivateExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */; };
-		BF667EA228359C93006E97F8 /* CXMLElement_ElementTreeExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */; };
-		BF667EA428359C93006E97F8 /* CXMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA711EACB17600733D91 /* CXMLDocument.m */; };
-		BF667EA628359C93006E97F8 /* CXMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA751EACB17600733D91 /* CXMLElement.m */; };
 		BF667EA728359C93006E97F8 /* PowerAuthSDKDefaultTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF73071EAA83AD005E7572 /* PowerAuthSDKDefaultTests.m */; };
 		BF667EA828359C93006E97F8 /* PowerAuthTokenTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF7751121FC48A1A008455A6 /* PowerAuthTokenTests.m */; };
-		BF667EA928359C93006E97F8 /* CXMLDocument_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */; };
 		BF667EAA28359C93006E97F8 /* PowerAuthSDKProtocolUpgradeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF3C3FF324938A9A0062D739 /* PowerAuthSDKProtocolUpgradeTests.m */; };
-		BF667EAC28359C93006E97F8 /* CXMLNamespaceNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */; };
-		BF667EAD28359C93006E97F8 /* CXHTMLDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */; };
-		BF667EAE28359C93006E97F8 /* CXMLNode_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */; };
 		BF667EAF28359C93006E97F8 /* PowerAuthConcurrencyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF9EED2020372AEB001D8DF8 /* PowerAuthConcurrencyTests.m */; };
 		BF667EB128359C93006E97F8 /* AsyncHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */; };
-		BF667EB228359C93006E97F8 /* CXMLElement_CreationExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */; };
-		BF667EB328359C93006E97F8 /* CXMLNode.m in Sources */ = {isa = PBXBuildFile; fileRef = BF20EA7D1EACB17600733D91 /* CXMLNode.m */; };
 		BF667EB428359C93006E97F8 /* PowerAuthSDKSharedTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BFE341C527F71BDF005337B1 /* PowerAuthSDKSharedTests.m */; };
 		BF667EB628359C93006E97F8 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49824C85D6300F9DDB2 /* PowerAuthCore.framework */; };
 		BF667EB728359C93006E97F8 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB53B24C85FE200F9DDB2 /* PowerAuth2.framework */; };
 		BF667EB928359C93006E97F8 /* TestConfig in Resources */ = {isa = PBXBuildFile; fileRef = BFD386611F2B528600F74FF9 /* TestConfig */; };
-		BF667EBA28359C93006E97F8 /* SoapRequests.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */; };
 		BF667EC028359DF5006E97F8 /* PowerAuthTestServerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */; };
 		BF667EC82835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF667EC22835A0B2006E97F8 /* PA2WeakArrayTests.m */; };
 		BF667EC92835A0B2006E97F8 /* PA2WeakArrayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF667EC22835A0B2006E97F8 /* PA2WeakArrayTests.m */; };
@@ -299,6 +269,12 @@
 		BF6B39EE27F312D100BDF579 /* PA2SharedMemory.m in Sources */ = {isa = PBXBuildFile; fileRef = BF6B39EA27F312D100BDF579 /* PA2SharedMemory.m */; };
 		BF6B39F027F4777D00BDF579 /* PowerAuthExternalPendingOperation+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF6B39EF27F4777D00BDF579 /* PowerAuthExternalPendingOperation+Private.h */; };
 		BF6B39F127F4777D00BDF579 /* PowerAuthExternalPendingOperation+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = BF6B39EF27F4777D00BDF579 /* PowerAuthExternalPendingOperation+Private.h */; };
+		BF721C782A14E43900ACB2C9 /* RestEndpoints.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BF721C772A14E43900ACB2C9 /* RestEndpoints.bundle */; };
+		BF721C792A14E43900ACB2C9 /* RestEndpoints.bundle in Resources */ = {isa = PBXBuildFile; fileRef = BF721C772A14E43900ACB2C9 /* RestEndpoints.bundle */; };
+		BF721C7C2A14E54800ACB2C9 /* RestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF721C7B2A14E54800ACB2C9 /* RestHelper.m */; };
+		BF721C7D2A14E54800ACB2C9 /* RestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF721C7B2A14E54800ACB2C9 /* RestHelper.m */; };
+		BF721CC12A14EB3400ACB2C9 /* RestEndpoint.m in Sources */ = {isa = PBXBuildFile; fileRef = BF721CC02A14EB3400ACB2C9 /* RestEndpoint.m */; };
+		BF721CC22A14EB3400ACB2C9 /* RestEndpoint.m in Sources */ = {isa = PBXBuildFile; fileRef = BF721CC02A14EB3400ACB2C9 /* RestEndpoint.m */; };
 		BF7C48312316CF3A001EA728 /* PA2ValidateSignatureRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = BFC581022316C4BC004FFFF7 /* PA2ValidateSignatureRequest.h */; };
 		BF86E62426394F59004C8AE5 /* PowerAuthToken+WatchSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = BF462B742011013800529EFC /* PowerAuthToken+WatchSupport.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF86E641263953B3004C8AE5 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49824C85D6300F9DDB2 /* PowerAuthCore.framework */; };
@@ -625,33 +601,6 @@
 		BF1ED0C22846274700D6B380 /* PA2CreateTokenTask.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2CreateTokenTask.m; sourceTree = "<group>"; };
 		BF2007522152B44F001F3614 /* PA2PrivateEncryptorFactory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2PrivateEncryptorFactory.h; sourceTree = "<group>"; };
 		BF2007532152B44F001F3614 /* PA2PrivateEncryptorFactory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2PrivateEncryptorFactory.m; sourceTree = "<group>"; };
-		BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXHTMLDocument.h; sourceTree = "<group>"; };
-		BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXHTMLDocument.m; sourceTree = "<group>"; };
-		BF20EA701EACB17600733D91 /* CXMLDocument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument.h; sourceTree = "<group>"; };
-		BF20EA711EACB17600733D91 /* CXMLDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument.m; sourceTree = "<group>"; };
-		BF20EA721EACB17600733D91 /* CXMLDocument_PrivateExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument_PrivateExtensions.h; sourceTree = "<group>"; };
-		BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_PrivateExtensions.m; sourceTree = "<group>"; };
-		BF20EA741EACB17600733D91 /* CXMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement.h; sourceTree = "<group>"; };
-		BF20EA751EACB17600733D91 /* CXMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement.m; sourceTree = "<group>"; };
-		BF20EA761EACB17600733D91 /* CXMLElement_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement_CreationExtensions.h; sourceTree = "<group>"; };
-		BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement_CreationExtensions.m; sourceTree = "<group>"; };
-		BF20EA781EACB17600733D91 /* CXMLElement_ElementTreeExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLElement_ElementTreeExtensions.h; sourceTree = "<group>"; };
-		BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLElement_ElementTreeExtensions.m; sourceTree = "<group>"; };
-		BF20EA7A1EACB17600733D91 /* CXMLNamespaceNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNamespaceNode.h; sourceTree = "<group>"; };
-		BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNamespaceNode.m; sourceTree = "<group>"; };
-		BF20EA7C1EACB17600733D91 /* CXMLNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode.h; sourceTree = "<group>"; };
-		BF20EA7D1EACB17600733D91 /* CXMLNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode.m; sourceTree = "<group>"; };
-		BF20EA7E1EACB17600733D91 /* CXMLNode_PrivateExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_PrivateExtensions.h; sourceTree = "<group>"; };
-		BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_PrivateExtensions.m; sourceTree = "<group>"; };
-		BF20EA801EACB17600733D91 /* CXMLNode_XPathExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_XPathExtensions.h; sourceTree = "<group>"; };
-		BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_XPathExtensions.m; sourceTree = "<group>"; };
-		BF20EA821EACB17600733D91 /* CXMLUnsupportedNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLUnsupportedNode.h; sourceTree = "<group>"; };
-		BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLUnsupportedNode.m; sourceTree = "<group>"; };
-		BF20EA841EACB17600733D91 /* TouchXML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchXML.h; sourceTree = "<group>"; };
-		BF20EA951EACB21E00733D91 /* CXMLDocument_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLDocument_CreationExtensions.h; sourceTree = "<group>"; };
-		BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLDocument_CreationExtensions.m; sourceTree = "<group>"; };
-		BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CXMLNode_CreationExtensions.h; sourceTree = "<group>"; };
-		BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CXMLNode_CreationExtensions.m; sourceTree = "<group>"; };
 		BF215F01287D8C9300EC3F3E /* PowerAuthAuthenticationTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthAuthenticationTests.m; sourceTree = "<group>"; };
 		BF28A9FA27E9D54100FBFCEB /* PA2AppGroupContainer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2AppGroupContainer.h; sourceTree = "<group>"; };
 		BF28A9FB27E9D54100FBFCEB /* PA2AppGroupContainer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2AppGroupContainer.m; sourceTree = "<group>"; };
@@ -719,6 +668,11 @@
 		BF6B39E927F312D100BDF579 /* PA2SharedMemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2SharedMemory.h; sourceTree = "<group>"; };
 		BF6B39EA27F312D100BDF579 /* PA2SharedMemory.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PA2SharedMemory.m; sourceTree = "<group>"; };
 		BF6B39EF27F4777D00BDF579 /* PowerAuthExternalPendingOperation+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PowerAuthExternalPendingOperation+Private.h"; sourceTree = "<group>"; };
+		BF721C772A14E43900ACB2C9 /* RestEndpoints.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = RestEndpoints.bundle; sourceTree = "<group>"; };
+		BF721C7A2A14E54800ACB2C9 /* RestHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RestHelper.h; sourceTree = "<group>"; };
+		BF721C7B2A14E54800ACB2C9 /* RestHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RestHelper.m; sourceTree = "<group>"; };
+		BF721CBF2A14EB3400ACB2C9 /* RestEndpoint.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RestEndpoint.h; sourceTree = "<group>"; };
+		BF721CC02A14EB3400ACB2C9 /* RestEndpoint.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RestEndpoint.m; sourceTree = "<group>"; };
 		BF7751081FC4876B008455A6 /* PA2EncryptedRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2EncryptedRequest.m; sourceTree = "<group>"; };
 		BF77510A1FC4876B008455A6 /* PA2EncryptedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PA2EncryptedResponse.h; sourceTree = "<group>"; };
 		BF77510B1FC4876B008455A6 /* PA2EncryptedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PA2EncryptedResponse.m; sourceTree = "<group>"; };
@@ -770,9 +724,6 @@
 		BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerAPI.m; sourceTree = "<group>"; };
 		BFAF730E1EAA84CA005E7572 /* PowerAuthTestServerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestServerModel.h; sourceTree = "<group>"; };
 		BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthTestServerModel.m; sourceTree = "<group>"; };
-		BFAF73111EAA8986005E7572 /* SoapHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SoapHelper.h; sourceTree = "<group>"; };
-		BFAF73121EAA8986005E7572 /* SoapHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SoapHelper.m; sourceTree = "<group>"; };
-		BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = SoapRequests.bundle; sourceTree = "<group>"; };
 		BFB47D5B20753640008A6A52 /* PowerAuthCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = PowerAuthCore.xcodeproj; sourceTree = "<group>"; };
 		BFC1925527FAF28F001455C1 /* PowerAuth2TestsHostApp-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PowerAuth2TestsHostApp-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFC1925727FAF28F001455C1 /* TestHostAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHostAppApp.swift; sourceTree = "<group>"; };
@@ -954,7 +905,7 @@
 			isa = PBXGroup;
 			children = (
 				BFD386611F2B528600F74FF9 /* TestConfig */,
-				BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */,
+				BFAF730A1EAA8467005E7572 /* PowerAuthServer */,
 				BF97A72928A3E594002F3ACE /* PowerAuthCorePasswordHelper.h */,
 				BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */,
 				BFE341C027F6F035005337B1 /* PowerAuthSdkTestHelper.h */,
@@ -1157,56 +1108,6 @@
 			name = system;
 			sourceTree = "<group>";
 		};
-		BF20EA6B1EACB17600733D91 /* TouchXML */ = {
-			isa = PBXGroup;
-			children = (
-				BF20EA6D1EACB17600733D91 /* Source */,
-			);
-			path = TouchXML;
-			sourceTree = "<group>";
-		};
-		BF20EA6D1EACB17600733D91 /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				BF20EA941EACB21E00733D91 /* Creation */,
-				BF20EA6E1EACB17600733D91 /* CXHTMLDocument.h */,
-				BF20EA6F1EACB17600733D91 /* CXHTMLDocument.m */,
-				BF20EA701EACB17600733D91 /* CXMLDocument.h */,
-				BF20EA711EACB17600733D91 /* CXMLDocument.m */,
-				BF20EA721EACB17600733D91 /* CXMLDocument_PrivateExtensions.h */,
-				BF20EA731EACB17600733D91 /* CXMLDocument_PrivateExtensions.m */,
-				BF20EA741EACB17600733D91 /* CXMLElement.h */,
-				BF20EA751EACB17600733D91 /* CXMLElement.m */,
-				BF20EA761EACB17600733D91 /* CXMLElement_CreationExtensions.h */,
-				BF20EA771EACB17600733D91 /* CXMLElement_CreationExtensions.m */,
-				BF20EA781EACB17600733D91 /* CXMLElement_ElementTreeExtensions.h */,
-				BF20EA791EACB17600733D91 /* CXMLElement_ElementTreeExtensions.m */,
-				BF20EA7A1EACB17600733D91 /* CXMLNamespaceNode.h */,
-				BF20EA7B1EACB17600733D91 /* CXMLNamespaceNode.m */,
-				BF20EA7C1EACB17600733D91 /* CXMLNode.h */,
-				BF20EA7D1EACB17600733D91 /* CXMLNode.m */,
-				BF20EA7E1EACB17600733D91 /* CXMLNode_PrivateExtensions.h */,
-				BF20EA7F1EACB17600733D91 /* CXMLNode_PrivateExtensions.m */,
-				BF20EA801EACB17600733D91 /* CXMLNode_XPathExtensions.h */,
-				BF20EA811EACB17600733D91 /* CXMLNode_XPathExtensions.m */,
-				BF20EA821EACB17600733D91 /* CXMLUnsupportedNode.h */,
-				BF20EA831EACB17600733D91 /* CXMLUnsupportedNode.m */,
-				BF20EA841EACB17600733D91 /* TouchXML.h */,
-			);
-			path = Source;
-			sourceTree = "<group>";
-		};
-		BF20EA941EACB21E00733D91 /* Creation */ = {
-			isa = PBXGroup;
-			children = (
-				BF20EA951EACB21E00733D91 /* CXMLDocument_CreationExtensions.h */,
-				BF20EA961EACB21E00733D91 /* CXMLDocument_CreationExtensions.m */,
-				BF20EA971EACB21E00733D91 /* CXMLNode_CreationExtensions.h */,
-				BF20EA981EACB21E00733D91 /* CXMLNode_CreationExtensions.m */,
-			);
-			path = Creation;
-			sourceTree = "<group>";
-		};
 		BF4DBB921CDF3130008F3A47 = {
 			isa = PBXGroup;
 			children = (
@@ -1322,23 +1223,24 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		BFAF730A1EAA8467005E7572 /* PowerAuthServerSOAP */ = {
+		BFAF730A1EAA8467005E7572 /* PowerAuthServer */ = {
 			isa = PBXGroup;
 			children = (
-				BF20EA6B1EACB17600733D91 /* TouchXML */,
-				BFAF73141EAA8AB9005E7572 /* SoapRequests.bundle */,
+				BF721C772A14E43900ACB2C9 /* RestEndpoints.bundle */,
 				BFD386651F2B6BE700F74FF9 /* PowerAuthTestServerConfig.h */,
 				BFD386661F2B6BE700F74FF9 /* PowerAuthTestServerConfig.m */,
 				BFAF730B1EAA84A2005E7572 /* PowerAuthTestServerAPI.h */,
 				BFAF730C1EAA84A2005E7572 /* PowerAuthTestServerAPI.m */,
 				BFAF730E1EAA84CA005E7572 /* PowerAuthTestServerModel.h */,
 				BFAF730F1EAA84CA005E7572 /* PowerAuthTestServerModel.m */,
-				BFAF73111EAA8986005E7572 /* SoapHelper.h */,
-				BFAF73121EAA8986005E7572 /* SoapHelper.m */,
+				BF721C7A2A14E54800ACB2C9 /* RestHelper.h */,
+				BF721C7B2A14E54800ACB2C9 /* RestHelper.m */,
+				BF721CBF2A14EB3400ACB2C9 /* RestEndpoint.h */,
+				BF721CC02A14EB3400ACB2C9 /* RestEndpoint.m */,
 				BF5184B61EBCCA9B0073E018 /* AsyncHelper.h */,
 				BF5184B71EBCCA9B0073E018 /* AsyncHelper.m */,
 			);
-			path = PowerAuthServerSOAP;
+			path = PowerAuthServer;
 			sourceTree = "<group>";
 		};
 		BFB47D5A20753628008A6A52 /* Dependencies */ = {
@@ -1779,6 +1681,7 @@
 						TestTargetID = BFC1926B27FAF603001455C1;
 					};
 					BF8CF47D2032EB41002A6B6E = {
+						LastSwiftMigration = 1430;
 						ProvisioningStyle = Automatic;
 					};
 					BFC1925427FAF28F001455C1 = {
@@ -1909,8 +1812,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF721C782A14E43900ACB2C9 /* RestEndpoints.bundle in Resources */,
 				BF667E8A28359C7C006E97F8 /* TestConfig in Resources */,
-				BF667E8B28359C7C006E97F8 /* SoapRequests.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1918,8 +1821,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF721C792A14E43900ACB2C9 /* RestEndpoints.bundle in Resources */,
 				BF667EB928359C93006E97F8 /* TestConfig in Resources */,
-				BF667EBA28359C93006E97F8 /* SoapRequests.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2066,31 +1969,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF667E6828359C7C006E97F8 /* CXMLNode_PrivateExtensions.m in Sources */,
 				BF667E6A28359C7C006E97F8 /* PowerAuthInvalidCurveTests.m in Sources */,
-				BF667E6B28359C7C006E97F8 /* SoapHelper.m in Sources */,
 				BF667E6C28359C7C006E97F8 /* PowerAuthTestServerConfig.m in Sources */,
-				BF667E6D28359C7C006E97F8 /* CXMLNode_XPathExtensions.m in Sources */,
 				BF97A72C28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
-				BF667E6E28359C7C006E97F8 /* CXMLUnsupportedNode.m in Sources */,
 				BF667E7028359C7C006E97F8 /* PowerAuthTestServerAPI.m in Sources */,
 				BF667E7128359C7C006E97F8 /* PowerAuthSdkTestHelper.m in Sources */,
-				BF667E7228359C7C006E97F8 /* CXMLDocument_PrivateExtensions.m in Sources */,
-				BF667E7328359C7C006E97F8 /* CXMLElement_ElementTreeExtensions.m in Sources */,
-				BF667E7528359C7C006E97F8 /* CXMLDocument.m in Sources */,
-				BF667E7728359C7C006E97F8 /* CXMLElement.m in Sources */,
+				BF721CC12A14EB3400ACB2C9 /* RestEndpoint.m in Sources */,
 				BF667E7828359C7C006E97F8 /* PowerAuthSDKDefaultTests.m in Sources */,
+				BF721C7C2A14E54800ACB2C9 /* RestHelper.m in Sources */,
 				BF667E7928359C7C006E97F8 /* PowerAuthTokenTests.m in Sources */,
 				BF667EC028359DF5006E97F8 /* PowerAuthTestServerModel.m in Sources */,
-				BF667E7A28359C7C006E97F8 /* CXMLDocument_CreationExtensions.m in Sources */,
 				BF667E7B28359C7C006E97F8 /* PowerAuthSDKProtocolUpgradeTests.m in Sources */,
-				BF667E7D28359C7C006E97F8 /* CXMLNamespaceNode.m in Sources */,
-				BF667E7E28359C7C006E97F8 /* CXHTMLDocument.m in Sources */,
-				BF667E7F28359C7C006E97F8 /* CXMLNode_CreationExtensions.m in Sources */,
 				BF667E8028359C7C006E97F8 /* PowerAuthConcurrencyTests.m in Sources */,
 				BF667E8228359C7C006E97F8 /* AsyncHelper.m in Sources */,
-				BF667E8328359C7C006E97F8 /* CXMLElement_CreationExtensions.m in Sources */,
-				BF667E8428359C7C006E97F8 /* CXMLNode.m in Sources */,
 				BF667E8528359C7C006E97F8 /* PowerAuthSDKSharedTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2099,31 +1990,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF667E9728359C93006E97F8 /* CXMLNode_PrivateExtensions.m in Sources */,
 				BF667E9928359C93006E97F8 /* PowerAuthInvalidCurveTests.m in Sources */,
-				BF667E9A28359C93006E97F8 /* SoapHelper.m in Sources */,
 				BF667E9B28359C93006E97F8 /* PowerAuthTestServerConfig.m in Sources */,
-				BF667E9C28359C93006E97F8 /* CXMLNode_XPathExtensions.m in Sources */,
 				BF97A72D28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */,
-				BF667E9D28359C93006E97F8 /* CXMLUnsupportedNode.m in Sources */,
 				BF667E9E28359C93006E97F8 /* PowerAuthTestServerModel.m in Sources */,
 				BF667E9F28359C93006E97F8 /* PowerAuthTestServerAPI.m in Sources */,
+				BF721CC22A14EB3400ACB2C9 /* RestEndpoint.m in Sources */,
 				BF667EA028359C93006E97F8 /* PowerAuthSdkTestHelper.m in Sources */,
-				BF667EA128359C93006E97F8 /* CXMLDocument_PrivateExtensions.m in Sources */,
-				BF667EA228359C93006E97F8 /* CXMLElement_ElementTreeExtensions.m in Sources */,
-				BF667EA428359C93006E97F8 /* CXMLDocument.m in Sources */,
-				BF667EA628359C93006E97F8 /* CXMLElement.m in Sources */,
+				BF721C7D2A14E54800ACB2C9 /* RestHelper.m in Sources */,
 				BF667EA728359C93006E97F8 /* PowerAuthSDKDefaultTests.m in Sources */,
 				BF667EA828359C93006E97F8 /* PowerAuthTokenTests.m in Sources */,
-				BF667EA928359C93006E97F8 /* CXMLDocument_CreationExtensions.m in Sources */,
 				BF667EAA28359C93006E97F8 /* PowerAuthSDKProtocolUpgradeTests.m in Sources */,
-				BF667EAC28359C93006E97F8 /* CXMLNamespaceNode.m in Sources */,
-				BF667EAD28359C93006E97F8 /* CXHTMLDocument.m in Sources */,
-				BF667EAE28359C93006E97F8 /* CXMLNode_CreationExtensions.m in Sources */,
 				BF667EAF28359C93006E97F8 /* PowerAuthConcurrencyTests.m in Sources */,
 				BF667EB128359C93006E97F8 /* AsyncHelper.m in Sources */,
-				BF667EB228359C93006E97F8 /* CXMLElement_CreationExtensions.m in Sources */,
-				BF667EB328359C93006E97F8 /* CXMLNode.m in Sources */,
 				BF667EB428359C93006E97F8 /* PowerAuthSDKSharedTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2341,6 +2220,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
 				TVOS_DEPLOYMENT_TARGET = 11.0;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
@@ -2401,6 +2281,7 @@
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
 				TVOS_DEPLOYMENT_TARGET = 11.0;
 				VALIDATE_PRODUCT = YES;
 				WATCHOS_DEPLOYMENT_TARGET = 2.0;
@@ -2410,7 +2291,6 @@
 		BF4DBCD61CDF9CDE008F3A47 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
@@ -2438,7 +2318,6 @@
 		BF4DBCD71CDF9CDE008F3A47 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
@@ -2591,7 +2470,6 @@
 		BF667E8D28359C7C006E97F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2609,7 +2487,6 @@
 					openssl,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-ios";
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Debug;
@@ -2617,7 +2494,6 @@
 		BF667E8E28359C7C006E97F8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_IDENTITY = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2635,7 +2511,6 @@
 					openssl,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-ios";
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-ios.app/PowerAuth2TestsHostApp-ios";
 			};
 			name = Release;
@@ -2661,7 +2536,6 @@
 					openssl,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
@@ -2688,7 +2562,6 @@
 					openssl,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "io.getlime.lib.PowerAuth2IntegrationTests-tvos";
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PowerAuth2TestsHostApp-tvos.app/PowerAuth2TestsHostApp-tvos";
 			};
@@ -2698,6 +2571,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
@@ -2723,6 +2597,7 @@
 				PRODUCT_NAME = PowerAuth2;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -2734,6 +2609,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";

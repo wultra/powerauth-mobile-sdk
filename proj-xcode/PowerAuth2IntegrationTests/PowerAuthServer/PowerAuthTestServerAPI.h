@@ -33,6 +33,11 @@
 @interface PowerAuthTestServerAPI : NSObject
 
 /**
+ Server's configuration.
+ */
+@property (nonatomic, readonly, strong) PowerAuthTestServerConfig * testServerConfig;
+
+/**
  Initializes a test server API object for given |testServerConfig|.
  */
 - (id) initWithConfiguration:(PowerAuthTestServerConfig*)testServerConfig;

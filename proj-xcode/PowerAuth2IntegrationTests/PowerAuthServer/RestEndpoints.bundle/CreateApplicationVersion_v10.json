@@ -1,0 +1,17 @@
+{
+    "path": "/rest/v3/application/version/create",
+    "parameters": [ 
+        "applicationId",
+        "applicationVersionName" 
+    ],
+    "response": {
+        "class": "PATSApplicationVersion",
+        "properties": {
+            "applicationVersionId":     { "class" : "string" },
+            "applicationVersionName":   { "class" : "string" },
+            "applicationKey":           { "class" : "string" },
+            "applicationSecret":        { "class" : "string" },
+            "supported":                { "class" : "bool"   }
+        }
+    }
+}

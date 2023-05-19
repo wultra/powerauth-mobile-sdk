@@ -26,11 +26,14 @@
 
 - (void) testEmptyObjectCreation
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+    // The usage of nil is intentional in this test, so we can safely ignore the warning.
     PowerAuthUserInfo * info = [[PowerAuthUserInfo alloc] initWithDictionary:nil];
     XCTAssertNil(info);
     PowerAuthUserAddress * address = [[PowerAuthUserAddress alloc] initWithDictionary:nil];
     XCTAssertNil(address);
-    
+#pragma clang diagnostic pop
     info = [[PowerAuthUserInfo alloc] initWithDictionary:@{}];
     XCTAssertNotNil(info);
     XCTAssertNil(info.subject);

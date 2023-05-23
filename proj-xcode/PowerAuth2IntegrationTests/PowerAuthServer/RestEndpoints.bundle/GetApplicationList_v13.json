@@ -1,0 +1,15 @@
+{
+    "path": "/rest/v3/application/list",
+    "parameters": [ ],
+    "response": {
+        "class": "array",
+        "path": "applications",
+        "arrayClass": { 
+            "class": "PATSApplication",
+            "properties": {
+                "applicationId":   { "class" : "string" },
+                "applicationName": { "class" : "string", "key" : "applicationId" }
+            }
+        }
+    }
+}

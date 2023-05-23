@@ -95,8 +95,8 @@
     // Print report
     NSLog(@"=======================================================================");
     NSLog(@"The protocol upgrade tests will run against following servers:");
-    NSLog(@"    REST API Server: %@", testServerConfig.restApiUrl);
-    NSLog(@"    SOAP API Server: %@", testServerConfig.soapApiUrl);
+    NSLog(@"    REST API Server: %@", testServerConfig.enrollmentUrl);
+    NSLog(@"    SOAP API Server: %@", testServerConfig.serverApiUrl);
     NSLog(@"               User: %@", testServerConfig.userIdentifier);
     if (_upgradeStep > 0) {
         NSLog(@"            Upgrade: %@ step, with protocol %@", _upgradeStep == 2 ? @"Validate" : @"Create", _upgradeProtocolVersion);

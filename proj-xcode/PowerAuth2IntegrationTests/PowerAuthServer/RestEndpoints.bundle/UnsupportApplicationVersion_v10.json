@@ -1,0 +1,13 @@
+{
+    "path": "/rest/v3/application/version/unsupport",
+    "parameters": [ 
+        "applicationVersionId" 
+    ],
+    "response": {
+        "class": "PATSApplicationVersionSupport",
+        "properties": {
+            "applicationVersionId": { "class" : "string" },
+            "supported":            { "class" : "bool" }
+        }
+    }
+}

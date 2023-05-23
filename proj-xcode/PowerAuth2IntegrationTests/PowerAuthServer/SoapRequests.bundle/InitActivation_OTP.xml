@@ -1,0 +1,11 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+   $HDR
+   <soapenv:Body>
+      <pow:InitActivationRequest>
+         <pow:userId>$1</pow:userId>
+         <pow:applicationId>$2</pow:applicationId>
+         <pow:activationOtpValidation>$3</pow:activationOtpValidation>
+         <pow:activationOtp>$4</pow:activationOtp>
+      </pow:InitActivationRequest>
+   </soapenv:Body>
+</soapenv:Envelope>

@@ -18,22 +18,16 @@
 
 /**
  The `PowerAuthTestServerVersion` defines version of PowerAuth SOAP API.
+ If you add some version here then please update `RestEndpoints.bundle/mappings.json`
  */
 typedef NS_ENUM(int, PowerAuthTestServerVersion) {
-    PATS_V0_18,     // V2 crypto
-    PATS_V0_21,     // V3 crypto
-    PATS_V0_22,     // V3 crypto + RC
-    PATS_V0_22_2,   // V3 crypto + RC + revoke RC on removeActivation
-    PATS_V0_23,     // V3.1 crypto
-    PATS_V0_23_2,   // V3.1 crypto + revoke RC on removeActivation
-    PATS_V0_24,     // V3.1 crypto + Activation OTP
-    PATS_V1_0,      // V3.1 crypto + Activation OTP
-    PATS_V1_1,      // V3.1 crypto + Activation OTP
-    PATS_V1_2,      // V3.1 crypto + Activation OTP
-    PATS_V1_2_5,    // V3.1 crypto + Activation OTP
-    PATS_V1_3,      // V3.1 crypto + Activation OTP, applicationId as String
-    PATS_V1_4,      // V3.1 crypto + Activation OTP, applicationId as String
-    PATS_V1_5,      // V3.1 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_0   = 10000,    // V3.1 crypto + Activation OTP
+    PATS_V1_1   = 10100,    // V3.1 crypto + Activation OTP
+    PATS_V1_2   = 10200,    // V3.1 crypto + Activation OTP
+    PATS_V1_2_5 = 10205,    // V3.1 crypto + Activation OTP
+    PATS_V1_3   = 10300,    // V3.1 crypto + Activation OTP, applicationId as String
+    PATS_V1_4   = 10400,    // V3.1 crypto + Activation OTP, applicationId as String
+    PATS_V1_5   = 10500,    // V3.1 crypto + Activation OTP, applicationId as String, userInfo
 };
 
 /**
@@ -59,24 +53,24 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
 /**
  String with URL to REST API
  */
-@property (nonatomic, strong, readonly) NSString * restApiUrl;
+@property (nonatomic, strong, readonly) NSString * enrollmentUrl;
 /**
  String with URL to SOAP API
  */
-@property (nonatomic, strong, readonly) NSString * soapApiUrl;
+@property (nonatomic, strong, readonly) NSString * serverApiUrl;
 /**
  If set, then WS-Security header will be added to SOAP requests.
  */
-@property (nonatomic, strong, readonly) NSString * soapAuthUsername;
+@property (nonatomic, strong, readonly) NSString * serverApiUsername;
 /**
  If set, then WS-Security header will be added to SOAP requests.
  */
-@property (nonatomic, strong, readonly) NSString * soapAuthPassword;
+@property (nonatomic, strong, readonly) NSString * serverApiPassword;
 /**
  String with version of SOAP API. "V2" & "V3" is expected in JSON config.
- "V2" is the default value.
+ "V2" is the default value. Loaded after the connection to server is established.
  */
-@property (nonatomic, assign, readonly) PowerAuthTestServerVersion soapApiVersion;
+@property (nonatomic, assign) PowerAuthTestServerVersion serverApiVersion;
 /**
  A name for application, which will be used on the PA2 server.
  Default value is @"AutomaticTest-IOS"
@@ -120,5 +114,10 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
  Creates a configuration from given JSON file.
  */
 + (instancetype) loadFromJsonFile:(NSString*)path;
+
+/**
+ Convert Server version into enumeration.
+ */
++ (PowerAuthTestServerVersion) apiVersionFromString:(NSString*)stringVersion;
 
 @end

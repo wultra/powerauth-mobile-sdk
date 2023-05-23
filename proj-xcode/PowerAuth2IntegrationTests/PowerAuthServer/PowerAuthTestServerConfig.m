@@ -23,12 +23,10 @@
 {
     NSDictionary * dict =
     @{
-      @"restApiUrl"           : @"http://localhost:8080/powerauth-webauth",
-      @"soapApiUrl"           : @"http://localhost:8080/powerauth-java-server/soap",
-      @"soapApiVersion"       : @"1.1",
-      @"powerAuthAppName"     : @"AutomaticTest-IOS",
-      @"powerAuthAppVersion"  : @"default"
-      
+        @"enrollmentUrl"        : @"http://localhost:8080/enrollment-server",
+        @"serverApiUrl"         : @"http://localhost:8080/powerauth-java-server",
+        @"powerAuthAppName"     : @"AutomaticTest-IOS",
+        @"powerAuthAppVersion"  : @"default"
     };
     return [self loadFromDictionary:dict];
 }
@@ -55,78 +53,53 @@
 
 PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
-    switch (serverVer) {
-        case PATS_V0_18:
-            return PATS_P2;
-        case PATS_V0_21:
-        case PATS_V0_22:
-        case PATS_V0_22_2:
-            return PATS_P3;
-        case PATS_V0_23:
-        case PATS_V0_23_2:
-        case PATS_V0_24:
-        case PATS_V1_0:
-        case PATS_V1_1:
-        case PATS_V1_2:
-        case PATS_V1_2_5:
-        case PATS_V1_3:
-        case PATS_V1_4:
-        case PATS_V1_5:
-            return PATS_P31;
-        default:
-            // Older versions, defaulting to V2
-            return PATS_P2;
-    }
+    return PATS_P31;
 }
 
-+ (PowerAuthTestServerVersion) soapApiVersionFromString:(NSString*)stringVersion
+static int s_KnownVersions[] = {
+    PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5,
+    0
+};
+
++ (PowerAuthTestServerVersion) apiVersionFromString:(NSString*)stringVersion
 {
-    static NSDictionary * versionMapping = nil;
-    if (versionMapping == nil) {
-        versionMapping = @{
-            @"0.18"   : @(PATS_V0_18),
-            @"0.19"   : @(PATS_V0_18),
-            @"0.20"   : @(PATS_V0_18),
-            @"0.21"   : @(PATS_V0_21),
-            @"0.22"   : @(PATS_V0_22),
-            @"0.22.1" : @(PATS_V0_22),
-            @"0.22.2" : @(PATS_V0_22_2),
-            @"0.23"   : @(PATS_V0_23),
-            @"0.23.1" : @(PATS_V0_23),
-            @"0.23.2" : @(PATS_V0_23_2),
-            @"0.24"   : @(PATS_V0_24),
-            @"1.0"    : @(PATS_V1_0),
-            @"1.1"    : @(PATS_V1_1),
-            @"1.2"    : @(PATS_V1_2),
-            @"1.2.5"  : @(PATS_V1_2_5),
-            @"1.3"    : @(PATS_V1_3),
-            @"1.4"    : @(PATS_V1_4),
-            @"1.5"    : @(PATS_V1_5),
-         };
-    }
+    NSString * snapshot = @"-SNAPSHOT";
+    NSString * ver = [stringVersion hasSuffix:snapshot] ? [stringVersion substringToIndex:stringVersion.length - snapshot.length] : stringVersion;
     // Remove "V" character from the beginning of the string.
-    NSString * ver = [stringVersion lowercaseString];
+    ver = [ver lowercaseString];
     if ([ver characterAtIndex:0] == 'v') {
         ver = [ver substringFromIndex:1];
     }
-    NSNumber * version = versionMapping[ver];
-    if (version) {
-        return [version intValue];
+    NSArray * components = [ver componentsSeparatedByString:@"."];
+    if (components.count < 2) {
+        @throw [NSException exceptionWithName:@"RestError" reason:[NSString stringWithFormat:@"Unknown server version %@", stringVersion] userInfo:nil];
     }
-    // Older versions, defaulting to 0.18
-    NSLog(@"%@: Unknown soapApiVersion '%@'. Defaulting to V0.18", [self class], stringVersion);
-    return PATS_V0_18;
+    NSNumber * major = components[0];
+    NSNumber * minor = components[1];
+    NSNumber * patch = components.count > 2 ? components[2] : nil;
+    int version = [major intValue] * 10000 + [minor intValue] * 100 + [patch intValue];
+    BOOL found = NO;
+    int idx = 0;
+    while (s_KnownVersions[idx]) {
+        if (s_KnownVersions[idx++] == version) {
+            found = YES;
+            break;
+        }
+    }
+    if (!found) {
+        NSLog(@"Server version %@ is not defined. The server may be compatible with this test implementation.", stringVersion);
+    }
+    return version;
 }
 
 + (instancetype) loadFromDictionary:(NSDictionary*)dict
 {
     PowerAuthTestServerConfig * instance = [[PowerAuthTestServerConfig alloc] init];
     if (instance) {
-        instance->_restApiUrl = dict[@"restApiUrl"];
-        instance->_soapApiUrl = dict[@"soapApiUrl"];
-        instance->_soapAuthUsername = dict[@"soapAuthUsername"];
-        instance->_soapAuthPassword = dict[@"soapAuthPassword"];
-        instance->_soapApiVersion = [self soapApiVersionFromString:dict[@"soapApiVersion"]];
+        instance->_enrollmentUrl = dict[@"enrollmentUrl"];
+        instance->_serverApiUrl = dict[@"serverApiUrl"];
+        instance->_serverApiUsername = dict[@"serverApiUsername"];
+        instance->_serverApiPassword = dict[@"serverApiPassword"];
         instance->_powerAuthAppName = dict[@"powerAuthAppName"];
         instance->_powerAuthAppVersion = dict[@"powerAuthAppVersion"];
         instance->_userIdentifier = dict[@"userIdentifier"];
@@ -142,15 +115,15 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 
 - (BOOL) validateAndFillOptionals
 {
-    if (!_soapApiUrl || !_restApiUrl) {
+    if (!_serverApiUrl || !_enrollmentUrl) {
         NSLog(@"%@: missing requred URLS.", [self class]);
         return NO;
     }
-    if (nil == [NSURL URLWithString:_restApiUrl]) {
+    if (nil == [NSURL URLWithString:_enrollmentUrl]) {
         NSLog(@"%@: restApiUrl is wrong.", [self class]);
         return NO;
     }
-    if (nil == [NSURL URLWithString:_soapApiUrl]) {
+    if (nil == [NSURL URLWithString:_serverApiUrl]) {
         NSLog(@"%@: soapApiUrl is wrong.", [self class]);
         return NO;
     }

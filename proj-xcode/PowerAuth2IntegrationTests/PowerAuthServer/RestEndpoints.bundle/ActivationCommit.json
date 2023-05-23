@@ -1,0 +1,11 @@
+{
+    "path": "/rest/v3/activation/commit",
+    "parameters": [ 
+        "activationId",
+        "externalUserId",
+        "activationOtp"
+    ],
+    "response": {
+        "class": "dictionary"
+    }
+}

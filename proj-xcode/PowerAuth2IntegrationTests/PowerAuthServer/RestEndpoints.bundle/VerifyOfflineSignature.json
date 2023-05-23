@@ -1,0 +1,19 @@
+{
+    "path": "/rest/v3/signature/offline/verify",
+    "parameters": [
+        "activationId",
+        "data",
+        "signature",
+        "allowBiometry"
+    ],
+    "response": {
+        "class": "PATSVerifySignatureResponse",
+        "properties": {
+            "activationId":         { "class" : "string" },
+            "userId":               { "class" : "string" },
+            "activationStatus":     { "class" : "string" },
+            "remainingAttempts":    { "class" : "int" },
+            "signatureValid":       { "class" : "bool" }
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "path": "/rest/v3/signature/verify",
+    "parameters": [
+        "activationId",
+        "applicationKey",
+        "data",
+        "signature",
+        "signatureType",
+        "signatureVersion",
+        "forcedSignatureVersion"
+    ],
+    "response": {
+        "class": "PATSVerifySignatureResponse",
+        "properties": {
+            "activationId":         { "class" : "string" },
+            "userId":               { "class" : "string" },
+            "activationStatus":     { "class" : "string" },
+            "remainingAttempts":    { "class" : "int" },
+            "signatureValid":       { "class" : "bool" }
+        }
+    }
+}

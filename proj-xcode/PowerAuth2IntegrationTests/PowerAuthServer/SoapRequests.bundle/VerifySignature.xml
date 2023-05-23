@@ -1,0 +1,13 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+	$HDR
+	<soapenv:Body>
+		<pow:VerifySignatureRequest>
+			<pow:activationId>$1</pow:activationId>
+			<pow:applicationKey>$2</pow:applicationKey>
+			<pow:data>$3</pow:data>
+			<pow:signature>$4</pow:signature>
+			<pow:signatureType>$5</pow:signatureType>
+			<pow:signatureVersion>$6</pow:signatureVersion>
+		</pow:VerifySignatureRequest>
+	</soapenv:Body>
+</soapenv:Envelope>

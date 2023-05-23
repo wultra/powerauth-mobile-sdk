@@ -1,0 +1,8 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pow="$XMLNS">
+   $HDR
+   <soapenv:Body>
+      <pow:BlockActivationRequest>
+         <pow:activationId>$1</pow:activationId>
+      </pow:BlockActivationRequest>
+   </soapenv:Body>
+</soapenv:Envelope>

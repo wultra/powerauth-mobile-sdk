@@ -1,0 +1,14 @@
+{
+    "path": "/rest/v3/signature/offline/personalized/create",
+    "parameters": [
+        "activationId",
+        "data"
+    ],
+    "response": {
+        "class": "PATSOfflineSignaturePayload",
+        "properties": {
+            "offlineData":  { "class" : "string" },
+            "nonce":        { "class" : "string" }
+        }
+    }
+}

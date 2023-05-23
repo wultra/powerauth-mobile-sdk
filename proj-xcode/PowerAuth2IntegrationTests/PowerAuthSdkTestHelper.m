@@ -71,8 +71,8 @@ static NSString * PA_Ver = @"3.1";
 {
     NSLog(@"=======================================================================");
     NSLog(@"The integration tests will run against following servers:");
-    NSLog(@"    REST API Server: %@", _testServerConfig.restApiUrl);
-    NSLog(@"    SOAP API Server: %@", _testServerConfig.soapApiUrl);
+    NSLog(@"    REST API Server: %@", _testServerConfig.enrollmentUrl);
+    NSLog(@"    SOAP API Server: %@", _testServerConfig.serverApiUrl);
     NSLog(@"               User: %@", _testServerConfig.userIdentifier);
     NSLog(@"=======================================================================");
 }
@@ -122,7 +122,7 @@ static NSString * PA_Ver = @"3.1";
     }
     PowerAuthConfiguration *config = [[PowerAuthConfiguration alloc] init];
     config.instanceId = @"IntegrationTests";
-    config.baseEndpointUrl = testConfig.restApiUrl;
+    config.baseEndpointUrl = testConfig.enrollmentUrl;
     config.appKey = testServerApi.appVersion.applicationKey;
     config.appSecret = testServerApi.appVersion.applicationSecret;
     config.masterServerPublicKey = testServerApi.appDetail.masterPublicKey;

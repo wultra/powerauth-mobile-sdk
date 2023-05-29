@@ -26,10 +26,21 @@ using namespace io::getlime::powerAuth;
     SessionSetup _setup;
 }
 
-+ (BOOL) validateConfiguration:(nonnull NSString*)configuration
++ (BOOL) validateConfiguration:(NSString*)configuration
 {
     SessionSetup setup;
     return setup.loadFromConfiguration(cc7::objc::CopyFromNSString(configuration));
+}
+
++ (NSString*) buildConfiguration:(NSString*)appKey
+                       appSecret:(NSString*)appSecret
+                       publicKey:(NSString*)publicKey
+{
+    SessionSetup setup;
+    setup.applicationKey = cc7::objc::CopyFromNSString(appKey);
+    setup.applicationSecret = cc7::objc::CopyFromNSString(appSecret);
+    setup.masterServerPublicKey = cc7::objc::CopyFromNSString(publicKey);
+    return cc7::objc::CopyToNSString(setup.saveConfiguration());
 }
 
 - (id) initWithConfiguration:(NSString *)configuration

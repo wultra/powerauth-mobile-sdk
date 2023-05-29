@@ -35,4 +35,13 @@ public class SessionSetupTest {
         assertFalse(SessionSetup.validateConfiguration(""));
         assertFalse(SessionSetup.validateConfiguration(null));
     }
+
+    @Test
+    public void testConfigBuilder() throws Exception {
+        String appKey = "w4+hAeogFLTZjcSjPwbG2g==";
+        String appSecret = "Szls/7JWbKN+FAOijHcsPA==";
+        String publicKey = "BEEOwljSgItBIAnzr3f7K36s+KKoUzC8LE+K+7Dy0X6iAkcPXAjLP1KKPxdqyM/iihHAcW5x/WzJPCbtytcJo2w=";
+        String config = SessionSetup.buildConfiguration(appKey, appSecret, publicKey);
+        assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", config);
+    }
 }

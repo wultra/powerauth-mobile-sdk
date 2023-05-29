@@ -75,8 +75,18 @@ public class SessionSetup {
 
     /**
      * Validates whether string with the cryptographic configuration is correct.
-     * @param configuration String with simplified configuration.
+     * @param configuration String with the cryptographic configuration.
      * @return true if configuration is formally correct (e.g. can be processed by SDK)
      */
     static native boolean validateConfiguration(String configuration);
+
+    /**
+     * Build configuration string from partial parameters. The method is useful for other projects,
+     * such as React-Native wrapper, to temporarily support old way of SDK configuration.
+     * @param appKey Application's key.
+     * @param appSecret Application's secret.
+     * @param publicKey Application's master server public key.
+     * @return String with the cryptographic configuration.
+     */
+    static native String buildConfiguration(String appKey, String appSecret, String publicKey);
 }

@@ -18,6 +18,7 @@
 #include <cc7/Base64.h>
 #include "protocol/Constants.h"
 #include "utils/DataReader.h"
+#include "utils/DataWriter.h"
 
 namespace io
 {
@@ -70,6 +71,18 @@ namespace powerAuth
         applicationSecret = app_secret.base64String();
         masterServerPublicKey = p256key.base64String();
         return true;
+    }
+
+    std::string SessionSetup::saveConfiguration() const
+    {
+        auto writer = utils::DataWriter();
+        writer.writeByte(CONFIG_VER);
+        writer.writeData(cc7::FromBase64String(applicationKey));
+        writer.writeData(cc7::FromBase64String(applicationSecret));
+        writer.writeCount(1);
+        writer.writeByte(P256_KEY_ID);
+        writer.writeData(cc7::FromBase64String(masterServerPublicKey));
+        return writer.serializedData().base64String();
     }
 
     //

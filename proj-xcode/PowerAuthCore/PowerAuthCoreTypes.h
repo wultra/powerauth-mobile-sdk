@@ -33,6 +33,15 @@
 + (BOOL) validateConfiguration:(nonnull NSString*)configuration;
 
 /**
+ Build configuration string from partial parameters. The method is useful for other projects,
+ such as React-Native wrapper, to temporarily support old way of SDK configuration.
+ */
++ (nonnull NSString*) buildConfiguration:(nonnull NSString*)appKey
+                               appSecret:(nonnull NSString*)appSecret
+                               publicKey:(nonnull NSString*)publicKey
+            NS_SWIFT_NAME(buildConfiguration(appKey:appSecret:publicKey:));
+
+/**
  Init object with the cryptographic configuration.
  */
 - (nullable instancetype) initWithConfiguration:(nonnull NSString*)configuration;

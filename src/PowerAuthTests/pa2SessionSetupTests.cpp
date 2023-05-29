@@ -54,6 +54,9 @@ namespace powerAuthTests
             ccstAssertEqual("w4+hAeogFLTZjcSjPwbG2g==", setup.applicationKey);
             ccstAssertEqual("Szls/7JWbKN+FAOijHcsPA==", setup.applicationSecret);
             ccstAssertEqual("BEEOwljSgItBIAnzr3f7K36s+KKoUzC8LE+K+7Dy0X6iAkcPXAjLP1KKPxdqyM/iihHAcW5x/WzJPCbtytcJo2w=", setup.masterServerPublicKey);
+            
+            auto generated = setup.saveConfiguration();
+            ccstAssertEqual(config, generated);
         }
         
         void testGeneratedVectors()

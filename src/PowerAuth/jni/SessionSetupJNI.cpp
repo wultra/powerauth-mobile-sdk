@@ -37,4 +37,16 @@ CC7_JNI_METHOD_PARAMS(jboolean, validateConfiguration, jstring configuration)
     return cppSetup.loadFromConfiguration(cc7::jni::CopyFromJavaString(env, configuration));
 }
 
+//
+// static native String buildConfiguration(String appKey, String appSecret, String publicKey)
+//
+CC7_JNI_METHOD_PARAMS(jstring, buildConfiguration, jstring appKey, jstring appSecret, jstring publicKey)
+{
+    SessionSetup cppSetup;
+    cppSetup.applicationKey = cc7::jni::CopyFromJavaString(env, appKey);
+    cppSetup.applicationSecret = cc7::jni::CopyFromJavaString(env, appSecret);
+    cppSetup.masterServerPublicKey = cc7::jni::CopyFromJavaString(env, publicKey);
+    return cc7::jni::CopyToJavaString(env, cppSetup.saveConfiguration());
+}
+
 CC7_JNI_MODULE_CLASS_END()

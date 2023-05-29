@@ -78,6 +78,11 @@ namespace powerAuth
          Fill basic parameters to SessionSetup structure from provided Base64 string.
          */
         bool loadFromConfiguration(const std::string & config);
+        
+        /**
+         Save partial parameters to the simplified configuration.
+         */
+        std::string saveConfiguration() const;
     };
     
     /**

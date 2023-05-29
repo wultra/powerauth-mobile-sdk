@@ -304,9 +304,7 @@ public class PowerAuthTestHelper {
             PowerAuthConfiguration.Builder builder = new PowerAuthConfiguration.Builder(
                     null,
                     testConfig.getRestApiUrl(),
-                    sharedApplicationVersion.getApplicationKey(),
-                    sharedApplicationVersion.getApplicationSecret(),
-                    sharedApplication.getMasterPublicKey());
+                    sharedApplicationVersion.getMobileSdkConfig());
             if (configurationObserver != null) {
                 configurationObserver.adjustPowerAuthConfiguration(builder);
             }

@@ -39,7 +39,11 @@ struct ContentView_Previews: PreviewProvider {
 /// Please revert your changes in this file before you commit & push
 /// the rest of your work into the repository.
 fileprivate func dummyFunction() {
-    let config = PowerAuthConfiguration()
+    let config = PowerAuthConfiguration(
+        instanceId: Bundle.main.bundleIdentifier!,
+        baseEndpointUrl: "https://wultra.com",
+        configuration: "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
     let sdk = PowerAuthSDK(configuration: config)!
     _ = sdk.hasBiometryFactor()
+    
 }

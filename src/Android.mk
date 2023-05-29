@@ -98,6 +98,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2ProtocolUtilsTests.cpp \
 	PowerAuthTests/pa2RecoveryCodeTests.cpp \
 	PowerAuthTests/pa2SessionTests.cpp \
+	PowerAuthTests/pa2SessionSetupTests.cpp \
 	PowerAuthTests/pa2SignatureCalculationTests.cpp \
 	PowerAuthTests/pa2SignatureKeysDerivationTest.cpp \
 	PowerAuthTests/pa2PublicKeyFingerprintTests.cpp \
@@ -140,6 +141,7 @@ LOCAL_C_INCLUDES := \
 # JNI sources
 LOCAL_SRC_FILES := \
 	PowerAuth/jni/SessionJNI.cpp \
+	PowerAuth/jni/SessionSetupJNI.cpp \
 	PowerAuth/jni/PasswordJNI.cpp \
 	PowerAuth/jni/ActivationCodeUtilJNI.cpp \
 	PowerAuth/jni/ECIESEncryptorJNI.cpp \

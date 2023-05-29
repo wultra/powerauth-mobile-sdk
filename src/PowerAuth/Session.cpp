@@ -47,10 +47,10 @@ namespace powerAuth
         _ad(nullptr)
     {
         if (protocol::ValidateSessionSetup(_setup, false)) {
-            CC7_LOG("Session %p, %d: Object created.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Object created.", this);
         } else {
             _state = SS_Invalid;
-            CC7_LOG("Session %p, %d: Object created, but SessionSetup is invalid!", this, sessionIdentifier());
+            CC7_LOG("Session %p: Object created, but SessionSetup is invalid!", this);
         }
     }
     
@@ -59,7 +59,7 @@ namespace powerAuth
         delete _pd;
         delete _ad;
         
-        CC7_LOG("Session %p, %d: Object destroyed.", this, sessionIdentifier());
+        CC7_LOG("Session %p: Object destroyed.", this);
     }
     
     void Session::resetSession()
@@ -74,13 +74,11 @@ namespace powerAuth
         return hasValidSetup() ? &_setup : nullptr;
     }
     
-    cc7::U32 Session::sessionIdentifier() const
+    std::string Session::applicationKey() const
     {
         LOCK_GUARD();
-        return hasValidSetup() ? _setup.sessionIdentifier : 0;
+        return hasValidSetup() ? _setup.applicationKey : std::string();
     }
-    
-    
     
     // MARK: - State probing -
     
@@ -232,7 +230,7 @@ namespace powerAuth
                 result = protocol::CalculateActivationFingerprint(_pd->devicePublicKey, _pd->serverPublicKey, _pd->activationId, _pd->protocolVersion());
             }
             if (result.empty()) {
-                CC7_LOG("Session %p, %d: ActivationFingerprint: Unable to calculate activation fingerprint.", this, sessionIdentifier());
+                CC7_LOG("Session %p: ActivationFingerprint: Unable to calculate activation fingerprint.", this);
             }
         }
         return result;
@@ -243,17 +241,17 @@ namespace powerAuth
         LOCK_GUARD();
         // Validate state & parameters
         if (!hasValidSetup()) {
-            CC7_LOG("Session %p, %d: Step 1: Session has no valid setup.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 1: Session has no valid setup.", this);
             return EC_WrongState;
         }
         if (!canStartActivation()) {
-            CC7_LOG("Session %p, %d: Step 1: Called in wrong state.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 1: Called in wrong state.", this);
             return EC_WrongState;
         }
         if (!param.activationCode.empty()) {
             // If activation code is present, then check whether CRC16 checksum is OK
             if (!OtpUtil::validateActivationCode(param.activationCode)) {
-                CC7_LOG("Session %p, %d: Step 1: Wrong activation code.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 1: Wrong activation code.", this);
                 return EC_WrongParam;
             }
         }
@@ -267,11 +265,11 @@ namespace powerAuth
             // Import master server public key & try to validate OTP+ShortID signature
             ad->masterServerPublicKey = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
             if (nullptr == ad->masterServerPublicKey) {
-                CC7_LOG("Session %p, %d: Step 1: Master server public key is invalid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 1: Master server public key is invalid.", this);
                 break;
             }
             if (!protocol::ValidateActivationCodeSignature(param.activationCode, param.activationSignature, ad->masterServerPublicKey)) {
-                CC7_LOG("Session %p, %d: Step 1: Invalid OTP+ShortID signature.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 1: Invalid OTP+ShortID signature.", this);
                 break;
             }
             
@@ -281,12 +279,12 @@ namespace powerAuth
             // Generate device's private & public key pair
             ad->devicePrivateKey = crypto::ECC_GenerateKeyPair();
             if (nullptr == ad->devicePrivateKey) {
-                CC7_LOG("Session %p, %d: Step 1: Private key pair generator failed.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 1: Private key pair generator failed.", this);
                 break;
             }
             ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey, ctx);
             if (ad->devicePublicKeyData.empty()) {
-                CC7_LOG("Session %p, %d: Step 1: Unable to export public key.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 1: Unable to export public key.", this);
                 break;
             }
             
@@ -315,13 +313,13 @@ namespace powerAuth
         LOCK_GUARD();
         // Validate state & parameters
         if (!hasPendingActivation() || _state != SS_Activation1) {
-            CC7_LOG("Session %p, %d: Step 2: Called in wrong state.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 2: Called in wrong state.", this);
             return EC_WrongState;
         }
         if (param.activationId.empty() ||
             param.serverPublicKey.empty() ||
             param.ctrData.empty()) {
-            CC7_LOG("Session %p, %d: Step 2: Missing input parameter.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 2: Missing input parameter.", this);
             return EC_WrongParam;
         }
         
@@ -329,20 +327,20 @@ namespace powerAuth
         do {
             // Validate (optional) recovery data
             if (!protocol::ValidateRecoveryData(param.activationRecovery)) {
-                CC7_LOG("Session %p, %d: Step 2: Invalid recovery data.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 2: Invalid recovery data.", this);
                 return EC_WrongParam;
             }
             // Validate CTR_DATA
             if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
                 // Note that we treat all B64 decode failures as an encryption error.
-                CC7_LOG("Session %p, %d: Step 2: CTR_DATA is invalid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 2: CTR_DATA is invalid.", this);
                 break;
             }
             // Now try to import server's public key
             _ad->serverPublicKeyData.readFromBase64String(param.serverPublicKey);
             _ad->serverPublicKey = crypto::ECC_ImportPublicKey(nullptr, _ad->serverPublicKeyData);
             if (!_ad->serverPublicKey) {
-                CC7_LOG("Session %p, %d: Step 2: Server's public key is not valid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 2: Server's public key is not valid.", this);
                 break;
             }
 
@@ -350,13 +348,13 @@ namespace powerAuth
             _ad->masterSharedSecret = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(_ad->serverPublicKey, _ad->devicePrivateKey));
             if (_ad->masterSharedSecret.size() != protocol::SIGNATURE_KEY_SIZE) {
                 // Shared secret calculation failed. Probably on an allocation failure.
-                CC7_LOG("Session %p, %d: Step 2: Shared secret calculation failed.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 2: Shared secret calculation failed.", this);
                 break;
             }
             // So far so good, the last step is decimalization of device's public key
             result.activationFingerprint = protocol::CalculateActivationFingerprint(_ad->devicePublicKeyData, _ad->serverPublicKeyData, param.activationId, Version_Latest);
             if (result.activationFingerprint.empty()) {
-                CC7_LOG("Session %p, %d: Step 2: Unable to calculate activation fingerprint.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 2: Unable to calculate activation fingerprint.", this);
                 break;
             }
             
@@ -383,11 +381,11 @@ namespace powerAuth
         LOCK_GUARD();
         // Validate state & parameters
         if (!hasPendingActivation() || _state != SS_Activation2) {
-            CC7_LOG("Session %p, %d: Step 3: Called in wrong state.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 3: Called in wrong state.", this);
             return EC_WrongState;
         }
         if (!protocol::ValidateUnlockKeys(keys, eek(), protocol::SF_FirstLock)) {
-            CC7_LOG("Session %p, %d: Step 3: Wrong signature protection keys.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Step 3: Wrong signature protection keys.", this);
             return EC_WrongParam;
         }
         auto error_code = EC_Encryption;
@@ -412,33 +410,33 @@ namespace powerAuth
             protocol::SignatureKeys plain_keys;
             cc7::ByteArray vault_key;
             if (!protocol::DeriveAllSecretKeys(plain_keys, vault_key, _ad->masterSharedSecret)) {
-                CC7_LOG("Session %p, %d: Step 3: Unable to derive secret keys.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Unable to derive secret keys.", this);
                 break;
             }
             protocol::SignatureUnlockKeysReq lock_request(protocol::SF_FirstLock, &keys, eek(), &pd->passwordSalt, pd->passwordIterations);
             if (!protocol::LockSignatureKeys(pd->sk, plain_keys, lock_request)) {
-                CC7_LOG("Session %p, %d: Step 3: Unable to protect secret keys.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Unable to protect secret keys.", this);
                 break;
             }
             
             cc7::ByteArray device_private_key_data = crypto::ECC_ExportPrivateKey(_ad->devicePrivateKey);
             if (device_private_key_data.empty()) {
-                CC7_LOG("Session %p, %d: Step 3: Device private key export failed.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Device private key export failed.", this);
                 break;
             }
             pd->cDevicePrivateKey = crypto::AES_CBC_Encrypt_Padding(vault_key, protocol::ZERO_IV, device_private_key_data);
             if (pd->cDevicePrivateKey.empty()) {
-                CC7_LOG("Session %p, %d: Step 3: Unable to encrypt device private key.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Unable to encrypt device private key.", this);
                 break;
             }
             if (!protocol::SerializeRecoveryData(_ad->recoveryData, vault_key, pd->cRecoveryData)) {
-                CC7_LOG("Session %p, %d: Step 3: Unable to encrypt recovery data.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Unable to encrypt recovery data.", this);
                 break;
             }
             
             // Final step is PD validation. If this step fails, then there's an internal problem.
             if (!protocol::ValidatePersistentData(*pd)) {
-                CC7_LOG("Session %p, %d: Step 3: Persistent data is invalid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Step 3: Persistent data is invalid.", this);
                 break;
             }
             
@@ -465,17 +463,17 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: Status: Called in wrong state.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Status: Called in wrong state.", this);
             return EC_WrongState;
         }
         if (enc_status.challenge.empty() || enc_status.encryptedStatusBlob.empty() || enc_status.nonce.empty()) {
-            CC7_LOG("Session %p, %d: Status: All parameters are required in EncryptedActivationStatus.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Status: All parameters are required in EncryptedActivationStatus.", this);
             return EC_WrongParam;
         }
         protocol::SignatureKeys signature_keys;
         protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), nullptr, 0);
         if (!protocol::UnlockSignatureKeys(signature_keys, _pd->sk, unlock_request)) {
-            CC7_LOG("Session %p, %d: Status: You have to provide valid possession key.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Status: You have to provide valid possession key.", this);
             return EC_WrongParam;
         }
         // Decode blob from B64 string
@@ -601,21 +599,21 @@ namespace powerAuth
         LOCK_GUARD();
         // Validate session's state & parameters
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: Sign: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Sign: There's no valid activation.", this);
             return EC_WrongState;
         }
         if (!request.hasValidData()) {
-            CC7_LOG("Session %p, %d: Sign: Wrong request data.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Sign: Wrong request data.", this);
             return EC_WrongParam;
         }
         out.factor = protocol::ConvertSignatureFactorToString(signature_factor);
         if (out.factor.empty()) {
-            CC7_LOG("Session %p, %d: Sign: Wrong signature factor 0x%04x.", this, sessionIdentifier(), signature_factor);
+            CC7_LOG("Session %p: Sign: Wrong signature factor 0x%04x.", this, signature_factor);
             return EC_WrongParam;
         }
         // Check combination of offlineNonce & vaultUnlock.
         if (request.isOfflineRequest() && hasPendingProtocolUpgrade()) {
-            CC7_LOG("Session %p, %d: Sign: Offline signature is not available during the pending protocol upgrade.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Sign: Offline signature is not available during the pending protocol upgrade.", this);
             return EC_WrongState;
         }
         
@@ -629,7 +627,7 @@ namespace powerAuth
             out.nonce = nonce.base64String();
         } else {
             if (!cc7::Base64_Decode(request.offlineNonce, 0, nonce)) {
-                CC7_LOG("Session %p, %d: Sign: request.offlineNonce is invalid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: Sign: request.offlineNonce is invalid.", this);
                 return EC_Encryption;
             }
             out.nonce = request.offlineNonce;   // already in valid Base64 format
@@ -639,7 +637,7 @@ namespace powerAuth
         protocol::SignatureKeys plain_keys;
         protocol::SignatureUnlockKeysReq unlock_request(signature_factor, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
         if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
-            CC7_LOG("Session %p, %d: Sign: Unable to unlock signature keys.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Sign: Unable to unlock signature keys.", this);
             return EC_Encryption;
         }
         
@@ -650,7 +648,7 @@ namespace powerAuth
         const bool base64_sig_format = !request.isOfflineRequest() && _pd->isV3();
         out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, base64_sig_format, request.offlineSignatureLength);
         if (out.signature.empty()) {
-            CC7_LOG("Session %p, %d: Sign: Signature calculation failed.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Sign: Signature calculation failed.", this);
             return EC_Encryption;
         }
         
@@ -674,16 +672,16 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidSetup()) {
-            CC7_LOG("Session %p, %d: ServerSig: Session has no valid setup.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ServerSig: Session has no valid setup.", this);
             return EC_WrongState;
         }
         bool use_master_server_key = data.signingKey == SignedData::ECDSA_MasterServerKey;
         if (!use_master_server_key && !hasValidActivation()) {
-            CC7_LOG("Session %p, %d: ServerSig: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ServerSig: There's no valid activation.", this);
             return EC_WrongState;
         }
         if (data.signature.empty()) {
-            CC7_LOG("Session %p, %d: ServerSig: The signature is empty.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ServerSig: The signature is empty.", this);
             return EC_WrongParam;
         }
         // Import public key
@@ -702,7 +700,7 @@ namespace powerAuth
             success = crypto::ECDSA_ValidateSignature(data.data, data.signature, ec_public_key);
             //
         } else {
-            CC7_LOG("Session %p, %d: ServerSig: %s public key is invalid.", this, sessionIdentifier(), use_master_server_key ? "Master server" : "Server");
+            CC7_LOG("Session %p: ServerSig: %s public key is invalid.", this, use_master_server_key ? "Master server" : "Server");
         }
         // Free allocated OpenSSL resources
         EC_KEY_free(ec_public_key);
@@ -716,7 +714,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: PasswordChange: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: PasswordChange: There's no valid activation.", this);
             return EC_WrongState;
         }
         
@@ -756,7 +754,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (keys.biometryUnlockKey.empty()) {
-            CC7_LOG("Session %p, %d: addBiometryKey: The required biometryUnlockKey is missing.", this, sessionIdentifier());
+            CC7_LOG("Session %p: addBiometryKey: The required biometryUnlockKey is missing.", this);
             return EC_WrongParam;
         }
         
@@ -766,7 +764,7 @@ namespace powerAuth
             return code;
         }
         if (!_pd->sk.biometryKey.empty()) {
-            CC7_LOG("Session %p, %d: WARNING: There's already an existing biometry key.", this, sessionIdentifier());
+            CC7_LOG("Session %p: WARNING: There's already an existing biometry key.", this);
         }
 
         // Ok, we have vault key and now we can decrypt stored device's private key.
@@ -820,7 +818,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: hasBiometryFactor: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: hasBiometryFactor: There's no valid activation.", this);
             hasBiometryFactor = false;
             return EC_WrongState;
         }
@@ -832,11 +830,11 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: removeBiometryKey: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: removeBiometryKey: There's no valid activation.", this);
             return EC_WrongState;
         }
         if (_pd->sk.biometryKey.empty()) {
-            CC7_LOG("Session %p, %d: WARNING: The biometry key is not available.", this, sessionIdentifier());
+            CC7_LOG("Session %p: WARNING: The biometry key is not available.", this);
         }
 
         // Clear encrypted biometry key and reset waiting for vault flag.
@@ -904,27 +902,27 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: Vault: There's no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Vault: There's no valid activation.", this);
             return EC_WrongState;
         }
 
         // Check if there's encrypted vault key and if yes, try to decode from B64
         if (c_vault_key.empty()) {
-            CC7_LOG("Session %p, %d: Vault: Missing encrypted vault key.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Vault: Missing encrypted vault key.", this);
             return EC_WrongParam;
         }
         cc7::ByteArray encrypted_vault_key;
         bool bResult = encrypted_vault_key.readFromBase64String(c_vault_key);
         if (!bResult || encrypted_vault_key.empty()) {
             // Treat wrong B64 format as attack on the protocol.
-            CC7_LOG("Session %p, %d: Vault: The provided vault key is wrong.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Vault: The provided vault key is wrong.", this);
             return EC_Encryption;
         }
         // Unlock transport key
         protocol::SignatureKeys plain;
         protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), nullptr, 0);
         if (false == protocol::UnlockSignatureKeys(plain, _pd->sk, unlock_request)) {
-            CC7_LOG("Session %p, %d: Vault: You have to provide possession key.", this, sessionIdentifier());
+            CC7_LOG("Session %p: Vault: You have to provide possession key.", this);
             return EC_WrongParam;
         }
         // V3: Vault key is now simply encrypted with KEY_TRANSPORT
@@ -968,13 +966,13 @@ namespace powerAuth
             if (_setup.externalEncryptionKey == eek) {
                 return EC_Ok;
             }
-            CC7_LOG("Session %p, %d: EEK: Setting different EEK is not allowed.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: Setting different EEK is not allowed.", this);
         } else {
             if (hasValidActivation()) {
                 // If session is activated, then we can check whether the EEK is really used or not.
                 if (!_pd->flags.usesExternalKey) {
                     // Setting EEK while session doesn't use it is invalid. You'll not able to sign data anymore.
-                    CC7_LOG("Session %p, %d: EEK: Activated session doesn't use EEK.", this, sessionIdentifier());
+                    CC7_LOG("Session %p: EEK: Activated session doesn't use EEK.", this);
                     return EC_WrongState;
                 }
             }
@@ -983,10 +981,10 @@ namespace powerAuth
                     _setup.externalEncryptionKey = eek;
                     return EC_Ok;
                 } else {
-                    CC7_LOG("Session %p, %d: EEK: Wrong size of EEK.", this, sessionIdentifier());
+                    CC7_LOG("Session %p: EEK: Wrong size of EEK.", this);
                 }
             } else {
-                CC7_LOG("Session %p, %d: EEK: Session has EEK but is already invalid.", this, sessionIdentifier());
+                CC7_LOG("Session %p: EEK: Session has EEK but is already invalid.", this);
             }
         }
         return EC_WrongParam;
@@ -996,15 +994,15 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: EEK: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: Session has no valid activation.", this);
             return EC_WrongState;
         }
         if (_pd->flags.usesExternalKey) {
-            CC7_LOG("Session %p, %d: EEK: Session is already using EEK.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: Session is already using EEK.", this);
             return EC_WrongState;
         }
         if (eek.size() != protocol::SIGNATURE_KEY_SIZE) {
-            CC7_LOG("Session %p, %d: EEK: The provided key has wrong size.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: The provided key has wrong size.", this);
             return EC_WrongParam;
         }
         // Add EEK protection
@@ -1020,15 +1018,15 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: EEK: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: Session has no valid activation.", this);
             return EC_WrongState;
         }
         if (!_pd->flags.usesExternalKey) {
-            CC7_LOG("Session %p, %d: EEK: Session is not using EEK.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: Session is not using EEK.", this);
             return EC_WrongState;
         }
         if (!hasExternalEncryptionKey()) {
-            CC7_LOG("Session %p, %d: EEK: The EEK is not set.", this, sessionIdentifier());
+            CC7_LOG("Session %p: EEK: The EEK is not set.", this);
             return EC_WrongState;
         }
         // Remove EEK protection
@@ -1056,7 +1054,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidSetup()) {
-            CC7_LOG("Session %p, %d: ECIES: Session has no valid setup.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ECIES: Session has no valid setup.", this);
             return EC_WrongState;
         }
         // Other parameters for ECIES encryptor
@@ -1074,14 +1072,14 @@ namespace powerAuth
             // For the "activation" scope, we need to at first validate whether there's
             // some activation.
             if (!hasValidActivation()) {
-                CC7_LOG("Session %p, %d: ECIES: Session has no valid activation.", this, sessionIdentifier());
+                CC7_LOG("Session %p: ECIES: Session has no valid activation.", this);
                 return EC_WrongState;
             }
             // Acquire the transport key
             protocol::SignatureKeys plain_keys;
             protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), &_pd->passwordSalt, _pd->passwordIterations);
             if (!protocol::UnlockSignatureKeys(plain_keys, _pd->sk, unlock_request)) {
-                CC7_LOG("Session %p, %d: ECIES: You have to provide valid possession key.", this, sessionIdentifier());
+                CC7_LOG("Session %p: ECIES: You have to provide valid possession key.", this);
                 return EC_Encryption;
             }
             // The sharedInfo2 is defined as HMAC_SHA256(key: KEY_TRANSPORT, data: APP_SECRET)
@@ -1091,7 +1089,7 @@ namespace powerAuth
             //
         } else {
             // Scope is not known
-            CC7_LOG("Session %p, %d: ECIES: Unsupported scope.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ECIES: Unsupported scope.", this);
             return EC_WrongParam;
         }
         // Now construct the encryptor with prepared setup.
@@ -1105,7 +1103,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: StartUpgrade: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: StartUpgrade: Session has no valid activation.", this);
             return EC_WrongState;
         }
         switch (_pd->protocolVersion()) {
@@ -1115,7 +1113,7 @@ namespace powerAuth
             default:
                 break;
         }
-        CC7_LOG("Session %p, %d: StartUpgrade: Session is already in V3.", this, sessionIdentifier());
+        CC7_LOG("Session %p: StartUpgrade: Session is already in V3.", this);
         return EC_WrongState;
     }
     
@@ -1134,19 +1132,19 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: ApplyUpgradeData: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: ApplyUpgradeData: Session has no valid activation.", this);
             return EC_WrongState;
         }
         switch (_pd->protocolVersion()) {
             case Version_V2:
             {
                 if (_pd->flags.pendingUpgradeVersion != Version_V3) {
-                    CC7_LOG("Session %p, %d: ApplyUpgradeData: Upgrade to V3 was not properly started.", this, sessionIdentifier());
+                    CC7_LOG("Session %p: ApplyUpgradeData: Upgrade to V3 was not properly started.", this);
                     return EC_WrongState;
                 }
                 cc7::ByteArray ctr_data;
                 if (!cc7::Base64_Decode(upgrade_data.toV3.ctrData, 0, ctr_data) || ctr_data.size() != protocol::SIGNATURE_KEY_SIZE) {
-                    CC7_LOG("Session %p, %d: ApplyUpgradeData: Wrong V3 upgrade data.", this, sessionIdentifier());
+                    CC7_LOG("Session %p: ApplyUpgradeData: Wrong V3 upgrade data.", this);
                     return EC_WrongParam;
                 }
                 // Everything looks fine, we can commit new data.
@@ -1161,7 +1159,7 @@ namespace powerAuth
             default:
                 break;
         }
-        CC7_LOG("Session %p, %d: ApplyUpgradeData: Session is already in V3.", this, sessionIdentifier());
+        CC7_LOG("Session %p: ApplyUpgradeData: Session is already in V3.", this);
         return EC_WrongState;
     }
     
@@ -1170,7 +1168,7 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: FinishUpgrade: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: FinishUpgrade: Session has no valid activation.", this);
             return EC_WrongState;
         }
         switch (_pd->flags.pendingUpgradeVersion) {
@@ -1180,7 +1178,7 @@ namespace powerAuth
                     _pd->flags.pendingUpgradeVersion = Version_NA;
                     return EC_Ok;
                 }
-                CC7_LOG("Session %p, %d: FinishUpgrade: Upgrade to V3 is not finished yet.", this, sessionIdentifier());
+                CC7_LOG("Session %p: FinishUpgrade: Upgrade to V3 is not finished yet.", this);
                 break;
             default:
                 break;
@@ -1217,18 +1215,18 @@ namespace powerAuth
     {
         LOCK_GUARD();
         if (!hasValidActivation()) {
-            CC7_LOG("Session %p, %d: RecoveryData: Session has no valid activation.", this, sessionIdentifier());
+            CC7_LOG("Session %p: RecoveryData: Session has no valid activation.", this);
             return EC_WrongState;
         }
         if (_pd->cRecoveryData.empty()) {
-            CC7_LOG("Session %p, %d: RecoveryData: Session has no recovery data available.", this, sessionIdentifier());
+            CC7_LOG("Session %p: RecoveryData: Session has no recovery data available.", this);
             return EC_WrongState;
         }
         cc7::ByteArray vault_key;
         auto ec = decryptVaultKey(c_vault_key, keys, vault_key);
         if (ec == EC_Ok) {
             if (!protocol::DeserializeRecoveryData(_pd->cRecoveryData, vault_key, out_recovery_data)) {
-                CC7_LOG("Session %p, %d: RecoveryData: Cannot decrypt or deserialize recovery data.", this, sessionIdentifier());
+                CC7_LOG("Session %p: RecoveryData: Cannot decrypt or deserialize recovery data.", this);
                 ec = EC_Encryption;
             }
         }
@@ -1299,7 +1297,7 @@ namespace powerAuth
     {
 #ifdef ENABLE_CC7_LOG
         if (_state != new_state) {
-            CC7_LOG("Session %p, %d: Changing state  %s  ->   %s", this, sessionIdentifier(), _StateName(_state), _StateName(new_state));
+            CC7_LOG("Session %p: Changing state  %s  ->   %s", this, _StateName(_state), _StateName(new_state));
         }
 #endif
         if (CC7_CHECK(new_state >= SS_Empty, "Internal error. Changing to SS_Invalid is not allowed!")) {

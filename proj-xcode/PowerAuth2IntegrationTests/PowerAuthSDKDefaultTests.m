@@ -33,19 +33,19 @@
 }
 
 
-- (void) prepareConfigs:(PowerAuthConfiguration*)configuration
-         keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration*)clientConfiguration
+- (void) prepareConfigs:(PowerAuthConfiguration**)configuration
+         keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
+           clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
             forTestName:(NSString*)testName
 {
     if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
-        configuration.offlineSignatureComponentLength = 4;
+        (*configuration).offlineSignatureComponentLength = 4;
     }
 }
 
 - (void) reconfigureForTest:(NSString *)testName
 {
-    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration *configuration, PowerAuthKeychainConfiguration *keychainConfiguration, PowerAuthClientConfiguration *clientConfiguration) {
+    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration **configuration, PowerAuthKeychainConfiguration **keychainConfiguration, PowerAuthClientConfiguration **clientConfiguration) {
         [self prepareConfigs:configuration keychainConfig:keychainConfiguration clientConfig:clientConfiguration forTestName:testName];
     }];
     [_helper printConfig];

@@ -47,14 +47,13 @@ using namespace io::getlime::powerAuth;
 {
     self = [super init];
     if (self) {
-        SessionSetup cpp_setup;
-        PowerAuthCoreSessionSetupToStruct(setup, cpp_setup);
-        _session = new Session(cpp_setup);
+        _session = new Session(setup.sessionSetupRef);
         if (!_session) {
             // This is a low memory issue. Returning nil we guarantee that swift/objc
             // will not use this unitialized instance at all.
             return nil;
         }
+        _sessionSetup = setup;
     }
     return self;
 }
@@ -89,18 +88,9 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Read only getters
 
-- (PowerAuthCoreSessionSetup*) sessionSetup
+- (NSString*) applicationKey
 {
-    const SessionSetup * cpp_setup = _session->sessionSetup();
-    if (cpp_setup) {
-        return PowerAuthCoreSessionSetupToObject(*cpp_setup);
-    }
-    return nil;
-}
-
-- (UInt32) sessionIdentifier
-{
-    return _session->sessionIdentifier();
+    return cc7::objc::CopyToNSString(_session->applicationKey());
 }
 
 - (BOOL) hasValidSetup

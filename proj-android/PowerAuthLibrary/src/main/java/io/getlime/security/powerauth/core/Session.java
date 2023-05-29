@@ -27,9 +27,10 @@ public class Session {
     //
     // Init & Destroy
     //
-    
+    static final String NATIVE_LIB = "PowerAuth2Module";
+
     static {
-        System.loadLibrary("PowerAuth2Module");
+        System.loadLibrary(NATIVE_LIB);
     }
     
     /**
@@ -37,12 +38,15 @@ public class Session {
      */
     private long handle;
 
+    private final @NonNull SessionSetup setup;
+
     /**
      * Constructs a new Session with given setup.
      *
      * @param setup {@link SessionSetup} object with a session configuration.
      */
-    public Session(SessionSetup setup) {
+    public Session(@NonNull SessionSetup setup) {
+        this.setup = setup;
         this.handle = init(setup);
     }
     
@@ -82,7 +86,16 @@ public class Session {
     /**
      * @return {@link SessionSetup} object with parameters provided in Session's constructor
      */
-    public native SessionSetup getSessionSetup();
+    @NonNull
+    public SessionSetup getSessionSetup() {
+        return setup;
+    }
+
+    /**
+     * @return {@code APPLICATION_KEY} extracted from the session's setup.
+     */
+    @NonNull
+    public native String getApplicationKey();
     
     /**
      * Resets session into its initial state. The existing session's setup and EEK is preserved

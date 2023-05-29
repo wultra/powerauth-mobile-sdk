@@ -78,12 +78,12 @@ namespace powerAuth
          session has a no valid setup.
          */
         const SessionSetup * sessionSetup() const;
-        
         /**
-         Returns value of sessionSetup()->sessionIdentifier if the setup structure is present or 0 if not.
+         Returns application key extracted from internal SessionSetup, or empty string
+         if session has a no valid setup.
          */
-        cc7::U32 sessionIdentifier() const;
-        
+        std::string applicationKey() const;
+                
         /**
          Resets session into its initial state. The existing session's setup and the external encryption
          key is preserved by this call.

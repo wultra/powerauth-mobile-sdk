@@ -55,16 +55,19 @@
 @property (nonatomic, weak, nullable) id<PowerAuthCoreDebugMonitor> debugMonitor;
 
 /**
- Returns pointer to an internal SessionSetup object. Returns nil if
- session has no valid setup.
- 
- Note that internal implementation always creates a new instance of PowerAuthCoreSessionSetup object.
- If you want to get just a sessionIdentifier, then you can use the dedicated read only
- property, which is much faster than accessing the whole setup object.
+ Returns pointer to an internal SessionSetup object.
  
  This property doesn't use shared data, so no exclusive access is required.
  */
 @property (nonatomic, strong, readonly, nullable) PowerAuthCoreSessionSetup * sessionSetup;
+
+/**
+ Contains `APPLICATION_KEY` extracted from the SessionSetup object. Returns nil if
+ session has no valid setup.
+ 
+ This property doesn't use shared data, so no exclusive access is required.
+ */
+@property (nonatomic, strong, readonly, nullable) NSString * applicationKey;
 
 /**
  Returns value of [self sessionSetup].sessionIdentifier if the setup object is present or 0 if not.

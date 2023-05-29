@@ -47,7 +47,7 @@ import androidx.annotation.Nullable;
 public class ActivationCodeUtil {
 
     static {
-        System.loadLibrary("PowerAuth2Module");
+        System.loadLibrary(Session.NATIVE_LIB);
     }
 
     /**

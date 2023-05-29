@@ -84,9 +84,7 @@ $ mvn clean install -DskipTests=true
 
 In order to be able to configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:
 
-- `APP_KEY` - Application key that binds activation with a specific application.
-- `APP_SECRET` - Application secret that binds activation with a specific application.
-- `KEY_MASTER_SERVER_PUBLIC` - Master Server Public Key, used for non-personalized encryption and server signature verification.
+- `MOBILE_SDK_CONFIG` - String that contains cryptographic configuration.
 
 You also need to specify your instance ID (by default, this can be for example an app package name). This is because one application may use more than one custom instance of `PowerAuthSDK`, and the identifier is the way to distinguish these instances while working with Keychain data.
 
@@ -97,18 +95,14 @@ To sum it up, in order to configure the `PowerAuthSDK` default instance, add the
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 val INSTANCE_ID = applicationContext.packageName
-val PA_APPLICATION_KEY = "sbG8gd...MTIzNA=="
-val PA_APPLICATION_SECRET = "aGVsbG...MTIzNA=="
-val PA_MASTER_SERVER_PUBLIC_KEY = "MTIzNDU2Nz...jc4OTAxMg=="
+val MOBILE_SDK_CONFIG = "MTIzNDU2Nz...jc4OTAxMg=="
 val API_SERVER = "https://localhost:8080/demo-server"
 
 try {
     val configuration = PowerAuthConfiguration.Builder(
         INSTANCE_ID,
         API_SERVER,
-        PA_APPLICATION_KEY,
-        PA_APPLICATION_SECRET,
-        PA_MASTER_SERVER_PUBLIC_KEY)
+        MOBILE_SDK_CONFIG)
         .build()
     val powerAuthSDK = PowerAuthSDK.Builder(configuration)
         .build(applicationContext)
@@ -119,18 +113,13 @@ try {
 ```
 ```java
 String INSTANCE_ID = getApplicationContext().getPackageName();
-String PA_APPLICATION_KEY = "sbG8gd...MTIzNA==";
-String PA_APPLICATION_SECRET = "aGVsbG...MTIzNA==";
-String PA_MASTER_SERVER_PUBLIC_KEY = "MTIzNDU2Nz...jc4OTAxMg==";
+String MOBILE_SDK_CONFIG = "MTIzNDU2Nz...jc4OTAxMg==";
 String API_SERVER = "https://localhost:8080/demo-server";
 
 try {
     final PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
             INSTANCE_ID,
-            API_SERVER,
-            PA_APPLICATION_KEY,
-            PA_APPLICATION_SECRET,
-            PA_MASTER_SERVER_PUBLIC_KEY)
+            MOBILE_SDK_CONFIG)
             .build();
 
     PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)

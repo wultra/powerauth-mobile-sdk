@@ -87,7 +87,7 @@
         }
         // Prepare the rest of information required for o
         NSData * sharedInfo1Data = [sharedInfo1 dataUsingEncoding:NSUTF8StringEncoding];
-        NSString * applicationKey = session.sessionSetup.applicationKey;
+        NSString * applicationKey = session.applicationKey;
         // Now create the encryptor
         PowerAuthCoreEciesEncryptor * encryptor = [session eciesEncryptorForScope:scope
                                                                              keys:unlockKeys

@@ -52,14 +52,6 @@ namespace powerAuth
         std::string masterServerPublicKey;
         
         /**
-         Optional session identifier helps with session identification
-         in multi-session environments. You can assign any value
-         which helps you identify multiple sessions in your system.
-         The session itself doesn't use this value.
-         */
-        cc7::U32 sessionIdentifier;
-        
-        /**
          Optional external encryption key. If the array contains 16 bytes,
          then the key is considered as valid and will be used during the
          cryptographic operations.
@@ -78,12 +70,15 @@ namespace powerAuth
         /**
          Constructs a new empty setup structure.
          */
-        SessionSetup() :
-            sessionIdentifier(0)
+        SessionSetup()
         {
         }
+        
+        /**
+         Fill basic parameters to SessionSetup structure from provided Base64 string.
+         */
+        bool loadFromConfiguration(const std::string & config);
     };
-    
     
     /**
      The ErrorCode enumeration defines all possible error codes

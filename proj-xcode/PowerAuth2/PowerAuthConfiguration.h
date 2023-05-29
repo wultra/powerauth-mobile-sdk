@@ -23,25 +23,29 @@
  */
 @interface PowerAuthConfiguration : NSObject<NSCopying>
 
+/// No longer available. Use `init(instanceId:baseEndpointUrl:configuration:)` instead.
+- (nonnull instancetype) init NS_UNAVAILABLE;
+
+/// Initialize object with all required parameters.
+/// - Parameters:
+///   - instanceId: Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
+///   - baseEndpointUrl: Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
+///   - configuration: String with the cryptographic configuration.
+- (nonnull instancetype) initWithInstanceId:(nonnull NSString*)instanceId
+                            baseEndpointUrl:(nonnull NSString*)baseEndpointUrl
+                              configuration:(nonnull NSString*)configuration;
+
 /** Identifier of the PowerAuthSDK instance, used as a 'key' to store session state in the session state keychain.
  */
-@property (nonatomic, strong, nonnull) NSString *instanceId;
+@property (nonatomic, strong, nonnull, readonly) NSString *instanceId;
 
 /** Base URL to the PowerAuth Standard RESTful API (the URL part before "/pa/...").
  */
-@property (nonatomic, strong, nonnull) NSString *baseEndpointUrl;
+@property (nonatomic, strong, nonnull, readonly) NSString *baseEndpointUrl;
 
-/** APPLICATION_KEY as defined in PowerAuth specification - a key identifying an application version.
+/** String with the cryptographic configuration.
  */
-@property (nonatomic, strong, nonnull) NSString *appKey;
-
-/** APPLICATION_SECRET as defined in PowerAuth specification - a secret associated with an application version.
- */
-@property (nonatomic, strong, nonnull) NSString *appSecret;
-
-/** KEY_SERVER_MASTER_PUBLIC as defined in PowerAuth specification - a master server public key.
- */
-@property (nonatomic, strong, nonnull) NSString *masterServerPublicKey;
+@property (nonatomic, strong, nonnull, readonly) NSString *configuration;
 
 /** This value specifies 'key' used to store this PowerAuthSDK instance biometry related key in the biometry key keychain.
  */
@@ -62,7 +66,7 @@
 /**
  Length of offline signature component. The value between 4 and 8 is allowed.
  
- Default value is 8.
+ Default value is `8`.
  */
 @property (nonatomic, assign) NSUInteger offlineSignatureComponentLength;
 

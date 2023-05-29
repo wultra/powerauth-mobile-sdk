@@ -106,7 +106,7 @@ static NSString * PA_Ver = @"3.1";
     return [self createCustom:nil];
 }
 
-+ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration * configuration, PowerAuthKeychainConfiguration * keychainConfiguration, PowerAuthClientConfiguration * clientConfiguration))configurator
++ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration ** configuration, PowerAuthKeychainConfiguration ** keychainConfiguration, PowerAuthClientConfiguration ** clientConfiguration))configurator
 {
     [self setupLog];
     
@@ -120,16 +120,25 @@ static NSString * PA_Ver = @"3.1";
     if (!result) {
         return nil;
     }
-    PowerAuthConfiguration *config = [[PowerAuthConfiguration alloc] init];
+    PowerAuthConfiguration *config;
+#if defined(PA2_SIMPLIFIED_CONFIG)
+    // SDK 1.8+
+    config = [[PowerAuthConfiguration alloc] initWithInstanceId:@"IntegrationTests"
+                                                baseEndpointUrl:testConfig.enrollmentUrl
+                                                  configuration:testServerApi.appVersion.mobileSdkConfig];
+#else
+    // SDK older than 1.8
+    config = [[PowerAuthConfiguration alloc] init];
     config.instanceId = @"IntegrationTests";
     config.baseEndpointUrl = testConfig.enrollmentUrl;
     config.appKey = testServerApi.appVersion.applicationKey;
     config.appSecret = testServerApi.appVersion.applicationSecret;
     config.masterServerPublicKey = testServerApi.appDetail.masterPublicKey;
+#endif // PA2_SIMPLIFIED_CONFIG
     PowerAuthKeychainConfiguration * keychainConfig = [[PowerAuthKeychainConfiguration sharedInstance] copy];
     PowerAuthClientConfiguration * clientConfig = [[PowerAuthClientConfiguration sharedInstance] copy];
     if (configurator) {
-        configurator(config, keychainConfig, clientConfig);
+        configurator(&config, &keychainConfig, &clientConfig);
     }
     result = [config validateConfiguration];
     XCTAssertTrue(result, @"Constructed configuration is not valid.");

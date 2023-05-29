@@ -61,18 +61,24 @@
     [super tearDown];
 }
 
-- (void) prepareConfigs:(PowerAuthConfiguration *)configuration
-         keychainConfig:(PowerAuthKeychainConfiguration *)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration *)clientConfiguration
+- (void) prepareConfigs:(PowerAuthConfiguration **)configuration
+         keychainConfig:(PowerAuthKeychainConfiguration **)keychainConfiguration
+           clientConfig:(PowerAuthClientConfiguration **)clientConfiguration
             forTestName:(NSString*)testName
 {
+#if defined(PA2_SIMPLIFIED_CONFIG)
+    *configuration = [[PowerAuthConfiguration alloc] initWithInstanceId:_instanceId baseEndpointUrl:(*configuration).baseEndpointUrl configuration:(*configuration).configuration];
+#else
+    (*configuration).instanceId = _instanceId;
+#endif
+    
+    PowerAuthSharingConfiguration * sharingConfig = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app1 keychainAccessGroup:_keychainAccessGroup];
+    (*configuration).sharingConfiguration = sharingConfig;
+    
     [super prepareConfigs:configuration
            keychainConfig:keychainConfiguration
              clientConfig:clientConfiguration
               forTestName:testName];
-    configuration.instanceId = _instanceId;
-    PowerAuthSharingConfiguration * sharingConfig = [[PowerAuthSharingConfiguration alloc] initWithAppGroup:_appGroupId appIdentifier:_app1 keychainAccessGroup:_keychainAccessGroup];
-    configuration.sharingConfiguration = sharingConfig;
 }
 
 - (BOOL) prepareAltSdk

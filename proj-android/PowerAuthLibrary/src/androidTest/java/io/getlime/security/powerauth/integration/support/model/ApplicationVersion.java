@@ -22,6 +22,7 @@ public class ApplicationVersion {
     private String applicationVersionName;
     private String applicationKey;
     private String applicationSecret;
+    private String mobileSdkConfig;
     private boolean supported;
 
     public String getApplicationVersionId() {
@@ -62,5 +63,13 @@ public class ApplicationVersion {
 
     public void setSupported(boolean supported) {
         this.supported = supported;
+    }
+
+    public String getMobileSdkConfig() {
+        return mobileSdkConfig;
+    }
+
+    public void setMobileSdkConfig(String mobileSdkConfig) {
+        this.mobileSdkConfig = mobileSdkConfig;
     }
 }

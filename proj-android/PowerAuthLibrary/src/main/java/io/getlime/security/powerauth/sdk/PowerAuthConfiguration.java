@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
+import io.getlime.security.powerauth.core.SessionSetup;
 import io.getlime.security.powerauth.networking.response.IFetchKeysStrategy;
 import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
 import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
@@ -34,10 +35,7 @@ public class PowerAuthConfiguration {
 
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
-    private final @NonNull String appKey;
-    private final @NonNull String appSecret;
-    private final @NonNull String masterServerPublicKey;
-    private final @Nullable byte[] externalEncryptionKey;
+    private final @NonNull SessionSetup sessionSetup;
     private final @Nullable IFetchKeysStrategy fetchKeysStrategy;
     private final boolean disableAutomaticProtocolUpgrade;
     private final int offlineSignatureComponentLength;
@@ -62,31 +60,24 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * @return {@code APPLICATION_KEY} as defined in PowerAuth specification - a key identifying an application version.
+     * @return String containing cryptographic configuration.
      */
-    public @NonNull String getAppKey() {
-        return appKey;
+    public @NonNull String getConfiguration() {
+        return sessionSetup.configuration;
     }
 
     /**
-     * @return {@code APPLICATION_SECRET} as defined in PowerAuth specification - a secret associated with an application version.
+     * @return {@link SessionSetup} object with configuration for cryptographic components.
      */
-    public @NonNull String getAppSecret() {
-        return appSecret;
-    }
-
-    /**
-     * @return {@code KEY_SERVER_MASTER_PUBLIC} as defined in PowerAuth specification - a master server public key.
-     */
-    public @NonNull String getMasterServerPublicKey() {
-        return masterServerPublicKey;
+    @NonNull SessionSetup getSessionSetup() {
+        return sessionSetup;
     }
 
     /**
      * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
      */
     public @Nullable byte[] getExternalEncryptionKey() {
-        return externalEncryptionKey;
+        return sessionSetup.externalEncryptionKey;
     }
 
     /**
@@ -130,8 +121,8 @@ public class PowerAuthConfiguration {
      * @return {@code true} if configuration appears to be valid.
      */
     public boolean validateConfiguration() {
-        if (externalEncryptionKey != null) {
-            return externalEncryptionKey.length == 16;
+        if (!sessionSetup.isValid()) {
+            return false;
         }
         return offlineSignatureComponentLength >= MIN_OFFLINE_SIGNATURE_COMPONENT_LENGTH &&
                 offlineSignatureComponentLength <= MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
@@ -142,29 +133,20 @@ public class PowerAuthConfiguration {
      *
      * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state.
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
-     * @param appKey {@code APPLICATION_KEY} as defined in PowerAuth specification - a key identifying an application version.
-     * @param appSecret {@code APPLICATION_SECRET} as defined in PowerAuth specification - a secret associated with an application version.
-     * @param masterServerPublicKey {@code KEY_SERVER_MASTER_PUBLIC} as defined in PowerAuth specification - a master server public key.
-     * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
+     * @param sessionSetup Setup for core/Session object.
      * @param fetchKeysStrategy {@link IFetchKeysStrategy} interface for key providing strategy.
      * @param disableAutomaticProtocolUpgrade If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
-            @NonNull String appKey,
-            @NonNull String appSecret,
-            @NonNull String masterServerPublicKey,
-            @Nullable byte[] externalEncryptionKey,
+            @NonNull SessionSetup sessionSetup,
             @Nullable IFetchKeysStrategy fetchKeysStrategy,
             boolean disableAutomaticProtocolUpgrade,
             int offlineSignatureComponentLength) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
-        this.appKey = appKey;
-        this.appSecret = appSecret;
-        this.masterServerPublicKey = masterServerPublicKey;
-        this.externalEncryptionKey = externalEncryptionKey;
+        this.sessionSetup = sessionSetup;
         this.fetchKeysStrategy = fetchKeysStrategy;
         this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
         this.offlineSignatureComponentLength = offlineSignatureComponentLength;
@@ -176,9 +158,7 @@ public class PowerAuthConfiguration {
     public static class Builder {
         // mandatory
         private final @NonNull String baseEndpointUrl;
-        private final @NonNull String appKey;
-        private final @NonNull String appSecret;
-        private final @NonNull String masterServerPublicKey;
+        private final @NonNull String configuration;
         // optional
         private String instanceId;
         private IFetchKeysStrategy fetchKeysStrategy = null;
@@ -191,21 +171,18 @@ public class PowerAuthConfiguration {
          *
          * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state. If {@code null}, then {@link #DEFAULT_INSTANCE_ID} is used.
          * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
-         * @param appKey {@code APPLICATION_KEY} as defined in PowerAuth specification - a key identifying an application version.
-         * @param appSecret {@code APPLICATION_SECRET} as defined in PowerAuth specification - a secret associated with an application version.
-         * @param masterServerPublicKey {@code KEY_SERVER_MASTER_PUBLIC} as defined in PowerAuth specification - a master server public key.
+         * @param configuration String with the cryptographic configuration.
          */
-        public Builder(@Nullable String instanceId, @NonNull String baseEndpointUrl, @NonNull String appKey, @NonNull String appSecret, @NonNull String masterServerPublicKey) {
+        public Builder(@Nullable String instanceId, @NonNull String baseEndpointUrl, @NonNull String configuration) {
             this.instanceId = instanceId;
-            this.appKey = appKey;
-            this.appSecret = appSecret;
-            this.masterServerPublicKey = masterServerPublicKey;
+            this.configuration = configuration;
             if (baseEndpointUrl.endsWith("/")) { // make sure to remove trailing slash
                 this.baseEndpointUrl = baseEndpointUrl.substring(0, baseEndpointUrl.length() - 1);
             } else {
                 this.baseEndpointUrl = baseEndpointUrl;
             }
         }
+
         /**
          * Set instance identifier.
          *
@@ -266,13 +243,12 @@ public class PowerAuthConfiguration {
          * @return New instance of {@link PowerAuthConfiguration}.
          */
         public @NonNull PowerAuthConfiguration build() {
+            final byte[] eek = externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null;
+            final SessionSetup sessionSetup = new SessionSetup(configuration, eek);
             return new PowerAuthConfiguration(
                     instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
                     baseEndpointUrl,
-                    appKey,
-                    appSecret,
-                    masterServerPublicKey,
-                    externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null,
+                    sessionSetup,
                     fetchKeysStrategy,
                     disableAutomaticProtocolUpgrade,
                     offlineSignatureComponentLength);

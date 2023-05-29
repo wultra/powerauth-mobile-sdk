@@ -138,9 +138,7 @@ import PowerAuth2
 
 From now on, you can use `PowerAuthSDK` and other classes in your project. To configure your `PowerAuthSDK` instance, you need the following values from the PowerAuth Server:
 
-- `APP_KEY` - Application key that binds activation with a specific application.
-- `APP_SECRET` - Application secret that binds activation with a specific application.
-- `KEY_MASTER_SERVER_PUBLIC` - Master Server Public Key, used for non-personalized encryption and server signature verification.
+- `MOBILE_SDK_CONFIG` - String that contains cryptographic configuration.
 
 You also need to specify your instance ID (by default, this can be an app bundle ID). This is because one application may use more than one custom instance of `PowerAuthSDK`, and the identifier is the way to distinguish these instances while working with Keychain data.
 
@@ -152,12 +150,10 @@ To sum it up, in order to configure the `PowerAuthSDK` default instance, add the
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
     // Prepare the configuration
-    let configuration = PowerAuthConfiguration()
-    configuration.instanceId = Bundle.main.bundleIdentifier ?? ""
-    configuration.appKey = "sbG8gd...MTIzNA=="
-    configuration.appSecret = "aGVsbG...MTIzNA=="
-    configuration.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-    configuration.baseEndpointUrl = "https://localhost:8080/demo-server"
+    let configuration = PowerAuthConfiguration(
+        instanceId: Bundle.main.bundleIdentifier!,
+        baseEndpointUrl: "https://localhost:8080/demo-server",
+        configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
     // Configure default PowerAuthSDK instance
     PowerAuthSDK.initSharedInstance(configuration)

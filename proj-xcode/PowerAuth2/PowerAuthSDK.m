@@ -112,15 +112,12 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     }
     
     // Create session setup parameters
-    PowerAuthCoreSessionSetup *setup = [[PowerAuthCoreSessionSetup alloc] init];
-    setup.applicationKey = _configuration.appKey;
-    setup.applicationSecret = _configuration.appSecret;
-    setup.masterServerPublicKey = _configuration.masterServerPublicKey;
+    PowerAuthCoreSessionSetup *setup = [[PowerAuthCoreSessionSetup alloc] initWithConfiguration:_configuration.configuration];
     setup.externalEncryptionKey = _configuration.externalEncryptionKey;
     
     // Create a new session
     _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup];
-    if (_coreSession == nil) {
+    if (_coreSession == nil || ![_coreSession hasValidSetup]) {
         [PowerAuthSDK throwInvalidConfigurationException];
     }
     

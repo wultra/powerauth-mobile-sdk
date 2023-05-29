@@ -34,16 +34,12 @@ public class PowerAuthConfigurationBuilderTest {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 "com.wultra.android.powerauth.test",
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .build();
         assertNotNull(configuration);
         assertEquals("com.wultra.android.powerauth.test", configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
-        assertEquals("aaa", configuration.getAppKey());
-        assertEquals("bbb", configuration.getAppSecret());
-        assertEquals("ccc", configuration.getMasterServerPublicKey());
+        assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
         assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
@@ -54,16 +50,12 @@ public class PowerAuthConfigurationBuilderTest {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .build();
         assertNotNull(configuration);
         assertEquals(PowerAuthConfiguration.DEFAULT_INSTANCE_ID, configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
-        assertEquals("aaa", configuration.getAppKey());
-        assertEquals("bbb", configuration.getAppSecret());
-        assertEquals("ccc", configuration.getMasterServerPublicKey());
+        assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
         assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
@@ -76,17 +68,13 @@ public class PowerAuthConfigurationBuilderTest {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .externalEncryptionKey(expectedEEK)
                 .build();
         assertNotNull(configuration);
         assertEquals(PowerAuthConfiguration.DEFAULT_INSTANCE_ID, configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
-        assertEquals("aaa", configuration.getAppKey());
-        assertEquals("bbb", configuration.getAppSecret());
-        assertEquals("ccc", configuration.getMasterServerPublicKey());
+        assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
         assertNull(configuration.getFetchKeysStrategy());
         assertArrayEquals(expectedEEK, configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
@@ -100,9 +88,7 @@ public class PowerAuthConfigurationBuilderTest {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .offlineSignatureComponentLength(4)
                 .build();
         assertEquals(4, configuration.getOfflineSignatureComponentLength());
@@ -110,18 +96,14 @@ public class PowerAuthConfigurationBuilderTest {
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .offlineSignatureComponentLength(3)
                 .build();
         assertFalse(configuration.validateConfiguration());
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc")
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
                 .offlineSignatureComponentLength(9)
                 .build();
         assertFalse(configuration.validateConfiguration());

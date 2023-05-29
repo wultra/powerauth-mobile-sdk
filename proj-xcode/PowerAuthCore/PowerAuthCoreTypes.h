@@ -26,26 +26,20 @@
  of the Session class.
  */
 @interface PowerAuthCoreSessionSetup : NSObject
+
 /**
- Defines APPLICATION_KEY for the session.
+ Validate session's configuration.
  */
-@property (nonatomic, strong, nonnull) NSString * applicationKey;
++ (BOOL) validateConfiguration:(nonnull NSString*)configuration;
+
 /**
- Defines APPLICATION_SECRET for the session.
+ Init object with the cryptographic configuration.
  */
-@property (nonatomic, strong, nonnull) NSString * applicationSecret;
+- (nullable instancetype) initWithConfiguration:(nonnull NSString*)configuration;
 /**
- The master server public key, in BASE64 format. It's strongly recommended to use
- different keys for the testing and production servers.
+ String with complete cryptographic configuration.
  */
-@property (nonatomic, strong, nonnull) NSString * masterServerPublicKey;
-/**
- Optional session identifier helps with session identification
- in multi-session environments. You can assign any value
- which helps you identify multiple sessions in your system.
- The session itself doesn't use this value.
- */
-@property (nonatomic, assign) UInt32 sessionIdentifier;
+@property (nonatomic, strong, readonly, nonnull) NSString * configuration;
 /**
  Optional external encryption key. If the data object size is equal to 16 bytes,
  then the key is considered as valid and will be used during the cryptographic operations.

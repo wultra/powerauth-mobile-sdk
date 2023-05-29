@@ -30,9 +30,9 @@
 @property (nonatomic, strong, readonly) PowerAuthSdkTestHelper * helper;
 @property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
 
-- (void) prepareConfigs:(PowerAuthConfiguration*)configuration
-         keychainConfig:(PowerAuthKeychainConfiguration*)keychainConfiguration
-           clientConfig:(PowerAuthClientConfiguration*)clientConfiguration
+- (void) prepareConfigs:(PowerAuthConfiguration**)configuration
+         keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
+           clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
             forTestName:(NSString*)testName;
 
 - (void) reconfigureForTest:(NSString*)testName;

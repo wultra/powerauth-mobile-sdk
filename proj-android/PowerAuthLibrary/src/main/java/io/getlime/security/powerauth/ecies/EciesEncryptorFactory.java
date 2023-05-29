@@ -99,7 +99,7 @@ public class EciesEncryptorFactory {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to create ECIES encryptor");
         }
         if (addMetaData) {
-            encryptor.setMetadata(new EciesMetadata(mSession.getSessionSetup().applicationKey, activationId));
+            encryptor.setMetadata(new EciesMetadata(mSession.getApplicationKey(), activationId));
         }
         return encryptor;
     }

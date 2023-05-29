@@ -127,3 +127,7 @@
         #define PA2_MODULE_APPEXT_SDK   1
     #endif
 #endif
+
+// Features
+
+#define PA2_SIMPLIFIED_CONFIG 1 // SDK supports simplified config

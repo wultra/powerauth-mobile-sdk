@@ -1,0 +1,28 @@
+{
+    "path": "/rest/v3/application/detail",
+    "parameters": [ 
+        "applicationId"
+    ],
+    "response": {
+        "class": "PATSApplicationDetail",
+        "properties": {
+            "applicationId":   { "class" : "string" },
+            "applicationName": { "class" : "string", "key" : "applicationId" },
+            "masterPublicKey": { "class" : "string" },
+            "versions": {
+                "class" : "array",
+                "arrayClass": {
+                    "class": "PATSApplicationVersion",
+                    "properties": {
+                        "applicationVersionId":     { "class" : "string" },
+                        "applicationVersionName":   { "class" : "string", "key" : "applicationVersionId"  },
+                        "applicationKey":           { "class" : "string" },
+                        "applicationSecret":        { "class" : "string" },
+                        "mobileSdkConfig":          { "class" : "string" },
+                        "supported":                { "class" : "bool"   }
+                    }
+                }
+            }
+        }
+    }
+}

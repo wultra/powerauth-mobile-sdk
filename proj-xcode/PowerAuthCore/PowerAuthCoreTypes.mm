@@ -22,6 +22,53 @@ using namespace io::getlime::powerAuth;
 #pragma mark - Public types implementation
 
 @implementation PowerAuthCoreSessionSetup
+{
+    SessionSetup _setup;
+}
+
++ (BOOL) validateConfiguration:(NSString*)configuration
+{
+    SessionSetup setup;
+    return setup.loadFromConfiguration(cc7::objc::CopyFromNSString(configuration));
+}
+
++ (NSString*) buildConfiguration:(NSString*)appKey
+                       appSecret:(NSString*)appSecret
+                       publicKey:(NSString*)publicKey
+{
+    SessionSetup setup;
+    setup.applicationKey = cc7::objc::CopyFromNSString(appKey);
+    setup.applicationSecret = cc7::objc::CopyFromNSString(appSecret);
+    setup.masterServerPublicKey = cc7::objc::CopyFromNSString(publicKey);
+    return cc7::objc::CopyToNSString(setup.saveConfiguration());
+}
+
+- (id) initWithConfiguration:(NSString *)configuration
+{
+    self = [super init];
+    if (self) {
+        _configuration = configuration;
+        if (!_setup.loadFromConfiguration(cc7::objc::CopyFromNSString(configuration))) {
+            return nil;
+        }
+    }
+    return self;
+}
+
+- (io::getlime::powerAuth::SessionSetup&) sessionSetupRef
+{
+    return _setup;
+}
+
+- (void) setExternalEncryptionKey:(NSData *)externalEncryptionKey
+{
+    _setup.externalEncryptionKey = cc7::objc::CopyFromNSData(externalEncryptionKey);
+}
+- (NSData*) externalEncryptionKey
+{
+    return cc7::objc::CopyToNSData(_setup.externalEncryptionKey);
+}
+
 @end
 
 @implementation PowerAuthCoreHTTPRequestData
@@ -269,26 +316,6 @@ using namespace io::getlime::powerAuth;
 
 
 #pragma mark - Conversion routines
-
-void PowerAuthCoreSessionSetupToStruct(PowerAuthCoreSessionSetup * setup, io::getlime::powerAuth::SessionSetup & cpp_setup)
-{
-    cpp_setup.applicationKey        = cc7::objc::CopyFromNSString(setup.applicationKey);
-    cpp_setup.applicationSecret     = cc7::objc::CopyFromNSString(setup.applicationSecret);
-    cpp_setup.masterServerPublicKey = cc7::objc::CopyFromNSString(setup.masterServerPublicKey);
-    cpp_setup.externalEncryptionKey = cc7::objc::CopyFromNSData(setup.externalEncryptionKey);
-    cpp_setup.sessionIdentifier     = setup.sessionIdentifier;
-}
-
-PowerAuthCoreSessionSetup * PowerAuthCoreSessionSetupToObject(const io::getlime::powerAuth::SessionSetup & cpp_setup)
-{
-    PowerAuthCoreSessionSetup * result = [[PowerAuthCoreSessionSetup alloc] init];
-    result.applicationKey           = cc7::objc::CopyToNSString(cpp_setup.applicationKey);
-    result.applicationSecret        = cc7::objc::CopyToNSString(cpp_setup.applicationSecret);
-    result.masterServerPublicKey    = cc7::objc::CopyToNSString(cpp_setup.masterServerPublicKey);
-    result.sessionIdentifier        = cpp_setup.sessionIdentifier;
-    result.externalEncryptionKey    = cc7::objc::CopyToNullableNSData(cpp_setup.externalEncryptionKey);
-    return result;
-}
 
 void PowerAuthCoreSignatureUnlockKeysToStruct(PowerAuthCoreSignatureUnlockKeys * keys, io::getlime::powerAuth::SignatureUnlockKeys & cpp_keys)
 {

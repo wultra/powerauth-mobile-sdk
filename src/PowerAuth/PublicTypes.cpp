@@ -15,7 +15,10 @@
  */
 
 #include <PowerAuth/PublicTypes.h>
+#include <cc7/Base64.h>
 #include "protocol/Constants.h"
+#include "utils/DataReader.h"
+#include "utils/DataWriter.h"
 
 namespace io
 {
@@ -23,6 +26,64 @@ namespace getlime
 {
 namespace powerAuth
 {
+    //
+    // MARK: - SessionSetup -
+    //
+
+    static const cc7::byte CONFIG_VER  = 0x01;
+    static const cc7::byte P256_KEY_ID = 0x01;
+    
+    bool SessionSetup::loadFromConfiguration(const std::string & config)
+    {
+        auto reader = utils::DataReader(cc7::FromBase64String(config));
+        cc7::byte data_version;
+        if (!reader.readByte(data_version)) {
+            return false;
+        }
+        if (data_version != CONFIG_VER) {
+            return false;
+        }
+        cc7::ByteArray app_key, app_secret;
+        if (!reader.readData(app_key, protocol::APPLICATION_KEY_SIZE) ||
+            !reader.readData(app_secret, protocol::APPLICATION_SECRET_SIZE)) {
+            return false;
+        }
+        size_t keys_count;
+        if (!reader.readCount(keys_count)) {
+            return false;
+        }
+        cc7::ByteArray p256key;
+        while (keys_count-- > 0) {
+            cc7::byte key_id;
+            cc7::ByteArray key_data;
+            if (!reader.readByte(key_id) || !reader.readData(key_data)) {
+                return false;
+            }
+            if (key_id == P256_KEY_ID) {
+                p256key = key_data;
+            }
+        }
+        if (p256key.empty()) {
+            return false;
+        }
+        // Finally, convert loaded values into setup structure
+        applicationKey = app_key.base64String();
+        applicationSecret = app_secret.base64String();
+        masterServerPublicKey = p256key.base64String();
+        return true;
+    }
+
+    std::string SessionSetup::saveConfiguration() const
+    {
+        auto writer = utils::DataWriter();
+        writer.writeByte(CONFIG_VER);
+        writer.writeData(cc7::FromBase64String(applicationKey));
+        writer.writeData(cc7::FromBase64String(applicationSecret));
+        writer.writeCount(1);
+        writer.writeByte(P256_KEY_ID);
+        writer.writeData(cc7::FromBase64String(masterServerPublicKey));
+        return writer.serializedData().base64String();
+    }
 
     //
     // MARK: - HTTPRequestData -

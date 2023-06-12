@@ -44,6 +44,7 @@
 @property (nonatomic, strong) NSString * applicationVersionName;
 @property (nonatomic, strong) NSString * applicationKey;
 @property (nonatomic, strong) NSString * applicationSecret;
+@property (nonatomic, strong) NSString * mobileSdkConfig;   // Server 1.5+
 @property (nonatomic, assign) BOOL supported;
 
 @end
@@ -57,7 +58,7 @@
 
 @interface PATSApplicationDetail : PATSApplication
 
-@property (nonatomic, strong) NSString * masterPublicKey;
+@property (nonatomic, strong) NSString * masterPublicKey;   // will be removed in Server 2.0
 @property (nonatomic, strong) NSArray<PATSApplicationVersion*> * versions;
 
 @end

@@ -25,33 +25,15 @@ import androidx.annotation.Nullable;
  */
 public class SessionSetup {
 
+    static {
+        System.loadLibrary(Session.NATIVE_LIB);
+    }
+
     /**
-     * Defines APPLICATION_KEY for the session.
+     * Contains string with simplified configuration.
      */
-    public final @NonNull String applicationKey;
-    
-    /**
-     * Defines APPLICATION_SECRET for the session.
-     */
-    public final @NonNull String applicationSecret;
-    
-    /**
-     * The master server public key, in BASE64 format.
-     * It's strongly recommended to use different keys for the testing
-     * and production servers.
-     */
-    public final @NonNull String masterServerPublicKey;
-    
-    /**
-     * Optional session identifier helps with session identification
-     * in multi-session environments. You can assign any value
-     * which helps you identify multiple sessions in your system.
-     * The DEBUG build of the underlying C++ code is using the identifier
-     * when prints information to the debug console. For production builds,
-     * the value is not used in the PA2 codes.
-     */
-    public final int sessionIdentifier;
-    
+    public final @NonNull String configuration;
+
     /**
      * Optional external encryption key. If the byte array's size is equal to 16 bytes,
      * then the key is considered as valid and will be used during the cryptographic operations.
@@ -68,31 +50,43 @@ public class SessionSetup {
     public final @Nullable byte[] externalEncryptionKey;
 
     /**
-     * @param applicationKey application key constant in Base64 format
-     * @param applicationSecret application secret constant in Base64 format
-     * @param masterServerPublicKey master server public key in Base64 format
-     * @param sessionIdentifier numeric session identifier
-     * @param externalEncryptionKey optional external encryption key
+     * Construct object with new simplified configuration.
+     *
+     * @param configuration Simplified configuration.
+     * @param externalEncryptionKey Optional external encryption key.
      */
     public SessionSetup(
-            @NonNull String applicationKey,
-            @NonNull String applicationSecret,
-            @NonNull String masterServerPublicKey,
-            int sessionIdentifier,
+            @NonNull String configuration,
             @Nullable byte[] externalEncryptionKey) {
-        this.applicationKey = applicationKey;
-        this.applicationSecret = applicationSecret;
-        this.masterServerPublicKey = masterServerPublicKey;
-        this.sessionIdentifier = sessionIdentifier;
+        this.configuration = configuration;
         this.externalEncryptionKey = externalEncryptionKey;
     }
 
-    // Constructor accessed from JNI code.
-    public SessionSetup() {
-        this.applicationKey = null;
-        this.applicationSecret = null;
-        this.masterServerPublicKey = null;
-        this.sessionIdentifier = 0;
-        this.externalEncryptionKey = null;
+    /**
+     * @return true if configuration appears to be valid.
+     */
+    public boolean isValid() {
+        boolean result = validateConfiguration(configuration);
+        if (result && externalEncryptionKey != null) {
+            result = externalEncryptionKey.length == 16;
+        }
+        return result;
     }
+
+    /**
+     * Validates whether string with the cryptographic configuration is correct.
+     * @param configuration String with the cryptographic configuration.
+     * @return true if configuration is formally correct (e.g. can be processed by SDK)
+     */
+    static native boolean validateConfiguration(String configuration);
+
+    /**
+     * Build configuration string from partial parameters. The method is useful for other projects,
+     * such as React-Native wrapper, to temporarily support old way of SDK configuration.
+     * @param appKey Application's key.
+     * @param appSecret Application's secret.
+     * @param publicKey Application's master server public key.
+     * @return String with the cryptographic configuration.
+     */
+    static native String buildConfiguration(String appKey, String appSecret, String publicKey);
 }

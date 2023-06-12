@@ -196,9 +196,26 @@
         }
         NSLog(@"Mapping for server %@ not found in known versions. The latest known specification will be used.", serverVersion);
     }
+    return [self loadBaseMapping:mappingKey mappings:mappings];
+}
+
+- (NSDictionary*) loadBaseMapping:(NSString*)mappingKey mappings:(NSDictionary*)mappings
+{
     NSDictionary * endpointsMapping = mappings[mappingKey];
     if (!endpointsMapping) {
         @throw [NSException exceptionWithName:@"RestError" reason:[NSString stringWithFormat:@"Invalid mapping data. Mapping key '%@' not found", mappingKey] userInfo:nil];
+    }
+    NSString * inheritFrom = endpointsMapping[@"#base"];
+    if (inheritFrom) {
+        if ([inheritFrom isEqualToString:mappingKey]) {
+            @throw [NSException exceptionWithName:@"RestError" reason:[NSString stringWithFormat:@"Invalid mapping data. Base mapping is equal to final mapping '%@'", mappingKey] userInfo:nil];
+        }
+        // Merge two mappings
+        NSMutableDictionary * baseMapping = [[self loadBaseMapping:inheritFrom mappings:mappings] mutableCopy];
+        [endpointsMapping enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL * stop) {
+            baseMapping[key] = obj;
+        }];
+        endpointsMapping = baseMapping;
     }
     return endpointsMapping;
 }

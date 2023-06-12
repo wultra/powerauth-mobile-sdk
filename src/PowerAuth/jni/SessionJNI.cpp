@@ -73,10 +73,11 @@ CC7_JNI_METHOD_PARAMS(jlong, init, jobject setup)
     // Copy data from java SessionSetup to backing C++ structure
     jclass setupClazz  = CC7_JNI_MODULE_FIND_CLASS("SessionSetup");
     SessionSetup cppSetup;
-    cppSetup.applicationKey         = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(setup, setupClazz, "applicationKey"));
-    cppSetup.applicationSecret      = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(setup, setupClazz, "applicationSecret"));
-    cppSetup.masterServerPublicKey  = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(setup, setupClazz, "masterServerPublicKey"));
-    cppSetup.sessionIdentifier      = CC7_JNI_GET_FIELD_INT(setup, setupClazz, "sessionIdentifier");
+    auto configuration = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(setup, setupClazz, "configuration"));
+    if (!cppSetup.loadFromConfiguration(configuration)) {
+        CC7_ASSERT(false, "Invalid simplified configuration");
+        return 0;
+    }
     cppSetup.externalEncryptionKey  = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(setup, setupClazz, "externalEncryptionKey"));
 
     auto session = new Session(cppSetup);
@@ -94,33 +95,6 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
         return;
     }
     delete session;
-}
-
-//
-// public native SessionSetup getSessionSetup()
-//
-CC7_JNI_METHOD(jobject, getSessionSetup)
-{
-    auto session = CC7_THIS_OBJ();
-    if (!session) {
-        CC7_ASSERT(false, "Missing internal handle.");
-        return NULL;
-    }
-    auto cppSetup = session->sessionSetup();
-    if (!cppSetup) {
-        return NULL;
-    }
-    // Copy cppResult into java result object
-    jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("SessionSetup");
-    jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("SessionSetup"), "()V");
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "applicationKey",           cc7::jni::CopyToJavaString(env, cppSetup->applicationKey));
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "applicationSecret",        cc7::jni::CopyToJavaString(env, cppSetup->applicationSecret));
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "masterServerPublicKey",    cc7::jni::CopyToJavaString(env, cppSetup->masterServerPublicKey));
-    CC7_JNI_SET_FIELD_INT   (resultObject, resultClazz, "sessionIdentifier",        cppSetup->sessionIdentifier);
-    if (session->hasExternalEncryptionKey()) {
-        CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "externalEncryptionKey", cc7::jni::CopyToJavaByteArray(env, cppSetup->externalEncryptionKey));
-    }
-    return resultObject;
 }
 
 //
@@ -149,6 +123,15 @@ CC7_JNI_METHOD(jboolean, hasValidSetup)
 {
     auto session = CC7_THIS_OBJ();
     return session ? session->hasValidSetup() : false;
+}
+
+//
+// public native String getApplicationKey();
+//
+CC7_JNI_METHOD(jstring, getApplicationKey)
+{
+    auto session = CC7_THIS_OBJ();
+    return session ? cc7::jni::CopyToJavaString(env, session->applicationKey()) : NULL;
 }
 
 //

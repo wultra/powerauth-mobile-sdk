@@ -32,6 +32,10 @@
  so it's not available for Objective-C or Swift codes.
  */
 
+@interface PowerAuthCoreSessionSetup (Private)
+- (io::getlime::powerAuth::SessionSetup&) sessionSetupRef;
+@end
+
 @interface PowerAuthCorePassword (Private)
 - (io::getlime::powerAuth::Password &) passObjRef;
 @end
@@ -56,15 +60,6 @@
 @protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
 - (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;
 @end
-
-/**
- Converts PowerAuthCoreSessionSetup object into SessionSetup C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreSessionSetupToStruct(PowerAuthCoreSessionSetup * setup, io::getlime::powerAuth::SessionSetup & cpp_setup);
-/**
- Returns new instance of PowerAuthCoreSessionSetup object, with content copied from SessionSetup C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreSessionSetup * PowerAuthCoreSessionSetupToObject(const io::getlime::powerAuth::SessionSetup & cpp_setup);
 
 /**
  Converts PowerAuthCoreSignatureUnlockKeys object into SignatureUnlockKeys C++ structure.

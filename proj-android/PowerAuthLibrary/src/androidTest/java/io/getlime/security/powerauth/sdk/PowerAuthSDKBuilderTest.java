@@ -53,9 +53,7 @@ public class PowerAuthSDKBuilderTest {
         PowerAuthConfiguration.Builder builder = new PowerAuthConfiguration.Builder(
                 "com.wultra.android.powerauth.test",
                 "http://wultra.com",
-                "aaa",
-                "bbb",
-                "ccc");
+                "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==");
         powerAuthConfiguration = builder.build();
     }
 

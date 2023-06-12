@@ -259,14 +259,7 @@ public class PowerAuthSDK {
             }
 
             // Prepare low-level Session object.
-            final SessionSetup sessionSetup = new SessionSetup(
-                    mConfiguration.getAppKey(),
-                    mConfiguration.getAppSecret(),
-                    mConfiguration.getMasterServerPublicKey(),
-                    0,
-                    mConfiguration.getExternalEncryptionKey()
-            );
-            final Session session = new Session(sessionSetup);
+            final Session session = new Session(mConfiguration.getSessionSetup());
 
             // Create a final PowerAuthSDK instance
             final PowerAuthSDK instance = new PowerAuthSDK(

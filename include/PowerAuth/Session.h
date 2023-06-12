@@ -79,11 +79,11 @@ namespace powerAuth
          */
         const SessionSetup * sessionSetup() const;
         /**
-         Returns application key extracted from internal SessionSetup, or empty string
-         if session has a no valid setup.
+         Returns the application key extracted from the internal SessionSetup, or an empty string if
+         the session does not have a valid setup.
          */
         std::string applicationKey() const;
-                
+        
         /**
          Resets session into its initial state. The existing session's setup and the external encryption
          key is preserved by this call.

@@ -23,4 +23,5 @@
 
 #include <PowerAuth/Session.h>
 #include <PowerAuth/ECIES.h>
+#include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>

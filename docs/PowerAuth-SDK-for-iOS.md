@@ -616,6 +616,31 @@ PowerAuthSDK.sharedInstance().signData(withDevicePrivateKey: auth, data: data) {
 }
 ```
 
+### Producing Signed JWT with Provided Claims
+
+The asymmetric private key signatures described above can be used to sign claims provided by the developer and construct a signed JWT (signed using ES256 algorithm).
+
+```swift
+// Construct claims array
+let claims = [
+    "sub": "user-id",
+    "first_name": "John",
+    "last_name": "Appleseed"
+]
+
+// 2FA signature, uses device related key and user PIN code
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
+
+// Unlock the secure vault, fetch the private key and perform data signing
+PowerAuthSDK.sharedInstance().signJwt(withDevicePrivateKey: auth, claims: claims) { (jwt, error) in
+    if error == nil {
+        // Use JWT value
+    } else {
+        // Authentication or network error
+    }
+}
+```
+
 ### Symmetric Offline Multi-Factor Signature
 
 This type of signature is very similar to [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature), but the result is provided in the form of a simple, human-readable string (unlike the online version, where the result is HTTP header). To calculate the signature, you need a typical `PowerAuthAuthentication` object to define all required factors, nonce, and data to sign. The `nonce` and `data` should also be transmitted to the application over the OOB channel (for example, by scanning a QR code). Then the signature calculation is straightforward:

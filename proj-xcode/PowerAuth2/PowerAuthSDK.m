@@ -1490,7 +1490,7 @@ static PowerAuthSDK * s_inst;
         }
         
         // Prepare JWT Header
-        NSDictionary *header = [NSDictionary dictionaryWithObjects:@[@"ES256", @"JWT"] forKeys:@[@"alg", @"typ"]];
+        NSDictionary *header = @{ @"alg": @"ES256", @"typ": @"JWT" };
         NSData *headerData = [NSJSONSerialization dataWithJSONObject:header options:0 error:nil];
         NSString *headerBase64Encoded = [headerData base64EncodedStringWithOptions:0];
         

@@ -492,7 +492,7 @@ using namespace io::getlime::powerAuth;
 
 + (NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
 {
-    return cc7::objc::CopyToNSString(Session::maxSupportedHttpProtocolVersion(static_cast<Version>(protocolVersion)));
+    return cc7::objc::CopyToNSString(Version_GetMaxSupportedHttpProtocolVersion(static_cast<Version>(protocolVersion)));
 }
 
 #pragma mark - Recovery codes

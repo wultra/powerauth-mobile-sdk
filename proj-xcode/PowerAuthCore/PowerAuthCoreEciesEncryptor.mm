@@ -15,10 +15,12 @@
  */
 
 #include <PowerAuth/ECIES.h>
+#include <PowerAuth/ByteUtils.h>
 #include <cc7/objc/ObjcHelper.h>
 
 #import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreSession.h>
+#import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import "PowerAuthCorePrivateImpl.h"
 
 using namespace io::getlime::powerAuth;
@@ -29,6 +31,7 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreEciesEncryptor
 {
     ECIESEncryptor _encryptor;
+    id _timeSynchronizationTask;
 }
 
 
@@ -54,9 +57,11 @@ using namespace io::getlime::powerAuth;
 - (nullable PowerAuthCoreEciesEncryptor*) copyForDecryption
 {
     if (_encryptor.canDecryptResponse()) {
-        PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.ivForDecryption(), _encryptor.sharedInfo2())];
+        PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
         if (decryptor) {
             decryptor->_associatedMetaData = _associatedMetaData;
+            decryptor->_timeSynchronizationTask = _timeSynchronizationTask;
+            _timeSynchronizationTask = nil;
         }
         return decryptor;
     }
@@ -97,18 +102,38 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Encrypt & Decrypt
 
-- (nullable PowerAuthCoreEciesCryptogram *) encryptRequest:(nullable NSData *)data
+- (nullable PowerAuthCoreEciesCryptogram *) encryptRequest:(NSData *)data
 {
     PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-    auto ec = _encryptor.encryptRequest(cc7::objc::CopyFromNSData(data), cryptogram.cryptogramRef);
+    cryptogram.timestamp = [[PowerAuthCoreTimeService sharedInstance] currentTime] * 1000.0;
+    // Prepare ECIES parameters
+    ECIESParameters params;
+    params.timestamp = cryptogram.timestamp;
+    params.associatedData = _associatedMetaData.associatedData;
+    // Encrypt the request
+    auto ec = _encryptor.encryptRequest(cc7::objc::CopyFromNSData(data), params, cryptogram.cryptogramRef);
+    if (ec == EC_Ok) {
+        _timeSynchronizationTask = [[PowerAuthCoreTimeService sharedInstance] startTimeSynchronizationTask];
+    }
     PowerAuthCoreObjc_DebugDumpError(self, @"EncryptRequest", ec);
     return ec == EC_Ok ? cryptogram : nil;
 }
 
-- (nullable NSData *) decryptResponse:(nonnull PowerAuthCoreEciesCryptogram *)cryptogram
+- (nullable NSData *) decryptResponse:(PowerAuthCoreEciesCryptogram *)cryptogram
 {
+    // Prepare ECIES parameters
+    ECIESParameters params;
+    params.timestamp = cryptogram.timestamp;
+    params.associatedData = _associatedMetaData.associatedData;
+    // Decrypt the response
     cc7::ByteArray data;
-    auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, data);
+    auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, params, data);
+    if (ec == EC_Ok) {
+        if (_timeSynchronizationTask) {
+            [[PowerAuthCoreTimeService sharedInstance] completeTimeSynchronizationTask:_timeSynchronizationTask withServerTime:cryptogram.timestamp];
+        }
+    }
+    _timeSynchronizationTask = nil;
     PowerAuthCoreObjc_DebugDumpError(self, @"DecryptResponse", ec);
     return ec == EC_Ok ? cc7::objc::CopyToNSData(data) : nil;
 }
@@ -259,6 +284,13 @@ using namespace io::getlime::powerAuth;
                 stringByAppendingString:@"\""];
     }
     return value;
+}
+
+- (cc7::ByteArray) associatedData
+{
+    auto appKey = cc7::objc::CopyFromNSString(_applicationKey);
+    auto activationId = cc7::objc::CopyFromNSString(_activationIdentifier);
+    return ECIESUtils::buildAssociatedData(appKey, activationId);
 }
 
 @end

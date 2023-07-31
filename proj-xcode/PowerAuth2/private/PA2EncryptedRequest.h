@@ -26,5 +26,6 @@
 @property (nonatomic, strong) NSString * encryptedData;
 @property (nonatomic, strong) NSString * mac;
 @property (nonatomic, strong) NSString * nonce;
+@property (nonatomic, assign) UInt64 timestamp;
 
 @end

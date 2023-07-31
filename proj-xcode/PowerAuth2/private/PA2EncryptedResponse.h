@@ -22,6 +22,7 @@
 
 @property (nonatomic, strong) NSString * encryptedData;
 @property (nonatomic, strong) NSString * mac;
+@property (nonatomic, assign) UInt64 timestamp;
 
 - (PowerAuthCoreEciesCryptogram*) cryptogram;
 

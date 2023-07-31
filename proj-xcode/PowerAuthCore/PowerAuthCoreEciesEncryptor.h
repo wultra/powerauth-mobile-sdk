@@ -170,6 +170,11 @@
  to the `nonce` property.
  */
 @property (nonatomic, strong, nullable) NSString * nonceBase64;
+/**
+ Timestamp of request or response in milliseconds since 1.1.1970.
+ */
+@property (nonatomic, assign) UInt64 timestamp;
+
 @end
 
 
@@ -198,7 +203,6 @@
  Contains optional activation identifier.
  */
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
-
 
 #pragma mark - HTTP
 

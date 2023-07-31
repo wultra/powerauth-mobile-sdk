@@ -391,6 +391,12 @@ namespace powerAuth
         cc7::ByteArray _ephemeral_public_key;
     };
     
+    class ECIESUtils {
+    public:
+        /// Build associated data from provided parameters. If activationId is not available (e.g. for ECIES in application scope)
+        /// then you can provide an empty string.
+        static cc7::ByteArray buildAssociatedData(const std::string & applicationKey, const std::string & activationId);
+    };
     
     
 } // io::getlime::powerAuth

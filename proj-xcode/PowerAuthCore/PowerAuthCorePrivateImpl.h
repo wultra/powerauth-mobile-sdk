@@ -57,6 +57,10 @@
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
 @end
 
+@interface PowerAuthCoreEciesMetaData (Private)
+- (cc7::ByteArray) associatedData;
+@end
+
 @protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
 - (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;
 @end

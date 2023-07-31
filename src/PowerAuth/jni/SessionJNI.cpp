@@ -825,7 +825,7 @@ CC7_JNI_METHOD(jint, finishProtocolUpgrade)
 //
 CC7_JNI_METHOD_PARAMS(jstring, getMaxSupportedHttpProtocolVersion, jint protocolVersionValue)
 {
-    return cc7::jni::CopyToJavaString(env, Session::maxSupportedHttpProtocolVersion((Version)protocolVersionValue));
+    return cc7::jni::CopyToJavaString(env, Version_GetMaxSupportedHttpProtocolVersion((Version)protocolVersionValue));
 }
 
 // ----------------------------------------------------------------------------

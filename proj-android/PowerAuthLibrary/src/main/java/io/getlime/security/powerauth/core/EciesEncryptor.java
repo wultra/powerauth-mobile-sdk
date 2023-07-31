@@ -186,7 +186,13 @@ public class EciesEncryptor {
      * @param requestData data to be encrypted
      * @return cryptogram object or null in case of failure
      */
-    public native EciesCryptogram encryptRequest(byte[] requestData);
+    public EciesCryptogram encryptRequest(byte[] requestData) {
+        final TimeService ts = TimeService.getInstance();
+        timeSynchronizationTask = ts.startTimeSynchronizationTask();
+        return encryptRequestImpl(requestData, ts.getCurrentTime());
+    }
+
+    private native EciesCryptogram encryptRequestImpl(byte[] requestData, long timestamp);
 
 
     /**
@@ -212,6 +218,8 @@ public class EciesEncryptor {
             EciesEncryptor decryptor = this.copyForDecryption();
             if (decryptor != null) {
                 decryptor.setMetadata(this.metadata);
+                decryptor.timeSynchronizationTask = timeSynchronizationTask;
+                timeSynchronizationTask = null;
                 return new Pair<>(decryptor, cryptogram);
             }
         }
@@ -225,7 +233,23 @@ public class EciesEncryptor {
      * @param cryptogram cryptogram received from the server
      * @return decrypted bytes or null in case of error
      */
-    public native byte[] decryptResponse(EciesCryptogram cryptogram);
+    public byte[] decryptResponse(EciesCryptogram cryptogram) {
+        final byte[] result = decryptResponseImpl(cryptogram);
+        if (result != null) {
+            if (timeSynchronizationTask != null) {
+                TimeService.getInstance().completeTimeSynchronizationTask(timeSynchronizationTask, cryptogram.timestamp);
+            }
+        }
+        timeSynchronizationTask = null;
+        return result;
+    }
+
+    private native byte[] decryptResponseImpl(EciesCryptogram cryptogram);
+
+    //
+    // Time synchronization task
+    //
+    private Object timeSynchronizationTask;
 
 
     //

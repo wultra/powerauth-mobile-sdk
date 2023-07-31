@@ -24,6 +24,7 @@ public class EciesEncryptedResponse {
 
     private String encryptedData;
     private String mac;
+    private long timestamp;
 
     /**
      * Default constructor.
@@ -73,4 +74,18 @@ public class EciesEncryptedResponse {
         this.mac = mac;
     }
 
+    /**
+     * Set timestamp with the milliseconds' precision.
+     * @param timestamp Timestamp in milliseconds.
+     */
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    /**
+     * @return Get timestamp in milliseconds.
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
 }

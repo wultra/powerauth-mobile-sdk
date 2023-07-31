@@ -44,6 +44,11 @@ public class EciesCryptogram {
     public final byte[] nonce;
 
     /**
+     * Timestamp with milliseconds precision.
+     */
+    public final long timestamp;
+
+    /**
      * @return content of body in Base64 formatted string
      */
     public String getBodyBase64() {
@@ -92,6 +97,7 @@ public class EciesCryptogram {
         this.mac = null;
         this.key = null;
         this.nonce = null;
+        this.timestamp = 0;
     }
 
     /**
@@ -101,12 +107,14 @@ public class EciesCryptogram {
      * @param mac MAC computed for encrypted data
      * @param key An optional ephemeral key
      * @param nonce An optional nonce.
+     * @param timestamp Timestamp with milliseconds precision.
      */
-    public EciesCryptogram(byte[] body, byte[] mac, byte[] key, byte[] nonce) {
+    public EciesCryptogram(byte[] body, byte[] mac, byte[] key, byte[] nonce, long timestamp) {
         this.body = body;
         this.mac = mac;
         this.key = key;
         this.nonce = nonce;
+        this.timestamp = timestamp;
     }
 
     /**
@@ -116,23 +124,27 @@ public class EciesCryptogram {
      * @param macBase64 MAC computed for encrypted data in Base64 format
      * @param keyBase64 An optional ephemeral key in Base64 format
      * @param nonceBase64 An optional nonce in Base64 format.
+     * @param timestamp Timestamp with milliseconds precision.
      */
-    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64, String nonceBase64) {
+    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64, String nonceBase64, long timestamp) {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.NO_WRAP) : null;
         this.nonce = (nonceBase64 != null) ? Base64.decode(nonceBase64, Base64.NO_WRAP) : null;
+        this.timestamp = timestamp;
     }
 
     /**
      * Constructs a cryptogram with body and mac in Base64 format.
      * @param bodyBase64 encrypted data in Base64 format
      * @param macBase64 MAC computed for encrypted data in Base64 format
+     * @param timestamp Timestamp with milliseconds precision.
      */
-    public EciesCryptogram(String bodyBase64, String macBase64) {
+    public EciesCryptogram(String bodyBase64, String macBase64, long timestamp) {
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = null;
         this.nonce = null;
+        this.timestamp = timestamp;
     }
 }

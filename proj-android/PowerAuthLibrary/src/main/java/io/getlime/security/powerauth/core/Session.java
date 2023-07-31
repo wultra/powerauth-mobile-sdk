@@ -637,7 +637,7 @@ public class Session {
 
     /**
      * Return textual representation for given protocol version. For example, for {@link ProtocolVersion#V3}
-     * returns {@code "3.1"}. You can use {@link ProtocolVersion#NA} to get the latest supported version.
+     * returns {@code "3.2"}. You can use {@link ProtocolVersion#NA} to get the latest supported version.
      *
      * @param version Version to convert to string
      * @return Textual representation for given protocol version.
@@ -649,7 +649,7 @@ public class Session {
 
     /**
      * Return textual representation for given integer value of protocol version. For example,
-     * for {@link ProtocolVersion#V3} returns {@code "3.1"}. You can use {@link ProtocolVersion#NA}
+     * for {@link ProtocolVersion#V3} returns {@code "3.2"}. You can use {@link ProtocolVersion#NA}
      * to get the latest supported version.
      *
      * @param protocolVersionValue Integer value from {@link ProtocolVersion} enum.

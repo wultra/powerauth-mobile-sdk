@@ -248,7 +248,7 @@ public interface PowerAuthServerApi {
      * Get information about activation.
      *
      * @param activationId Activation identifier.
-     * @param challenge Optional challenge, required for acquiring V3.1 {@code encryptedStatusBlob}.
+     * @param challenge Optional challenge, required for acquiring V3.1+ {@code encryptedStatusBlob}.
      * @return {@link ActivationDetail} object.
      * @throws Exception In case of failure.
      */

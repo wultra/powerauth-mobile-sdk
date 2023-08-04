@@ -4,13 +4,10 @@
         "applicationName" 
     ],
     "response": {
-        "class": "array",
-        "arrayClass": { 
-            "class": "PATSApplication",
-            "properties": {
-                "applicationId":   { "class" : "string" },
-                "applicationName": { "class" : "string" }
-            }
+        "class": "PATSApplication",
+        "properties": {
+            "applicationId":   { "class" : "string" },
+            "applicationName": { "class" : "string" }
         }
     }
 }

@@ -509,15 +509,23 @@ public class PowerAuthTokenStore {
         if (tokenData == null) {
             byte[] tokenBytes = keychain.getData(identifier);
             if (tokenBytes != null) {
-                tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
-                if (tokenData != null) {
-                    if (tokenData.activationId == null) {
-                        // Old data format, so we have to add an activationId and re-save
-                        PowerAuthLog.d("PowerAuthTokenStore: Upgrading activation data for token '" + tokenName + "'");
-                        tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, activationId, tokenData.authenticationFactors);
-                        storeTokenData(context, tokenData, true);
+                HashSet<String> index = loadTokensIndex(context);
+                if (index.contains(identifier)) {
+                    // Token data present and index says we know this object.
+                    tokenData = PowerAuthPrivateTokenData.deserializeWithData(tokenBytes);
+                    if (tokenData != null) {
+                        if (tokenData.activationId == null) {
+                            // Old data format, so we have to add an activationId and re-save
+                            PowerAuthLog.d("PowerAuthTokenStore: Upgrading activation data for token '" + tokenName + "'");
+                            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, activationId, tokenData.authenticationFactors);
+                            storeTokenData(context, tokenData, true);
+                        }
+                        localTokens.put(identifier, tokenData);
                     }
-                    localTokens.put(identifier, tokenData);
+                } else {
+                    // Token data is present, but index is clear.
+                    PowerAuthLog.d("PowerAuthTokenStore: WARNING: Token '" + tokenName + "' data not in index.");
+                    keychain.remove(identifier);
                 }
             }
         } else {

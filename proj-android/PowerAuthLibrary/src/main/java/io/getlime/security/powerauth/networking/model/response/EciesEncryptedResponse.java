@@ -24,22 +24,13 @@ public class EciesEncryptedResponse {
 
     private String encryptedData;
     private String mac;
+    private String nonce;
     private long timestamp;
 
     /**
      * Default constructor.
      */
     public EciesEncryptedResponse() {
-    }
-
-    /**
-     * Constructor with Base64 encoded encrypted data and MAC of key and data.
-     * @param encryptedData Encrypted data.
-     * @param mac MAC of key and data.
-     */
-    public EciesEncryptedResponse(String encryptedData, String mac) {
-        this.encryptedData = encryptedData;
-        this.mac = mac;
     }
 
     /**
@@ -72,6 +63,22 @@ public class EciesEncryptedResponse {
      */
     public void setMac(String mac) {
         this.mac = mac;
+    }
+
+    /**
+     * Get Base64 encoded nonce of the response.
+     * @return Base64 encoded nonce.
+     */
+    public String getNonce() {
+        return nonce;
+    }
+
+    /**
+     * Set Base64 encoded nonce of the response.
+     * @param nonce Base64 encoded nonce.
+     */
+    public void setNonce(String nonce) {
+        this.nonce = nonce;
     }
 
     /**

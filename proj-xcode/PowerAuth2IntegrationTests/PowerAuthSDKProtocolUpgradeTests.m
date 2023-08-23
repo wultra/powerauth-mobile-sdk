@@ -62,7 +62,7 @@
 #define HAS_PENDING_COMMIT_STATE    1
 
 #define UPGRADE_OLD_PROTOCOL    @"2.1"
-#define UPGRADE_NEW_PROTOCOL    @"3.1"
+#define UPGRADE_NEW_PROTOCOL    @"3.2"
 
 // Adjust SDK specific objects
 #if HAS_ASYNC_TASK_PROTOCOL == 1

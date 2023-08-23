@@ -110,11 +110,12 @@ static void _TestGen(NSString * format, ...)
     };
     td[@"testData"] = tda;
     for (int i = 0; i < 16; i++) {
-        BOOL appScope = (i & 1) == 1;
+        NSArray * sh1 = [self pickSharedInfo1];
+        BOOL appScope = [sh1[1] isEqual:@"APPLICATION_SCOPE_GENERIC"] || [sh1[1] isEqual:@"ACTIVATION_LAYER_2"];
         NSString * scope = appScope ? @"application" : @"activation";
         NSData * requestData = [self randomData];
         NSData * responseData = [self randomData];
-        NSArray * sh1 = [self pickSharedInfo1];
+        
         NSString * sharedInfo1 = sh1[0];
         NSString * sharedInfo1Enum = sh1[1];
         PowerAuthCoreEciesEncryptor * encryptor = [self createEncryptor:appScope sh1:sharedInfo1];
@@ -129,6 +130,10 @@ static void _TestGen(NSString * format, ...)
         NSData * decryptedRequestData = [self decryptRequest:request sh1:sharedInfo1 associatedData:associatedData appScope:appScope];
         XCTAssertNotNil(decryptedRequestData);
         XCTAssertEqualObjects(requestData, decryptedRequestData);
+        // Keep envelope key bytes for later
+        NSData * envelopeKeyBytes = [self extractEnvelopeKeyBytes];
+        XCTAssertNotNil(envelopeKeyBytes);
+        
         // Encrypt response
         PowerAuthCoreEciesCryptogram * response = [self encryptResponse:responseData sh1:sharedInfo1 associatedData:associatedData appScope:appScope];
         
@@ -141,6 +146,7 @@ static void _TestGen(NSString * format, ...)
         [arrResponses addObject:[responseData base64EncodedStringWithOptions:0]];
         [arrSharedInfo1s addObject:sharedInfo1Enum];
         [arrScopes addObject:@(appScope)];
+        
         NSDictionary * req = @{
             @"ephemeralPublicKey": request.keyBase64,
             @"encryptedData": request.bodyBase64,
@@ -162,7 +168,9 @@ static void _TestGen(NSString * format, ...)
                 @"scope": scope,
                 @"plaintextRequestData": [requestData base64EncodedStringWithOptions:0],
                 @"plaintextResponseData": [responseData base64EncodedStringWithOptions:0],
-                @"sharedInfo1": sharedInfo1
+                @"sharedInfo1": sharedInfo1,
+                @"associatedData": [associatedData base64EncodedStringWithOptions:0],
+                @"envelopeKey": [envelopeKeyBytes base64EncodedStringWithOptions:0],
             },
             @"request": req,
             @"response": resp
@@ -181,9 +189,6 @@ static void _TestGen(NSString * format, ...)
     TestGen(@"final String applicationKey = \"%@\";", _appKey);
     TestGen(@"final String applicationSecret = \"%@\";", _appSecret);
     TestGen(@"final byte[] transportKey = Base64.getDecoder().decode(\"%@\");", [_transportKey base64EncodedStringWithOptions:0]);
-    TestGen(@"// associated data");
-    TestGen(@"final byte[] adApplicationScope = deriveAssociatedData(EciesScope.APPLICATION_SCOPE, \"3.2\", applicationKey, null);");
-    TestGen(@"final byte[] adActivationScope = deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, \"3.2\", applicationKey, activationId);");
     TestGen(@"// Original request data");
     TestGen(@"final byte[][] plainRequestData = {");
     [arrRequests enumerateObjectsUsingBlock:^(NSString * data, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -196,42 +201,43 @@ static void _TestGen(NSString * format, ...)
         TestGen(@"    Base64.getDecoder().decode(\"%@\"),", data);
     }];
     TestGen(@"};");
-    TestGen(@"// SharedInfo1s");
-    TestGen(@"final EciesSharedInfo1[] sharedInfo1 = {");
+    TestGen(@"// EncryptorIds");
+    TestGen(@"final EncryptorId[] encryptorIds = {");
     [arrSharedInfo1s enumerateObjectsUsingBlock:^(NSString * info, NSUInteger idx, BOOL * _Nonnull stop) {
-        TestGen(@"    EciesSharedInfo1.%@,", info);
+        TestGen(@"    EncryptorId.%@,", info);
     }];
     TestGen(@"};");
-    TestGen(@"// Scopes");
-    TestGen(@"final EciesScope[] scopes = {");
-    [arrScopes enumerateObjectsUsingBlock:^(NSNumber * scope, NSUInteger idx, BOOL * _Nonnull stop) {
-        TestGen(@"    EciesScope.%@,", [scope boolValue] ? @"APPLICATION_SCOPE" : @"ACTIVATION_SCOPE");
+    TestGen(@"// Associated data");
+    TestGen(@"final byte[][] associatedData = {");
+    [tda enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        TestGen(@"    Base64.getDecoder().decode(\"%@\"),", obj[@"input"][@"associatedData"]);
+    }];
+    TestGen(@"};");
+    TestGen(@"// Envelope keys");
+    TestGen(@"final byte[][] envelopeKeys = {");
+    [tda enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        TestGen(@"    Base64.getDecoder().decode(\"%@\"),", obj[@"input"][@"envelopeKey"]);
     }];
     TestGen(@"};");
     TestGen(@"// Requests");
-    TestGen(@"final EciesPayload[] encryptedRequest = {");
+    TestGen(@"final EncryptedRequest[] encryptedRequest = {");
     [arrEncryptedRequests enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSString * scopeAdVar = [arrScopes[idx] boolValue] ? @"adApplicationScope" : @"adActivationScope";
-        TestGen(@"    new EciesPayload(");
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"ephemeralPublicKey"]);
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"mac"]);
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"encryptedData"]);
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"nonce"]);
-        TestGen(@"        %@,", scopeAdVar);
+        TestGen(@"    new EncryptedRequest(");
+        TestGen(@"        \"%@\",", obj[@"ephemeralPublicKey"]);
+        TestGen(@"        \"%@\",", obj[@"encryptedData"]);
+        TestGen(@"        \"%@\",", obj[@"mac"]);
+        TestGen(@"        \"%@\",", obj[@"nonce"]);
         TestGen(@"        %@L", obj[@"timestamp"]);
         TestGen(@"    ),");
     }];
     TestGen(@"};");
     TestGen(@"// Responses");
-    TestGen(@"final EciesPayload[] encryptedResponse = {");
+    TestGen(@"final EncryptedResponse[] encryptedResponse = {");
     [arrEncryptedResponses enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSString * scopeAdVar = [arrScopes[idx] boolValue] ? @"adApplicationScope" : @"adActivationScope";
-        TestGen(@"    new EciesPayload(");
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", arrEncryptedRequests[idx][@"ephemeralPublicKey"]);    // pick ephemeral key from request, we don't keep it in response
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"mac"]);
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"encryptedData"]);
-        TestGen(@"        Base64.getDecoder().decode(\"%@\"),", obj[@"nonce"]);
-        TestGen(@"        %@,", scopeAdVar);
+        TestGen(@"    new EncryptedResponse(");
+        TestGen(@"        \"%@\",", obj[@"encryptedData"]);
+        TestGen(@"        \"%@\",", obj[@"mac"]);
+        TestGen(@"        \"%@\",", obj[@"nonce"]);
         TestGen(@"        %@L", obj[@"timestamp"]);
         TestGen(@"    ),");
     }];
@@ -322,6 +328,11 @@ static void _TestGen(NSString * format, ...)
     }
     NSLog(@"Decryptor [encrypt] failed with code %@", @(ec));
     return nil;
+}
+
+- (NSData*) extractEnvelopeKeyBytes
+{
+    return cc7::objc::CopyToNullableNSData(_decryptor.envelopeKey().rawKeyBytes());
 }
 
 @end

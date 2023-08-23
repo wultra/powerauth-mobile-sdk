@@ -75,6 +75,11 @@ namespace powerAuth
         return cc7::ByteRange();
     }
 
+    const cc7::ByteRange ECIESEnvelopeKey::rawKeyBytes() const
+    {
+        return _key.byteRange();
+    }
+
     cc7::ByteArray ECIESEnvelopeKey::deriveIvForNonce(const cc7::ByteRange & nonce) const
     {
         return protocol::DeriveSecretKeyFromIndex(ivKey(), nonce);
@@ -103,7 +108,7 @@ namespace powerAuth
                 break;
             }
             // Concat shared_info1 + ephemeral key.
-            cc7::ByteArray info1_data = utils::ByteUtils_Concat({shared_info1, out_ephemeral_key});
+            cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, out_ephemeral_key});
             // Derive shared secret
             ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
             
@@ -136,7 +141,7 @@ namespace powerAuth
                 break;
             }
             // Concat shared_info1 + ephemeral key.
-            cc7::ByteArray info1_data = utils::ByteUtils_Concat({ shared_info1, ephemeral_key });
+            cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, ephemeral_key });
             // Derive shared secret
             ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
             
@@ -256,7 +261,7 @@ namespace powerAuth
     
     bool ECIESEncryptor::canDecryptResponse() const
     {
-        return _envelope_key.isValid() && !_ephemeral_public_key.empty();
+        return _envelope_key.isValid();
     }
     
     
@@ -265,12 +270,11 @@ namespace powerAuth
     ErrorCode ECIESEncryptor::encryptRequest(const cc7::ByteRange & data, const ECIESParameters & parameters, ECIESCryptogram & out_cryptogram)
     {
         if (canEncryptRequest()) {
-            _envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, _ephemeral_public_key);
+            _envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, out_cryptogram.key);
             if (_envelope_key.isValid()) {
-                out_cryptogram.key   = _ephemeral_public_key;
                 out_cryptogram.nonce = crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
                 auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
-                auto info2 = _BuildSharedInfo2(_shared_info2, _ephemeral_public_key, out_cryptogram.nonce, parameters);
+                auto info2 = _BuildSharedInfo2(_shared_info2, out_cryptogram.key, out_cryptogram.nonce, parameters);
                 auto result = _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
                 if (result != EC_Ok) {
                     _envelope_key.invalidate();
@@ -286,7 +290,7 @@ namespace powerAuth
     {
         if (canDecryptResponse()) {
             auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
-            auto info2 = _BuildSharedInfo2(_shared_info2, _ephemeral_public_key, cryptogram.nonce, parameters);
+            auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), cryptogram.nonce, parameters);
             auto result = _Decrypt(_envelope_key, info2, cryptogram, iv, out_data);
             _envelope_key.invalidate();
             return result;
@@ -346,7 +350,7 @@ namespace powerAuth
     
     bool ECIESDecryptor::canEncryptResponse() const
     {
-        return _envelope_key.isValid() && !_ephemeral_public_key.empty();
+        return _envelope_key.isValid();
     }
     
     bool ECIESDecryptor::canDecryptRequest() const
@@ -360,7 +364,6 @@ namespace powerAuth
     ErrorCode ECIESDecryptor::decryptRequest(const ECIESCryptogram & cryptogram, const ECIESParameters & parameters, cc7::ByteArray & out_data)
     {
         if (canDecryptRequest()) {
-            _ephemeral_public_key = cryptogram.key;
             _envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key, _shared_info1);
             if (_envelope_key.isValid()) {
                 auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
@@ -381,7 +384,7 @@ namespace powerAuth
         if (canEncryptResponse()) {
             out_cryptogram.nonce = crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
             auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
-            auto info2 = _BuildSharedInfo2(_shared_info2, _ephemeral_public_key, out_cryptogram.nonce, parameters);
+            auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), out_cryptogram.nonce, parameters);
             auto result = _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
             _envelope_key.invalidate();
             return result;

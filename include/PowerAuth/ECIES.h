@@ -198,6 +198,9 @@ namespace powerAuth
         /// Returns key for IV derivation.
         const cc7::ByteRange ivKey() const;
         
+        /// Return raw envelope key bytes. Function should be used only for testing purposes.
+        const cc7::ByteRange rawKeyBytes() const;
+        
         /// Returns IV derived from IV key and provided nonce.
         cc7::ByteArray deriveIvForNonce(const cc7::ByteRange & nonce) const;
                 
@@ -309,8 +312,6 @@ namespace powerAuth
         cc7::ByteArray _shared_info2;
         /// Last calculated envelope key.
         ECIESEnvelopeKey _envelope_key;
-        /// Last used ephemeral public key.
-        cc7::ByteArray _ephemeral_public_key;
     };
     
     
@@ -387,8 +388,6 @@ namespace powerAuth
         cc7::ByteArray   _shared_info2;
         /// Last calculated envelope key.
         ECIESEnvelopeKey _envelope_key;
-        /// Last used ephemeral public key.
-        cc7::ByteArray _ephemeral_public_key;
     };
     
     class ECIESUtils {

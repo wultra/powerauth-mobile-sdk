@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <PowerAuth/PublicTypes.h>
 #include <cc7/jni/JniHelper.h>
 #include "../crypto/CryptoUtils.h"
 #include "../protocol/Constants.h"
@@ -91,7 +92,9 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
     std::string result;
     result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp.length() + 80);
 
-    result.assign("PowerAuth version=\"3.1\", token_id=\"");
+    result.assign("PowerAuth version=\"");
+    result.append(Version_GetMaxSupportedHttpProtocolVersion(Version_Latest));
+    result.append("\", token_id=\"");
     result.append(cppTokenIdentifier);
     result.append("\", token_digest=\"");
     result.append(digestBase64);

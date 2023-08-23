@@ -24,6 +24,8 @@
 #define CC7_JNI_CPP_CLASS           ECIESEncryptor
 #include <cc7/jni/JniModule.inl>
 
+#include <android/log.h>
+
 using namespace io::getlime::powerAuth;
 
 CC7_JNI_MODULE_CLASS_BEGIN()
@@ -80,17 +82,22 @@ jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & en
     return resultObject;
 }
 
-cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor)
+static cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor)
 {
     if (!env) {
         CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
         return cc7::ByteArray();
     }
     // Get metaData object from the encryptor and create associated data
-    jclass  encryptorClazz  = CC7_JNI_MODULE_FIND_CLASS("EciesEncryptor");
-    jobject metaData = CC7_JNI_GET_FIELD_OBJECT(encryptor, encryptorClazz, "metaData", "Lio/getlime/security/powerauth/ecies/EciesMetaData;");
-    jclass metaDataClazz = env->FindClass("io/getlime/security/powerauth/ecies/EciesMetaData");
-    if (metaData == nullptr || metaDataClazz == nullptr) {
+    jclass encryptorClazz = CC7_JNI_MODULE_FIND_CLASS("EciesEncryptor");
+    jclass metaDataClazz = env->FindClass("io/getlime/security/powerauth/ecies/EciesMetadata");
+    if (encryptorClazz == nullptr || metaDataClazz == nullptr) {
+        CC7_ASSERT(false, "Missing required required classes.");
+        return cc7::ByteArray();
+    }
+    jobject metaData = CC7_JNI_GET_FIELD_OBJECT(encryptor, encryptorClazz, "metadata", "Lio/getlime/security/powerauth/ecies/EciesMetadata;");
+    if (metaData == nullptr) {
+        CC7_ASSERT(false, "Missing metadata in encryptor.");
         return cc7::ByteArray();
     }
     // Extract parameters from EciesMetaData object
@@ -239,6 +246,9 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequestImpl, jbyteArray requestData, jlong
     ECIESParameters cppParameters;
     cppParameters.timestamp = (cc7::U64)timestamp;
     cppParameters.associatedData = LoadAssociatedData(env, thiz);
+    if (cppParameters.associatedData.empty()) {
+        return nullptr;
+    }
     auto ec = encryptor->encryptRequest(cppRequestData, cppParameters, cppCryptogram);
     if (ec != EC_Ok) {
         CC7_ASSERT(false, "ECIESCryptogram.encryptRequest: failed with error code %d", ec);
@@ -261,6 +271,9 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponseImpl, jobject cryptogram)
     ECIESCryptogram cppCryptogram;
     ECIESParameters cppParameters;
     cppParameters.associatedData = LoadAssociatedData(env, thiz);
+    if (cppParameters.associatedData.empty()) {
+        return nullptr;
+    }
     LoadCppCryptogramFromJavaObject(env, cryptogram, cppCryptogram, cppParameters);
 
     // Decrypt response

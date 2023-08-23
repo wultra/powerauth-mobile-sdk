@@ -19,6 +19,9 @@
     <init>(...);
     <fields>;
 }
+-keep class io.getlime.security.powerauth.ecies.EciesMetadata {
+    <fields>;
+}
 -keep class io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData {
     <fields>;
 }

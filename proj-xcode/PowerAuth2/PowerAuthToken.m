@@ -109,7 +109,7 @@
         return nil;
     }
     NSString * value = [NSString stringWithFormat:
-                        @"PowerAuth version=\"3.1\""
+                        @"PowerAuth version=\"3.2\""
                         @", token_id=\"%@\""
                         @", token_digest=\"%@\""
                         @", nonce=\"%@\""

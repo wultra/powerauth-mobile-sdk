@@ -464,7 +464,7 @@
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreLibTests-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLibTests-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF9AFF062992707900400D5B /* signatures-offline.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-offline.json"; sourceTree = "<group>"; };
 		BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCorePassword.mm; sourceTree = "<group>"; };
-		BFA9807B253DA559004D2CF9 /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
+		BFA9807B253DA559004D2CF9 /* core.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = core.modulemap; sourceTree = "<group>"; };
 		BFA9807C253DA559004D2CF9 /* PowerAuthCoreMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreMacros.h; sourceTree = "<group>"; };
 		BFA9807D253DA559004D2CF9 /* PowerAuthCoreSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreSession.h; sourceTree = "<group>"; };
 		BFA9807E253DA559004D2CF9 /* PowerAuthCoreOtpUtil.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreOtpUtil.mm; sourceTree = "<group>"; };
@@ -836,8 +836,8 @@
 				BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */,
 				BF720DCE2642A5EA00D5932A /* PowerAuthCoreDeprecated.m */,
 				BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */,
-				BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */,
 				BF28A1D72A6AC56600E50F76 /* PowerAuthCoreTimeService.m */,
+				BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */,
 			);
 			path = PowerAuthCore;
 			sourceTree = "<group>";
@@ -846,7 +846,7 @@
 			isa = PBXGroup;
 			children = (
 				BFA9808D253DA559004D2CF9 /* Info.plist */,
-				BFA9807B253DA559004D2CF9 /* module.modulemap */,
+				BFA9807B253DA559004D2CF9 /* core.modulemap */,
 			);
 			name = Support;
 			sourceTree = "<group>";
@@ -1571,7 +1571,7 @@
 					"$(PROJECT_DIR)/../cc7/include",
 					"$(PROJECT_DIR)/../cc7/openssl-lib/apple/include",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../cc7/openssl-lib/apple";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1580,7 +1580,7 @@
 					openssl,
 				);
 				SDKROOT = iphoneos;
-				TVOS_DEPLOYMENT_TARGET = 12.0;
+				TVOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1692,7 +1692,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MODULEMAP_FILE = PowerAuthCore/module.modulemap;
+				MODULEMAP_FILE = PowerAuthCore/core.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -1734,7 +1734,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MODULEMAP_FILE = PowerAuthCore/module.modulemap;
+				MODULEMAP_FILE = PowerAuthCore/core.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -1776,7 +1776,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MODULEMAP_FILE = PowerAuthCore/module.modulemap;
+				MODULEMAP_FILE = PowerAuthCore/core.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -1818,7 +1818,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACH_O_TYPE = mh_dylib;
-				MODULEMAP_FILE = PowerAuthCore/module.modulemap;
+				MODULEMAP_FILE = PowerAuthCore/core.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_ENABLE_DEBUG_INFO = NO;

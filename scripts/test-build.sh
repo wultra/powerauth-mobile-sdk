@@ -24,6 +24,7 @@ function USAGE
     echo ""
     echo "  lint                Use 'pod lib lint' to test iOS targets."
     echo "  script              Use custom scripts for iOS targets."
+    echo "  android             Test android build only."
     echo "  all                 Run all methods to test the build."
     echo ""
     echo "options are:"
@@ -40,6 +41,7 @@ SCRIPT_VERBOSE=
 
 DO_LINT=0
 DO_SCRIPT=0
+DO_ANDROID=0
 
 ###############################################################################
 # Script's main execution starts here...
@@ -62,9 +64,13 @@ do
         lint)
             DO_LINT=1
             ;;
+        android)
+            DO_ANDROID=1
+            ;;
         all)
             DO_SCRIPT=1
             DO_LINT=1
+            DO_ANDROID=1
             ;;
         *)
             VALIDATE_AND_SET_VERSION_STRING $opt
@@ -73,7 +79,7 @@ do
     shift
 done
 
-[[ x$DO_LINT$DO_SCRIPT == x00 ]] && FAILURE "Please specify buld mode: lint, script or all."
+[[ x$DO_LINT$DO_SCRIPT$DO_ANDROID == x000 ]] && FAILURE "Please specify buld mode: lint, script, android or all."
 
 REQUIRE_COMMAND pod
 
@@ -102,18 +108,19 @@ if [ x$DO_SCRIPT == x1 ]; then
     "${TOP}/ios-build-sdk.sh" $SCRIPT_VERBOSE buildSdk buildCore
 fi
 
-if [ x$DO_LINT = x1 ]; then
+if [ x$DO_LINT == x1 ]; then
     LOG_LINE -a
     LOG "Validating build for Apple platforms (lint mode)..."
     LOG_LINE
     pod $POD_VERBOSE lib lint PowerAuth2.podspec --include-podspecs=PowerAuthCore.podspec
 fi
 
-LOG_LINE -a
-LOG "Validating build for Android platform..."
-LOG_LINE
-
-"${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE test --no-sign
+if [ x$DO_ANDROID == x1 ]; then
+    LOG_LINE -a
+    LOG "Validating build for Android platform..."
+    LOG_LINE
+    "${TOP}/android-publish-build.sh" $SCRIPT_VERBOSE test --no-sign
+fi
 
 ####
 POP_DIR

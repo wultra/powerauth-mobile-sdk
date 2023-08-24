@@ -26,4 +26,4 @@ jobs:
           java-version: '11'
           cache: 'gradle'
       - name: Build library
-        run: ./scripts/test-build.sh script -v2
+        run: ./scripts/test-build.sh script android -v2

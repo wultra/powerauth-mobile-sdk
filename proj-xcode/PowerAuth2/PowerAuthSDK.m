@@ -26,6 +26,7 @@
 #import "PA2AsyncOperation.h"
 #import "PA2ObjectSerialization.h"
 
+#import "PA2TimeSynchronizationService.h"
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
 #import "PA2PrivateMacros.h"
@@ -110,13 +111,17 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
         _keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
         biometryKeychainAccessGroup = sharingConfiguration.keychainAccessGroup;
     }
-    
+    // Prepare time synchronization sevice
+    PA2TimeSynchronizationService * timeSynchronizationService = [[PA2TimeSynchronizationService alloc] initWithStatusProvider:self sharedLock:_lock];
+    [timeSynchronizationService subscribeForSystemNotifications];
+    _timeSynchronizationService = timeSynchronizationService;
+
     // Create session setup parameters
     PowerAuthCoreSessionSetup *setup = [[PowerAuthCoreSessionSetup alloc] initWithConfiguration:_configuration.configuration];
     setup.externalEncryptionKey = _configuration.externalEncryptionKey;
     
     // Create a new session
-    _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup];
+    _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup timeService:timeSynchronizationService];
     if (_coreSession == nil || ![_coreSession hasValidSetup]) {
         [PowerAuthSDK throwInvalidConfigurationException];
     }
@@ -203,7 +208,6 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
                                                                remoteProvider:_remoteHttpTokenProvider
                                                                      dataLock:_sessionInterface
                                                                     localLock:_lock];
-    
 #if defined(PA2_WATCH_SUPPORT)
     // Register this instance to handle messages
     [[PowerAuthWCSessionManager sharedInstance] registerDataHandler:self];
@@ -212,6 +216,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 
 - (void) dealloc
 {
+    [(PA2TimeSynchronizationService*)_timeSynchronizationService unsubscribeForSystemNotifications];
 #if defined(PA2_WATCH_SUPPORT)
     // Unregister this instance for processing packets...
     [[PowerAuthWCSessionManager sharedInstance] unregisterDataHandler:self];
@@ -1741,6 +1746,29 @@ static PowerAuthSDK * s_inst;
                         }
                         callback(result, error);
                     }];
+}
+
+@end
+
+#pragma mark - Server Status
+
+@implementation PowerAuthSDK (ServerStatus)
+
+- (id<PowerAuthOperationTask>) fetchServerStatus:(void(^)(PowerAuthServerStatus * status, NSError * error))callback
+{
+    return [self getSystemStatusWithCallback:callback callbackQueue:dispatch_get_main_queue()];
+}
+
+- (id<PowerAuthOperationTask>) getSystemStatusWithCallback:(void(^)(PowerAuthServerStatus * status, NSError * error))callback
+                                             callbackQueue:(dispatch_queue_t)callbackQueue
+{
+    // TODO: fixme in another PR
+    return nil;
+}
+
+- (void) getSystemStatusTask:(PA2GetSystemStatusTask *)task didFinishedWithStatus:(PA2GetServerStatusResponse *)status error:(NSError *)error
+{
+    // TODO: fixme in another PR
 }
 
 @end

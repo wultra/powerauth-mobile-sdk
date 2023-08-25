@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #import "PowerAuthCorePrivateImpl.h"
+#import "TestTimeService.h"
 
 #define PRINT_JSON  0
 #define PRINT_JAVA  1
@@ -64,6 +65,8 @@ static void _TestGen(NSString * format, ...)
     NSUInteger _sharedInfo1Index;
     
     io::getlime::powerAuth::ECIESDecryptor _decryptor;
+    
+    id<PowerAuthCoreTimeService> _timeService;
 }
 
 - (void) setUp
@@ -85,6 +88,7 @@ static void _TestGen(NSString * format, ...)
         @[@"/pa/token/create",          @"CREATE_TOKEN"],
         @[@"/pa/recovery/confirm",      @"CONFIRM_RECOVERY_CODE"]
     ];
+    _timeService = [[TestTimeService alloc] init];
 }
 
 - (void) testGenerateEciesTestVectors
@@ -278,7 +282,10 @@ static void _TestGen(NSString * format, ...)
     NSData * sharedInfo1 = [sh1 dataUsingEncoding:NSUTF8StringEncoding];
     NSData * sharedInfo2 = [self sh2ForScope:appScope];
     NSString * activationId = appScope ? nil : _activationId;
-    PowerAuthCoreEciesEncryptor * encryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithPublicKey:publicKeyBytes sharedInfo1:sharedInfo1 sharedInfo2:sharedInfo2];
+    PowerAuthCoreEciesEncryptor * encryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithTimeService:_timeService
+                                                                                             publicKey:publicKeyBytes
+                                                                                           sharedInfo1:sharedInfo1
+                                                                                           sharedInfo2:sharedInfo2];
     encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:_appKey activationIdentifier:activationId];
     return encryptor;
 }
@@ -315,7 +322,7 @@ static void _TestGen(NSString * format, ...)
 {
     io::getlime::powerAuth::ECIESCryptogram cppCryptogram;
     io::getlime::powerAuth::ECIESParameters cppParams;
-    cppParams.timestamp = (cc7::U64)([[PowerAuthCoreTimeService sharedInstance] currentTime] * 1000.0);
+    cppParams.timestamp = (cc7::U64)([[NSDate date] timeIntervalSince1970] * 1000.0);
     cppParams.associatedData = cc7::objc::CopyFromNSData(associatedData);
     auto ec = _decryptor.encryptResponse(cc7::objc::CopyFromNSData(responseData), cppParams, cppCryptogram);
     if (ec == io::getlime::powerAuth::EC_Ok) {

@@ -139,6 +139,18 @@
                                           authUriId:nil];
 }
 
++ (instancetype) getSystemStatus
+{
+    // FL_ALLOWED_IN_UPGRADE is probably ignored because endoint is not signed.
+    // We keep it only to return semantically correct information in `isAvailableInProtocolUpgrade`
+    return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/status"
+                                            request:nil
+                                           response:[PA2GetServerStatusResponse class]
+                                          encryptor:PA2EncryptorId_None
+                                          authUriId:nil
+                                              flags:FL_ALLOWED_IN_UPGRADE];
+}
+
 #pragma mark - Public getters
 
 - (BOOL) isEncrypted

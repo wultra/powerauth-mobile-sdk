@@ -74,4 +74,6 @@
 
 + (instancetype) getUserInfo;
 
++ (instancetype) getSystemStatus;
+
 @end

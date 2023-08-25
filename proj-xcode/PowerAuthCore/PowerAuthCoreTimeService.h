@@ -16,25 +16,13 @@
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 
-/// The `PowerAuthCoreTimeService` class provides time synchronization with the server.
-/// However, the class itself does not handle communication with the PowerAuth server
-/// to achieve this synchronization. Instead, you must use your own code in conjunction
-/// with the `startTimeSynchronizationTask` and `completeTimeSynchronizationTask` methods.
-///
-/// The synchronization status is reset whenever the application transitions from the background
-/// to the foreground. The shared instance of the service listens
-/// for `UIApplicationWillEnterForegroundNotification` to manage this.
-@interface PowerAuthCoreTimeService : NSObject
-
-/// Contains shared instance of this class.
-@property (class, nonatomic, readonly, strong) PowerAuthCoreTimeService * sharedInstance;
+/// The `PowerAuthCoreTimeService` protocol provides functionality for getting
+/// time synchronized with the server and allows synchronize time with the server.
+@protocol PowerAuthCoreTimeService <NSObject>
+@required
 
 /// Contains information whether the service has its time synchronized with the server.
 @property (nonatomic, readonly) BOOL isTimeSynchronized;
-
-/// Contains calculated local time difference against the server. The value of the property
-/// is informational and is provided only for the testing or the debugging purposes.
-@property (nonatomic, readonly) NSTimeInterval localTimeAdjustment;
 
 /// Return the current local time synchronized with the server. The returned value is in the seconds since the
 /// reference date 1.1.1970 (e.g. unix timestamp.) If the local time is not synchronized, then returns
@@ -52,9 +40,6 @@
 ///   - serverTime: Timestamp received from the server with the milliseconds' precision.
 /// - Returns: YES if the server time has been processed and time is now synchronized.
 - (BOOL) completeTimeSynchronizationTask:(id)task withServerTime:(NSTimeInterval)serverTime;
-
-/// Reset the time synchronization. The time must be synchronized again after this call.
-- (void) resetTimeSynchronization;
 
 @end
 

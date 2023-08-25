@@ -38,26 +38,29 @@ using namespace io::getlime::powerAuth;
 #pragma mark Initialization
 
 - (id) initWithObject:(const ECIESEncryptor &)objectRef
+          timeService:(id<PowerAuthCoreTimeService>)timeService
 {
     self = [super init];
     if (self) {
         _encryptor = objectRef;
+        _timeSynchronizationService = timeService;
     }
     return self;
 }
 
-- (id) initWithPublicKey:(NSData*)publicKey
-             sharedInfo1:(NSData*)sharedInfo1
-             sharedInfo2:(NSData*)sharedInfo2
+- (id) initWithTimeService:(id<PowerAuthCoreTimeService>)timeService
+                 publicKey:(NSData *)publicKey
+               sharedInfo1:(NSData *)sharedInfo1
+               sharedInfo2:(NSData *)sharedInfo2
 {
     auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
-    return [self initWithObject: encryptor];
+    return [self initWithObject:encryptor timeService:timeService];
 }
 
 - (nullable PowerAuthCoreEciesEncryptor*) copyForDecryption
 {
     if (_encryptor.canDecryptResponse()) {
-        PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2())];
+        PowerAuthCoreEciesEncryptor * decryptor = [[PowerAuthCoreEciesEncryptor alloc] initWithObject:ECIESEncryptor(_encryptor.envelopeKey(), _encryptor.sharedInfo2()) timeService:_timeSynchronizationService];
         if (decryptor) {
             decryptor->_associatedMetaData = _associatedMetaData;
             decryptor->_timeSynchronizationTask = _timeSynchronizationTask;
@@ -104,8 +107,13 @@ using namespace io::getlime::powerAuth;
 
 - (nullable PowerAuthCoreEciesCryptogram *) encryptRequest:(NSData *)data
 {
+    id<PowerAuthCoreTimeService> timeService = _timeSynchronizationService;
+    if (!timeService) {
+        PowerAuthCoreLog(@"TimeSynchronizationService is not set or is no longer valid");
+        return nil;
+    }
     PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-    cryptogram.timestamp = [[PowerAuthCoreTimeService sharedInstance] currentTime] * 1000.0;
+    cryptogram.timestamp = [timeService currentTime] * 1000.0;
     // Prepare ECIES parameters
     ECIESParameters params;
     params.timestamp = cryptogram.timestamp;
@@ -113,7 +121,7 @@ using namespace io::getlime::powerAuth;
     // Encrypt the request
     auto ec = _encryptor.encryptRequest(cc7::objc::CopyFromNSData(data), params, cryptogram.cryptogramRef);
     if (ec == EC_Ok) {
-        _timeSynchronizationTask = [[PowerAuthCoreTimeService sharedInstance] startTimeSynchronizationTask];
+        _timeSynchronizationTask = [timeService startTimeSynchronizationTask];
     }
     PowerAuthCoreObjc_DebugDumpError(self, @"EncryptRequest", ec);
     return ec == EC_Ok ? cryptogram : nil;
@@ -130,7 +138,7 @@ using namespace io::getlime::powerAuth;
     auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, params, data);
     if (ec == EC_Ok) {
         if (_timeSynchronizationTask) {
-            [[PowerAuthCoreTimeService sharedInstance] completeTimeSynchronizationTask:_timeSynchronizationTask withServerTime:cryptogram.timestamp];
+            [_timeSynchronizationService completeTimeSynchronizationTask:_timeSynchronizationTask withServerTime:cryptogram.timestamp];
         }
     }
     _timeSynchronizationTask = nil;

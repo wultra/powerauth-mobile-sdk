@@ -53,7 +53,7 @@
 @end
 
 @interface PowerAuthCoreEciesEncryptor (Private)
-- (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef;
+- (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef timeService:(id<PowerAuthCoreTimeService>)timeService;
 - (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
 @end
 

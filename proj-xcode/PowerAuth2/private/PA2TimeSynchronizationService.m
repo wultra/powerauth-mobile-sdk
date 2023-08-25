@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-#import "PowerAuthCoreTimeService.h"
-#import "PowerAuthCoreLog.h"
-#import <UIKit/UIKit.h>
+#import "PA2TimeSynchronizationService.h"
+#import "PA2GetSystemStatusTask.h"
+#import "PA2RestApiEndpoint.h"
+#import "PA2PrivateMacros.h"
+#import <PowerAuth2/PowerAuthLog.h>
+#import <UIKit/UIApplication.h>
 
-@implementation PowerAuthCoreTimeService
+@implementation PA2TimeSynchronizationService
 {
     dispatch_semaphore_t _lock;
+    BOOL _receiveNotifications;
     BOOL _isTimeSynchronized;
     NSTimeInterval (*_timeProvider)(void);
+    
+    NSTimeInterval _localTimeAdjustment;
+    NSTimeInterval _localTimeAdjustmentPrecision;
+    
+    __weak id<PA2SystemStatusProvider> _statusProvider;
 }
 
 /// Minimum time difference against the server accepted during the synchronization. If the difference
@@ -41,38 +50,61 @@
 /// the time synchronization.
 #define MAX_ACCEPTED_ELAPSED_TIME    16.0
 
+// Default function providing system time.
 static NSTimeInterval _Now(void)
 {
     return [[NSDate date] timeIntervalSince1970];
 }
 
-- (id) init
+- (instancetype) initWithStatusProvider:(id<PA2SystemStatusProvider>)statusProvider
+                             sharedLock:(id<NSLocking>)sharedLock
 {
     self = [super init];
     if (self) {
+        _statusProvider = statusProvider;
         _lock = dispatch_semaphore_create(1);
         _timeProvider = _Now;
     }
     return self;
 }
 
-+ (PowerAuthCoreTimeService*) sharedInstance
+- (void) dealloc
 {
-    static dispatch_once_t token;
-    static PowerAuthCoreTimeService *singleton = nil;
-    dispatch_once(&token, ^{
-        singleton = [[PowerAuthCoreTimeService alloc] init];
-        // Register this instance for system notifications
-        [[NSNotificationCenter defaultCenter] addObserver:singleton selector:@selector(willEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
-    });
-    return singleton;
+    [self unsubscribeForSystemNotificationsImpl];
 }
+
+#ifdef DEBUG
+- (void) setTestTimeProvider:(NSTimeInterval (*)(void))timeProviderFunc
+{
+    if (timeProviderFunc) {
+        _timeProvider = timeProviderFunc;
+    } else {
+        _timeProvider = _Now;
+    }
+}
+#endif // DEBUG
+
+#pragma mark - PowerAuthTimeSynchronizationService protocol -
 
 - (BOOL) isTimeSynchronized
 {
     return [[self synchronized:^id{
         return @(self->_isTimeSynchronized);
     }] boolValue];
+}
+
+- (NSTimeInterval) localTimeAdjustment
+{
+    return [[self synchronized:^id{
+        return @(self->_localTimeAdjustment);
+    }] doubleValue];
+}
+
+- (NSTimeInterval) localTimeAdjustmentPrecision
+{
+    return [[self synchronized:^id{
+        return @(self->_localTimeAdjustmentPrecision);
+    }] doubleValue];
 }
 
 - (NSTimeInterval) currentTime
@@ -90,11 +122,11 @@ static NSTimeInterval _Now(void)
 - (BOOL) completeTimeSynchronizationTask:(id)task withServerTime:(NSTimeInterval)serverTime
 {
     if (![task isKindOfClass:[NSNumber class]]) {
-        PowerAuthCoreLog(@"PowerAuthCoreTimeService: Wrong task object used for the commit.");
+        PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
         return NO;  // Not a NSNumber object
     }
     if (strcmp("d", ((NSNumber*)task).objCType)) {
-        PowerAuthCoreLog(@"PowerAuthCoreTimeService: Wrong task object used for the commit.");
+        PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
         return NO;  // Not a double encoded in the number
     }
     return [[self synchronized:^id{
@@ -102,15 +134,16 @@ static NSTimeInterval _Now(void)
         NSTimeInterval start = [task doubleValue];
         NSTimeInterval elapsedTime = now - start;
         if (elapsedTime < 0.0) {
-            PowerAuthCoreLog(@"PowerAuthCoreTimeService: Wrong task object used for the commit.");
+            PowerAuthLog(@"PowerAuthTimeService: Wrong task object used for the commit.");
             return @NO;
         }
         if (elapsedTime > MAX_ACCEPTED_ELAPSED_TIME) {
-            PowerAuthCoreLog(@"PowerAuthCoreTimeService: Synchronization request took too long to complete.");
+            PowerAuthLog(@"PowerAuthTimeService: Synchronization request took too long to complete.");
             // Return the current synchronization status. We can be OK if the time was synchronized before.
             return @(self->_isTimeSynchronized);
         }
-        NSTimeInterval adjustedServerTime = 0.001 * serverTime + 0.5 * elapsedTime; // serverTime/1000 + elapsedTime/2
+        NSTimeInterval timeDifferencePrecision = 0.5 * elapsedTime;
+        NSTimeInterval adjustedServerTime = 0.001 * serverTime + timeDifferencePrecision; // serverTime/1000 + elapsedTime/2
         NSTimeInterval timeDifference = adjustedServerTime - now;
         BOOL adjustmentDeltaOK = fabs(self->_localTimeAdjustment - timeDifference) < MIN_TIME_DIFFERENCE_DELTA;
         if (fabs(timeDifference) < MIN_ACCEPTED_TIME_DIFFERENCE && adjustmentDeltaOK) {
@@ -127,6 +160,7 @@ static NSTimeInterval _Now(void)
         // Keep local time adjustment and mark time as synchronized.
         self->_localTimeAdjustment = timeDifference;
         self->_isTimeSynchronized = YES;
+        self->_localTimeAdjustmentPrecision = timeDifferencePrecision;
         return @YES;
     }] boolValue];
 }
@@ -141,27 +175,86 @@ static NSTimeInterval _Now(void)
 
 - (void) resetTimeSynchronization
 {
+    [self resetTimeSynchronizationImpl:NO];
+}
+
+- (void) resetTimeSynchronizationImpl:(BOOL)fromNotification
+{
     [self synchronized:^id{
-        self->_isTimeSynchronized = NO;
-        self->_localTimeAdjustment = 0.0;
+        if (!fromNotification || _receiveNotifications) {
+            self->_isTimeSynchronized = NO;
+            self->_localTimeAdjustment = 0.0;
+            self->_localTimeAdjustmentPrecision = 0.0;
+        }
         return nil;
     }];
 }
 
-- (void) willEnterForeground:(id)sender
+- (id<PowerAuthOperationTask>) synchronizeTime:(void (^)(NSError *))completion
+                               completionQueue:(dispatch_queue_t)completionQueue
 {
-    [self resetTimeSynchronization];
+    if (completionQueue == nil) {
+        completionQueue = dispatch_get_main_queue();
+    }
+    if (self.isTimeSynchronized) {
+        dispatch_async(completionQueue, ^{
+            completion(nil);
+        });
+        return nil;
+    }
+    
+    id<PA2SystemStatusProvider> provider = _statusProvider;
+    if (!provider) {
+        dispatch_async(completionQueue, ^{
+            completion(PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"PA2SystemStatusProvider instance is no longer valid"));
+        });
+        return nil;
+    }
+    id timeSynchronizationTask = [self startTimeSynchronizationTask];
+    return [provider getSystemStatusWithCallback:^(PowerAuthServerStatus *status, NSError *error) {
+        if (status && !error) {
+            if (![self completeTimeSynchronizationTask:timeSynchronizationTask withServerTime:[status.serverTime timeIntervalSince1970]]) {
+                error = PA2MakeError(PowerAuthErrorCode_TimeSynchronization, nil);
+            }
+        }
+        completion(error);
+    } callbackQueue:completionQueue];
 }
 
-#ifdef DEBUG
-- (void) setTestTimeProvider:(NSTimeInterval (*)(void))timeProviderFunc
+
+#pragma mark - Notifications -
+
+- (void) subscribeForSystemNotifications
 {
-    if (timeProviderFunc) {
-        _timeProvider = timeProviderFunc;
-    } else {
-        _timeProvider = _Now;
+    [self synchronized:^id{
+        if (!_receiveNotifications) {
+            _receiveNotifications = YES;
+            // Register this instance for system notifications
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground:) name:UIApplicationWillEnterForegroundNotification object:nil];
+        }
+        return nil;
+    }];
+}
+
+- (void) unsubscribeForSystemNotifications
+{
+    [self synchronized:^id{
+        [self unsubscribeForSystemNotificationsImpl];
+        return nil;
+    }];
+}
+
+- (void) unsubscribeForSystemNotificationsImpl
+{
+    if (_receiveNotifications) {
+        _receiveNotifications = NO;
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillEnterForegroundNotification object:nil];
     }
 }
-#endif // DEBUG
+
+- (void) willEnterForeground:(id)sender
+{
+    [self resetTimeSynchronizationImpl:YES];
+}
 
 @end

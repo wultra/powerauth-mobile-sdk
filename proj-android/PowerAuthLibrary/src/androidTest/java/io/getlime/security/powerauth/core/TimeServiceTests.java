@@ -16,7 +16,16 @@
 
 package io.getlime.security.powerauth.core;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.model.response.ServerStatusResponse;
+import io.getlime.security.powerauth.networking.response.IServerStatusListener;
+import io.getlime.security.powerauth.networking.response.ServerStatus;
+import io.getlime.security.powerauth.sdk.impl.DefaultServerStatusProvider;
+import io.getlime.security.powerauth.sdk.impl.IServerStatusProvider;
+import io.getlime.security.powerauth.sdk.impl.TimeSynchronizationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,13 +37,13 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class TimeServiceTests {
 
-    TimeService timeService;
+    TimeSynchronizationService timeService;
     TestTimeProvider timeProvider;
 
     @Before
     public void setUp() {
         timeProvider = new TestTimeProvider(T_EPSILON);
-        timeService = new TimeService(timeProvider);
+        timeService = new TimeSynchronizationService(timeProvider, new TestSystemStatusProvider(timeProvider), Runnable::run);
     }
 
     @Test
@@ -164,7 +173,7 @@ public class TimeServiceTests {
 
     // Helper classes and functions
 
-    static class TestTimeProvider implements TimeService.TimeProvider {
+    static class TestTimeProvider implements TimeSynchronizationService.ITimeProvider {
         private final int maxRandomSleep;
         private final Random random = new Random();
         private long currentTime = System.currentTimeMillis();
@@ -181,6 +190,34 @@ public class TimeServiceTests {
         void sleep(long interval) {
             currentTime += random.nextInt(maxRandomSleep);
             currentTime += interval;
+        }
+    }
+
+    static class TestSystemStatusProvider implements IServerStatusProvider {
+        private final TimeSynchronizationService.ITimeProvider timeProvider;
+
+        TestSystemStatusProvider(TimeSynchronizationService.ITimeProvider timeProvider) {
+            this.timeProvider = timeProvider;
+        }
+
+        @Nullable
+        @Override
+        public ICancelable getServerStatus(@NonNull IServerStatusListener listener) {
+            final ServerStatusResponse response = new ServerStatusResponse();
+            response.setServerTime(timeProvider.getCurrentTime());
+            listener.onServerStatusSucceeded(new ServerStatus(response));
+            return new ICancelable() {
+                private boolean isCanceled = false;
+                @Override
+                public void cancel() {
+                    isCanceled = true;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return isCanceled;
+                }
+            };
         }
     }
 

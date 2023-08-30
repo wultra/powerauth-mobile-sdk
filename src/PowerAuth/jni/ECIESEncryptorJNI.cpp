@@ -65,7 +65,7 @@ void LoadCppCryptogramFromJavaObject(JNIEnv * env, jobject cryptogram, ECIESCryp
     cppParameters.timestamp = (cc7::U64) CC7_JNI_GET_FIELD_LONG(cryptogram, clazz, "timestamp");
 }
 
-jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & encryptor)
+jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & encryptor, jobject timeService)
 {
     if (!env) {
         CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
@@ -74,7 +74,7 @@ jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & en
     // Create ECIESEncryptor java class instance
     auto encryptor_copy = new ECIESEncryptor(encryptor);
     auto encryptor_copy_long = reinterpret_cast<jlong>(encryptor_copy);
-    jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesEncryptor"), "(J)V", encryptor_copy_long);
+    jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("EciesEncryptor"), "(JLio/getlime/security/powerauth/core/ICoreTimeService;)V", encryptor_copy_long, timeService);
     if (nullptr == resultObject) {
         // If java object was not constructed then we delete the encryptor's copy.
         delete encryptor_copy;

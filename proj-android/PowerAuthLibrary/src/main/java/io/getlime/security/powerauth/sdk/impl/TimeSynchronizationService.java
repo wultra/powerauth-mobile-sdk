@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.core;
+package io.getlime.security.powerauth.sdk.impl;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import io.getlime.security.powerauth.core.ICoreTimeService;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.response.IServerStatusListener;
+import io.getlime.security.powerauth.networking.response.ITimeSynchronizationListener;
+import io.getlime.security.powerauth.networking.response.ServerStatus;
+import io.getlime.security.powerauth.sdk.IPowerAuthTimeSynchronizationService;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -25,11 +34,15 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * to achieve this synchronization. Instead, you must use your own code in conjunction
  * with the `startTimeSynchronizationTask` and `completeTimeSynchronizationTask` methods.
  */
-public class TimeService {
+public class TimeSynchronizationService implements ICoreTimeService, IPowerAuthTimeSynchronizationService {
+
+    private final ITimeProvider timeProvider;
+    private final IServerStatusProvider serverStatusProvider;
+    private final ICallbackDispatcher callbackDispatcher;
 
     private boolean isTimeSynchronized = false;
     private long localTimeAdjustment = 0L;
-    private final TimeProvider timeProvider;
+    private long localTimeAdjustmentPrecision = 0L;
 
     /**
      * Minimum time difference against the server accepted during the synchronization. If the difference
@@ -51,41 +64,61 @@ public class TimeService {
      */
     final long MAX_ACCEPTED_ELAPSED_TIME = 16_000;
 
-    /**
-     * @return Information whether the service has its time synchronized with the server.
-     */
-    public boolean isTimeSynchronized() {
-        synchronized (this) {
-            return isTimeSynchronized;
-        }
+
+    @FunctionalInterface
+    public interface ITimeProvider {
+        /**
+         * Implementation should provide a milliseconds precision timestamp since 1.1.1970.
+         * @return Elapsed time in milliseconds since 1.1.1970
+         */
+        long getCurrentTime();
     }
 
     /**
-     * @return Contains calculated local time difference against the server. The value  is informational and is
-     * provided only for the testing or the debugging purposes.
+     * Construct the time service with the internal TimeProvider instance. The constructor and the interface
+     * are package private but suppose to be used only for the testing purposes.
+     * @param timeProvider Instance implementing ITimeProvider interface.
+     * @param serverStatusProvider Instance implementing IServerStatusProvider interface.
+     * @param callbackDispatcher Instance implementing ICallbackDispatcher
      */
+    public TimeSynchronizationService(
+            @NonNull ITimeProvider timeProvider,
+            @NonNull IServerStatusProvider serverStatusProvider,
+            @NonNull ICallbackDispatcher callbackDispatcher) {
+        this.timeProvider = timeProvider;
+        this.serverStatusProvider = serverStatusProvider;
+        this.callbackDispatcher = callbackDispatcher;
+    }
+
+
+    @Override
     public long getLocalTimeAdjustment() {
         synchronized (this) {
             return localTimeAdjustment;
         }
     }
 
-    /**
-     * Start time synchronization task and return object representing such task. The same object must be later
-     * provided to {@link #completeTimeSynchronizationTask(Object, long)} method.
-     * @return Object representing a time synchronization task.
-     */
-    @NonNull
-    public Object startTimeSynchronizationTask() {
+    @Override
+    public long getLocalTimeAdjustmentPrecision() {
+        synchronized (this) {
+            return localTimeAdjustmentPrecision;
+        }
+    }
+
+    // ITimeService interface implementation
+
+    @Override
+    public boolean isTimeSynchronized() {
+        synchronized (this) {
+            return isTimeSynchronized;
+        }
+    }
+    @Override
+    public @NonNull Object startTimeSynchronizationTask() {
         return timeProvider.getCurrentTime();
     }
 
-    /**
-     * Complete the time synchronization task with time received from the server.
-     * @param task Task object created in {@link #startTimeSynchronizationTask()} method.
-     * @param serverTime Timestamp received from the server with the milliseconds' precision.
-     * @return true if the server time has been processed and time is synchronized now.
-     */
+    @Override
     public boolean completeTimeSynchronizationTask(@NonNull Object task, long serverTime) {
         if (!(task instanceof Long)) {
             PowerAuthLog.e("TimeService: Wrong task object used for the commit.");
@@ -104,7 +137,8 @@ public class TimeService {
                 // Return the current synchronization status. We can be OK if the time was synchronized before.
                 return isTimeSynchronized;
             }
-            long adjustedServerTime = serverTime + (elapsedTime >> 1); // serverTime + elapsedTime / 2
+            long adjustedTimePrecision = elapsedTime >> 1;
+            long adjustedServerTime = serverTime + adjustedTimePrecision; // serverTime + elapsedTime / 2
             long timeDifference = adjustedServerTime - now;
             boolean adjustmentDeltaOK = Math.abs(localTimeAdjustment - timeDifference) < MIN_TIME_DIFFERENCE_DELTA;
             if (Math.abs(timeDifference) < MIN_ACCEPTED_TIME_DIFFERENCE && adjustmentDeltaOK) {
@@ -120,60 +154,50 @@ public class TimeService {
             }
             // Keep local time adjustment and mark time as synchronized.
             localTimeAdjustment = timeDifference;
+            localTimeAdjustmentPrecision = adjustedTimePrecision;
             isTimeSynchronized = true;
             return true;
         }
     }
 
-    /**
-     * @return The current local time synchronized with the server. The returned value is in the milliseconds since the
-     * reference date 1.1.1970 (e.g. unix timestamp.) If the local time is not synchronized, then returns
-     * the current local time (e.g. `System.currentTimeMillis()`.) You can test `isTimeSynchronized` property if
-     * this is not sufficient for your purposes.
-     */
+    @Override
     public long getCurrentTime() {
         synchronized (this) {
             return timeProvider.getCurrentTime() + localTimeAdjustment;
         }
     }
 
-    /**
-     * Reset the time synchronization. The time must be synchronized again after this call.
-     */
+    @Nullable
+    @Override
+    public ICancelable synchronizeTime(@NonNull ITimeSynchronizationListener listener) {
+        if (isTimeSynchronized()) {
+            callbackDispatcher.dispatchCallback(listener::onTimeSynchronizationSucceeded);
+            return null;
+        }
+        final Object timeSynchronizationTask = startTimeSynchronizationTask();
+        return serverStatusProvider.getServerStatus(new IServerStatusListener() {
+            @Override
+            public void onServerStatusSucceeded(@NonNull ServerStatus serverStatus) {
+                if (!completeTimeSynchronizationTask(timeSynchronizationTask, serverStatus.getServerTime())) {
+                    listener.onTimeSynchronizationFailed(new PowerAuthErrorException(PowerAuthErrorCodes.TIME_SYNCHRONIZATION, "Failed to synchronize time with the server"));
+                    return;
+                }
+                listener.onTimeSynchronizationSucceeded();
+            }
+
+            @Override
+            public void onServerStatusFailed(@NonNull Throwable t) {
+                listener.onTimeSynchronizationFailed(t);
+            }
+        });
+    }
+
+    @Override
     public void resetTimeSynchronization() {
         synchronized (this) {
             isTimeSynchronized = false;
-            localTimeAdjustment = 0;
+            localTimeAdjustment = 0L;
+            localTimeAdjustmentPrecision = 0L;
         }
     }
-
-    interface TimeProvider {
-        /**
-         * Implementation should provide a milliseconds precision timestamp since 1.1.1970.
-         * @return Elapsed time in milliseconds since 1.1.1970
-         */
-        long getCurrentTime();
-    }
-
-    /**
-     * Construct the time service with the internal TimeProvider instance. The constructor and the interface
-     * are package private but suppose to be used only for the testing purposes.
-     * @param timeProvider Instance of TimeProvider interface.
-     */
-    TimeService(@NonNull TimeProvider timeProvider) {
-        this.timeProvider = timeProvider;
-    }
-
-    private static class Singleton {
-        private static final TimeService INSTANCE = new TimeService(System::currentTimeMillis);
-    }
-
-    /**
-     * @return Singleton instance of TimeService class.
-     */
-    @NonNull
-    public static TimeService getInstance() {
-        return Singleton.INSTANCE;
-    }
-
 }

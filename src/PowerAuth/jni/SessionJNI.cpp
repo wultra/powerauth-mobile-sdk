@@ -665,9 +665,9 @@ CC7_JNI_METHOD(jint, removeExternalEncryptionKey)
 // ----------------------------------------------------------------------------
 
 //
-// public native EciesEncryptor getEciesEncryptor(EciesEncryptorScope scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
+// private native EciesEncryptor getEciesEncryptorImpl(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1, ICoreTimeService timeService);
 //
-CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jint scope, jobject unlockKeys, jbyteArray sharedInfo1)
+CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptorImpl, jint scope, jobject unlockKeys, jbyteArray sharedInfo1, jobject timeService)
 {
     auto session = CC7_THIS_OBJ();
     if (!session) {
@@ -693,7 +693,7 @@ CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptor, jint scope, jobject unlockKeys
         return NULL;
     }
     // Convert CPP object to java object
-    return CreateJavaEncryptorFromCppObject(env, cppEncryptor);
+    return CreateJavaEncryptorFromCppObject(env, cppEncryptor, timeService);
 }
 
 

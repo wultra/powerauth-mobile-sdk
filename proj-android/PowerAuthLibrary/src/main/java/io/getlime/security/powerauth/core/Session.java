@@ -39,14 +39,17 @@ public class Session {
     private long handle;
 
     private final @NonNull SessionSetup setup;
+    private final @NonNull ICoreTimeService timeService;
 
     /**
      * Constructs a new Session with given setup.
      *
      * @param setup {@link SessionSetup} object with a session configuration.
+     * @param timeService {@link ICoreTimeService} object providing synchronized time.
      */
-    public Session(@NonNull SessionSetup setup) {
+    public Session(@NonNull SessionSetup setup, @NonNull ICoreTimeService timeService) {
         this.setup = setup;
+        this.timeService = timeService;
         this.handle = init(setup);
     }
     
@@ -532,8 +535,24 @@ public class Session {
      *
      * @return {@link EciesEncryptor} object or nil in case of error
      */
-    public native EciesEncryptor getEciesEncryptor(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1);
-    
+    public EciesEncryptor getEciesEncryptor(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1) {
+        return getEciesEncryptorImpl(scope, unlockKeys, sharedInfo1, timeService);
+    }
+
+    /**
+     * Constructs the {@link EciesEncryptor} object for the required scope and for optional sharedInfo1.
+     * The unlockKeys parameter must contain a valid possessionUnlockKey in case that the "activation"
+     * scope is requested. For "application" scope, the unlockKeys object may be null.
+     *
+     * @param scope scope for encryptor. You have to provide integer from {@link EciesEncryptorScope} class.
+     * @param unlockKeys unlock keys object with required possession factor
+     * @param sharedInfo1 SH1 cryptographic constant
+     * @param timeService {@link ICoreTimeService} object providing synchronized time.
+     *
+     * @return {@link EciesEncryptor} object or nil in case of error
+     */
+    private native EciesEncryptor getEciesEncryptorImpl(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1, ICoreTimeService timeService);
+
     //
     // Utilities
     //

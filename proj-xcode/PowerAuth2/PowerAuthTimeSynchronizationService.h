@@ -28,10 +28,9 @@
 /// is informational and is provided only for the testing or the debugging purposes.
 @property (nonatomic, readonly) NSTimeInterval localTimeAdjustment;
 
-/// Contains a positive time interval representing the precision of time synchronization with the server.
-/// The value is defined as `elapsedTime / 2`, where `elapsedTime` is the time required to complete
-/// the last valid time synchronization task. If the time precision is not sufficient for you,
-/// then try to retry the time synchronization.
+/// Contains value representing a maximum absolute deviation of synchronized time against the actual time on the server.
+/// Depending on this value you can determine whether this deviation is within your expected margins. If the current
+/// synchronized time is out of your expectations, then try to synchronize the time again.
 @property (nonatomic, readonly) NSTimeInterval localTimeAdjustmentPrecision;
 
 /// Return the current local time synchronized with the server. The returned value is in the seconds since the
@@ -40,7 +39,7 @@
 /// this is not sufficient for your purposes.
 - (NSTimeInterval) currentTime;
 
-/// Synchronize time with the server.
+/// Synchronize the local with the time on the server.
 /// - Parameter completion: Callback called once the synchronization task is complete. If the error parameter is `nil` then everything's OK.
 /// - Parameter completionQueue: Queue for completion callback execution. If nil, then the main dispatch queue is used.
 /// - Returns: Task associated with the running HTTP request. If nil, then the time is already synchronized and you'll receive success to your callback soon.

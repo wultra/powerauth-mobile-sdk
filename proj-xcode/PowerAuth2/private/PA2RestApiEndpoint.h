@@ -55,9 +55,15 @@
 /// Returns YES, if endpoint is available during the protocol upgrade.
 @property (nonatomic, assign, readonly) BOOL isAvailableInProtocolUpgrade;
 
+/// Returns YES, if request needs synchronized time to complete properly.
+@property (nonatomic, assign, readonly) BOOL requireSynchronizedTime;
+
+/// Contains block that will be executed on networking queue, before the request is serialized.
+@property (nonatomic, strong, readonly) NSError *(^beforeRequestSerialization)(void);
+
 #pragma mark - Endpoint construction
 
-+ (instancetype) createActivation;
++ (instancetype) createActivationWithCustomStep:(NSError*(^)(void))customStep;
 + (instancetype) getActivationStatus;
 + (instancetype) removeActivation;
 

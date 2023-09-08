@@ -18,6 +18,7 @@
 #import "PA2GetSystemStatusTask.h"
 #import "PA2RestApiEndpoint.h"
 #import "PA2PrivateMacros.h"
+
 #import <PowerAuth2/PowerAuthLog.h>
 #import <UIKit/UIApplication.h>
 
@@ -34,9 +35,15 @@
     __weak id<PA2SystemStatusProvider> _statusProvider;
 }
 
+#ifdef DEBUG
+#define VerboseLog(...) if (PowerAuthLogIsVerbose()) PowerAuthLog(__VA_ARGS__);
+#else
+#define VerboseLog(...)
+#endif
+
 /// Minimum time difference against the server accepted during the synchronization. If the difference
 /// is less, then we consider the local time as synchronized.
-#define MIN_ACCEPTED_TIME_DIFFERENCE 10.0
+#define MIN_ACCEPTED_TIME_DIFFERENCE  2.0
 
 /// Minimum difference against the last time delta. This prevents the time fluctuation the time is synchronized.
 /// For example, if the server is 100 seconds ahead, then we'll get differences like 100.1, 101, 99.8 and that might cause
@@ -48,7 +55,7 @@
 /// In this setup we're adding maximum 8 seconds to the time returned from the server, so it's below our threshold
 /// defined in `MIN_ACCEPTED_TIME_DIFFERENCE`. This guarantees that requests that take too long time will not affect
 /// the time synchronization.
-#define MAX_ACCEPTED_ELAPSED_TIME    16.0
+#define MAX_ACCEPTED_ELAPSED_TIME     16.0
 
 // Default function providing system time.
 static NSTimeInterval _Now(void)
@@ -140,27 +147,33 @@ static NSTimeInterval _Now(void)
         if (elapsedTime > MAX_ACCEPTED_ELAPSED_TIME) {
             PowerAuthLog(@"PowerAuthTimeService: Synchronization request took too long to complete.");
             // Return the current synchronization status. We can be OK if the time was synchronized before.
-            return @(self->_isTimeSynchronized);
+            return @(_isTimeSynchronized);
         }
         NSTimeInterval timeDifferencePrecision = 0.5 * elapsedTime;
-        NSTimeInterval adjustedServerTime = 0.001 * serverTime + timeDifferencePrecision; // serverTime/1000 + elapsedTime/2
+        NSTimeInterval adjustedServerTime = serverTime + timeDifferencePrecision; // serverTime + elapsedTime/2
         NSTimeInterval timeDifference = adjustedServerTime - now;
         BOOL adjustmentDeltaOK = fabs(self->_localTimeAdjustment - timeDifference) < MIN_TIME_DIFFERENCE_DELTA;
         if (fabs(timeDifference) < MIN_ACCEPTED_TIME_DIFFERENCE && adjustmentDeltaOK) {
             // Time difference is too low and delta against last adjustment is also within the range.
             // We can ignore it and mark time as synchronized.
-            self->_isTimeSynchronized = YES;
+            if (!_isTimeSynchronized) {
+                // Print this information only when not synchronized.
+                PowerAuthLog(@"PowerAuthTimeService: Time is sychronized with precision %0.3lf", timeDifferencePrecision);
+            }
+            _isTimeSynchronized = YES;
+            _localTimeAdjustmentPrecision = timeDifferencePrecision;
             return @YES;
         }
-        if (self->_isTimeSynchronized && adjustmentDeltaOK) {
+        if (_isTimeSynchronized && adjustmentDeltaOK) {
             // The time adjustment is too low against the last calculated adjustment. This test prevents
             // the adjusted time fluctuation after each synchronization.
             return @YES;
         }
         // Keep local time adjustment and mark time as synchronized.
-        self->_localTimeAdjustment = timeDifference;
-        self->_isTimeSynchronized = YES;
-        self->_localTimeAdjustmentPrecision = timeDifferencePrecision;
+        _localTimeAdjustment = timeDifference;
+        _isTimeSynchronized = YES;
+        _localTimeAdjustmentPrecision = timeDifferencePrecision;
+        PowerAuthLog(@"PowerAuthTimeService: Time is sychronized with precision %0.3lf, diff %0.3lf", timeDifferencePrecision, timeDifference);
         return @YES;
     }] boolValue];
 }
@@ -185,6 +198,7 @@ static NSTimeInterval _Now(void)
             self->_isTimeSynchronized = NO;
             self->_localTimeAdjustment = 0.0;
             self->_localTimeAdjustmentPrecision = 0.0;
+            PowerAuthLog(@"PowerAuthTimeService: Time is no longer synchronized.");
         }
         return nil;
     }];
@@ -195,14 +209,7 @@ static NSTimeInterval _Now(void)
 {
     if (completionQueue == nil) {
         completionQueue = dispatch_get_main_queue();
-    }
-    if (self.isTimeSynchronized) {
-        dispatch_async(completionQueue, ^{
-            completion(nil);
-        });
-        return nil;
-    }
-    
+    }    
     id<PA2SystemStatusProvider> provider = _statusProvider;
     if (!provider) {
         dispatch_async(completionQueue, ^{

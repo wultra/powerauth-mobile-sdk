@@ -19,6 +19,7 @@
 
 #import <PowerAuth2/PowerAuthToken.h>
 #import <PowerAuth2/PowerAuthSessionStatusProvider.h>
+#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
 
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateRemoteTokenProvider.h"
@@ -66,6 +67,7 @@
  @param keychain PA2Keychain for storage. The store is keeping a strong reference to this object.
  @param statusProvider An object providing session's status. The store keeps a weak reference.
  @param remoteProvider An object for accessing remote token, when token is not cached locally. The store keeps a weak reference.
+ @param timeService An object providing time synchronized with the server.
  @param dataLock An object implementing token store locking.
  @param localLock An optional local lock that implements recursive locking. If not provided, then internal lock is created.
  */
@@ -73,6 +75,7 @@
                     keychain:(PowerAuthKeychain*)keychain
               statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
               remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+                 timeService:(id<PowerAuthTimeSynchronizationService>)timeService
                     dataLock:(id<PA2TokenDataLock>)dataLock
                    localLock:(id<NSLocking>)localLock;
 

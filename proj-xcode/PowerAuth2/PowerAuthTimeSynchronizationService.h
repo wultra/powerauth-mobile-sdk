@@ -42,7 +42,7 @@
 /// Synchronize the local with the time on the server.
 /// - Parameter completion: Callback called once the synchronization task is complete. If the error parameter is `nil` then everything's OK.
 /// - Parameter completionQueue: Queue for completion callback execution. If nil, then the main dispatch queue is used.
-/// - Returns: Task associated with the running HTTP request. If nil, then the time is already synchronized and you'll receive success to your callback soon.
+/// - Returns: Task associated with the running HTTP request or nil in case that PowerAuthSDK instance is no longer valid.
 - (nullable id<PowerAuthOperationTask>) synchronizeTime:(void (^_Nonnull)(NSError * _Nullable error))completion
                                         completionQueue:(dispatch_queue_t _Nullable)completionQueue;
 

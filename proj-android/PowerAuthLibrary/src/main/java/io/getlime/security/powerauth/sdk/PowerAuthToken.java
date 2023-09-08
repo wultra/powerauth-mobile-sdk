@@ -21,7 +21,11 @@ import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.TokenCalculator;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
+import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The <code>PowerAuthToken</code> class generates a token based authorization headers.
@@ -39,13 +43,22 @@ public class PowerAuthToken {
      * Token's private data
      */
     private final PowerAuthPrivateTokenData tokenData;
+    /**
+     * Time synchronization service.
+     */
+    private final IPowerAuthTimeSynchronizationService timeSynchronizationService;
 
     /**
      * @param store {@link PowerAuthTokenStore} object who creates this token
+     * @param timeSynchronizationService {@link IPowerAuthTimeSynchronizationService} implementation.
      * @param tokenData private token data
      */
-    public PowerAuthToken(@NonNull PowerAuthTokenStore store, @NonNull PowerAuthPrivateTokenData tokenData) {
+    public PowerAuthToken(
+            @NonNull PowerAuthTokenStore store,
+            @NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService,
+            @NonNull PowerAuthPrivateTokenData tokenData) {
         this.tokenStore = store;
+        this.timeSynchronizationService = timeSynchronizationService;
         this.tokenData = tokenData;
     }
 
@@ -107,13 +120,16 @@ public class PowerAuthToken {
      * Generates a new HTTP header for token based authorization.
      *
      * @return calculated HTTP authorization header. The header object contains an information
-     *         about error, so check its <code>isValid()</code> method afterwards.
+     *         about error, so check its <code>isValid()</code> method afterward.
      */
     public @NonNull PowerAuthAuthorizationHttpHeader generateHeader() {
         @PowerAuthErrorCodes int errorCode;
         if (this.isValid()) {
             if (tokenStore.canGenerateHeaderForToken(tokenData)) {
-                String headerValue = TokenCalculator.calculateTokenValue(tokenData);
+                if (!timeSynchronizationService.isTimeSynchronized()) {
+                    PowerAuthLog.e("WARNING: PowerAuthToke: Time is not synchronized yet.");
+                }
+                String headerValue = TokenCalculator.calculateTokenValue(tokenData, timeSynchronizationService.getCurrentTime());
                 if (headerValue != null) {
                     return PowerAuthAuthorizationHttpHeader.createTokenHeader(headerValue);
                 } else {

@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 
 public class RemoveTokenEndpoint implements IEndpointDefinition<Void> {
@@ -32,37 +31,9 @@ public class RemoveTokenEndpoint implements IEndpointDefinition<Void> {
         return "/pa/v3/token/remove";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
         return "/pa/token/remove";
-    }
-
-    @NonNull
-    @Override
-    public EciesEncryptorId getEncryptorId() {
-        return EciesEncryptorId.NONE;
-    }
-
-    @Nullable
-    @Override
-    public TypeToken<Void> getResponseType() {
-        return null;
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

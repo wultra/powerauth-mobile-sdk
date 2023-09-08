@@ -33,12 +33,6 @@ public class CreateTokenEndpoint implements IEndpointDefinition<TokenResponsePay
         return "/pa/v3/token/create";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
@@ -55,15 +49,5 @@ public class CreateTokenEndpoint implements IEndpointDefinition<TokenResponsePay
     @Override
     public TypeToken<TokenResponsePayload> getResponseType() {
         return TypeToken.get(TokenResponsePayload.class);
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

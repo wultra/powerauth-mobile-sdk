@@ -86,7 +86,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
             @NonNull ICallbackDispatcher callbackDispatcher,
             boolean isUpgradeDisabled,
             @NonNull ICompletionListener completionListener) {
-        super("GetStatus", sharedLock, callbackDispatcher);
+        super("GetActivationStatus", sharedLock, callbackDispatcher);
         this.httpClient = httpClient;
         this.session = session;
         this.cryptoHelper = cryptoHelper;

@@ -34,18 +34,6 @@ public class UpgradeStartV3Endpoint implements IEndpointDefinition<UpgradeRespon
 
     @NonNull
     @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return null;
-    }
-
-    @NonNull
-    @Override
     public EciesEncryptorId getEncryptorId() {
         return EciesEncryptorId.UPGRADE_START;
     }
@@ -58,6 +46,7 @@ public class UpgradeStartV3Endpoint implements IEndpointDefinition<UpgradeRespon
 
     @Override
     public boolean isSynchronized() {
+        // Request doesn't use signature but should be synchronized.
         return true;
     }
 

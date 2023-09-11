@@ -74,7 +74,6 @@ import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoi
 import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
 import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.entity.ActivationRecovery;
@@ -178,7 +177,13 @@ public class PowerAuthSDK {
         /**
          * Build instance of {@link PowerAuthSDK}.
          *
-         * @param context Android context
+         * @param context Android context.
+         *                <p>
+         *                It's recommended to provide instance of {@link android.app.Application} as a context to this
+         *                function to allow PowerAuth mobile SDK to properly register itself as a listener for application
+         *                lifecycle transitions. If you provide other context, then you should use {@link PowerAuthAppLifecycleListener}
+         *                class to register for callbacks.
+         *                </p>
          * @return Instance of {@link PowerAuthSDK} class.
          * @throws PowerAuthErrorException In case that builder cannot create an instance of {@link PowerAuthSDK}. This may happen for a several reasons:
          *                                 <ul>
@@ -263,7 +268,8 @@ public class PowerAuthSDK {
                     serverStatusProvider,
                     timeSynchronizationService);
 
-
+            // Register time service for automatic reset.
+            PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
             boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
             return instance;

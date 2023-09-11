@@ -34,6 +34,11 @@ Legacy PowerAuth configuration:
                 "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
             ).build();
     ```
+- `PowerAuthSDK.Builder.build()` now require to use application's context to build instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
+  ```kotlin
+  PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // this -> context is Application
+  ```
+
 ### Other changes
 
 #### Synchronized time
@@ -139,7 +144,7 @@ The requirement for the time synchronized with the server has the following impa
         // failure
     }
   }
-  ```
+  ``` 
 
 Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/PowerAuth-SDK-for-iOS#synchronized-time) chapter in our documentation for more details.
 

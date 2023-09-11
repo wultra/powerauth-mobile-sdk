@@ -543,7 +543,7 @@
                 completionCallback(token, nil);
             } else {
                 // Time is not synchronized yet.
-                id<PowerAuthOperationTask> synchronizeTime = [_timeSynchronizationService synchronizeTime:^(NSError * _Nullable error) {
+                id<PowerAuthOperationTask> synchronizeTime = [_timeSynchronizationService synchronizeTimeWithCallback:^(NSError * _Nullable error) {
                     if (!error) {
                         // Time is properly synchronized, continue with header generator.
                         completionCallback(token, nil);
@@ -551,7 +551,7 @@
                         // Time synchronization failed.
                         completionCallback(nil, error);
                     }
-                } completionQueue:nil];
+                } callbackQueue:nil];
                 if (synchronizeTime) {
                     [compositeTask replaceOperationTask:synchronizeTime];
                 }

@@ -204,16 +204,16 @@ static NSTimeInterval _Now(void)
     }];
 }
 
-- (id<PowerAuthOperationTask>) synchronizeTime:(void (^)(NSError *))completion
-                               completionQueue:(dispatch_queue_t)completionQueue
+- (id<PowerAuthOperationTask>) synchronizeTimeWithCallback:(void (^)(NSError *))callback
+                                             callbackQueue:(dispatch_queue_t)callbackQueue
 {
-    if (completionQueue == nil) {
-        completionQueue = dispatch_get_main_queue();
+    if (callbackQueue == nil) {
+        callbackQueue = dispatch_get_main_queue();
     }    
     id<PA2SystemStatusProvider> provider = _statusProvider;
     if (!provider) {
-        dispatch_async(completionQueue, ^{
-            completion(PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"PA2SystemStatusProvider instance is no longer valid"));
+        dispatch_async(callbackQueue, ^{
+            callback(PA2MakeError(PowerAuthErrorCode_OperationCancelled, @"PA2SystemStatusProvider instance is no longer valid"));
         });
         return nil;
     }
@@ -224,8 +224,8 @@ static NSTimeInterval _Now(void)
                 error = PA2MakeError(PowerAuthErrorCode_TimeSynchronization, nil);
             }
         }
-        completion(error);
-    } callbackQueue:completionQueue];
+        callback(error);
+    } callbackQueue:callbackQueue];
 }
 
 

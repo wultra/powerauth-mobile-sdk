@@ -239,14 +239,14 @@
     // Try to synchronize the time do do not mess with the precision of calling the concurrent
     // activations.
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [self.sdk.timeSynchronizationService synchronizeTime:^(NSError * _Nullable error) {
+        [self.sdk.timeSynchronizationService synchronizeTimeWithCallback:^(NSError * _Nullable error) {
             [waiting reportCompletion:nil];
-        } completionQueue:dispatch_get_main_queue()];
+        } callbackQueue:dispatch_get_main_queue()];
     }];
     [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_altSdk.timeSynchronizationService synchronizeTime:^(NSError * _Nullable error) {
+        [_altSdk.timeSynchronizationService synchronizeTimeWithCallback:^(NSError * _Nullable error) {
             [waiting reportCompletion:nil];
-        } completionQueue:dispatch_get_main_queue()];
+        } callbackQueue:dispatch_get_main_queue()];
     }];
     
     PowerAuthAuthentication * credentials = [self.helper createAuthentication];

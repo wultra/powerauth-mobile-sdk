@@ -280,7 +280,7 @@ public class TokenStoreTest {
         assertNotNull(token5[0]);
         assertEquals(token1[0], token2[0]);
         assertEquals(token1[0], token3[0]);
-        assertEquals(token2[0], token2[0]);
+        assertEquals(token2[0], token3[0]);
         assertEquals(token4[0], token5[0]);
         assertNotEquals(token1[0], token4[0]);
     }

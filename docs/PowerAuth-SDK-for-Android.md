@@ -29,6 +29,7 @@
    - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [External Encryption Key](#external-encryption-key)
+- [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
   - [Password Strength Indicator](#password-strength-indicator)
@@ -1981,9 +1982,25 @@ The following steps are typically required for a full E2EE request and response 
    val encryptor = powerAuthSDK.getEciesEncryptorForActivationScope(context)
    ```
 
-2. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+1. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
 
-3. Encrypt your payload:
+1. Make sure that PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
+   ```kotlin
+   val timeService = powerAuthSDK.timeSynchronizationService
+   if (!timeService.isTimeSynchronized) {
+       timeService.synchronizeTime(object : ITimeSynchronizationListener {
+           override fun onTimeSynchronizationSucceeded() {
+               // Success
+           }
+
+           override fun onTimeSynchronizationFailed(t: Throwable) {
+               // Failure
+           }
+       })
+   }
+   ```
+
+1. Encrypt your payload:
    ```kotlin
    val cryptogram = encryptor.encryptRequest(payloadData)
    if (cryptogram == null) {
@@ -1991,11 +2008,12 @@ The following steps are typically required for a full E2EE request and response 
    }  
    ```
 
-4. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
+1. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
    - `ephemeralPublicKey` property fill with `cryptogram.getKeyBase64()`
    - `encryptedData` property fill with `cryptogram.getBodyBase64()`
    - `mac` property fill with `cryptogram.getMacBase64()`
    - `nonce` property fill with `cryptogram.getNonceBase64()`
+   - `timestamp` property fill with `cryptogram.getTimestamp()`
 
    So, the final request JSON should look like this:
    ```json
@@ -2003,11 +2021,12 @@ The following steps are typically required for a full E2EE request and response 
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
-      "nonce" : "BASE64-NONCE"
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
 
-5. Add the following HTTP header (for signed requests, see note below):
+1. Add the following HTTP header (for signed requests, see note below):
    ```kotlin
    // Acquire a "metadata" object, which contains additional information for the request construction
    val metadata = encryptor.metadata
@@ -2016,14 +2035,16 @@ The following steps are typically required for a full E2EE request and response 
    ```
    Note, that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.
 
-6. Fire your HTTP request and wait for a response
+1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-7. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
    
@@ -2036,7 +2057,7 @@ The following steps are typically required for a full E2EE request and response 
    }
    ```
 
-8. And finally, you can process your received response.
+1. And finally, you can process your received response.
 
 As you can see, the E2EE is quite a non-trivial task. We recommend contacting us before using an application-specific E2EE. We can provide you more support on a per-scenario basis, especially if we first understand what you try to achieve with end-to-end encryption in your application.
 
@@ -2289,8 +2310,22 @@ final ICancelable task = tokenStore.requestAccessToken(context, "MyToken", authe
 The request is performed synchronously or asynchronously depending on whether the token is locally cached on the device. You can test this situation by calling `tokenStore.hasLocalToken(context, "MyToken")`. If operation is asynchronous, then `requestAccessToken()` returns cancellable task.
 
 ### Generating Authorization Header
+Use the following code to generate an authorization header:
 
-Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
+```kotlin
+val task = tokenStore.generateAuthorizationHeader(context, "MyToken", object : IGenerateTokenHeaderListener {
+    override fun onGenerateTokenHeaderSucceeded(header: PowerAuthAuthorizationHttpHeader) {
+        val httpHeaderKey = header.key
+        val httpHeaderValue = header.value
+    }
+
+    override fun onGenerateTokenHeaderFailed(t: Throwable) {
+        // Failure
+    }
+})
+```
+
+Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authorization header:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
@@ -2313,6 +2348,10 @@ if (header.isValid()) {
     // handle error
 }
 ```
+<!-- end -->
+
+<!-- begin box warning -->
+The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).
 <!-- end -->
 
 ### Removing Token From the Server
@@ -2389,6 +2428,68 @@ The external encryption key has to be set before the activation is created, or c
 You can remove EEK from an existing activation if the key is no longer required. To do this, use `PowerAuthSDK.removeExternalEncryptionKey()` method. Be aware, that EEK must be set by configuration, or by the `setExternalEncryptionKey()` method before you call the remove method. You can also use the `PowerAuthSDK.hasExternalEncryptionKey()` function to test whether the key is already set and in use.
 
 
+## Synchronized Time
+
+The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [End-To-End Encryption](#end-to-end-encryption) or [Token-Based Authentication](#token-based-authentication). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
+
+Use the following code to get the service responsible for the time synchronization: 
+
+```kotlin
+val timeService = PowerAuthSDK.timeSynchronizationService
+```
+
+### Automatic Time Synchronization
+
+The time is synchronized automatically in the following situations:
+
+- After an activation is created
+- After getting an activation status
+- After receiving any response encrypted with our End-To-End Encryption scheme
+
+The time synchronization is reset automatically once your application transitions from the background to the foreground.
+
+### Manually Synchronize Time
+
+Use the following code to synchronize the time manually:
+
+```kotlin
+val task = timeService.synchronizeTime(object: ITimeSynchronizationListener {
+    override fun onTimeSynchronizationSucceeded() {
+        // Synchronization succeeded
+    }
+
+    override fun onTimeSynchronizationFailed(t: Throwable) {
+        // Synchronization failed
+    }
+})
+```
+
+### Get Synchronized Time
+
+To get the synchronized time, use the following code:
+
+```kotlin
+if (timeService.isTimeSynchronized) {
+    // get synchronized timestamp in milliseconds, since 1.1.1970
+    val timestamp = timeService.currentTime
+} else {
+    // Time is not synchronized yet. If you call currentTime then 
+    // the returned timestamp is similar to System.currentTimeMillis()
+    val timestamp = timeService.currentTime
+}
+```
+
+The time service provides an additional information about time, such as how precisely the time is synchronized with the server:
+
+```kotlin
+if (timeService.isTimeSynchronized) {
+    val precision = timeService.localTimeAdjustmentPrecision
+    println("Time is now synchronized with precision ${precision}")
+}
+```
+
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `500` means that time provided by `currentTime` method may be 0.5 seconds ahead or behind of the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
+
 ## Common SDK Tasks
 
 ### Error Handling
@@ -2425,6 +2526,7 @@ when (t) {
             PowerAuthErrorCodes.INVALID_TOKEN -> Log.d(TAG, "Error code for errors related to token based auth.")
             PowerAuthErrorCodes.PROTOCOL_UPGRADE -> Log.d(TAG, "Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
             PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE -> Log.d(TAG, "The operation is temporarily unavailable, due to pending protocol upgrade.")
+            PowerAuthErrorCodes.TIME_SYNCHRONIZATION -> Log.d(TAG, "Failed to synchronize time with the server.")
         }
     }
     is ErrorResponseApiException -> {
@@ -2480,6 +2582,8 @@ if (t instanceof PowerAuthErrorException) {
             android.util.Log.d(TAG,"Error code for error that occurs when protocol upgrade fails at unrecoverable error."); break;
         case PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE:
             android.util.Log.d(TAG,"The operation is temporarily unavailable, due to pending protocol upgrade."); break;
+        case PowerAuthErrorCodes.TIME_SYNCHRONIZATION:
+            android.util.Log.d(TAG,"Failed to synchronize time with the server."); break;
     }
 } else if (t instanceof ErrorResponseApiException) {
     ErrorResponseApiException exception = (ErrorResponseApiException) t;

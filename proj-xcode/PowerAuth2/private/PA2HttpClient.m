@@ -190,7 +190,7 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
             });
         };
         // Start the time synchronization
-        id<PowerAuthOperationTask> synchronizationTask = [_timeService synchronizeTime:^(NSError * error) {
+        id<PowerAuthOperationTask> synchronizationTask = [_timeService synchronizeTimeWithCallback:^(NSError * error) {
             if (!error) {
                 // The time has been successfully synchronized, we can continue with the actual request.
                 NSOperation* actualOperation = [self postOperationWithObject:object to:endpoint auth:authentication completion:compositeCompletion cancel:nil];
@@ -199,7 +199,7 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
                 // Report error to composite completion.
                 compositeCompletion(PowerAuthRestApiResponseStatus_ERROR, nil, error);
             }
-        } completionQueue:_completionQueue];
+        } callbackQueue:_completionQueue];
         [compositeTask replaceOperationTask:synchronizationTask];
         return compositeTask;
     }

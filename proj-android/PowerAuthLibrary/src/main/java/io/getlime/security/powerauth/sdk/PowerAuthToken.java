@@ -127,7 +127,7 @@ public class PowerAuthToken {
         if (this.isValid()) {
             if (tokenStore.canGenerateHeaderForToken(tokenData)) {
                 if (!timeSynchronizationService.isTimeSynchronized()) {
-                    PowerAuthLog.e("WARNING: PowerAuthToke: Time is not synchronized yet.");
+                    PowerAuthLog.w("PowerAuthToken: Time is not synchronized yet.");
                 }
                 String headerValue = TokenCalculator.calculateTokenValue(tokenData, timeSynchronizationService.getCurrentTime());
                 if (headerValue != null) {

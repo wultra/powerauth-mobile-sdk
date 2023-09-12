@@ -148,7 +148,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
                         continueWithUpgrade(status);
                         return;
                     }
-                    PowerAuthLog.e("WARNING: Upgrade to newer protocol version is disabled.");
+                    PowerAuthLog.w("Upgrade to newer protocol version is disabled.");
                 }
                 // Now test whether the counter should be synchronized on the server.
                 if (status.isSignatureCalculationRecommended) {

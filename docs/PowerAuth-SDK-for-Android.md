@@ -137,7 +137,7 @@ try {
 If you don't provide application's context to `build()` method, then PowerAuthSDK will fail to register its components for application's lifecycle callbacks. To fix this, please use the following code in your application's `onCreate()` method:
 
 ```kotlin
-PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // this -> context is Application
+PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
 ```
 
 

@@ -87,13 +87,11 @@ public class PowerAuthAppLifecycleListener implements Application.ActivityLifecy
                 final Application application = (Application) appContext;
                 application.registerActivityLifecycleCallbacks(this);
                 isRegistered = true;
-            } else {
-                PowerAuthLog.e("PowerAuthAppLifecycleManager: Provided context is not an Application");
             }
         }
     }
 
-    // Register
+    // Tasks
 
     /**
      * Time services registered for reset.
@@ -113,6 +111,25 @@ public class PowerAuthAppLifecycleListener implements Application.ActivityLifecy
         }
     }
 
+    private void resetTimeSynchronizationServices(boolean wasStartedBefore) {
+        if (!wasStartedBefore) {
+            // Application just started, we don't need to reset the service.
+            return;
+        }
+        // Iterate over all weak references and reset the time service
+        final ArrayList<WeakReference<IPowerAuthTimeSynchronizationService>> referencesToRemove = new ArrayList<>();
+        for (WeakReference<IPowerAuthTimeSynchronizationService> weakReference : registeredServices) {
+            final IPowerAuthTimeSynchronizationService service = weakReference.get();
+            if (service != null) {
+                service.resetTimeSynchronization();
+            } else {
+                referencesToRemove.add(weakReference);
+            }
+        }
+        // Cleanup all references that no longer contains valid service
+        registeredServices.removeAll(referencesToRemove);
+    }
+
     // Transitions
 
     /**
@@ -120,27 +137,12 @@ public class PowerAuthAppLifecycleListener implements Application.ActivityLifecy
      * @param wasStartedBefore Contains false if this is a fresh start.
      */
     private void onTransitionFromBackgroundToForeground(boolean wasStartedBefore) {
-        if (!wasStartedBefore) {
-            return;
-        }
         synchronized (this) {
-            // Iterate over all weak references and reset the time
-            final ArrayList<WeakReference<IPowerAuthTimeSynchronizationService>> referencesToRemove = new ArrayList<>();
-            for (WeakReference<IPowerAuthTimeSynchronizationService> weakReference : registeredServices) {
-                final IPowerAuthTimeSynchronizationService service = weakReference.get();
-                if (service != null) {
-                    service.resetTimeSynchronization();
-                } else {
-                    referencesToRemove.add(weakReference);
-                }
-            }
-            // Cleanup all references that no longer contains valid service
-            registeredServices.removeAll(referencesToRemove);
+            resetTimeSynchronizationServices(wasStartedBefore);
         }
     }
 
-
-    // Tracking activities start / stop
+    // Application.ActivityLifecycleCallbacks implementation
 
     /**
      * If true, then this is a not first start.
@@ -165,12 +167,10 @@ public class PowerAuthAppLifecycleListener implements Application.ActivityLifecy
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
-
     }
 
     @Override
     public void onActivityPaused(@NonNull Activity activity) {
-
     }
 
     @Override

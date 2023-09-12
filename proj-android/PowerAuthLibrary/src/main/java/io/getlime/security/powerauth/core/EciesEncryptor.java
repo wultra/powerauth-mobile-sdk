@@ -196,7 +196,7 @@ public class EciesEncryptor {
      */
     public EciesCryptogram encryptRequest(byte[] requestData) {
         if (!timeService.isTimeSynchronized()) {
-            PowerAuthLog.e("WARNING: Time service is not synchronized. Encrypted data may be rejected on the server.");
+            PowerAuthLog.w("Time service is not synchronized. Encrypted data may be rejected on the server.");
         }
         timeSynchronizationTask = timeService.startTimeSynchronizationTask();
         return encryptRequestImpl(requestData, timeService.getCurrentTime());

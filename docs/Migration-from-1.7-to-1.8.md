@@ -36,7 +36,7 @@ Legacy PowerAuth configuration:
     ```
 - `PowerAuthSDK.Builder.build()` now require to use application's context to build instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
   ```kotlin
-  PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // this -> context is Application
+  PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
   ```
 
 ### Other changes

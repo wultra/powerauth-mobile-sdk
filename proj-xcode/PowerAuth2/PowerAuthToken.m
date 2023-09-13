@@ -84,11 +84,22 @@
         return nil;
     }
     
+    id<PowerAuthTimeSynchronizationService> timeService = _tokenStore.timeSynchronizationService;
+    if (!timeService) {
+        PowerAuthLog(@"PowerAuthToken: Time service is no longer valid object.");
+        return nil;
+    }
+#if defined(DEBUG)
+    if (timeService && !timeService.isTimeSynchronized) {
+        PowerAuthLog(@"PowerAuthToken: WARNING: Time is not synchronized yet.");
+    }
+#endif
+    
     tokenSecret = _tokenData.secret;
     tokenIdentifier = _tokenData.identifier;
 
     // Prepare data for HMAC
-    NSNumber * currentTimeMs = @((int64_t)([[NSDate date] timeIntervalSince1970] * 1000));
+    NSNumber * currentTimeMs = @((int64_t)([timeService currentTime] * 1000.0));
     NSString * currentTimeString = [currentTimeMs stringValue];
     NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];
     NSData * nonce = [PowerAuthCoreCryptoUtils randomBytes:16];

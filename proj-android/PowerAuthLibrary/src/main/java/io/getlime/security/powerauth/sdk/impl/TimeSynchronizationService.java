@@ -48,7 +48,7 @@ public class TimeSynchronizationService implements ICoreTimeService, IPowerAuthT
      * Minimum time difference against the server accepted during the synchronization. If the difference
      * is less, then we consider the local time as synchronized.
      */
-    final long MIN_ACCEPTED_TIME_DIFFERENCE = 10_000;
+    final long MIN_ACCEPTED_TIME_DIFFERENCE = 2_000;
     /**
      * Minimum difference against the last time delta. This prevents the time fluctuation the time is synchronized.
      * For example, if the server is 100 seconds ahead, then we'll get differences like 100.1, 101, 99.8 and that might
@@ -137,14 +137,16 @@ public class TimeSynchronizationService implements ICoreTimeService, IPowerAuthT
                 // Return the current synchronization status. We can be OK if the time was synchronized before.
                 return isTimeSynchronized;
             }
-            long adjustedTimePrecision = elapsedTime >> 1;
+            long adjustedTimePrecision = elapsedTime >> 1;                // elapsedTime / 2
             long adjustedServerTime = serverTime + adjustedTimePrecision; // serverTime + elapsedTime / 2
             long timeDifference = adjustedServerTime - now;
             boolean adjustmentDeltaOK = Math.abs(localTimeAdjustment - timeDifference) < MIN_TIME_DIFFERENCE_DELTA;
             if (Math.abs(timeDifference) < MIN_ACCEPTED_TIME_DIFFERENCE && adjustmentDeltaOK) {
                 // Time difference is too low and delta against last adjustment is also within the range.
                 // We can ignore it and mark time as synchronized.
+                PowerAuthLog.d("PowerAuthTimeService: Time is synchronized with precision " + adjustedTimePrecision);
                 isTimeSynchronized = true;
+                localTimeAdjustmentPrecision = adjustedTimePrecision;
                 return true;
             }
             if (isTimeSynchronized && adjustmentDeltaOK) {
@@ -153,6 +155,7 @@ public class TimeSynchronizationService implements ICoreTimeService, IPowerAuthT
                 return true;
             }
             // Keep local time adjustment and mark time as synchronized.
+            PowerAuthLog.d("PowerAuthTimeService: Time is synchronized with precision " + adjustedTimePrecision + ", diff" + timeDifference);
             localTimeAdjustment = timeDifference;
             localTimeAdjustmentPrecision = adjustedTimePrecision;
             isTimeSynchronized = true;

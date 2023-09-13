@@ -37,7 +37,7 @@
 /// Complete the time synchronization task with time received from the server.
 /// - Parameters:
 ///   - task: Task object created in `startTimeSynchronizationTask` function.
-///   - serverTime: Timestamp received from the server with the milliseconds' precision.
+///   - serverTime: Timestamp received from the server.
 /// - Returns: YES if the server time has been processed and time is now synchronized.
 - (BOOL) completeTimeSynchronizationTask:(id)task withServerTime:(NSTimeInterval)serverTime;
 

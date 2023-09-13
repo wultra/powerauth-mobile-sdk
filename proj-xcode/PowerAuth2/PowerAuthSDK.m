@@ -35,6 +35,7 @@
 #import "PA2SharedSessionInterface.h"
 #import "PA2SessionDataProvider.h"
 #import "PA2AppGroupContainer.h"
+#import "PA2CompositeTask.h"
 #import "PA2Result.h"
 
 #if defined(PA2_WATCH_SUPPORT)
@@ -60,6 +61,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PowerAuthKeychainConfiguration * _keychainConfiguration;
     PowerAuthClientConfiguration * _clientConfiguration;
     
+    PA2TimeSynchronizationService * _timeSynchronizationService;
     id<PowerAuthPrivateTokenStore> _tokenStore;
     PA2HttpClient *_client;
     NSString *_biometryKeyIdentifier;
@@ -69,8 +71,10 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PA2PrivateHttpTokenProvider * _remoteHttpTokenProvider;
     
     /// Current pending status task.
-    PA2GetActivationStatusTask * _getStatusTask;
+    PA2GetActivationStatusTask * _getActivationStatusTask;
     PowerAuthActivationStatus * _lastFetchedActivationStatus;
+    // Current pending system status task
+    PA2GetSystemStatusTask * _getSystemStatusTask;
     /// User info
     PowerAuthUserInfo * _lastFetchedUserInfo;
 }
@@ -111,17 +115,19 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
         _keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
         biometryKeychainAccessGroup = sharingConfiguration.keychainAccessGroup;
     }
-    // Prepare time synchronization sevice
-    PA2TimeSynchronizationService * timeSynchronizationService = [[PA2TimeSynchronizationService alloc] initWithStatusProvider:self sharedLock:_lock];
-    [timeSynchronizationService subscribeForSystemNotifications];
-    _timeSynchronizationService = timeSynchronizationService;
+    // Prepare time synchronization sevice.
+    //
+    // Note that we're using instance of PowerAuthSDK as a status provider. To prevent the cirtular object reference, the
+    // time service keeps weak reference to the status provider (e.g. to PowerAuthSDK)
+    _timeSynchronizationService = [[PA2TimeSynchronizationService alloc] initWithStatusProvider:self sharedLock:_lock];
+    [_timeSynchronizationService subscribeForSystemNotifications];
 
     // Create session setup parameters
     PowerAuthCoreSessionSetup *setup = [[PowerAuthCoreSessionSetup alloc] initWithConfiguration:_configuration.configuration];
     setup.externalEncryptionKey = _configuration.externalEncryptionKey;
     
     // Create a new session
-    _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup timeService:timeSynchronizationService];
+    _coreSession = [[PowerAuthCoreSession alloc] initWithSessionSetup:setup timeService:_timeSynchronizationService];
     if (_coreSession == nil || ![_coreSession hasValidSetup]) {
         [PowerAuthSDK throwInvalidConfigurationException];
     }
@@ -199,6 +205,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
                                            completionQueue:dispatch_get_main_queue()
                                                    baseUrl:_configuration.baseEndpointUrl
                                       coreSessionInterface:_sessionInterface
+                                               timeService:_timeSynchronizationService
                                                     helper:self];
     
     _remoteHttpTokenProvider = [[PA2PrivateHttpTokenProvider alloc] initWithHttpClient:_client];
@@ -206,6 +213,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
                                                                      keychain:tokenStoreKeychain
                                                                statusProvider:self
                                                                remoteProvider:_remoteHttpTokenProvider
+                                                                  timeService:_timeSynchronizationService
                                                                      dataLock:_sessionInterface
                                                                     localLock:_lock];
 #if defined(PA2_WATCH_SUPPORT)
@@ -233,6 +241,11 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 - (id<PowerAuthTokenStore>) tokenStore
 {
     return _tokenStore;
+}
+
+- (id<PowerAuthTimeSynchronizationService>) timeSynchronizationService
+{
+    return _timeSynchronizationService;
 }
 
 - (PowerAuthConfiguration*) configuration
@@ -540,7 +553,8 @@ static PowerAuthSDK * s_inst;
 
 - (void) cancelAllPendingTasks
 {
-    [_getStatusTask cancel];
+    [_getActivationStatusTask cancel];
+    [_getSystemStatusTask cancel];
     [_tokenStore cancelAllTasks];
 }
 
@@ -566,7 +580,7 @@ static PowerAuthSDK * s_inst;
         callback(nil, error);
         return nil;
     }
-    
+ 
     // Prepare both layers of activation data
     PA2CreateActivationRequest * request = [[PA2CreateActivationRequest alloc] init];
     request.activationType = activation.activationType;
@@ -592,9 +606,21 @@ static PowerAuthSDK * s_inst;
         return nil;
     }
     
+    // The create activation endpoint needs a custom object processing where we encrypt the inner data
+    // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
+    // service is already synchronized.
+    PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint createActivationWithCustomStep:^NSError *{
+        // Encrypt payload and put it directly to the request object.
+        NSError * localError = nil;
+        request.activationData = [PA2ObjectSerialization encryptObject:requestData
+                                                             encryptor:decryptor
+                                                                 error:&localError];
+        return localError;
+    }];
+    
     // Now it's everything prepared for sending the request
     return [_client postObject:request
-                            to:[PA2RestApiEndpoint createActivation]
+                            to:endpoint
                           auth:nil
                     completion:^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
                         // HTTP request completion
@@ -781,12 +807,6 @@ static PowerAuthSDK * s_inst;
             // Now we need to ecrypt request data with the Layer2 encryptor.
             PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];
             if (!localError) {
-                // Encrypt payload and put it directly to the request object.
-                request.activationData = [PA2ObjectSerialization encryptObject:requestData
-                                                                     encryptor:privateEncryptor
-                                                                         error:&localError];
-            }
-            if (!localError) {
                 // Everything looks OS, so finally, try notify other apps that this instance started the activation.
                 localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
                 if (!localError) {
@@ -873,16 +893,16 @@ static PowerAuthSDK * s_inst;
     
     [_lock lock];
     //
-    id<PowerAuthOperationTask> task = [_getStatusTask createChildTask:callback];
+    id<PowerAuthOperationTask> task = [_getActivationStatusTask createChildTask:callback];
     if (!task) {
         // If there's no grouping task, or task is already finished, then simply create new one with the child task.
-        _getStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
+        _getActivationStatusTask = [[PA2GetActivationStatusTask alloc] initWithHttpClient:_client
                                                                deviceRelatedKey:[self deviceRelatedKey]
                                                                 sessionProvider:_sessionInterface
                                                                        delegate:self
                                                                      sharedLock:_lock
                                                                  disableUpgrade:_configuration.disableAutomaticProtocolUpgrade];
-        task = [_getStatusTask createChildTask:callback];
+        task = [_getActivationStatusTask createChildTask:callback];
     }
     //
     [_lock unlock];
@@ -893,8 +913,8 @@ static PowerAuthSDK * s_inst;
 {
     // [_lock lock] is guaranteed, because this method is called from task's completion while locked with shared lock.
     // So, we can freely mutate objects in this instance.
-    if (_getStatusTask == task) {
-        _getStatusTask = nil;
+    if (_getActivationStatusTask == task) {
+        _getActivationStatusTask = nil;
         if (status) {
             _lastFetchedActivationStatus = status;
         }
@@ -1762,13 +1782,36 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) getSystemStatusWithCallback:(void(^)(PowerAuthServerStatus * status, NSError * error))callback
                                              callbackQueue:(dispatch_queue_t)callbackQueue
 {
-    // TODO: fixme in another PR
-    return nil;
+    [_lock lock];
+    //
+    id<PowerAuthOperationTask> task = [_getSystemStatusTask createChildTask:callback queue:callbackQueue];
+    if (!task) {
+        // If there's no grouping task, or task is already finished, then simply create new one with the child task.
+        _getSystemStatusTask = [[PA2GetSystemStatusTask alloc] initWithHttpClient:_client sharedLock:_lock delegate:self];
+        task = [_getSystemStatusTask createChildTask:callback];
+    }
+    //
+    [_lock unlock];
+    return task;
 }
 
 - (void) getSystemStatusTask:(PA2GetSystemStatusTask *)task didFinishedWithStatus:(PA2GetServerStatusResponse *)status error:(NSError *)error
 {
-    // TODO: fixme in another PR
+    // [_lock lock] is guaranteed, because this method is called from task's completion while locked with shared lock.
+    // So, we can freely mutate objects in this instance.
+    if (_getSystemStatusTask == task) {
+        _getSystemStatusTask = nil;
+        // This is the reference to task which is going to finish its execution soon.
+        // The ivar no longer holds the reference to the task, but we should keep that reference
+        // for a little bit longer, to guarantee, that we don't destroy that object during its
+        // finalization stage.
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            // The following call does nothing, because the old task is no longer stored
+            // in the `_getStatusTask` ivar. It just guarantees that the object will be alive
+            // during waiting to execute the operation block.
+            [self getSystemStatusTask:task didFinishedWithStatus:nil error:nil];
+        }];
+    }
 }
 
 @end

@@ -40,7 +40,11 @@
 
     PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint getSystemStatus];
     id<PowerAuthOperationTask> cancelable = [_client postObject:nil to:endpoint completion:^(PowerAuthRestApiResponseStatus status, PA2GetServerStatusResponse * response, NSError * error) {
-        [self complete:response error:error];
+        PowerAuthServerStatus * serverStatus = nil;
+        if (status == PowerAuthRestApiResponseStatus_OK && response) {
+            serverStatus = [[PowerAuthServerStatus alloc] initWithGetServerStatusResponse:response];
+        }
+        [self complete:serverStatus error:error];
     }];
     [self replaceCancelableOperation:cancelable];
 }

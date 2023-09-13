@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.core;
 import android.util.Pair;
 
 import io.getlime.security.powerauth.ecies.EciesMetadata;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  *  The <code>EciesEncryptor</code> class implements a request encryption and response decryption for
@@ -194,6 +195,9 @@ public class EciesEncryptor {
      * @return cryptogram object or null in case of failure
      */
     public EciesCryptogram encryptRequest(byte[] requestData) {
+        if (!timeService.isTimeSynchronized()) {
+            PowerAuthLog.w("Time service is not synchronized. Encrypted data may be rejected on the server.");
+        }
         timeSynchronizationTask = timeService.startTimeSynchronizationTask();
         return encryptRequestImpl(requestData, timeService.getCurrentTime());
     }

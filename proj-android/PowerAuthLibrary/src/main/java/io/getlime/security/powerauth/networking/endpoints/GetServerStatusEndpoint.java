@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.networking.endpoints;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.gson.reflect.TypeToken;
-import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.model.response.ServerStatusResponse;
 
@@ -30,33 +29,10 @@ public class GetServerStatusEndpoint implements IEndpointDefinition<ServerStatus
         return "/pa/v3/status";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return null;
-    }
-
-    @NonNull
-    @Override
-    public EciesEncryptorId getEncryptorId() {
-        return EciesEncryptorId.NONE;
-    }
-
     @Nullable
     @Override
     public TypeToken<ServerStatusResponse> getResponseType() {
         return TypeToken.get(ServerStatusResponse.class);
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return false;
     }
 
     @Override

@@ -73,6 +73,16 @@
         return nil;
     }
     
+    // Execute custom step before the request is serialized.
+    NSError * (^beforeSerialization)(void) = _endpoint.beforeRequestSerialization;
+    if (beforeSerialization) {
+        NSError * customStepError = beforeSerialization();
+        if (customStepError) {
+            if (error) *error = customStepError;
+            return nil;
+        }
+    }
+    
     // Build full URL & request object
     NSURL * url = [NSURL URLWithString:[baseUrl stringByAppendingString:_endpoint.relativePath]];
     NSMutableURLRequest * request = [[NSMutableURLRequest alloc] initWithURL:url];

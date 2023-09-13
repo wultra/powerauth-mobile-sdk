@@ -38,7 +38,17 @@ public class CompositeCancelableTask implements ICancelable {
 
     private final boolean exclusiveMode;
     private boolean isCancelled;
+    private boolean isCompleted;
     private final ArrayList<ICancelable> cancelables;
+    private ICancelCallback cancelCallback;
+
+    @FunctionalInterface
+    public interface ICancelCallback {
+        /**
+         * Called when task is canceled with cancel() method.
+         */
+        void onCancel();
+    }
 
     /**
      * Construct composite cancelable task.
@@ -61,6 +71,14 @@ public class CompositeCancelableTask implements ICancelable {
     }
 
     /**
+     * Assign additional cancel callback called once the object is canceled from the application.
+     * @param cancelCallback Cancel callback.
+     */
+    public void setCancelCallback(@NonNull ICancelCallback cancelCallback) {
+        this.cancelCallback = cancelCallback;
+    }
+
+    /**
      * Add another cancelable object. If instance is in the exclusive mode, then removes previously
      * managed cancelable object.
      *
@@ -68,13 +86,13 @@ public class CompositeCancelableTask implements ICancelable {
      */
     public void addCancelable(@NonNull ICancelable cancelable) {
         synchronized (this) {
-            if (!isCancelled) {
+            if (isNotFinished()) {
                 if (exclusiveMode) {
                     cancelables.clear();
                 }
                 cancelables.add(cancelable);
             } else {
-                PowerAuthLog.d("CompositeCancelableTask is already canceled.");
+                PowerAuthLog.d("CompositeCancelableTask is already canceled or completed.");
                 cancelable.cancel();
             }
         }
@@ -91,15 +109,38 @@ public class CompositeCancelableTask implements ICancelable {
         }
     }
 
+    /**
+     * @return true if task is not finished or canceled.
+     */
+    private boolean isNotFinished() {
+        return !(isCancelled || isCompleted);
+    }
+
+    /**
+     * Set this composite task as completed.
+     * @return true if task was completed, false in case that has been already canceled.
+     */
+    public boolean setCompleted() {
+        synchronized (this) {
+            if (isNotFinished()) {
+                isCompleted = true;
+                return true;
+            }
+            return false;
+        }
+    }
+
     @Override
     public void cancel() {
         synchronized (this) {
-            if (isCancelled) {
-                return;
-            }
-            isCancelled = true;
-            for (ICancelable cancelable : cancelables) {
-                cancelable.cancel();
+            if (isNotFinished()) {
+                isCancelled = true;
+                for (ICancelable cancelable : cancelables) {
+                    cancelable.cancel();
+                }
+                if (cancelCallback != null) {
+                    cancelCallback.onCancel();
+                }
             }
         }
     }

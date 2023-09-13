@@ -93,7 +93,7 @@ static void ResetDate(void)
     
     id task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    NSTimeInterval serverTime = Date() * 1000.0;
+    NSTimeInterval serverTime = Date();
     SleepThread(0.01);  // 10ms
     BOOL result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -103,7 +103,7 @@ static void ResetDate(void)
 
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date() + 5.0) * 1000.0;              // 5 seconds ahead, too small to be accepted
+    serverTime = (Date() + 5.0);                        // 5 seconds ahead, too small to be accepted
     SleepThread(0.01);  // 10ms
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -112,7 +112,7 @@ static void ResetDate(void)
 
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date() - 5.0) * 1000.0;              // 5 seconds behind, too small to be accepted
+    serverTime = (Date() - 5.0)         ;               // 5 seconds behind, too small to be accepted
     SleepThread(0.01);  // 10ms
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -121,7 +121,7 @@ static void ResetDate(void)
     
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date() + 30.0) * 1000.0;              // 30 seconds ahead
+    serverTime = (Date() + 30.0);                       // 30 seconds ahead
     SleepThread(0.01);  // 10ms
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -132,7 +132,7 @@ static void ResetDate(void)
 
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date() - 30.0) * 1000.0;              // 30 seconds behind
+    serverTime = (Date() - 30.0);                       // 30 seconds behind
     SleepThread(0.01);  // 10ms
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -144,7 +144,7 @@ static void ResetDate(void)
     // Repeat the task, that we can test filter for time fluctuation
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date() - 32.0) * 1000.0;              // 30 seconds behind
+    serverTime = (Date() - 32.0);                       // 30 seconds behind
     SleepThread(0.01);  // 10ms
     NSTimeInterval prevAdjustment = service.localTimeAdjustment;
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
@@ -154,7 +154,7 @@ static void ResetDate(void)
 
     task = [service startTimeSynchronizationTask];
     SleepThread(0.01);  // 10ms
-    serverTime = (Date()) * 1000.0;                     // go back to normal
+    serverTime = (Date());                              // go back to normal
     SleepThread(0.01);  // 10ms
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -176,7 +176,7 @@ static void ResetDate(void)
 
     id task = [service startTimeSynchronizationTask];
     SleepThread(5.00);  // 5ms
-    NSTimeInterval serverTime = (Date() + 0.0) * 1000.0;              // No difference
+    NSTimeInterval serverTime = (Date() + 0.0);             // No difference
     SleepThread(5.00);  // 5ms
     BOOL result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -185,7 +185,7 @@ static void ResetDate(void)
         
     task = [service startTimeSynchronizationTask];
     SleepThread(0.10);  // 100ms
-    serverTime = (Date() + 0.0) * 1000.0;              // No difference
+    serverTime = (Date() + 0.0);                            // No difference
     SleepThread(15.00);  // 10s
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertTrue(result);
@@ -196,7 +196,7 @@ static void ResetDate(void)
     
     task = [service startTimeSynchronizationTask];
     SleepThread(6.0);  // 100ms
-    serverTime = (Date() + 0.0) * 1000.0;              // No difference against real time
+    serverTime = (Date() + 0.0);                            // No difference against real time
     SleepThread(11.00);  // 10s
     result = [service completeTimeSynchronizationTask:task withServerTime:serverTime];
     XCTAssertFalse(result);

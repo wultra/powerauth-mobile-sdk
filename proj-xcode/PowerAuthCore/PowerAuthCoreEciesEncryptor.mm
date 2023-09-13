@@ -109,8 +109,11 @@ using namespace io::getlime::powerAuth;
 {
     id<PowerAuthCoreTimeService> timeService = _timeSynchronizationService;
     if (!timeService) {
-        PowerAuthCoreLog(@"TimeSynchronizationService is not set or is no longer valid");
+        PowerAuthCoreLog(@"PowerAuthCoreTimeService is not set or is no longer valid");
         return nil;
+    }
+    if (!timeService.isTimeSynchronized) {
+        PowerAuthCoreLog(@"WARNING: PowerAuthCoreTimeService is not synchronized. Encrypted data may be rejected on the server.");
     }
     PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
     cryptogram.timestamp = [timeService currentTime] * 1000.0;
@@ -138,7 +141,7 @@ using namespace io::getlime::powerAuth;
     auto ec = _encryptor.decryptResponse(cryptogram.cryptogramRef, params, data);
     if (ec == EC_Ok) {
         if (_timeSynchronizationTask) {
-            [_timeSynchronizationService completeTimeSynchronizationTask:_timeSynchronizationTask withServerTime:cryptogram.timestamp];
+            [_timeSynchronizationService completeTimeSynchronizationTask:_timeSynchronizationTask withServerTime:0.001 * cryptogram.timestamp];
         }
     }
     _timeSynchronizationTask = nil;

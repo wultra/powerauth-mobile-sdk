@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Wultra s.r.o.
+ * Copyright 2018 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-#import "PowerAuthServerStatus+Private.h"
+package io.getlime.security.powerauth.networking.interfaces;
 
-@implementation PowerAuthServerStatus
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
-- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response
-{
-    self = [super init];
-    if (self) {
-        _serverTime = [NSDate dateWithTimeIntervalSince1970:0.001 * (NSTimeInterval)response.serverTime];
-    }
-    return self;
+/**
+ * Defines custom operation executed while endpoint is processed.
+ */
+@FunctionalInterface
+public interface ICustomEndpointOperation {
+    void customEndpointOperation() throws PowerAuthErrorException;
 }
-
-@end

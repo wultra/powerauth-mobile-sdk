@@ -22,27 +22,26 @@ import androidx.annotation.Nullable;
 import com.google.gson.reflect.TypeToken;
 
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
+import io.getlime.security.powerauth.networking.interfaces.ICustomEndpointOperation;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.model.response.ActivationLayer1Response;
 
 public class CreateActivationEndpoint implements IEndpointDefinition<ActivationLayer1Response> {
 
+    private final ICustomEndpointOperation beforeRequestSerialization;
+
+    /**
+     * Construct endpoint with a custom serialization step executed before the request is serialized.
+     * @param beforeRequestSerialization Step executed before the request is serialized.
+     */
+    public CreateActivationEndpoint(ICustomEndpointOperation beforeRequestSerialization) {
+        this.beforeRequestSerialization = beforeRequestSerialization;
+    }
+
     @NonNull
     @Override
     public String getRelativePath() {
         return "/pa/v3/activation/create";
-    }
-
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return null;
     }
 
     @NonNull
@@ -58,12 +57,13 @@ public class CreateActivationEndpoint implements IEndpointDefinition<ActivationL
     }
 
     @Override
-    public boolean isSynchronized() {
-        return false;
-    }
-
-    @Override
     public boolean isAvailableInProtocolUpgrade() {
         return true;
+    }
+
+    @Nullable
+    @Override
+    public ICustomEndpointOperation getBeforeRequestSerializationOperation() {
+        return beforeRequestSerialization;
     }
 }

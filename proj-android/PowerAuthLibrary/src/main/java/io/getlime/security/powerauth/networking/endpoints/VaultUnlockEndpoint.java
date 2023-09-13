@@ -33,12 +33,6 @@ public class VaultUnlockEndpoint implements IEndpointDefinition<VaultUnlockRespo
         return "/pa/v3/vault/unlock";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
@@ -55,15 +49,5 @@ public class VaultUnlockEndpoint implements IEndpointDefinition<VaultUnlockRespo
     @Override
     public TypeToken<VaultUnlockResponsePayload> getResponseType() {
         return TypeToken.get(VaultUnlockResponsePayload.class);
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

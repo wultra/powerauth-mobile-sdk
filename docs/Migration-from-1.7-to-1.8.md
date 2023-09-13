@@ -3,10 +3,23 @@
 PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
 
 - Added support for simplified configuration. The SDK is now configured with using one Base64 encoded string instead of three separate values.
+- Added support for PowerAuth protocol version 3.2, including End-To-End encryption improvements and time synchronized with the server.
 
 ### Compatibility with PowerAuth Server
 
 - This release is fully compatible with PowerAuth Server version `1.5.0` and newer.
+
+### Legacy SDK configuration
+
+In case you need to still use the legacy setup to configure older version of PowerAuth mobile SDK, then you can use `get-legacy-config.swift` script available at `scripts` folder. For example:
+
+```
+./scripts/get-legacy-config.swift ARDTWDPw20CBb+aUeIuWy25MEHy89d2ySbQR2QoCb3taB1EBAUEEPspwnZzj7AOw0emEk/J51V16ZpkDMGE3VT3vzb+3Wh9qEA8MAJBTLPJ3XgFkr6OBVQCkpBezpbXOx1xHvVAqyQ==
+Legacy PowerAuth configuration:
+   appKey                : 01gz8NtAgW/mlHiLlstuTA==
+   appSecret             : fLz13bJJtBHZCgJve1oHUQ==
+   masterServerPublicKey : BD7KcJ2c4+wDsNHphJPyedVdemaZAzBhN1U9782/t1ofahAPDACQUyzyd14BZK+jgVUApKQXs6W1zsdcR71QKsk=
+```
 
 ## Android
 
@@ -21,9 +34,70 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
                 "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
             ).build();
     ```
+- `PowerAuthSDK.Builder.build()` now require to use application's context to build instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
+  ```kotlin
+  PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
+  ```
+
 ### Other changes
 
-- TBA
+#### Synchronized time
+
+The requirement for the time synchronized with the server has the following impact to your code:
+
+- If you use custom **End-To-End Encryption** in your application, then it's recommended to make sure the time is synchronized with the server:
+  ```kotlin
+  val timeService = powerAuthSDK.timeSynchronizationService
+  if (!timeService.isTimeSynchronized) {
+    timeService.synchronizeTime(object : ITimeSynchronizationListener {
+      override fun onTimeSynchronizationSucceeded() {
+        // Success
+      }
+
+      override fun onTimeSynchronizationFailed(t: Throwable) {
+        // Failure
+      }
+    })
+  }
+  ```
+
+- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantee that time is synchronized before the token header is calculated:
+  ```kotlin
+  val task = powerAuthSDK.tokenStore.generateAuthorizationHeader(context, "MyToken", object : IGenerateTokenHeaderListener {
+    override fun onGenerateTokenHeaderSucceeded(header: PowerAuthAuthorizationHttpHeader) {
+        val httpHeaderKey = header.key
+        val httpHeaderValue = header.value
+    }
+
+    override fun onGenerateTokenHeaderFailed(t: Throwable) {
+        // Failure
+    }
+  })
+  ```
+
+Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/PowerAuth-SDK-for-Android#synchronized-time) chapter in our documentation for more details.
+
+#### End-To-End Encryption
+
+- Encrypted request now contains new property `timestamp` with type `long`, please update your model objects. For example:
+  ```json
+  {
+    "ephemeralPublicKey" : "BASE64-DATA-BLOB",
+    "encryptedData": "BASE64-DATA-BLOB",
+    "mac" : "BASE64-DATA-BLOB",
+    "nonce" : "BASE64-NONCE",
+    "timestamp" : 1694172789256
+  }
+  ```
+- Encrypted response now contains two new properties: `timestamp` with `long` and `nonce` with `String`. Please update your model objects:
+  ```json
+  {
+    "encryptedData": "BASE64-DATA-BLOB",
+    "mac" : "BASE64-DATA-BLOB",
+    "nonce" : "BASE64-NONCE",
+    "timestamp": 1694172789256
+  }
+  ```
 
 ## iOS & tvOS
 
@@ -41,9 +115,60 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
   - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey` properties.
   - Constructor with no parameters is no longer supported.
 
+- `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
+
 ### Other changes
 
-- TBA
+#### Synchronized time
+
+The requirement for the time synchronized with the server has the following impact to your code:
+
+- If you use custom **End-To-End Encryption** in your application, then it's recommended to make sure the time is synchronized with the server:
+  ```swift
+  if !powerAuthSdk.timeSynchronizationService.isTimeSynchronized {
+    let task = powerAuthSdk.timeSynchronizationService.synchronizeTime(callback: { error in
+      if error == nil {
+          // Success, time has been properly synchronized
+      } else {
+          // Failed to synchronize the time
+      }
+    }, callbackQueue: .main)
+  }
+  ```
+- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantee that time is synchronized before the token header is calculated:
+  ```swift
+  powerAuthSdk.tokenStore.generateAuthorizationHeader(withName: "MyToken") { header, error in
+    if let header = header {
+        let httpHeader = [ header.key : header.value ]
+    } else {
+        // failure
+    }
+  }
+  ``` 
+
+Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mobile-sdk/develop/documentation/PowerAuth-SDK-for-iOS#synchronized-time) chapter in our documentation for more details.
+
+#### End-To-End Encryption
+
+- Encrypted request now contains new property `timestamp` with type `UInt64`, please update your model objects. For example:
+  ```json
+  {
+    "ephemeralPublicKey" : "BASE64-DATA-BLOB",
+    "encryptedData": "BASE64-DATA-BLOB",
+    "mac" : "BASE64-DATA-BLOB",
+    "nonce" : "BASE64-NONCE",
+    "timestamp" : 1694172789256
+  }
+  ```
+- Encrypted response now contains two new properties: `timestamp` with `UInt64` and `nonce` with `String`. Please update your model objects:
+  ```json
+  {
+    "encryptedData": "BASE64-DATA-BLOB",
+    "mac" : "BASE64-DATA-BLOB",
+    "nonce" : "BASE64-NONCE",
+    "timestamp": 1694172789256
+  }
+  ```
 
 ## iOS & tvOS App Extensions
 

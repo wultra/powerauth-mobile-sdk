@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.response.IServerStatusListener;
+import io.getlime.security.powerauth.networking.response.ServerStatus;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -31,21 +32,64 @@ public class DefaultServerStatusProvider implements IServerStatusProvider {
 
     private final ReentrantLock lock;
     private final HttpClient httpClient;
+    private final ICallbackDispatcher callbackDispatcher;
+    private GetServerStatusTask getStatusTask;
 
     /**
      * Construct provider with preconfigured HTTP client and shared reentrant lock.
      * @param httpClient HTTP client.
      * @param sharedLock Reentrant lock shared between multiple PowerAuthSDK internal classes.
+     * @param callbackDispatcher Object dispatching callbacks to main thread.
      */
-    public DefaultServerStatusProvider(@NonNull HttpClient httpClient, @NonNull ReentrantLock sharedLock) {
+    public DefaultServerStatusProvider(
+            @NonNull HttpClient httpClient,
+            @NonNull ReentrantLock sharedLock,
+            @NonNull ICallbackDispatcher callbackDispatcher) {
         this.lock = sharedLock;
         this.httpClient = httpClient;
+        this.callbackDispatcher = callbackDispatcher;
     }
 
     @Nullable
     @Override
     public ICancelable getServerStatus(@NonNull IServerStatusListener listener) {
-        // TODO: implement in separate PR
-        return null;
+        final ITaskCompletion<ServerStatus> taskCompletion = new ITaskCompletion<ServerStatus>() {
+            @Override
+            public void onSuccess(@NonNull ServerStatus serverStatus) {
+                listener.onServerStatusSucceeded(serverStatus);
+            }
+
+            @Override
+            public void onFailure(@NonNull Throwable failure) {
+                listener.onServerStatusFailed(failure);
+            }
+        };
+        try {
+            ICancelable task;
+            lock.lock();
+            if (getStatusTask != null) {
+                task = getStatusTask.createChildTask(taskCompletion);
+            } else {
+                task = null;
+            }
+            if (task == null) {
+                getStatusTask = new GetServerStatusTask(lock, callbackDispatcher, httpClient, this::onGetServerStatusTaskCompletion);
+                task = getStatusTask.createChildTask(taskCompletion);
+            }
+            return task;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void onGetServerStatusTaskCompletion(@NonNull GetServerStatusTask task) {
+        try {
+            lock.lock();
+            if (task == getStatusTask) {
+                getStatusTask = null;
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 }

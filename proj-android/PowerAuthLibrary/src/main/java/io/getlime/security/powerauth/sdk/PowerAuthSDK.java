@@ -177,7 +177,13 @@ public class PowerAuthSDK {
         /**
          * Build instance of {@link PowerAuthSDK}.
          *
-         * @param context Android context
+         * @param context Android context.
+         *                <p>
+         *                It's recommended to provide instance of {@link android.app.Application} as a context to this
+         *                function to allow PowerAuth mobile SDK to properly register itself as a listener for application
+         *                lifecycle transitions. If you provide other context, then you should use {@link PowerAuthAppLifecycleListener}
+         *                class to register for callbacks.
+         *                </p>
          * @return Instance of {@link PowerAuthSDK} class.
          * @throws PowerAuthErrorException In case that builder cannot create an instance of {@link PowerAuthSDK}. This may happen for a several reasons:
          *                                 <ul>
@@ -219,7 +225,7 @@ public class PowerAuthSDK {
 
             // Prepare HTTP client
             final IExecutorProvider executorProvider = new DefaultExecutorProvider();
-            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), executorProvider);
+            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), executorProvider, mCallbackDispatcher);
 
             // Prepare keychains
             final @KeychainProtection int minRequiredKeychainProtection = mKeychainConfiguration.getMinimalRequiredKeychainProtection();
@@ -238,9 +244,10 @@ public class PowerAuthSDK {
                 possessionEncryptionKeyProvider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(mConfiguration.getFetchKeysStrategy());
             }
 
-            // Prepare time synchronization service.
-            final IServerStatusProvider serverStatusProvider = new DefaultServerStatusProvider(httpClient, sharedLock);
+            // Prepare time synchronization service and connect it with HTTP client.
+            final DefaultServerStatusProvider serverStatusProvider = new DefaultServerStatusProvider(httpClient, sharedLock, mCallbackDispatcher);
             final TimeSynchronizationService timeSynchronizationService = new TimeSynchronizationService(System::currentTimeMillis, serverStatusProvider, mCallbackDispatcher);
+            httpClient.setTimeSynchronizationService(timeSynchronizationService);
 
             // Prepare low-level Session object.
             final Session session = new Session(mConfiguration.getSessionSetup(), timeSynchronizationService);
@@ -261,6 +268,8 @@ public class PowerAuthSDK {
                     serverStatusProvider,
                     timeSynchronizationService);
 
+            // Register time service for automatic reset.
+            PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
             boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
             return instance;
@@ -716,13 +725,19 @@ public class PowerAuthSDK {
             request.setType(activation.activationType);
             request.setIdentityAttributes(activation.identityAttributes);
             request.setCustomAttributes(activation.customAttributes);
-            // Set encrypted level 2 activation data to the request.
-            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+
+            // The create activation endpoint needs a custom object processing where we encrypt the inner data
+            // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
+            // service is already synchronized.
+            final CreateActivationEndpoint endpointDefinition = new CreateActivationEndpoint(() -> {
+                // Set encrypted level 2 activation data to the request.
+                request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+            });
 
             // Fire HTTP request
             return mClient.post(
                     request,
-                    new CreateActivationEndpoint(),
+                    endpointDefinition,
                     cryptoHelper,
                     new INetworkResponseListener<ActivationLayer1Response>() {
                         @Override
@@ -1919,7 +1934,9 @@ public class PowerAuthSDK {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                                }
                             }
                         }
 
@@ -1931,26 +1948,36 @@ public class PowerAuthSDK {
                             if (result == ErrorCode.OK) {
                                 // Update state after each successful calculations
                                 saveSerializedState();
-                                listener.onAddBiometryFactorSucceed();
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorSucceed();
+                                }
                             } else {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
+                                }
                             }
                         }
 
                         @Override
                         public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
-                            listener.onAddBiometryFactorFailed(error);
+                            if (compositeCancelableTask.setCompleted()) {
+                                listener.onAddBiometryFactorFailed(error);
+                            }
                         }
                     });
                     compositeCancelableTask.addCancelable(biometricAuthentication);
                 } else {
-                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
+                    if (compositeCancelableTask.setCompleted()) {
+                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
+                    }
                 }
             }
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                if (compositeCancelableTask.setCompleted()) {
+                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                }
             }
         });
         if (httpRequest != null) {

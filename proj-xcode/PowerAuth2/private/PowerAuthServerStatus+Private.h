@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-#import "PowerAuthServerStatus+Private.h"
+#import <PowerAuth2/PowerAuthServerStatus.h>
+#import "PA2GetServerStatusResponse.h"
 
-@implementation PowerAuthServerStatus
+@interface PowerAuthServerStatus (Private)
 
-- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response
-{
-    self = [super init];
-    if (self) {
-        _serverTime = [NSDate dateWithTimeIntervalSince1970:0.001 * (NSTimeInterval)response.serverTime];
-    }
-    return self;
-}
+- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response;
 
 @end

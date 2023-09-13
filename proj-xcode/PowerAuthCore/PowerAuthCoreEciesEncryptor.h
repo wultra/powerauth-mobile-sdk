@@ -42,7 +42,7 @@
                                   sharedInfo2:(nullable NSData*)sharedInfo2;
 
 // Make defualt init invisible
-- (nullable instancetype) init NS_UNAVAILABLE;
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
 /**
  Returns a new instance of PowerAuthCoreEciesEncryptor, suitable only for data decryption or nil if current encryptor is not

@@ -968,7 +968,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
             final @NonNull Context context,
@@ -992,7 +991,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
             final @NonNull Context context,
@@ -1016,7 +1014,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
             final @NonNull Context context,
@@ -1040,7 +1037,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable commitActivation(
             final @NonNull Context context,
@@ -1064,7 +1060,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     private ICancelable commitActivationWithBiometryImpl(
             final @NonNull Context context,
@@ -1110,7 +1105,6 @@ public class PowerAuthSDK {
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
@@ -1128,7 +1122,6 @@ public class PowerAuthSDK {
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @CheckResult
     @PowerAuthErrorCodes
     public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
@@ -1778,7 +1771,6 @@ public class PowerAuthSDK {
      * @param context Android context object
      * @return True in case biometry factor is present, false otherwise.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public boolean hasBiometryFactor(@NonNull Context context) {
 
         checkForValidSetup();
@@ -1805,7 +1797,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
@@ -1831,7 +1822,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
@@ -1857,7 +1847,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
@@ -1883,7 +1872,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
@@ -1909,7 +1897,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Nullable
     private ICancelable addBiometryFactorImpl(
             @NonNull final Context context,
@@ -2059,7 +2046,6 @@ public class PowerAuthSDK {
      * @param context Context.
      * @return TRUE if the key was successfully removed, FALSE otherwise.
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public boolean removeBiometryFactor(@NonNull Context context) {
 
         checkForValidSetup();
@@ -2192,7 +2178,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable authenticateUsingBiometry(
             @NonNull Context context,
@@ -2215,7 +2200,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     public ICancelable authenticateUsingBiometry(
             @NonNull Context context,
@@ -2239,7 +2223,6 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @NonNull
     private ICancelable authenticateUsingBiometry(
             final @NonNull Context context,

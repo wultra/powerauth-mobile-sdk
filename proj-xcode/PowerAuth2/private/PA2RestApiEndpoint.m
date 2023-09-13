@@ -19,6 +19,7 @@
 
 #define FL_SERIALIZED               (1 << 0)
 #define FL_ALLOWED_IN_UPGRADE       (1 << 1)
+#define FL_SYNCHRONIZE_TIME         (1 << 2)
 #define IS_FLAG(v, f)               ((v & f) == f)
 
 @implementation PA2RestApiEndpoint
@@ -28,22 +29,29 @@
 
 #pragma mark - Activation
 
-+ (instancetype) createActivation
++ (instancetype) createActivationWithCustomStep:(NSError*(^)(void))customStep
 {
-    return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/activation/create"
-                                            request:[PA2CreateActivationRequest class]
-                                           response:[PA2CreateActivationResponse class]
-                                          encryptor:PA2EncryptorId_ActivationRequest
-                                          authUriId:nil];
+    PA2RestApiEndpoint * endpoint = [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/activation/create"
+                                                                     request:[PA2CreateActivationRequest class]
+                                                                    response:[PA2CreateActivationResponse class]
+                                                                   encryptor:PA2EncryptorId_ActivationRequest
+                                                                   authUriId:nil];
+    if (endpoint) {
+        endpoint->_beforeRequestSerialization = customStep;
+    }
+    return endpoint;
 }
 
 + (instancetype) getActivationStatus;
 {
+    // The request itself is not time sensitive, but we declare that the time is synchronized
+    // automatically with the fetching the activation status.
     return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/activation/status"
                                             request:[PA2GetActivationStatusRequest class]
                                            response:[PA2GetActivationStatusResponse class]
                                           encryptor:PA2EncryptorId_None
-                                          authUriId:nil];
+                                          authUriId:nil
+                                              flags:FL_SYNCHRONIZE_TIME];
 }
 
 + (instancetype) removeActivation;
@@ -139,6 +147,18 @@
                                           authUriId:nil];
 }
 
++ (instancetype) getSystemStatus
+{
+    // FL_ALLOWED_IN_UPGRADE is probably ignored because endoint is not signed.
+    // We keep it only to return semantically correct information in `isAvailableInProtocolUpgrade`
+    return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/status"
+                                            request:nil
+                                           response:[PA2GetServerStatusResponse class]
+                                          encryptor:PA2EncryptorId_None
+                                          authUriId:nil
+                                              flags:FL_ALLOWED_IN_UPGRADE];
+}
+
 #pragma mark - Public getters
 
 - (BOOL) isEncrypted
@@ -161,6 +181,10 @@
     return IS_FLAG(_flags, FL_ALLOWED_IN_UPGRADE);
 }
 
+- (BOOL) requireSynchronizedTime
+{
+    return _encryptor != PA2EncryptorId_None || IS_FLAG(_flags, FL_SYNCHRONIZE_TIME);
+}
 
 #pragma mark - Private constructors
 

@@ -39,11 +39,13 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreSession
 {
     Session *   _session;
+    __weak id<PowerAuthCoreTimeService> _timeService;
 }
 
 #pragma mark - Initialization / Reset
 
 - (nullable instancetype) initWithSessionSetup:(nonnull PowerAuthCoreSessionSetup *)setup
+                                   timeService:(nonnull id<PowerAuthCoreTimeService>)timeService
 {
     self = [super init];
     if (self) {
@@ -54,6 +56,7 @@ using namespace io::getlime::powerAuth;
             return nil;
         }
         _sessionSetup = setup;
+        _timeService = timeService;
     }
     return self;
 }
@@ -423,10 +426,13 @@ using namespace io::getlime::powerAuth;
     SignatureUnlockKeys cpp_keys;
     PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
     
-    PowerAuthCoreEciesEncryptor * encryptor = [[PowerAuthCoreEciesEncryptor alloc] init];
-    auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, encryptor.encryptorRef);
-    REPORT_ERROR_CODE(@"GetEciesEncryptor", error);
-    return error == EC_Ok ? encryptor : nil;
+    ECIESEncryptor cpp_encryptor;
+    auto error = _session->getEciesEncryptor(cpp_scope, cpp_keys, cpp_shared_info1, cpp_encryptor);
+    if (error != EC_Ok) {
+        REPORT_ERROR_CODE(@"GetEciesEncryptor", error);
+        return nil;
+    }
+    return [[PowerAuthCoreEciesEncryptor alloc] initWithObject:cpp_encryptor timeService:_timeService];
 }
 
 #pragma mark - Utilities for generic keys
@@ -492,7 +498,7 @@ using namespace io::getlime::powerAuth;
 
 + (NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion
 {
-    return cc7::objc::CopyToNSString(Session::maxSupportedHttpProtocolVersion(static_cast<Version>(protocolVersion)));
+    return cc7::objc::CopyToNSString(Version_GetMaxSupportedHttpProtocolVersion(static_cast<Version>(protocolVersion)));
 }
 
 #pragma mark - Recovery codes

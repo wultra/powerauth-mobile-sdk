@@ -29,6 +29,7 @@
         _encryptedData = cryptogram.bodyBase64;
         _mac = cryptogram.macBase64;
         _nonce = cryptogram.nonceBase64;
+        _timestamp = cryptogram.timestamp;
     }
     return self;
 }
@@ -48,6 +49,7 @@
     if (_nonce) {
         dict[@"nonce"] = _nonce;
     }
+    dict[@"timestamp"] = @(_timestamp);
     return dict;
 }
 

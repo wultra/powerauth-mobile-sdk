@@ -88,4 +88,16 @@ public class PowerAuthLog {
         String message = String.format(format, args);
         android.util.Log.e(LOG_TAG, message);
     }
+
+    /**
+     * Adds a formatted WARNING log message. Unlike DEBUG message calling this method always
+     * produce error record.
+     * @param format format string, just like for {@link java.lang.String#format String.format}
+     * @param args Arguments referenced by the format specifiers in the format
+     *        string.
+     */
+    public static void w(String format, Object... args) {
+        String message = String.format(format, args);
+        android.util.Log.w(LOG_TAG, message);
+    }
 }

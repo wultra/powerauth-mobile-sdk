@@ -21,6 +21,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Base64;
 
+import io.getlime.security.powerauth.core.CoreTimeTestService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +45,8 @@ public class DefaultPossessionFactorEncryptionKeyProviderTests {
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getInstrumentation().getContext();
-        session = new Session(new SessionSetup("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", null));
+        final SessionSetup sessionSetup = new SessionSetup("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", null);
+        session = new Session(sessionSetup, new CoreTimeTestService());
     }
 
     @Test

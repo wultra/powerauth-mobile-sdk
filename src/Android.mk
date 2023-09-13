@@ -44,6 +44,7 @@ LOCAL_SRC_FILES := \
 	PowerAuth/Debug.cpp \
 	PowerAuth/OtpUtil.cpp \
 	PowerAuth/ECIES.cpp \
+	PowerAuth/ByteUtils.cpp \
 	PowerAuth/crypto/AES.cpp \
 	PowerAuth/crypto/Hash.cpp \
 	PowerAuth/crypto/KDF.cpp \
@@ -93,6 +94,7 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/pa2CryptoECDSATests.cpp \
 	PowerAuthTests/pa2CryptoECDHKDFTests.cpp \
 	PowerAuthTests/pa2DataWriterReaderTests.cpp \
+	PowerAuthTests/pa2ByteUtilsTests.cpp \
 	PowerAuthTests/pa2MasterSecretKeyComputation.cpp \
 	PowerAuthTests/pa2PasswordTests.cpp \
 	PowerAuthTests/pa2ProtocolUtilsTests.cpp \

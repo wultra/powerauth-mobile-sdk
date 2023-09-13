@@ -171,4 +171,12 @@
  */
 - (nullable PowerAuthToken*) localTokenWithName:(nonnull NSString*)name;
 
+/**
+ Generate authorization header with token with given name. Unlike `PowerAuthToken.generateHeader()`, this
+ asynchronous function guarantees that time used for the token digest calculation is always synchronized
+ with the server.
+ */
+- (nullable id<PowerAuthOperationTask>) generateAuthorizationHeaderWithName:(nonnull NSString *)name
+                                                                 completion:(nonnull void(^)(PowerAuthAuthorizationHttpHeader * _Nullable header, NSError * _Nullable error))completion;
+
 @end

@@ -20,31 +20,11 @@ import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PENDING_ACTIVATION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_LOCKOUT;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_CANCEL;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.ENCRYPTION_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INSUFFICIENT_KEYCHAIN_PROTECTION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_CODE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.INVALID_TOKEN;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.MISSING_ACTIVATION;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.NETWORK_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.OPERATION_CANCELED;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.PROTOCOL_UPGRADE;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.SIGNATURE_ERROR;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.WRONG_PARAMETER;
-import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.SUCCEED;
+import static io.getlime.security.powerauth.exception.PowerAuthErrorCodes.*;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * The {@code PowerAuthErrorCodes} interface defines various error constants reported from PowerAuth SDK.
- *
  */
 @Retention(SOURCE)
 @IntDef({SUCCEED, NETWORK_ERROR, SIGNATURE_ERROR, INVALID_ACTIVATION_STATE,
@@ -53,7 +33,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         INVALID_TOKEN, ENCRYPTION_ERROR, WRONG_PARAMETER,
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
-        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT})
+        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -177,4 +157,9 @@ public @interface PowerAuthErrorCodes {
      * authentication (PIN, password, pattern).
      */
     int BIOMETRY_LOCKOUT = 22;
+
+    /**
+     * Failed to synchronize time with the server.
+     */
+    int TIME_SYNCHRONIZATION = 23;
 }

@@ -383,14 +383,14 @@ public class PowerAuthAuthentication {
      */
     private boolean validateAuthenticationUsageImpl(boolean forCommit) {
         if (activationCommit == null) {
-            PowerAuthLog.e("WARNING: Using PowerAuthAuthentication object created with legacy constructor.");
+            PowerAuthLog.w("Using PowerAuthAuthentication object created with legacy constructor.");
             return false;
         } else {
             if (activationCommit != forCommit) {
                 if (forCommit) {
-                    PowerAuthLog.e("WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation commit is expected.");
+                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for activation commit is expected.");
                 } else {
-                    PowerAuthLog.e("WARNING: Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
+                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
                 }
                 return false;
             }

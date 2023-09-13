@@ -43,11 +43,12 @@
    - [Removing Token from Watch](#removing-token-from-watch)
 - [External Encryption Key](#external-encryption-key)
 - [Share Activation Data](#share-activation-data)
+- [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
    - [Password Strength Indicator](#password-strength-indicator)
    - [Debug Build Detection](#debug-build-detection)
-   - [Request Interceptors](#request-interceptors)   
+   - [Request Interceptors](#request-interceptors)  
 - [Troubleshooting](#troubleshooting)
 
 Related documents:
@@ -1228,18 +1229,31 @@ The following steps are typically required for a full E2EE request and response 
    guard let encryptor = powerAuthSDK.eciesEncryptorForActivationScope() else { ...failure... }
    ```
 
-2. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+1. Make sure that PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
+   ```swift
+   let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+   if !timeService.isTimeSynchronized {
+       timeService.synchronizeTime(callback: { error in
+           if error != nil {
+               // failure
+           }
+       }, callbackQueue: .main)
+   }
+   ```
 
-3. Encrypt your payload:
+1. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+
+1. Encrypt your payload:
    ```swift
    guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
    ```
 
-4. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
+1. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
    - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
    - `encryptedData` property fill with `cryptogram.bodyBase64`
    - `mac` property fill with `cryptogram.macBase64`
    - `nonce` property fill with `cryptogram.nonceBase64`
+   - `timestamp` property fill with `cryptogram.timestamp`
 
    So, the final request JSON should look like this:
    ```json
@@ -1247,11 +1261,12 @@ The following steps are typically required for a full E2EE request and response 
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
-      "nonce" : "BASE64-NONCE"
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
 
-5. Add the following HTTP header (for signed requests, see note below):
+1. Add the following HTTP header (for signed requests, see note below):
    ```swift
    // Acquire a "metadata" object, which contains additional information for the request construction
    guard let metadata = encryptor.associatedMetaData else { ...should never happen... }
@@ -1260,14 +1275,16 @@ The following steps are typically required for a full E2EE request and response 
    ```
    Note that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.
 
-6. Fire your HTTP request and wait for a response
+1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-7. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE",
+      "timestamp": 1694172789256
    }
    ```
    So, you need to create yet another "cryptogram" object, but with only two properties set:
@@ -1275,11 +1292,13 @@ The following steps are typically required for a full E2EE request and response 
    let responseCryptogram = PowerAuthCoreEciesCryptogram()
    responseCryptogram.bodyBase64 = response.getEncryptedData()
    responseCryptogram.macBase64 = response.getMac()
+   responseCryptogram.nonceBase64 = response.getNonce()
+   responseCryptogram.timestamp = response.getTimestamp()
 
    guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
    ```
 
-8. And finally, you can process your received response.
+1. And finally, you can process your received response.
 
 As you can see, the E2EE is quite a non-trivial task. We recommend contacting us before using an application-specific E2EE. We can provide you more support on a per-scenario basis, especially if we first understand what you try to achieve with end-to-end encryption in your application.
 
@@ -1442,7 +1461,21 @@ The request is performed synchronously or asynchronously depending on whether th
 
 ### Generating Authorization Header
 
-Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
+Use the following code to generate an authorization header:
+
+```swift
+let task = tokenStore.generateAuthorizationHeader(withName: "MyToken") { header, error in
+    if let header = header {
+        let httpHeader = [ header.key : header.value ]
+        // now you can attach that httpHeader to your HTTP request
+    } else {
+        // failure, token is no longer valid, or failed to synchronize time
+        // with the server.
+    }
+}
+```
+
+Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authorization header:
 
 ```swift
 if let header = token.generateHeader() {
@@ -1452,6 +1485,11 @@ if let header = token.generateHeader() {
     // in case of nil, token is no longer valid
 }
 ```
+
+<!-- begin box warning -->
+The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).
+<!-- end -->
+
 
 ### Removing Token From the Server
 
@@ -1750,6 +1788,67 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 }
 ``` 
 
+## Synchronized Time
+
+The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [End-To-End Encryption](#end-to-end-encryption) or [Token-Based Authentication](#token-based-authentication). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
+
+Use the following code to get the service responsible for the time synchronization: 
+
+```swift
+let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+```
+
+### Automatic Time Synchronization
+
+The time is synchronized automatically in the following situations:
+
+- After an activation is created
+- After getting an activation status
+- After receiving any response encrypted with our End-To-End Encryption scheme
+
+The time synchronization is reset automatically once your application transitions from the background to the foreground.
+
+### Manually Synchronize Time
+
+Use the following code to synchronize the time manually:
+
+```swift
+let task = timeService.synchronizeTime(callback: { error in
+    if error == nil {
+        // Success, time has been properly synchronized
+    } else {
+        // Failed to synchronize the time
+    }
+}, callbackQueue: .main)
+```
+
+### Get Synchronized Time
+
+To get the synchronized time, use the following code:
+
+```swift
+if timeService.isTimeSynchronized {
+    // Get synchronized timestamp
+    let timestamp = timeService.currentTime()
+    // If date object is required, then use the following snippet
+    let date = Date(timeIntervalSince1970: timestamp)
+} else {
+    // Time is not synchronized yet. If you call currentTime() then 
+    // the returned timestamp is similar to Date().timeIntervalSince1970
+    let timestamp = timeService.currentTime()
+}
+```
+
+The time service provides an additional information about time, such as how precisely the time is synchronized with the server:
+
+```swift
+if timeService.isTimeSynchronized {
+    let precision = timeService.localTimeAdjustmentPrecision
+    print("Time is synchronized with precision \(precision)")
+}
+```
+
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `0.5` means that time provided by `currentTime()` method may be 0.5 seconds ahead or behind of the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
 
 ## Common SDK Tasks
 
@@ -1850,6 +1949,9 @@ if error == nil {
 
         case .externalPendingOperation:
             print("Other application is doing activation or protocol upgrade.")
+            
+        case .timeSynchronization:
+            print("Failed to synchronize time with the server.")
             
         default:
             print("Unknown error")

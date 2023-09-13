@@ -40,22 +40,22 @@
     switch (encryptorId) {
         // Generic
         case PA2EncryptorId_GenericApplicationScope:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" error:error];
         case PA2EncryptorId_GenericActivationScope:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/generic/activation" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/generic/activation" error:error];
         // Private
         case PA2EncryptorId_ActivationRequest:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/generic/application" error:error];
         case PA2EncryptorId_ActivationPayload:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/activation" meta:NO error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Application sh1:@"/pa/activation" error:error];
         case PA2EncryptorId_UpgradeStart:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/upgrade" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/upgrade" error:error];
         case PA2EncryptorId_VaultUnlock:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/vault/unlock" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/vault/unlock" error:error];
         case PA2EncryptorId_TokenCreate:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/token/create" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/token/create" error:error];
         case PA2EncryptorId_ConfirmRecoveryCode:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/recovery/confirm" meta:YES error:error];
+            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/recovery/confirm" error:error];
         default:
             if (error) {
                 *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Unsupported encryptor");
@@ -68,7 +68,6 @@
 
 - (PowerAuthCoreEciesEncryptor*) encryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
                                                sh1:(NSString*)sharedInfo1
-                                              meta:(BOOL)metaData
                                              error:(NSError**)error
 {
     return [[_sessionProvider readTaskWithSession:^PA2Result<PowerAuthCoreEciesEncryptor*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
@@ -95,11 +94,9 @@
         if (!encryptor) {
             return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to create ECIES encryptor")];
         }
-        if (metaData) {
-            // And assign the associated metadata
-            encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
-                                                                                 activationIdentifier:activationId];
-        }
+        // And assign the associated metadata
+        encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
+                                                                             activationIdentifier:activationId];
         return [PA2Result success:encryptor];
     }] extractResult:error];
 }

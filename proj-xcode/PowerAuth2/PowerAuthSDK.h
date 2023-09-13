@@ -26,9 +26,10 @@
 #import <PowerAuth2/PowerAuthToken+WatchSupport.h>
 #import <PowerAuth2/PowerAuthAuthorizationHttpHeader.h>
 #import <PowerAuth2/PowerAuthCoreSessionProvider.h>
-#import <PowerAuth2/PowerAuthOperationTask.h>
+#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
 #import <PowerAuth2/PowerAuthExternalPendingOperation.h>
 #import <PowerAuth2/PowerAuthUserInfo.h>
+#import <PowerAuth2/PowerAuthServerStatus.h>
 
 // Deprecated
 #import <PowerAuth2/PowerAuthDeprecated.h>
@@ -77,6 +78,11 @@
  The current implementation is keeping acquired tokens in the PowerAuthKeychain under the `PowerAuthKeychainConfiguration.keychainInstanceName_TokenStore` service name.
  */
 @property (nonatomic, strong, nonnull, readonly) id<PowerAuthTokenStore> tokenStore;
+
+/**
+ Object providing functions to sychronize time with the server. The time is automatically synchronized with the server
+ */
+@property (nonatomic, strong, nonnull, readonly) id<PowerAuthTimeSynchronizationService> timeSynchronizationService;
 
 /**
  Constructor with no parameters is not available.
@@ -807,5 +813,19 @@
  */
 - (nullable id<PowerAuthOperationTask>) fetchUserInfo:(nonnull void(^)(PowerAuthUserInfo * _Nullable userInfo, NSError * _Nullable error))callback
                         NS_SWIFT_NAME(fetchUserInfo(callback:));
+
+@end
+
+#pragma mark - Server Status
+
+@interface PowerAuthSDK (ServerStatus)
+
+/**
+ Fetch status of the server from the server.
+ @param callback The callback method with a server status object.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) fetchServerStatus:(nonnull void(^)(PowerAuthServerStatus * _Nullable status, NSError * _Nullable error))callback
+                        NS_SWIFT_NAME(fetchServerStatus(callback:));
 
 @end

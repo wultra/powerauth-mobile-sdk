@@ -17,6 +17,7 @@
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 #import <PowerAuthCore/PowerAuthCoreDebugMonitor.h>
+#import <PowerAuthCore/PowerAuthCoreTimeService.h>
 
 /**
  The `PowerAuthCoreSession` provides Objective-C interface to the low-level
@@ -27,9 +28,11 @@
 #pragma mark -  Initialization / Reset
 
 /**
- The designated initializer. You have to provide a valid PowerAuthCoreSessionSetup object.
+ The designated initializer. You have to provide a valid PowerAuthCoreSessionSetup object
+ and time synchronization service implementation.
  */
-- (nullable instancetype) initWithSessionSetup:(nonnull PowerAuthCoreSessionSetup *)setup;
+- (nullable instancetype) initWithSessionSetup:(nonnull PowerAuthCoreSessionSetup *)setup
+                                   timeService:(nonnull id<PowerAuthCoreTimeService>)timeService;
 
 /**
  Resets session into its initial state. The existing session's setup and EEK is preserved
@@ -599,7 +602,7 @@
 
 /**
  Returns textual representation for given protocol version. For example, for `PowerAuthCoreProtocolVersion_V3`
- returns "3.1". You can use `PowerAuthCoreProtocolVersion_NA` to get the lastest supported version.
+ returns "3.2". You can use `PowerAuthCoreProtocolVersion_NA` to get the lastest supported version.
  */
 + (nonnull NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
 

@@ -27,7 +27,7 @@ public enum EciesEncryptorId {
     /**
      * Constant for "no-encryption".
      */
-    NONE(EciesEncryptorScope.APPLICATION, null, false),
+    NONE(EciesEncryptorScope.APPLICATION, null),
 
     //
     // Available for application
@@ -37,14 +37,14 @@ public enum EciesEncryptorId {
      * Defines the encryptor for an application scope, which can be used for an application's custom
      * purposes. The application server can typically decrypt data, encrypted with this configuration.
      */
-    GENERIC_APPLICATION_SCOPE(EciesEncryptorScope.APPLICATION, "/pa/generic/application", true),
+    GENERIC_APPLICATION_SCOPE(EciesEncryptorScope.APPLICATION, "/pa/generic/application"),
 
     /**
      * Defines the encryptor for an activation scope, which can be used for an application's custom
      * purposes. The application server can typically decrypt data, encrypted with this configuration.
      * This type of encryptor can be used only when the {@code PowerAuthSDK} has a valid activation.
      */
-    GENERIC_ACTIVATION_SCOPE(EciesEncryptorScope.ACTIVATION, "/pa/generic/activation", true),
+    GENERIC_ACTIVATION_SCOPE(EciesEncryptorScope.ACTIVATION, "/pa/generic/activation"),
 
     //
     // Available for SDK tasks
@@ -54,37 +54,37 @@ public enum EciesEncryptorId {
      * Defines a new encryptor for an activation purposes. The configuration is identical to
      * {@link #GENERIC_APPLICATION_SCOPE}.
      */
-    ACTIVATION_REQUEST(EciesEncryptorScope.APPLICATION, "/pa/generic/application", true),
+    ACTIVATION_REQUEST(EciesEncryptorScope.APPLICATION, "/pa/generic/application"),
 
     /**
      * Defines a new encryptor for activation private purposes. The content encrypted
      * with this object can be decrypted only by the PowerAuth server.
      */
-    ACTIVATION_PAYLOAD(EciesEncryptorScope.APPLICATION, "/pa/activation", false),
+    ACTIVATION_PAYLOAD(EciesEncryptorScope.APPLICATION, "/pa/activation"),
 
     /**
      * Constructs a new encryptor for the activation upgrade purposes. The content encrypted
      * with this object can be decrypted only by the PowerAuth server.
      */
-    UPGRADE_START(EciesEncryptorScope.ACTIVATION, "/pa/upgrade", true),
+    UPGRADE_START(EciesEncryptorScope.ACTIVATION, "/pa/upgrade"),
 
     /**
      * Constructs a new encryptor for the vault unlock request purposes. The content encrypted
      * with this object can be decrypted only by the PowerAuth server.
      */
-    VAULT_UNLOCK(EciesEncryptorScope.ACTIVATION, "/pa/vault/unlock", true),
+    VAULT_UNLOCK(EciesEncryptorScope.ACTIVATION, "/pa/vault/unlock"),
 
     /**
      * Constructs a new encryptor for the create token request purposes. The content encrypted
      * with this object can be decrypted only by the PowerAuth server.
      */
-    TOKEN_CREATE(EciesEncryptorScope.ACTIVATION, "/pa/token/create", true),
+    TOKEN_CREATE(EciesEncryptorScope.ACTIVATION, "/pa/token/create"),
 
     /**
      * Constructs a new encryptor for the confirm recovery code request purposes. The content encrypted
      * with this object can be decrypted only by the PowerAuth server.
      */
-    CONFIRM_RECOVERY_CODE(EciesEncryptorScope.ACTIVATION, "/pa/recovery/confirm", true)
+    CONFIRM_RECOVERY_CODE(EciesEncryptorScope.ACTIVATION, "/pa/recovery/confirm")
 
     ;
 
@@ -99,16 +99,8 @@ public enum EciesEncryptorId {
      */
     public final String sharedInfo1;
 
-    /**
-     * If true, then {@link EciesEncryptorFactory} will add {@link EciesMetadata} object to
-     * the constructed encryptor.
-     */
-    public final boolean hasMetadata;
-
-
-    EciesEncryptorId(@EciesEncryptorScope int scope, String sharedInfo1, boolean hasMetadata) {
+    EciesEncryptorId(@EciesEncryptorScope int scope, String sharedInfo1) {
         this.scope = scope;
         this.sharedInfo1 = sharedInfo1;
-        this.hasMetadata = hasMetadata;
     }
 }

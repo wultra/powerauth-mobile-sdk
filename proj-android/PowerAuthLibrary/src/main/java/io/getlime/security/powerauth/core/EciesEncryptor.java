@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.core;
 import android.util.Pair;
 
 import io.getlime.security.powerauth.ecies.EciesMetadata;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  *  The <code>EciesEncryptor</code> class implements a request encryption and response decryption for
@@ -39,15 +40,21 @@ public class EciesEncryptor {
      */
     private long handle;
 
+    /**
+     * Service providing time synchronized with the server.
+     */
+    private final ICoreTimeService timeService;
 
     /**
      * Constructs a new encryptor with public key and optional shared info2 parameter.
      * @param publicKey EC public key in Base64 format
      * @param sharedInfo1 An optional shared info 1 data
      * @param sharedInfo2 An optional shared info 2 data
+     * @param timeService Time providing service.
      */
-    public EciesEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2) {
+    public EciesEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2, ICoreTimeService timeService) {
         this.handle = init(publicKey, sharedInfo1, sharedInfo2);
+        this.timeService = timeService;
     }
 
 
@@ -75,7 +82,7 @@ public class EciesEncryptor {
     public EciesEncryptor copyForDecryption() {
         long handleCopy = this.copyHandleForDecryption();
         if (handleCopy != 0) {
-            return new EciesEncryptor(handleCopy);
+            return new EciesEncryptor(handleCopy, timeService);
         }
         return null;
     }
@@ -86,8 +93,9 @@ public class EciesEncryptor {
      *
      * @param handle A handle representing underlying native C++ object
      */
-    private EciesEncryptor(long handle) {
+    private EciesEncryptor(long handle, ICoreTimeService timeService) {
         this.handle = handle;
+        this.timeService = timeService;
     }
 
     /**
@@ -186,7 +194,15 @@ public class EciesEncryptor {
      * @param requestData data to be encrypted
      * @return cryptogram object or null in case of failure
      */
-    public native EciesCryptogram encryptRequest(byte[] requestData);
+    public EciesCryptogram encryptRequest(byte[] requestData) {
+        if (!timeService.isTimeSynchronized()) {
+            PowerAuthLog.w("Time service is not synchronized. Encrypted data may be rejected on the server.");
+        }
+        timeSynchronizationTask = timeService.startTimeSynchronizationTask();
+        return encryptRequestImpl(requestData, timeService.getCurrentTime());
+    }
+
+    private native EciesCryptogram encryptRequestImpl(byte[] requestData, long timestamp);
 
 
     /**
@@ -196,7 +212,7 @@ public class EciesEncryptor {
      *
      * This is a special, thread-safe version of request encryption. The method encrypts provided
      * data and makes a copy of itself in thread synchronized zone. Then the pair of objects
-     * is returned. The pair is composed from cryptogram and copied encryptor's instance, which is
+     * is returned. The pair is composed of cryptogram and copied encryptor's instance, which is
      * suitable only for response decryption.
      * <p>
      * Note that the rest of the encryptor's interface is not thread safe. So, once the shared
@@ -212,6 +228,8 @@ public class EciesEncryptor {
             EciesEncryptor decryptor = this.copyForDecryption();
             if (decryptor != null) {
                 decryptor.setMetadata(this.metadata);
+                decryptor.timeSynchronizationTask = timeSynchronizationTask;
+                timeSynchronizationTask = null;
                 return new Pair<>(decryptor, cryptogram);
             }
         }
@@ -225,7 +243,23 @@ public class EciesEncryptor {
      * @param cryptogram cryptogram received from the server
      * @return decrypted bytes or null in case of error
      */
-    public native byte[] decryptResponse(EciesCryptogram cryptogram);
+    public byte[] decryptResponse(EciesCryptogram cryptogram) {
+        final byte[] result = decryptResponseImpl(cryptogram);
+        if (result != null) {
+            if (timeSynchronizationTask != null) {
+                timeService.completeTimeSynchronizationTask(timeSynchronizationTask, cryptogram.timestamp);
+            }
+        }
+        timeSynchronizationTask = null;
+        return result;
+    }
+
+    private native byte[] decryptResponseImpl(EciesCryptogram cryptogram);
+
+    //
+    // Time synchronization task
+    //
+    private Object timeSynchronizationTask;
 
 
     //

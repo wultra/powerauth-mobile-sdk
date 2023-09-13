@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <PowerAuth/PublicTypes.h>
 #include <cc7/jni/JniHelper.h>
 #include "../crypto/CryptoUtils.h"
 #include "../protocol/Constants.h"
@@ -30,26 +31,10 @@ using namespace io::getlime::powerAuth;
 
 extern "C" {
 
-/**
- This helper function returns milliseconds timestamps sice 1970 in string format.
- */
-static std::string _GetTimestamp() 
-{
-    // Get timestamp...
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    // Calculate milliseconds since 1970
-    double msSinceEpoch = (double)(tv.tv_sec) * 1000.0 + (double)(tv.tv_usec) * 0.001;
-
-    // ...and convert that value to string (without decimal part)
-    return std::to_string((uint64_t) msSinceEpoch);
-}
-
 //
-// public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData)
+// public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData, long timestamp)
 //
-CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
+CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong timestamp)
 {
     if (privateData == NULL || env == NULL) {
         CC7_ASSERT(false, "Missing parameter privateData.");
@@ -68,16 +53,16 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
     }
 
     // Get nonce & timestamp
-    std::string timestamp = _GetTimestamp();
+    std::string timestamp_string = std::to_string(timestamp);
     cc7::ByteArray nonce = crypto::GetRandomData(16);
 
     // Construct data for HMAC and calculate that digest.
     cc7::ByteArray data;
-    data.reserve(16 + 1 + timestamp.length());
+    data.reserve(16 + 1 + timestamp_string.length());
 
     data.assign(nonce);
     data.append(cc7::MakeRange(protocol::AMP));
-    data.append(cc7::MakeRange(timestamp));
+    data.append(cc7::MakeRange(timestamp_string));
     auto digest = crypto::HMAC_SHA256(data, cppTokenSecret, 0);
     if (digest.size() == 0) {
         CC7_ASSERT(false, "Unable to calculate HMAC for data.");
@@ -89,16 +74,18 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData)
     auto nonceBase64 = nonce.base64String();
 
     std::string result;
-    result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp.length() + 80);
+    result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp_string.length() + 80);
 
-    result.assign("PowerAuth version=\"3.1\", token_id=\"");
+    result.assign("PowerAuth version=\"");
+    result.append(Version_GetMaxSupportedHttpProtocolVersion(Version_Latest));
+    result.append("\", token_id=\"");
     result.append(cppTokenIdentifier);
     result.append("\", token_digest=\"");
     result.append(digestBase64);
     result.append("\", nonce=\"");
     result.append(nonceBase64);
     result.append("\", timestamp=\"");
-    result.append(timestamp);
+    result.append(timestamp_string);
     result.append("\"");
 
     return cc7::jni::CopyToJavaString(env, result);

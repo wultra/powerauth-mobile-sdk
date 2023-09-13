@@ -116,7 +116,7 @@ public class AsyncHelper {
          * Start your asynchronous operation. Your implementation get a {@link ResultCatcher} object
          * that allows you report result of the operation once it completes its execution.
          *
-         * @param resultCatcher A result catcher that allows you report the result of the asynchronous operation.
+         * @param resultCatcher A result catcher that allows you to report the result of the asynchronous operation.
          * @throws Exception In case of failure.
          */
         void execute(@NonNull ResultCatcher<TResult> resultCatcher) throws Exception;

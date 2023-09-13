@@ -52,7 +52,6 @@ import io.getlime.security.powerauth.core.ErrorCode;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.core.RecoveryData;
 import io.getlime.security.powerauth.core.Session;
-import io.getlime.security.powerauth.core.SessionSetup;
 import io.getlime.security.powerauth.core.SignatureFactor;
 import io.getlime.security.powerauth.core.SignatureRequest;
 import io.getlime.security.powerauth.core.SignatureResult;
@@ -87,32 +86,8 @@ import io.getlime.security.powerauth.networking.model.response.ActivationLayer1R
 import io.getlime.security.powerauth.networking.model.response.ActivationLayer2Response;
 import io.getlime.security.powerauth.networking.model.response.ConfirmRecoveryResponsePayload;
 import io.getlime.security.powerauth.networking.model.response.VaultUnlockResponsePayload;
-import io.getlime.security.powerauth.networking.response.CreateActivationResult;
-import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
-import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
-import io.getlime.security.powerauth.networking.response.IChangePasswordListener;
-import io.getlime.security.powerauth.networking.response.IConfirmRecoveryCodeListener;
-import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
-import io.getlime.security.powerauth.networking.response.IDataSignatureListener;
-import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
-import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListener;
-import io.getlime.security.powerauth.networking.response.IUserInfoListener;
-import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
-import io.getlime.security.powerauth.networking.response.UserInfo;
-import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
-import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
-import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
-import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
-import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
-import io.getlime.security.powerauth.sdk.impl.FragmentHelper;
-import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
-import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
-import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
-import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
-import io.getlime.security.powerauth.sdk.impl.ITaskCompletion;
-import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
-import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
+import io.getlime.security.powerauth.networking.response.*;
+import io.getlime.security.powerauth.sdk.impl.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -134,6 +109,8 @@ public class PowerAuthSDK {
     private final @NonNull Keychain mBiometryKeychain;
     private final @NonNull ICallbackDispatcher mCallbackDispatcher;
     private final @NonNull PowerAuthTokenStore mTokenStore;
+    private final @NonNull IServerStatusProvider mServerStatusProvider;
+    private final @NonNull TimeSynchronizationService mTimeSynchronizationService;
 
     /**
      * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
@@ -200,7 +177,13 @@ public class PowerAuthSDK {
         /**
          * Build instance of {@link PowerAuthSDK}.
          *
-         * @param context Android context
+         * @param context Android context.
+         *                <p>
+         *                It's recommended to provide instance of {@link android.app.Application} as a context to this
+         *                function to allow PowerAuth mobile SDK to properly register itself as a listener for application
+         *                lifecycle transitions. If you provide other context, then you should use {@link PowerAuthAppLifecycleListener}
+         *                class to register for callbacks.
+         *                </p>
          * @return Instance of {@link PowerAuthSDK} class.
          * @throws PowerAuthErrorException In case that builder cannot create an instance of {@link PowerAuthSDK}. This may happen for a several reasons:
          *                                 <ul>
@@ -237,9 +220,12 @@ public class PowerAuthSDK {
                 mCallbackDispatcher = MainThreadExecutor.getInstance();
             }
 
+            // Shared lock
+            final ReentrantLock sharedLock = new ReentrantLock();
+
             // Prepare HTTP client
             final IExecutorProvider executorProvider = new DefaultExecutorProvider();
-            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), executorProvider);
+            final HttpClient httpClient = new HttpClient(mClientConfiguration, mConfiguration.getBaseEndpointUrl(), executorProvider, mCallbackDispatcher);
 
             // Prepare keychains
             final @KeychainProtection int minRequiredKeychainProtection = mKeychainConfiguration.getMinimalRequiredKeychainProtection();
@@ -258,11 +244,17 @@ public class PowerAuthSDK {
                 possessionEncryptionKeyProvider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(mConfiguration.getFetchKeysStrategy());
             }
 
+            // Prepare time synchronization service and connect it with HTTP client.
+            final DefaultServerStatusProvider serverStatusProvider = new DefaultServerStatusProvider(httpClient, sharedLock, mCallbackDispatcher);
+            final TimeSynchronizationService timeSynchronizationService = new TimeSynchronizationService(System::currentTimeMillis, serverStatusProvider, mCallbackDispatcher);
+            httpClient.setTimeSynchronizationService(timeSynchronizationService);
+
             // Prepare low-level Session object.
-            final Session session = new Session(mConfiguration.getSessionSetup());
+            final Session session = new Session(mConfiguration.getSessionSetup(), timeSynchronizationService);
 
             // Create a final PowerAuthSDK instance
             final PowerAuthSDK instance = new PowerAuthSDK(
+                    sharedLock,
                     session,
                     mConfiguration,
                     mKeychainConfiguration,
@@ -272,8 +264,12 @@ public class PowerAuthSDK {
                     possessionEncryptionKeyProvider,
                     biometryKeychain,
                     tokenStoreKeychain,
-                    mCallbackDispatcher);
+                    mCallbackDispatcher,
+                    serverStatusProvider,
+                    timeSynchronizationService);
 
+            // Register time service for automatic reset.
+            PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
             // Restore state of this SDK instance.
             boolean b = instance.restoreState(instance.mStateListener.serializedState(mConfiguration.getInstanceId()));
             return instance;
@@ -283,6 +279,7 @@ public class PowerAuthSDK {
     /**
      * Private class constructor. Use {@link Builder} to create an instance of this class.
      *
+     * @param sharedLock                Reentrant lock shared between various internal classes.
      * @param session                   Low-level {@link Session} instance.
      * @param configuration             Main {@link PowerAuthConfiguration}.
      * @param keychainConfiguration     Keychain configuration.
@@ -293,8 +290,11 @@ public class PowerAuthSDK {
      * @param biometryKeychain          Keychain that store biometry-related key.
      * @param tokenStoreKeychain        Keychain that store tokens.
      * @param callbackDispatcher        Dispatcher that handle callbacks back to application.
+     * @param serverStatusProvider      Implementation of IServerStatusProvider.
+     * @param timeSynchronizationService Implementation of IPowerAuthTimeSynchronizationService.
      */
     private PowerAuthSDK(
+            @NonNull ReentrantLock sharedLock,
             @NonNull Session session,
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
@@ -304,8 +304,10 @@ public class PowerAuthSDK {
             @NonNull IPossessionFactorEncryptionKeyProvider possessionKeyProvider,
             @NonNull Keychain biometryKeychain,
             @NonNull Keychain tokenStoreKeychain,
-            @NonNull ICallbackDispatcher callbackDispatcher) {
-        this.mLock = new ReentrantLock();
+            @NonNull ICallbackDispatcher callbackDispatcher,
+            @NonNull IServerStatusProvider serverStatusProvider,
+            @NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService) {
+        this.mLock = sharedLock;
         this.mSession = session;
         this.mConfiguration = configuration;
         this.mKeychainConfiguration = keychainConfiguration;
@@ -316,6 +318,8 @@ public class PowerAuthSDK {
         this.mBiometryKeychain = biometryKeychain;
         this.mCallbackDispatcher = callbackDispatcher;
         this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
+        this.mServerStatusProvider = serverStatusProvider;
+        this.mTimeSynchronizationService = (TimeSynchronizationService) timeSynchronizationService;
     }
 
     /**
@@ -523,6 +527,14 @@ public class PowerAuthSDK {
     }
 
     /**
+     * Return object providing time synchronized with the server and allows you initiate such synchronization.
+     * @return Object implementing {@link IPowerAuthTimeSynchronizationService} ingerface.
+     */
+    public @NonNull IPowerAuthTimeSynchronizationService getTimeSynchronizationService() {
+        return mTimeSynchronizationService;
+    }
+
+    /**
      * Reference to the low-level Session class.
      * <p>
      * <b>WARNING:</b> This property is exposed only for the purpose of giving developers full low-level control over the cryptographic algorithm and managed activation state.
@@ -713,13 +725,19 @@ public class PowerAuthSDK {
             request.setType(activation.activationType);
             request.setIdentityAttributes(activation.identityAttributes);
             request.setCustomAttributes(activation.customAttributes);
-            // Set encrypted level 2 activation data to the request.
-            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+
+            // The create activation endpoint needs a custom object processing where we encrypt the inner data
+            // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
+            // service is already synchronized.
+            final CreateActivationEndpoint endpointDefinition = new CreateActivationEndpoint(() -> {
+                // Set encrypted level 2 activation data to the request.
+                request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+            });
 
             // Fire HTTP request
             return mClient.post(
                     request,
-                    new CreateActivationEndpoint(),
+                    endpointDefinition,
                     cryptoHelper,
                     new INetworkResponseListener<ActivationLayer1Response>() {
                         @Override
@@ -1916,7 +1934,9 @@ public class PowerAuthSDK {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL));
+                                }
                             }
                         }
 
@@ -1928,26 +1948,36 @@ public class PowerAuthSDK {
                             if (result == ErrorCode.OK) {
                                 // Update state after each successful calculations
                                 saveSerializedState();
-                                listener.onAddBiometryFactorSucceed();
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorSucceed();
+                                }
                             } else {
-                                listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
+                                if (compositeCancelableTask.setCompleted()) {
+                                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE));
+                                }
                             }
                         }
 
                         @Override
                         public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
-                            listener.onAddBiometryFactorFailed(error);
+                            if (compositeCancelableTask.setCompleted()) {
+                                listener.onAddBiometryFactorFailed(error);
+                            }
                         }
                     });
                     compositeCancelableTask.addCancelable(biometricAuthentication);
                 } else {
-                    listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
+                    if (compositeCancelableTask.setCompleted()) {
+                        listener.onAddBiometryFactorFailed(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA));
+                    }
                 }
             }
 
             @Override
             public void onFetchEncryptedVaultUnlockKeyFailed(Throwable t) {
-                listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                if (compositeCancelableTask.setCompleted()) {
+                    listener.onAddBiometryFactorFailed(PowerAuthErrorException.wrapException(PowerAuthErrorCodes.NETWORK_ERROR, t));
+                }
             }
         });
         if (httpRequest != null) {
@@ -2513,7 +2543,7 @@ public class PowerAuthSDK {
 
     /**
      * Add a new external encryption key permanently to the activated PowerAuthSDK and to the internal configuration.
-     * The method is is useful for scenarios, when you need to add the EEK additionally, after the activation.
+     * The method is useful for scenarios, when you need to add the EEK additionally, after the activation.
      * @param externalEncryptionKey External Encryption key to add.
      * @throws PowerAuthErrorException In case of failure.
      */
@@ -2559,5 +2589,17 @@ public class PowerAuthSDK {
                 // so we have to enumerate all cases for ErrorCode IntDef.
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to remove EEK");
         }
+    }
+
+    // Server status
+
+    /**
+     * Fetch status of the server from the server.
+     * @param listener The callback called when operation succeeds or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request.
+     */
+    @Nullable
+    public ICancelable fetchServerStatus(@NonNull IServerStatusListener listener) {
+        return mServerStatusProvider.getServerStatus(listener);
     }
 }

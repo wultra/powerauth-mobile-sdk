@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
-import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.model.response.ActivationStatusResponse;
 
@@ -33,24 +32,6 @@ public class GetActivationStatusEndpoint implements IEndpointDefinition<Activati
         return "/pa/v3/activation/status";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return null;
-    }
-
-    @NonNull
-    @Override
-    public EciesEncryptorId getEncryptorId() {
-        return EciesEncryptorId.NONE;
-    }
-
     @Nullable
     @Override
     public TypeToken<ActivationStatusResponse> getResponseType() {
@@ -58,12 +39,14 @@ public class GetActivationStatusEndpoint implements IEndpointDefinition<Activati
     }
 
     @Override
-    public boolean isSynchronized() {
-        return false;
+    public boolean isAvailableInProtocolUpgrade() {
+        return true;
     }
 
     @Override
-    public boolean isAvailableInProtocolUpgrade() {
+    public boolean isRequireSynchronizedTime() {
+        // The request itself is not time sensitive, but we declare that the time is synchronized
+        // automatically with the fetching the activation status.
         return true;
     }
 }

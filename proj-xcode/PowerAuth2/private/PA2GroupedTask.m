@@ -75,13 +75,13 @@
     return result;
 }
 
-- (PA2ChildTask *) createChildTask:(void (^)(id _Nullable, NSError * _Nullable))completion
+- (PA2ChildTask *) createChildTask:(void (^)(id _Nullable, NSError * _Nullable))completion queue:(dispatch_queue_t _Nonnull)queue
 {
     [_lock lock];
     //
     PA2ChildTask * result;
     if (!_finished) {
-        result = [[PA2ChildTask alloc] initWithParentTask:self completion:completion];
+        result = [[PA2ChildTask alloc] initWithParentTask:self completion:completion queue:queue];
         [_childTasks addObject:result];
         if (!_started && _childTasks.count == 1) {
             _started = YES;
@@ -101,6 +101,11 @@
     //
     [_lock unlock];
     return result;
+}
+
+- (PA2ChildTask *) createChildTask:(void (^)(id _Nullable, NSError * _Nullable))completion
+{
+    return [self createChildTask:completion queue:dispatch_get_main_queue()];
 }
 
 - (void) removeChildTask:(id<PowerAuthOperationTask>)operation
@@ -286,13 +291,9 @@
             }];
             
             // Dispatch results back to child tasks
-            if (childTasks) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [childTasks enumerateObjectsUsingBlock:^(PA2ChildTask* childTask, NSUInteger idx, BOOL * _Nonnull stop) {
-                        [childTask complete:result error:error];
-                    }];
-                });
-            }
+            [childTasks enumerateObjectsUsingBlock:^(PA2ChildTask* childTask, NSUInteger idx, BOOL * _Nonnull stop) {
+                [childTask complete:result error:error];
+            }];
         };
     }
     return nil;
@@ -307,34 +308,39 @@
     __weak PA2GroupedTask * _parentTask;
     id<NSLocking> _lock;
     void(^_completion)(id result, NSError * error);
+    dispatch_queue_t _queue;
     BOOL _isCancelled;
 }
 
 - (instancetype) initWithParentTask:(PA2GroupedTask*)parentTask
                          completion:(void(^)(id result, NSError * error))completion
+                              queue:(dispatch_queue_t _Nonnull)queue
 {
     self = [super init];
     if (self) {
         _parentTask = parentTask;
         _lock = parentTask.lock;
         _completion = completion;
+        _queue = queue;
     }
     return self;
 }
 
 - (void) complete:(id)result error:(NSError*)error
 {
-    [_lock lock];
-    //
-    if (!_isCancelled) {
-        _isCancelled = YES;
-        if (_completion) {
-            _completion(result, error);
-            _completion = nil;
+    dispatch_async(_queue, ^{
+        [_lock lock];
+        //
+        if (!_isCancelled) {
+            _isCancelled = YES;
+            if (_completion) {
+                _completion(result, error);
+                _completion = nil;
+            }
         }
-    }
-    //
-    [_lock unlock];
+        //
+        [_lock unlock];
+    });
 }
 
 - (void) cancel

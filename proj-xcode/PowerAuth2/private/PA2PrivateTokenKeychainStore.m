@@ -22,6 +22,7 @@
 #import "PA2PrivateTokenInterfaces.h"
 #import "PA2PrivateMacros.h"
 #import "PA2CreateTokenTask.h"
+#import "PA2CompositeTask.h"
 #import "PowerAuthAuthentication+Private.h"
 
 #import <PowerAuth2/PowerAuthErrorConstants.h>
@@ -48,10 +49,13 @@
     NSMutableDictionary<NSString*, PA2CreateTokenTask*> *_createTokenTasks;
 }
 
+@synthesize timeSynchronizationService = _timeSynchronizationService;
+
 - (id) initWithConfiguration:(PowerAuthConfiguration*)configuration
                     keychain:(PowerAuthKeychain*)keychain
               statusProvider:(id<PowerAuthSessionStatusProvider>)statusProvider
               remoteProvider:(id<PA2PrivateRemoteTokenProvider>)remoteProvider
+                 timeService:(id<PowerAuthTimeSynchronizationService>)timeService
                     dataLock:(id<PA2TokenDataLock>)dataLock
                    localLock:(id<NSLocking>)localLock
 {
@@ -60,6 +64,7 @@
         _sdkConfiguration = configuration;
         _statusProvider = statusProvider;
         _remoteTokenProvider = remoteProvider;
+        _timeSynchronizationService = timeService;
         _keychain = keychain;
         _tokenDataLock = dataLock;
         _localLock = localLock ? localLock : [[NSRecursiveLock alloc] init];
@@ -505,6 +510,60 @@
 {
     [_keychain deleteDataForKey:identifier];
     [_database removeObjectForKey:identifier];
+}
+
+- (id<PowerAuthOperationTask>) generateAuthorizationHeaderWithName:(NSString *)name
+                                                        completion:(void(^)(PowerAuthAuthorizationHttpHeader * header, NSError * error))completion
+{
+    // Prepare composite task and completion closure.
+    PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
+    void (^completionCallback)(PowerAuthToken *, NSError *) = ^(PowerAuthToken * token, NSError * error) {
+        PowerAuthAuthorizationHttpHeader * header;
+        if (token) {
+            // So far, so good, generate header now.
+            header = [token generateHeader];
+            if (!header) {
+                error = PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Failed to generate authorization header");
+            }
+        } else {
+            header = nil;
+        }
+        // Always report result back to the main thread.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if ([compositeTask setCompleted]) {
+                completion(header, error);
+            }
+        });
+    };
+    if (name.length > 0) {
+        PowerAuthToken * token = [self localTokenWithName:name];
+        if (token) {
+            if (_timeSynchronizationService.isTimeSynchronized) {
+                // Time is already synchronized, we can safely generate authorization header
+                completionCallback(token, nil);
+            } else {
+                // Time is not synchronized yet.
+                id<PowerAuthOperationTask> synchronizeTime = [_timeSynchronizationService synchronizeTimeWithCallback:^(NSError * _Nullable error) {
+                    if (!error) {
+                        // Time is properly synchronized, continue with header generator.
+                        completionCallback(token, nil);
+                    } else {
+                        // Time synchronization failed.
+                        completionCallback(nil, error);
+                    }
+                } callbackQueue:nil];
+                if (synchronizeTime) {
+                    [compositeTask replaceOperationTask:synchronizeTime];
+                }
+            }
+        } else {
+            completionCallback(nil, PA2MakeError(PowerAuthErrorCode_InvalidToken, @"Token not found"));
+        }
+    } else {
+        // Name not provided
+        completionCallback(nil, PA2MakeError(PowerAuthErrorCode_WrongParameter, @"Missing required parameter"));
+    }
+    return compositeTask;
 }
 
 @end

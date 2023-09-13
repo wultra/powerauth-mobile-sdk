@@ -48,7 +48,7 @@
 @end
 
 
-static NSString * PA_Ver = @"3.1";
+static NSString * PA_Ver = @"3.2";
 
 @implementation PowerAuthSdkTestHelper
 
@@ -279,6 +279,10 @@ static NSString * PA_Ver = @"3.1";
         }];
         // Returned task should not be cancelled
         XCTAssertNotNil(task);
+        // Pending status should be changed
+        XCTAssertTrue([_sdk hasPendingActivation]);
+        XCTAssertFalse([_sdk hasValidActivation]);
+        XCTAssertFalse([_sdk canStartActivation]);
         
     }] boolValue];
     XCTAssertTrue(result, @"Activation on client side did fail.");

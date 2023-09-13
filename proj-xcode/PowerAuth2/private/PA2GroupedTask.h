@@ -58,9 +58,17 @@
 
 /**
  Create child task that will be associated with this grouped task. The child task should to be returned
- back to the application as `PowerAuthOperationTask` implementation.
+ back to the application as `PowerAuthOperationTask` implementation. The completion of operation will be reported to main queue.
  */
 - (nullable PA2ChildTask<ResultType>*) createChildTask:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion;
+
+/**
+ Create child task that will be associated with this grouped task. The child task should to be returned
+ back to the application as `PowerAuthOperationTask` implementation. The completion of operation will be reported to the provided queue.
+ */
+- (nullable PA2ChildTask<ResultType>*) createChildTask:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion
+                                                 queue:(dispatch_queue_t _Nonnull )queue;
+
 
 /**
  Remove previously created child task. This method is typically called from the child task itself from cancel method.
@@ -136,7 +144,8 @@
  Initialize the object with parent task and with the completion closure. The reference to parent task is weak.
  */
 - (nonnull instancetype) initWithParentTask:(nonnull PA2GroupedTask<ResultType>*)parentTask
-                                 completion:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion;
+                                 completion:(void(^_Nonnull)(ResultType _Nullable result, NSError * _Nullable error))completion
+                                      queue:(dispatch_queue_t _Nonnull )queue;
 /**
  Complete this task with result or error.
  */

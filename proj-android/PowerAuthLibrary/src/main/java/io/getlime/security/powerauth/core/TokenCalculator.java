@@ -33,8 +33,9 @@ public class TokenCalculator {
      * Calculates HTTP header value for given token data.
      *
      * @param tokenData token's private data
+     * @param timestamp Timestamp.
      * @return calculated header value or null in case of error.
      */
-    public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData);
+    public static native String calculateTokenValue(PowerAuthPrivateTokenData tokenData, long timestamp);
 
 }

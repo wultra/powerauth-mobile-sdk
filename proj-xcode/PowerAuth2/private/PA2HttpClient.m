@@ -16,6 +16,7 @@
 
 #import "PA2HttpClient.h"
 #import "PA2AsyncOperation.h"
+#import "PA2CompositeTask.h"
 #import "PA2PrivateMacros.h"
 #import "PowerAuthLog.h"
 #import "PA2Result.h"
@@ -43,6 +44,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
                        completionQueue:(dispatch_queue_t)completionQueue
                                baseUrl:(NSString*)baseUrl
                   coreSessionInterface:(id<PA2SessionInterface>)sessionInterface
+                           timeService:(id<PowerAuthTimeSynchronizationService>)timeService
                                 helper:(id<PA2PrivateCryptoHelper>)helper
 {
     self = [super init];
@@ -50,6 +52,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
         _configuration = configuration;
         _completionQueue = completionQueue;
         _sessionInterface = sessionInterface;
+        _timeService = timeService;
         _cryptoHelper = helper;
 
         // Prepare baseUrl (without the last separator)
@@ -150,26 +153,65 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
 
 #pragma mark - POST
 
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-                         to:(PA2RestApiEndpoint*)endpoint
-                 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+- (id<PowerAuthOperationTask>) postObject:(id<PA2Encodable>)object
+                                       to:(PA2RestApiEndpoint*)endpoint
+                               completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
 {
     return [self postObject:object to:endpoint auth:nil completion:completion cancel:nil];
 }
 
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-                         to:(PA2RestApiEndpoint*)endpoint
-                       auth:(PowerAuthAuthentication*)authentication
-                 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+- (id<PowerAuthOperationTask>) postObject:(id<PA2Encodable>)object
+                                       to:(PA2RestApiEndpoint*)endpoint
+                                     auth:(PowerAuthAuthentication*)authentication
+                               completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
 {
     return [self postObject:object to:endpoint auth:authentication completion:completion cancel:nil];
 }
 
-- (NSOperation*) postObject:(id<PA2Encodable>)object
-                         to:(PA2RestApiEndpoint*)endpoint
-                       auth:(PowerAuthAuthentication*)authentication
-                 completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
-                     cancel:(void(^)(void))customCancelBlock
+- (id<PowerAuthOperationTask>) postObject:(id<PA2Encodable>)object
+                                       to:(PA2RestApiEndpoint*)endpoint
+                                     auth:(PowerAuthAuthentication*)authentication
+                               completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+                                   cancel:(void(^)(void))customCancelBlock
+{
+    if (endpoint.requireSynchronizedTime && !_timeService.isTimeSynchronized) {
+        // Endpoint require encryption and time is not synchronized yet. We have to create a composite task that cover both
+        // time synchronization and actual request execution.
+        PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:customCancelBlock];
+        // Prepare common completion block with the composite task.
+        void (^compositeCompletion)(PowerAuthRestApiResponseStatus, id<PA2Decodable>, NSError *) = ^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
+            // At first, dispatch the result to the dedicated queue.
+            dispatch_async(_completionQueue, ^{
+                // Set composite operation as completed. The message returns YES if composite task was not completed or canceled before.
+                // If so, then simply call the completion block.
+                if ([compositeTask setCompleted]) {
+                    completion(status, response, error);
+                }
+            });
+        };
+        // Start the time synchronization
+        id<PowerAuthOperationTask> synchronizationTask = [_timeService synchronizeTimeWithCallback:^(NSError * error) {
+            if (!error) {
+                // The time has been successfully synchronized, we can continue with the actual request.
+                NSOperation* actualOperation = [self postOperationWithObject:object to:endpoint auth:authentication completion:compositeCompletion cancel:nil];
+                [compositeTask replaceOperationTask:actualOperation];
+            } else {
+                // Report error to composite completion.
+                compositeCompletion(PowerAuthRestApiResponseStatus_ERROR, nil, error);
+            }
+        } callbackQueue:_completionQueue];
+        [compositeTask replaceOperationTask:synchronizationTask];
+        return compositeTask;
+    }
+    // Endpoint doesn't require time synchronization, or time is already synchronized.
+    return [self postOperationWithObject:object to:endpoint auth:authentication completion:completion cancel:customCancelBlock];
+}
+
+- (NSOperation*) postOperationWithObject:(id<PA2Encodable>)object
+                                      to:(PA2RestApiEndpoint*)endpoint
+                                    auth:(PowerAuthAuthentication*)authentication
+                              completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
+                                  cancel:(void(^)(void))customCancelBlock
 {
     // Construct asynchronous operation & associated request
     PA2AsyncOperation * op = [[PA2AsyncOperation alloc] initWithReportQueue:_completionQueue];
@@ -231,7 +273,6 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
             customCancelBlock();
         }
     };
-    
     // Finally, add operation to the right queue
     if (endpoint.isSerialized) {
         // The request must be serialized in serial queue.

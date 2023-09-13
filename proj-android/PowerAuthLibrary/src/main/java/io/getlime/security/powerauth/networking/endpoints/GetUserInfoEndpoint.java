@@ -34,18 +34,6 @@ public class GetUserInfoEndpoint implements IEndpointDefinition<Map<String, Obje
 
     @NonNull
     @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
-    @Nullable
-    @Override
-    public String getAuthorizationUriId() {
-        return null;
-    }
-
-    @NonNull
-    @Override
     public EciesEncryptorId getEncryptorId() {
         return EciesEncryptorId.GENERIC_ACTIVATION_SCOPE;
     }
@@ -54,15 +42,5 @@ public class GetUserInfoEndpoint implements IEndpointDefinition<Map<String, Obje
     @Override
     public TypeToken<Map<String, Object>> getResponseType() {
         return new TypeToken<Map<String, Object>>() {};
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return false;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

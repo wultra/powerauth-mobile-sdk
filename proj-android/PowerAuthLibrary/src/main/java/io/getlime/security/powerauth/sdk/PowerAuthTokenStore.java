@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
+import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
@@ -26,7 +27,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
+import androidx.annotation.RequiresApi;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
@@ -37,11 +41,11 @@ import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.entity.TokenResponsePayload;
 import io.getlime.security.powerauth.networking.model.request.TokenRemoveRequest;
+import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import io.getlime.security.powerauth.networking.response.IGetTokenListener;
 import io.getlime.security.powerauth.networking.response.IRemoveTokenListener;
-import io.getlime.security.powerauth.sdk.impl.GetAccessTokenTask;
-import io.getlime.security.powerauth.sdk.impl.ITaskCompletion;
-import io.getlime.security.powerauth.sdk.impl.PowerAuthPrivateTokenData;
+import io.getlime.security.powerauth.networking.response.ITimeSynchronizationListener;
+import io.getlime.security.powerauth.sdk.impl.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -240,7 +244,7 @@ public class PowerAuthTokenStore {
             tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getSignatureFactorsMask());
             storeTokenData(context, tokenData, true);
         }
-        return new PowerAuthToken(this, tokenData);
+        return new PowerAuthToken(this, sdk.getTimeSynchronizationService(), tokenData);
     }
 
     /**
@@ -303,7 +307,7 @@ public class PowerAuthTokenStore {
                                     final PowerAuthPrivateTokenData newTokenData = new PowerAuthPrivateTokenData(tokenName, response.getTokenId(), tokenSecretBytes, activationIdentifier, authenticationFactors);
                                     if (newTokenData.hasValidData()) {
                                         // Store token data & report to listener
-                                        groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, newTokenData));
+                                        groupedTask.complete(new PowerAuthToken(PowerAuthTokenStore.this, sdk.getTimeSynchronizationService(), newTokenData));
                                     } else {
                                         // Report encryption error
                                         groupedTask.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
@@ -439,7 +443,7 @@ public class PowerAuthTokenStore {
         try {
             lock.lock();
             PowerAuthPrivateTokenData tokenData = getTokenData(context, tokenName);
-            return tokenData != null ? new PowerAuthToken(this, tokenData) : null;
+            return tokenData != null ? new PowerAuthToken(this, sdk.getTimeSynchronizationService(), tokenData) : null;
         } finally {
             lock.unlock();
         }
@@ -492,6 +496,68 @@ public class PowerAuthTokenStore {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Generate authorization header with token with given name. Unlike {@link PowerAuthToken#generateHeader()}, this
+     * asynchronous function guarantees that time used for the token digest calculation is always synchronized
+     * with the server.
+     *
+     * @param context Android context.
+     * @param tokenName Token name to use for header calculation.
+     * @param listener Listener with callbacks.
+     * @return {@code ICancelable} associated with the time synchronization.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @NonNull
+    public ICancelable generateAuthorizationHeader(@NonNull final Context context, @NonNull String tokenName, @NonNull IGenerateTokenHeaderListener listener) {
+        // Prepare cancelable task and completion closure.
+        final CompositeCancelableTask cancelableTask = new CompositeCancelableTask(true);
+        final BiConsumer<Throwable, PowerAuthAuthorizationHttpHeader> taskCompletion = (Throwable t, PowerAuthAuthorizationHttpHeader header) -> {
+            sdk.getCallbackDispatcher().dispatchCallback(() -> {
+                if (cancelableTask.setCompleted()) {
+                    // Execute only if cancelable task is not canceled
+                    if (header != null) {
+                        if (header.isValid()) {
+                            // Token is valid
+                            listener.onGenerateTokenHeaderSucceeded(header);
+                        } else {
+                            listener.onGenerateTokenHeaderFailed(new PowerAuthErrorException(header.getPowerAuthErrorCode(), "Failed to generate token header"));
+                        }
+                    } else {
+                        listener.onGenerateTokenHeaderFailed(t);
+                    }
+                }
+            });
+        };
+        // Now get local token
+        final PowerAuthToken token = getLocalToken(context, tokenName);
+        if (token != null) {
+            if (sdk.getTimeSynchronizationService().isTimeSynchronized()) {
+                taskCompletion.accept(null, token.generateHeader());
+            } else {
+                // Time is not synchronized yet
+                final ICancelable timeSynchronization = sdk.getTimeSynchronizationService().synchronizeTime(new ITimeSynchronizationListener() {
+                    @Override
+                    public void onTimeSynchronizationSucceeded() {
+                        // Time is now synchronized, so generate header and report result back to the application.
+                        taskCompletion.accept(null, token.generateHeader());
+                    }
+
+                    @Override
+                    public void onTimeSynchronizationFailed(@NonNull Throwable t) {
+                        taskCompletion.accept(t, null);
+                    }
+                });
+                if (timeSynchronization != null) {
+                    cancelableTask.addCancelable(timeSynchronization);
+                }
+            }
+        } else {
+            // Token not found.
+            taskCompletion.accept(new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_TOKEN, "Token not found"), null);
+        }
+        return cancelableTask;
     }
 
     /**

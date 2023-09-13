@@ -15,6 +15,7 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
+#import <PowerAuthCore/PowerAuthCoreTimeService.h>
 
 @class PowerAuthCoreEciesCryptogram;
 @class PowerAuthCoreEciesMetaData;
@@ -32,11 +33,16 @@
 
 /**
  Initializes an ecnryptor with server's |publicKey| and optional |sharedInfo1| and |sharedInfo2|.
- The initialized instance can be used for both encryption and decryption tasks.
+ The initialized instance can be used for both encryption and decryption tasks. The class keeps
+ weak reference to provided |timeService| implementation.
  */
-- (nullable instancetype) initWithPublicKey:(nonnull NSData*)publicKey
-                                sharedInfo1:(nullable NSData*)sharedInfo1
-                                sharedInfo2:(nullable NSData*)sharedInfo2;
+- (nullable instancetype) initWithTimeService:(nonnull id<PowerAuthCoreTimeService>)timeService
+                                    publicKey:(nonnull NSData*)publicKey
+                                  sharedInfo1:(nullable NSData*)sharedInfo1
+                                  sharedInfo2:(nullable NSData*)sharedInfo2;
+
+// Make defualt init invisible
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
 /**
  Returns a new instance of PowerAuthCoreEciesEncryptor, suitable only for data decryption or nil if current encryptor is not
@@ -122,6 +128,13 @@
  */
 @property (nonatomic, strong, nullable) PowerAuthCoreEciesMetaData * associatedMetaData;
 
+#pragma mark Time Synchronization
+
+/**
+ Weak reference to instance of time synchronization service.
+ */
+@property (nonatomic, weak, readonly, nullable) id<PowerAuthCoreTimeService> timeSynchronizationService;
+
 @end
 
 
@@ -170,6 +183,11 @@
  to the `nonce` property.
  */
 @property (nonatomic, strong, nullable) NSString * nonceBase64;
+/**
+ Timestamp of request or response in milliseconds since 1.1.1970.
+ */
+@property (nonatomic, assign) UInt64 timestamp;
+
 @end
 
 
@@ -198,7 +216,6 @@
  Contains optional activation identifier.
  */
 @property (nonatomic, strong, readonly, nullable) NSString * activationIdentifier;
-
 
 #pragma mark - HTTP
 

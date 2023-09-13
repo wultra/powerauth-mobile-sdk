@@ -2775,9 +2775,9 @@ The obtained `UserInfo` object contains the following properties:
 | `pictureUrl`            | `String` | The URL of the profile picture for the user |
 | `websiteUrl`            | `String` | The URL of the user's web page or blog |
 | `email`                 | `String` | The user's preferred email address |
-| `isEmailVerified`       | `Bool`   | True if the user's email address has been verified, else false<sup>1</sup> |
+| `isEmailVerified`       | `Boolean`| True if the user's email address has been verified, else false<sup>1</sup> |
 | `phoneNumber`           | `String` | The user's preferred telephone number<sup>2</sup> |
-| `isPhoneNumberVerified` | `Bool`   | True if the user's telephone number has been verified, else false<sup>1</sup> |
+| `isPhoneNumberVerified` | `Boolean`| True if the user's telephone number has been verified, else false<sup>1</sup> |
 | `gender`                | `String` | The user's gender |
 | `birthdate`             | `Date`   | The user's birthday |
 | `zoneInfo`              | `String` | The user's time zone, e.g. `Europe/Paris` or `America/Los_Angeles` |

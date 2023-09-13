@@ -9,6 +9,10 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 - [PowerAuth SDK for watchOS](PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](PowerAuth-SDK-for-Android.md)
 
+Related projects
+
+- [PowerAuth SDK for React Native](https://github.com/wultra/react-native-powerauth-mobile-sdk)
+
 ## Migration guides
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:

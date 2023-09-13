@@ -28,6 +28,6 @@
 -keepclassmembers class io.getlime.core.rest.model.** {
     <fields>;
 }
--keepclassmembers class io.getlime.security.powerauth.networking.model.** {
+-keep class io.getlime.security.powerauth.networking.model.** {
     <fields>;
 }

@@ -43,7 +43,7 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
  * The {@code EncryptedKeychain} class implements {@link Keychain} interface with content
  * encryption. The class is used on all devices that supports KeyStore reliably (e.g.
  * on all systems newer or equal than Android "M".)
- *
+ * <p>
  * The "AES/GCM/NoPadding" scheme is used for encryption and decryption.
  */
 @RequiresApi(api = Build.VERSION_CODES.M)
@@ -327,25 +327,21 @@ public class EncryptedKeychain implements Keychain {
     /**
      * Constant defines key to {@code SharedPreferences} for integer value that contains version of {#code EncryptedKeychain}.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final String ENCRYPTED_KEYCHAIN_VERSION_KEY = "com.wultra.PowerAuthKeychain.IsEncrypted";
 
     /**
      * Constant defines legacy version of keychain (e.g. no-encryption at all)
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int KEYCHAIN_V0 = 0;
     /**
      * Constant defines version 1 of {@code EncryptedKeychain}.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int KEYCHAIN_V1 = 1;
     /**
      * Constant defines version 2 of {@code EncryptedKeychain}. The difference between V1 and V2 is
      * that V2 contains additional information whether the keychain content is encrypted with StrongBox
      * backed key or not encrypted at all.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int KEYCHAIN_V2 = 2;
 
     /**
@@ -355,7 +351,6 @@ public class EncryptedKeychain implements Keychain {
      * @param preferences {@link SharedPreferences} content to evaluate.
      * @return {@code true} if provided object contains values for encrypted keychain.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static boolean isEncryptedContentInSharedPreferences(@NonNull SharedPreferences preferences) {
         final int version = preferences.getInt(ENCRYPTED_KEYCHAIN_VERSION_KEY, KEYCHAIN_V0);
         if (version >= KEYCHAIN_V1) {
@@ -532,34 +527,28 @@ public class EncryptedKeychain implements Keychain {
      * whether AES encryption key is StrongBox backed. This is required due to unreliability of StrongBox
      * on some devices, so keychain has to track whether encryption key is StrongBox backed or not.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final String ENCRYPTED_KEYCHAIN_MODE_KEY = "com.wultra.PowerAuthKeychain.EncryptionMode";
 
     /**
      * Encryption mode is not yet determined.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int ENCRYPTION_MODE_NA = 0;
     /**
      * Encryption is not supported on this device at all.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int ENCRYPTION_MODE_DISABLED = 1;
     /**
      * StrongBox is supported and enabled on this device.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int ENCRYPTION_MODE_STRONGBOX = 2;
     /**
      * StrongBox is not supported this device so keychain will be encrypted with a regular KeyStore
      * backed key.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int ENCRYPTION_MODE_DEFAULT = 3;
     /**
      * StrongBox is supported but disabled on this device.
      */
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static final int ENCRYPTION_MODE_STRONGBOX_DISABLED = 4;
 
     /**

@@ -37,7 +37,7 @@ public class ActivationStep2Result {
     public final String activationFingerprint;
 
     public ActivationStep2Result() {
-        this.errorCode = 0;
+        this.errorCode = ErrorCode.OK;
         this.activationFingerprint = null;
     }
 }

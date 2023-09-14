@@ -50,7 +50,7 @@
                sharedLock:(id<NSLocking>)sharedLock
            disableUpgrade:(BOOL)disableUpgrade
 {
-    self = [super initWithSharedLock:sharedLock taskName:@"GetStatus"];
+    self = [super initWithSharedLock:sharedLock taskName:@"GetActivationStatus"];
     if (self) {
         _client = httpClient;
         _deviceRelatedKey = deviceRelatedKey;

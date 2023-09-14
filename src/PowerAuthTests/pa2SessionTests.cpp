@@ -69,7 +69,7 @@ namespace powerAuthTests
         std::string _recovery_code;
         std::string _recovery_puk;
 
-        const std::string PA_VER = "3.1";
+        const std::string PA_VER = "3.2";
         
         void setUp() override
         {
@@ -891,7 +891,7 @@ namespace powerAuthTests
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
-                    ec = encryptor.encryptRequest(cc7::MakeRange("Hello!"), request_enc);
+                    ec = encryptor.encryptRequest(cc7::MakeRange("Hello!"), ECIESParameters(), request_enc);
                     ccstAssertEqual(ec, EC_Ok);
                     
                     // ...and decrypt on "server" side
@@ -900,7 +900,7 @@ namespace powerAuthTests
                                              cc7::MakeRange("/pa/test"),
                                              crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
                     cc7::ByteArray request_data;
-                    ec = decryptor.decryptRequest(request_enc, request_data);
+                    ec = decryptor.decryptRequest(request_enc, ECIESParameters(), request_data);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(request_data, cc7::MakeRange("Hello!"));
                 }
@@ -917,7 +917,7 @@ namespace powerAuthTests
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
-                    ec = encryptor.encryptRequest(cc7::MakeRange("Plan9!"), request_enc);
+                    ec = encryptor.encryptRequest(cc7::MakeRange("Plan9!"), ECIESParameters(), request_enc);
                     ccstAssertEqual(ec, EC_Ok);
                     
                     // ...and decrypt on "server" side
@@ -926,7 +926,7 @@ namespace powerAuthTests
                                              cc7::MakeRange("/pa/activation/test"),
                                              crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
                     cc7::ByteArray request_data;
-                    ec = decryptor.decryptRequest(request_enc, request_data);
+                    ec = decryptor.decryptRequest(request_enc, ECIESParameters(), request_data);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(request_data, cc7::MakeRange("Plan9!"));
                 }

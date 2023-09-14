@@ -32,12 +32,6 @@ public class ConfirmRecoveryCodeEndpoint implements IEndpointDefinition<ConfirmR
         return "/pa/v3/recovery/confirm";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
@@ -54,15 +48,5 @@ public class ConfirmRecoveryCodeEndpoint implements IEndpointDefinition<ConfirmR
     @Override
     public TypeToken<ConfirmRecoveryResponsePayload> getResponseType() {
         return TypeToken.get(ConfirmRecoveryResponsePayload.class);
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

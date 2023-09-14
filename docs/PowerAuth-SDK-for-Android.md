@@ -6,12 +6,12 @@
 - [SDK Installation](#installation)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
-   - [Activation via Activation Code](#activation-via-activation-code)
-   - [Activation via Custom Credentials](#activation-via-custom-credentials)
-   - [Activation via Recovery Code](#activation-via-recovery-code)
-   - [Customize Activation](#customize-activation)
-   - [Committing Activation Data](#committing-activation-data)
-   - [Validating User Inputs](#validating-user-inputs)
+  - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via Custom Credentials](#activation-via-custom-credentials)
+  - [Activation via Recovery Code](#activation-via-recovery-code)
+  - [Customize Activation](#customize-activation)
+  - [Committing Activation Data](#committing-activation-data)
+  - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
@@ -26,12 +26,14 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Recovery Codes](#recovery-codes)
-   - [Getting Recovery Data](#getting-recovery-data)
-   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
+  - [Getting Recovery Data](#getting-recovery-data)
+  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [External Encryption Key](#external-encryption-key)
+- [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
+  - [Obtaining User's Claims](#obtaining-users-claims)
   - [Password Strength Indicator](#password-strength-indicator)
   - [Debug Build Detection](#debug-build-detection)
   - [Request Interceptors](#request-interceptors)
@@ -132,6 +134,14 @@ try {
 }
 ```
 <!-- end -->
+
+
+If you don't provide application's context to `build()` method, then PowerAuthSDK will fail to register its components for application's lifecycle callbacks. To fix this, please use the following code in your application's `onCreate()` method:
+
+```kotlin
+PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
+```
+
 
 ### Additional configuration methods
 
@@ -1607,11 +1617,13 @@ when (BiometricAuthentication.getBiometryType(context)) {
     BiometryType.NONE ->
         print("Biometry is not supported on the system.")
     BiometryType.GENERIC ->
-        // It's not possible to determine exact type of biometry.
-        // This happens on Android 10+ systems, when the device supports
+        // It's not possible to determine the exact type of biometry.
+        // This occurs on Android 10+ systems when the device supports
         // more than one type of biometric authentication. In this case,
-        // you should use generic terms, like "Authenticate with biometry"
-        // for your UI.
+        // you should use generic terms in your UI, such as "Authenticate with biometry".
+        // This issue can also arise on devices that support a new type of biometry
+        // sensor, or on older, malfunctioning devices that fail to declare 
+        // support for FEATURE_FINGERPRINT.
         print("Biometry type is GENERIC")
     BiometryType.FINGERPRINT ->
         print("Fingerprint scanner is present on the device.")
@@ -2009,9 +2021,25 @@ The following steps are typically required for a full E2EE request and response 
    val encryptor = powerAuthSDK.getEciesEncryptorForActivationScope(context)
    ```
 
-2. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+1. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
 
-3. Encrypt your payload:
+1. Make sure that PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
+   ```kotlin
+   val timeService = powerAuthSDK.timeSynchronizationService
+   if (!timeService.isTimeSynchronized) {
+       timeService.synchronizeTime(object : ITimeSynchronizationListener {
+           override fun onTimeSynchronizationSucceeded() {
+               // Success
+           }
+
+           override fun onTimeSynchronizationFailed(t: Throwable) {
+               // Failure
+           }
+       })
+   }
+   ```
+
+1. Encrypt your payload:
    ```kotlin
    val cryptogram = encryptor.encryptRequest(payloadData)
    if (cryptogram == null) {
@@ -2019,11 +2047,12 @@ The following steps are typically required for a full E2EE request and response 
    }  
    ```
 
-4. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
+1. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
    - `ephemeralPublicKey` property fill with `cryptogram.getKeyBase64()`
    - `encryptedData` property fill with `cryptogram.getBodyBase64()`
    - `mac` property fill with `cryptogram.getMacBase64()`
    - `nonce` property fill with `cryptogram.getNonceBase64()`
+   - `timestamp` property fill with `cryptogram.getTimestamp()`
 
    So, the final request JSON should look like this:
    ```json
@@ -2031,11 +2060,12 @@ The following steps are typically required for a full E2EE request and response 
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
-      "nonce" : "BASE64-NONCE"
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
 
-5. Add the following HTTP header (for signed requests, see note below):
+1. Add the following HTTP header (for signed requests, see note below):
    ```kotlin
    // Acquire a "metadata" object, which contains additional information for the request construction
    val metadata = encryptor.metadata
@@ -2044,14 +2074,16 @@ The following steps are typically required for a full E2EE request and response 
    ```
    Note, that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.
 
-6. Fire your HTTP request and wait for a response
+1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-7. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
    
@@ -2064,7 +2096,7 @@ The following steps are typically required for a full E2EE request and response 
    }
    ```
 
-8. And finally, you can process your received response.
+1. And finally, you can process your received response.
 
 As you can see, the E2EE is quite a non-trivial task. We recommend contacting us before using an application-specific E2EE. We can provide you more support on a per-scenario basis, especially if we first understand what you try to achieve with end-to-end encryption in your application.
 
@@ -2317,8 +2349,22 @@ final ICancelable task = tokenStore.requestAccessToken(context, "MyToken", authe
 The request is performed synchronously or asynchronously depending on whether the token is locally cached on the device. You can test this situation by calling `tokenStore.hasLocalToken(context, "MyToken")`. If operation is asynchronous, then `requestAccessToken()` returns cancellable task.
 
 ### Generating Authorization Header
+Use the following code to generate an authorization header:
 
-Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
+```kotlin
+val task = tokenStore.generateAuthorizationHeader(context, "MyToken", object : IGenerateTokenHeaderListener {
+    override fun onGenerateTokenHeaderSucceeded(header: PowerAuthAuthorizationHttpHeader) {
+        val httpHeaderKey = header.key
+        val httpHeaderValue = header.value
+    }
+
+    override fun onGenerateTokenHeaderFailed(t: Throwable) {
+        // Failure
+    }
+})
+```
+
+Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authorization header:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
@@ -2341,6 +2387,10 @@ if (header.isValid()) {
     // handle error
 }
 ```
+<!-- end -->
+
+<!-- begin box warning -->
+The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).
 <!-- end -->
 
 ### Removing Token From the Server
@@ -2417,6 +2467,68 @@ The external encryption key has to be set before the activation is created, or c
 You can remove EEK from an existing activation if the key is no longer required. To do this, use `PowerAuthSDK.removeExternalEncryptionKey()` method. Be aware, that EEK must be set by configuration, or by the `setExternalEncryptionKey()` method before you call the remove method. You can also use the `PowerAuthSDK.hasExternalEncryptionKey()` function to test whether the key is already set and in use.
 
 
+## Synchronized Time
+
+The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [End-To-End Encryption](#end-to-end-encryption) or [Token-Based Authentication](#token-based-authentication). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
+
+Use the following code to get the service responsible for the time synchronization: 
+
+```kotlin
+val timeService = powerAuthSDK.timeSynchronizationService
+```
+
+### Automatic Time Synchronization
+
+The time is synchronized automatically in the following situations:
+
+- After an activation is created
+- After getting an activation status
+- After receiving any response encrypted with our End-To-End Encryption scheme
+
+The time synchronization is reset automatically once your application transitions from the background to the foreground.
+
+### Manually Synchronize Time
+
+Use the following code to synchronize the time manually:
+
+```kotlin
+val task = timeService.synchronizeTime(object: ITimeSynchronizationListener {
+    override fun onTimeSynchronizationSucceeded() {
+        // Synchronization succeeded
+    }
+
+    override fun onTimeSynchronizationFailed(t: Throwable) {
+        // Synchronization failed
+    }
+})
+```
+
+### Get Synchronized Time
+
+To get the synchronized time, use the following code:
+
+```kotlin
+if (timeService.isTimeSynchronized) {
+    // get synchronized timestamp in milliseconds, since 1.1.1970
+    val timestamp = timeService.currentTime
+} else {
+    // Time is not synchronized yet. If you call currentTime then 
+    // the returned timestamp is similar to System.currentTimeMillis()
+    val timestamp = timeService.currentTime
+}
+```
+
+The time service provides an additional information about time, such as how precisely the time is synchronized with the server:
+
+```kotlin
+if (timeService.isTimeSynchronized) {
+    val precision = timeService.localTimeAdjustmentPrecision
+    println("Time is now synchronized with precision ${precision}")
+}
+```
+
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `500` means that time provided by `currentTime` method may be 0.5 seconds ahead or behind of the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
+
 ## Common SDK Tasks
 
 ### Error Handling
@@ -2453,6 +2565,7 @@ when (t) {
             PowerAuthErrorCodes.INVALID_TOKEN -> Log.d(TAG, "Error code for errors related to token based auth.")
             PowerAuthErrorCodes.PROTOCOL_UPGRADE -> Log.d(TAG, "Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
             PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE -> Log.d(TAG, "The operation is temporarily unavailable, due to pending protocol upgrade.")
+            PowerAuthErrorCodes.TIME_SYNCHRONIZATION -> Log.d(TAG, "Failed to synchronize time with the server.")
         }
     }
     is ErrorResponseApiException -> {
@@ -2508,6 +2621,8 @@ if (t instanceof PowerAuthErrorException) {
             android.util.Log.d(TAG,"Error code for error that occurs when protocol upgrade fails at unrecoverable error."); break;
         case PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE:
             android.util.Log.d(TAG,"The operation is temporarily unavailable, due to pending protocol upgrade."); break;
+        case PowerAuthErrorCodes.TIME_SYNCHRONIZATION:
+            android.util.Log.d(TAG,"Failed to synchronize time with the server."); break;
     }
 } else if (t instanceof ErrorResponseApiException) {
     ErrorResponseApiException exception = (ErrorResponseApiException) t;
@@ -2633,6 +2748,95 @@ if (BuildConfig.DEBUG) {
 ## Additional Features
 
 PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.
+
+### Obtaining User's Claims
+
+If supported by the server, the PowerAuth mobile SDK can provide additional information asserted about a person associated with an activation. This information can be obtained either during the activation process or at a later time.
+
+Here is an example of how to process user information during activation:
+
+```kotlin
+powerAuthSDK.createActivation(activation, object : ICreateActivationListener {
+    override fun onActivationCreateSucceed(result: CreateActivationResult) {
+        if (result.userInfo != null) {
+            // User information received.
+            // At this moment, the object is also available at
+            // powerAuthSDK.lastFetchedUserInfo
+        }
+    }
+
+    override fun onActivationCreateFailed(t: Throwable) {
+        // Error handling
+    }
+})
+```
+
+To fetch the user information at a later time, use the following code:
+
+```kotlin
+val userInfo = powerAuthSDK.lastFetchedUserInfo
+if (userInfo != null) {
+    // User information is already available
+} else {
+    powerAuthSDK.fetchUserInfo(context, object : IUserInfoListener {
+        override fun onUserInfoSucceed(userInfo: UserInfo) {
+            // User information received
+        }
+
+        override fun onUserInfoFailed(t: Throwable) {
+            // Error handling
+        }
+    })
+}
+```
+
+The obtained `UserInfo` object contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `subject`               | `String` | The user's identifier |
+| `name`                  | `String` | The full name of the user |
+| `givenName`             | `String` | The given or first name of the user |
+| `familyName`            | `String` | The surname(s) or last name(s) of the user |
+| `middleName`            | `String` | The middle name of the user |
+| `nickname`              | `String` | The casual name of the user |
+| `preferredUsername`     | `String` | The username by which the user wants to be referred to at the application |
+| `profileUrl`            | `String` | The URL of the profile page for the user |
+| `pictureUrl`            | `String` | The URL of the profile picture for the user |
+| `websiteUrl`            | `String` | The URL of the user's web page or blog |
+| `email`                 | `String` | The user's preferred email address |
+| `isEmailVerified`       | `Boolean`| True if the user's email address has been verified, else false<sup>1</sup> |
+| `phoneNumber`           | `String` | The user's preferred telephone number<sup>2</sup> |
+| `isPhoneNumberVerified` | `Boolean`| True if the user's telephone number has been verified, else false<sup>1</sup> |
+| `gender`                | `String` | The user's gender |
+| `birthdate`             | `Date`   | The user's birthday |
+| `zoneInfo`              | `String` | The user's time zone, e.g. `Europe/Paris` or `America/Los_Angeles` |
+| `locale`                | `String` | The end-user's locale, represented as a BCP47 language tag<sup>3</sup> |
+| `address`               | `UserAddress` | The user's preferred postal address |
+| `updatedAt`             | `Date`   | The time the user's information was last updated |
+| `allClaims`             | `Map<String, Any>` | The full collection of claims received from the server |
+
+If the `address` is provided, then `UserAddress` contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `formatted`             | `String` | The full mailing address, with multiple lines if necessary |
+| `street`                | `String` | The street address component, which may include house number, street name, post office box, and other multi-line information |
+| `locality`              | `String` | City or locality component |
+| `region`                | `String` | State, province, prefecture or region component |
+| `postalCode`            | `String` | Zip code or postal code component |
+| `country`               | `String` | Country name component |
+| `allClaims`             | `Map<String, Any>` | Full collection of claims received from the server |
+
+> Notes:
+> 1. Value is false also when claim is not present in `allClaims` dictionary
+> 2. Phone number is typically in E.164 format, for example `+1 (425) 555-1212` or `+56 (2) 687 2400`
+> 3. This is typically an ISO 639-1 Alpha-2 language code in lowercase and an ISO 3166-1 Alpha-2 country code in uppercase, separated by a dash. For example, `en-US` or `fr-CA`
+
+<!-- begin box info -->
+Be aware that all properties in `UserInfo` and `UserAddress` objects are optional and the availability of information depends on actual implementation on the server.
+<!-- end -->
+
 
 ### Password Strength Indicator
 

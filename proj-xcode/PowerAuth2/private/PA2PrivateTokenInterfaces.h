@@ -18,6 +18,7 @@
 // PA2_SHARED_SOURCE PowerAuth2ForExtensions private
 
 #import <PowerAuth2/PowerAuthToken.h>
+#import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
 
 #import "PA2PrivateTokenData.h"
 
@@ -27,6 +28,11 @@
  */
 @protocol PowerAuthPrivateTokenStore <PowerAuthTokenStore>
 @required
+/**
+ An associated time synchronization service.
+ */
+@property (nonatomic, weak, readonly, nullable) id<PowerAuthTimeSynchronizationService> timeSynchronizationService;
+
 /**
  Determine whether token can be still used for 
  */
@@ -63,7 +69,7 @@
 @property (nonatomic, readonly, strong, nonnull) PA2PrivateTokenData * privateTokenData;
 
 /**
- Initializes token with parent store and with its private data. The internal
+ Initializes token with parent store, time service and with its private data. The internal
  reference to store object is weak.
  */
 - (nonnull id) initWithStore:(nonnull id<PowerAuthPrivateTokenStore>)store

@@ -143,6 +143,10 @@ typedef NS_ENUM(NSInteger, PowerAuthErrorCode) {
      User canceled the biometric authentication dialog with a fallback button.
      */
     PowerAuthErrorCode_BiometryFallback             = 19,
+    /**
+     Failed to synchronize time with the server.
+     */
+    PowerAuthErrorCode_TimeSynchronization          = 20
 };
 
 @interface NSError (PowerAuthErrorCode)

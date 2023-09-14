@@ -18,6 +18,7 @@
 #include "Constants.h"
 #include "../crypto/CryptoUtils.h"
 #include "../utils/DataReader.h"
+#include <PowerAuth/ByteUtils.h>
 #include <cc7/Base64.h>
 #include <cc7/Endian.h>
 
@@ -547,9 +548,8 @@ namespace protocol
             cc7::ByteArray data;
             if (v == Version_V2) {
                 // Stiil at V2 activation
-                data.reserve(device_coord_x.size());
                 // data = device_coord_x
-                data.assign(device_coord_x);
+                data = device_coord_x;
             } else {
                 // V3 activation
                 // Import server's public key
@@ -559,10 +559,11 @@ namespace protocol
                     break;
                 }
                 // data = device_coord_x + activation_id + server_coord_x
-                data.reserve(device_coord_x.size() + activation_id.size() + server_coord_x.size());
-                data.assign(device_coord_x);
-                data.append(cc7::MakeRange(activation_id));
-                data.append(server_coord_x);
+                data = utils::ByteUtils_Concat({
+                    device_coord_x,
+                    cc7::MakeRange(activation_id),
+                    server_coord_x
+                });
             }
             // Now calculate decimalized signature
             result = protocol::CalculateDecimalizedSignature(crypto::SHA256(data), protocol::DECIMAL_SIGNATURE_MAX_LENGTH);

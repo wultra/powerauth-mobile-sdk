@@ -36,32 +36,66 @@ public interface IEndpointDefinition<TResponse> {
     /**
      * @return String with HTTP method. Currently, only POST is supported.
      */
-    @NonNull String getHttpMethod();
+    @NonNull
+    default String getHttpMethod() {
+        return "POST";
+    }
 
     /**
      * @return String with "URI Identifier", required for PowerAuth signature calculation.
-     *         If endpoint is not signed, then returns null.
+     *         If endpoint is not signed, then returns null. By default, returns null.
      */
-    @Nullable String getAuthorizationUriId();
+    @Nullable
+    default String getAuthorizationUriId() {
+        return null;
+    }
 
     /**
      * @return Type of encryptor if request uses ECIES encryption, or {@link EciesEncryptorId#NONE}
-     *         for endpoints with no encryption.
+     *         for endpoints with no encryption. By default, returns {@link EciesEncryptorId#NONE}.
      */
-    @NonNull EciesEncryptorId getEncryptorId();
+    @NonNull
+    default EciesEncryptorId getEncryptorId() {
+        return EciesEncryptorId.NONE;
+    }
 
     /**
-     * @return Type of response object.
+     * @return Type of response object. By default, returns null.
      */
-    @Nullable TypeToken<TResponse> getResponseType();
+    @Nullable
+    default TypeToken<TResponse> getResponseType() {
+        return null;
+    }
 
     /**
-     * @return true if request needs to be processed in serialized queue.
+     * @return true if request needs to be processed in serialized queue. By default, all requests signed with PowerAuth
+     * Signature are synchronized.
      */
-    boolean isSynchronized();
+    default boolean isSynchronized() {
+        return getAuthorizationUriId() != null;
+    }
 
     /**
-     * @return true if endpoint is available during the protocol upgrade.
+     * @return true if endpoint is available during the protocol upgrade. By default, returns false.
      */
-    boolean isAvailableInProtocolUpgrade();
+    default boolean isAvailableInProtocolUpgrade() {
+        return false;
+    }
+
+    /**
+     * @return true if request needs synchronized time to complete properly. By default, returns true for requests
+     * that use encryption.
+     */
+    default boolean isRequireSynchronizedTime() {
+        return getEncryptorId() != EciesEncryptorId.NONE;
+    }
+
+    /**
+     * Provide optional custom operation performed on the networking thread, before the request is serialized.
+     * @return Optional custom operation that should be executed before the request serialization is performed.
+     */
+    @Nullable
+    default ICustomEndpointOperation getBeforeRequestSerializationOperation() {
+        return null;
+    }
 }

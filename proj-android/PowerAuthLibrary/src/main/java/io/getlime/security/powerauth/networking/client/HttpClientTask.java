@@ -35,6 +35,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocketFactory;
 
+import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
@@ -78,7 +79,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             @NonNull HttpRequestHelper<TRequest, TResponse> httpRequestHelper,
             @NonNull String baseUrl,
             @NonNull PowerAuthClientConfiguration clientConfiguration,
-            @NonNull IPrivateCryptoHelper cryptoHelper,
+            @Nullable IPrivateCryptoHelper cryptoHelper,
             @NonNull INetworkResponseListener<TResponse> listener) {
         this.httpRequestHelper = httpRequestHelper;
         this.baseUrl = baseUrl;

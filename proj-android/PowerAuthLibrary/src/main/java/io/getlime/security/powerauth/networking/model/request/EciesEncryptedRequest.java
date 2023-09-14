@@ -26,6 +26,7 @@ public class EciesEncryptedRequest {
     private String encryptedData;
     private String mac;
     private String nonce;
+    private long timestamp;
 
     /**
      * Get Base64 encoded ephemeral public key.
@@ -89,5 +90,20 @@ public class EciesEncryptedRequest {
      */
     public void setNonce(String nonce) {
         this.nonce = nonce;
+    }
+
+    /**
+     * @return Timestamp with milliseconds precision.
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Set timestamp with milliseconds' precision.
+     * @param timestamp Timestamp in milliseconds.
+     */
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

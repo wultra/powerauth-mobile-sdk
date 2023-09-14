@@ -209,6 +209,25 @@ namespace powerAuth
     {
         return counterState == Counter_Updated;
     }
+
+
+    //
+    // MARK: - Version -
+    //
+
+    std::string Version_GetMaxSupportedHttpProtocolVersion(Version protocol_version)
+    {
+        if (protocol_version == Version_NA) {
+            protocol_version = Version_Latest;
+        }
+        switch (protocol_version) {
+            case Version_V2: return protocol::PA_VERSION_V2;
+            case Version_V3: return protocol::PA_VERSION_V3;
+            default: break;
+        }
+        CC7_ASSERT(false, "Invalid protocol version");
+        return protocol::PA_VERSION_V3;
+    }
     
 } // io::getlime::powerAuth
 } // io::getlime

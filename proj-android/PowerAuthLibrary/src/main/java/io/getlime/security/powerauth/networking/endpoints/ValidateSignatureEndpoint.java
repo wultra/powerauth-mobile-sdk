@@ -32,37 +32,9 @@ public class ValidateSignatureEndpoint implements IEndpointDefinition<Void> {
         return "/pa/v3/signature/validate";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
         return "/pa/signature/validate";
-    }
-
-    @NonNull
-    @Override
-    public EciesEncryptorId getEncryptorId() {
-        return EciesEncryptorId.NONE;
-    }
-
-    @Nullable
-    @Override
-    public TypeToken<Void> getResponseType() {
-        return null;
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
-    }
-
-    @Override
-    public boolean isAvailableInProtocolUpgrade() {
-        return false;
     }
 }

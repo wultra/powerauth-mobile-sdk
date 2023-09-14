@@ -9,10 +9,15 @@ In order to connect to the [PowerAuth](https://www.wultra.com/product/powerauth-
 - [PowerAuth SDK for watchOS](./docs/PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](./docs/PowerAuth-SDK-for-Android.md)
 
+Related projects
+
+- [PowerAuth SDK for React Native](https://github.com/wultra/react-native-powerauth-mobile-sdk)
+
 ## Migration guides
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
+- [Migration from version `1.7.x` to `1.8.x`](docs/Migration-from-1.7-to-1.8.md)
 - [Migration from version `1.6.x` to `1.7.x`](docs/Migration-from-1.6-to-1.7.md)
 - [Migration from version `1.5.x` to `1.6.x`](docs/Migration-from-1.5-to-1.6.md)
 - [Migration from version `1.4.x` to `1.5.x`](docs/Migration-from-1.4-to-1.5.md)
@@ -27,11 +32,12 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|
-| `1.7.x`    | `V3.1`   | `0.24+`             | Fully supported                   |
-| `1.6.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
+| `1.8.x`    | `V3.2`   | `1.5+`              | Fully supported                   |
+| `1.7.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
+| `1.6.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
 | `1.5.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
 | `1.4.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
-| `1.3.x`    | `V3.1`   | `0.23+`             | Security bugfixes                 |
+| `1.3.x`    | `V3.1`   | `0.23+`             | Not supported                     |
 | `1.2.x`    | `V3.0`   | `0.22+`             | Not supported                     |
 | `1.1.x`    | `V3.0`   | `0.21+`             | Not supported                     |
 | `0.20.x`   | `V2.1`   | `0.18+`             | Not supported                     |

@@ -38,6 +38,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
 import io.getlime.security.powerauth.networking.exceptions.FailedApiException;
+import io.getlime.security.powerauth.networking.interfaces.ICustomEndpointOperation;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
@@ -153,14 +154,17 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @throws MalformedURLException if cannot construct full request URL
      */
     @NonNull
-    RequestData buildRequest(@NonNull String baseUrl, @NonNull IPrivateCryptoHelper helper) throws PowerAuthErrorException, MalformedURLException {
+    RequestData buildRequest(@NonNull String baseUrl, @Nullable IPrivateCryptoHelper helper) throws PowerAuthErrorException, MalformedURLException {
 
         // Sanity checks
         final boolean needsSignature = endpoint.getAuthorizationUriId() != null;
         final boolean needsEncryption = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
 
         if (needsSignature && authentication == null) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Authentication object is missing.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Authentication object is missing");
+        }
+        if ((needsSignature || needsEncryption) && helper == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Cryptographic helper object is missing");
         }
 
         // Prepare data for a new RequestData object
@@ -169,6 +173,12 @@ class HttpRequestHelper<TRequest, TResponse> {
         final String requestMethod = endpoint.getHttpMethod();
         final HashMap<String, String> requestHeaders = new HashMap<>();
         final byte[] requestData;
+
+        // Execute custom step before the request is serialized.
+        ICustomEndpointOperation beforeRequestSerialization = endpoint.getBeforeRequestSerializationOperation();
+        if (beforeRequestSerialization != null) {
+            beforeRequestSerialization.customEndpointOperation();
+        }
 
         // Encrypt the request data if the endpoint has encryptor specified
         if (!needsEncryption) {

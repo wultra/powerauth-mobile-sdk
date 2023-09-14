@@ -77,6 +77,7 @@
 
 /** Validate that the configuration is properly set (all required values were filled in).
  */
-- (BOOL) validateConfiguration;
+- (BOOL) validateConfiguration
+            NS_SWIFT_NAME(validate());
 
 @end

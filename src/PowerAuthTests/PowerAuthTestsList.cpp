@@ -29,7 +29,6 @@ namespace powerAuthTests
         cc7::tests::UnitTestCreationInfoList list;
         
         // High level objects
-        CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
         CC7_ADD_UNIT_TEST(pa2SessionTests, list);
         CC7_ADD_UNIT_TEST(pa2SessionSetupTests, list);
         CC7_ADD_UNIT_TEST(pa2PasswordTests, list);
@@ -54,7 +53,9 @@ namespace powerAuthTests
         CC7_ADD_UNIT_TEST(pa2PublicKeyFingerprintTests, list);
         CC7_ADD_UNIT_TEST(pa2ActivationStatusBlobTests, list);
         
-        // Misc
+        // Utils
+        CC7_ADD_UNIT_TEST(pa2DataWriterReaderTests, list);
+        CC7_ADD_UNIT_TEST(pa2ByteUtilsTests, list);
         CC7_ADD_UNIT_TEST(pa2CRC16Tests, list);
 
         return list;

@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -279,7 +280,7 @@ public class TokenStoreTest {
         assertNotNull(token5[0]);
         assertEquals(token1[0], token2[0]);
         assertEquals(token1[0], token3[0]);
-        assertEquals(token2[0], token2[0]);
+        assertEquals(token2[0], token3[0]);
         assertEquals(token4[0], token5[0]);
         assertNotEquals(token1[0], token4[0]);
     }
@@ -384,7 +385,27 @@ public class TokenStoreTest {
      */
     private boolean calculateAndValidateTokenDigest(@NonNull PowerAuthToken token, @NonNull SignatureType expectedSignatureType) throws Exception {
         assertTrue(token.canGenerateHeader());
-        PowerAuthAuthorizationHttpHeader header = token.generateHeader();
+        assertNotNull(token.getTokenName());
+
+        PowerAuthAuthorizationHttpHeader header = AsyncHelper.await(resultCatcher -> {
+            ICancelable task = token.tokenStore.generateAuthorizationHeader(testHelper.getContext(), token.getTokenName(), new IGenerateTokenHeaderListener() {
+                @Override
+                public void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthAuthorizationHttpHeader header) {
+                    try {
+                        resultCatcher.completeWithResult(header);
+                    } catch (Throwable t) {
+                        resultCatcher.completeWithError(t);
+                    }
+                }
+
+                @Override
+                public void onGenerateTokenHeaderFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+            assertNotNull(task);
+        });
+
         assertTrue(header.isValid());
         assertEquals("X-PowerAuth-Token", header.getKey());
         Map<String, String> headerComponents = signatureHelper.parseAuthorizationHeader(header);
@@ -401,6 +422,7 @@ public class TokenStoreTest {
         assertNotNull(tokenInfo);
         assertTrue(tokenInfo.isTokenValid());
         assertEquals(expectedSignatureType, tokenInfo.getSignatureType());
+
         return true;
     }
 }

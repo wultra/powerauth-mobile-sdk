@@ -53,6 +53,7 @@ NSString * PA2MakeDefaultErrorDescription(NSInteger errorCode, NSString * messag
         _CODE_DESC(PowerAuthErrorCode_ProtocolUpgrade, @"Protocol upgrade error")
         _CODE_DESC(PowerAuthErrorCode_PendingProtocolUpgrade, @"Pending protocol ugprade, try later")
         _CODE_DESC(PowerAuthErrorCode_ExternalPendingOperation, @"Other application does critical operation")
+        _CODE_DESC(PowerAuthErrorCode_TimeSynchronization, @"Failed to synchronize time with the server")
         default:
             return [NSString stringWithFormat:@"Unknown error %@", @(errorCode)];
     }

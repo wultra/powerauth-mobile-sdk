@@ -4,27 +4,27 @@
 ## Table of Contents
 
 - [Installation](#installation)
-   - [Supported Platforms](#supported-platforms)
-   - [CocoaPods Installation](#cocoapods)
-   - [Manual Installation](#manual)
-   - [Carthage Installation](#carthage)
+  - [Supported Platforms](#supported-platforms)
+  - [CocoaPods Installation](#cocoapods)
+  - [Manual Installation](#manual)
+  - [Carthage Installation](#carthage)
 - [Post-Installation Steps](#post-installation-steps)
-   - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
+  - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
-    - [Activation via Activation Code](#activation-via-activation-code)
-    - [Activation via Custom Credentials](#activation-via-custom-credentials)
-    - [Activation via Recovery Code](#activation-via-recovery-code)
-    - [Customize Activation](#customize-activation)
-    - [Committing Activation Data](#committing-activation-data)
-    - [Validating User Inputs](#validating-user-inputs)
+  - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via Custom Credentials](#activation-via-custom-credentials)
+  - [Activation via Recovery Code](#activation-via-recovery-code)
+  - [Customize Activation](#customize-activation)
+  - [Committing Activation Data](#committing-activation-data)
+  - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
-   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
-   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
-   - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
-   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
-   - [Verify Server-Signed Data](#verify-server-signed-data)
+  - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
+  - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
+  - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
+  - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
+  - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
 - [Biometry Setup](#biometry-setup)
@@ -33,22 +33,24 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Recovery Codes](#recovery-codes)
-   - [Getting Recovery Data](#getting-recovery-data)
-   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
+  - [Getting Recovery Data](#getting-recovery-data)
+  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [Apple Watch Support](#apple-watch-support)
-   - [Prepare Watch Connectivity](#prepare-watch-connectivity)
-   - [WCSession Activation Sequence](#wcsession-activation-sequence)
-   - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
-   - [Sending Token to Watch](#sending-token-to-watch)
-   - [Removing Token from Watch](#removing-token-from-watch)
+  - [Prepare Watch Connectivity](#prepare-watch-connectivity)
+  - [WCSession Activation Sequence](#wcsession-activation-sequence)
+  - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
+  - [Sending Token to Watch](#sending-token-to-watch)
+  - [Removing Token from Watch](#removing-token-from-watch)
 - [External Encryption Key](#external-encryption-key)
 - [Share Activation Data](#share-activation-data)
+- [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-   - [Password Strength Indicator](#password-strength-indicator)
-   - [Debug Build Detection](#debug-build-detection)
-   - [Request Interceptors](#request-interceptors)   
+  - [Obtaining User's Claims](#obtaining-users-claims)
+  - [Password Strength Indicator](#password-strength-indicator)
+  - [Debug Build Detection](#debug-build-detection)
+  - [Request Interceptors](#request-interceptors)  
 - [Troubleshooting](#troubleshooting)
 
 Related documents:
@@ -1254,18 +1256,31 @@ The following steps are typically required for a full E2EE request and response 
    guard let encryptor = powerAuthSDK.eciesEncryptorForActivationScope() else { ...failure... }
    ```
 
-2. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+1. Make sure that PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
+   ```swift
+   let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+   if !timeService.isTimeSynchronized {
+       timeService.synchronizeTime(callback: { error in
+           if error != nil {
+               // failure
+           }
+       }, callbackQueue: .main)
+   }
+   ```
 
-3. Encrypt your payload:
+1. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON formatted sequence of bytes.
+
+1. Encrypt your payload:
    ```swift
    guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
    ```
 
-4. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
+1. Construct a JSON from provided cryptogram object. The dictionary with the following keys is expected:
    - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
    - `encryptedData` property fill with `cryptogram.bodyBase64`
    - `mac` property fill with `cryptogram.macBase64`
    - `nonce` property fill with `cryptogram.nonceBase64`
+   - `timestamp` property fill with `cryptogram.timestamp`
 
    So, the final request JSON should look like this:
    ```json
@@ -1273,11 +1288,12 @@ The following steps are typically required for a full E2EE request and response 
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData": "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
-      "nonce" : "BASE64-NONCE"
+      "nonce" : "BASE64-NONCE",
+      "timestamp" : 1694172789256
    }
    ```
 
-5. Add the following HTTP header (for signed requests, see note below):
+1. Add the following HTTP header (for signed requests, see note below):
    ```swift
    // Acquire a "metadata" object, which contains additional information for the request construction
    guard let metadata = encryptor.associatedMetaData else { ...should never happen... }
@@ -1286,14 +1302,16 @@ The following steps are typically required for a full E2EE request and response 
    ```
    Note that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all information required for proper request decryption on the server.
 
-6. Fire your HTTP request and wait for a response
+1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-7. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
-      "mac" : "BASE64-DATA-BLOB"
+      "mac" : "BASE64-DATA-BLOB",
+      "nonce" : "BASE64-NONCE",
+      "timestamp": 1694172789256
    }
    ```
    So, you need to create yet another "cryptogram" object, but with only two properties set:
@@ -1301,11 +1319,13 @@ The following steps are typically required for a full E2EE request and response 
    let responseCryptogram = PowerAuthCoreEciesCryptogram()
    responseCryptogram.bodyBase64 = response.getEncryptedData()
    responseCryptogram.macBase64 = response.getMac()
+   responseCryptogram.nonceBase64 = response.getNonce()
+   responseCryptogram.timestamp = response.getTimestamp()
 
    guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
    ```
 
-8. And finally, you can process your received response.
+1. And finally, you can process your received response.
 
 As you can see, the E2EE is quite a non-trivial task. We recommend contacting us before using an application-specific E2EE. We can provide you more support on a per-scenario basis, especially if we first understand what you try to achieve with end-to-end encryption in your application.
 
@@ -1468,7 +1488,21 @@ The request is performed synchronously or asynchronously depending on whether th
 
 ### Generating Authorization Header
 
-Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
+Use the following code to generate an authorization header:
+
+```swift
+let task = tokenStore.generateAuthorizationHeader(withName: "MyToken") { header, error in
+    if let header = header {
+        let httpHeader = [ header.key : header.value ]
+        // now you can attach that httpHeader to your HTTP request
+    } else {
+        // failure, token is no longer valid, or failed to synchronize time
+        // with the server.
+    }
+}
+```
+
+Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authorization header:
 
 ```swift
 if let header = token.generateHeader() {
@@ -1478,6 +1512,11 @@ if let header = token.generateHeader() {
     // in case of nil, token is no longer valid
 }
 ```
+
+<!-- begin box warning -->
+The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).
+<!-- end -->
+
 
 ### Removing Token From the Server
 
@@ -1776,6 +1815,67 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 }
 ``` 
 
+## Synchronized Time
+
+The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Server for its cryptographic functions, such as [End-To-End Encryption](#end-to-end-encryption) or [Token-Based Authentication](#token-based-authentication). The synchronized time can also be beneficial for your application. For example, if you want to display a time-sensitive message or countdown to your users, you can take advantage of this service.
+
+Use the following code to get the service responsible for the time synchronization: 
+
+```swift
+let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+```
+
+### Automatic Time Synchronization
+
+The time is synchronized automatically in the following situations:
+
+- After an activation is created
+- After getting an activation status
+- After receiving any response encrypted with our End-To-End Encryption scheme
+
+The time synchronization is reset automatically once your application transitions from the background to the foreground.
+
+### Manually Synchronize Time
+
+Use the following code to synchronize the time manually:
+
+```swift
+let task = timeService.synchronizeTime(callback: { error in
+    if error == nil {
+        // Success, time has been properly synchronized
+    } else {
+        // Failed to synchronize the time
+    }
+}, callbackQueue: .main)
+```
+
+### Get Synchronized Time
+
+To get the synchronized time, use the following code:
+
+```swift
+if timeService.isTimeSynchronized {
+    // Get synchronized timestamp
+    let timestamp = timeService.currentTime()
+    // If date object is required, then use the following snippet
+    let date = Date(timeIntervalSince1970: timestamp)
+} else {
+    // Time is not synchronized yet. If you call currentTime() then 
+    // the returned timestamp is similar to Date().timeIntervalSince1970
+    let timestamp = timeService.currentTime()
+}
+```
+
+The time service provides an additional information about time, such as how precisely the time is synchronized with the server:
+
+```swift
+if timeService.isTimeSynchronized {
+    let precision = timeService.localTimeAdjustmentPrecision
+    print("Time is synchronized with precision \(precision)")
+}
+```
+
+The precision value represents a maximum absolute deviation of synchronized time against the actual time on the server. For example, a value `0.5` means that time provided by `currentTime()` method may be 0.5 seconds ahead or behind of the actual time on the server. If the precision is not sufficient for your purpose, for example, if you need to display a real-time countdown in your application, then try to synchronize the time manually. The precision basically depends on how quickly is the synchronization response received and processed from the server. A faster response results in higher precision.
 
 ## Common SDK Tasks
 
@@ -1877,6 +1977,9 @@ if error == nil {
         case .externalPendingOperation:
             print("Other application is doing activation or protocol upgrade.")
             
+        case .timeSynchronization:
+            print("Failed to synchronize time with the server.")
+            
         default:
             print("Unknown error")
         }
@@ -1928,6 +2031,90 @@ Note that the functions above are effective only if PowerAuth SDK is compiled in
 ## Additional Features
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
+
+### Obtaining User's Claims
+
+If supported by the server, the PowerAuth mobile SDK can provide additional information asserted about a person associated with an activation. This information can be obtained either during the activation process or at a later time.
+
+Here is an example of how to process user information during activation:
+
+```swift
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+    if let result {
+        if let userInfo = result.userInfo {
+            // User information received.
+            // At this moment, the object is also available at
+            // PowerAuthSDK.sharedInstance().lastFetchedUserInfo
+        }
+    } else {
+        // Error handling
+    }
+}
+```
+
+To fetch the user information at a later time, use the following code:
+
+```swift
+let sdk = PowerAuthSDK.sharedInstance()
+if let userInfo = sdk.lastFetchedUserInfo {
+    // User information is already available
+} else {
+    sdk.fetchUserInfo { userInfo, error in
+        if let userInfo {
+            // User information received
+        } else {
+            // Error handling
+        }
+    }
+}
+```
+
+The obtained `PowerAuthUserInfo` object contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `subject`               | `String` | The user's identifier |
+| `name`                  | `String` | The full name of the user |
+| `givenName`             | `String` | The given or first name of the user |
+| `familyName`            | `String` | The surname(s) or last name(s) of the user |
+| `middleName`            | `String` | The middle name of the user |
+| `nickname`              | `String` | The casual name of the user |
+| `preferredUsername`     | `String` | The username by which the user wants to be referred to at the application |
+| `profileUrl`            | `String` | The URL of the profile page for the user |
+| `pictureUrl`            | `String` | The URL of the profile picture for the user |
+| `websiteUrl`            | `String` | The URL of the user's web page or blog |
+| `email`                 | `String` | The user's preferred email address |
+| `isEmailVerified`       | `Bool`   | True if the user's email address has been verified, else false<sup>1</sup> |
+| `phoneNumber`           | `String` | The user's preferred telephone number<sup>2</sup> |
+| `isPhoneNumberVerified` | `Bool`   | True if the user's telephone number has been verified, else false<sup>1</sup> |
+| `gender`                | `String` | The user's gender |
+| `birthdate`             | `Date`   | The user's birthday |
+| `zoneInfo`              | `String` | The user's time zone, e.g. `Europe/Paris` or `America/Los_Angeles` |
+| `locale`                | `String` | The end-user's locale, represented as a BCP47 language tag<sup>3</sup> |
+| `address`               | `PowerAuthUserAddress` | The user's preferred postal address |
+| `updatedAt`             | `Date`   | The time the user's information was last updated |
+| `allClaims`             | `[String : Any]` | The full collection of standard claims received from the server |
+
+If the `address` is provided, then `PowerAuthUserAddress` contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `formatted`             | `String` | The full mailing address, with multiple lines if necessary |
+| `street`                | `String` | The street address component, which may include house number, street name, post office box, and other multi-line information |
+| `locality`              | `String` | City or locality component |
+| `region`                | `String` | State, province, prefecture or region component |
+| `postalCode`            | `String` | Zip code or postal code component |
+| `country`               | `String` | Country name component |
+| `allClaims`             | `[String : Any]` | Full collection of standard claims received from the server |
+
+> Notes:
+> 1. Value is false also when claim is not present in `allClaims` dictionary
+> 2. Phone number is typically in E.164 format, for example `+1 (425) 555-1212` or `+56 (2) 687 2400`
+> 3. This is typically an ISO 639-1 Alpha-2 language code in lowercase and an ISO 3166-1 Alpha-2 country code in uppercase, separated by a dash. For example, `en-US` or `fr-CA`
+
+<!-- begin box info -->
+Be aware that all properties in `PowerAuthUserInfo` and `PowerAuthUserAddress` objects are optional and the availability of information depends on actual implementation on the server.
+<!-- end -->
 
 ### Password Strength Indicator
 

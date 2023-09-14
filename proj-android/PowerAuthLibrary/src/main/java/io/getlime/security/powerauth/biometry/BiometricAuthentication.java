@@ -439,7 +439,18 @@ public class BiometricAuthentication {
          */
         @BiometryType int getBiometryType(@NonNull Context context) {
             if (!isBiometryTypeEvaluated) {
-                biometryType = getAuthenticator(context).getBiometryType(context);
+                final IBiometricAuthenticator authenticator = getAuthenticator(context);
+                biometryType = authenticator.getBiometryType(context);
+                if (biometryType == BiometryType.NONE) {
+                    // If reported type is NONE, then try to test whether we can authenticate. If yes, then this is
+                    // a broken device or Android SDK added new type of biometric sensor. In both situations, we
+                    // should report "GENERIC" type.
+                    final int state = authenticator.canAuthenticate();
+                    if (state == BiometricStatus.OK || state == BiometricStatus.NOT_ENROLLED) {
+                        PowerAuthLog.w("BiometricAuthentication: Fallback to BiometryType.GENERIC");
+                        biometryType = BiometryType.GENERIC;
+                    }
+                }
                 isBiometryTypeEvaluated = true;
             }
             return biometryType;

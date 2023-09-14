@@ -31,33 +31,10 @@ public class UpgradeCommitV3Endpoint implements IEndpointDefinition<Void> {
         return "/pa/v3/upgrade/commit";
     }
 
-    @NonNull
-    @Override
-    public String getHttpMethod() {
-        return "POST";
-    }
-
     @Nullable
     @Override
     public String getAuthorizationUriId() {
         return "/pa/upgrade/commit";
-    }
-
-    @NonNull
-    @Override
-    public EciesEncryptorId getEncryptorId() {
-        return EciesEncryptorId.NONE;
-    }
-
-    @Nullable
-    @Override
-    public TypeToken<Void> getResponseType() {
-        return null;
-    }
-
-    @Override
-    public boolean isSynchronized() {
-        return true;
     }
 
     @Override

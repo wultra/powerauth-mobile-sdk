@@ -6,12 +6,12 @@
 - [SDK Installation](#installation)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
-   - [Activation via Activation Code](#activation-via-activation-code)
-   - [Activation via Custom Credentials](#activation-via-custom-credentials)
-   - [Activation via Recovery Code](#activation-via-recovery-code)
-   - [Customize Activation](#customize-activation)
-   - [Committing Activation Data](#committing-activation-data)
-   - [Validating User Inputs](#validating-user-inputs)
+  - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via Custom Credentials](#activation-via-custom-credentials)
+  - [Activation via Recovery Code](#activation-via-recovery-code)
+  - [Customize Activation](#customize-activation)
+  - [Committing Activation Data](#committing-activation-data)
+  - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
@@ -25,14 +25,14 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Recovery Codes](#recovery-codes)
-   - [Getting Recovery Data](#getting-recovery-data)
-   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
+  - [Getting Recovery Data](#getting-recovery-data)
+  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [External Encryption Key](#external-encryption-key)
 - [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-  - [Personal Information About User](#personal-information-about-user)
+  - [Obtaining User's Claims](#obtaining-users-claims)
   - [Password Strength Indicator](#password-strength-indicator)
   - [Debug Build Detection](#debug-build-detection)
   - [Request Interceptors](#request-interceptors)
@@ -2719,9 +2719,9 @@ if (BuildConfig.DEBUG) {
 
 PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.
 
-### Personal Information About User
+### Obtaining User's Claims
 
-If supported by the server, the PowerAuth mobile SDK can provide detailed information about the person associated with an activation. This information can be obtained either during the activation process or at a later time.
+If supported by the server, the PowerAuth mobile SDK can provide additional information asserted about a person associated with an activation. This information can be obtained either during the activation process or at a later time.
 
 Here is an example of how to process user information during activation:
 
@@ -2784,7 +2784,7 @@ The obtained `UserInfo` object contains the following properties:
 | `locale`                | `String` | The end-user's locale, represented as a BCP47 language tag<sup>3</sup> |
 | `address`               | `UserAddress` | The user's preferred postal address |
 | `updatedAt`             | `Date`   | The time the user's information was last updated |
-| `allClaims`             | `Map<String, Any>` | The full collection of standard claims received from the server |
+| `allClaims`             | `Map<String, Any>` | The full collection of claims received from the server |
 
 If the `address` is provided, then `UserAddress` contains the following properties:
 
@@ -2796,7 +2796,7 @@ If the `address` is provided, then `UserAddress` contains the following properti
 | `region`                | `String` | State, province, prefecture or region component |
 | `postalCode`            | `String` | Zip code or postal code component |
 | `country`               | `String` | Country name component |
-| `allClaims`             | `Map<String, Any>` | Full collection of standard claims received from the server |
+| `allClaims`             | `Map<String, Any>` | Full collection of claims received from the server |
 
 > Notes:
 > 1. Value is false also when claim is not present in `allClaims` dictionary

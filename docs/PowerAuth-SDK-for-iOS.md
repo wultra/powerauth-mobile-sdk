@@ -4,26 +4,26 @@
 ## Table of Contents
 
 - [Installation](#installation)
-   - [Supported Platforms](#supported-platforms)
-   - [CocoaPods Installation](#cocoapods)
-   - [Manual Installation](#manual)
-   - [Carthage Installation](#carthage)
+  - [Supported Platforms](#supported-platforms)
+  - [CocoaPods Installation](#cocoapods)
+  - [Manual Installation](#manual)
+  - [Carthage Installation](#carthage)
 - [Post-Installation Steps](#post-installation-steps)
-   - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
+  - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
-    - [Activation via Activation Code](#activation-via-activation-code)
-    - [Activation via Custom Credentials](#activation-via-custom-credentials)
-    - [Activation via Recovery Code](#activation-via-recovery-code)
-    - [Customize Activation](#customize-activation)
-    - [Committing Activation Data](#committing-activation-data)
-    - [Validating User Inputs](#validating-user-inputs)
+  - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via Custom Credentials](#activation-via-custom-credentials)
+  - [Activation via Recovery Code](#activation-via-recovery-code)
+  - [Customize Activation](#customize-activation)
+  - [Committing Activation Data](#committing-activation-data)
+  - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
-   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
-   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
-   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
-   - [Verify Server-Signed Data](#verify-server-signed-data)
+  - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
+  - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
+  - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
+  - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
 - [Biometry Setup](#biometry-setup)
@@ -32,24 +32,24 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Recovery Codes](#recovery-codes)
-   - [Getting Recovery Data](#getting-recovery-data)
-   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
+  - [Getting Recovery Data](#getting-recovery-data)
+  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [Apple Watch Support](#apple-watch-support)
-   - [Prepare Watch Connectivity](#prepare-watch-connectivity)
-   - [WCSession Activation Sequence](#wcsession-activation-sequence)
-   - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
-   - [Sending Token to Watch](#sending-token-to-watch)
-   - [Removing Token from Watch](#removing-token-from-watch)
+  - [Prepare Watch Connectivity](#prepare-watch-connectivity)
+  - [WCSession Activation Sequence](#wcsession-activation-sequence)
+  - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
+  - [Sending Token to Watch](#sending-token-to-watch)
+  - [Removing Token from Watch](#removing-token-from-watch)
 - [External Encryption Key](#external-encryption-key)
 - [Share Activation Data](#share-activation-data)
 - [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-   - [Personal Information About User](#personal-information-about-user)
-   - [Password Strength Indicator](#password-strength-indicator)
-   - [Debug Build Detection](#debug-build-detection)
-   - [Request Interceptors](#request-interceptors)  
+  - [Obtaining User's Claims](#obtaining-users-claims)
+  - [Password Strength Indicator](#password-strength-indicator)
+  - [Debug Build Detection](#debug-build-detection)
+  - [Request Interceptors](#request-interceptors)  
 - [Troubleshooting](#troubleshooting)
 
 Related documents:
@@ -2006,9 +2006,9 @@ Note that the functions above are effective only if PowerAuth SDK is compiled in
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
 
-### Personal Information About User
+### Obtaining User's Claims
 
-If supported by the server, the PowerAuth mobile SDK can provide detailed information about the person associated with an activation. This information can be obtained either during the activation process or at a later time.
+If supported by the server, the PowerAuth mobile SDK can provide additional information asserted about a person associated with an activation. This information can be obtained either during the activation process or at a later time.
 
 Here is an example of how to process user information during activation:
 

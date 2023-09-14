@@ -44,7 +44,7 @@ public class UserInfo {
     }
 
     /**
-     * @return Full collection of standard claims received from the server.
+     * @return Full collection of claims received from the server.
      */
     public @NonNull Map<String, Object> getAllClaims() {
         return claims.map;

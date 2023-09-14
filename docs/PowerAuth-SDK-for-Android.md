@@ -1588,11 +1588,13 @@ when (BiometricAuthentication.getBiometryType(context)) {
     BiometryType.NONE ->
         print("Biometry is not supported on the system.")
     BiometryType.GENERIC ->
-        // It's not possible to determine exact type of biometry.
-        // This happens on Android 10+ systems, when the device supports
+        // It's not possible to determine the exact type of biometry.
+        // This occurs on Android 10+ systems when the device supports
         // more than one type of biometric authentication. In this case,
-        // you should use generic terms, like "Authenticate with biometry"
-        // for your UI.
+        // you should use generic terms in your UI, such as "Authenticate with biometry".
+        // This issue can also arise on devices that support a new type of biometry
+        // sensor, or on older, malfunctioning devices that fail to declare 
+        // support for FEATURE_FINGERPRINT.
         print("Biometry type is GENERIC")
     BiometryType.FINGERPRINT ->
         print("Fingerprint scanner is present on the device.")

@@ -67,7 +67,7 @@
 /// Time the end-user's information was last updated.
 @property (nonatomic, readonly, nullable) NSDate * updatedAt;
 
-/// Contains full collection of standard claims received from the server.
+/// Contains full collection of claims received from the server.
 @property (nonatomic, readonly, nonnull) NSDictionary<NSString*, NSObject*>* allClaims;
 
 /// Construct object with claims dictionary.
@@ -94,7 +94,7 @@
 /// Country name component.
 @property (nonatomic, readonly, nullable) NSString * country;
 
-/// Contains full collection of standard claims received from the server.
+/// Contains full collection of claims received from the server.
 @property (nonatomic, readonly, nonnull) NSDictionary<NSString*, NSObject*>* allClaims;
 
 /// Construct object with claims dictionary.

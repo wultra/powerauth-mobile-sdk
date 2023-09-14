@@ -4,26 +4,26 @@
 ## Table of Contents
 
 - [Installation](#installation)
-   - [Supported Platforms](#supported-platforms)
-   - [CocoaPods Installation](#cocoapods)
-   - [Manual Installation](#manual)
-   - [Carthage Installation](#carthage)
+  - [Supported Platforms](#supported-platforms)
+  - [CocoaPods Installation](#cocoapods)
+  - [Manual Installation](#manual)
+  - [Carthage Installation](#carthage)
 - [Post-Installation Steps](#post-installation-steps)
-   - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
+  - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
-    - [Activation via Activation Code](#activation-via-activation-code)
-    - [Activation via Custom Credentials](#activation-via-custom-credentials)
-    - [Activation via Recovery Code](#activation-via-recovery-code)
-    - [Customize Activation](#customize-activation)
-    - [Committing Activation Data](#committing-activation-data)
-    - [Validating User Inputs](#validating-user-inputs)
+  - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via Custom Credentials](#activation-via-custom-credentials)
+  - [Activation via Recovery Code](#activation-via-recovery-code)
+  - [Customize Activation](#customize-activation)
+  - [Committing Activation Data](#committing-activation-data)
+  - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
-   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
-   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
-   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
-   - [Verify Server-Signed Data](#verify-server-signed-data)
+  - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
+  - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
+  - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
+  - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
 - [Biometry Setup](#biometry-setup)
@@ -32,23 +32,24 @@
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
 - [Recovery Codes](#recovery-codes)
-   - [Getting Recovery Data](#getting-recovery-data)
-   - [Confirm Recovery Postcard](#confirm-recovery-postcard)
+  - [Getting Recovery Data](#getting-recovery-data)
+  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [Apple Watch Support](#apple-watch-support)
-   - [Prepare Watch Connectivity](#prepare-watch-connectivity)
-   - [WCSession Activation Sequence](#wcsession-activation-sequence)
-   - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
-   - [Sending Token to Watch](#sending-token-to-watch)
-   - [Removing Token from Watch](#removing-token-from-watch)
+  - [Prepare Watch Connectivity](#prepare-watch-connectivity)
+  - [WCSession Activation Sequence](#wcsession-activation-sequence)
+  - [Sending Activation Status to Watch](#sending-activation-status-to-watch)
+  - [Sending Token to Watch](#sending-token-to-watch)
+  - [Removing Token from Watch](#removing-token-from-watch)
 - [External Encryption Key](#external-encryption-key)
 - [Share Activation Data](#share-activation-data)
 - [Synchronized Time](#synchronized-time)
 - [Common SDK Tasks](#common-sdk-tasks)
 - [Additional Features](#additional-features)
-   - [Password Strength Indicator](#password-strength-indicator)
-   - [Debug Build Detection](#debug-build-detection)
-   - [Request Interceptors](#request-interceptors)  
+  - [Obtaining User's Claims](#obtaining-users-claims)
+  - [Password Strength Indicator](#password-strength-indicator)
+  - [Debug Build Detection](#debug-build-detection)
+  - [Request Interceptors](#request-interceptors)  
 - [Troubleshooting](#troubleshooting)
 
 Related documents:
@@ -2004,6 +2005,90 @@ Note that the functions above are effective only if PowerAuth SDK is compiled in
 ## Additional Features
 
 PowerAuth SDK for iOS contains multiple additional features that are useful for mobile apps.
+
+### Obtaining User's Claims
+
+If supported by the server, the PowerAuth mobile SDK can provide additional information asserted about a person associated with an activation. This information can be obtained either during the activation process or at a later time.
+
+Here is an example of how to process user information during activation:
+
+```swift
+PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+    if let result {
+        if let userInfo = result.userInfo {
+            // User information received.
+            // At this moment, the object is also available at
+            // PowerAuthSDK.sharedInstance().lastFetchedUserInfo
+        }
+    } else {
+        // Error handling
+    }
+}
+```
+
+To fetch the user information at a later time, use the following code:
+
+```swift
+let sdk = PowerAuthSDK.sharedInstance()
+if let userInfo = sdk.lastFetchedUserInfo {
+    // User information is already available
+} else {
+    sdk.fetchUserInfo { userInfo, error in
+        if let userInfo {
+            // User information received
+        } else {
+            // Error handling
+        }
+    }
+}
+```
+
+The obtained `PowerAuthUserInfo` object contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `subject`               | `String` | The user's identifier |
+| `name`                  | `String` | The full name of the user |
+| `givenName`             | `String` | The given or first name of the user |
+| `familyName`            | `String` | The surname(s) or last name(s) of the user |
+| `middleName`            | `String` | The middle name of the user |
+| `nickname`              | `String` | The casual name of the user |
+| `preferredUsername`     | `String` | The username by which the user wants to be referred to at the application |
+| `profileUrl`            | `String` | The URL of the profile page for the user |
+| `pictureUrl`            | `String` | The URL of the profile picture for the user |
+| `websiteUrl`            | `String` | The URL of the user's web page or blog |
+| `email`                 | `String` | The user's preferred email address |
+| `isEmailVerified`       | `Bool`   | True if the user's email address has been verified, else false<sup>1</sup> |
+| `phoneNumber`           | `String` | The user's preferred telephone number<sup>2</sup> |
+| `isPhoneNumberVerified` | `Bool`   | True if the user's telephone number has been verified, else false<sup>1</sup> |
+| `gender`                | `String` | The user's gender |
+| `birthdate`             | `Date`   | The user's birthday |
+| `zoneInfo`              | `String` | The user's time zone, e.g. `Europe/Paris` or `America/Los_Angeles` |
+| `locale`                | `String` | The end-user's locale, represented as a BCP47 language tag<sup>3</sup> |
+| `address`               | `PowerAuthUserAddress` | The user's preferred postal address |
+| `updatedAt`             | `Date`   | The time the user's information was last updated |
+| `allClaims`             | `[String : Any]` | The full collection of standard claims received from the server |
+
+If the `address` is provided, then `PowerAuthUserAddress` contains the following properties:
+
+| Property                | Type     | Description |
+|-------------------------|----------|-------------|
+| `formatted`             | `String` | The full mailing address, with multiple lines if necessary |
+| `street`                | `String` | The street address component, which may include house number, street name, post office box, and other multi-line information |
+| `locality`              | `String` | City or locality component |
+| `region`                | `String` | State, province, prefecture or region component |
+| `postalCode`            | `String` | Zip code or postal code component |
+| `country`               | `String` | Country name component |
+| `allClaims`             | `[String : Any]` | Full collection of standard claims received from the server |
+
+> Notes:
+> 1. Value is false also when claim is not present in `allClaims` dictionary
+> 2. Phone number is typically in E.164 format, for example `+1 (425) 555-1212` or `+56 (2) 687 2400`
+> 3. This is typically an ISO 639-1 Alpha-2 language code in lowercase and an ISO 3166-1 Alpha-2 country code in uppercase, separated by a dash. For example, `en-US` or `fr-CA`
+
+<!-- begin box info -->
+Be aware that all properties in `PowerAuthUserInfo` and `PowerAuthUserAddress` objects are optional and the availability of information depends on actual implementation on the server.
+<!-- end -->
 
 ### Password Strength Indicator
 

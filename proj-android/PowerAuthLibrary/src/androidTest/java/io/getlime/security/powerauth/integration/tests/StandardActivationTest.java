@@ -16,15 +16,22 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
+import android.text.TextUtils;
+import android.util.Base64;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.google.gson.reflect.TypeToken;
+import io.getlime.security.powerauth.networking.client.JsonSerialization;
+import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
@@ -35,12 +42,6 @@ import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.Activation;
 import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
-import io.getlime.security.powerauth.networking.response.CreateActivationResult;
-import io.getlime.security.powerauth.networking.response.IActivationRemoveListener;
-import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
-import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
-import io.getlime.security.powerauth.networking.response.IUserInfoListener;
-import io.getlime.security.powerauth.networking.response.UserInfo;
 import io.getlime.security.powerauth.sdk.PowerAuthActivation;
 import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
@@ -419,7 +420,7 @@ public class StandardActivationTest {
         assertTrue(powerAuthSDK.hasValidActivation());
     }
 
-    // UserInfo
+    // JWT
 
     @Test
     public void testUserInfo() throws Exception {
@@ -432,7 +433,7 @@ public class StandardActivationTest {
         assertEquals(userId, activationHelper.getCreateActivationResult().getUserInfo().getSubject());
 
         // Now fetch user info from the server
-        UserInfo info = AsyncHelper.await((AsyncHelper.Execution<UserInfo>) resultCatcher -> {
+        UserInfo info = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.fetchUserInfo(testHelper.getContext(), new IUserInfoListener() {
                 @Override
                 public void onUserInfoSucceed(@NonNull UserInfo userInfo) {
@@ -447,5 +448,50 @@ public class StandardActivationTest {
         });
         assertEquals(userId, info.getSubject());
         assertEquals(info, powerAuthSDK.getLastFetchedUserInfo());
+    }
+
+    @Test
+    public void testJwtSignature() throws Exception {
+        activationHelper.createStandardActivation(true, null);
+
+        // Get JWT
+        final HashMap<String, Object> originalClaims = new HashMap<>();
+        originalClaims.put("sub", "1234567890");
+        originalClaims.put("name", "John Doe");
+        originalClaims.put("admin", true);
+        final String jwt = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.signJwtWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), originalClaims, new IJwtSignatureListener() {
+                @Override
+                public void onJwtSignatureSucceed(@NonNull String jwt) {
+                    resultCatcher.completeWithResult(jwt);
+                }
+
+                @Override
+                public void onJwtSignatureFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+
+        // Parse JWT and validate result
+        final JsonSerialization jsonSerialization = new JsonSerialization();
+        final String[] jwtComponents = TextUtils.split(jwt, "\\.");
+        assertEquals(3, jwtComponents.length);
+        final String jwtHeader = jwtComponents[0];
+        final String jwtClaims = jwtComponents[1];
+        final String jwtSignature = jwtComponents[2];
+        // Validate header
+        Map<String, Object> headerObject = jsonSerialization.deserializeObject(Base64.decode(jwtHeader, Base64.NO_WRAP), new TypeToken<Map<String, Object>>() {});
+        assertEquals("JWT", headerObject.get("typ"));
+        assertEquals("ES256", headerObject.get("alg"));
+        // Validate claims
+        Map<String, Object> claimsObject = jsonSerialization.deserializeObject(Base64.decode(jwtClaims, Base64.NO_WRAP), new TypeToken<Map<String, Object>>() {});
+        assertEquals(originalClaims.keySet().size(), claimsObject.keySet().size());
+        claimsObject.forEach((key, value) -> {
+            assertEquals(originalClaims.get(key), value);
+        });
+        // Validate signature
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtClaims, jwtSignature);
+        assertTrue(result);
     }
 }

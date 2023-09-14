@@ -17,6 +17,7 @@
   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
+  - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
@@ -1142,6 +1143,33 @@ powerAuthSDK.signDataWithDevicePrivateKey(context, authentication, data, new IDa
 });
 ```
 <!-- end -->
+
+### Producing Signed JWT with Provided Claims
+
+The asymmetric private key signatures described above can be used to sign claims provided by the developer and construct a signed JWT (signed using ES256 algorithm).
+
+```kotlin
+// Construct claims array
+val claims = mapOf(
+    "sub" to "user-id", 
+    "first_name" to "John",
+    "last_name" to "Appleseed"
+)
+
+// 2FA signature, uses device related key and user PIN code
+val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
+
+// Unlock the secure vault, fetch the private key and perform data signing
+powerAuthSDK.signJwtWithDevicePrivateKey(context, authentication, claims, object : IJwtSignatureListener {
+    override fun onJwtSignatureSucceed(jwt: String) {
+        // Use JWT value
+    }
+
+    override fun onJwtSignatureFailed(t: Throwable) {
+        // Authentication or network error
+    }
+})
+```
 
 ### Symmetric Offline Multi-Factor Signature
 

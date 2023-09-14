@@ -1504,7 +1504,6 @@ static PowerAuthSDK * s_inst;
         NSString *jwt = [NSString stringWithFormat:@"%@.%@.%@", headerBase64Encoded, claimsBase64Encoded, signatureBase64Encoded];
         
         callback(jwt, nil);
-        
     }];
 }
 

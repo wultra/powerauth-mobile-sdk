@@ -589,7 +589,7 @@
  @return PowerAuthOperationTask associated with the running request.
  */
 - (nullable id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
-                                                    claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
+                                                             claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
                                                            callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback;
 
 @end

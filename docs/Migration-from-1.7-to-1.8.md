@@ -52,6 +52,8 @@ Legacy PowerAuth configuration:
 
 - The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometryListener` as a replacement.
 
+- The `PowerAuthAuthentication` object is now immutable object.
+
 - The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 
 - Removed all interfaces deprecated in release `1.7.x`
@@ -142,6 +144,8 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
   - `.commitWithPasswordAndBiometry(password:)` is now `.persistithPasswordAndBiometry(password:)`
   - `.commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)` is now `.persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)`
 
+- The `PowerAuthAuthentication` object is now immutable and no longer implements `NSCopying` protocol.
+
 - `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
 
 - Removed all interfaces deprecated in release `1.7.x`
@@ -203,10 +207,10 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 
 ### API changes
 
-- TBA
+- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
 
 ## watchOS
 
 ### API changes
 
-- TBA
+- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.

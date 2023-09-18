@@ -27,14 +27,10 @@
 @interface PowerAuthAuthentication : NSObject<NSCopying>
 
 /// Indicates if a possession factor should be used.
-///
-/// Modifying content of usePossession property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-@property (nonatomic, assign) BOOL usePossession;
+@property (nonatomic, readonly, assign) BOOL usePossession;
 
 /// Indicates if a biometry factor should be used.
-///
-/// Modifying content of useBiometry property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-@property (nonatomic, assign) BOOL useBiometry;
+@property (nonatomic, readonly, assign) BOOL useBiometry;
 
 /// Contains password safely stored in PowerAuthCorePassword object in case that knowledge factor is required in authentication.
 @property (nonatomic, readonly, strong, nullable) PowerAuthCorePassword * password;
@@ -43,22 +39,16 @@
 ///
 /// Use this value to give user a hint on what is biometric authentication used for in this specific authentication.
 /// For example, include a name of the account user uses to log in.
-///
-/// Modifying content of biometryPrompt property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-@property (nonatomic, strong, nullable) NSString *biometryPrompt;
+@property (nonatomic, readonly, strong, nullable) NSString *biometryPrompt;
 
 /// Indicates if a biometry factor should be used. If both biometryContext and biometryPrompt properties are set, then the context will be applied.
 @property (nonatomic, strong, nullable, readonly) LAContext *biometryContext API_UNAVAILABLE(watchos, tvos);
 
 /// If 'usePossession' is set to YES, this value may specify possession key data. If no custom data is specified, default possession key is used.
-///
-/// Modifying content of overridenPossessionKey property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-@property (nonatomic, strong, nullable) NSData *overridenPossessionKey;
+@property (nonatomic, strong, nullable, readonly) NSData *overridenPossessionKey;
 
 /// If 'useBiometry' is set to YES, this value may specify biometry key data. If no custom data is specified, default biometry key is used for the PowerAuthSDK instance, based on the keychain configuration and SDK instance configuration.
-///
-/// Modifying content of overridenBiometryKey property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-@property (nonatomic, strong, nullable) NSData *overridenBiometryKey;
+@property (nonatomic, strong, nullable, readonly) NSData *overridenBiometryKey;
 
 @end
 

@@ -585,6 +585,19 @@
                                                                 data:(nullable NSData*)data
                                                             callback:(nonnull void(^)(NSData * _Nullable signature, NSError * _Nullable error))callback;
 
+/** Sign provided claims with the original device private key (asymmetric signature).
+ 
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for private key decryption. Claims provided as a dictionary is then converted to Base64 encoded format and signed using ECDSA algorithm (ES256) with the private key and converted to JWT representation that can be validated on the server side.
+ 
+ @param authentication Authentication used for vault unlocking call.
+ @param claims Claims to be signed with the private key.
+ @param callback The callback method with the signed JWT.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(nonnull PowerAuthAuthentication*)authentication
+                                                             claims:(nonnull NSDictionary<NSString*, NSObject*>*)claims
+                                                           callback:(nonnull void(^)(NSString * _Nullable jwt, NSError * _Nullable error))callback;
+
 @end
 
 

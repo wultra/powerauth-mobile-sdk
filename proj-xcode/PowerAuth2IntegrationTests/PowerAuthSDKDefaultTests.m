@@ -1281,7 +1281,7 @@
 
 #endif // PA2_BIOMETRY_SUPPORT
 
-#pragma mark - User Info
+#pragma mark - JWT
 
 - (void) testUserInfo
 {
@@ -1307,6 +1307,55 @@
     XCTAssertNotNil(info);
     XCTAssertEqualObjects(info.subject, _helper.testServerConfig.userIdentifier);
     XCTAssertEqual(info, _sdk.lastFetchedUserInfo);
+}
+
+- (void) testJwtSignature
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    // Get JWT
+    NSDictionary * originalClaims = @{@"sub": @"1234567890", @"name": @"John Doe", @"admin": @(YES)};
+    NSString * jwt = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk signJwtWithDevicePrivateKey:_helper.authPossessionWithKnowledge claims:originalClaims callback:^(NSString * jwt, NSError * error) {
+            [waiting reportCompletion:jwt];
+        }];
+    }];
+    
+    // Parse JWT and validate result
+    XCTAssertNotNil(jwt);
+    NSArray * jwtComponents = [jwt componentsSeparatedByString:@"."];
+    XCTAssertEqual(3, jwtComponents.count);
+    if (jwtComponents.count != 3) {
+        return;
+    }
+    NSString * jwtHeader = jwtComponents[0];
+    NSString * jwtClaims = jwtComponents[1];
+    NSString * jwtSignature = jwtComponents[2];
+    // Validate header
+    NSData * jwtHeaderData = [[NSData alloc] initWithBase64EncodedString:jwtHeader options:0];
+    XCTAssertNotNil(jwtHeaderData);
+    NSDictionary * headerObject = [NSJSONSerialization JSONObjectWithData:jwtHeaderData options:0 error:NULL];
+    XCTAssertNotNil(headerObject);
+    XCTAssertEqualObjects(@"JWT", headerObject[@"typ"]);
+    XCTAssertEqualObjects(@"ES256", headerObject[@"alg"]);
+    // Validate claims
+    NSData * jwtClaimsData = [[NSData alloc] initWithBase64EncodedString:jwtClaims options:0];
+    XCTAssertNotNil(jwtClaimsData);
+    NSDictionary * claims = [NSJSONSerialization JSONObjectWithData:jwtClaimsData options:0 error:NULL];
+    XCTAssertEqual(originalClaims.count, claims.count);
+    [originalClaims enumerateKeysAndObjectsUsingBlock:^(id key, id  originalObj, BOOL * stop) {
+        id obj = claims[key];
+        XCTAssertEqualObjects(originalObj, obj);
+    }];
+    // Validate signature
+    NSData * jwtSignatureData = [[NSData alloc] initWithBase64EncodedString:jwtSignature options:0];
+    XCTAssertNotNil(jwtSignatureData);
+    BOOL result = [_helper.testServerApi verifyECDSASignature:_sdk.activationIdentifier data:jwtClaimsData signature:jwtSignatureData];
+    XCTAssertTrue(result);
 }
 
 @end

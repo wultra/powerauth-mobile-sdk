@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Base64;
 import androidx.annotation.CheckResult;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
@@ -2298,6 +2300,51 @@ public class PowerAuthSDK {
                     // Otherwise just report the failure.
                     callback.onBiometricDialogFailed(error);
                 }
+            }
+        });
+    }
+
+    // JWT
+
+    /**
+     * Sign provided claims with the original device private key (asymmetric signature).
+     * <p>
+     * This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key
+     * used for private key decryption. Claims provided as a dictionary is then converted to Base64 encoded format and
+     * signed using ECDSA algorithm (ES256) with the private key and converted to JWT representation that can be
+     * validated on the server side.
+     *
+     * @param context Android context.
+     * @param authentication Authentication object that must contain the possession factor.
+     * @param claims Claims to be signed with the private key.
+     * @param listener Listener with the callback methods
+     * @return {@link ICancelable} object associated with the underlying HTTP request.
+     */
+    @Nullable
+    public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
+        final JsonSerialization serialization = new JsonSerialization();
+        final byte[] serializedClaims = serialization.serializeObject(claims);
+        return signDataWithDevicePrivateKey(context, authentication, serializedClaims, new IDataSignatureListener() {
+            @Override
+            public void onDataSignedSucceed(@NonNull byte[] signature) {
+                // Prepare header
+                final HashMap<String, String> header = new HashMap<>();
+                header.put("alg", "ES256");
+                header.put("typ", "JWT");
+                final byte[] headerData = serialization.serializeObject(header);
+                final String headerBase64 = Base64.encodeToString(headerData, Base64.NO_WRAP);
+                // Prepare claims data
+                final String claimsBase64 = Base64.encodeToString(serializedClaims, Base64.NO_WRAP);
+                // Encoded signature
+                final String signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP);
+                // Construct final JWT
+                final String jwt = headerBase64 + "." + claimsBase64 + "." + signatureBase64;
+                listener.onJwtSignatureSucceed(jwt);
+            }
+
+            @Override
+            public void onDataSignedFailed(@NonNull Throwable t) {
+                listener.onJwtSignatureFailed(t);
             }
         });
     }

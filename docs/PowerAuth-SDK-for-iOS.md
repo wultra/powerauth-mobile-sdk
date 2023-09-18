@@ -22,6 +22,7 @@
 - [Data Signing](#data-signing)
   - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
+  - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
   - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
@@ -612,6 +613,31 @@ let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 PowerAuthSDK.sharedInstance().signData(withDevicePrivateKey: auth, data: data) { (signature, error) in
     if error == nil {
         // Send data and signature to the server
+    } else {
+        // Authentication or network error
+    }
+}
+```
+
+### Producing Signed JWT with Provided Claims
+
+The asymmetric private key signatures described above can be used to sign claims provided by the developer and construct a signed JWT (signed using ES256 algorithm).
+
+```swift
+// Construct claims array
+let claims = [
+    "sub": "user-id",
+    "first_name": "John",
+    "last_name": "Appleseed"
+]
+
+// 2FA signature, uses device related key and user PIN code
+let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
+
+// Unlock the secure vault, fetch the private key and perform data signing
+PowerAuthSDK.sharedInstance().signJwt(withDevicePrivateKey: auth, claims: claims) { (jwt, error) in
+    if let jwt {
+        // Use JWT value
     } else {
         // Authentication or network error
     }

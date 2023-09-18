@@ -809,7 +809,7 @@
     // 6. Create a new authentication and commit it to the SDK.
     
     auth = [_helper createAuthentication];
-    result = [_sdk commitActivationWithAuthentication:auth error:&operationError];
+    result = [_sdk persistActivationWithAuthentication:auth error:&operationError];
     XCTAssertTrue(result);
     
     // 7. Cleanup - remove activation on the server.
@@ -960,7 +960,7 @@
     XCTAssertTrue(_sdk.hasValidActivation);
     
     NSError * err = nil;
-    BOOL res = [_sdk commitActivationWithPassword:@"1234" error:&err];
+    BOOL res = [_sdk persistActivationWithPassword:@"1234" error:&err];
     XCTAssertFalse(res);
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, err.powerAuthErrorCode);
     

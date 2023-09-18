@@ -4,6 +4,7 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
 
 - Added support for simplified configuration. The SDK is now configured with using one Base64 encoded string instead of three separate values.
 - Added support for PowerAuth protocol version 3.2, including End-To-End encryption improvements and time synchronized with the server.
+- We have replaced the term 'commit activation' with 'persist activation' in our terminology. This change clearly distinguishes between the commit activation process on the server and the activation completion process on the mobile device.
 
 ### Compatibility with PowerAuth Server
 
@@ -34,10 +35,23 @@ Legacy PowerAuth configuration:
                 "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
             ).build();
     ```
+
 - `PowerAuthSDK.Builder.build()` now require to use application's context to build instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
   ```kotlin
   PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
   ```
+
+- The following methods are now deprecated in `PowerAuthAuthentication` class:
+  - All variants of `commitWithPassword()` are now replaced with `persistWithPassword()`
+  - All variants of `commitWithPasswordAndBiometry()` are now `persistWithPasswordAndBiometry()`
+
+- The following methods are now deprecated in `PowerAuthSDK` class:
+  - `commitActivationWithAuthentication()` is now `persistActivationWithAuthentication()`
+  - All variants of `commitActivationWithPassword()` are now `persistActivationWithPassword()`
+  - All variants of `commitActivation()` are now `persistActivation()`
+
+- The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometryListener` as a replacement.
+
 - The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 
 ### Other changes
@@ -115,6 +129,16 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
     ```
   - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey` properties.
   - Constructor with no parameters is no longer supported.
+
+- The following methods in `PowerAuthSDK` are now deprecated:
+  - `commitActivation(with:)` is now replaced with `persistActivation(with:)`
+  - `commitActivation(withPassword:)` is now replaced with `persistActivation(withPassword:)`
+
+- The following methods in `PowerAuthAuthentication` are now deprecated:
+  - `.commitWithPassword(password:)` is replaced with `.persistWithPassword(password:)`
+  - `.commitWithPassword(password:customPossessionKey:)` is now `.persistWithPassword(password:customPossessionKey:)`
+  - `.commitWithPasswordAndBiometry(password:)` is now `.persistithPasswordAndBiometry(password:)`
+  - `.commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)` is now `.persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)`
 
 - `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
 

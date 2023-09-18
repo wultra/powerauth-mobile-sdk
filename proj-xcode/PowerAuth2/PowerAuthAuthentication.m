@@ -26,7 +26,7 @@
     NSInteger _objectUsage;
 }
 
-#define AUTH_FOR_COMMIT         1
+#define AUTH_FOR_PERSIST        1
 #define AUTH_FOR_SIGN           2
 
 - (id) initWithObjectUsage:(NSInteger)objectUsage
@@ -88,8 +88,8 @@
     NSString * usage_str;
     if (_objectUsage == AUTH_FOR_SIGN) {
         usage_str = @"for sign";
-    } else if (_objectUsage == AUTH_FOR_COMMIT) {
-        usage_str = @"for commit";
+    } else if (_objectUsage == AUTH_FOR_PERSIST) {
+        usage_str = @"for persist";
     } else {
         usage_str = @"legacy";
     }
@@ -151,35 +151,66 @@
 
 @implementation PowerAuthAuthentication (EasyAccessors)
 
-// MARK: - Commit, Possession + Knowledge
+// MARK: - Persist, Possession + Knowledge
+
++ (PowerAuthAuthentication*) persistWithPassword:(NSString*)password
+{
+    return [self persistWithCorePassword:[PowerAuthCorePassword passwordWithString:password]];
+}
+
++ (PowerAuthAuthentication*) persistWithPassword:(NSString*)password
+                             customPossessionKey:(NSData*)customPossessionKey
+{
+    return [self persistWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
+                     customPossessionKey:customPossessionKey];
+}
+
+// MARK: Persist, Possession + Knowledge + Biometry
+
++ (PowerAuthAuthentication*) persistWithPasswordAndBiometry:(NSString*)password
+{
+    return [self persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:password]];
+}
+
++ (PowerAuthAuthentication*) persistWithPasswordAndBiometry:(NSString*)password
+                                          customBiometryKey:(NSData*)customBiometryKey
+                                        customPossessionKey:(NSData*)customPossessionKey
+{
+    return [self persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:password]
+                                  customBiometryKey:customBiometryKey
+                                customPossessionKey:customPossessionKey];
+}
+
+// Commit - Deprecated
 
 + (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
 {
-    return [self commitWithCorePassword:[PowerAuthCorePassword passwordWithString:password]];
+    return [self persistWithPassword:password];
 }
 
 + (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
                             customPossessionKey:(NSData*)customPossessionKey
 {
-    return [self commitWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
-                    customPossessionKey:customPossessionKey];
+    return [self persistWithPassword:password customPossessionKey:customPossessionKey];
 }
 
 // MARK: Commit, Possession + Knowledge + Biometry
 
 + (PowerAuthAuthentication*) commitWithPasswordAndBiometry:(NSString*)password
 {
-    return [self commitWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:password]];
+    return [self persistWithPasswordAndBiometry:password];
 }
 
 + (PowerAuthAuthentication*) commitWithPasswordAndBiometry:(NSString*)password
                                          customBiometryKey:(NSData*)customBiometryKey
                                        customPossessionKey:(NSData*)customPossessionKey
 {
-    return [self commitWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:password]
-                                 customBiometryKey:customBiometryKey
-                               customPossessionKey:customPossessionKey];
+    return [self persistWithPasswordAndBiometry:password
+                              customBiometryKey:customBiometryKey
+                            customPossessionKey:customPossessionKey];
 }
+
+
 
 // MARK: - Signing, Possession only
 
@@ -310,9 +341,9 @@
 
 @implementation PowerAuthAuthentication (CorePassword)
 
-+ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
++ (PowerAuthAuthentication*) persistWithCorePassword:(PowerAuthCorePassword*)password
 {
-    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_PERSIST
                                                        password:password
                                                        biometry:NO
                                                  biometryPrompt:nil
@@ -321,10 +352,10 @@
                                               customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
-                                customPossessionKey:(NSData*)customPossessionKey
++ (PowerAuthAuthentication*) persistWithCorePassword:(PowerAuthCorePassword*)password
+                                 customPossessionKey:(NSData*)customPossessionKey
 {
-    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_PERSIST
                                                        password:password
                                                        biometry:NO
                                                  biometryPrompt:nil
@@ -333,9 +364,9 @@
                                               customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
++ (PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
 {
-    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_PERSIST
                                                        password:password
                                                        biometry:YES
                                                  biometryPrompt:nil
@@ -344,11 +375,11 @@
                                               customBiometryKey:nil];
 }
 
-+ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
-                                             customBiometryKey:(NSData*)customBiometryKey
-                                           customPossessionKey:(NSData*)customPossessionKey
++ (PowerAuthAuthentication*) persistWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
+                                              customBiometryKey:(NSData*)customBiometryKey
+                                            customPossessionKey:(NSData*)customPossessionKey
 {
-    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_COMMIT
+    return [[PowerAuthAuthentication alloc] initWithObjectUsage:AUTH_FOR_PERSIST
                                                        password:password
                                                        biometry:YES
                                                  biometryPrompt:nil
@@ -356,6 +387,31 @@
                                             customPossessionKey:customPossessionKey
                                               customBiometryKey:customBiometryKey];
 }
+
+// PA2_DEPRECATED(1.8.0)
++ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
+{
+    return [self persistWithCorePassword:password];
+}
+// PA2_DEPRECATED(1.8.0)
++ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
+                                customPossessionKey:(NSData*)customPossessionKey
+{
+    return [self persistWithCorePassword:password customPossessionKey:customPossessionKey];
+}
+// PA2_DEPRECATED(1.8.0)
++ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
+{
+    return [self persistWithCorePasswordAndBiometry:password];
+}
+// PA2_DEPRECATED(1.8.0)
++ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
+                                             customBiometryKey:(NSData*)customBiometryKey
+                                           customPossessionKey:(NSData*)customPossessionKey
+{
+    return [self persistWithCorePasswordAndBiometry:password customBiometryKey:customBiometryKey customPossessionKey:customPossessionKey];
+}
+
 
 + (PowerAuthAuthentication *) possessionWithCorePassword:(PowerAuthCorePassword*)password
 {
@@ -396,15 +452,15 @@
     return result;
 }
 
-- (BOOL) validateUsage:(BOOL)forCommit
+- (BOOL) validateUsage:(BOOL)forPersist
 {
     if (_objectUsage == 0) {
         PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object created with legacy constructor.");
         return NO;
     }
-    if (forCommit != (_objectUsage == AUTH_FOR_COMMIT)) {
-        if (forCommit) {
-            PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation commit is expected.");
+    if (forPersist != (_objectUsage == AUTH_FOR_PERSIST)) {
+        if (forPersist) {
+            PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation persist is expected.");
         } else {
             PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
         }

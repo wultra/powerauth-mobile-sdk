@@ -103,8 +103,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndCommitWithPassword() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_PASSWORD, null);
+    public void testCreateAndPersistWithPassword() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_PASSWORD, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getValidPassword()));
         assertTrue(passwordValid);
@@ -113,8 +113,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndCommitWithPasswordAlt() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_PASSWORD | ActivationHelper.TF_COMMIT_WITH_ALTERNATE_METHOD, null);
+    public void testCreateAndPersistWithPasswordAlt() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_ALTERNATE_METHOD, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getValidPassword()));
         assertTrue(passwordValid);
@@ -123,8 +123,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndCommitWithCorePassword() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_CORE_PASSWORD, null);
+    public void testCreateAndPersistWithCorePassword() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);
@@ -133,8 +133,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndCommitWithCorePasswordAlt() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_COMMIT_WITH_CORE_PASSWORD | ActivationHelper.TF_COMMIT_WITH_ALTERNATE_METHOD, null);
+    public void testCreateAndPersistWithCorePasswordAlt() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_ALTERNATE_METHOD, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);
@@ -211,10 +211,10 @@ public class StandardActivationTest {
         assertTrue(powerAuthSDK.hasPendingActivation());
         assertFalse(powerAuthSDK.canStartActivation());
 
-        // Commit activation locally
-        int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        // Persist activation locally
+        int resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
         if (resultCode != PowerAuthErrorCodes.SUCCEED) {
-            throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
+            throw new Exception("PowerAuthSDK.persist failed with error code " + resultCode);
         }
 
         assertTrue(powerAuthSDK.hasValidActivation());
@@ -394,7 +394,7 @@ public class StandardActivationTest {
     public void testCallToCreateActivationInWrongState() throws Exception {
         activationHelper.createStandardActivation(true, null);
 
-        int result = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), "1234");
+        int result = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), "1234");
         assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, result);
         assertTrue(powerAuthSDK.hasValidActivation());
 

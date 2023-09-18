@@ -216,38 +216,73 @@
                                                         callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
- Commit activation that was created and store related data using provided authentication instance.
+ Persist activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
  */
-- (BOOL) commitActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-                                      error:(NSError * _Nullable * _Nullable)error;
+- (BOOL) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                       error:(NSError * _Nullable * _Nullable)error;
 
-/** Commit activation that was created and store related data using default authentication instance setup with provided password.
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
- Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
+ Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) persistActivationWithPassword:(nonnull NSString*)password
+                                 error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(persistActivation(withPassword:));
+
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
+ 
+ Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
+ 
+ @param password Password to be used for the knowledge related authentication factor.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                     error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(persistActivation(withPassword:));
+
+/**
+ Persist activation that was created and store related data using provided authentication instance.
+ 
+ @param authentication An authentication instance specifying what factors should be stored.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(with:)` method as a replacement.
+ */
+- (BOOL) commitActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                      error:(NSError * _Nullable * _Nullable)error PA2_DEPRECATED(1.8.0);
+
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
+ 
+ @param password Password to be used for the knowledge related authentication factor.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(withPassword:)` method as a replacement.
  */
 - (BOOL) commitActivationWithPassword:(nonnull NSString*)password
                                 error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(commitActivation(withPassword:));
+                            NS_SWIFT_NAME(commitActivation(withPassword:)) PA2_DEPRECATED(1.8.0);
 
-/** Commit activation that was created and store related data using default authentication instance setup with provided password.
- 
- Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(withPassword:)` method as a replacement.
  */
 - (BOOL) commitActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                     error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(commitActivation(withPassword:));
+                            NS_SWIFT_NAME(commitActivation(withPassword:))
+                            PA2_DEPRECATED(1.8.0);
+
 /**
  Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.
  */

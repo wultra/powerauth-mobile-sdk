@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.nio.charset.Charset;
 import java.util.List;
 
 import io.getlime.security.powerauth.core.ActivationStatus;
@@ -66,20 +65,20 @@ public class ActivationHelper {
      * Create activation with activation code and signature. If not used, then just unsigned
      * activation code will be used.
      */
-    public static final int TF_CREATE_WITH_SIGNATURE           = 0x0001;
+    public static final int TF_CREATE_WITH_SIGNATURE            = 0x0001;
     /**
-     * Commit method with String password will be used.
+     * Persist method with String password will be used.
      */
-    public static final int TF_COMMIT_WITH_PASSWORD            = 0x0002;
+    public static final int TF_PERSIST_WITH_PASSWORD            = 0x0002;
     /**
-     * Commit method with core/Password will be used.
+     * Persist method with core/Password will be used.
      */
-    public static final int TF_COMMIT_WITH_CORE_PASSWORD       = 0x0004;
+    public static final int TF_PERSIST_WITH_CORE_PASSWORD       = 0x0004;
     /**
-     * Alternate method that accept biometric key will be used for commit. Must be combined with
+     * Alternate method that accept biometric key will be used for persist. Must be combined with
      * TF_COMMIT_WITH_PASSWORD or TF_COMMIT_WITH_CORE_PASSWORD.
      */
-    public static final int TF_COMMIT_WITH_ALTERNATE_METHOD    = 0x0008;
+    public static final int TF_PERSIST_WITH_ALTERNATE_METHOD    = 0x0008;
 
     /**
      * Helper's state.
@@ -276,9 +275,9 @@ public class ActivationHelper {
     public @NonNull ActivationDetail createStandardActivation(int flags, @Nullable String extras) throws Exception {
 
         final boolean codeWithSignature = (flags & TF_CREATE_WITH_SIGNATURE) != 0;
-        final boolean commitWithPassword = (flags & TF_COMMIT_WITH_PASSWORD) != 0;
-        final boolean commitWithCorePassword = (flags & TF_COMMIT_WITH_CORE_PASSWORD) != 0;
-        final boolean commitWithAlternateMethod = (flags & TF_COMMIT_WITH_ALTERNATE_METHOD) != 0;
+        final boolean persistWithPassword = (flags & TF_PERSIST_WITH_PASSWORD) != 0;
+        final boolean persistWithCorePassword = (flags & TF_PERSIST_WITH_CORE_PASSWORD) != 0;
+        final boolean persistWithAlternateMethod = (flags & TF_PERSIST_WITH_ALTERNATE_METHOD) != 0;
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -327,22 +326,22 @@ public class ActivationHelper {
         assertNotNull(powerAuthSDK.getActivationIdentifier());
         assertNotNull(powerAuthSDK.getActivationFingerprint());
 
-        // Commit activation locally
+        // Persist activation locally
         int resultCode;
-        if (commitWithPassword) {
-            if (commitWithAlternateMethod) {
-                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        if (persistWithPassword) {
+            if (persistWithAlternateMethod) {
+                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
             } else {
-                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0));
+                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0));
             }
-        } else if (commitWithCorePassword) {
-            if (commitWithAlternateMethod) {
-                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
+        } else if (persistWithCorePassword) {
+            if (persistWithAlternateMethod) {
+                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
             } else {
-                resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)));
+                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)));
             }
         } else {
-            resultCode = powerAuthSDK.commitActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.commitWithPassword(passwords.get(0)));
+            resultCode = powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.persistWithPassword(passwords.get(0)));
         }
         if (resultCode != PowerAuthErrorCodes.SUCCEED) {
             throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
@@ -398,7 +397,7 @@ public class ActivationHelper {
         this.createActivationResult = createActivationResult;
         final List<String> passwords = prepareAuthentications();
         // Commit activation locally
-        int resultCode = powerAuthSDK.commitActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        int resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
         if (resultCode != PowerAuthErrorCodes.SUCCEED) {
             throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
         }

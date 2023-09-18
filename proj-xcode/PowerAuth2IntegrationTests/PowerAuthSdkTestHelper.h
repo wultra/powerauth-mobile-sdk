@@ -26,12 +26,12 @@
 #import <PowerAuth2/PowerAuthMacros.h> // Expose SDK macros, to allow platform specific #if-defs
 
 typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
-    TestActivationFlags_None                    = 0,
-    TestActivationFlags_UseSignature            = 1 << 0,
-    TestActivationFlags_CommitWithPlainPassword = 1 << 1,
-    TestActivationFlags_CommitWithCorePassword  = 1 << 2,
-    TestActivationFlags_CommitWithBiometry      = 1 << 3,
-    TestActivationFlags_RemoveAfter             = 1 << 31,
+    TestActivationFlags_None                     = 0,
+    TestActivationFlags_UseSignature             = 1 << 0,
+    TestActivationFlags_PersistWithPlainPassword = 1 << 1,
+    TestActivationFlags_PersistWithCorePassword  = 1 << 2,
+    TestActivationFlags_PersistWithBiometry      = 1 << 3,
+    TestActivationFlags_RemoveAfter              = 1 << 31,
 };
 
 /**
@@ -213,12 +213,12 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 
 /**
- Creates a new PowerAuthAuthentication object for commit with default configuration.
+ Creates a new PowerAuthAuthentication object configured to persist activation with default configuration.
  */
 - (PowerAuthAuthentication*) createAuthentication;
 
 /**
- Creates a new PowerAuthAuthentication object for commit with biometry.
+ Creates a new PowerAuthAuthentication object configured to persist activation with biometry.
  */
 - (PowerAuthAuthentication*) createAuthenticationWithBiometry;
 

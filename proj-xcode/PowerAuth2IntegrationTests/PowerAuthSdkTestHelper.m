@@ -237,9 +237,9 @@ static NSString * PA_Ver = @"3.2";
 {
     BOOL useSignature = (flags & TestActivationFlags_UseSignature) != 0;
     BOOL removeAfter = (flags & TestActivationFlags_RemoveAfter) != 0;
-    BOOL commitWithPass = (flags & TestActivationFlags_CommitWithPlainPassword) != 0;
-    BOOL commitWithCorePass = (flags & TestActivationFlags_CommitWithCorePassword) != 0;
-    BOOL commitWithBio  = (flags & TestActivationFlags_CommitWithBiometry) != 0;
+    BOOL commitWithPass = (flags & TestActivationFlags_PersistWithPlainPassword) != 0;
+    BOOL commitWithCorePass = (flags & TestActivationFlags_PersistWithCorePassword) != 0;
+    BOOL commitWithBio  = (flags & TestActivationFlags_PersistWithBiometry) != 0;
     _currentActivation = nil;
     
     XCTAssertFalse([_sdk hasPendingActivation]);

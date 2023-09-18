@@ -150,23 +150,4 @@ public class PowerAuthAuthenticationTests {
         assertArrayEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
         assertEquals(1 + 4, authentication.getSignatureFactorsMask());
     }
-
-    @Test
-    public void testLegacyObjectConstructor() throws Exception {
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        assertFalse(authentication.validateAuthenticationUsage(false));
-        assertFalse(authentication.validateAuthenticationUsage(true));
-    }
-
-    @Test
-    public void testLegacyObjectConstructorWithStrictMode() throws Exception {
-        PowerAuthAuthenticationHelper.setStrictModeForUsageValidation(true);
-        PowerAuthAuthentication authentication = new PowerAuthAuthentication();
-        try {
-            authentication.validateAuthenticationUsage(false);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // Ignore exception
-        }
-    }
 }

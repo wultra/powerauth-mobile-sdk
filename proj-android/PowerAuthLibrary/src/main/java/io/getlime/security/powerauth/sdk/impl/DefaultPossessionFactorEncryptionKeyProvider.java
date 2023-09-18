@@ -23,8 +23,6 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.CryptoUtils;
-import io.getlime.security.powerauth.networking.response.IFetchEncryptionKeyListener;
-import io.getlime.security.powerauth.networking.response.IFetchKeysStrategy;
 
 /**
  * The {@code DefaultPossessionEncryptionKeyProvider} class provides default implementation for {@link IPossessionFactorEncryptionKeyProvider}.
@@ -52,22 +50,5 @@ public class DefaultPossessionFactorEncryptionKeyProvider implements IPossession
     @NonNull
     private static byte[] normalizeStringToSignatureKek(@NonNull String keyData) {
         return CryptoUtils.hashSha256(keyData.getBytes(), 16);
-    }
-
-    /**
-     * Create {@link IPossessionFactorEncryptionKeyProvider} from provided deprecated {@link IFetchKeysStrategy} interface.
-     * @param strategy Deprecated strategy interface.
-     * @return {@link IPossessionFactorEncryptionKeyProvider} implementation that use deprecated {@link IFetchKeysStrategy} interface
-     *         as a key data source.
-     */
-    @NonNull
-    public static IPossessionFactorEncryptionKeyProvider createFromFetchKeyStrategy(@NonNull final IFetchKeysStrategy strategy) {
-        return new IPossessionFactorEncryptionKeyProvider() {
-            @NonNull
-            @Override
-            public byte[] getPossessionFactorEncryptionKey(@NonNull Context context) {
-                return DefaultPossessionFactorEncryptionKeyProvider.normalizeStringToSignatureKek(strategy.getPossessionUnlockKey(context));
-            }
-        };
     }
 }

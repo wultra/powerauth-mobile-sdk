@@ -24,8 +24,6 @@ import androidx.annotation.Nullable;
 import java.util.Arrays;
 
 import io.getlime.security.powerauth.core.SessionSetup;
-import io.getlime.security.powerauth.networking.response.IFetchKeysStrategy;
-import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
 import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
 
 /**
@@ -36,7 +34,6 @@ public class PowerAuthConfiguration {
     private final @NonNull String instanceId;
     private final @NonNull String baseEndpointUrl;
     private final @NonNull SessionSetup sessionSetup;
-    private final @Nullable IFetchKeysStrategy fetchKeysStrategy;
     private final boolean disableAutomaticProtocolUpgrade;
     private final int offlineSignatureComponentLength;
 
@@ -78,13 +75,6 @@ public class PowerAuthConfiguration {
      */
     public @Nullable byte[] getExternalEncryptionKey() {
         return sessionSetup.externalEncryptionKey;
-    }
-
-    /**
-     * @return {@link IPossessionFactorEncryptionKeyProvider} provider for possession factor encryption key.
-     */
-    public @Nullable IFetchKeysStrategy getFetchKeysStrategy() {
-        return fetchKeysStrategy;
     }
 
     /**
@@ -134,20 +124,17 @@ public class PowerAuthConfiguration {
      * @param instanceId Identifier of the PowerAuthSDK instance, used as a 'key' to store session state.
      * @param baseEndpointUrl Base URL to the PowerAuth Standard REST API (the URL part before {@code "/pa/..."}).
      * @param sessionSetup Setup for core/Session object.
-     * @param fetchKeysStrategy {@link IFetchKeysStrategy} interface for key providing strategy.
      * @param disableAutomaticProtocolUpgrade If set to {@code true}, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
      */
     private PowerAuthConfiguration(
             @NonNull String instanceId,
             @NonNull String baseEndpointUrl,
             @NonNull SessionSetup sessionSetup,
-            @Nullable IFetchKeysStrategy fetchKeysStrategy,
             boolean disableAutomaticProtocolUpgrade,
             int offlineSignatureComponentLength) {
         this.instanceId = instanceId;
         this.baseEndpointUrl = baseEndpointUrl;
         this.sessionSetup = sessionSetup;
-        this.fetchKeysStrategy = fetchKeysStrategy;
         this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
         this.offlineSignatureComponentLength = offlineSignatureComponentLength;
     }
@@ -161,7 +148,6 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private IFetchKeysStrategy fetchKeysStrategy = null;
         private byte[] externalEncryptionKey = null;
         private boolean disableAutomaticProtocolUpgrade = false;
         private int offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
@@ -191,21 +177,6 @@ public class PowerAuthConfiguration {
          */
         public @NonNull Builder instanceId(@NonNull String instanceId) {
             this.instanceId = instanceId;
-            return this;
-        }
-
-        /**
-         * Set application's provided implementation of {@link IFetchKeysStrategy}.
-         *
-         * The interface is deprecated since 1.7.0. If you still use this method, then please contact
-         * us that we can provide a new solution for you.
-         *
-         * @param fetchKeysStrategy {@link IFetchKeysStrategy} interface for key providing strategy.
-         * @return {@link Builder}
-         */
-        @Deprecated // 1.7.0
-        public @NonNull Builder fetchKeysStrategy(@NonNull IFetchKeysStrategy fetchKeysStrategy) {
-            this.fetchKeysStrategy = fetchKeysStrategy;
             return this;
         }
 
@@ -249,7 +220,6 @@ public class PowerAuthConfiguration {
                     instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
                     baseEndpointUrl,
                     sessionSetup,
-                    fetchKeysStrategy,
                     disableAutomaticProtocolUpgrade,
                     offlineSignatureComponentLength);
         }

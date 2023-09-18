@@ -40,7 +40,6 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("com.wultra.android.powerauth.test", configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
-        assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
     }
@@ -56,7 +55,6 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals(PowerAuthConfiguration.DEFAULT_INSTANCE_ID, configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
-        assertNull(configuration.getFetchKeysStrategy());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
         assertEquals(8, configuration.getOfflineSignatureComponentLength());
@@ -75,7 +73,6 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals(PowerAuthConfiguration.DEFAULT_INSTANCE_ID, configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
-        assertNull(configuration.getFetchKeysStrategy());
         assertArrayEquals(expectedEEK, configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
         // Test EEK after modify

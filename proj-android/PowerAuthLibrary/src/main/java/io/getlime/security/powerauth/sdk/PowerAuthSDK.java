@@ -203,12 +203,7 @@ public class PowerAuthSDK {
             final ISavePowerAuthStateListener stateListener = mStateListener != null ? mStateListener : new DefaultSavePowerAuthStateListener(statusKeychain);
 
             // Prepare possession factor encryption key provider
-            final IPossessionFactorEncryptionKeyProvider possessionEncryptionKeyProvider;
-            if (mConfiguration.getFetchKeysStrategy() == null) {
-                possessionEncryptionKeyProvider = new DefaultPossessionFactorEncryptionKeyProvider();
-            } else {
-                possessionEncryptionKeyProvider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(mConfiguration.getFetchKeysStrategy());
-            }
+            final IPossessionFactorEncryptionKeyProvider possessionEncryptionKeyProvider = new DefaultPossessionFactorEncryptionKeyProvider();
 
             // Prepare time synchronization service and connect it with HTTP client.
             final DefaultServerStatusProvider serverStatusProvider = new DefaultServerStatusProvider(httpClient, sharedLock, mCallbackDispatcher);
@@ -1757,10 +1752,6 @@ public class PowerAuthSDK {
 
         // Determine authentication factor type
         @SignatureFactor final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
-        // @Deprecated // 1.7.0 - the next test is no longer required once we migrate to immutable authentication object
-        if (signatureFactor == 0) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid combination of signature factors.");
-        }
 
         // Generate signature key encryption keys
         final SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
@@ -2254,22 +2245,6 @@ public class PowerAuthSDK {
                 listener.onFetchEncryptionKeyFailed(t);
             }
         });
-    }
-
-    /**
-     * Validate a user password. This method calls PowerAuth REST API endpoint to validate the password on the server.
-     * This method is deprecated and you can use {@link #validatePassword(Context, String, IValidatePasswordListener)}
-     * as a replacement.
-     *
-     * @param context  Context.
-     * @param password Password to be verified.
-     * @param listener The callback method with error associated with the password validation.
-     * @return {@link ICancelable} object associated with the running HTTP request.
-     */
-    @Deprecated // 1.7.2
-    public @Nullable
-    ICancelable validatePasswordCorrect(@NonNull Context context, @NonNull String password, @NonNull final IValidatePasswordListener listener) {
-        return validatePassword(context, new Password(password), listener);
     }
 
     /**

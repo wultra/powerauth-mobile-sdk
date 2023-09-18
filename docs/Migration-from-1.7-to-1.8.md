@@ -54,6 +54,8 @@ Legacy PowerAuth configuration:
 
 - The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 
+- Removed all interfaces deprecated in release `1.7.x`
+
 ### Other changes
 
 #### Synchronized time
@@ -141,6 +143,8 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
   - `.commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)` is now `.persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)`
 
 - `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
+
+- Removed all interfaces deprecated in release `1.7.x`
 
 ### Other changes
 

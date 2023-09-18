@@ -39,22 +39,6 @@ public class CryptoUtils {
     /**
      * Validates ECDSA signature for given data and EC public key.
      *
-     * This method is now deprecated. As a replacement you can use {@link #ecdsaValidateSignature(byte[], byte[], EcPublicKey)}
-     * variant that provides a better performance.
-     *
-     * @param data signed data
-     * @param signature signature calculated for data
-     * @param publicKeyData EC public key
-     * @return true if signature is valid
-     */
-    @Deprecated // 1.7.0
-    public static boolean ecdsaValidateSignature(byte[] data, byte[] signature, byte[] publicKeyData) {
-        return ecdsaValidateSignature(data, signature, new EcPublicKey(publicKeyData));
-    }
-
-    /**
-     * Validates ECDSA signature for given data and EC public key.
-     *
      * @param data signed data
      * @param signature signature calculated for data
      * @param publicKey EC public key

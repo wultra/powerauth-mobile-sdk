@@ -16,8 +16,6 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import java.nio.charset.Charset;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.Password;
@@ -26,33 +24,19 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 /**
  * Class representing a multi-factor authentication object.
  */
-@SuppressWarnings("deprecation") // @Deprecated // 1.7.0
 public class PowerAuthAuthentication {
-
     /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     *
-     * The property is ignored
+     * If set, then the biometry factor will be used.
      */
-    @Deprecated // 1.7.0
-    public boolean usePossession;
+    private final @Nullable byte[] useBiometry;
     /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
+     * If set, then the password will be used.
      */
-    @Deprecated // 1.7.0
-    public @Nullable byte[] useBiometry;
+    private final @Nullable Password password;
     /**
-     * Contains {@link Password} object in case that knowledge factor is used in authentication.
+     * Optional custom possession key.
      */
-    private @Nullable Password password;
-    /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     */
-    @Deprecated // 1.7.0
-    public @Nullable byte[] overriddenPossessionKey;
+    private final @Nullable byte[] overriddenPossessionKey;
 
     /**
      * Contains {@code true} if authentication object should be used to persist activation, {@code false}
@@ -60,21 +44,6 @@ public class PowerAuthAuthentication {
      * specified.
      */
     private final Boolean persistActivation;
-
-    /**
-     * Constructor that allows you alter factors after the object is created.
-     *
-     * Object constructor is now deprecated, please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     */
-    @Deprecated // 1.7.0
-    public PowerAuthAuthentication() {
-        this.usePossession = false;
-        this.useBiometry = null;
-        this.password = null;
-        this.overriddenPossessionKey = null;
-        this.persistActivation = null;
-    }
 
     /**
      * Construct object with desired combination of factors. Such authentication object can be used
@@ -93,7 +62,6 @@ public class PowerAuthAuthentication {
             @Nullable Password password,
             @Nullable byte[] biometryFactorRelatedKey,
             @Nullable byte[] overriddenPossessionKey) {
-        this.usePossession = true;
         this.useBiometry = biometryFactorRelatedKey;
         this.password = password;
         this.overriddenPossessionKey = overriddenPossessionKey;
@@ -372,45 +340,6 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * Direct access to {@code usePassword} property is no longer possible. Use static authentication
-     * object functions to construct appropriate authentication object, or {@link #getPassword()}
-     * function to test, whether the knowledge factor is used.
-     * @param password Password to set to authentication.
-     */
-    @Deprecated // 1.7.0
-    public void setUsePassword(@Nullable String password) {
-        if (password != null) {
-            this.password = new Password(password);
-        } else {
-            this.password = null;
-        }
-    }
-
-    /**
-     * Direct access to {@code usePassword} property is no longer possible. Use static authentication
-     * object functions to construct appropriate authentication object, or {@link #getPassword()}
-     * function to test, whether the knowledge factor is used.
-     *
-     * @return User password in plaintext form.
-     */
-    @Deprecated // 1.7.2
-    @Nullable
-    public String getUsePassword() {
-        if (password != null) {
-            // The purpose of 'validatePasswordComplexity' is quite different, but there's no other API to extract
-            // plaintext passphrase from Password. We're keeping this only for a compatibility reasons,
-            // so the implementation will be removed in 1.8.x release.
-            final String[] result = new String[1];
-            password.validatePasswordComplexity(passwordBytes -> {
-                result[0] = new String(passwordBytes, Charset.defaultCharset());
-                return 0;
-            });
-            return result[0];
-        }
-        return null;
-    }
-
-    /**
      * @return If non-null, then custom key is specified for the possession factor.
      */
     @Nullable
@@ -425,10 +354,7 @@ public class PowerAuthAuthentication {
      * @return Numeric value representing a combination of factors.
      */
     int getSignatureFactorsMask() {
-        int factors = 0;
-        if (usePossession) {
-            factors |= 1;
-        }
+        int factors = 1;
         if (password != null) {
             factors |= 2;
         }

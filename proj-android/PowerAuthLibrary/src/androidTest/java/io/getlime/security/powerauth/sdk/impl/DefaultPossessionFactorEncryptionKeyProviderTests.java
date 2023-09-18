@@ -29,10 +29,8 @@ import org.junit.runner.RunWith;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import io.getlime.security.powerauth.core.CryptoUtils;
 import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.core.SessionSetup;
-import io.getlime.security.powerauth.networking.response.IFetchKeysStrategy;
 
 import static org.junit.Assert.*;
 
@@ -52,24 +50,6 @@ public class DefaultPossessionFactorEncryptionKeyProviderTests {
     @Test
     public void testDefaultPossessionFactorEncryptionKeyProvider() {
         final IPossessionFactorEncryptionKeyProvider provider = new DefaultPossessionFactorEncryptionKeyProvider();
-        byte[] possessionKek = provider.getPossessionFactorEncryptionKey(context);
-        assertNotNull(possessionKek);
-        assertEquals(16, possessionKek.length);
-
-        byte[] oldPossessionKek = session.normalizeSignatureUnlockKeyFromData(getOldPossessionUnlockKeyData().getBytes());
-        assertArrayEquals(oldPossessionKek, possessionKek);
-    }
-
-    @Test
-    public void testWrapperForDeprecatedFetchKeysStrategy() {
-        final IPossessionFactorEncryptionKeyProvider provider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(new IFetchKeysStrategy() {
-            @NonNull
-            @Override
-            public String getPossessionUnlockKey(@NonNull Context context) {
-                return getOldPossessionUnlockKeyData();
-            }
-        });
-
         byte[] possessionKek = provider.getPossessionFactorEncryptionKey(context);
         assertNotNull(possessionKek);
         assertEquals(16, possessionKek.length);

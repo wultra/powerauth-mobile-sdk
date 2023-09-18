@@ -510,12 +510,6 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Session state management
 
-- (BOOL) restoreState
-{
-    PowerAuthLog(@"PowerAuthSDK.restoreState() is deprecated.");
-    return YES;
-}
-
 - (BOOL) canStartActivation
 {
     [self checkForValidSetup];
@@ -702,22 +696,22 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Commit
 
-- (BOOL) commitActivationWithPassword:(NSString*)password
-                                error:(NSError**)error
+- (BOOL) persistActivationWithPassword:(NSString*)password
+                                 error:(NSError**)error
 {
-    return [self commitActivationWithAuthentication:[PowerAuthAuthentication commitWithPassword:password]
-                                              error:error];
+    return [self persistActivationWithAuthentication:[PowerAuthAuthentication persistWithPassword:password]
+                                               error:error];
 }
 
-- (BOOL) commitActivationWithCorePassword:(PowerAuthCorePassword *)password
-                                    error:(NSError **)error
+- (BOOL) persistActivationWithCorePassword:(PowerAuthCorePassword *)password
+                                     error:(NSError **)error
 {
-    return [self commitActivationWithAuthentication:[PowerAuthAuthentication commitWithCorePassword:password]
-                                              error:error];
+    return [self persistActivationWithAuthentication:[PowerAuthAuthentication persistWithCorePassword:password]
+                                               error:error];
 }
 
-- (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-                                      error:(NSError**)error
+- (BOOL) persistActivationWithAuthentication:(PowerAuthAuthentication*)authentication
+                                       error:(NSError**)error
 {
     [self checkForValidSetup];
     
@@ -763,6 +757,28 @@ static PowerAuthSDK * s_inst;
     }
     return !reportedError;
 }
+
+// PA2_DEPRECATED(1.8.0)
+- (BOOL) commitActivationWithPassword:(NSString*)password
+                                error:(NSError**)error
+{
+    return [self persistActivationWithPassword:password error:error];
+}
+
+// PA2_DEPRECATED(1.8.0)
+- (BOOL) commitActivationWithCorePassword:(PowerAuthCorePassword *)password
+                                    error:(NSError **)error
+{
+    return [self persistActivationWithCorePassword:password error:error];
+}
+
+// PA2_DEPRECATED(1.8.0)
+- (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
+                                      error:(NSError**)error
+{
+    return [self persistActivationWithAuthentication:authentication error:error];
+}
+
 
 - (NSString*) activationIdentifier
 {
@@ -938,22 +954,6 @@ static PowerAuthSDK * s_inst;
     [_lock unlock];
     return status;
 }
-
-// Deprecated methods
-
-// PA2_DEPRECATED(1.7.0)
-- (id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus *status, NSDictionary *customObject, NSError *error))callback
-{
-    return [self getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
-        callback(status, status.customObject, error);
-    }];
-}
-// PA2_DEPRECATED(1.7.0)
-- (NSDictionary*) lastFetchedCustomObject
-{
-    return self.lastFetchedActivationStatus.customObject;
-}
-
 
 #pragma mark Removing an activation
 
@@ -1193,12 +1193,6 @@ static PowerAuthSDK * s_inst;
     return [self validateCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
 }
 
-// PA2_DEPRECATED(1.7.2)
-- (id<PowerAuthOperationTask>) validatePasswordCorrect:(NSString *)password callback:(void (^)(NSError *))callback
-{
-    return [self validatePassword:password callback:callback];
-}
-
 #pragma mark - Biometry
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
@@ -1234,12 +1228,6 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
-{
-    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
-}
-
-// PA2_DEPRECATED(1.7.2)
-- (id<PowerAuthOperationTask>) addBiometryFactor:(NSString *)password callback:(void (^)(NSError * _Nullable))callback
 {
     return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
 }

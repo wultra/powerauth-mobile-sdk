@@ -16,8 +16,6 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import java.nio.charset.Charset;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.Password;
@@ -26,89 +24,145 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 /**
  * Class representing a multi-factor authentication object.
  */
-@SuppressWarnings("deprecation") // @Deprecated // 1.7.0
 public class PowerAuthAuthentication {
+    /**
+     * If set, then the biometry factor will be used.
+     */
+    private final @Nullable byte[] useBiometry;
+    /**
+     * If set, then the password will be used.
+     */
+    private final @Nullable Password password;
+    /**
+     * Optional custom possession key.
+     */
+    private final @Nullable byte[] overriddenPossessionKey;
 
     /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     *
-     * The property is ignored
-     */
-    @Deprecated // 1.7.0
-    public boolean usePossession;
-    /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     */
-    @Deprecated // 1.7.0
-    public @Nullable byte[] useBiometry;
-    /**
-     * Contains {@link Password} object in case that knowledge factor is used in authentication.
-     */
-    private @Nullable Password password;
-    /**
-     * Accessing field directly is now deprecated. Please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     */
-    @Deprecated // 1.7.0
-    public @Nullable byte[] overriddenPossessionKey;
-
-    /**
-     * Contains {@code true} if authentication object should be used for activation commit, {@code false}
+     * Contains {@code true} if authentication object should be used to persist activation, {@code false}
      * if object is for signature calculation or {@code null} if this is a legacy object with no usage
      * specified.
      */
-    private final Boolean activationCommit;
-
-    /**
-     * Constructor that allows you alter factors after the object is created.
-     *
-     * Object constructor is now deprecated, please use appropriate static method to construct
-     * {@code PowerAuthAuthentication} object.
-     */
-    @Deprecated // 1.7.0
-    public PowerAuthAuthentication() {
-        this.usePossession = false;
-        this.useBiometry = null;
-        this.password = null;
-        this.overriddenPossessionKey = null;
-        this.activationCommit = null;
-    }
+    private final Boolean persistActivation;
 
     /**
      * Construct object with desired combination of factors. Such authentication object can be used
-     * either for activation commit and for the signature calculation.
+     * either to persist activation and for the signature calculation.
      *
      * Note that you should prefer static construction functions instead of this constructor, unless
      * you have a special reason for it.
      *
-     * @param activationCommit If true, then authentication can be used for activation commit.
-     * @param password If set, then knowledge factor will be used for activation commit or signature calculation.
-     * @param biometryFactorRelatedKey If set, then biometry factor will be used for activation commit or the signature calculation.
+     * @param persistActivation If true, then authentication can be used to persist activation.
+     * @param password If set, then knowledge factor will be used to persist activation or signature calculation.
+     * @param biometryFactorRelatedKey If set, then biometry factor will be used to persist activation or the signature calculation.
      * @param overriddenPossessionKey Custom possession factor related key.
      */
     PowerAuthAuthentication(
-            Boolean activationCommit,
+            Boolean persistActivation,
             @Nullable Password password,
             @Nullable byte[] biometryFactorRelatedKey,
             @Nullable byte[] overriddenPossessionKey) {
-        this.usePossession = true;
         this.useBiometry = biometryFactorRelatedKey;
         this.password = password;
         this.overriddenPossessionKey = overriddenPossessionKey;
-        this.activationCommit = activationCommit;
+        this.persistActivation = persistActivation;
     }
 
-    // Commit activation
+    // Persist activation
+
+    /**
+     * Construct authentication object to persist activation with password.
+     * @param password Password to set for new activation.
+     * @return Authentication object constructed to persist activation with the password.
+     */
+    public static PowerAuthAuthentication persistWithPassword(@NonNull String password) {
+        return new PowerAuthAuthentication(true, new Password(password), null, null);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password and custom key for the possession factor.
+     * @param password Password to set for new activation.
+     * @param overriddenPossessionKey Custom possession key to set for new activation.
+     * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     */
+    public static PowerAuthAuthentication persistWithPassword(@NonNull String password, @NonNull byte[] overriddenPossessionKey) {
+        return new PowerAuthAuthentication(true, new Password(password), null, overriddenPossessionKey);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password and with biometry.
+     * @param password Password to set for new activation.
+     * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
+     * @return Authentication object constructed to persist activation with password and biometry.
+     */
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey) {
+        return new PowerAuthAuthentication(true, new Password(password), biometryFactorRelatedKey, null);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password, biometry and with custom key for the possession factor.
+     * @param password Password to set for new activation.
+     * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
+     * @param overriddenPossessionKey Custom possession key to set for new activation.
+     * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     */
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
+        return new PowerAuthAuthentication(true, new Password(password), biometryFactorRelatedKey, overriddenPossessionKey);
+    }
+
+    // core/Password variants
+
+    /**
+     * Construct authentication object to persist activation with password.
+     * @param password Password to set for new activation.
+     * @return Authentication object constructed to persist activation with the password.
+     */
+    public static PowerAuthAuthentication persistWithPassword(@NonNull Password password) {
+        return new PowerAuthAuthentication(true, password, null, null);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password and custom key for the possession factor.
+     * @param password Password to set for new activation.
+     * @param overriddenPossessionKey Custom possession key to set for new activation.
+     * @return Authentication object constructed to persist activation and password, with using custom key for the possession factor.
+     */
+    public static PowerAuthAuthentication persistWithPassword(@NonNull Password password, @NonNull byte[] overriddenPossessionKey) {
+        return new PowerAuthAuthentication(true, password, null, overriddenPossessionKey);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password and with biometry.
+     * @param password Password to set for new activation.
+     * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
+     * @return Authentication object constructed to persist activation with password and biometry.
+     */
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey) {
+        return new PowerAuthAuthentication(true, password, biometryFactorRelatedKey, null);
+    }
+
+    /**
+     * Construct authentication object to persist activation with password, biometry and with custom key for the possession factor.
+     * @param password Password to set for new activation.
+     * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
+     * @param overriddenPossessionKey Custom possession key to set for new activation.
+     * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
+     */
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
+        return new PowerAuthAuthentication(true, password, biometryFactorRelatedKey, overriddenPossessionKey);
+    }
+
+
+    // Commit activation (deprecated)
 
     /**
      * Construct authentication object for activation commit with password.
      * @param password Password to set for new activation.
      * @return Authentication object constructed for commit activation with the password.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPassword(@NonNull String password) {
-        return new PowerAuthAuthentication(true, new Password(password), null, null);
+        return persistWithPassword(password);
     }
 
     /**
@@ -117,8 +171,9 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed for commit activation and password, with using custom key for the possession factor.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPassword(@NonNull String password, @NonNull byte[] overriddenPossessionKey) {
-        return new PowerAuthAuthentication(true, new Password(password), null, overriddenPossessionKey);
+        return persistWithPassword(password, overriddenPossessionKey);
     }
 
     /**
@@ -127,8 +182,9 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @return Authentication object constructed for commit activation with password and biometry.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey) {
-        return new PowerAuthAuthentication(true, new Password(password), biometryFactorRelatedKey, null);
+        return persistWithPasswordAndBiometry(password, biometryFactorRelatedKey);
     }
 
     /**
@@ -138,8 +194,9 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed for commit activation with password, with using custom key for the possession factor.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
-        return new PowerAuthAuthentication(true, new Password(password), biometryFactorRelatedKey, overriddenPossessionKey);
+        return persistWithPasswordAndBiometry(password, biometryFactorRelatedKey, overriddenPossessionKey);
     }
 
     // core/Password variants
@@ -149,8 +206,9 @@ public class PowerAuthAuthentication {
      * @param password Password to set for new activation.
      * @return Authentication object constructed for commit activation with the password.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPassword(@NonNull Password password) {
-        return new PowerAuthAuthentication(true, password, null, null);
+        return persistWithPassword(password);
     }
 
     /**
@@ -159,8 +217,9 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed for commit activation and password, with using custom key for the possession factor.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPassword(@NonNull Password password, @NonNull byte[] overriddenPossessionKey) {
-        return new PowerAuthAuthentication(true, password, null, overriddenPossessionKey);
+        return persistWithPassword(password, overriddenPossessionKey);
     }
 
     /**
@@ -169,8 +228,9 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @return Authentication object constructed for commit activation with password and biometry.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey) {
-        return new PowerAuthAuthentication(true, password, biometryFactorRelatedKey, null);
+        return persistWithPasswordAndBiometry(password, biometryFactorRelatedKey);
     }
 
     /**
@@ -180,8 +240,9 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed for commit activation with password, with using custom key for the possession factor.
      */
+    @Deprecated // 1.8.0
     public static PowerAuthAuthentication commitWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
-        return new PowerAuthAuthentication(true, password, biometryFactorRelatedKey, overriddenPossessionKey);
+        return persistWithPasswordAndBiometry(password, biometryFactorRelatedKey, overriddenPossessionKey);
     }
 
     // Authenticate
@@ -279,45 +340,6 @@ public class PowerAuthAuthentication {
     }
 
     /**
-     * Direct access to {@code usePassword} property is no longer possible. Use static authentication
-     * object functions to construct appropriate authentication object, or {@link #getPassword()}
-     * function to test, whether the knowledge factor is used.
-     * @param password Password to set to authentication.
-     */
-    @Deprecated // 1.7.0
-    public void setUsePassword(@Nullable String password) {
-        if (password != null) {
-            this.password = new Password(password);
-        } else {
-            this.password = null;
-        }
-    }
-
-    /**
-     * Direct access to {@code usePassword} property is no longer possible. Use static authentication
-     * object functions to construct appropriate authentication object, or {@link #getPassword()}
-     * function to test, whether the knowledge factor is used.
-     *
-     * @return User password in plaintext form.
-     */
-    @Deprecated // 1.7.2
-    @Nullable
-    public String getUsePassword() {
-        if (password != null) {
-            // The purpose of 'validatePasswordComplexity' is quite different, but there's no other API to extract
-            // plaintext passphrase from Password. We're keeping this only for a compatibility reasons,
-            // so the implementation will be removed in 1.8.x release.
-            final String[] result = new String[1];
-            password.validatePasswordComplexity(passwordBytes -> {
-                result[0] = new String(passwordBytes, Charset.defaultCharset());
-                return 0;
-            });
-            return result[0];
-        }
-        return null;
-    }
-
-    /**
      * @return If non-null, then custom key is specified for the possession factor.
      */
     @Nullable
@@ -332,10 +354,7 @@ public class PowerAuthAuthentication {
      * @return Numeric value representing a combination of factors.
      */
     int getSignatureFactorsMask() {
-        int factors = 0;
-        if (usePossession) {
-            factors |= 1;
-        }
+        int factors = 1;
         if (password != null) {
             factors |= 2;
         }
@@ -348,11 +367,11 @@ public class PowerAuthAuthentication {
     /**
      * Validate usage of PowerAuthAuthentication object. If something doesn't match, then function
      * print warning to the debug console.
-     * @param forCommit If true, then activation commit is expected.
+     * @param forPersist If true, then activation persist is expected.
      * @return false if object is created for the different purpose or is legacy constructed.
      */
-    boolean validateAuthenticationUsage(boolean forCommit) {
-        boolean result = validateAuthenticationUsageImpl(forCommit);
+    boolean validateAuthenticationUsage(boolean forPersist) {
+        boolean result = validateAuthenticationUsageImpl(forPersist);
         if (!result && strictAuthenticationUsageValidation) {
             throw new IllegalArgumentException("Invalid PowerAuthAuthentication object provided");
         }
@@ -378,17 +397,17 @@ public class PowerAuthAuthentication {
     /**
      * Validate usage of PowerAuthAuthentication object. If something doesn't match, then function
      * print warning to the debug console.
-     * @param forCommit If true, then activation commit is expected.
+     * @param forPersist If true, then activation persist is expected.
      * @return false if object is created for the different purpose or is legacy constructed.
      */
-    private boolean validateAuthenticationUsageImpl(boolean forCommit) {
-        if (activationCommit == null) {
+    private boolean validateAuthenticationUsageImpl(boolean forPersist) {
+        if (persistActivation == null) {
             PowerAuthLog.w("Using PowerAuthAuthentication object created with legacy constructor.");
             return false;
         } else {
-            if (activationCommit != forCommit) {
-                if (forCommit) {
-                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for activation commit is expected.");
+            if (persistActivation != forPersist) {
+                if (forPersist) {
+                    PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object to persist activation is expected.");
                 } else {
                     PowerAuthLog.w("Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
                 }

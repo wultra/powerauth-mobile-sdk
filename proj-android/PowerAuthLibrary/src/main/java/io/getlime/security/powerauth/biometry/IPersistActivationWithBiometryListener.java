@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Wultra s.r.o.
+ * Copyright 2023 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,27 @@
 
 package io.getlime.security.powerauth.biometry;
 
+import androidx.annotation.NonNull;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+
 /**
  * Interface used as a callback for persisting the activation with biometric authentication.
- * @deprecated Use {@link IPersistActivationWithBiometryListener} as a replacement.
  */
-@Deprecated // 1.8.0
-public interface ICommitActivationWithBiometryListener extends IPersistActivationWithBiometryListener {
+public interface IPersistActivationWithBiometryListener {
+    /**
+     * Biometric dialog was cancelled.
+     */
+    void onBiometricDialogCancelled();
+
+    /**
+     * Biometric authentication succeeded and the activation has been committed.
+     */
+    void onBiometricDialogSuccess();
+
+    /**
+     * Called when biometric dialog or the activation commit failed on error.
+     *
+     * @param error error that occurred during the activation commit.
+     */
+    void onBiometricDialogFailed(@NonNull PowerAuthErrorException error);
 }

@@ -119,7 +119,7 @@
     XCTAssertTrue(activation.success);
 }
 
-- (void) testCreateActivationAndCommitWithPassword
+- (void) testCreateActivationAndPersistWithPassword
 {
     CHECK_TEST_CONFIG();
     
@@ -128,11 +128,11 @@
     XCTAssertTrue(activation.success);
 }
 
-- (void) testCreateActivationAndCommitWithCorePassword
+- (void) testCreateActivationAndPersistWithCorePassword
 {
     CHECK_TEST_CONFIG();
     
-    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithCorePassword | TestActivationFlags_RemoveAfter
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithCorePassword | TestActivationFlags_RemoveAfter
                                                                activationOtp:nil];
     XCTAssertTrue(activation.success);
 }
@@ -806,10 +806,10 @@
     XCTAssertTrue([serverOldActivationStatus.activationStatus isEqualToString:@"REMOVED"]);
 
     
-    // 6. Create a new authentication and commit it to the SDK.
+    // 6. Create a new authentication and persist it in the SDK.
     
     auth = [_helper createAuthentication];
-    result = [_sdk commitActivationWithAuthentication:auth error:&operationError];
+    result = [_sdk persistActivationWithAuthentication:auth error:&operationError];
     XCTAssertTrue(result);
     
     // 7. Cleanup - remove activation on the server.
@@ -960,7 +960,7 @@
     XCTAssertTrue(_sdk.hasValidActivation);
     
     NSError * err = nil;
-    BOOL res = [_sdk commitActivationWithPassword:@"1234" error:&err];
+    BOOL res = [_sdk persistActivationWithPassword:@"1234" error:&err];
     XCTAssertFalse(res);
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, err.powerAuthErrorCode);
     
@@ -1205,7 +1205,7 @@
     
     CHECK_BIOMETRY();
     
-    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithBiometry activationOtp:nil];
     if (!activation) {
         return;
     }
@@ -1266,7 +1266,7 @@
     LAContext * context = [[LAContext alloc] init];
     context.interactionNotAllowed = YES;
     
-    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_CommitWithBiometry activationOtp:nil];
+    PowerAuthSdkActivation * activation = [_helper createActivationWithFlags:TestActivationFlags_PersistWithBiometry activationOtp:nil];
     if (!activation) {
         return;
     }

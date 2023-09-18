@@ -10,7 +10,7 @@
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
   - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
-  - [Committing Activation Data](#committing-activation-data)
+  - [Persisting Activation Data](#persisting-activation-data)
   - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
@@ -261,7 +261,7 @@ powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
         val activationRecovery = result.recoveryData
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -289,7 +289,7 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
         final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -372,7 +372,7 @@ powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
         val activationRecovery = result.recoveryData
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -403,7 +403,7 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
         final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -444,7 +444,7 @@ powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
         val activationRecovery = result.recoveryData
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -482,7 +482,7 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
         final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
         // If server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
@@ -571,23 +571,23 @@ try {
 ```  
 <!-- end -->
 
-### Committing Activation Data
+### Persisting Activation Data
 
-After you create an activation using one of the methods mentioned above, you need to commit the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this.
+After you create an activation using one of the methods mentioned above, you need to persist the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this.
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-// Commit activation using given PIN
-val result = powerAuthSDK.commitActivationWithPassword(context, pin)
+// Persist activation using given PIN
+val result = powerAuthSDK.persistActivationWithPassword(context, pin)
 if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 ```java
-// Commit activation using given PIN
-int result = powerAuthSDK.commitActivationWithPassword(context, pin);
+// Persist activation using given PIN
+int result = powerAuthSDK.persistActivationWithPassword(context, pin);
 if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 <!-- end -->
@@ -596,14 +596,14 @@ This code has created activation with two factors: possession (key stored using 
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-// Commit activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: ICommitActivationWithBiometryListener {
+// Persist activation using given PIN and ad-hoc generated biometric related key
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometryListener {
     override fun onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
     }
 
     override fun onBiometricDialogSuccess() {
-        // success, activation has been committed
+        // success, activation has been persisted
     }
 
     override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
@@ -612,8 +612,8 @@ powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authenticatio
 })
 ```
 ```java
-// Commit activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new ICommitActivationWithBiometryListener() {
+// Persist activation using given PIN and ad-hoc generated biometric related key
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometryListener() {
     @Override
     public void onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
@@ -621,7 +621,7 @@ powerAuthSDK.commitActivation(context, fragment, "Enable Biometric Authenticatio
 
     @Override
     public void onBiometricDialogSuccess() {
-        // success, activation has been committed
+        // success, activation has been persisted
     }
 
     @Override
@@ -636,17 +636,17 @@ Also, you can use the following code to create activation with the best granular
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-val authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(pin, biometryFactorRelatedKey)
-val result = powerAuthSDK.commitActivationWithAuthentication(context, authentication)
+val authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometryFactorRelatedKey)
+val result = powerAuthSDK.persistActivationWithAuthentication(context, authentication)
 if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 ```java
-PowerAuthAuthentication authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(pin, biometryFactorRelatedKey);
-int result =  powerAuthSDK.commitActivationWithAuthentication(context, authentication);
+PowerAuthAuthentication authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometryFactorRelatedKey);
+int result =  powerAuthSDK.persistActivationWithAuthentication(context, authentication);
 if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 <!-- end -->
@@ -1724,7 +1724,7 @@ powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authenticati
 ```
 <!-- end -->
 
-By default, PowerAuth SDK asks user to authenticate with the biometric sensor also during the setup procedure (or during the [activation commit](#committing-activation-data)). To alter this behavior, use the following code to change `PowerAuthKeychainConfiguration` provided to `PowerAuthSDK` instance:
+By default, PowerAuth SDK asks user to authenticate with the biometric sensor also during the setup procedure (or during the [activation persist](#persisting-activation-data)). To alter this behavior, use the following code to change `PowerAuthKeychainConfiguration` provided to `PowerAuthSDK` instance:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin

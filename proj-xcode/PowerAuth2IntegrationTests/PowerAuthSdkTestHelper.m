@@ -237,9 +237,9 @@ static NSString * PA_Ver = @"3.2";
 {
     BOOL useSignature = (flags & TestActivationFlags_UseSignature) != 0;
     BOOL removeAfter = (flags & TestActivationFlags_RemoveAfter) != 0;
-    BOOL commitWithPass = (flags & TestActivationFlags_CommitWithPlainPassword) != 0;
-    BOOL commitWithCorePass = (flags & TestActivationFlags_CommitWithCorePassword) != 0;
-    BOOL commitWithBio  = (flags & TestActivationFlags_CommitWithBiometry) != 0;
+    BOOL commitWithPass = (flags & TestActivationFlags_PersistWithPlainPassword) != 0;
+    BOOL commitWithCorePass = (flags & TestActivationFlags_PersistWithCorePassword) != 0;
+    BOOL commitWithBio  = (flags & TestActivationFlags_PersistWithBiometry) != 0;
     _currentActivation = nil;
     
     XCTAssertFalse([_sdk hasPendingActivation]);
@@ -306,12 +306,12 @@ static NSString * PA_Ver = @"3.2";
     // 3) CLIENT: Now it's time to commit activation locally
     PowerAuthAuthentication * auth = commitWithBio ? [self createAuthenticationWithBiometry] : [self createAuthentication];
     if (commitWithPass) {
-        result = [_sdk commitActivationWithPassword:auth.password.extractedPassword error:&error];
+        result = [_sdk persistActivationWithPassword:auth.password.extractedPassword error:&error];
     } else if (commitWithCorePass) {
-        result = [_sdk commitActivationWithCorePassword:auth.password error:&error];
+        result = [_sdk persistActivationWithCorePassword:auth.password error:&error];
     } else {
         // By default, use authentication for commit
-        result = [_sdk commitActivationWithAuthentication:auth error:&error];
+        result = [_sdk persistActivationWithAuthentication:auth error:&error];
     }
     if (!result) {
         return nil;
@@ -512,7 +512,7 @@ static NSString * PA_Ver = @"3.2";
 {
     NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
     NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
-    return [PowerAuthAuthentication commitWithPassword:newPassword];
+    return [PowerAuthAuthentication persistWithPassword:newPassword];
 }
 
 /**
@@ -522,7 +522,7 @@ static NSString * PA_Ver = @"3.2";
 {
     NSArray<NSString*> * veryCleverPasswords = [self veryStrongPasswords];
     NSString * newPassword = veryCleverPasswords[arc4random_uniform((uint32_t)veryCleverPasswords.count)];
-    return [PowerAuthAuthentication commitWithPasswordAndBiometry:newPassword];
+    return [PowerAuthAuthentication persistWithPasswordAndBiometry:newPassword];
 }
 
 /**

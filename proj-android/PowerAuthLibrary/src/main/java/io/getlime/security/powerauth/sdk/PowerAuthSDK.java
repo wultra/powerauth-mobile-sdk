@@ -17,13 +17,11 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Base64;
 import androidx.annotation.CheckResult;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.UiThread;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -35,30 +33,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
-import io.getlime.security.powerauth.biometry.BiometricAuthentication;
-import io.getlime.security.powerauth.biometry.BiometricAuthenticationRequest;
-import io.getlime.security.powerauth.biometry.BiometricKeyData;
-import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
-import io.getlime.security.powerauth.biometry.IBiometricAuthenticationCallback;
-import io.getlime.security.powerauth.biometry.IBiometricKeystore;
-import io.getlime.security.powerauth.biometry.ICommitActivationWithBiometryListener;
-import io.getlime.security.powerauth.core.ActivationCode;
-import io.getlime.security.powerauth.core.ActivationCodeUtil;
-import io.getlime.security.powerauth.core.ActivationStatus;
-import io.getlime.security.powerauth.core.ActivationStep1Param;
-import io.getlime.security.powerauth.core.ActivationStep1Result;
-import io.getlime.security.powerauth.core.ActivationStep2Param;
-import io.getlime.security.powerauth.core.ActivationStep2Result;
-import io.getlime.security.powerauth.core.EciesEncryptor;
-import io.getlime.security.powerauth.core.ErrorCode;
-import io.getlime.security.powerauth.core.Password;
-import io.getlime.security.powerauth.core.RecoveryData;
-import io.getlime.security.powerauth.core.Session;
-import io.getlime.security.powerauth.core.SignatureFactor;
-import io.getlime.security.powerauth.core.SignatureRequest;
-import io.getlime.security.powerauth.core.SignatureResult;
-import io.getlime.security.powerauth.core.SignatureUnlockKeys;
-import io.getlime.security.powerauth.core.SignedData;
+import io.getlime.security.powerauth.biometry.*;
+import io.getlime.security.powerauth.core.*;
 import io.getlime.security.powerauth.ecies.EciesEncryptorFactory;
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -69,25 +45,13 @@ import io.getlime.security.powerauth.keychain.KeychainFactory;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
 import io.getlime.security.powerauth.networking.client.HttpClient;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
-import io.getlime.security.powerauth.networking.endpoints.ConfirmRecoveryCodeEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.CreateActivationEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.GetUserInfoEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.RemoveActivationEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.ValidateSignatureEndpoint;
-import io.getlime.security.powerauth.networking.endpoints.VaultUnlockEndpoint;
+import io.getlime.security.powerauth.networking.endpoints.*;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 import io.getlime.security.powerauth.networking.interfaces.INetworkResponseListener;
 import io.getlime.security.powerauth.networking.model.entity.ActivationRecovery;
-import io.getlime.security.powerauth.networking.model.request.ActivationLayer1Request;
-import io.getlime.security.powerauth.networking.model.request.ActivationLayer2Request;
-import io.getlime.security.powerauth.networking.model.request.ConfirmRecoveryRequestPayload;
-import io.getlime.security.powerauth.networking.model.request.ValidateSignatureRequest;
-import io.getlime.security.powerauth.networking.model.request.VaultUnlockRequestPayload;
-import io.getlime.security.powerauth.networking.model.response.ActivationLayer1Response;
-import io.getlime.security.powerauth.networking.model.response.ActivationLayer2Response;
-import io.getlime.security.powerauth.networking.model.response.ConfirmRecoveryResponsePayload;
-import io.getlime.security.powerauth.networking.model.response.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.networking.model.request.*;
+import io.getlime.security.powerauth.networking.model.response.*;
 import io.getlime.security.powerauth.networking.response.*;
 import io.getlime.security.powerauth.sdk.impl.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
@@ -239,12 +203,7 @@ public class PowerAuthSDK {
             final ISavePowerAuthStateListener stateListener = mStateListener != null ? mStateListener : new DefaultSavePowerAuthStateListener(statusKeychain);
 
             // Prepare possession factor encryption key provider
-            final IPossessionFactorEncryptionKeyProvider possessionEncryptionKeyProvider;
-            if (mConfiguration.getFetchKeysStrategy() == null) {
-                possessionEncryptionKeyProvider = new DefaultPossessionFactorEncryptionKeyProvider();
-            } else {
-                possessionEncryptionKeyProvider = DefaultPossessionFactorEncryptionKeyProvider.createFromFetchKeyStrategy(mConfiguration.getFetchKeysStrategy());
-            }
+            final IPossessionFactorEncryptionKeyProvider possessionEncryptionKeyProvider = new DefaultPossessionFactorEncryptionKeyProvider();
 
             // Prepare time synchronization service and connect it with HTTP client.
             final DefaultServerStatusProvider serverStatusProvider = new DefaultServerStatusProvider(httpClient, sharedLock, mCallbackDispatcher);
@@ -930,8 +889,12 @@ public class PowerAuthSDK {
         }
     }
 
+    //
+    // Persist activation
+    //
+
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
      *
      * @param context Context
      * @param password Password to be used for the knowledge related authentication factor.
@@ -940,12 +903,12 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int commitActivationWithPassword(@NonNull Context context, @NonNull String password) {
-        return commitActivationWithAuthentication(context, PowerAuthAuthentication.commitWithPassword(password));
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password) {
+        return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
      *
      * @param context Context
      * @param password Password to be used for the knowledge related authentication factor.
@@ -954,122 +917,122 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password) {
-        return commitActivationWithAuthentication(context, PowerAuthAuthentication.commitWithPassword(password));
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password) {
+        return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
      * @param fragmentActivity Activity of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
-     * @param password Password used for activation commit.
+     * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
-    public ICancelable commitActivation(
+    public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull ICommitActivationWithBiometryListener callback) {
-        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), callback);
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), callback);
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
      * @param fragmentActivity Activity of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
-     * @param password Password used for activation commit.
+     * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
-    public ICancelable commitActivation(
+    public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull ICommitActivationWithBiometryListener callback) {
-        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
      * @param fragment Fragment of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
-     * @param password Password used for activation commit.
+     * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
-    public ICancelable commitActivation(
+    public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull ICommitActivationWithBiometryListener callback) {
-        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), callback);
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), callback);
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
      * @param fragment Fragment of the application that will host the prompt.
      * @param title Dialog title.
      * @param description Dialog description.
-     * @param password Password used for activation commit.
+     * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
-    public ICancelable commitActivation(
+    public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull ICommitActivationWithBiometryListener callback) {
-        return commitActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
      * @param fragmentHelper Fragment helper for the dialog.
      * @param title Dialog title.
      * @param description Dialog description.
-     * @param password Password used for activation commit.
+     * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
-    private ICancelable commitActivationWithBiometryImpl(
+    private ICancelable persistActivationWithBiometryImpl(
             final @NonNull Context context,
             @NonNull FragmentHelper fragmentHelper,
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull ICommitActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometryListener callback) {
         return authenticateUsingBiometry(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
@@ -1080,8 +1043,8 @@ public class PowerAuthSDK {
 
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
-                final PowerAuthAuthentication authentication = PowerAuthAuthentication.commitWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
-                final int errorCode = commitActivationWithAuthentication(context, authentication);
+                final PowerAuthAuthentication authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
+                final int errorCode = persistActivationWithAuthentication(context, authentication);
                 if (errorCode == PowerAuthErrorCodes.SUCCEED) {
                     callback.onBiometricDialogSuccess();
                 } else {
@@ -1097,9 +1060,9 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
      * <p>
-     * Calling this method is equivalent to {@link #commitActivationWithAuthentication(Context, PowerAuthAuthentication)}  with authentication object set to use all factors and provided password.
+     * Calling this method is equivalent to {@link #persistActivationWithAuthentication(Context, PowerAuthAuthentication)}  with authentication object set to use all factors and provided password.
      *
      * @param context Context
      * @param password Password to be used for the knowledge related authentication factor.
@@ -1109,14 +1072,14 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int commitActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
-        return commitActivationWithPassword(context, new Password(password), encryptedBiometryKey);
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
+        return persistActivationWithPassword(context, new Password(password), encryptedBiometryKey);
     }
 
     /**
-     * Commit activation that was created and store related data using default authentication instance setup with provided password.
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
      * <p>
-     * Calling this method is equivalent to {@link #commitActivationWithAuthentication(Context, PowerAuthAuthentication)} with authentication object set to use all factors and provided password.
+     * Calling this method is equivalent to {@link #persistActivationWithAuthentication(Context, PowerAuthAuthentication)} with authentication object set to use all factors and provided password.
      *
      * @param context Context
      * @param password Password to be used for the knowledge related authentication factor.
@@ -1126,12 +1089,12 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
-        return commitActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, encryptedBiometryKey, null));
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
+        return persistActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, encryptedBiometryKey, null));
     }
 
     /**
-     * Commit activation that was created and store related data using provided authentication instance.
+     * Persist activation that was created and store related data using provided authentication instance.
      *
      * @param context android context object
      * @param authentication An authentication instance specifying what factors should be stored.
@@ -1140,7 +1103,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int commitActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
+    public int persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
         // Input validations
         checkForValidSetup();
         // Check if there is a pending activation present and not an already existing valid activation
@@ -1148,11 +1111,11 @@ public class PowerAuthSDK {
             return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
         }
         if (authentication.getPassword() == null) {
-            PowerAuthLog.e("Password is required for activation commit");
+            PowerAuthLog.e("Password is required to persist activation");
             return PowerAuthErrorCodes.WRONG_PARAMETER;
         }
 
-        // Validate authentication usage for commit.
+        // Validate authentication usage for persist.
         authentication.validateAuthenticationUsage(true);
 
         // Prepare key encryption keys
@@ -1175,6 +1138,195 @@ public class PowerAuthSDK {
             return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
         }
     }
+
+    // Deprecated activation commit
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
+     *
+     * @param context Context
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @return int {@link PowerAuthErrorCodes} error code.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #persistActivationWithPassword(Context, String)} as a replacement.
+     */
+    @CheckResult
+    @PowerAuthErrorCodes
+    @Deprecated // 1.8.0
+    public int commitActivationWithPassword(@NonNull Context context, @NonNull String password) {
+        return persistActivationWithPassword(context, password);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
+     *
+     * @param context Context
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @return int {@link PowerAuthErrorCodes} error code.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #persistActivationWithPassword(Context, Password)} as a replacement.
+     */
+    @CheckResult
+    @PowerAuthErrorCodes
+    @Deprecated // 1.8.0
+    public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password) {
+        return persistActivationWithPassword(context, password);
+    }
+
+    /**
+     * Persist activation that was created and store related data using provided authentication instance.
+     *
+     * @param context android context object
+     * @param authentication An authentication instance specifying what factors should be stored.
+     * @return int {@link PowerAuthErrorCodes} error code.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #persistActivationWithAuthentication(Context, PowerAuthAuthentication)} as a replacement.
+     */
+    @CheckResult
+    @PowerAuthErrorCodes
+    @Deprecated // 1.8.0
+    public int commitActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
+        return persistActivationWithAuthentication(context, authentication);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
+     * <p>
+     * Calling this method is equivalent to {@link #persistActivationWithAuthentication(Context, PowerAuthAuthentication)} with authentication object set to use all factors and provided password.
+     *
+     * @param context Context
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @param encryptedBiometryKey Optional biometry related factor key.
+     * @return int {@link PowerAuthErrorCodes} error code.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #persistActivationWithPassword(Context, Password, byte[])} as a replacement.
+     */
+    @CheckResult
+    @PowerAuthErrorCodes
+    @Deprecated // 1.8.0
+    public int commitActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
+        return persistActivationWithPassword(context, password, encryptedBiometryKey);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password.
+     * <p>
+     * Calling this method is equivalent to {@link #persistActivationWithAuthentication(Context, PowerAuthAuthentication)}  with authentication object set to use all factors and provided password.
+     *
+     * @param context Context
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @param encryptedBiometryKey Optional biometry related factor key.
+     * @return int {@link PowerAuthErrorCodes} error code.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #persistActivationWithPassword(Context, String, byte[])} as a replacement.
+     */
+    @CheckResult
+    @PowerAuthErrorCodes
+    @Deprecated // 1.8.0
+    public int commitActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
+        return persistActivationWithPassword(context, password, encryptedBiometryKey);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragment Fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used to persist activation.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, Password, IPersistActivationWithBiometryListener)} as a replacement.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.8.0
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull Fragment fragment,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final Password password,
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivation(context, fragment, title, description, password, callback);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragment Fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used to persist activation.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, String, IPersistActivationWithBiometryListener)} as a replacement.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.8.0
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull Fragment fragment,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final String password,
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivation(context, fragment, title, description, password, callback);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragmentActivity Activity of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used to persist activation.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, String, IPersistActivationWithBiometryListener)} as a replacement.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.8.0
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull FragmentActivity fragmentActivity,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final String password,
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivation(context, fragmentActivity, title, description, password, callback);
+    }
+
+    /**
+     * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
+     *
+     * @param context Context.
+     * @param fragmentActivity Activity of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param password Password used to persist activation.
+     * @param callback Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, Password, IPersistActivationWithBiometryListener)} as a replacement.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.8.0
+    public ICancelable commitActivation(
+            final @NonNull Context context,
+            @NonNull FragmentActivity fragmentActivity,
+            @NonNull String title,
+            @NonNull String description,
+            @NonNull final Password password,
+            final @NonNull IPersistActivationWithBiometryListener callback) {
+        return persistActivation(context, fragmentActivity, title, description, password, callback);
+    }
+
 
     //
     // User Info
@@ -1600,10 +1752,6 @@ public class PowerAuthSDK {
 
         // Determine authentication factor type
         @SignatureFactor final int signatureFactor = determineSignatureFactorForAuthentication(authentication);
-        // @Deprecated // 1.7.0 - the next test is no longer required once we migrate to immutable authentication object
-        if (signatureFactor == 0) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid combination of signature factors.");
-        }
 
         // Generate signature key encryption keys
         final SignatureUnlockKeys keys = signatureKeysForAuthentication(context, authentication);
@@ -2097,22 +2245,6 @@ public class PowerAuthSDK {
                 listener.onFetchEncryptionKeyFailed(t);
             }
         });
-    }
-
-    /**
-     * Validate a user password. This method calls PowerAuth REST API endpoint to validate the password on the server.
-     * This method is deprecated and you can use {@link #validatePassword(Context, String, IValidatePasswordListener)}
-     * as a replacement.
-     *
-     * @param context  Context.
-     * @param password Password to be verified.
-     * @param listener The callback method with error associated with the password validation.
-     * @return {@link ICancelable} object associated with the running HTTP request.
-     */
-    @Deprecated // 1.7.2
-    public @Nullable
-    ICancelable validatePasswordCorrect(@NonNull Context context, @NonNull String password, @NonNull final IValidatePasswordListener listener) {
-        return validatePassword(context, new Password(password), listener);
     }
 
     /**

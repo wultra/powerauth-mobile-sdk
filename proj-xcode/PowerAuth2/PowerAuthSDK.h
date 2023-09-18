@@ -138,13 +138,6 @@
  */
 + (nonnull PowerAuthSDK*) sharedInstance;
 
-/** Restore the PowerAuth session state using the provided configuration.
- 
- @return YES if session was restored, NO otherwise.
- @exception NSException thrown in case configuration is not present.
- */
-- (BOOL) restoreState PA2_DEPRECATED(1.7.0);
-
 /**
  Create a new activation.
  
@@ -216,38 +209,73 @@
                                                         callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
 /**
- Commit activation that was created and store related data using provided authentication instance.
+ Persist activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
  */
-- (BOOL) commitActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-                                      error:(NSError * _Nullable * _Nullable)error;
+- (BOOL) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                       error:(NSError * _Nullable * _Nullable)error;
 
-/** Commit activation that was created and store related data using default authentication instance setup with provided password.
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
- Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
+ Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) persistActivationWithPassword:(nonnull NSString*)password
+                                 error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(persistActivation(withPassword:));
+
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
+ 
+ Calling this method is equivalent to `persistActivationWithAuthentication:error:` with authentication object set to use possession and provided password.
+ 
+ @param password Password to be used for the knowledge related authentication factor.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ */
+- (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                     error:(NSError * _Nullable * _Nullable)error
+                            NS_SWIFT_NAME(persistActivation(withPassword:));
+
+/**
+ Persist activation that was created and store related data using provided authentication instance.
+ 
+ @param authentication An authentication instance specifying what factors should be stored.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(with:)` method as a replacement.
+ */
+- (BOOL) commitActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                      error:(NSError * _Nullable * _Nullable)error PA2_DEPRECATED(1.8.0);
+
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
+ 
+ @param password Password to be used for the knowledge related authentication factor.
+ @param error Error reference in case some error occurs.
+ @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(withPassword:)` method as a replacement.
  */
 - (BOOL) commitActivationWithPassword:(nonnull NSString*)password
                                 error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(commitActivation(withPassword:));
+                            NS_SWIFT_NAME(commitActivation(withPassword:)) PA2_DEPRECATED(1.8.0);
 
-/** Commit activation that was created and store related data using default authentication instance setup with provided password.
- 
- Calling this method is equivalent to commitActivationWithAuthentication:error: with authentication object set to use possession and provided password.
+/** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Use `persistActivation(withPassword:)` method as a replacement.
  */
 - (BOOL) commitActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                     error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(commitActivation(withPassword:));
+                            NS_SWIFT_NAME(commitActivation(withPassword:))
+                            PA2_DEPRECATED(1.8.0);
+
 /**
  Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.
  */
@@ -268,24 +296,6 @@
  You have to call `fetchActivationStatus()` method to update this value.
  */
 @property (nonatomic, strong, nullable, readonly) PowerAuthActivationStatus * lastFetchedActivationStatus;
-
-/**
- Fetch the activation status for current activation. If server returns custom object, it is returned in the callback as NSDictionary.
- 
- This method is deprecated if favor of method that doesn't take customObject in its callback. The custom object is now a part of PowerAuthActivationStatus object.
- 
- @param callback A callback with activation status result - it contains status information in case of success and error in case of failure.
- @return PowerAuthOperationTask associated with the running request.
- @exception NSException thrown in case configuration is not present.
- */
-- (nullable id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(nonnull void(^)(PowerAuthActivationStatus * _Nullable status, NSDictionary * _Nullable customObject, NSError * _Nullable error))callback PA2_DEPRECATED(1.7.0);
-
-/**
- Read only property contains last custom object received from the server, together with the activation status.
- Note that the value is optional and PowerAuth Application Server must support this custom object.
- You have to call `fetchActivationStatus()` method to update this value.
- */
-@property (nonatomic, strong, nullable, readonly) NSDictionary<NSString*, NSObject*>* lastFetchedCustomObject PA2_DEPRECATED(1.7.0);
 
 
 /** Remove current activation by calling a PowerAuth Standard RESTful API endpoint '/pa/activation/remove'.
@@ -449,18 +459,6 @@
                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(validatePassword(password:callback:));
 
-/** Validate a user password.
- 
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value. The method
- is deprecated in favor of `validatePassword(password:callback:)` variant.
- 
- @param password Password to be verified.
- @param callback The callback method with error associated with the password validation.
- @return PowerAuthOperationTask associated with the running request.
- */
-- (nullable id<PowerAuthOperationTask>) validatePasswordCorrect:(nonnull NSString*)password
-                                                       callback:(nonnull void(^)(NSError * _Nullable error))callback PA2_DEPRECATED(1.7.2);
-
 /** Regenerate a biometry related factor key.
  
  This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
@@ -486,18 +484,6 @@
 - (nullable id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                                                  callback:(nonnull void(^)(NSError * _Nullable error))callback
                             NS_SWIFT_NAME(addBiometryFactor(password:callback:));
-
-/** Regenerate a biometry related factor key.
- 
- This method calls PowerAuth Standard RESTful API endpoint '/pa/vault/unlock' to obtain the vault encryption key used for original private key decryption.
- The method is deprecated in favor of `addBiometryFactor(password:callback:)` variant.
- 
- @param password Password used for authentication during vault unlocking call.
- @param callback The callback method with the biometry key adding operation result.
- @return PowerAuthOperationTask associated with the running request.
- */
-- (nullable id<PowerAuthOperationTask>) addBiometryFactor:(nonnull NSString*)password
-                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback PA2_DEPRECATED(1.7.2);
 
 /** Checks if a biometry related factor is present.
  

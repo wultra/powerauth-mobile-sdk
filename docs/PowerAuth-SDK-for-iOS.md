@@ -16,7 +16,7 @@
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
   - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
-  - [Committing Activation Data](#committing-activation-data)
+  - [Persisting Activation Data](#persisting-activation-data)
   - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
@@ -194,7 +194,7 @@ guard let activation = try? PowerAuthActivation(activationCode: activationCode, 
 // Create a new activation with just created activation object
 PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     if error == nil {
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
         // If server supports recovery codes for activations, then `activationRecovery` property contains object with information about activation recovery.
     } else {
@@ -248,7 +248,7 @@ guard let activation = try? PowerAuthActivation(identityAttributes: credentials,
 // Create a new activation with just created activation object
 PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
     if error == nil {
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
         // If server supports recovery codes for activations, then `activationRecovery` property contains object with information about activation recovery.
     } else {
@@ -289,7 +289,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
             }
         }
     } else {
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and commit
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
         // If server supports recovery codes for activations, then `activationRecovery` property contains object with information about activation recovery.
     }
@@ -327,15 +327,15 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 }
 ```  
 
-### Committing Activation Data
+### Persisting Activation Data
 
-After you create an activation using one of the methods mentioned above, you need to commit the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this:
+After you create an activation using one of the methods mentioned above, you need to persist the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this:
 
 ```swift
 do {
-    try PowerAuthSDK.sharedInstance().commitActivation(withPassword: "1234")
+    try PowerAuthSDK.sharedInstance().persistActivation(withPassword: "1234")
 } catch _ {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 
@@ -343,11 +343,11 @@ This code has created activation with two factors: possession (key stored using 
 
 ```swift
 do {
-    let auth = PowerAuthAuthentication.commitWithPasswordAndBiometry(password: "1234")
+    let auth = PowerAuthAuthentication.persistWithPasswordAndBiometry(password: "1234")
 
-    try PowerAuthSDK.sharedInstance().commitActivation(with: auth)
+    try PowerAuthSDK.sharedInstance().persistActivation(with: auth)
 } catch _ {
-    // happens only in case SDK was not configured or activation is not in state to be committed
+    // happens only in case SDK was not configured or activation is not in state to be persisted
 }
 ```
 
@@ -1895,7 +1895,7 @@ In other cases, you receive error via an exception, like in this example:
 
 ```swift
 do {
-    try PowerAuthSDK.sharedInstance().commitActivation(withPassword: "1234")
+    try PowerAuthSDK.sharedInstance().persistActivation(withPassword: "1234")
 } catch let error as NSError {
     // Handle 'error' here
 }

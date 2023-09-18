@@ -36,12 +36,6 @@
 /// Modifying content of useBiometry property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
 @property (nonatomic, assign) BOOL useBiometry;
 
-/// Password to be used for knowledge factor, or nil of knowledge factor should not be used.
-///
-/// Modifying content of usePassword property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance
-/// or use new `password` property to test whether authentication has knowledge factor in use.
-@property (nonatomic, strong, nullable) NSString *usePassword PA2_DEPRECATED(1.7.2);
-
 /// Contains password safely stored in PowerAuthCorePassword object in case that knowledge factor is required in authentication.
 @property (nonatomic, readonly, strong, nullable) PowerAuthCorePassword * password;
 
@@ -65,20 +59,6 @@
 ///
 /// Modifying content of overridenBiometryKey property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
 @property (nonatomic, strong, nullable) NSData *overridenBiometryKey;
-
-
-// Make setters deprecated
-
-/// Modifying content of usePossession property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-- (void) setUsePossession:(BOOL)usePossession PA2_DEPRECATED(1.7.0);
-/// Modifying content of useBiometry property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-- (void) setUseBiometry:(BOOL)useBiometry PA2_DEPRECATED(1.7.0);
-/// Modifying content of biometryPrompt property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-- (void) setBiometryPrompt:(nullable NSString*)biometryPrompt PA2_DEPRECATED(1.7.0);
-/// Modifying content of overridenPossessionKey property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-- (void) setOverridenPossessionKey:(nullable NSData*)overridenPossessionKey PA2_DEPRECATED(1.7.0);
-/// Modifying content of overridenBiometryKey property is deprecated. Please use appropriate static method to create PowerAuthAuthentication instance.
-- (void) setOverridenBiometryKey:(nullable NSData*)overridenBiometryKey PA2_DEPRECATED(1.7.0);
 
 @end
 
@@ -263,27 +243,6 @@
                                          customPossessionKey:(nonnull NSData*)customPossessionKey
                         NS_SWIFT_NAME(possessionWithPassword(password:customPossessionKey:));
 
-// Deprecated variants
-
-/// Create a new instance of authentication object preconfigured for signign with combination of possession and biometry factors and with prompt,
-/// displayed in the system biometric authentication dialog.
-///
-/// This method is deprecated in favor to `possessionWithBiometry(prompt:)`.
-///
-/// @param biometryPrompt Prompt displayed in the system biometric authentication dialog.
-/// @return New instance of authentication object configured for signing with a possession and biometry factors, with custom prompt displayed in the system biometric authentication dialog.
-+ (nonnull PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(nonnull NSString*)biometryPrompt PA2_DEPRECATED(1.7.0);
-
-/// Create a new instance of authentication object preconfigured for combination of possesion and knowledge factors.
-///
-/// This method is deprecated in favor to `possessionWithPassword(password:)`.
-///
-/// @param password Password used for the knowledge factor.
-/// @return New instance of authentication object configured for signing with a possession and knowledge factors.
-///
-+ (nonnull PowerAuthAuthentication *) possessionWithPasswordDeprecated:(nonnull NSString*)password
-                        NS_SWIFT_NAME(possession(withPassword:))
-                        PA2_DEPRECATED(1.7.0);
 @end
 
 @interface PowerAuthAuthentication (CorePassword)

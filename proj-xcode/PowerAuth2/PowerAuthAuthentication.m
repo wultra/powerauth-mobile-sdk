@@ -124,28 +124,6 @@
 }
 #endif
 
-// PA2_DEPRECATED(1.7.2) // getter deprecated in 1.7.2
-- (NSString*) usePassword
-{
-    __block NSString * result = nil;
-    if (_password) {
-        // The purpose of 'validatePasswordComplexity' is quite different, but there's no other API to extract
-        // plaintext passphrase from PowerAuthCorePassword. We're keeping this only for a compatibility reasons,
-        // so the implementation will be removed in 1.8.x release.
-        [_password validatePasswordComplexity:^NSInteger(const char * passphrase, NSInteger length) {
-            result = [[NSString alloc] initWithBytes:passphrase length:length encoding:NSUTF8StringEncoding];
-            return 0;
-        }];
-    }
-    return result;
-}
-
-// PA2_DEPRECATED(1.7.0) // setter was already deprecated in 1.7.0
-- (void) setUsePassword:(NSString *)usePassword
-{
-    _password = [PowerAuthCorePassword passwordWithString:usePassword];
-}
-
 @end
 
 
@@ -320,19 +298,6 @@
 {
     return [self possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:password]
                         customPossessionKey:customPossessionKey];
-}
-
-#pragma mark - Deprecated
-
-// PA2_DEPRECATED(1.7.0)
-+ (PowerAuthAuthentication *) possessionWithBiometryWithPrompt:(NSString *)biometryPrompt
-{
-    return [self possessionWithBiometryPrompt:biometryPrompt];
-}
-// PA2_DEPRECATED(1.7.0)
-+ (PowerAuthAuthentication *) possessionWithPasswordDeprecated:(NSString*)password
-{
-    return [self possessionWithPassword:password];
 }
 
 @end

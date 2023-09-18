@@ -510,12 +510,6 @@ static PowerAuthSDK * s_inst;
 
 #pragma mark Session state management
 
-- (BOOL) restoreState
-{
-    PowerAuthLog(@"PowerAuthSDK.restoreState() is deprecated.");
-    return YES;
-}
-
 - (BOOL) canStartActivation
 {
     [self checkForValidSetup];
@@ -961,22 +955,6 @@ static PowerAuthSDK * s_inst;
     return status;
 }
 
-// Deprecated methods
-
-// PA2_DEPRECATED(1.7.0)
-- (id<PowerAuthOperationTask>) fetchActivationStatusWithCallback:(void(^)(PowerAuthActivationStatus *status, NSDictionary *customObject, NSError *error))callback
-{
-    return [self getActivationStatusWithCallback:^(PowerAuthActivationStatus * status, NSError * error) {
-        callback(status, status.customObject, error);
-    }];
-}
-// PA2_DEPRECATED(1.7.0)
-- (NSDictionary*) lastFetchedCustomObject
-{
-    return self.lastFetchedActivationStatus.customObject;
-}
-
-
 #pragma mark Removing an activation
 
 - (id<PowerAuthOperationTask>) removeActivationWithAuthentication:(PowerAuthAuthentication*)authentication
@@ -1215,12 +1193,6 @@ static PowerAuthSDK * s_inst;
     return [self validateCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
 }
 
-// PA2_DEPRECATED(1.7.2)
-- (id<PowerAuthOperationTask>) validatePasswordCorrect:(NSString *)password callback:(void (^)(NSError *))callback
-{
-    return [self validatePassword:password callback:callback];
-}
-
 #pragma mark - Biometry
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithCorePassword:(PowerAuthCorePassword*)password
@@ -1256,12 +1228,6 @@ static PowerAuthSDK * s_inst;
 }
 
 - (id<PowerAuthOperationTask>) addBiometryFactorWithPassword:(NSString *)password callback:(void (^)(NSError *))callback
-{
-    return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
-}
-
-// PA2_DEPRECATED(1.7.2)
-- (id<PowerAuthOperationTask>) addBiometryFactor:(NSString *)password callback:(void (^)(NSError * _Nullable))callback
 {
     return [self addBiometryFactorWithCorePassword:[PowerAuthCorePassword passwordWithString:password] callback:callback];
 }

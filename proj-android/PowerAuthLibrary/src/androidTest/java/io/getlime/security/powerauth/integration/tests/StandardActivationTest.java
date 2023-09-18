@@ -434,7 +434,7 @@ public class StandardActivationTest {
 
         // Now fetch user info from the server
         UserInfo info = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.fetchUserInfo(testHelper.getContext(), new IUserInfoListener() {
+            ICancelable task = powerAuthSDK.fetchUserInfo(testHelper.getContext(), new IUserInfoListener() {
                 @Override
                 public void onUserInfoSucceed(@NonNull UserInfo userInfo) {
                     resultCatcher.completeWithResult(userInfo);
@@ -445,6 +445,7 @@ public class StandardActivationTest {
                     resultCatcher.completeWithError(t);
                 }
             });
+            assertNotNull(task);
         });
         assertEquals(userId, info.getSubject());
         assertEquals(info, powerAuthSDK.getLastFetchedUserInfo());
@@ -460,7 +461,7 @@ public class StandardActivationTest {
         originalClaims.put("name", "John Doe");
         originalClaims.put("admin", true);
         final String jwt = AsyncHelper.await(resultCatcher -> {
-            powerAuthSDK.signJwtWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), originalClaims, new IJwtSignatureListener() {
+            ICancelable task = powerAuthSDK.signJwtWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), originalClaims, new IJwtSignatureListener() {
                 @Override
                 public void onJwtSignatureSucceed(@NonNull String jwt) {
                     resultCatcher.completeWithResult(jwt);
@@ -471,6 +472,7 @@ public class StandardActivationTest {
                     resultCatcher.completeWithError(t);
                 }
             });
+            assertNotNull(task);
         });
 
         // Parse JWT and validate result

@@ -21,6 +21,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public class EcdsaSignatureTest {
         final byte[] signatureForData = AsyncHelper.await(new AsyncHelper.Execution<byte[]>() {
             @Override
             public void execute(@NonNull final AsyncHelper.ResultCatcher<byte[]> resultCatcher) throws Exception {
-                powerAuthSDK.signDataWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), dataToSign, new IDataSignatureListener() {
+                ICancelable task = powerAuthSDK.signDataWithDevicePrivateKey(testHelper.getContext(), activationHelper.getValidAuthentication(), dataToSign, new IDataSignatureListener() {
                     @Override
                     public void onDataSignedSucceed(@NonNull byte[] signature) {
                         resultCatcher.completeWithResult(signature);
@@ -81,6 +82,7 @@ public class EcdsaSignatureTest {
                         resultCatcher.completeWithError(t);
                     }
                 });
+                assertNotNull(task);
             }
         });
         assertNotNull(signatureForData);

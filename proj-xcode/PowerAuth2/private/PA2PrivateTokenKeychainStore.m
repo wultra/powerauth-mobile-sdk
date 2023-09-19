@@ -308,15 +308,6 @@
     }];
 }
 
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-implementations"
-- (void) cancelTask:(id)task
-{
-    [PA2ConformsTo(task, PowerAuthOperationTask) cancel];
-}
-#pragma clang diagnostic pop
-
 #if PA2_HAS_CORE_MODULE == 1 || TARGET_OS_WATCH == 1
 //
 // Implementation available for PowerAuth2 & PowerAuth2ForWatch modules

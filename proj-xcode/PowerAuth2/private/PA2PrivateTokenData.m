@@ -123,6 +123,8 @@
         c->_name = _name;
         c->_identifier = _identifier;
         c->_secret = _secret;
+        c->_activationIdentifier = _activationIdentifier;
+        c->_authenticationFactors = _authenticationFactors;
     }
     return c;
 }

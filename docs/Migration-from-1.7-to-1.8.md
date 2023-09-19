@@ -150,6 +150,8 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 
 - Removed all interfaces deprecated in release `1.7.x`
 
+- Minimum deployment target updated to iOS 12 and tvOS 12
+
 ### Other changes
 
 #### Synchronized time
@@ -207,10 +209,42 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 
 ### API changes
 
+- `PowerAuthConfiguration` - class now supports only the simplified configuration.
+  - Use new object constructor with all required parameters:
+    ```swift
+    let config = PowerAuthConfiguration(
+        instanceId: "your-instance-id",
+        baseEndpointUrl: "https://api.wultra.com/enrollment-server",
+        configuration: "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
+    )
+    ```
+  - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
+
 - The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+
+- Removed all interfaces deprecated in release `1.7.x` 
+
+- Minimum deployment target updated to iOS 12 and tvOS 12.
 
 ## watchOS
 
 ### API changes
 
+- `PowerAuthConfiguration` - class now supports only the simplified configuration.
+  - Use new object constructor with all required parameters:
+    ```swift
+    let config = PowerAuthConfiguration(
+        instanceId: "your-instance-id",
+        baseEndpointUrl: "https://api.wultra.com/enrollment-server",
+        configuration: "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
+    )
+    ```
+  - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
+
 - The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+
+- Removed all interfaces deprecated in release `1.7.x`
+
+## Known Bugs
+
+The PowerAuth SDKs for iOS and tvOS App Extensions, as well as for watchOS, do not use time synchronized with the server for token-based authentication. To avoid any compatibility issues with the server, the authentication headers generated in your App Extension or on watchOS still use the older protocol version 3.1. This issue will be fixed in a future SDK update.

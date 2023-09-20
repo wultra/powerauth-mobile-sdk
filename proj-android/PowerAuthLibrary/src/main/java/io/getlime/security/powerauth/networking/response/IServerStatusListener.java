@@ -25,6 +25,8 @@ import androidx.annotation.NonNull;
 public interface IServerStatusListener {
     /**
      * Called when getting server status succeeded.
+     *
+     * @param status Received server status.
      */
     @MainThread
     void onServerStatusSucceeded(@NonNull ServerStatus status);

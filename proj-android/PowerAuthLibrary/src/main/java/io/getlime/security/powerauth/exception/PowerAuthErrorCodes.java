@@ -33,7 +33,8 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
         INVALID_TOKEN, ENCRYPTION_ERROR, WRONG_PARAMETER,
         PROTOCOL_UPGRADE, PENDING_PROTOCOL_UPGRADE,
         BIOMETRY_NOT_SUPPORTED, BIOMETRY_NOT_AVAILABLE, BIOMETRY_NOT_RECOGNIZED,
-        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION})
+        INSUFFICIENT_KEYCHAIN_PROTECTION, BIOMETRY_LOCKOUT, TIME_SYNCHRONIZATION,
+        BIOMETRY_NOT_ENROLLED})
 public @interface PowerAuthErrorCodes {
 
     /**
@@ -162,4 +163,9 @@ public @interface PowerAuthErrorCodes {
      * Failed to synchronize time with the server.
      */
     int TIME_SYNCHRONIZATION = 23;
+
+    /**
+     * The biometric authentication failed because there's no biometry enrolled on the device.
+     */
+    int BIOMETRY_NOT_ENROLLED = 24;
 }

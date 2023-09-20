@@ -2301,8 +2301,78 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
-     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IAuthenticateWithBiometryListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     *
+     * @param context Context.
+     * @param fragment The fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param listener Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @UiThread
+    @NonNull
+    public ICancelable authenticateUsingBiometry(
+            @NonNull Context context,
+            @NonNull Fragment fragment,
+            @NonNull String title,
+            @NonNull String description,
+            final @NonNull IAuthenticateWithBiometryListener listener) {
+        return authenticateUsingBiometry(context, FragmentHelper.from(fragment), title, description, false, getBiometricCallbackWithListener(listener));
+    }
+
+    /**
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IAuthenticateWithBiometryListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     *
+     * @param context Context.
+     * @param fragmentActivity The activity of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param listener Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     */
+    @UiThread
+    @NonNull
+    public ICancelable authenticateUsingBiometry(
+            @NonNull Context context,
+            @NonNull FragmentActivity fragmentActivity,
+            @NonNull String title,
+            @NonNull String description,
+            final @NonNull IAuthenticateWithBiometryListener listener) {
+        return authenticateUsingBiometry(context, FragmentHelper.from(fragmentActivity), title, description, false, getBiometricCallbackWithListener(listener));
+    }
+
+    /**
+     * Create low level biometric authentication callback that bridge the result to the provided listener.
+     * @param listener Target listener.
+     * @return Instance of {@link IBiometricAuthenticationCallback}.
+     */
+    @NonNull
+    private IBiometricAuthenticationCallback getBiometricCallbackWithListener(@NonNull IAuthenticateWithBiometryListener listener) {
+        return new IBiometricAuthenticationCallback() {
+            @Override
+            public void onBiometricDialogCancelled(boolean userCancel) {
+                listener.onBiometricDialogCancelled(userCancel);
+            }
+
+            @Override
+            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
+                final PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometricKeyData.getDerivedData());
+                listener.onBiometricDialogSuccess(authentication);
+            }
+
+            @Override
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                listener.onBiometricDialogFailed(error);
+            }
+        };
+    }
+
+    /**
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called.
      *
      * @param context Context.
      * @param fragment The fragment of the application that will host the prompt.
@@ -2310,9 +2380,11 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometry(Context, Fragment, String, String, IAuthenticateWithBiometryListener)} as a replacement.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.8.0
     public ICancelable authenticateUsingBiometry(
             @NonNull Context context,
             @NonNull Fragment fragment,
@@ -2323,8 +2395,8 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
-     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
      *
      * @param context Context.
      * @param fragmentActivity The activity of the application that will host the prompt.
@@ -2332,9 +2404,11 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometry(Context, FragmentActivity, String, String, IAuthenticateWithBiometryListener)} as a replacement.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.8.0
     public ICancelable authenticateUsingBiometry(
             @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
@@ -2345,8 +2419,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Authenticate a client using biometric authentication. In case of the authentication is successful and {@link IBiometricAuthenticationCallback#onBiometricDialogSuccess(BiometricKeyData)} callback is called,
-     * you can use {@code biometricKeyEncrypted} as a parameter to {@link PowerAuthAuthentication#useBiometry} property.
+     * Authenticate a client using biometric authentication.
      *
      * @param context Context.
      * @param fragmentHelper Fragment helper for the dialog.

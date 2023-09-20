@@ -49,10 +49,15 @@ Legacy PowerAuth configuration:
   - `commitActivationWithAuthentication()` is now `persistActivationWithAuthentication()`
   - All variants of `commitActivationWithPassword()` are now `persistActivationWithPassword()`
   - All variants of `commitActivation()` are now `persistActivation()`
+  - All variants of `authenticateUsingBiometry()` are now using new `IAuthenticateWithBiometryListener` interface returning `PowerAuthAuthentication` in success.
 
 - The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometryListener` as a replacement.
 
 - The `PowerAuthAuthentication` object is now immutable object.
+
+- `PowerAuthErrorCodes` now contains the following new error codes:
+  - `TIME_SYNCHRONIZATION` indicating a problem with the time synchronization.
+  - `BIOMETRY_NOT_ENROLLED` indicating that device has no enrolled biometry.
 
 - The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 

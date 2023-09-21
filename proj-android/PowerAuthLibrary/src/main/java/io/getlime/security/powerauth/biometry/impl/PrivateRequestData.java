@@ -34,6 +34,7 @@ public class PrivateRequestData {
     private final @NonNull BiometricResultDispatcher dispatcher;
     private final @NonNull BiometricDialogResources resources;
     private final @NonNull IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider;
+    private final boolean errorDialogDisabled;
     private final long creationTime;
 
     /**
@@ -43,16 +44,19 @@ public class PrivateRequestData {
      * @param biometricKeyEncryptorProvider Object that provide {@link IBiometricKeyEncryptor} on demand.
      * @param dispatcher Dispatcher that holds completion callback and callback dispatcher.
      * @param resources Resources required for the legacy implementation.
+     * @param errorDialogDisabled If true then error dialog should not be displayed.
      */
     public PrivateRequestData(@NonNull BiometricAuthenticationRequest request,
                               @NonNull IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider,
                               @NonNull BiometricResultDispatcher dispatcher,
-                              @NonNull BiometricDialogResources resources) {
+                              @NonNull BiometricDialogResources resources,
+                              boolean errorDialogDisabled) {
         this.request = request;
         this.biometricKeyEncryptorProvider = biometricKeyEncryptorProvider;
         this.dispatcher = dispatcher;
         this.resources = resources;
         this.creationTime = SystemClock.elapsedRealtime();
+        this.errorDialogDisabled = errorDialogDisabled;
     }
 
     /**
@@ -88,6 +92,13 @@ public class PrivateRequestData {
      */
     public long getElapsedTime() {
         return SystemClock.elapsedRealtime() - creationTime;
+    }
+
+    /**
+     * @return {@code true} if error dialog after failed authentication should not be displayed.
+     */
+    public boolean isErrorDialogDisabled() {
+        return errorDialogDisabled;
     }
 
     /**

@@ -26,6 +26,8 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
 public interface IGenerateTokenHeaderListener {
     /**
      * Called when generating token header succeeded.
+     *
+     * @param header Authorization header.
      */
     @MainThread
     void onGenerateTokenHeaderSucceeded(@NonNull PowerAuthAuthorizationHttpHeader header);

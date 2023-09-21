@@ -49,4 +49,8 @@ allprojects {
         mavenCentral()
         google()
      }
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:-html', '-quiet')
+    }
 }
+

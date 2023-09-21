@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.exception;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Will be thrown, or will be returned to listener, in case that requested operation fails
@@ -29,12 +30,17 @@ public class PowerAuthErrorException extends Exception {
      */
     @PowerAuthErrorCodes
     private final int powerAuthErrorCode;
+    /**
+     * Additional information associated with the failure reason. The m
+     */
+    private final Object additionalInformation;
 
     /**
      * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
      */
     public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode) {
         this.powerAuthErrorCode = powerAuthErrorCode;
+        this.additionalInformation = null;
     }
 
     /**
@@ -44,6 +50,7 @@ public class PowerAuthErrorException extends Exception {
     public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode, String message) {
         super(message);
         this.powerAuthErrorCode = powerAuthErrorCode;
+        this.additionalInformation = null;
     }
 
     /**
@@ -54,6 +61,19 @@ public class PowerAuthErrorException extends Exception {
     public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode, String message, Throwable cause) {
         super(message, cause);
         this.powerAuthErrorCode = powerAuthErrorCode;
+        this.additionalInformation = null;
+    }
+
+    /**
+     * @param powerAuthErrorCode Integer constant from {@link PowerAuthErrorCodes}
+     * @param message String with detailed error description.
+     * @param cause Original cause of failure.
+     * @param additionalInformation Additional information.
+     */
+    public PowerAuthErrorException(@PowerAuthErrorCodes int powerAuthErrorCode, String message, Throwable cause, Object additionalInformation) {
+        super(message, cause);
+        this.powerAuthErrorCode = powerAuthErrorCode;
+        this.additionalInformation = additionalInformation;
     }
 
     /**
@@ -62,6 +82,16 @@ public class PowerAuthErrorException extends Exception {
     @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;
+    }
+
+    /**
+     * Get additional information that may help with the error processing. If the error is biometry-related, then
+     * you can obtain {@link io.getlime.security.powerauth.biometry.BiometricErrorInfo} enumeration in this property.
+     * @return Additional information that help with error processing.
+     */
+    @Nullable
+    public Object getAdditionalInformation() {
+        return additionalInformation;
     }
 
     /**

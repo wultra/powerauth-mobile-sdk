@@ -139,7 +139,7 @@ public class BiometricAuthentication {
                 }
             });
             final IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider = new DefaultBiometricKeyEncryptorProvider(request, getBiometricKeystore());
-            final PrivateRequestData requestData = new PrivateRequestData(request, biometricKeyEncryptorProvider, dispatcher, ctx.getBiometricDialogResources());
+            final PrivateRequestData requestData = new PrivateRequestData(request, biometricKeyEncryptorProvider, dispatcher, ctx.getBiometricDialogResources(), ctx.isBiometricErrorDialogDisabled());
 
             // Validate request status
             @BiometricStatus int status = device.canAuthenticate();
@@ -176,7 +176,14 @@ public class BiometricAuthentication {
             if (exception == null) {
                 exception = BiometricHelper.getExceptionForBiometricStatus(status);
             }
-            return showErrorDialog(status, exception, context, requestData);
+            if (requestData.isErrorDialogDisabled()) {
+                // Error dialog is disabled, so report the error immediately. Use "no visible reason" hint.
+                dispatcher.dispatchError(BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON.addToException(exception));
+                return dispatcher.getCancelableTask();
+            } else {
+                // Error dialog is not disabled, so we can show it. Use "visible reason" hint.
+                return showErrorDialog(status, BiometricErrorInfo.BIOMETRICS_FAILED_WITH_VISIBLE_REASON.addToException(exception), context, requestData);
+            }
         }
     }
 
@@ -311,6 +318,32 @@ public class BiometricAuthentication {
     }
 
     /**
+     * Disable or enable error dialog provided by PowerAuth mobile SDK and displayed after failed biometric authentication.
+     * <p>
+     * If set to {@code true}, then the custom error dialog provided by the PowerAuth mobile SDK will never
+     * be displayed in the case of authentication failure. The mobile application should handle all possible error
+     * states using its own UI elements. The default value for this property is {@code false}, and the PowerAuth mobile
+     * SDK may display its own error dialog.
+     *
+     * @param disabled If {@code true}, then the PowerAuth mobile SDK will never display its own error dialog.
+     */
+    public static void setBiometricErrorDialogDisabled(boolean disabled) {
+        synchronized (SharedContext.class) {
+            getContext().setBiometricErrorDialogDisabled(disabled);
+        }
+    }
+
+    /**
+     * Return information whether error dialog provided by PowerAuth mobile SDK is disabled or enabled.
+     * @return {@code true} in case that the PowerAuth mobile SDK will never display its own error dialog, {@code false} otherwise.
+     */
+    public static boolean isBiometricErrorDialogDisabled() {
+        synchronized (SharedContext.class) {
+            return getContext().isBiometricErrorDialogDisabled();
+        }
+    }
+
+    /**
      * Return type of biometry supported on the system.
      *
      * @param context Android context object
@@ -345,6 +378,12 @@ public class BiometricAuthentication {
         private @Nullable IBiometricAuthenticator authenticator;
 
         /**
+         * Contains {@code true} in case that application want's to deal with authentication errors in its own UI.
+         * The default value is {@code false};
+         */
+        private boolean isBiometricErrorDialogDisabled = false;
+
+        /**
          * Contains {@code true} in case that there's already pending biometric authentication.
          */
         private boolean isPendingBiometricAuthentication = false;
@@ -370,6 +409,20 @@ public class BiometricAuthentication {
          */
         @NonNull BiometricDialogResources getBiometricDialogResources() {
             return biometricDialogResources;
+        }
+
+        /**
+         * @param disabled if true, then error dialog provided by PowerAuth mobile SDK will be disabled.
+         */
+        void setBiometricErrorDialogDisabled(boolean disabled) {
+            isBiometricErrorDialogDisabled = disabled;
+        }
+
+        /**
+         * @return true when error dialog provided by PowerAuth mobile SDK is be disabled.
+         */
+        boolean isBiometricErrorDialogDisabled() {
+            return isBiometricErrorDialogDisabled;
         }
 
         /**

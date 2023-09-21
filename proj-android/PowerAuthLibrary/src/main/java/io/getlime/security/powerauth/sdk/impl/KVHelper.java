@@ -34,18 +34,35 @@ import androidx.annotation.Nullable;
  */
 public class KVHelper<K> {
 
-    public @NonNull Map<K, Object> map;
+    /**
+     * Map to use in the helper.
+     */
+    public final @NonNull Map<K, Object> map;
 
+    /**
+     * Construct helper with given map.
+     * @param map Map to use in the helper.
+     */
     public KVHelper(Map<K, Object> map) {
         this.map = map != null ? map : Collections.emptyMap();
     }
 
+    /**
+     * Get a string value for given key.
+     * @param key Key to retrieve the string value.
+     * @return String for given key or null if no such item is stored in the map.
+     */
     @Nullable
     public String valueAsString(@NonNull K key) {
         final Object v = map.get(key);
         return v instanceof String ? (String) v : null;
     }
 
+    /**
+     * Get a multiline string value for given key. The returned string doesn't contain CR-LF endings.
+     * @param key Key to retrieve the string value.
+     * @return Multiline string for given key or null if no such item is stored in the map.
+     */
     @Nullable
     public String valueAsMultilineString(@NonNull K key) {
         final String s = valueAsString(key);
@@ -55,11 +72,21 @@ public class KVHelper<K> {
         return s;
     }
 
+    /**
+     * Get a boolean value for given key.
+     * @param key Key to retrieve the boolean value.
+     * @return Boolean for given key or false if no such item is stored in the map.
+     */
     public boolean valueAsBool(@NonNull K key) {
         final Object v = map.get(key);
         return v instanceof Boolean ? (Boolean) v : false;
     }
 
+    /**
+     * Get a map for given key.
+     * @param key Key to retrieve the map.
+     * @return Map for given key or false if no such item is stored.
+     */
     @SuppressWarnings("unchecked")
     @Nullable
     public Map<K, Object> valueAsMap(@NonNull K key) {
@@ -67,6 +94,11 @@ public class KVHelper<K> {
         return v instanceof Map ? (Map<K, Object>) v : null;
     }
 
+    /**
+     * Get a Date created from timestamp in seconds, stored for the given key.
+     * @param key Key to retrieve the timestamp.
+     * @return Date created from value for given key or null if no such item is stored in the map.
+     */
     @Nullable
     public Date valueAsTimestamp(@NonNull K key) {
         final Object v = map.get(key);
@@ -76,6 +108,12 @@ public class KVHelper<K> {
         return null;
     }
 
+    /**
+     * Get a Date created from string value stored for the given key.
+     * @param key Key to retrieve the date.
+     * @param format Format of date.
+     * @return Date created from value for given key, or null if no such item is stored in the map.
+     */
     @Nullable
     public Date valueAsDate(@NonNull K key, @NonNull String format) {
         final String v = valueAsString(key);

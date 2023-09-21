@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Wultra s.r.o.
+ * Copyright 2023 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
-
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 
 /**
- * Interface used as a callback for biometric authentication for an internal SDK purposes.
+ * Interface used as a callback for biometric authentication for general application use.
  */
-public interface IBiometricAuthenticationCallback {
-
+public interface IAuthenticateWithBiometricsListener {
     /**
      * Biometric authentication dialog was cancelled by the user or externally, by calling {@code cancel()}
      * on cancelable object returned from authenticate() method.
@@ -40,11 +39,10 @@ public interface IBiometricAuthenticationCallback {
     /**
      * Biometric authentication succeeded.
      *
-     * @param biometricKeyData {@link BiometricKeyData} object with derived key and data that should
-     *                         be stored to the persistent storage.
+     * @param authentication {@link PowerAuthAuthentication} configured for combination of possession and biometry factors.
      */
     @UiThread
-    void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData);
+    void onBiometricDialogSuccess(@NonNull PowerAuthAuthentication authentication);
 
     /**
      * Biometric authentication failed with the error.

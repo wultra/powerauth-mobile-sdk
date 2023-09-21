@@ -24,7 +24,10 @@
 
 /** Class representing a multi-factor authentication object.
  */
-@interface PowerAuthAuthentication : NSObject<NSCopying>
+@interface PowerAuthAuthentication : NSObject
+
+/// No longer available. Use static methods instead.
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
 /// Indicates if a possession factor should be used.
 @property (nonatomic, readonly, assign) BOOL usePossession;

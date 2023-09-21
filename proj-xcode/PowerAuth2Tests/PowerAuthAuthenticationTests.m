@@ -269,11 +269,4 @@
     XCTAssertFalse([auth validateUsage:NO]);
 }
 
-- (void) testLegacyObject
-{
-    PowerAuthAuthentication * auth = [[PowerAuthAuthentication alloc] init];
-    XCTAssertFalse([auth validateUsage:NO]);
-    XCTAssertFalse([auth validateUsage:YES]);
-}
-
 @end

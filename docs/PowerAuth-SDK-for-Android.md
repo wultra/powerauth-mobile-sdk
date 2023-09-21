@@ -597,7 +597,7 @@ This code has created activation with two factors: possession (key stored using 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometryListener {
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometricsListener {
     override fun onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
     }
@@ -613,7 +613,7 @@ powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authenticati
 ```
 ```java
 // Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometryListener() {
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometricsListener() {
     @Override
     public void onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
@@ -1772,15 +1772,13 @@ In order to obtain an encrypted biometry factor-related key for the purpose of a
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IBiometricAuthenticationCallback {
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
         // User cancelled the operation
     }
 
-    override fun onBiometricDialogSuccess(biometricKeyData: BiometricKeyData) {
-        // User authenticated and biometry key was returned, now you can construct PowerAuthAuthentication object with proper signing capabilities.
-        val biometryFactorRelatedKey = biometricKeyData.derivedData
-        val twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey)
+    override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
+        // User authenticated use the provided authentication object for other tasks.
     }
 
     override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
@@ -1790,17 +1788,15 @@ powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the bi
 ```
 ```java
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IBiometricAuthenticationCallback() {
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IAuthenticateWithBiometricsListener() {
     @Override
     public void onBiometricDialogCancelled(boolean userCancel) {
         // User cancelled the operation
     }
 
     @Override
-    public void onBiometricDialogSuccess(BiometricKeyData biometricKeyData) {
-        // User authenticated and biometry key was returned, now you can construct PowerAuthAuthentication object with proper signing capabilities.
-        final byte[] biometryFactorRelatedKey = biometricKeyData.getDerivedData();
-        final PowerAuthAuthentication twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
+    public void onBiometricDialogSuccess(PowerAuthAuthentication authentication) {
+        // User authenticated use the provided authentication object for other tasks.
     }
 
     @Override
@@ -1848,6 +1844,8 @@ Be aware that the configuration above is effective only for the new keys. So, if
 
 The `BiometricAuthentication` class is a high level interface that provides interfaces related to the biometric authentication for the SDK, or for the application purposes. The class hides all technical details, so it can be safely used also on the systems that doesn't provide biometric interfaces, or if the system has no biometric sensor available. The implementation under the hood uses `androidx.biometric.BiometricPrompt` and `androidx.biometric.BiometricManager` classes.
 
+#### Customize Biometric Dialog Resources 
+
 To customize the strings used in biometric authentication, you can use `BiometricDialogResources` in the following manner:
 
 <!-- begin codetabs Kotlin Java -->
@@ -1878,6 +1876,44 @@ final BiometricDialogResources resources = new BiometricDialogResources.Builder(
 BiometricAuthentication.setBiometricDialogResources(resources);
 ```
 <!-- end -->
+
+#### Disable Error Dialog After Failed Biometry
+
+If you prefer not to allow the PowerAuth mobile SDK to display its own error dialog, you can disable this feature globally. In this case, your application will need to handle all error situations through its own user interface. Use the following code to disable the error dialog:
+
+```kotlin
+BiometricAuthentication.setBiometricErrorDialogDisabled(true)
+```
+
+When the error dialog is disabled, your application should inform the user of the reason for the failure. Handling this might be somewhat tricky because there are situations where the biometric authentication dialog is not displayed at all, and the failure is reported directly to the application. To address this, you can use the `BiometricErrorInfo` enumeration, which is associated with the reported `PowerAuthErrorException`. The code snippet below outlines how to determine the situation:
+
+```kotlin
+// Authenticate user with biometry and obtain encrypted biometry factor related key.
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
+    override fun onBiometricDialogCancelled(userCancel: Boolean) {
+        // User or system cancelled the operation
+    }
+
+    override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
+        // Success
+    }
+
+    override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
+        if (error.additionalInformation == BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON) {
+            // Application should display error in its own UI
+            when (error.powerAuthErrorCode) {
+                PowerAuthErrorCodes.BIOMETRY_LOCKOUT -> println("Lockout")
+                PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE -> println("Not available, try later")
+                PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED -> println("Fingerprint or face not recognized") // check inline documentation for more details
+                PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED -> println("Device has no biometry sensor")
+                PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED -> println("Device has no biometry data enrolled")
+            }
+        }
+    }
+})
+```
+
+#### Biometric Authentication Confirmation
 
 On Android 10+ systems, it's possible to configure `BiometricPrompt` to ask for an additional confirmation after the user is successfully authenticated. The default behavior for PowerAuth Mobile SDK is that such confirmation is not required. To change this behavior, you have to provide `PowerAuthKeychainConfiguration` object with `confirmBiometricAuthentication` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
@@ -2559,6 +2595,7 @@ when (t) {
             PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED -> Log.d(TAG, "The device or operating system doesn't support biometric authentication.")
             PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE -> Log.d(TAG, "The biometric authentication is temporarily unavailable.")
             PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED -> Log.d(TAG, "The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)")
+            PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED -> Log.d(TAG, "The biometric authentication failed because there's no biometry enrolled")
             PowerAuthErrorCodes.BIOMETRY_LOCKOUT -> Log.d(TAG, "The biometric authentication is locked out due to too many failed attempts.")
             PowerAuthErrorCodes.OPERATION_CANCELED -> Log.d(TAG, "Error code for cancelled operations")
             PowerAuthErrorCodes.ENCRYPTION_ERROR -> Log.d(TAG, "Error code for errors related to end-to-end encryption")
@@ -2566,6 +2603,13 @@ when (t) {
             PowerAuthErrorCodes.PROTOCOL_UPGRADE -> Log.d(TAG, "Error code for error that occurs when protocol upgrade fails at unrecoverable error.")
             PowerAuthErrorCodes.PENDING_PROTOCOL_UPGRADE -> Log.d(TAG, "The operation is temporarily unavailable, due to pending protocol upgrade.")
             PowerAuthErrorCodes.TIME_SYNCHRONIZATION -> Log.d(TAG, "Failed to synchronize time with the server.")
+        }
+        // Process additional information
+        when (t.additionalInformation) {
+            BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON -> {
+                // Application should display error dialog after failed biometric authentication. This is relevant only
+                // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+            }
         }
     }
     is ErrorResponseApiException -> {
@@ -2609,6 +2653,8 @@ if (t instanceof PowerAuthErrorException) {
             android.util.Log.d(TAG,"The biometric authentication is temporarily unavailable."); break;
         case PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED:
             android.util.Log.d(TAG,"The biometric authentication did not recognize the biometric image (fingerprint, face, etc...)"); break;
+        case PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED:
+            android.util.Log.d(TAG,"The biometric authentication failed because there's no biometry enrolled"); break;
         case PowerAuthErrorCodes.BIOMETRY_LOCKOUT:
             android.util.Log.d(TAG,"The biometric authentication is locked out due to too many failed attempts."); break;
         case PowerAuthErrorCodes.OPERATION_CANCELED:
@@ -2624,6 +2670,12 @@ if (t instanceof PowerAuthErrorException) {
         case PowerAuthErrorCodes.TIME_SYNCHRONIZATION:
             android.util.Log.d(TAG,"Failed to synchronize time with the server."); break;
     }
+    // Process additional information
+    if (BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON.equals(exception.getAdditionalInformation())) {
+        // Application should display error dialog after failed biometric authentication. This is relevant only
+        // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+    }
+
 } else if (t instanceof ErrorResponseApiException) {
     ErrorResponseApiException exception = (ErrorResponseApiException) t;
     Error errorResponse = exception.getErrorResponse();

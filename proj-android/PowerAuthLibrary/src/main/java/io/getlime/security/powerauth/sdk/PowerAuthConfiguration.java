@@ -16,15 +16,12 @@
 
 package io.getlime.security.powerauth.sdk;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
 import io.getlime.security.powerauth.core.SessionSetup;
-import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
 
 /**
  * Class representing a configuration of a single PowerAuthSDK instance.

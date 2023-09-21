@@ -22,7 +22,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 /**
  * Interface used as a callback for persisting the activation with biometric authentication.
  */
-public interface IPersistActivationWithBiometryListener {
+public interface IPersistActivationWithBiometricsListener {
     /**
      * Biometric dialog was cancelled.
      */

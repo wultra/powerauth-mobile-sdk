@@ -21,6 +21,8 @@ import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
+import java.util.Arrays;
+
 /**
  * Class representing a multi-factor authentication object.
  */
@@ -48,9 +50,14 @@ public class PowerAuthAuthentication {
     /**
      * Construct object with desired combination of factors. Such authentication object can be used
      * either to persist activation and for the signature calculation.
-     *
+     * <p>
      * Note that you should prefer static construction functions instead of this constructor, unless
      * you have a special reason for it.
+     * <p>
+     * Note that the constructor internally makes a copy of provided byte arrays. This is because authentication object
+     * now supports {@link #destroy()} method that clears content of such arrays. We don't want to clear instance of
+     * array that is still in use somewhere else.
+     *
      *
      * @param persistActivation If true, then authentication can be used to persist activation.
      * @param password If set, then knowledge factor will be used to persist activation or signature calculation.
@@ -62,10 +69,29 @@ public class PowerAuthAuthentication {
             @Nullable Password password,
             @Nullable byte[] biometryFactorRelatedKey,
             @Nullable byte[] overriddenPossessionKey) {
-        this.useBiometry = biometryFactorRelatedKey;
+        this.useBiometry = safeArrayCopy(biometryFactorRelatedKey);
         this.password = password;
-        this.overriddenPossessionKey = overriddenPossessionKey;
+        this.overriddenPossessionKey = safeArrayCopy(overriddenPossessionKey);
         this.persistActivation = persistActivation;
+    }
+
+    /**
+     * Make copy of provided byte array if non-null array is provided.
+     * @param original Array to safely copy.
+     * @return new array with copied content or null if input is null.
+     */
+    private static byte[] safeArrayCopy(byte[] original) {
+        if (original != null) {
+            return Arrays.copyOf(original, original.length);
+        }
+        return null;
+    }
+
+    /**
+     * Make sure that the sensitive data is always wiped out from the memory.
+     */
+    protected void finalize() {
+        destroy();
     }
 
     // Persist activation
@@ -345,6 +371,22 @@ public class PowerAuthAuthentication {
     @Nullable
     public byte[] getOverriddenPossessionKey() {
         return overriddenPossessionKey;
+    }
+
+    /**
+     * Destroys any sensitive content, such as password stored in the authentication object.
+     * After this call, the object becomes unusable for authentication operations.
+     */
+    public void destroy() {
+        if (password != null) {
+            password.destroy();
+        }
+        if (useBiometry != null) {
+            Arrays.fill(useBiometry, (byte) 0xCD);  // This may help with the debugging. CD CD CD is more suspicious than 00 00 00
+        }
+        if (overriddenPossessionKey != null) {
+            Arrays.fill(overriddenPossessionKey, (byte) 0xCD);
+        }
     }
 
     // Internal interfaces

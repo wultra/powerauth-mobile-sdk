@@ -24,7 +24,7 @@ import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 /**
  * Interface used as a callback for biometric authentication for general application use.
  */
-public interface IAuthenticateWithBiometryListener {
+public interface IAuthenticateWithBiometricsListener {
     /**
      * Biometric authentication dialog was cancelled by the user or externally, by calling {@code cancel()}
      * on cancelable object returned from authenticate() method.

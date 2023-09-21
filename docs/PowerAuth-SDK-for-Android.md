@@ -1772,7 +1772,7 @@ In order to obtain an encrypted biometry factor-related key for the purpose of a
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometryListener {
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
         // User cancelled the operation
     }
@@ -1788,7 +1788,7 @@ powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the bi
 ```
 ```java
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IAuthenticateWithBiometryListener() {
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IAuthenticateWithBiometricsListener() {
     @Override
     public void onBiometricDialogCancelled(boolean userCancel) {
         // User cancelled the operation
@@ -1889,7 +1889,7 @@ When the error dialog is disabled, your application should inform the user of th
 
 ```kotlin
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometry(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometryListener {
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
         // User or system cancelled the operation
     }

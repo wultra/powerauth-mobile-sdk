@@ -1033,7 +1033,7 @@ public class PowerAuthSDK {
             @NonNull String description,
             @NonNull final Password password,
             final @NonNull IPersistActivationWithBiometryListener callback) {
-        return authenticateUsingBiometry(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
+        return authenticateUsingBiometrics(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 if (userCancel) {
@@ -2067,7 +2067,7 @@ public class PowerAuthSDK {
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
                     // Authenticate using biometry to generate a key
-                    final ICancelable biometricAuthentication = authenticateUsingBiometry(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
+                    final ICancelable biometricAuthentication = authenticateUsingBiometrics(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
@@ -2302,7 +2302,7 @@ public class PowerAuthSDK {
 
     /**
      * Authenticate a client using biometric authentication. In case of the authentication is successful and
-     * {@link IAuthenticateWithBiometryListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
      *
      * @param context Context.
      * @param fragment The fragment of the application that will host the prompt.
@@ -2313,18 +2313,18 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    public ICancelable authenticateUsingBiometry(
+    public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull Fragment fragment,
             @NonNull String title,
             @NonNull String description,
-            final @NonNull IAuthenticateWithBiometryListener listener) {
-        return authenticateUsingBiometry(context, FragmentHelper.from(fragment), title, description, false, getBiometricCallbackWithListener(listener));
+            final @NonNull IAuthenticateWithBiometricsListener listener) {
+        return authenticateUsingBiometrics(context, FragmentHelper.from(fragment), title, description, false, getBiometricCallbackWithListener(listener));
     }
 
     /**
      * Authenticate a client using biometric authentication. In case of the authentication is successful and
-     * {@link IAuthenticateWithBiometryListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
      *
      * @param context Context.
      * @param fragmentActivity The activity of the application that will host the prompt.
@@ -2335,13 +2335,13 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    public ICancelable authenticateUsingBiometry(
+    public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
             @NonNull String title,
             @NonNull String description,
-            final @NonNull IAuthenticateWithBiometryListener listener) {
-        return authenticateUsingBiometry(context, FragmentHelper.from(fragmentActivity), title, description, false, getBiometricCallbackWithListener(listener));
+            final @NonNull IAuthenticateWithBiometricsListener listener) {
+        return authenticateUsingBiometrics(context, FragmentHelper.from(fragmentActivity), title, description, false, getBiometricCallbackWithListener(listener));
     }
 
     /**
@@ -2350,7 +2350,7 @@ public class PowerAuthSDK {
      * @return Instance of {@link IBiometricAuthenticationCallback}.
      */
     @NonNull
-    private IBiometricAuthenticationCallback getBiometricCallbackWithListener(@NonNull IAuthenticateWithBiometryListener listener) {
+    private IBiometricAuthenticationCallback getBiometricCallbackWithListener(@NonNull IAuthenticateWithBiometricsListener listener) {
         return new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
@@ -2380,7 +2380,7 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #authenticateUsingBiometry(Context, Fragment, String, String, IAuthenticateWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, Fragment, String, String, IAuthenticateWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -2391,7 +2391,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             final @NonNull IBiometricAuthenticationCallback callback) {
-        return authenticateUsingBiometry(context, FragmentHelper.from(fragment), title, description, false, callback);
+        return authenticateUsingBiometrics(context, FragmentHelper.from(fragment), title, description, false, callback);
     }
 
     /**
@@ -2404,7 +2404,7 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #authenticateUsingBiometry(Context, FragmentActivity, String, String, IAuthenticateWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, FragmentActivity, String, String, IAuthenticateWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -2415,7 +2415,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             final @NonNull IBiometricAuthenticationCallback callback) {
-        return authenticateUsingBiometry(context, FragmentHelper.from(fragmentActivity), title, description, false, callback);
+        return authenticateUsingBiometrics(context, FragmentHelper.from(fragmentActivity), title, description, false, callback);
     }
 
     /**
@@ -2431,7 +2431,7 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    private ICancelable authenticateUsingBiometry(
+    private ICancelable authenticateUsingBiometrics(
             final @NonNull Context context,
             final @NonNull FragmentHelper fragmentHelper,
             final @NonNull String title,

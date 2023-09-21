@@ -18,8 +18,8 @@ package io.getlime.security.powerauth.biometry;
 
 /**
  * Interface used as a callback for persisting the activation with biometric authentication.
- * @deprecated Use {@link IPersistActivationWithBiometryListener} as a replacement.
+ * @deprecated Use {@link IPersistActivationWithBiometricsListener} as a replacement.
  */
 @Deprecated // 1.8.0
-public interface ICommitActivationWithBiometryListener extends IPersistActivationWithBiometryListener {
+public interface ICommitActivationWithBiometryListener extends IPersistActivationWithBiometricsListener {
 }

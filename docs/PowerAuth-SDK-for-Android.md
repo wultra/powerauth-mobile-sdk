@@ -597,7 +597,7 @@ This code has created activation with two factors: possession (key stored using 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometryListener {
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometricsListener {
     override fun onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user
     }
@@ -613,7 +613,7 @@ powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authenticati
 ```
 ```java
 // Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometryListener() {
+powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometricsListener() {
     @Override
     public void onBiometricDialogCancelled() {
         // Biometric enrolment cancelled by user

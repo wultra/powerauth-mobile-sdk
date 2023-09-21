@@ -940,8 +940,8 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
-        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), callback);
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
+        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), callback);
     }
 
     /**
@@ -963,8 +963,8 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
-        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
+        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
     }
 
     /**
@@ -986,8 +986,8 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
-        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), callback);
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
+        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), callback);
     }
 
     /**
@@ -1009,8 +1009,8 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
-        return persistActivationWithBiometryImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
+        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
     }
 
     /**
@@ -1026,13 +1026,13 @@ public class PowerAuthSDK {
      */
     @UiThread
     @NonNull
-    private ICancelable persistActivationWithBiometryImpl(
+    private ICancelable persistActivationWithBiometricsImpl(
             final @NonNull Context context,
             @NonNull FragmentHelper fragmentHelper,
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
         return authenticateUsingBiometrics(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
@@ -1237,7 +1237,7 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, Password, IPersistActivationWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, Password, IPersistActivationWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -1248,7 +1248,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
         return persistActivation(context, fragment, title, description, password, callback);
     }
 
@@ -1262,7 +1262,7 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, String, IPersistActivationWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #persistActivation(Context, Fragment, String, String, String, IPersistActivationWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -1273,7 +1273,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
         return persistActivation(context, fragment, title, description, password, callback);
     }
 
@@ -1287,7 +1287,7 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, String, IPersistActivationWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, String, IPersistActivationWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -1298,7 +1298,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final String password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
         return persistActivation(context, fragmentActivity, title, description, password, callback);
     }
 
@@ -1312,7 +1312,7 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
-     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, Password, IPersistActivationWithBiometryListener)} as a replacement.
+     * @deprecated Use {@link #persistActivation(Context, FragmentActivity, String, String, Password, IPersistActivationWithBiometricsListener)} as a replacement.
      */
     @UiThread
     @NonNull
@@ -1323,7 +1323,7 @@ public class PowerAuthSDK {
             @NonNull String title,
             @NonNull String description,
             @NonNull final Password password,
-            final @NonNull IPersistActivationWithBiometryListener callback) {
+            final @NonNull IPersistActivationWithBiometricsListener callback) {
         return persistActivation(context, fragmentActivity, title, description, password, callback);
     }
 

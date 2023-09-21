@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
+
 /**
  * The {@code BiometricKeyData} class contains result from the biometric authentication in case that
  * authentication succeeded.
@@ -60,5 +62,13 @@ public class BiometricKeyData {
      */
     public boolean isNewKey() {
         return newKey;
+    }
+
+    /**
+     * Destroy potential sensitive content stored in this object.
+     */
+    public void destroy() {
+        Arrays.fill(dataToSave, (byte) 0xCD);
+        Arrays.fill(derivedData, (byte) 0xCD);
     }
 }

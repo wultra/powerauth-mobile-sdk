@@ -1045,6 +1045,7 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 final PowerAuthAuthentication authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
                 final int errorCode = persistActivationWithAuthentication(context, authentication);
+                biometricKeyData.destroy();
                 if (errorCode == PowerAuthErrorCodes.SUCCEED) {
                     callback.onBiometricDialogSuccess();
                 } else {
@@ -2360,6 +2361,8 @@ public class PowerAuthSDK {
             @Override
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 final PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometricKeyData.getDerivedData());
+                // TODO: This should be moved in the next release to some global point to make sure that we always clear this object.
+                biometricKeyData.destroy();
                 listener.onBiometricDialogSuccess(authentication);
             }
 

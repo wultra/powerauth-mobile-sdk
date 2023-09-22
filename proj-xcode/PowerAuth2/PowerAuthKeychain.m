@@ -285,31 +285,6 @@ static PowerAuthBiometricAuthenticationType _LABiometryTypeToPAType(LABiometryTy
     return PowerAuthBiometricAuthenticationType_TouchID;
 }
 
-// Distinguish between old, deprecated "TouchID" enums and new with "biometry" in name.
-//
-// This is required due to a different min-SDK requirements between iOS and Catalyst
-// builds. On "iOS", we target iOS 8+, so deprecated constants are still valid.
-// On opposite to that, the Catalyst build targets simulated iOS 13+, so the deprecated
-// constants causes a few warnings.
-//
-// The most important thing is that it's just a matter of constants that have the same
-// values for both, new and old definitions. Once we target iOS 11.2+, we can freely
-// remove this tweak.
-
-// 11.2+
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_2
-    #define __LABiometryTypeNone                    LABiometryTypeNone
-#else
-    #define __LABiometryTypeNone                    LABiometryNone
-#endif
-// 11.3+
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_3
-    #define __kSecAccessControlBiometryAny          kSecAccessControlBiometryAny
-    #define __kSecAccessControlBiometryCurrentSet   kSecAccessControlBiometryCurrentSet
-#else
-    #define __kSecAccessControlBiometryAny          kSecAccessControlTouchIDAny
-    #define __kSecAccessControlBiometryCurrentSet   kSecAccessControlTouchIDCurrentSet
-#endif
 
 /**
  Private function returns full information about biometric support on the system. The method internally
@@ -330,7 +305,7 @@ static PowerAuthBiometricAuthenticationInfo _getBiometryInfo(void)
         // In case of error we cannot evaluate, but the type of biometry can be determined.
         NSInteger code = [error.domain isEqualToString:LAErrorDomain] ? error.code : 0;
         LABiometryType bt = context.biometryType;
-        if (bt != __LABiometryTypeNone) {
+        if (bt != LABiometryTypeNone) {
             info.biometryType = _LABiometryTypeToPAType(bt);
             if (code == LAErrorBiometryLockout) {
                 info.currentStatus = PowerAuthBiometricAuthenticationStatus_Lockout;
@@ -354,11 +329,11 @@ static SecAccessControlCreateFlags _getBiometryAccessControlFlags(PowerAuthKeych
     if (access != PowerAuthKeychainItemAccess_None) {
         switch (access) {
             case PowerAuthKeychainItemAccess_AnyBiometricSet:
-                return __kSecAccessControlBiometryAny;
+                return kSecAccessControlBiometryAny;
             case PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode:
-                return __kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
+                return kSecAccessControlBiometryAny | kSecAccessControlOr | kSecAccessControlDevicePasscode;
             case PowerAuthKeychainItemAccess_CurrentBiometricSet:
-                return __kSecAccessControlBiometryCurrentSet;
+                return kSecAccessControlBiometryCurrentSet;
             default:
                 break;
         }

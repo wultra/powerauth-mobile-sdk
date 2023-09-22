@@ -52,5 +52,9 @@ allprojects {
     tasks.withType(Javadoc) {
         options.addStringOption('Xdoclint:-html', '-quiet')
     }
+    // Uncomment to show usage of deprecated interfaces
+//    tasks.withType(JavaCompile) {
+//        options.compilerArgs << "-Xlint:deprecation"
+//    }
 }
 

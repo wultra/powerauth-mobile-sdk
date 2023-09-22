@@ -2,8 +2,8 @@
 
 We currently support the following versions of mobile OS:
 
-- iOS 11.0
-- tvOS: 11.0
+- iOS 12.0
+- tvOS: 12.0
 - watchOS 4.0
 - macOS Catalyst: 10.15
 - Android 4.4 (API level 19)
@@ -14,7 +14,7 @@ We currently support the following versions of mobile OS:
 
 On iOS:
 
-- We offer the biometry support since iOS 9.0, the used biometric type depends on the particular device capabilities.
+- The used biometric type depends on the particular device capabilities.
 
 On Android:
 

@@ -88,10 +88,8 @@
     NSString * usage_str;
     if (_objectUsage == AUTH_FOR_SIGN) {
         usage_str = @"for sign";
-    } else if (_objectUsage == AUTH_FOR_PERSIST) {
-        usage_str = @"for persist";
     } else {
-        usage_str = @"legacy";
+        usage_str = @"for persist";
     }
     NSMutableArray * factors = [NSMutableArray arrayWithCapacity:3];
     if (_usePossession) {
@@ -419,10 +417,6 @@
 
 - (BOOL) validateUsage:(BOOL)forPersist
 {
-    if (_objectUsage == 0) {
-        PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object created with legacy constructor.");
-        return NO;
-    }
     if (forPersist != (_objectUsage == AUTH_FOR_PERSIST)) {
         if (forPersist) {
             PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation persist is expected.");

@@ -49,10 +49,17 @@ Legacy PowerAuth configuration:
   - `commitActivationWithAuthentication()` is now `persistActivationWithAuthentication()`
   - All variants of `commitActivationWithPassword()` are now `persistActivationWithPassword()`
   - All variants of `commitActivation()` are now `persistActivation()`
+  - All variants of `authenticateUsingBiometry()` are now replaced with `authenticateUsingBiometrics()` with `IAuthenticateWithBiometricsListener` interface returning `PowerAuthAuthentication` in success.
 
-- The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometryListener` as a replacement.
+- The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometricsListener` as a replacement.
 
-- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
+- The `PowerAuthAuthentication` object is now immutable object.
+
+- `PowerAuthErrorCodes` now contains the following new error codes:
+  - `TIME_SYNCHRONIZATION` indicating a problem with the time synchronization.
+  - `BIOMETRY_NOT_ENROLLED` indicating that device has no enrolled biometry.
+
+- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0. 
 
 - Removed all interfaces deprecated in release `1.7.x`
 
@@ -142,9 +149,13 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
   - `.commitWithPasswordAndBiometry(password:)` is now `.persistithPasswordAndBiometry(password:)`
   - `.commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)` is now `.persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)`
 
+- The `PowerAuthAuthentication` object is now immutable and no longer implements `NSCopying` protocol.
+
 - `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
 
 - Removed all interfaces deprecated in release `1.7.x`
+
+- Minimum deployment target updated to iOS 12 and tvOS 12
 
 ### Other changes
 
@@ -203,10 +214,42 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 
 ### API changes
 
-- TBA
+- `PowerAuthConfiguration` - class now supports only the simplified configuration.
+  - Use new object constructor with all required parameters:
+    ```swift
+    let config = PowerAuthConfiguration(
+        instanceId: "your-instance-id",
+        baseEndpointUrl: "https://api.wultra.com/enrollment-server",
+        configuration: "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
+    )
+    ```
+  - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
+
+- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+
+- Removed all interfaces deprecated in release `1.7.x` 
+
+- Minimum deployment target updated to iOS 12 and tvOS 12.
 
 ## watchOS
 
 ### API changes
 
-- TBA
+- `PowerAuthConfiguration` - class now supports only the simplified configuration.
+  - Use new object constructor with all required parameters:
+    ```swift
+    let config = PowerAuthConfiguration(
+        instanceId: "your-instance-id",
+        baseEndpointUrl: "https://api.wultra.com/enrollment-server",
+        configuration: "ARDDj6EB6iA...H9bMk8Ju3K1wmjbA=="
+    )
+    ```
+  - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
+
+- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+
+- Removed all interfaces deprecated in release `1.7.x`
+
+## Known Bugs
+
+The PowerAuth SDKs for iOS and tvOS App Extensions, as well as for watchOS, do not use time synchronized with the server for token-based authentication. To avoid any compatibility issues with the server, the authentication headers generated in your App Extension or on watchOS still use the older protocol version 3.1. This issue will be fixed in a future SDK update.

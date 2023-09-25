@@ -209,46 +209,37 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
 
                     // Determine whether the error dialog should be displayed
                     final boolean shouldDisplayError = shouldDisplayErrorDialog(requestData);
-                    final boolean errorDialogDisabled = requestData.isErrorDialogDisabled();
-                    final boolean displayError;
-                    final BiometricErrorInfo errorInfo;
-
-                    // Prepare error info in advance
-                    if (shouldDisplayError && !errorDialogDisabled) {
-                        // We should display error and dialog is not disabled. Our dialog will show the reason of failure.
-                        errorInfo = BiometricErrorInfo.BIOMETRICS_FAILED_WITH_VISIBLE_REASON;
-                        displayError = true;
-                    } else if (shouldDisplayError) {
-                        // We should display error, but dialog is disabled. The reason of failure was not presented yet.
-                        errorInfo = BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON;
-                        displayError = false;
-                    } else {
-                        // Error should not be displayed, so the reason was already presented in system UI.
-                        errorInfo = BiometricErrorInfo.BIOMETRICS_FAILED_WITH_VISIBLE_REASON;
-                        displayError = false;
-                    }
+                    // Error will be displayed only if it's not disabled globally.
+                    final boolean displayError = shouldDisplayError && !requestData.isErrorDialogDisabled();
+                    // Display hint to application whether error should be presented.
+                    final boolean displayHint = shouldDisplayError && requestData.isErrorDialogDisabled();
 
                     if (isLockout || isQuickCancel) {
                         if (authenticationFailedBefore > 0) {
                             // Too many failed attempts, we should report the "not recognized" error after all.
                             // If `authenticationFailedBefore` is greater than 0, then it means that sensor did a multiple failed attempts
                             // in this round. So we're pretty sure that biometric authentication dialog was properly displayed.
-                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED, "Biometric image was not recognized", null, errorInfo);
+                            final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED, displayHint, errString);
+                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED, "Biometric image was not recognized", null, info);
                         } else {
                             // Too many failed attempts, but no authentication dialog was displayed in this round. It looks like that
                             // the error was immediately reported back to us, so we can report "lockout" to the application.
-                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_LOCKOUT, "Too many failed attempts", null, errorInfo);
+                            final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_LOCKOUT, displayHint, errString);
+                            exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_LOCKOUT, "Too many failed attempts", null, info);
                         }
                     } else if (notEnrolled) {
                         // Biometry is not enrolled.
-                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED, "Biometry not enrolled", null, errorInfo);
+                        final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED, displayHint, errString);
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED, "Biometry not enrolled", null, info);
                     } else if (notAvailable) {
                         // Biometry is not supported
-                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometry not supported", null, errorInfo);
+                        final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, displayHint, errString);
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometry not supported", null, info);
                     } else {
                         // Other error, we can use "not available" error code, due to that other
                         // errors are mostly about an internal failures.
-                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, errString.toString(), null, errorInfo);
+                        final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, displayHint, errString);
+                        exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, errString.toString(), null, info);
                     }
 
                     // Show error dialog first or dispatch the failure immediately.
@@ -288,12 +279,10 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 // or due to fact, that the previously constructed cipher is not available. The right response for this state
                 // is to remove the biometric key from the keychain, show an error dialog and then, finally report "not available" state.
                 dispatcher.reportBiometricKeyUnavailable();
-                final boolean showDialog = !requestData.isErrorDialogDisabled();
-                final BiometricErrorInfo errorInfo = showDialog
-                        ? BiometricErrorInfo.BIOMETRICS_FAILED_WITH_VISIBLE_REASON
-                        : BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON;
+                // Prepare BiometricErrorInfo. If error dialog is disabled, then application should report this situation to the user.
+                final BiometricErrorInfo errorInfo = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, requestData.isErrorDialogDisabled());
                 final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Failed to encrypt biometric key.", null, errorInfo);
-                if (showDialog) {
+                if (!requestData.isErrorDialogDisabled()) {
                     // Display error dialog
                     dispatcher.dispatchRunnable(() -> {
                         showErrorDialogAfterSuccess(requestData, exception);
@@ -516,7 +505,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         }
 
         final BiometricDialogResources resources = requestData.getResources();
-        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(BiometricStatus.NOT_AVAILABLE, resources);
+        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(BiometricStatus.NOT_AVAILABLE, resources.strings);
         final FragmentManager fragmentManager = requestData.getFragmentManager();
 
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)

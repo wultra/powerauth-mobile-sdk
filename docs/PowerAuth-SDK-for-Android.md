@@ -1909,14 +1909,11 @@ powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the 
     }
 
     override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
-        if (error.additionalInformation == BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON) {
-            // Application should display error in its own UI
-            when (error.powerAuthErrorCode) {
-                PowerAuthErrorCodes.BIOMETRY_LOCKOUT -> println("Lockout")
-                PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE -> println("Not available, try later")
-                PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED -> println("Fingerprint or face not recognized") // check inline documentation for more details
-                PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED -> println("Device has no biometry sensor")
-                PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED -> println("Device has no biometry data enrolled")
+        val biometricErrorInfo = error.additionalInformation as? BiometricErrorInfo
+        if (biometricErrorInfo != null) {
+            if (biometricErrorInfo.isErrorPresentationRequired) {
+                // Application should present reason of biometric authentication failure to the user
+                val localizedMessage = biometricErrorInfo.getLocalizedErrorMessage(context, null)
             }
         }
     }
@@ -2615,10 +2612,13 @@ when (t) {
             PowerAuthErrorCodes.TIME_SYNCHRONIZATION -> Log.d(TAG, "Failed to synchronize time with the server.")
         }
         // Process additional information
-        when (t.additionalInformation) {
-            BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON -> {
-                // Application should display error dialog after failed biometric authentication. This is relevant only
-                // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+        val additionalInfo = error.additionalInformation
+        when (additionalInfo) {
+            is BiometricErrorInfo -> {
+                if (additionalInfo.isErrorPresentationRequired) {
+                    // Application should display error dialog after failed biometric authentication. This is relevant only
+                    // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+                }
             }
         }
     }
@@ -2681,9 +2681,12 @@ if (t instanceof PowerAuthErrorException) {
             android.util.Log.d(TAG,"Failed to synchronize time with the server."); break;
     }
     // Process additional information
-    if (BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON.equals(exception.getAdditionalInformation())) {
-        // Application should display error dialog after failed biometric authentication. This is relevant only
-        // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+    if (exception.getAdditionalInformation() instanceof BiometricErrorInfo) {
+        BiometricErrorInfo biometricErrorInfo = (BiometricErrorInfo) exception.getAdditionalInformation();
+        if (biometricErrorInfo.isErrorPresentationRequired()) {
+            // Application should display error dialog after failed biometric authentication. This is relevant only
+            // if you disabled the biometric error dialog provided by PowerAuth mobile SDK.
+        }
     }
 
 } else if (t instanceof ErrorResponseApiException) {

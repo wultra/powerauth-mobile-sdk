@@ -164,7 +164,7 @@ public class BiometricAuthentication {
                 } catch (IllegalArgumentException e) {
                     // Failed to authenticate due to a wrong configuration.
                     PowerAuthLog.e("BiometricAuthentication.authenticate() failed with exception: " + e.getMessage());
-                    exception = new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, e.getMessage());
+                    exception = new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, e.getMessage(), e);
                     status = BiometricStatus.NOT_AVAILABLE;
                 }
             }
@@ -177,12 +177,12 @@ public class BiometricAuthentication {
                 exception = BiometricHelper.getExceptionForBiometricStatus(status);
             }
             if (requestData.isErrorDialogDisabled()) {
-                // Error dialog is disabled, so report the error immediately. Use "no visible reason" hint.
-                dispatcher.dispatchError(BiometricErrorInfo.BIOMETRICS_FAILED_WITH_NO_VISIBLE_REASON.addToException(exception));
+                // Error dialog is disabled, so report the error immediately. Use hint that error should be presented.
+                dispatcher.dispatchError(BiometricErrorInfo.addToException(exception, true));
                 return dispatcher.getCancelableTask();
             } else {
-                // Error dialog is not disabled, so we can show it. Use "visible reason" hint.
-                return showErrorDialog(status, BiometricErrorInfo.BIOMETRICS_FAILED_WITH_VISIBLE_REASON.addToException(exception), context, requestData);
+                // Error dialog is not disabled, so we can show it. Use hint that error was already presented.
+                return showErrorDialog(status, BiometricErrorInfo.addToException(exception, false), context, requestData);
             }
         }
     }
@@ -249,7 +249,7 @@ public class BiometricAuthentication {
         final FragmentManager fragmentManager = requestData.getFragmentManager();
 
         final BiometricDialogResources resources = requestData.getResources();
-        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(status, resources);
+        final Pair<Integer, Integer> titleDescription = BiometricHelper.getErrorDialogStringsForBiometricStatus(status, resources.strings);
 
         final BiometricErrorDialogFragment dialogFragment = new BiometricErrorDialogFragment.Builder(context)
                 .setTitle(titleDescription.first)
@@ -311,7 +311,7 @@ public class BiometricAuthentication {
     /**
      * @return Shared instance of {@link BiometricDialogResources} object.
      */
-    public @NonNull BiometricDialogResources getBiometricDialogResources() {
+    public static @NonNull BiometricDialogResources getBiometricDialogResources() {
         synchronized (SharedContext.class) {
             return getContext().getBiometricDialogResources();
         }

@@ -2452,11 +2452,10 @@ public class PowerAuthSDK {
         }
 
         if (rawKeyData == null) {
-            dispatchCallback(new Runnable() {
-                @Override
-                public void run() {
-                    callback.onBiometricDialogFailed(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric authentication failed due to missing biometric key."));
-                }
+            dispatchCallback(() -> {
+                final BiometricErrorInfo info = new BiometricErrorInfo(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, true);
+                final PowerAuthErrorException exception = new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric authentication failed due to missing biometric key.", null, info);
+                callback.onBiometricDialogFailed(exception);
             });
             // Return dummy cancelable object.
             return new DummyCancelable();

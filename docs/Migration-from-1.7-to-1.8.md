@@ -59,11 +59,46 @@ Legacy PowerAuth configuration:
   - `TIME_SYNCHRONIZATION` indicating a problem with the time synchronization.
   - `BIOMETRY_NOT_ENROLLED` indicating that device has no enrolled biometry.
 
-- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0. 
+- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 
 - Removed all interfaces deprecated in release `1.7.x`
 
 ### Other changes
+
+#### Biometric Authentication
+
+If the `PowerAuthErrorException` is related to a biometric authentication failure, then the new `additionalInformation` property will contain an instance of the `BiometricErrorInfo` class. It's recommended to test whether the reason for the failure was presented to the user in the authentication dialog or in a custom error dialog provided by the PowerAuth mobile SDK. For example:
+
+```kotlin
+// Authenticate user with biometry and obtain encrypted biometry factor related key.
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
+    override fun onBiometricDialogCancelled(userCancel: Boolean) {
+        // User or system cancelled the operation
+    }
+
+    override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
+        // Success
+    }
+
+    override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
+        val biometricErrorInfo = error.additionalInformation as? BiometricErrorInfo
+        if (biometricErrorInfo != null) {
+            if (biometricErrorInfo.isErrorPresentationRequired) {
+                // The application should present the reason for the biometric authentication failure to the user.
+                //
+                // If you don't disable the error dialog provided by the PowerAuth mobile SDK, then this may happen
+                // only when you try to use the biometric authentication while the biometric factor is not configured
+                // in the PowerAuthSDK instance.
+                val localizedMessage = biometricErrorInfo.getLocalizedErrorMessage(context, null)
+            }
+        } else {
+          // Other reason for failure
+        }
+    }
+})
+```
+
+See also [Disable Error Dialog After Failed Biometry](PowerAuth-SDK-for-Android.md#disable-error-dialog-after-failed-biometry) chapter for more details.
 
 #### Synchronized time
 

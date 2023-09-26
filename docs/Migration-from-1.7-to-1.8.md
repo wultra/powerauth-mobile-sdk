@@ -14,8 +14,12 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
 
 In case you need to still use the legacy setup to configure older version of PowerAuth mobile SDK, then you can use `get-legacy-config.swift` script available at `scripts` folder. For example:
 
-```
-./scripts/get-legacy-config.swift ARDTWDPw20CBb+aUeIuWy25MEHy89d2ySbQR2QoCb3taB1EBAUEEPspwnZzj7AOw0emEk/J51V16ZpkDMGE3VT3vzb+3Wh9qEA8MAJBTLPJ3XgFkr6OBVQCkpBezpbXOx1xHvVAqyQ==
+```bash
+# clone the mobile library
+git clone https://github.com/wultra/powerauth-mobile-sdk.git
+cd powerauth-mobile-sdk/scripts
+# Show legacy config
+./get-legacy-config.swift ARDTWDPw20CBb+aUeIuWy25MEHy89d2ySbQR2QoCb3taB1EBAUEEPspwnZzj7AOw0emEk/J51V16ZpkDMGE3VT3vzb+3Wh9qEA8MAJBTLPJ3XgFkr6OBVQCkpBezpbXOx1xHvVAqyQ==
 Legacy PowerAuth configuration:
    appKey                : 01gz8NtAgW/mlHiLlstuTA==
    appSecret             : fLz13bJJtBHZCgJve1oHUQ==
@@ -288,3 +292,9 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 ## Known Bugs
 
 The PowerAuth SDKs for iOS and tvOS App Extensions, as well as for watchOS, do not use time synchronized with the server for token-based authentication. To avoid any compatibility issues with the server, the authentication headers generated in your App Extension or on watchOS still use the older protocol version 3.1. This issue will be fixed in a future SDK update.
+
+You can watch the following related issues:
+
+- [wultra/powerauth-mobile-sdk#551](https://github.com/wultra/powerauth-mobile-sdk/issues/551)
+- [wultra/powerauth-mobile-watch-sdk#7](https://github.com/wultra/powerauth-mobile-watch-sdk/issues/7)
+- [wultra/powerauth-mobile-extensions-sdk#7](https://github.com/wultra/powerauth-mobile-extensions-sdk/issues/7)

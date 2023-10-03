@@ -40,7 +40,7 @@ public class BiometricHelper {
     public static @NonNull PowerAuthErrorException getExceptionForBiometricStatus(@BiometricStatus int status) {
         switch (status) {
             case BiometricStatus.NOT_ENROLLED:
-                return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Biometric data is not enrolled on the device.");
+                return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED, "Biometric data is not enrolled on the device.");
             case BiometricStatus.NOT_SUPPORTED:
                 return new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Biometry is not supported on the device.");
             case BiometricStatus.NOT_AVAILABLE:
@@ -53,32 +53,56 @@ public class BiometricHelper {
     }
 
     /**
-     * Translate {@link BiometricStatus} into pair of string resources, representing title and description for error dialog.
+     * Translate {@link BiometricStatus} into a pair of string resources, representing title and description for error dialog.
      *
      * @param status Status to be translated to error dialog resources.
-     * @param resources {@link BiometricDialogResources} object with resource identifiers.
+     * @param strings {@link BiometricDialogResources.Strings} object with resource identifiers.
      * @return Pair of string resource identifiers, with appropriate title and description.
      */
-    public static @NonNull Pair<Integer, Integer> getErrorDialogStringsForBiometricStatus(@BiometricStatus int status, @NonNull BiometricDialogResources resources) {
+    public static @NonNull Pair<Integer, Integer> getErrorDialogStringsForBiometricStatus(@BiometricStatus int status, @NonNull BiometricDialogResources.Strings strings) {
         final @StringRes int errorTitle;
         final @StringRes int errorDescription;
         if (status == BiometricStatus.NOT_ENROLLED) {
             // User must enroll at least one fingerprint
-            errorTitle       = resources.strings.errorEnrollFingerprintTitle;
-            errorDescription = resources.strings.errorEnrollFingerprintDescription;
+            errorTitle       = strings.errorEnrollFingerprintTitle;
+            errorDescription = strings.errorEnrollFingerprintDescription;
         } else if (status == BiometricStatus.NOT_SUPPORTED) {
             // Fingerprint scanner is not supported on the authenticator
-            errorTitle       = resources.strings.errorNoFingerprintScannerTitle;
-            errorDescription = resources.strings.errorNoFingerprintScannerDescription;
+            errorTitle       = strings.errorNoFingerprintScannerTitle;
+            errorDescription = strings.errorNoFingerprintScannerDescription;
         } else if (status == BiometricStatus.NOT_AVAILABLE) {
             // Fingerprint scanner is disabled in the system, or permission was not granted.
-            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
-            errorDescription = resources.strings.errorFingerprintDisabledDescription;
+            errorTitle       = strings.errorFingerprintDisabledTitle;
+            errorDescription = strings.errorFingerprintDisabledDescription;
         } else {
             // Fallback...
-            errorTitle       = resources.strings.errorFingerprintDisabledTitle;
-            errorDescription = resources.strings.errorFingerprintDisabledDescription;
+            errorTitle       = strings.errorFingerprintDisabledTitle;
+            errorDescription = strings.errorFingerprintDisabledDescription;
         }
         return Pair.create(errorTitle, errorDescription);
+    }
+
+    /**
+     * Translate {@link PowerAuthErrorCodes} into the string resource identifier with the reason of biometric authentication failure.
+     * @param errorCode Error code to be translated.
+     * @param strings {@link BiometricDialogResources.Strings} object with resource identifiers.
+     * @return String resource identifier.
+     */
+    public static @StringRes int getErrorDialogStringForBiometricErrorCode(@PowerAuthErrorCodes int errorCode, @NonNull BiometricDialogResources.Strings strings) {
+        switch (errorCode) {
+            case PowerAuthErrorCodes.BIOMETRY_LOCKOUT:
+                return strings.errorCodeLockout;
+            case PowerAuthErrorCodes.BIOMETRY_NOT_ENROLLED:
+                return strings.errorEnrollFingerprintDescription;
+            case PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED:
+                return strings.errorNoFingerprintScannerDescription;
+            case PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE:
+                return strings.errorFingerprintDisabledDescription;
+            case PowerAuthErrorCodes.BIOMETRY_NOT_RECOGNIZED:
+                // NOT-RECOGNIZED may be reported only during biometric setup.
+                return strings.errorCodeLockout;
+            default:
+                return strings.errorCodeGeneric;
+        }
     }
 }

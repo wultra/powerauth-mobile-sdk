@@ -14,8 +14,12 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
 
 In case you need to still use the legacy setup to configure older version of PowerAuth mobile SDK, then you can use `get-legacy-config.swift` script available at `scripts` folder. For example:
 
-```
-./scripts/get-legacy-config.swift ARDTWDPw20CBb+aUeIuWy25MEHy89d2ySbQR2QoCb3taB1EBAUEEPspwnZzj7AOw0emEk/J51V16ZpkDMGE3VT3vzb+3Wh9qEA8MAJBTLPJ3XgFkr6OBVQCkpBezpbXOx1xHvVAqyQ==
+```bash
+# clone the mobile library
+git clone https://github.com/wultra/powerauth-mobile-sdk.git
+cd powerauth-mobile-sdk/scripts
+# Show legacy config
+./get-legacy-config.swift ARDTWDPw20CBb+aUeIuWy25MEHy89d2ySbQR2QoCb3taB1EBAUEEPspwnZzj7AOw0emEk/J51V16ZpkDMGE3VT3vzb+3Wh9qEA8MAJBTLPJ3XgFkr6OBVQCkpBezpbXOx1xHvVAqyQ==
 Legacy PowerAuth configuration:
    appKey                : 01gz8NtAgW/mlHiLlstuTA==
    appSecret             : fLz13bJJtBHZCgJve1oHUQ==
@@ -59,11 +63,46 @@ Legacy PowerAuth configuration:
   - `TIME_SYNCHRONIZATION` indicating a problem with the time synchronization.
   - `BIOMETRY_NOT_ENROLLED` indicating that device has no enrolled biometry.
 
-- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0. 
+- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
 
 - Removed all interfaces deprecated in release `1.7.x`
 
 ### Other changes
+
+#### Biometric Authentication
+
+If the `PowerAuthErrorException` is related to a biometric authentication failure, then the new `additionalInformation` property will contain an instance of the `BiometricErrorInfo` class. It's recommended to test whether the reason for the failure was presented to the user in the authentication dialog or in a custom error dialog provided by the PowerAuth mobile SDK. For example:
+
+```kotlin
+// Authenticate user with biometry and obtain encrypted biometry factor related key.
+powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
+    override fun onBiometricDialogCancelled(userCancel: Boolean) {
+        // User or system cancelled the operation
+    }
+
+    override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
+        // Success
+    }
+
+    override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
+        val biometricErrorInfo = error.additionalInformation as? BiometricErrorInfo
+        if (biometricErrorInfo != null) {
+            if (biometricErrorInfo.isErrorPresentationRequired) {
+                // The application should present the reason for the biometric authentication failure to the user.
+                //
+                // If you don't disable the error dialog provided by the PowerAuth mobile SDK, then this may happen
+                // only when you try to use the biometric authentication while the biometric factor is not configured
+                // in the PowerAuthSDK instance.
+                val localizedMessage = biometricErrorInfo.getLocalizedErrorMessage(context, null)
+            }
+        } else {
+          // Other reason for failure
+        }
+    }
+})
+```
+
+See also [Disable Error Dialog After Failed Biometry](PowerAuth-SDK-for-Android.md#disable-error-dialog-after-failed-biometry) chapter for more details.
 
 #### Synchronized time
 
@@ -253,3 +292,9 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 ## Known Bugs
 
 The PowerAuth SDKs for iOS and tvOS App Extensions, as well as for watchOS, do not use time synchronized with the server for token-based authentication. To avoid any compatibility issues with the server, the authentication headers generated in your App Extension or on watchOS still use the older protocol version 3.1. This issue will be fixed in a future SDK update.
+
+You can watch the following related issues:
+
+- [wultra/powerauth-mobile-sdk#551](https://github.com/wultra/powerauth-mobile-sdk/issues/551)
+- [wultra/powerauth-mobile-watch-sdk#7](https://github.com/wultra/powerauth-mobile-watch-sdk/issues/7)
+- [wultra/powerauth-mobile-extensions-sdk#7](https://github.com/wultra/powerauth-mobile-extensions-sdk/issues/7)

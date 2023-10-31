@@ -27,7 +27,7 @@ typedef NS_ENUM(int, PowerAuthTestServerVersion) {
     PATS_V1_2_5 = 10205,    // V3.1 crypto + Activation OTP
     PATS_V1_3   = 10300,    // V3.1 crypto + Activation OTP, applicationId as String
     PATS_V1_4   = 10400,    // V3.1 crypto + Activation OTP, applicationId as String
-    PATS_V1_5   = 10500,    // V3.1 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_5   = 10500,    // V3.2 crypto + Activation OTP, applicationId as String, userInfo
 };
 
 /**
@@ -37,6 +37,7 @@ typedef NS_ENUM(int, PowerAuthProtocolVersion) {
     PATS_P2,        // V2 crypto
     PATS_P3,        // V3 crypto
     PATS_P31,       // V3.1 crypto
+    PATS_P32,       // V3.2 crypto
 };
 
 /**
@@ -71,6 +72,10 @@ extern PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVe
  "V2" is the default value. Loaded after the connection to server is established.
  */
 @property (nonatomic, assign) PowerAuthTestServerVersion serverApiVersion;
+/**
+ Maximum supported protocol version.
+ */
+@property (nonatomic, assign) PowerAuthProtocolVersion serverMaxProtovolVersion;
 /**
  A name for application, which will be used on the PA2 server.
  Default value is @"AutomaticTest-IOS"

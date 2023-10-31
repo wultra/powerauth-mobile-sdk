@@ -417,8 +417,9 @@ public class TokenStoreTest {
         long timestamp = Long.parseLong(Objects.requireNonNull(headerComponents.get("timestamp")));
         String nonce = Objects.requireNonNull(headerComponents.get("nonce"));
         String digest = Objects.requireNonNull(headerComponents.get("token_digest"));
+        String version = Objects.requireNonNull(headerComponents.get("version"));
 
-        TokenInfo tokenInfo = testHelper.getServerApi().validateToken(tokenId, digest, nonce, timestamp);
+        TokenInfo tokenInfo = testHelper.getServerApi().validateToken(tokenId, digest, nonce, timestamp, version);
         assertNotNull(tokenInfo);
         assertTrue(tokenInfo.isTokenValid());
         assertEquals(expectedSignatureType, tokenInfo.getSignatureType());

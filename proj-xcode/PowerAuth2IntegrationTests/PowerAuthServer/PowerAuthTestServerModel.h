@@ -177,6 +177,7 @@ extern NSString * PATSActivationOtpValidationEnumToString(PATSActivationOtpValid
 
 @interface PATSTokenValidationRequest : NSObject
 
+@property (nonatomic, strong) NSString * protocolVersion;
 @property (nonatomic, strong) NSString * tokenIdentifier;
 @property (nonatomic, strong) NSString * tokenDigest;
 @property (nonatomic, strong) NSString * nonce;

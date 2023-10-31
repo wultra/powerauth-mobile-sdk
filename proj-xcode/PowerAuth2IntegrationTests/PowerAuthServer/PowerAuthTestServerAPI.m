@@ -54,6 +54,7 @@
         return NO;
     }
     _testServerConfig.serverApiVersion = [_rest applyServerVersion:systemStatus.version];
+    _testServerConfig.serverMaxProtovolVersion = PATSProtoVer(_testServerConfig.serverApiVersion);
     _serverVersion = _testServerConfig.serverApiVersion;
     
     NSArray<PATSApplication*>* applicationList = [self getApplicationList];
@@ -346,7 +347,12 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 - (PATSTokenValidationResponse*) validateTokenRequest:(PATSTokenValidationRequest*)request
 {
     [self checkForValidConnection];
-    NSArray * params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp ];
+    NSArray * params;
+    if (_testServerConfig.serverMaxProtovolVersion == PATS_P32) {
+        params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
+    } else {
+        params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];
+    }
     return [_rest request:@"TokenValidate" params:params];
 }
 

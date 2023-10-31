@@ -99,6 +99,7 @@
     tokenIdentifier = _tokenData.identifier;
 
     // Prepare data for HMAC
+    NSString * protocolVersion = @"3.2";
     NSNumber * currentTimeMs = @((int64_t)([timeService currentTime] * 1000.0));
     NSString * currentTimeString = [currentTimeMs stringValue];
     NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];
@@ -110,6 +111,9 @@
     NSMutableData * data = [nonce mutableCopy];
     [data appendBytes:"&" length:1];
     [data appendData: currentTimeData];
+    [data appendBytes:"&" length:1];
+    [data appendData:[protocolVersion dataUsingEncoding:NSASCIIStringEncoding]];
+    
     // Calculate digest...
     NSData * digest = [PowerAuthCoreCryptoUtils hmacSha256:data key:tokenSecret];
     NSString * digestBase64 = [digest base64EncodedStringWithOptions:0];
@@ -120,12 +124,12 @@
         return nil;
     }
     NSString * value = [NSString stringWithFormat:
-                        @"PowerAuth version=\"3.2\""
+                        @"PowerAuth version=\"%@\""
                         @", token_id=\"%@\""
                         @", token_digest=\"%@\""
                         @", nonce=\"%@\""
                         @", timestamp=\"%@\"",
-                        tokenIdentifier, digestBase64, nonceBase64, currentTimeString];
+                        protocolVersion, tokenIdentifier, digestBase64, nonceBase64, currentTimeString];
     return [PowerAuthAuthorizationHttpHeader tokenHeaderWithValue:value];
 }
 

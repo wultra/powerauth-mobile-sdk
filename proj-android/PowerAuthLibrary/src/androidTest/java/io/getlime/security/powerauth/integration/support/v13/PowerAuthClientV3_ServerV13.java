@@ -328,7 +328,7 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
 
     @NonNull
     @Override
-    public TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception {
+    public TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp, @NonNull String protocolVersion) throws Exception {
         final ValidateTokenEndpoint.Request request = new ValidateTokenEndpoint.Request();
         request.setTokenId(tokenId);
         request.setTokenDigest(tokenDigest);

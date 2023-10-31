@@ -57,12 +57,15 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong t
     cc7::ByteArray nonce = crypto::GetRandomData(16);
 
     // Construct data for HMAC and calculate that digest.
+    auto protocol_version = Version_GetMaxSupportedHttpProtocolVersion(Version_Latest);
     cc7::ByteArray data;
-    data.reserve(16 + 1 + timestamp_string.length());
+    data.reserve(16 + 1 + timestamp_string.length() + 1 + protocol_version.length());
 
     data.assign(nonce);
     data.append(cc7::MakeRange(protocol::AMP));
     data.append(cc7::MakeRange(timestamp_string));
+    data.append(cc7::MakeRange(protocol::AMP));
+    data.append(cc7::MakeRange(protocol_version));
     auto digest = crypto::HMAC_SHA256(data, cppTokenSecret, 0);
     if (digest.size() == 0) {
         CC7_ASSERT(false, "Unable to calculate HMAC for data.");
@@ -77,7 +80,7 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong t
     result.reserve(cppTokenIdentifier.length() + digestBase64.length() + nonceBase64.length() + timestamp_string.length() + 80);
 
     result.assign("PowerAuth version=\"");
-    result.append(Version_GetMaxSupportedHttpProtocolVersion(Version_Latest));
+    result.append(protocol_version);
     result.append("\", token_id=\"");
     result.append(cppTokenIdentifier);
     result.append("\", token_digest=\"");

@@ -53,6 +53,9 @@
 
 PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
+    if (serverVer >= PATS_V1_5) {
+        return PATS_P32;
+    }
     return PATS_P31;
 }
 

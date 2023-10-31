@@ -780,6 +780,7 @@ static NSString * PA_Ver = @"3.2";
     validationRequest.tokenDigest       = parsedHeader[@"token_digest"];
     validationRequest.nonce             = parsedHeader[@"nonce"];
     validationRequest.timestamp         = parsedHeader[@"timestamp"];
+    validationRequest.protocolVersion   = parsedHeader[@"version"];
     PATSTokenValidationResponse * validationResponse = [_testServerApi validateTokenRequest:validationRequest];
     XCTAssertTrue(validationResponse.tokenValid == expectedResult);
     if (expectedResult) {

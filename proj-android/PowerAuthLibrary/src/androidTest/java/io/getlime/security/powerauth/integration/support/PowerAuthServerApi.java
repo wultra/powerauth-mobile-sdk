@@ -272,10 +272,11 @@ public interface PowerAuthServerApi {
      * @param tokenDigest Token digest.
      * @param nonce Nonce in Base64 encoding.
      * @param timestamp Timestamp used for calculate token.
+     * @param protocolVersion Protocol version, required for server 1.5+.
      * @return {@link TokenInfo} object in case of success.
      * @throws Exception In case of failure.
      */
-    @NonNull TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp) throws Exception;
+    @NonNull TokenInfo validateToken(@NonNull String tokenId, @NonNull String tokenDigest, @NonNull String nonce, long timestamp, @NonNull String protocolVersion) throws Exception;
 
     // Signatures
 

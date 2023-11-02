@@ -15,9 +15,10 @@
  */
 
 #import <PowerAuth2/PowerAuthTimeSynchronizationService.h>
-#import <PowerAuthCore/PowerAuthCoreTimeService.h>
 
 #import "PA2GetSystemStatusTask.h"
+
+@import PowerAuthCore;
 
 /// The `PA2TimeSynchronizationService` class provides functionality to synchronize time with the server.
 /// The class implements both `PowerAuthTimeSynchronizationService` and `PowerAuthCoreTimeService` protocols.

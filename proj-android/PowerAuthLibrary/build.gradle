@@ -22,6 +22,8 @@ plugins {
 
 
 android {
+    namespace = "io.getlime.security.powerauth"
+
     compileSdk rootProject.ext.compileSdkVersion
     buildToolsVersion = rootProject.ext.buildToolsVersion
     ndkVersion rootProject.ext.ndkVersion

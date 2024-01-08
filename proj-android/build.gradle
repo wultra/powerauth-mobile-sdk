@@ -24,9 +24,9 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.1'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         // releasing
-        classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
+        classpath 'io.github.gradle-nexus:publish-plugin:1.3.0'
     }
 }
 
@@ -35,10 +35,10 @@ plugins {
 }
 
 ext {
-    compileSdkVersion = 32
-    targetSdkVersion = 32
+    compileSdkVersion = 33
+    targetSdkVersion = 33
     minSdkVersion = 19
-    buildToolsVersion = "30.0.3"
+    buildToolsVersion = "33.0.2"
     // NDK, check https://developer.android.com/ndk/downloads for updates
     ndkVersion = "25.1.8937393" // r25b
 }

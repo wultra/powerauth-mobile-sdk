@@ -158,8 +158,11 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         baseEndpointUrl: "https://localhost:8080/demo-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
-    // Configure default PowerAuthSDK instance
-    PowerAuthSDK.initSharedInstance(configuration)
+    // Create a PowerAuthSDK instance with the configuration
+    guard let powerAuth = PowerAuthSDK(configuration) else {
+        // invalid configuration
+        return false
+    }
 
     return true
 }

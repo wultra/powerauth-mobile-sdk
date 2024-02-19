@@ -195,7 +195,7 @@ guard let activation = try? PowerAuthActivation(activationCode: activationCode, 
 }
 
 // Create a new activation with just created activation object
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
@@ -249,7 +249,7 @@ guard let activation = try? PowerAuthActivation(identityAttributes: credentials,
 }
 
 // Create a new activation with just created activation object
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
@@ -280,7 +280,7 @@ guard let activation = try? PowerAuthActivation(recoveryCode: recoveryCode, reco
 }
 
 // Create a new activation with just created activation object
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     if let error = error {
         // Error occurred, report it to the user
         // On top of a regular error processing, you should handle a special situation, when server gives an additional information
@@ -325,7 +325,7 @@ guard let activation = try? PowerAuthActivation(activationCode: "45AWJ-BVACS-SBW
     }
 
 // Create a new activation as usual
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     //
 }
 ```  
@@ -336,7 +336,7 @@ After you create an activation using one of the methods mentioned above, you nee
 
 ```swift
 do {
-    try PowerAuthSDK.sharedInstance().persistActivation(withPassword: "1234")
+    try powerAuthSDK.persistActivation(withPassword: "1234")
 } catch _ {
     // happens only in case SDK was not configured or activation is not in state to be persisted
 }
@@ -348,7 +348,7 @@ This code has created activation with two factors: possession (key stored using 
 do {
     let auth = PowerAuthAuthentication.persistWithPasswordAndBiometry(password: "1234")
 
-    try PowerAuthSDK.sharedInstance().persistActivation(with: auth)
+    try powerAuthSDK.persistActivation(with: auth)
 } catch _ {
     // happens only in case SDK was not configured or activation is not in state to be persisted
 }
@@ -386,7 +386,7 @@ Note that the signature is only formally validated in the function above. The ac
 let scannedCode = "VVVVV-VVVVV-VVVVV-VTFVA#aGVsbG8......gd29ybGQ="
 guard let otp = PowerAuthActivationCodeUtil.parse(fromActivationCode: scannedCode) else { return }
 guard let signature = otp.activationSignature else { return }
-if !PowerAuthSDK.sharedInstance().verifyServerSignedData(otp.activationCode.data(using: .utf8)!, signature: signature, masterKey: true) {
+if !powerAuthSDK.verifyServerSignedData(otp.activationCode.data(using: .utf8)!, signature: signature, masterKey: true) {
     // Invalid signature
 }
 ```
@@ -446,10 +446,10 @@ To obtain a detailed activation status information, use the following code:
 
 ```swift
 // Check if there is some activation on the device
-if PowerAuthSDK.sharedInstance().hasValidActivation() {
+if powerAuthSDK.hasValidActivation() {
 
     // If there is an activation on the device, check the status with the server
-    PowerAuthSDK.sharedInstance().fetchActivationStatus() { (status, error) in
+    powerAuthSDK.fetchActivationStatus() { (status, error) in
 
         // If no error occurred, process the status
         if let status = status {
@@ -470,13 +470,13 @@ if PowerAuthSDK.sharedInstance().hasValidActivation() {
                 // You can inform user about this situation and remove
                 // activation locally.
                 print("Activation is no longer valid")
-                PowerAuthSDK.sharedInstance().removeActivationLocal()
+                powerAuthSDK.removeActivationLocal()
             case .deadlock:
                 // Local activation is technically blocked and no longer
                 // can be used for the signature calculations. You can inform
                 // user about this situation and remove activation locally.
                 print("Activation is technically blocked")
-                PowerAuthSDK.sharedInstance().removeActivationLocal()
+                powerAuthSDK.removeActivationLocal()
             case .created:
                 // Activation is just created. This is the internal
                 // state on the server and therefore can be ignored
@@ -544,7 +544,7 @@ let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 do {
-    let signature = try PowerAuthSDK.sharedInstance().requestSignature(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
+    let signature = try powerAuthSDK.requestSignature(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -565,7 +565,7 @@ let params = [
 ]
 
 do {
-    let signature = try PowerAuthSDK.sharedInstance().requestGetSignature(with: auth, uriId: "/payment/create", params: params)
+    let signature = try powerAuthSDK.requestGetSignature(with: auth, uriId: "/payment/create", params: params)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -581,7 +581,7 @@ If your networking is based on `OperationQueue`, then you can add your own `Oper
 
 ```swift
 let httpOperation: Operation = YourHttpOperation(...)
-guard PowerAuthSDK.sharedInstance().executeOperation(onSerialQueue: httpOperation) else {
+guard powerAuthSDK.executeOperation(onSerialQueue: httpOperation) else {
     fatalError("There's no activation")
 }
 ```
@@ -589,7 +589,7 @@ guard PowerAuthSDK.sharedInstance().executeOperation(onSerialQueue: httpOperatio
 In case of custom networking, you can use method to execute any block on the serial queue. In this case, PowerAuth signature must be calculated as a part of block's execution. For example:
 
 ```swift
-PowerAuthSDK.sharedInstance().executeBlock(onSerialQueue: { internalTask in
+powerAuthSDK.executeBlock(onSerialQueue: { internalTask in
     yourNetworking.post(yourRequest, completionHandler: { (data, response, error) in
         // Your response processing...
         // No matter what happens, you have to call task.cancel() at the end
@@ -613,7 +613,7 @@ This process is completely transparent on the SDK level. To compute an asymmetri
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Unlock the secure vault, fetch the private key and perform data signing
-PowerAuthSDK.sharedInstance().signData(withDevicePrivateKey: auth, data: data) { (signature, error) in
+powerAuthSDK.signData(withDevicePrivateKey: auth, data: data) { (signature, error) in
     if error == nil {
         // Send data and signature to the server
     } else {
@@ -638,7 +638,7 @@ let claims = [
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Unlock the secure vault, fetch the private key and perform data signing
-PowerAuthSDK.sharedInstance().signJwt(withDevicePrivateKey: auth, claims: claims) { (jwt, error) in
+powerAuthSDK.signJwt(withDevicePrivateKey: auth, claims: claims) { (jwt, error) in
     if let jwt {
         // Use JWT value
     } else {
@@ -656,7 +656,7 @@ This type of signature is very similar to [Symmetric Multi-Factor Signature](#sy
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 do {
-    let signature = try PowerAuthSDK.sharedInstance().offlineSignature(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce)
+    let signature = try powerAuthSDK.offlineSignature(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce)
     print("Signature is " + signature)
 } catch _ {
     // In case of invalid configuration, invalid activation state or other error
@@ -675,11 +675,11 @@ This task is useful whenever you need to receive arbitrary data from the server 
 
 ```swift
 // Validate data signed with the master server key
-if PowerAuthSDK.sharedInstance().verifyServerSignedData(data, signature: signature, masterKey: true) {
+if powerAuthSDK.verifyServerSignedData(data, signature: signature, masterKey: true) {
     // data is signed with server's private master key
 }
 // Validate data signed with the personalized server key
-if PowerAuthSDK.sharedInstance().verifyServerSignedData(data, signature: signature, masterKey: false) {
+if powerAuthSDK.verifyServerSignedData(data, signature: signature, masterKey: false) {
     // data is signed with server's private key
 }
 ```
@@ -692,7 +692,7 @@ The safe but typically slower way is to use the following code:
 
 ```swift
 // Change password from "oldPassword" to "newPassword".
-PowerAuthSDK.sharedInstance().changePassword(from: "oldPassword", to: "newPassword") { (error) in
+powerAuthSDK.changePassword(from: "oldPassword", to: "newPassword") { (error) in
     if error == nil {
         // Password was changed
     } else {
@@ -717,7 +717,7 @@ For this purpose, you can use the following code:
 let oldPassword = "1234"
 
 // Validate password on the server
-PowerAuthSDK.sharedInstance().validatePassword(password: oldPassword) { (error) in
+powerAuthSDK.validatePassword(password: oldPassword) { (error) in
     if error == nil {
         // Proceed to the new password setup
     } else {
@@ -731,7 +731,7 @@ PowerAuthSDK.sharedInstance().validatePassword(password: oldPassword) { (error) 
 let newPassword = "2468"
 
 // Change the password locally
-PowerAuthSDK.sharedInstance().unsafeChangePassword(from: oldPassword, to: newPassword)
+powerAuthSDK.unsafeChangePassword(from: oldPassword, to: newPassword)
 ```
 
 <!-- begin box warning -->
@@ -773,7 +773,7 @@ import PowerAuthCore
 // Change password from "oldPassword" to "newPassword".
 let oldPass = PowerAuthCorePassword(string: "oldPassword")
 let newPass = PowerAuthCorePassword(string: "newPassword")
-PowerAuthSDK.sharedInstance().changePassword(from: oldPass, to: newPass) { (error) in
+powerAuthSDK.changePassword(from: oldPass, to: newPass) { (error) in
     if error == nil {
         // Password was changed
     } else {
@@ -966,7 +966,7 @@ To check if a given activation has biometry factor-related data available, use t
 
 ```swift
 // Does activation have biometric factor-related data in place?
-let hasBiometryFactor = PowerAuthSDK.sharedInstance().hasBiometryFactor()
+let hasBiometryFactor = powerAuthSDK.hasBiometryFactor()
 ```
 
 The last check is fully under your control. By keeping the biometry settings flag, for example, a `BOOL` in `NSUserDefaults`, you are able to show expected user Touch or Face ID status (in a disabled state, though) even in the case biometry is not enabled or when no finger or face is enrolled on the device.
@@ -979,7 +979,7 @@ Use the following code to enable biometric authentication:
 
 ```swift
 // Establish biometric data using provided password
-PowerAuthSDK.sharedInstance().addBiometryFactor(password: "1234") { (error) in
+powerAuthSDK.addBiometryFactor(password: "1234") { (error) in
     if error == nil {
         // Everything went OK, Touch ID is ready to be used
     } else {
@@ -994,7 +994,7 @@ You can remove biometry related factor data used by Touch or Face ID support by 
 
 ```swift
 // Remove biometric data
-PowerAuthSDK.sharedInstance().removeBiometryFactor()
+powerAuthSDK.removeBiometryFactor()
 ```
 
 ### Fetch Biometry Credentials In Advance
@@ -1007,7 +1007,7 @@ In order to obtain biometry credentials for the future signature calculation, ca
 
 ```swift
 // Authenticate user with biometry and obtain PowerAuthAuthentication credentials for future signature calculation.
-PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
+powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
     if let authentication = authentication {
         // Success, you can use provided PowerAuthAuthentication object for the signature calculation.
         // The provided authentication object is preconfigured for possession+biometry factors
@@ -1037,10 +1037,8 @@ let configuration = PowerAuthConfiguration()
 let keychainConfiguration = PowerAuthKeychainConfiguration()
 keychainConfiguration.linkBiometricItemsToCurrentSet = true
 
-// Init shared PowerAuthSDK instance
-PowerAuthSDK.initSharedInstance(configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
-// ...or create your own
-let sdk = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+// Init PowerAuthSDK instance
+let powerAuthSDK = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
 ```
 
 <!-- begin box warning -->
@@ -1061,10 +1059,8 @@ let configuration = PowerAuthConfiguration()
 let keychainConfiguration = PowerAuthKeychainConfiguration()
 keychainConfiguration.allowBiometricAuthenticationFallbackToDevicePasscode = true
 
-// Init shared PowerAuthSDK instance
-PowerAuthSDK.initSharedInstance(configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
-// ...or create your own
-let sdk = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+// Init PowerAuthSDK instance
+let powerAuthSDK = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
 ``` 
 
 Once the configuration above is used, then `linkBiometricItemsToCurrentSet` option has no effect on the biometry factor-related key lifetime. 
@@ -1085,12 +1081,12 @@ laContext.localizedReason = "Authenticate to remove activation"
 // Prepare PowerAuthAuthentication with context
 let authentication = PowerAuthAuthentication.possessionWithBiometry(context: laContext)
 // Now you can use authentication in some functions...
-PowerAuthSDK.sharedInstance().removeActivation(with: authentication) { error in
+powerAuthSDK.removeActivation(with: authentication) { error in
     // ...
 }
 
 // Fetch biometry key in advance, with using LAContext
-PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: laContext) { authentication, error in
+powerAuthSDK.authenticateUsingBiometry(withContext: laContext) { authentication, error in
     if let authentication = authentication {
         // success
     }
@@ -1161,7 +1157,7 @@ Be aware that the example above doesn't handle all quirks related to the PowerAu
 ```swift
 let context = LAContext()
 context.localizedReason = "Please authenticate with biometry"
-PowerAuthSDK.sharedInstance().authenticateUsingBiometry(withContext: context) { authentication, error in
+powerAuthSDK.authenticateUsingBiometry(withContext: context) { authentication, error in
     guard let authentication = authentication else {
         if let nsError = error as? NSError {
             if nsError.domain == PowerAuthErrorDomain {
@@ -1194,7 +1190,7 @@ You can clear activation data anytime from the Keychain. The benefit of this met
 To remove only data related to PowerAuth SDK for iOS, use the `PowerAuthKeychain` class:
 
 ```swift
-PowerAuthSDK.sharedInstance().removeActivationLocal()
+powerAuthSDK.removeActivationLocal()
 ```
 
 ### Removal via Authenticated Session
@@ -1209,7 +1205,7 @@ The code for this activation removal method is as follows:
 // associated activation ID
 self.httpClient.post(null, "/custom/activation/remove") { (error) in
     if error == nil {
-        PowerAuthSDK.sharedInstance().removeActivationLocal()
+        powerAuthSDK.removeActivationLocal()
     } else {
         // Report error
     }
@@ -1228,7 +1224,7 @@ Use the following code for an activation removal using signed request:
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Remove activation using provided authentication object
-PowerAuthSDK.sharedInstance().removeActivation(with: auth) { (error) in
+powerAuthSDK.removeActivation(with: auth) { (error) in
     if error == nil {
         // OK, activation was removed
     } else {
@@ -1261,7 +1257,7 @@ The following steps are typically required for a full E2EE request and response 
 
 1. Make sure that PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
    ```swift
-   let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+   let timeService = powerAuthSDK.timeSynchronizationService
    if !timeService.isTimeSynchronized {
        timeService.synchronizeTime(callback: { error in
            if error != nil {
@@ -1354,7 +1350,7 @@ let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 let index = UInt64(1000)
 
 // Fetch encryption key with given index
-PowerAuthSDK.sharedInstance().fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
+powerAuthSDK.fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
     if error == nil {
         // ... use encryption key to encrypt or decrypt data
     } else {
@@ -1391,7 +1387,6 @@ The feature is not automatically available. It must be enabled and configured on
 If the recovery data was received during the activation process, then you can later display that information to the user. To check existence of recovery data and get that information, use the following code:
 
 ```swift
-let powerAuthSdk = PowerAuthSDK.sharedInstance()
 guard powerAuthSdk.hasActivationRecoveryData() else {
     // Recovery information is not available
     return
@@ -1436,7 +1431,7 @@ The recovery postcard can contain the recovery code and multiple PUK values on o
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 let recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
-PowerAuthSDK.sharedInstance().confirmRecoveryCode(recoveryCode, authentication: auth) { alreadyConfirmed, error in
+powerAuthSDK.confirmRecoveryCode(recoveryCode, authentication: auth) { alreadyConfirmed, error in
     if let error = error {
         // Process error
     } else {
@@ -1476,7 +1471,7 @@ To get an access token, you can use the following code:
 // 1FA signature, uses device related key
 let auth = PowerAuthAuthentication.possession()
 
-let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
+let tokenStore = powerAuthSDK.tokenStore
 
 let task = tokenStore.requestAccessToken(withName: "MyToken", authentication: auth) { (token, error) in
     if let token = token {
@@ -1526,7 +1521,7 @@ The synchronous example above is safe to use only if you're sure that the time i
 To remove the token from the server, you can use the following code:
 
 ```swift
-let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
+let tokenStore = powerAuthSDK.tokenStore
 tokenStore.removeAccessToken(withName: "MyToken") { (removed, error) in
     if removed {
         // token has been removed
@@ -1541,7 +1536,7 @@ tokenStore.removeAccessToken(withName: "MyToken") { (removed, error) in
 To remove token locally, you can simply use the following code:
 
 ```swift
-let tokenStore = PowerAuthSDK.sharedInstance().tokenStore
+let tokenStore = powerAuthSDK.tokenStore
 // Remove just one token
 tokenStore.removeLocalToken(withName: "MyToken")
 // Remove all local tokens
@@ -1661,7 +1656,7 @@ Before you start using PowerAuth on watchOS, it is recommended to send informati
 To send current status of the activation, use the following code:
 
 ```swift
-if !PowerAuthSDK.sharedInstance().sendActivationStatusToWatch() {
+if !powerAuthSDK.sendActivationStatusToWatch() {
     // send message has not been issued, WCSession is probably not available / active
 } else {
     // message has been issued and it's guaranteed that it will be delivered to watch
@@ -1671,7 +1666,7 @@ if !PowerAuthSDK.sharedInstance().sendActivationStatusToWatch() {
 There's also asynchronous version, but watch device has to be reachable at the time of the call:
 
 ```swift
-PowerAuthSDK.sharedInstance().sendActivationStatusToWatch { (error) in
+powerAuthSDK.sendActivationStatusToWatch { (error) in
     if let error = error {
         // handle error, otherwise the transfer was OK
     }
@@ -1783,8 +1778,8 @@ configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     appIdentifier: "com.powerauth.demo.App", 
     keychainAccessGroup: "KTT00000MR.com.powerauth.demo.App")
 
-// Configure default PowerAuthSDK instance
-PowerAuthSDK.initSharedInstance(configuration)
+// Create a PowerAuthSDK instance
+let powerAuthSDK = PowerAuthSDK(configuration)
 ```
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
@@ -1801,7 +1796,7 @@ Unlike the regular configuration the `instanceId` value in `PowerAuthConfigurati
 Some operations, such as activation process, must be exclusively finished in application that initiated the operation. For example, if you start an activation process in one app, then all other applications that use the same shared activation data may receive a failure with `PowerAuthErrorCode.externalPendingOperation` error code until the operation is finished. To prevent such errors you can determine this state in advance:
 
 ```swift
-if let externalOperation = PowerAuthSDK.sharedInstance().externalPendingOperation {
+if let externalOperation = powerAuthSDK.externalPendingOperation {
     print("Application \(externalOperation.externalApplicationId) already started \(externalOperation.externalOperationType)")
 }
 ```
@@ -1809,7 +1804,7 @@ if let externalOperation = PowerAuthSDK.sharedInstance().externalPendingOperatio
 The same `PowerAuthExternalPendingOperation` object can be also extracted from the `NSError` error. For example:
 
 ```swift
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     if let error = error {
         if let externalOperation = error.powerAuthExternalPendingOperation {
             print("Application \(externalOperation.externalApplicationId) already started \(externalOperation.externalOperationType)")
@@ -1825,7 +1820,7 @@ The PowerAuth mobile SDK internally uses time synchronized with the PowerAuth Se
 Use the following code to get the service responsible for the time synchronization: 
 
 ```swift
-let timeService = PowerAuthSDK.sharedInstance().timeSynchronizationService
+let timeService = powerAuthSDK.timeSynchronizationService
 ```
 
 ### Automatic Time Synchronization
@@ -1889,7 +1884,7 @@ Most of the SDK methods return an error object of an `NSError` class in case som
 In most cases, you receive an error object via a callback, like in this example:
 
 ```swift
-PowerAuthSDK.sharedInstance().fetchActivationStatus { (status, error) in
+powerAuthSDK.fetchActivationStatus { (status, error) in
     // Handle 'error' here
 }
 ```
@@ -1898,7 +1893,7 @@ In other cases, you receive error via an exception, like in this example:
 
 ```swift
 do {
-    try PowerAuthSDK.sharedInstance().persistActivation(withPassword: "1234")
+    try powerAuthSDK.persistActivation(withPassword: "1234")
 } catch let error as NSError {
     // Handle 'error' here
 }
@@ -2007,6 +2002,16 @@ Sometimes, you may need to develop or test your application against a service th
 ```swift
 // Set `PowerAuthClientSslNoValidationStrategy as the default client SSL certificate validation strategy`
 PowerAuthClientConfiguration.sharedInstance().sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
+
+// In case you're setting the `PowerAuthClientConfiguration` explicitly, use:
+let clientConfig = PowerAuthClientConfiguration()
+clientConfig..sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
+// configure the PowerAuthSDK object
+let powerAuthSDK = PowerAuthSDK(
+    configuration: PowerAuthConfiguration(...),
+    keychainConfiguration: nil, // optional, default will be used when nil
+    clientConfiguration: clientConfig
+)
 ```
 
 <!-- begin box info -->
@@ -2042,12 +2047,12 @@ If supported by the server, the PowerAuth mobile SDK can provide additional info
 Here is an example of how to process user information during activation:
 
 ```swift
-PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
+powerAuthSDK.createActivation(activation) { (result, error) in
     if let result {
         if let userInfo = result.userInfo {
             // User information received.
             // At this moment, the object is also available at
-            // PowerAuthSDK.sharedInstance().lastFetchedUserInfo
+            // powerAuthSDK.lastFetchedUserInfo
         }
     } else {
         // Error handling
@@ -2058,8 +2063,7 @@ PowerAuthSDK.sharedInstance().createActivation(activation) { (result, error) in
 To fetch the user information at a later time, use the following code:
 
 ```swift
-let sdk = PowerAuthSDK.sharedInstance()
-if let userInfo = sdk.lastFetchedUserInfo {
+if let userInfo = powerAuthSDK.lastFetchedUserInfo {
     // User information is already available
 } else {
     sdk.fetchUserInfo { userInfo, error in

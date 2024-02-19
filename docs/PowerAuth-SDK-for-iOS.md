@@ -491,8 +491,8 @@ if powerAuthSDK.hasValidActivation() {
             let maxAllowedFailCount = status.maxFailCount
             let remainingFailCount = status.remainingAttempts
 
-            if let customObject = customObject {
-                // Custom object contains any proprietary server specific data
+            if let customObject = status.customObject {
+                // Custom object contains any proprietary server-specific data
             }
 
         } else {

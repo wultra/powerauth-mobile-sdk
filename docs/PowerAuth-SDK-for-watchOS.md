@@ -27,7 +27,7 @@ Related documents:
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a dynamic library, provided by the `PowerAuth2ForWatch.[xc]framework`.
+This chapter describes how to get PowerAuth SDK for watchOS up and running in your app. In the current version, you can choose between CocoaPods and manual library integration. Both types of installation will lead to your watchOS application linked with a dynamic library, provided by the `PowerAuth2ForWatch.[xc]framework`.
 
 To distinguish between SDKs, the following short terms will be used in this document:
 
@@ -42,7 +42,7 @@ To distinguish between SDKs, the following short terms will be used in this docu
 $ gem install cocoapods
 ```
 
-To integrate PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
+To integrate the PowerAuth library into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
 target 'YourAppTarget' do
@@ -74,14 +74,14 @@ If you prefer not to use CocoaPods as dependency manager, you can integrate Watc
 
 The integration process is quite similar to integration of our library for IOS:
 
-1. Open up Terminal.app and go to your top-level project directory and add the library as a submodule:
+1. Open up the Terminal.app and go to your top-level project directory and add the library as a submodule:
     ```sh
     $ git submodule add https://github.com/wultra/powerauth-mobile-sdk.git PowerAuthLib
     $ git submodule update --init --recursive
     ```
-    First command will clone PowerAuth SDK into `PowerAuthLib` folder and second, will update all nested submodules. We're expecting that you already did this when you integrated PowerAuth into your application.
+    The first command will clone PowerAuth SDK into the `PowerAuthLib` folder and second will update all nested submodules. We're expecting that you already did this when you integrated PowerAuth into your application.
 
-2. Open the new `PowerAuthLib` folder, and go to `proj-xcode` sub-folder
+2. Open the new `PowerAuthLib` folder, and go to the `proj-xcode` sub-folder
 3. Drag the `PowerAuthExtensionSdk.xcodeproj` project file into **Project Navigator** of your application's Xcode project. It should appear nested underneath your application's blue project icon.
 4. Select your application project in the Project Navigator to navigate to the target configuration window and select the watch app's target under the **TARGETS** heading in the sidebar.
 5. Now select **Build Phases** tab and expand **Target Dependencies** section. Click on the "Plus Sign" and choose **"PowerAuth2ForWatch"** framework from the **"PowerAuthExtensionSdk"** project.
@@ -89,13 +89,13 @@ The integration process is quite similar to integration of our library for IOS:
 
 ## Configuration
 
-The Watch SDK shares several source codes and configuration principles with main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for watch app (for example, you cannot create an activation or calculate a full PowerAuth signature from a watch application) and to do that it requires that your application's code will participate on data synchronization.
+The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth signature from a watch application) and to do that it requires that your application's code will participate in data synchronization.
 
 ### Prepare Watch Connectivity
 
-The PowerAuth SDK for watchOS is using [WatchConnectivity framework](https://developer.apple.com/documentation/watchconnectivity) to achieve data synchronization between iPhone and Apple Watch devices. If you're not familiar with this framework, then please take a look at least at [WCSession](https://developer.apple.com/documentation/watchconnectivity/wcsession) and [WCSessionDelegate](https://developer.apple.com/documentation/watchconnectivity/wcsessiondelegate) interfaces, before you start.
+The PowerAuth SDK for watchOS is using [the WatchConnectivity framework](https://developer.apple.com/documentation/watchconnectivity) to achieve data synchronization between iPhone and Apple Watch devices. If you're not familiar with this framework, then please take a look at least at [WCSession](https://developer.apple.com/documentation/watchconnectivity/wcsession) and [WCSessionDelegate](https://developer.apple.com/documentation/watchconnectivity/wcsessiondelegate) interfaces, before you start.
 
-The Watch SDK doesn't manage state of `WCSession` and doesn't set delegate to the session's singleton instance. It's up to you to properly configure and activate the session, but the application has to cooperate with our SDK to process the messages received from counterpart device. To do this, PowerAuth SDKs on both sides are providing `PowerAuthWCSessionManager` class which can process all incoming messages. Here's an example, how you can implement your simple `SessionManager` for watchOS:
+The Watch SDK doesn't manage the state of `WCSession` and doesn't set the delegate to the session's singleton instance. It's up to you to properly configure and activate the session, but the application has to cooperate with our SDK to process the messages received from the counterpart device. To do this, PowerAuth SDKs on both sides are providing the `PowerAuthWCSessionManager` class which can process all incoming messages. Here's an example of how you can implement your simple `SessionManager` for watchOS:
 
 ```swift
 import Foundation
@@ -126,7 +126,7 @@ class SessionManager: NSObject, WCSessionDelegate {
         if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: nil) {
             return // processed...
         }
-        // Other SDKs, or your own messages can be handler here...
+        // Other SDKs or your own messages can be handled here...
         print("SessionManager.didReceiveMessageData did not process message.")
     }
 
@@ -135,7 +135,7 @@ class SessionManager: NSObject, WCSessionDelegate {
         if PowerAuthWCSessionManager.sharedInstance.processReceivedMessageData(messageData, replyHandler: replyHandler) {
             return // processed...
         }
-        // Other SDKs, or your own messages can be handler here...
+        // Other SDKs or your own messages can be handled here...
         print("SessionManager.didReceiveMessageData did not process message. Responding with empty data")
         replyHandler(Data())
     }
@@ -145,7 +145,7 @@ class SessionManager: NSObject, WCSessionDelegate {
         if PowerAuthWCSessionManager.sharedInstance.processReceivedUserInfo(userInfo) {
             return // processed...
         }
-        // Other SDKs, or your own messages can be handler here...
+        // Other SDKs or your own messages can be handled here...
         print("SessionManager.didReceiveUserInfo did not process message.")
     }
 }
@@ -155,7 +155,7 @@ class SessionManager: NSObject, WCSessionDelegate {
 The code above is very similar to its [iOS counterpart](./PowerAuth-SDK-for-iOS.md#prepare-watch-connectivity).
 <!-- end -->
 
-The example above is implementing only a minimum set of methods from `WCSessionDelegate` protocol to make message passing work. You also have to implement a very similar class for your IOS application. The important part is that at some point, both applications (iOS and watchOS) have to call `SessionManager.shared.activateSession()` to make the transfers possible. Once you activate your session on the device, you can use all APIs related to the communication.
+The example above is implementing only a minimum set of methods from the `WCSessionDelegate` protocol to make message passing work. You also have to implement a very similar class for your IOS application. The important part is that at some point, both applications (iOS and watchOS) have to call `SessionManager.shared.activateSession()` to make the transfers possible. Once you activate your session on the device, you can use all APIs related to the communication.
 
 
 ### Configure PowerAuth for WatchKit
@@ -178,7 +178,7 @@ class InterfaceController: WKInterfaceController {
         config.appKey = "sbG8gd...MTIzNA=="
         config.appSecret = "aGVsbG...MTIzNA=="
         config.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-        // URL is optional, current version of Watch SDK doesn't perform own networking.
+        // URL is optional, the current version of Watch SDK doesn't perform its own networking.
         config.baseEndpointUrl = "https://localhost:8080/demo-server"
 
         return PowerAuthWatchSDK(configuration: config)!
@@ -189,15 +189,15 @@ class InterfaceController: WKInterfaceController {
 ```
 
 <!-- begin box warning -->
-**IMPORTANT:** The configuration used above must match configuration used in the IOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take a special care of `instanceId` property, which **has to match with value from iPhone**. By default, PowerAuth for iOS is using application's bundle-id, so don't make a mistake and don't use watchOS application's bundle identifier.
+**IMPORTANT:** The configuration used above must match the configuration used in the IOS application otherwise `PowerAuthWatchSDK` instance will never be synchronized with its iOS counterpart. Take special care of the `instanceId` property, which **has to match with the value from iPhone**. By default, PowerAuth for iOS is using the application's bundle ID, so don't make a mistake and don't use the watchOS application's bundle identifier.
 <!-- end -->
 
-The Watch SDK doesn't provide a shared instance for `PowerAuthWatchSDK` class and therefore you have to manage that instance on your own. The example above shows a beginning of controller implementing simple WatchKit scene. For all other code examples, we're going to use `self.powerAuthWatch` as properly initialized instance of `PowerAuthWatchSDK` object.
+The Watch SDK doesn't provide a shared instance for the `PowerAuthWatchSDK` class and therefore you have to manage that instance on your own. The example above shows the beginning of the controller implementing a simple WatchKit scene. For all other code examples, we're going to use `self.powerAuthWatch` as a properly initialized instance of the `PowerAuthWatchSDK` object.
 
 
 ## Getting Device Activation Status
 
-Unlike the iOS SDK, the Watch SDK provides only a limited information about activation status. You can actually check only whether there's locally stored activation on iPhone, or not:
+Unlike the iOS SDK, the Watch SDK provides only limited information about activation status. You can actually check only whether there's locally stored activation on iPhone, or not:
 
 ```swift
 if self.powerAuthWatch.hasValidActivation() {
@@ -205,7 +205,7 @@ if self.powerAuthWatch.hasValidActivation() {
 }
 ```
 
-The `hasValidActivation()` method is synchronous and reflects only actual state stored locally on Apple Watch. To get update from iPhone, you can use following code:
+The `hasValidActivation()` method is synchronous and reflects only the actual state stored locally on the Apple Watch. To get an update from your iPhone, you can use the following code:
 
 ```swift
 // Lazy version
@@ -214,7 +214,7 @@ if !self.powerAuthWatch.updateActivationStatus() {
     // message has not been issued, WCSession is probably not available / active
 } else {
     // message has been issued and it's guaranteed that it will be delivered to iPhone
-    // The iPhone has to issue response in similar lazy way.
+    // The iPhone has to issue responses in a similar lazy way.
 }
 
 // Or asynchronous version...
@@ -229,27 +229,27 @@ self.powerAuthWatch.updateActivationStatus { (activationId, error) in
 }
 ```
 
-The asynchronous `updateActivationStatus` method can be used only if `WCSession` reports that counterpart device is reachable.
+The asynchronous `updateActivationStatus` method can be used only if `WCSession` reports that the counterpart device is reachable.
 
 ## Token-Based Authentication
 
-WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also check documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
+WARNING: Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature. You can also visit the documentation about tokens available in [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md#token-based-authentication).
 
-The basic principles for working with tokens on watchOS are the same as for iOS applications, so the interface is practically identical to what you know from PowerAuth SDK for iOS. The main difference is that watchOS application cannot ask PowerAuth server to create a new token, but as a replacement, it can ask for token already stored on the iPhone. In fact, from point of watchOS application's view, the iOS application is just a kind of "remote server" providing tokens.
+The basic principles for working with tokens on watchOS are the same as for iOS applications, so the interface is practically identical to what you know from PowerAuth SDK for iOS. The main difference is that the watchOS application cannot ask the PowerAuth server to create a new token, but as a replacement, it can ask for a token already stored on the iPhone. In fact, from the point of the watchOS application's view, the iOS application is just a kind of "remote server" providing tokens.
 
 ### Getting Token
 
-To get an access token already stored on watch device, you can use following code:
+To get an access token already stored on the watch device, you can use the following code:
 
 ```swift
 if let token = self.powerAuthWatch.tokenStore.localToken(withName: "MyToken") {
-    // you have a token which can generate authorization headers
+    // you have a token that can generate authorization headers
 }
 ```
 
 ### Getting Token From iPhone
 
-To get an access token already stored on iPhone, you can use following code:
+To get an access token already stored on the iPhone, you can use the following code:
 
 ```swift
 self.powerAuthWatch.tokenStore.requestAccessToken(withName: "MyToken") { (token, error) in
@@ -263,20 +263,20 @@ self.powerAuthWatch.tokenStore.requestAccessToken(withName: "MyToken") { (token,
 
 ### Generating Authorization Header
 
-Once you have a `PowerAuthToken` object, use following code to generate an authorization header:
+Once you have a `PowerAuthToken` object, use the following code to generate an authorization header:
 
 ```swift
 if let header = token.generateHeader() {
     let httpHeader = [ header.key : header.value ]
     // now you can attach that httpHeader to your HTTP request
 } else {
-    // in case of nil, token is no longer valid
+    // in case of nil, the token is no longer valid
 }
 ```
 
 ### Removing Token Locally
 
-To remove token locally, you can simply use following code:
+To remove the token locally, you can simply use the following code:
 
 ```swift
 let tokenStore = self.powerAuthWatch.tokenStore
@@ -286,26 +286,26 @@ tokenStore.removeLocalToken(withName: "MyToken")
 tokenStore.removeAllLocalTokens()
 ```
 
-Note that removing tokens locally on watch device has no effect on the same tokens stored on iPhone.
+Note that removing tokens locally on a watch device does not affect the same tokens stored on an iPhone.
 
 ### Removing Token From iPhone
 
-The token store available on watchOS exposes `removeAccessToken()` method, but the implementation always returns `PowerAuthErrorCode.invalidToken` error. This kind of operation is not supported.
+The token store available on watchOS exposes the `removeAccessToken()` method, but the implementation always returns the `PowerAuthErrorCode.invalidToken` error. This kind of operation is not supported.
 
 ## Common SDK Tasks
 
 ### Error Handling
 
-You can follow the same practices as for iOS SDK because Watch SDK codebase is sharing the same error constants with a full PowerAuth SDK for iOS.
+You can follow the same practices as for iOS SDK because the Watch SDK codebase shares the same error constants with a full PowerAuth SDK for iOS.
 
 ### Debug Build Detection
 
 It is sometimes useful to switch Watch SDK to a DEBUG build configuration, to get more logs from the library:
 
 - **CocoaPods:** we currently don't provide DEBUG pod. This will be resolved in some future versions of Watch SDK.
-- **Manual installation:** Xcode is matching build configuration across all nested projects, so you usually don't need to care about the configuration switching.
+- **Manual installation:** Xcode matches build configuration across all nested projects, so you usually don't need to care about the configuration switching.
 
-The DEBUG build is usually helpful during the application development, but on other side, it's highly unwanted in production applications. For this purpose, the `PowerAuthSystem.isInDebug()` method provides an information, whether the PowerAuth for watchOS library was compiled in DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
+The DEBUG build is usually helpful during the application development, but on the other side, it's highly unwanted in production applications. For this purpose, the `PowerAuthSystem.isInDebug()` method provides information on whether the PowerAuth for the watchOS library was compiled in the DEBUG configuration. It is a good practice to check this flag and crash the process when the production application is linked against the DEBUG library:
 
 ```swift
 #if YOUR_APPSTORE_BUILD_FLAG
@@ -318,7 +318,7 @@ The DEBUG build is usually helpful during the application development, but on ot
 
 ## Troubleshooting
 
-This section of document contains a various workarounds and tips for Watch SDK usage.
+This section of the document contains various workarounds and tips for Watch SDK usage.
 
 ### WCSession Activation Sequence on iOS
 
@@ -326,7 +326,7 @@ You should check recommendations about [WCSession's activation sequence on iOS](
 
 ### Cocoapods Integration Fails
 
-In case that `pod update` fails on various errors, try following workarounds:
+In case `pod update` fails on various errors, try the following workarounds:
 
 - Update your pod tool at first:
   ```bash
@@ -335,12 +335,12 @@ In case that `pod update` fails on various errors, try following workarounds:
   $ echo after  `pod --version`
   ```
 
-- To reveal more details about the problem, try to run update with a verbose switch:
+- To reveal more details about the problem, try to run an update with a verbose switch:
   ```bash
    $ pod update --verbose
   ```
 
-- Clean your pod cache. You can remove one specific pod from cache, or clean it all:
+- Clean your pod cache. You can remove one specific pod from the cache, or clean it all:
   ```bash
   $ pod cache clean PowerAuth2
   $ pod cache clean PowerAuth2ForWatch
@@ -348,4 +348,4 @@ In case that `pod update` fails on various errors, try following workarounds:
   $ pod cache clean --all
   ```
 
-- Try to run `pod update` for twice. The Cocoapods tool is mystery and sometimes just doesn't work as you would expect.
+- Try to run `pod update` for twice. The Cocoapods tool is a mystery and sometimes just doesn't work as you would expect.

@@ -12,7 +12,7 @@ PowerAuth Mobile SDK in version `1.8.0` provides the following improvements:
 
 ### Legacy SDK configuration
 
-In case you need to still use the legacy setup to configure older version of PowerAuth mobile SDK, then you can use `get-legacy-config.swift` script available at `scripts` folder. For example:
+In case you need to still use the legacy setup to configure the older version of PowerAuth mobile SDK, then you can use the `get-legacy-config.swift` script available in the `scripts` folder. For example:
 
 ```bash
 # clone the mobile library
@@ -40,30 +40,30 @@ Legacy PowerAuth configuration:
             ).build();
     ```
 
-- `PowerAuthSDK.Builder.build()` now require to use application's context to build instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
+- `PowerAuthSDK.Builder.build()` now requires to use application's context to build an instance of `PowerAuthSDK`. If you don't have such context available, then please use the following code in your application's `onCreate()` method:
   ```kotlin
   PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallbacks(this) // "this" is Application
   ```
 
-- The following methods are now deprecated in `PowerAuthAuthentication` class:
+- The following methods are now deprecated in the `PowerAuthAuthentication` class:
   - All variants of `commitWithPassword()` are now replaced with `persistWithPassword()`
   - All variants of `commitWithPasswordAndBiometry()` are now `persistWithPasswordAndBiometry()`
 
-- The following methods are now deprecated in `PowerAuthSDK` class:
+- The following methods are now deprecated in the `PowerAuthSDK` class:
   - `commitActivationWithAuthentication()` is now `persistActivationWithAuthentication()`
   - All variants of `commitActivationWithPassword()` are now `persistActivationWithPassword()`
   - All variants of `commitActivation()` are now `persistActivation()`
-  - All variants of `authenticateUsingBiometry()` are now replaced with `authenticateUsingBiometrics()` with `IAuthenticateWithBiometricsListener` interface returning `PowerAuthAuthentication` in success.
+  - All variants of `authenticateUsingBiometry()` are now replaced with `authenticateUsingBiometrics()` with the `IAuthenticateWithBiometricsListener` interface returning `PowerAuthAuthentication` in success.
 
 - The `ICommitActivationWithBiometryListener` is now deprecated and you can use `IPersistActivationWithBiometricsListener` as a replacement.
 
-- The `PowerAuthAuthentication` object is now immutable object.
+- The `PowerAuthAuthentication` object is now an immutable object.
 
 - `PowerAuthErrorCodes` now contains the following new error codes:
-  - `TIME_SYNCHRONIZATION` indicating a problem with the time synchronization.
-  - `BIOMETRY_NOT_ENROLLED` indicating that device has no enrolled biometry.
+  - `TIME_SYNCHRONIZATION` indicates a problem with the time synchronization.
+  - `BIOMETRY_NOT_ENROLLED` indicating that the device has no enrolled biometry.
 
-- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to a several dead code branches in your code if you still support devices older than Android 6.0.
+- The biometry-related methods in `PowerAuthSDK` are no longer annotated as `@RequiresApi(api = Build.VERSION_CODES.M)`. This change may lead to several dead code branches in your code if you still support devices older than Android 6.0.
 
 - Removed all interfaces deprecated in release `1.7.x`
 
@@ -74,10 +74,10 @@ Legacy PowerAuth configuration:
 If the `PowerAuthErrorException` is related to a biometric authentication failure, then the new `additionalInformation` property will contain an instance of the `BiometricErrorInfo` class. It's recommended to test whether the reason for the failure was presented to the user in the authentication dialog or in a custom error dialog provided by the PowerAuth mobile SDK. For example:
 
 ```kotlin
-// Authenticate user with biometry and obtain encrypted biometry factor related key.
+// Authenticate user with biometry and obtain encrypted biometry factor-related key.
 powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
-        // User or system cancelled the operation
+        // User or system canceled the operation
     }
 
     override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
@@ -96,17 +96,17 @@ powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the 
                 val localizedMessage = biometricErrorInfo.getLocalizedErrorMessage(context, null)
             }
         } else {
-          // Other reason for failure
+          // Other reasons for failure
         }
     }
 })
 ```
 
-See also [Disable Error Dialog After Failed Biometry](PowerAuth-SDK-for-Android.md#disable-error-dialog-after-failed-biometry) chapter for more details.
+See also the [Disable Error Dialog After Failed Biometry](PowerAuth-SDK-for-Android.md#disable-error-dialog-after-failed-biometry) chapter for more details.
 
 #### Synchronized time
 
-The requirement for the time synchronized with the server has the following impact to your code:
+The requirement for the time synchronized with the server has the following impact on your code:
 
 - If you use custom **End-To-End Encryption** in your application, then it's recommended to make sure the time is synchronized with the server:
   ```kotlin
@@ -124,7 +124,7 @@ The requirement for the time synchronized with the server has the following impa
   }
   ```
 
-- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantee that time is synchronized before the token header is calculated:
+- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantees that time is synchronized before the token header is calculated:
   ```kotlin
   val task = powerAuthSDK.tokenStore.generateAuthorizationHeader(context, "MyToken", object : IGenerateTokenHeaderListener {
     override fun onGenerateTokenHeaderSucceeded(header: PowerAuthAuthorizationHttpHeader) {
@@ -167,7 +167,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 ### API changes
 
 - `PowerAuthConfiguration` - class now supports only the simplified configuration.
-  - Use new object constructor with all required parameters:
+  - Use a new object constructor with all required parameters:
     ```swift
     let config = PowerAuthConfiguration(
         instanceId: "your-instance-id",
@@ -188,9 +188,9 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
   - `.commitWithPasswordAndBiometry(password:)` is now `.persistithPasswordAndBiometry(password:)`
   - `.commitWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)` is now `.persistWithPasswordAndBiometry(password:customBiometryKey:customPossessionKey:)`
 
-- The `PowerAuthAuthentication` object is now immutable and no longer implements `NSCopying` protocol.
+- The `PowerAuthAuthentication` object is now immutable and no longer implements the `NSCopying` protocol.
 
-- `PowerAuthErrorCode` now contains new `.timeSynchronization` case indicating a problem with the time synchronization.
+- `PowerAuthErrorCode` now contains a new `.timeSynchronization` case indicating a problem with the time synchronization.
 
 - Removed all interfaces deprecated in release `1.7.x`
 
@@ -200,7 +200,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 
 #### Synchronized time
 
-The requirement for the time synchronized with the server has the following impact to your code:
+The requirement for the time synchronized with the server has the following impact on your code:
 
 - If you use custom **End-To-End Encryption** in your application, then it's recommended to make sure the time is synchronized with the server:
   ```swift
@@ -214,7 +214,7 @@ The requirement for the time synchronized with the server has the following impa
     }, callbackQueue: .main)
   }
   ```
-- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantee that time is synchronized before the token header is calculated:
+- If you use **Token-Based Authentication**, then you should use the new API provided by `PowerAuthTokenStore` that guarantees that time is synchronized before the token header is calculated:
   ```swift
   powerAuthSdk.tokenStore.generateAuthorizationHeader(withName: "MyToken") { header, error in
     if let header = header {
@@ -254,7 +254,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 ### API changes
 
 - `PowerAuthConfiguration` - class now supports only the simplified configuration.
-  - Use new object constructor with all required parameters:
+  - Use a new object constructor with all required parameters:
     ```swift
     let config = PowerAuthConfiguration(
         instanceId: "your-instance-id",
@@ -264,7 +264,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
     ```
   - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
 
-- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+- The `PowerAuthAuthentication` object is now an immutable object and no longer implements the `NSCopying` protocol.
 
 - Removed all interfaces deprecated in release `1.7.x` 
 
@@ -275,7 +275,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
 ### API changes
 
 - `PowerAuthConfiguration` - class now supports only the simplified configuration.
-  - Use new object constructor with all required parameters:
+  - Use the new object constructor with all required parameters:
     ```swift
     let config = PowerAuthConfiguration(
         instanceId: "your-instance-id",
@@ -285,7 +285,7 @@ Visit [Synchronized Time](https://developers.wultra.com/components/powerauth-mob
     ```
   - Removed `applicationKey`, `applicationSecret`, `masterServerPublicKey`, `disableAutomaticProtocolUpgrade` properties.
 
-- The `PowerAuthAuthentication` object is now immutable object and no longer implement `NSCopying` protocol.
+- The `PowerAuthAuthentication` object is now an immutable object and no longer implements the `NSCopying` protocol.
 
 - Removed all interfaces deprecated in release `1.7.x`
 

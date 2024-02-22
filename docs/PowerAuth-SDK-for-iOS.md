@@ -2005,7 +2005,7 @@ PowerAuthClientConfiguration.sharedInstance().sslValidationStrategy = PowerAuthC
 
 // In case you're setting the `PowerAuthClientConfiguration` explicitly, use:
 let clientConfig = PowerAuthClientConfiguration()
-clientConfig..sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
+clientConfig.sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
 // configure the PowerAuthSDK object
 let powerAuthSDK = PowerAuthSDK(
     configuration: PowerAuthConfiguration(...),

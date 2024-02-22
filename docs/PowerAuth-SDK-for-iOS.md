@@ -95,6 +95,11 @@ Then, run the following command:
 $ pod install
 ```
 
+### Swift Package Manager
+
+If you wish to integrate the PowerAuth SDK into your app via SPM, please visit the [PowerAuth mobile SDK for Swift PM
+](https://github.com/wultra/powerauth-mobile-sdk-spm)
+
 ### Manual
 
 If you prefer not to use CocoaPods as a dependency manager, you can integrate PowerAuth into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).

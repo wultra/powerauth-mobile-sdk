@@ -75,6 +75,7 @@ public class HttpClientSslNoValidationStrategy implements HttpClientValidationSt
     public SSLSocketFactory getSSLSocketFactory() {
 
         // Create a trust manager that does not validate certificate chains
+        @SuppressLint("CustomX509TrustManager")
         final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
 
             @SuppressLint("TrustAllX509TrustManager")

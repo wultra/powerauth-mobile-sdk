@@ -2843,6 +2843,27 @@ if (BuildConfig.DEBUG) {
 ```
 <!-- end -->
 
+You can intercept the log and log it into your own report system, you can do so with `PowerAuthLogListener`.
+
+```kotlin
+PowerAuthLog.logListener = object : PowerAuthLogListener {
+    override fun powerAuthDebugLog(message: String) {
+        // Process debug log...
+        // Note that the debug log is only reported when 
+        // PowerAuthLog.setEnabled(true) is set.
+        // We highly discourage using debug logs in production builds.
+    }
+
+    override fun powerAuthWarningLog(message: String) {
+        // Process warning log...
+    }
+
+    override fun powerAuthErrorLog(message: String) {
+        // Process error log...
+    }
+}
+```
+
 ## Additional Features
 
 PowerAuth SDK for Android contains multiple additional features that are useful for mobile apps.

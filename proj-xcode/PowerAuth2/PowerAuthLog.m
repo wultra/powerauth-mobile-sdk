@@ -28,6 +28,7 @@
 #ifdef ENABLE_PA2_LOG
 static BOOL s_log_enabled = NO;
 static BOOL s_log_verbose = NO;
+static id<PowerAuthLogDelegate> s_log_delegate = nil;
 void PowerAuthLogImpl(NSString * format, ...)
 {
     if (!s_log_enabled) {
@@ -37,6 +38,10 @@ void PowerAuthLogImpl(NSString * format, ...)
     va_start(args, format);
     NSString * message = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
+    
+    if (s_log_delegate) {
+        [s_log_delegate powerAuthLog:message];
+    }
     
     NSLog(@"[PowerAuth] %@", message);
 }
@@ -85,4 +90,11 @@ void PowerAuthCriticalWarning(NSString * format, ...)
     va_end(args);
     
     NSLog(@"[PowerAuth] CRITICAL WARNING: %@", message);
+}
+
+void PowerAuthLogSetDelegate(id<PowerAuthLogDelegate> delegate)
+{
+#ifdef ENABLE_PA2_LOG
+    s_log_delegate = delegate;
+#endif
 }

@@ -2038,8 +2038,35 @@ PowerAuthLogSetVerbose(true)
 ```
 
 <!-- begin box warning -->
-Note that the functions above are effective only if PowerAuth SDK is compiled in the `DEBUG` build configuration.
+Note that the functions above are effective only if PowerAuth SDK is compiled in the `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
 <!-- end -->
+
+You can intercept the log and log it into your own report system, you can do so with `PowerAuthLogDelegate`.
+
+```swift
+import PowerAuth2
+
+class MyClass: PowerAuthLogDelegate {
+
+    init {
+        // Only works in DEBUG build or when 
+        // ENABLE_PA2_LOG compilation flag is set
+        PowerAuthLogSetEnabled(true)
+        #if DEBUG
+        // verbose logging should be used only in debug builds
+        // as it can contain sensitive information
+        PowerAuthLogSetVerbose(true)
+        #endif
+        PowerAuthLogSetDelegate(self)
+    }
+    
+    // MARK: - PowerAuthLogDelegate implementation
+    
+    func powerAuthLog(_ log: String) {
+        // Process the log...
+    }
+}
+```
 
 ## Additional Features
 

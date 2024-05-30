@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import android.util.Pair;
 
 import java.util.concurrent.Executor;
@@ -279,7 +280,11 @@ public class BiometricAuthentication {
         });
 
         // Show fragment
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        final FragmentTransaction ft = fragmentManager.beginTransaction();
+        ft.setReorderingAllowed(true);
+        ft.add(dialogFragment, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        // cannot commit() to avoid java.lang.IllegalStateException when onSaveInstanceState() was already called
+        ft.commitAllowingStateLoss();
 
         return cancelableTask;
     }

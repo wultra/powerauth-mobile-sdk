@@ -38,6 +38,7 @@ import io.getlime.security.powerauth.biometry.BiometricDialogResources;
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.BiometricStatus;
 import io.getlime.security.powerauth.biometry.BiometryType;
+import io.getlime.security.powerauth.biometry.DialogFragmentUtil;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
@@ -448,7 +449,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dialogFragment.dismiss();
             }
         });
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        DialogFragmentUtil.showDialogAllowingStateLoss(dialogFragment, fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 
     /**
@@ -508,7 +509,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         });
 
         // Show fragment
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        DialogFragmentUtil.showDialogAllowingStateLoss(dialogFragment, fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 
     /**

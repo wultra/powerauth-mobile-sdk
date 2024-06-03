@@ -279,7 +279,7 @@ public class BiometricAuthentication {
         });
 
         // Show fragment
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        DialogFragmentUtil.showDialogAllowingStateLoss(dialogFragment, fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
 
         return cancelableTask;
     }

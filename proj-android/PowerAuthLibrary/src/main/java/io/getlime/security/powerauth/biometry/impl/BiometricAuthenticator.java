@@ -469,7 +469,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 dialogFragment.dismiss();
             }
         });
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        DialogFragmentUtil.showDialogAllowingStateLoss(dialogFragment, fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 
     /**
@@ -529,7 +529,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         });
 
         // Show fragment
-        dialogFragment.show(fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
+        DialogFragmentUtil.showDialogAllowingStateLoss(dialogFragment, fragmentManager, BiometricErrorDialogFragment.FRAGMENT_DEFAULT_TAG);
     }
 
     /**

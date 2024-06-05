@@ -33,7 +33,7 @@
 
     // Implementations
 
-    PA2_EXTERN_C void PowerAuthLogImpl(NSString * format, ...);
+    PA2_EXTERN_C void PowerAuthLogImpl(NSString * _Nonnull format, ...);
 
     // Macros
 
@@ -79,7 +79,7 @@ PA2_EXTERN_C BOOL PowerAuthLogIsVerbose(void);
  is used internally in the PowerAuth SDK. This kind of warnings are always printed to the DEBUG
  console and cannot be supressed by configuration.
  */
-PA2_EXTERN_C void PowerAuthCriticalWarning(NSString * format, ...);
+PA2_EXTERN_C void PowerAuthCriticalWarning(NSString * _Nonnull format, ...);
 
 /**
  Protocol that represents a delegate that can tap into the library logs and use them for example

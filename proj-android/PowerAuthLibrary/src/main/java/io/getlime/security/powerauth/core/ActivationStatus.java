@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.core;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -141,6 +142,7 @@ public class ActivationStatus {
     /**
      * @return custom dictionary received from the server together with the status.
      */
+    @Nullable
     public Map<String, Object> getCustomObject() {
         return customObject;
     }

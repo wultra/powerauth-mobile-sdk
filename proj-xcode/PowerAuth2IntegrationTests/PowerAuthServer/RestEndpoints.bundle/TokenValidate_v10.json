@@ -1,0 +1,19 @@
+{
+    "path": "/rest/v3/token/validate",
+    "parameters": [
+        "tokenId",
+        "tokenDigest",
+        "nonce",
+        "timestamp"
+    ],
+    "response": {
+        "class": "PATSTokenValidationResponse",
+        "properties": {
+            "tokenValid":       { "class" : "bool" },
+            "activationId":     { "class" : "string" },
+            "userId":           { "class" : "string" },
+            "applicationId":    { "class" : "string" },
+            "signatureType":    { "class" : "string" }
+        }
+    }
+}

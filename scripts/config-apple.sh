@@ -1,5 +1,5 @@
 # Platform CPU architectures
-ARCH_IOS="arm64 arm64e"
+ARCH_IOS="arm64"
 ARCH_IOS_SIM="x86_64 arm64"
 ARCH_CATALYST="x86_64"
 ARCH_TVOS="arm64"

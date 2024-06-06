@@ -27,7 +27,10 @@ typedef NS_ENUM(int, PowerAuthTestServerVersion) {
     PATS_V1_2_5 = 10205,    // V3.1 crypto + Activation OTP
     PATS_V1_3   = 10300,    // V3.1 crypto + Activation OTP, applicationId as String
     PATS_V1_4   = 10400,    // V3.1 crypto + Activation OTP, applicationId as String
-    PATS_V1_5   = 10500,    // V3.1 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_5   = 10500,    // V3.2 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_6   = 10600,    // V3.2 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_7   = 10700,    // V3.2 crypto + Activation OTP, applicationId as String, userInfo
+    PATS_V1_8   = 10800,    // V3.2 crypto + Activation OTP, applicationId as String, userInfo
 };
 
 /**

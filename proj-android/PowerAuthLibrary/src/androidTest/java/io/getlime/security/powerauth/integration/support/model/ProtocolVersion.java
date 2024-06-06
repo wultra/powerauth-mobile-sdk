@@ -25,8 +25,8 @@ public enum ProtocolVersion {
     V3_1(31, "3.1"),
     V3_2(32, "3.2");
 
-    public int version;
-    public String versionForHeader;
+    public final int version;
+    public final String versionForHeader;
 
     ProtocolVersion(int version, String versionForHeader) {
         this.version = version;

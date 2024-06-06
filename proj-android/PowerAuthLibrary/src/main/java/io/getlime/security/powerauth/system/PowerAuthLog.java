@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.system;
 
+import androidx.annotation.Nullable;
+
 /**
  * Class that provides logging facility for PowerAuth SDK library.
  *
@@ -36,6 +38,11 @@ public class PowerAuthLog {
      TAG constant for our messages
      */
     private static final String LOG_TAG = "PowerAuthLibrary";
+
+    /**
+     * Listener that can tap into the log stream and process it on it's own.
+     */
+    public @Nullable static PowerAuthLogListener logListener;
 
     /**
      * Controls logging from PowerAuth classes
@@ -74,6 +81,9 @@ public class PowerAuthLog {
         if (logIsEnabled) {
             String message = String.format(format, args);
             android.util.Log.d(LOG_TAG, message);
+            if (logListener != null) {
+                logListener.powerAuthDebugLog(message);
+            }
         }
     }
 
@@ -87,5 +97,23 @@ public class PowerAuthLog {
     public static void e(String format, Object... args) {
         String message = String.format(format, args);
         android.util.Log.e(LOG_TAG, message);
+        if (logListener != null) {
+            logListener.powerAuthErrorLog(message);
+        }
+    }
+
+    /**
+     * Adds a formatted WARNING log message. Unlike DEBUG message calling this method always
+     * produce error record.
+     * @param format format string, just like for {@link java.lang.String#format String.format}
+     * @param args Arguments referenced by the format specifiers in the format
+     *        string.
+     */
+    public static void w(String format, Object... args) {
+        String message = String.format(format, args);
+        android.util.Log.w(LOG_TAG, message);
+        if (logListener != null) {
+            logListener.powerAuthWarningLog(message);
+        }
     }
 }

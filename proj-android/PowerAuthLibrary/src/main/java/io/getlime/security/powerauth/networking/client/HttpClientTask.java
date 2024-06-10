@@ -21,6 +21,7 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -268,14 +269,15 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
      * @param connection prepared connection object.
      * @param requestData (optional) byte array with request data.
      */
-    private void logRequest(HttpURLConnection connection, byte[] requestData) {
+    private void logRequest(@Nullable HttpURLConnection connection, @Nullable byte[] requestData) {
         if (!PowerAuthLog.isEnabled()) {
             return;
         }
         // Endpoint
         final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
         // URL, method
-        final String url = connection.getURL().toString();
+        final boolean hasConnection = connection != null;
+        final String url = hasConnection ? connection.getURL().toString() : "null";
         final String method = endpoint.getHttpMethod();
         // Flags
         final boolean signature = endpoint.getAuthorizationUriId() != null;
@@ -286,7 +288,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
             PowerAuthLog.d("HTTP %s request%s: -> %s", method, signedEncrypted, url);
         } else {
             // Verbose, put headers and body (if not encrypted) into the log.
-            final Map<String,List<String>> prop = connection.getRequestProperties();
+            final Map<String,List<String>> prop = hasConnection ? connection.getRequestProperties() : null;
             final String propStr = prop == null ? "<empty>" : prop.toString();
             if (encrypted) {
                 PowerAuthLog.d("HTTP %s request%s: %s\n- Headers: %s- Body: <encrypted>", method, signedEncrypted, url, propStr);
@@ -304,14 +306,15 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
      * @param responseData (optional) data returned in HTTP request.
      * @param error (optional) error produced during the request.
      */
-    private void logResponse(HttpURLConnection connection, byte[] responseData, Throwable error) {
+    private void logResponse(@Nullable HttpURLConnection connection, @Nullable byte[] responseData, @Nullable Throwable error) {
         if (!PowerAuthLog.isEnabled()) {
             return;
         }
         // Endpoint
         final IEndpointDefinition<TResponse> endpoint = httpRequestHelper.getEndpoint();
         // URL, method
-        final String url = connection.getURL().toString();
+        final boolean hasConnection = connection != null;
+        final String url = hasConnection ? connection.getURL().toString() : "null";
         final String method = endpoint.getHttpMethod();
         final String errorMessage;
         if (error != null) {
@@ -328,7 +331,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         // Response code
         int responseCode;
         try {
-            responseCode = connection.getResponseCode();
+            responseCode = hasConnection ? connection.getResponseCode() : 0;
         } catch (IOException e) {
             responseCode = 0;
         }
@@ -342,7 +345,7 @@ class HttpClientTask<TRequest, TResponse> extends AsyncTask<TRequest, Void, TRes
         } else {
             final boolean encrypted = endpoint.getEncryptorId() != EciesEncryptorId.NONE;
             // Response headers
-            final String responseHeaders = connection.getHeaderFields().toString();
+            final String responseHeaders = hasConnection ? connection.getHeaderFields().toString() : "{}";
             // Response body
             final String responseBodyTmp = responseData == null ? "<empty>" : new String(responseData, Charset.defaultCharset());
             final String responseBody;

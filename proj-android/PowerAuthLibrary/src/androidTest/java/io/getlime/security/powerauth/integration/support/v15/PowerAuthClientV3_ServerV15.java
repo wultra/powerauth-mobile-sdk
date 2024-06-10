@@ -14,20 +14,52 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.v10;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+package io.getlime.security.powerauth.integration.support.v15;
 
 import java.util.Collections;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.integration.support.PowerAuthServerApi;
 import io.getlime.security.powerauth.integration.support.client.HttpRestClient;
-import io.getlime.security.powerauth.integration.support.v10.endpoints.*;
-import io.getlime.security.powerauth.integration.support.model.*;
+import io.getlime.security.powerauth.integration.support.model.Activation;
+import io.getlime.security.powerauth.integration.support.model.ActivationDetail;
+import io.getlime.security.powerauth.integration.support.model.ActivationOtpValidation;
+import io.getlime.security.powerauth.integration.support.model.ActivationStatus;
+import io.getlime.security.powerauth.integration.support.model.Application;
+import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
+import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
+import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
+import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
+import io.getlime.security.powerauth.integration.support.model.ServerConstants;
+import io.getlime.security.powerauth.integration.support.model.ServerVersion;
+import io.getlime.security.powerauth.integration.support.model.SignatureData;
+import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
+import io.getlime.security.powerauth.integration.support.model.TokenInfo;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.BlockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.CommitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.CreateApplicationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.CreateApplicationVersionEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.CreateNonPersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.CreatePersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.GetActivationStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.GetApplicationDetailEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.GetApplicationListEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.GetRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.GetSystemStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.InitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.RemoveActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.SetApplicationVersionSupportedEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.UnblockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.UpdateActivationOtpEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.UpdateRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.ValidateTokenEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.VerifyEcdsaSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.VerifyOfflineSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v15.endpoints.VerifyOnlineSignatureEndpoint;
 
-public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
+public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
 
     private final @NonNull HttpRestClient restClient;
     private final @NonNull ServerVersion minSupportedVersion;
@@ -42,7 +74,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
      * @param minSupportedVersion Minimum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      * @param maxSupportedVersion Maximum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      */
-    public PowerAuthClientV3_ServerV10(@NonNull String serverApiUrl, @Nullable String authorization, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
+    public PowerAuthClientV3_ServerV15(@NonNull String serverApiUrl, @Nullable String authorization, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
         this.restClient = new HttpRestClient(serverApiUrl, authorization);
         this.minSupportedVersion = minSupportedVersion == null ? ServerVersion.LATEST : minSupportedVersion;
         this.maxSupportedVersion = maxSupportedVersion == null ? ServerVersion.LATEST : maxSupportedVersion;
@@ -81,10 +113,11 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     public Application findApplicationByName(@NonNull String applicationName) throws Exception {
         final GetApplicationListEndpoint.Response response = restClient.send(null, new GetApplicationListEndpoint());
         if (response != null && response.getApplications() != null) {
-            for (GetApplicationListEndpoint.ApplicationV10 app : response.getApplications()) {
-                // V1.0-1.2 servers uses application name.
-                if (applicationName.equals(app.getApplicationName())) {
-                    return app.toApplication();
+            for (Application app : response.getApplications()) {
+                // If V1.3 server has been migrated from older version, then contains previous application names in form of identifier.
+                // There's no such application name in the new model.
+                if (applicationName.equals(app.getApplicationId())) {
+                    return app;
                 }
             }
         }
@@ -96,8 +129,9 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     public ApplicationVersion findApplicationVersionByName(@NonNull ApplicationDetail applicationDetail, @NonNull String applicationVersionName) throws Exception {
         if (applicationDetail.getVersions() != null) {
             for (ApplicationVersion version: applicationDetail.getVersions()) {
-                // V1.0-1.2 servers uses application version name.
-                if (applicationVersionName.equals(version.getApplicationVersionName())) {
+                // If V1.3 server has been migrated from older version, then contains previous version names in form of identifier.
+                // There's no such application version name in the new model.
+                if (applicationVersionName.equals(version.getApplicationVersionId())) {
                     return version;
                 }
             }
@@ -105,19 +139,18 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
         return null;
     }
 
-
     @NonNull
     @Override
     public List<Application> getApplicationList() throws Exception {
         final GetApplicationListEndpoint.Response response = restClient.send(null, new GetApplicationListEndpoint());
-        return response.getApplications() != null ? response.getModelApplications() : Collections.<Application>emptyList();
+        return response.getApplications() != null ? response.getApplications() : Collections.<Application>emptyList();
     }
 
     @NonNull
     @Override
     public Application createApplication(@NonNull String applicationName) throws Exception {
         final CreateApplicationEndpoint.Request request = new CreateApplicationEndpoint.Request();
-        request.setApplicationName(applicationName);
+        request.setApplicationId(applicationName);
         return restClient.send(request, new CreateApplicationEndpoint());
     }
 
@@ -133,7 +166,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     @Override
     public ApplicationDetail getApplicationDetailById(String applicationId) throws Exception {
         final GetApplicationDetailEndpoint.Request request = new GetApplicationDetailEndpoint.Request();
-        request.setApplicationId(Long.parseLong(applicationId));
+        request.setApplicationId(applicationId);
         return restClient.send(request, new GetApplicationDetailEndpoint());
     }
 
@@ -141,15 +174,15 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     @Override
     public ApplicationVersion createApplicationVersion(String applicationId, @NonNull String versionName) throws Exception {
         final CreateApplicationVersionEndpoint.Request request = new CreateApplicationVersionEndpoint.Request();
-        request.setApplicationId(Long.parseLong(applicationId));
-        request.setApplicationVersionName(versionName);
+        request.setApplicationId(applicationId);
+        request.setApplicationVersionId(versionName);
         return restClient.send(request, new CreateApplicationVersionEndpoint());
     }
 
     @Override
     public void setApplicationVersionSupported(String applicationVersionId, boolean supported) throws Exception {
         final SetApplicationVersionSupportedEndpoint.Request request = new SetApplicationVersionSupportedEndpoint.Request();
-        request.setApplicationVersionId(Long.parseLong(applicationVersionId));
+        request.setApplicationVersionId(applicationVersionId);
         final SetApplicationVersionSupportedEndpoint.Response response = restClient.send(request, new SetApplicationVersionSupportedEndpoint(supported));
         if (response.isSupported() != supported) {
             throw new Exception("Application version is still " + (supported ? "unsupported" : "supported") + " after successful response.");
@@ -160,7 +193,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     @Override
     public RecoveryConfig getRecoveryConfig(String applicationId) throws Exception {
         final GetRecoveryConfigEndpoint.Request request = new GetRecoveryConfigEndpoint.Request();
-        request.setApplicationId(Long.parseLong(applicationId));
+        request.setApplicationId(applicationId);
         return restClient.send(request, new GetRecoveryConfigEndpoint());
     }
 
@@ -180,7 +213,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
             throw new Exception("Invalid combination of activation OTP and OTP validation.");
         }
         final InitActivationEndpoint.Request request = new InitActivationEndpoint.Request();
-        request.setApplicationId(Long.parseLong(application.getApplicationId()));
+        request.setApplicationId(application.getApplicationId());
         request.setUserId(userId);
         request.setActivationOtp(otp);
         request.setActivationOtpValidation(otpValidation);
@@ -301,6 +334,7 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
         request.setTokenDigest(tokenDigest);
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
+        request.setProtocolVersion(protocolVersion);
         return restClient.send(request, new ValidateTokenEndpoint());
     }
 
@@ -330,9 +364,9 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
 
     @NonNull
     @Override
-    public OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(String applicationId, @NonNull String data) throws Exception {
+    public OfflineSignaturePayload createNonPersonalizedOfflineSignaturePayload(String  applicationId, @NonNull String data) throws Exception {
         final CreateNonPersonalizedOfflineSignaturePayloadEndpoint.Request request = new CreateNonPersonalizedOfflineSignaturePayloadEndpoint.Request();
-        request.setApplicationId(Long.parseLong(applicationId));
+        request.setApplicationId(applicationId);
         request.setData(data);
         return restClient.send(request, new CreateNonPersonalizedOfflineSignaturePayloadEndpoint());
     }

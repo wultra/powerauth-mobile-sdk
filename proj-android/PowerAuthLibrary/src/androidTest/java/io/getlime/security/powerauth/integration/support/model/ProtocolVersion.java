@@ -22,10 +22,11 @@ public enum ProtocolVersion {
     V2(20, "2.0"),
     V2_1(21, "2.1"),
     V3(30, "3.0"),
-    V3_1(31, "3.1");
+    V3_1(31, "3.1"),
+    V3_2(32, "3.2");
 
-    public int version;
-    public String versionForHeader;
+    public final int version;
+    public final String versionForHeader;
 
     ProtocolVersion(int version, String versionForHeader) {
         this.version = version;

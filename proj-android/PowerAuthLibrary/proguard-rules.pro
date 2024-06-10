@@ -28,6 +28,9 @@
 -keepclassmembers class io.getlime.core.rest.model.** {
     <fields>;
 }
+# necessary for R8 fullMode
+-keep, allowobfuscation class io.getlime.core.rest.model.**
+
 -keep class io.getlime.security.powerauth.networking.model.** {
     <fields>;
 }

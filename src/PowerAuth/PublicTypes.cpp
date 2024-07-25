@@ -122,7 +122,7 @@ namespace powerAuth
         if (method.empty() || uri.empty()) {
             return false;
         }
-        if (!(method == "GET" || method == "POST" || method == "HEAD" || method == "PUT" || method == "DELETE")) {
+        if (!(method == "GET" || method == "POST" || method == "HEAD" || method == "PUT" || method == "DELETE" || method == "PATCH")) {
             return false;
         }
         if (!offlineNonce.empty()) {

@@ -91,8 +91,25 @@ public class PowerAuthAuthentication {
      * Make sure that the sensitive data is always wiped out from the memory.
      */
     protected void finalize() {
-        destroy();
+        releaseSensitiveData(true);
     }
+
+    /**
+     * Release all sensitive data.
+     * @param fromGC If true, then this comes from Garbage Collector, otherwise from application.
+     */
+    private void releaseSensitiveData(boolean fromGC) {
+        if (password != null && !fromGC) {          // Do not destroy Password if request comes from GC
+            password.destroy();
+        }
+        if (useBiometry != null) {
+            Arrays.fill(useBiometry, (byte) 0xCD);  // This may help with the debugging. CD CD CD is more suspicious than 00 00 00
+        }
+        if (overriddenPossessionKey != null) {
+            Arrays.fill(overriddenPossessionKey, (byte) 0xCD);
+        }
+    }
+
 
     // Persist activation
 
@@ -378,15 +395,7 @@ public class PowerAuthAuthentication {
      * After this call, the object becomes unusable for authentication operations.
      */
     public void destroy() {
-        if (password != null) {
-            password.destroy();
-        }
-        if (useBiometry != null) {
-            Arrays.fill(useBiometry, (byte) 0xCD);  // This may help with the debugging. CD CD CD is more suspicious than 00 00 00
-        }
-        if (overriddenPossessionKey != null) {
-            Arrays.fill(overriddenPossessionKey, (byte) 0xCD);
-        }
+        releaseSensitiveData(false);
     }
 
     // Internal interfaces

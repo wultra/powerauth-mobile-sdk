@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     # General information
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuthCore'
-    s.version           = '1.8.1'
+    s.version           = '1.8.2'
     s.summary           = 'PowerAuthCore library for iOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'

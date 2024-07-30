@@ -36,11 +36,12 @@
 
 /**
  Resets session into its initial state. The existing session's setup and EEK is preserved
- after the call.
+ after the call. If `fullReset` parameter is YES, then also resets data not relevant
+ to the activation state. For example, ECIES public key for application scope.
  
  This function changes the session's state, so write access must be guaranteed.
  */
-- (void) resetSession;
+- (void) resetSession:(BOOL)fullReset;
 
 /**
  Returns YES if PowerAuthCore library was compiled with a debug features. It is highly recommended
@@ -184,9 +185,9 @@
  returned value is nil, then the error occured.
  
  You can determine the failure reason from DEBUG log:
-    EC_Encryption, if you provided invalid Base64 strings or if signature is invalid
-    EC_WrongState, if called in wrong session's state
-    EC_WrongParam, if some required parameter is missing
+    PowerAuthCoreErrorCode_Encryption, if you provided invalid Base64 strings or if signature is invalid
+    PowerAuthCoreErrorCode_WrongState, if called in wrong session's state
+    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -212,10 +213,10 @@
  
  If the returned value is nil, then the error occured. You can determine the failure reason from
  DEBUG log:
-    EC_Encryption, if provided data, signature or keys are invalid.
-                   If this error occurs then the session resets its state.
-    EC_WrongState, if called in wrong session's state
-    EC_WrongParam, if required parameter is missing
+    PowerAuthCoreErrorCode_Encryption, if provided data, signature or keys are invalid.
+                                       If this error occurs then the session resets its state.
+    PowerAuthCoreErrorCode_WrongState, if called in wrong session's state
+    PowerAuthCoreErrorCode_WrongParam, if required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -234,10 +235,10 @@
  
  Returns YES if operation succeeds. In case of faulure, you can determine the failure reason from
  DEBUG log:
-    EC_Encryption,  if some internal encryption failed
-                    if this error occurs, then the session resets its state
-    EC_WrongState,  if called in wrong session's state
-    EC_WrongParam,  if required parameter is missing
+    PowerAuthCoreErrorCode_Encryption,  if some internal encryption failed
+                                        if this error occurs, then the session resets its state
+    PowerAuthCoreErrorCode_WrongState,  if called in wrong session's state
+    PowerAuthCoreErrorCode_WrongParam,  if required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -294,9 +295,9 @@
  
  Returns string with autorization header or nil if opeartion failed. You can determine the failure reason from
  DEBUG log:
-    EC_Encryption, if some cryptographic operation failed
-    EC_WrongState, if the session has no valid activation
-    EC_WrongParam, if some required parameter is missing
+    PowerAuthCoreErrorCode_Encryption, if some cryptographic operation failed
+    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
+    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -315,9 +316,9 @@
  Validates whether the data has been signed with master server private key.
  Returns YES if signature is valid. In case of error, you can determine the failure reason from
  DEBUG log:
-     EC_Encryption  if signature is not valid or some cryptographic operation failed
-     EC_WrongState  if session contains invalid setup
-     EC_WrongParam  if signedData object doesn't contain signature
+    PowerAuthCoreErrorCode_Encryption  if signature is not valid or some cryptographic operation failed
+    PowerAuthCoreErrorCode_WrongState  if session contains invalid setup
+    PowerAuthCoreErrorCode_WrongParam  if signedData object doesn't contain signature
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -349,9 +350,9 @@
  
  Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
  DEBUG log:
-    EC_Encryption,  if underlying cryptograhic operation did fail or
-                    if you provided too short passwords.
-    EC_WrongState,  if the session has no valid activation
+    PowerAuthCoreErrorCode_Encryption,  if underlying cryptograhic operation did fail or
+                                        if you provided too short passwords.
+    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -365,9 +366,9 @@
  
  Returns YES if operation succeeds or NO in case of failure. You can determine the failure reason from
  DEBUG log:
-     EC_Encryption, if general encryption error occurs
-     EC_WrongState, if the session has no valid activation
-     EC_WrongParam, if some required parameter is missing
+    PowerAuthCoreErrorCode_Encryption, if general encryption error occurs
+    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
+    PowerAuthCoreErrorCode_WrongParam, if some required parameter is missing
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -386,7 +387,7 @@
  Removes existing key for biometric signatures from the session. You have to save state of the session
  after the operation. Returns YES if operation succeeds or NO in case of failure. You can determine
  the failure reason from DEBUG log:
-    EC_WrongState, if the session has no valid activation
+    PowerAuthCoreErrorCode_WrongState, if the session has no valid activation
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -411,9 +412,9 @@
  
  Retuns NSData object with a derived cryptographic key or nil in case of failure. You can determine
  the failure reason from DEBUG log:
-    EC_Encryption,  if general encryption error occurs
-    EC_WrongState,  if the session has no valid activation
-    EC_WrongParam,  if some required parameter is missing
+    PowerAuthCoreErrorCode_Encryption,  if general encryption error occurs
+    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
+    PowerAuthCoreErrorCode_WrongParam,  if some required parameter is missing
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -431,9 +432,9 @@
  
  Retuns NSData object with calculated signature or nil in case of failure. You can determine the failure
  reason from DEBUG log:
-    EC_Encryption,  if general encryption error occurs
-    EC_WrongState,  if the session has no valid activation
-    EC_WrongParam,  if some required parameter is missing
+    PowerAuthCoreErrorCode_Encryption,  if general encryption error occurs
+    PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
+    PowerAuthCoreErrorCode_WrongParam,  if some required parameter is missing
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -457,11 +458,10 @@
  decode. The data signing will also work correctly, but only for a possession factor, which
  is by design not protected with EEK.
  
- Returns YES if operation succeeded or NO in case of failure. You can determine the failure
- reason from DEBUG log:
-     EC_WrongParam  if key is already set and new EEK is different, or
-                    if provided key has invalid length.
-     EC_WrongState  if you're setting key to activated session which doesn't use EEK
+ Returns::
+    PowerAuthCoreErrorCode_WrongParam  if key is already set and new EEK is different, or
+                                       if provided key has invalid length.
+    PowerAuthCoreErrorCode_WrongState  if you're setting key to activated session which doesn't use EEK
  
  This function access the session's state, so read access must be guaranteed.
  */
@@ -474,12 +474,11 @@
  
  You have to save state of the session after the operation.
  
- Returns YES if operation succeeded or NO in case of failure. You can determine the failure
- reason from DEBUG log:
-    EC_WrongParam   if the EEK has wrong size
-    EC_WrongState   if session has no valid activation, or
-                    if the EEK is already set.
-    EC_Encryption   if internal cryptographic operation failed
+ Returns:
+    PowerAuthCoreErrorCode_WrongParam   if the EEK has wrong size
+    PowerAuthCoreErrorCode_WrongState   if session has no valid activation, or
+                                        if the EEK is already set.
+    PowerAuthCoreErrorCode_Encryption   if internal cryptographic operation failed
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -492,11 +491,10 @@
     
  You have to save state of the session after the operation.
  
- Returns YES if operation succeeded or NO in case of failure. You can determine the failure
- reason from DEBUG log:
-    EC_WrongState   if session has no valid activation, or
-                    if session has no EEK set
-    EC_Encryption   if internal cryptographic operation failed
+ Returns:
+    PowerAuthCoreErrorCode_WrongState   if session has no valid activation, or
+                                        if session has no EEK set
+    PowerAuthCoreErrorCode_Encryption   if internal cryptographic operation failed
  
  This function changes the session's state, so write access must be guaranteed.
  */
@@ -514,6 +512,38 @@
 - (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForScope:(PowerAuthCoreEciesEncryptorScope)scope
                                                             keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
                                                      sharedInfo1:(nullable NSData*)sharedInfo1;
+/**
+ Sets a server's public key and its identifier for ECIES encryption. The scope of the encryption is
+ determined by |scope| parameter.
+ 
+ Returns:
+    PowerAuthCoreErrorCode_Ok          if operation succeeded.
+    PowerAuthCoreErrorCode_WrongState  if activation scope is used and the session has no valid activation, or
+                                       if session object has no valid setup.
+    PowerAuthCoreErrorCode_WrongParam  if public key is empty, or doesn't contain Base64 encoded data, or
+                                       if key identifier is empty.
+
+ */
+- (PowerAuthCoreErrorCode) setPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
+                                           publicKey:(nonnull NSString*)publicKey
+                                         publicKeyId:(nonnull NSString*)publicKeyId;
+
+/**
+ Removes a server's public key and its identifier store for the given scope. It's safe to call this
+ function if key for given scope is not set.
+ */
+- (void) removePublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
+
+/**
+ Determines whether session contains stored server's public key for ECIES scope.
+ */
+- (BOOL) hasPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
+
+/**
+ Returns identifier of server's public key for given scope. If no key is set, or if function is called in
+ wrong state, then returns `nil`.
+ */
+- (nullable NSString*) publicKeyIdForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope;
 
 #pragma mark - Utilities for generic keys
 
@@ -602,7 +632,7 @@
 
 /**
  Returns textual representation for given protocol version. For example, for `PowerAuthCoreProtocolVersion_V3`
- returns "3.2". You can use `PowerAuthCoreProtocolVersion_NA` to get the lastest supported version.
+ returns "3.3". You can use `PowerAuthCoreProtocolVersion_NA` to get the lastest supported version.
  */
 + (nonnull NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
 

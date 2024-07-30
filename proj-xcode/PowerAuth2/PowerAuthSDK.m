@@ -625,7 +625,7 @@ static PowerAuthSDK * s_inst;
                                                               decryptor:decryptor
                                                                 session:session];
                             }
-                            [session resetSession];
+                            [session resetSession:NO];
                             return [PA2Result failure:error ? error : PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil)];
                         }] extractResult:&error];
         
@@ -837,7 +837,7 @@ static PowerAuthSDK * s_inst;
         localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
     }
     if (resetState) {
-        [session resetSession];
+        [session resetSession:NO];
     }
     return [PA2Result failure:localError];
 }
@@ -884,7 +884,7 @@ static PowerAuthSDK * s_inst;
         }
     }
     // If failure, then reset session and report error.
-    [session resetSession];
+    [session resetSession:NO];
     return [PA2Result failure:localError];
 }
 
@@ -987,7 +987,7 @@ static PowerAuthSDK * s_inst;
             PowerAuthLog(@"Removing activaton data from keychain failed. We can't recover from this error.");
         }
         [_tokenStore removeAllLocalTokens];
-        [session resetSession];
+        [session resetSession:NO];
     }];
 }
 

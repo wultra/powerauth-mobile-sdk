@@ -205,12 +205,18 @@
  Initializes object with required `applicationKey` and with optional `activationIdentifier`
  */
 - (nonnull instancetype) initWithApplicationKey:(nonnull NSString*)applicationKey
+                                 temporaryKeyId:(nonnull NSString*)temporaryKeyId
                            activationIdentifier:(nullable NSString*)activationIdentifier;
 
 /**
  Contains required application key required for the HTTP header construction.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
+
+/**
+ Contains required temporary key identifier required for the HTTP header construction.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * temporaryKeyId;
 
 /**
  Contains optional activation identifier.

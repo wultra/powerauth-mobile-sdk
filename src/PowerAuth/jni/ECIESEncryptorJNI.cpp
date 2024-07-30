@@ -102,8 +102,9 @@ static cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor)
     }
     // Extract parameters from EciesMetaData object
     auto applicationKey = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "applicationKey"));
+    auto temporaryKeyId = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "temporaryKeyId"));
     auto activationId = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "activationIdentifier"));
-    return ECIESUtils::buildAssociatedData(applicationKey, activationId);
+    return ECIESUtils::buildAssociatedData(applicationKey, temporaryKeyId, activationId);
 }
 
 // ----------------------------------------------------------------------------

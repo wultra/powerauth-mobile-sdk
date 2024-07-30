@@ -27,14 +27,16 @@ import androidx.annotation.Nullable;
 public class EciesMetadata {
 
     private final @NonNull String applicationKey;
+    private final @NonNull String temporaryKeyId;
     private final @Nullable String activationIdentifier;
 
     /**
      * @param applicationKey Base64 string with an application key cryptographic constant
      * @param activationIdentifier String with an activation identifier
      */
-    public EciesMetadata(@NonNull String applicationKey, @Nullable String activationIdentifier) {
+    public EciesMetadata(@NonNull String applicationKey, @NonNull String temporaryKeyId, @Nullable String activationIdentifier) {
         this.applicationKey = applicationKey;
+        this.temporaryKeyId = temporaryKeyId;
         this.activationIdentifier = activationIdentifier;
     }
 
@@ -44,6 +46,13 @@ public class EciesMetadata {
      * @return Base64 string with an application key cryptographic constant
      */
     public @NonNull String getActivationKey() {
+        return applicationKey;
+    }
+
+    /**
+     * @return Temporary key identifier
+     */
+    public @NonNull String getApplicationKey() {
         return applicationKey;
     }
 
@@ -67,7 +76,8 @@ public class EciesMetadata {
      * @return String with HTTP request header's value.
      */
     public @NonNull String getHttpHeaderValue() {
-        final String result = "PowerAuth version=\"3.2\" application_key=\"" + applicationKey + "\"";
+        final String result = "PowerAuth version=\"3.3\" application_key=\"" + applicationKey +
+                "\" temporary_key_id=\"" + temporaryKeyId + "\"";
         if (activationIdentifier != null) {
             return result + " activation_id=\"" + activationIdentifier + "\"";
         }

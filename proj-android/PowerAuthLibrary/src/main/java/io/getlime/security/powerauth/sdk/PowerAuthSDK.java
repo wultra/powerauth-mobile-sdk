@@ -553,7 +553,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     public boolean restoreState(byte[] state) {
-        mSession.resetSession();
+        mSession.resetSession(false);
         final int result = mSession.deserializeState(state);
         return result == ErrorCode.OK;
     }
@@ -730,7 +730,7 @@ public class PowerAuthSDK {
 
                             } catch (PowerAuthErrorException e) {
                                 // In case of error, reset the session & report that exception
-                                mSession.resetSession();
+                                mSession.resetSession(false);
                                 listener.onActivationCreateFailed(e);
                             }
                         }
@@ -738,19 +738,19 @@ public class PowerAuthSDK {
                         @Override
                         public void onNetworkError(@NonNull Throwable throwable) {
                             // In case of error, reset the session & report that exception
-                            mSession.resetSession();
+                            mSession.resetSession(false);
                             listener.onActivationCreateFailed(throwable);
                         }
 
                         @Override
                         public void onCancel() {
                             // In case of cancel, reset the session
-                            mSession.resetSession();
+                            mSession.resetSession(false);
                         }
                     });
 
         } catch (final PowerAuthErrorException e) {
-            mSession.resetSession();
+            mSession.resetSession(false);
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
@@ -1628,7 +1628,7 @@ public class PowerAuthSDK {
         getTokenStore().removeAllLocalTokens(context);
 
         // Reset C++ session
-        mSession.resetSession();
+        mSession.resetSession(false);
         // Serialize will notify state listener
         saveSerializedState();
         // Cancel possible pending activation status task

@@ -98,13 +98,13 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 }
 
 //
-// public native void resetSession()
+// public native void resetSession(boolean fullReset)
 //
-CC7_JNI_METHOD(void, resetSession)
+CC7_JNI_METHOD_PARAMS(void, resetSession, jboolean fullReset)
 {
     auto session = CC7_THIS_OBJ();
     if (session) {
-        session->resetSession();
+        session->resetSession(fullReset);
     }
 }
 
@@ -696,6 +696,72 @@ CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptorImpl, jint scope, jobject unlock
     return CreateJavaEncryptorFromCppObject(env, cppEncryptor, timeService);
 }
 
+//
+// public native int setPublicKeyForEciesScope(int scope, String publicKey, String publicKeyId)
+//
+CC7_JNI_METHOD_PARAMS(jint, setPublicKeyForEciesScope, jint scope, jstring publicKey, jstring publicKeyId)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return EC_WrongState;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    auto cppPublicKey = cc7::jni::CopyFromJavaString(env, publicKey);
+    auto cppPublicKeyId = cc7::jni::CopyFromJavaString(env, publicKeyId);
+    // Call Session
+    return session->setPublicKeyForEciesScope(cppScope, cppPublicKey, cppPublicKeyId);
+}
+
+//
+// public native int removePublicKeyForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(void, removePublicKeyForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    session->removePublicKeyForEciesScope(cppScope);
+}
+
+//
+// public native boolean hasPublicKeyForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(jboolean, hasPublicKeyForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return false;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    return session->hasPublicKeyForEciesScope(cppScope);
+}
+
+//
+// public native String getPublicKeyIdForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(jstring, getPublicKeyIdForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return nullptr;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    auto cppPublicKeyId = session->getPublicKeyIdForEciesScope(cppScope);
+    return cc7::jni::CopyToNullableJavaString(env, cppPublicKeyId);
+}
 
 // ----------------------------------------------------------------------------
 // Utilities

@@ -394,7 +394,7 @@ namespace powerAuth
     public:
         /// Build associated data from provided parameters. If activationId is not available (e.g. for ECIES in application scope)
         /// then you can provide an empty string.
-        static cc7::ByteArray buildAssociatedData(const std::string & applicationKey, const std::string & activationId);
+        static cc7::ByteArray buildAssociatedData(const std::string & applicationKey, const std::string & temporaryKeyId, const std::string & activationId);
     };
     
     

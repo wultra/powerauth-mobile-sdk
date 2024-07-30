@@ -344,7 +344,75 @@ namespace protocol
      */
     bool DeserializeRecoveryData(const cc7::ByteRange & serialized, const cc7::ByteRange vault_key, RecoveryData & out_data);
     
+    //
+    // MARK: - Session Data -
+    //
+
+    /**
+     The SessionData is internal structure that keeps various information used by Session class.
+     */
+    struct SessionData
+    {
+        /**
+         The structure contains information about EC public key used in ECIES encryption scheme.
+         */
+        struct PublicKeyWithId
+        {
+            /**
+             Contains EC public key data for ECIES encryption scheme.
+             */
+            cc7::ByteArray key_data;
+            /**
+             Contains identifier of this key.
+             */
+            std::string identifier;
+            
+            /**
+             Determine whether this public key appears to be valid. This is true only if `key_data` and `identifier`
+             members are not empty.
+             */
+            inline bool isValid() const {
+                return !key_data.empty() && !identifier.empty();
+            }
+            
+            /**
+             Clear key data and the identifier.
+             */
+            inline void clear() {
+                key_data.clear();
+                identifier.clear();
+            }
+            
+            /**
+             Set new |key_data_base64| and |key_id| to the structure.
+             */
+            bool setKey(const std::string & key_data_base64, const std::string & key_id);
+        };
+        /**
+         Contains public key for application scoped ECIES.
+         */
+        PublicKeyWithId ecies_application_public_key;
+        /**
+         Contains public key for activation scoped ECIES.
+         */
+        PublicKeyWithId ecies_activation_public_key;
         
+        /**
+         Resets the content of session data structure.
+         */
+        inline void reset() {
+            ecies_application_public_key.clear();
+            resetActivationData();
+        }
+        
+        /**
+         Resets only the data related to activation.
+         */
+        inline void resetActivationData() {
+            ecies_activation_public_key.clear();
+        }
+    };
+
 } // io::getlime::powerAuth::detail
 } // io::getlime::powerAuth
 } // io::getlime

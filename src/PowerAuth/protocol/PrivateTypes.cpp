@@ -326,6 +326,31 @@ namespace protocol
         return result;
     }
 
+
+    //
+    // MARK: - Session Data -
+    //
+
+    bool SessionData::PublicKeyWithId::setKey(const std::string &key_data_base64, const std::string &key_id)
+    {
+        if (key_data_base64.empty()) {
+            CC7_LOG("Empty key data provided for ECIES public key.");
+            return false;
+        }
+        if (key_id.empty()) {
+            CC7_LOG("Empty identifier provided for ECIES public key.");
+            return false;
+        }
+        cc7::ByteArray data;
+        if (!data.readFromBase64String(key_data_base64) || data.empty()) {
+            CC7_LOG("Invalid key data provided for ECIES public key.");
+            return false;
+        }
+        key_data = data;
+        identifier = key_id;
+        return true;
+    }
+
 } // io::getlime::powerAuth::detail
 } // io::getlime::powerAuth
 } // io::getlime

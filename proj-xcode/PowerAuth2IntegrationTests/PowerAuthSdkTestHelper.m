@@ -48,7 +48,7 @@
 @end
 
 
-static NSString * PA_Ver = @"3.2";
+static NSString * PA_Ver = @"3.3";
 
 @implementation PowerAuthSdkTestHelper
 

@@ -266,11 +266,13 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreEciesMetaData
 
 - (instancetype) initWithApplicationKey:(NSString*)applicationKey
+                         temporaryKeyId:(NSString*)temporaryKeyId
                    activationIdentifier:(NSString*)activationIdentifier
 {
     self = [super init];
     if (self) {
         _applicationKey = applicationKey;
+        _temporaryKeyId = temporaryKeyId;
         _activationIdentifier = activationIdentifier;
     }
     return self;
@@ -284,11 +286,13 @@ using namespace io::getlime::powerAuth;
 - (NSString*) httpHeaderValue
 {
     NSString * protocolVersion = [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_NA];
-    NSString * value = [[[[@"PowerAuth version=\""
-                         stringByAppendingString:protocolVersion]
-                        stringByAppendingString:@"\", application_key=\""]
-                         stringByAppendingString:_applicationKey]
-                        stringByAppendingString:@"\""];
+    NSString * value = [[[[[[@"PowerAuth version=\""
+                             stringByAppendingString:protocolVersion]
+                            stringByAppendingString:@"\", application_key=\""]
+                             stringByAppendingString:_applicationKey]
+                            stringByAppendingString:@"\", temporary_key_id=\""]
+                             stringByAppendingString:_temporaryKeyId]
+                            stringByAppendingString:@"\""];
     if (_activationIdentifier) {
         return [[[value stringByAppendingString:@", activation_id=\""]
                  stringByAppendingString:_activationIdentifier]
@@ -300,8 +304,9 @@ using namespace io::getlime::powerAuth;
 - (cc7::ByteArray) associatedData
 {
     auto appKey = cc7::objc::CopyFromNSString(_applicationKey);
+    auto keyId = cc7::objc::CopyFromNSString(_temporaryKeyId);
     auto activationId = cc7::objc::CopyFromNSString(_activationIdentifier);
-    return ECIESUtils::buildAssociatedData(appKey, activationId);
+    return ECIESUtils::buildAssociatedData(appKey, keyId, activationId);
 }
 
 @end

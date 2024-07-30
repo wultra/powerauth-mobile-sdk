@@ -44,7 +44,8 @@ namespace powerAuth
         _state(SS_Empty),
         _setup(setup),
         _pd(nullptr),
-        _ad(nullptr)
+        _ad(nullptr),
+        _sd(new protocol::SessionData())
     {
         if (protocol::ValidateSessionSetup(_setup, false)) {
             CC7_LOG("Session %p: Object created.", this);
@@ -58,13 +59,17 @@ namespace powerAuth
     {
         delete _pd;
         delete _ad;
+        delete _sd;
         
         CC7_LOG("Session %p: Object destroyed.", this);
     }
     
-    void Session::resetSession()
+    void Session::resetSession(bool full_reset)
     {
         LOCK_GUARD();
+        if (full_reset) {
+            _sd->reset();
+        }
         commitNewPersistentState(nullptr, SS_Empty);
     }
     
@@ -1053,8 +1058,8 @@ namespace powerAuth
     ErrorCode Session::getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys, const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const
     {
         LOCK_GUARD();
-        if (!hasValidSetup()) {
-            CC7_LOG("Session %p: ECIES: Session has no valid setup.", this);
+        if (!hasPublicKeyForEciesScope(scope)) {
+            CC7_LOG("Session %p: ECIES: Session has no public key for scope.", this);
             return EC_WrongState;
         }
         // Other parameters for ECIES encryptor
@@ -1066,7 +1071,7 @@ namespace powerAuth
             // We have to just compute hash from APP_SECRET (as is) and use
             // the master server public key.
             sharedInfo2 = crypto::SHA256(cc7::MakeRange(_setup.applicationSecret));
-            ecPublicKey = cc7::FromBase64String(_setup.masterServerPublicKey);
+            ecPublicKey = _sd->ecies_application_public_key.key_data;
             //
         } else if (scope == ECIES_ActivationScope) {
             // For the "activation" scope, we need to at first validate whether there's
@@ -1085,7 +1090,7 @@ namespace powerAuth
             // The sharedInfo2 is defined as HMAC_SHA256(key: KEY_TRANSPORT, data: APP_SECRET)
             // We need to also use the server's public key as EC public key.
             sharedInfo2 = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain_keys.transportKey);
-            ecPublicKey = _pd->serverPublicKey;
+            ecPublicKey = _sd->ecies_activation_public_key.key_data;
             //
         } else {
             // Scope is not known
@@ -1097,6 +1102,75 @@ namespace powerAuth
         return EC_Ok;
     }
     
+
+    ErrorCode Session::setPublicKeyForEciesScope(ECIESEncryptorScope scope, const std::string & public_key, const std::string & key_id)
+    {
+        LOCK_GUARD();
+        if (!hasValidSetup()) {
+            CC7_LOG("Session %p: ECIES: Session has no valid setup.", this);
+            return EC_WrongState;
+        }
+        bool result;
+        if (scope == ECIES_ApplicationScope) {
+            // For "application" scope, just update the key.
+            result = _sd->ecies_application_public_key.setKey(public_key, key_id);
+        } else {
+            // For the "activation" scope, we need to at first validate whether there's
+            // some activation.
+            if (!hasValidActivation()) {
+                CC7_LOG("Session %p: ECIES: Session has no valid activation.", this);
+                return EC_WrongState;
+            }
+            // Now update the key.
+            result = _sd->ecies_activation_public_key.setKey(public_key, key_id);
+        }
+        return result ? EC_Ok : EC_WrongParam;
+    }
+
+
+    void Session::removePublicKeyForEciesScope(ECIESEncryptorScope scope)
+    {
+        LOCK_GUARD();
+        if (scope == ECIES_ApplicationScope) {
+            _sd->ecies_application_public_key.clear();
+        } else {
+            _sd->ecies_activation_public_key.clear();
+        }
+    }
+
+
+    bool Session::hasPublicKeyForEciesScope(ECIESEncryptorScope scope) const
+    {
+        LOCK_GUARD();
+        if (!hasValidSetup()) {
+            CC7_LOG("Session %p: ECIES: Session has no valid setup.", this);
+            return false;
+        }
+        if (scope == ECIES_ApplicationScope) {
+            return _sd->ecies_application_public_key.isValid();
+        } else {
+            if (!hasValidActivation()) {
+                CC7_LOG("Session %p: ECIES: Session has no valid activation.", this);
+                return false;
+            }
+            return _sd->ecies_activation_public_key.isValid();
+        }
+    }
+
+    std::string Session::getPublicKeyIdForEciesScope(ECIESEncryptorScope scope) const
+    {
+        LOCK_GUARD();
+        if (hasPublicKeyForEciesScope(scope)) {
+            if (scope == ECIES_ApplicationScope) {
+                return _sd->ecies_application_public_key.identifier;
+            } else {
+                return _sd->ecies_activation_public_key.identifier;
+            }
+        }
+        return std::string();
+    }
+
+
     // MARK: - Protocol upgrade -
     
     ErrorCode Session::startProtocolUpgrade()
@@ -1252,6 +1326,11 @@ namespace powerAuth
             _pd = new_pd = nullptr;
             // PD was not commited, so, we have to adjust new state.
             new_state = SS_Empty;
+        }
+        
+        // Additionally, clear other internal structures.
+        if (new_state == SS_Empty) {
+            _sd->resetActivationData();
         }
         
         // Finally, change internal state of the session

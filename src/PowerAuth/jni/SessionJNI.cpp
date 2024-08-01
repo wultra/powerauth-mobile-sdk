@@ -462,13 +462,45 @@ CC7_JNI_METHOD_PARAMS(jint, verifyServerSignedData, jobject signedData)
     // Load parameters into C++ objects
     jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
     // Get type of key
-    bool useMasterKey           = CC7_JNI_GET_FIELD_BOOL(signedData, requestClazz, "useMasterKey");
+    jint signingKey             = CC7_JNI_GET_FIELD_INT(signedData, requestClazz, "signingKey");
     // Prepare cpp structure
     SignedData cppSignedData;
-    cppSignedData.signingKey    = useMasterKey ? SignedData::ECDSA_MasterServerKey : SignedData::ECDSA_PersonalizedKey;
+    cppSignedData.signingKey    = static_cast<SignedData::SigningKey>(signingKey);
     cppSignedData.data          = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
     cppSignedData.signature     = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
     return (jint) session->verifyServerSignedData(cppSignedData);
+}
+
+//
+// public native int signDataWithHmacKey(SignedData dataToSign, SignatureUnlockKeys unlockKeys)
+//
+CC7_JNI_METHOD_PARAMS(jint, signDataWithHmacKey, jobject dataToSign, jobject unlockKeys)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session || !dataToSign) {
+        CC7_ASSERT(false, "Missing dataToSign or internal handle.");
+        return EC_WrongParam;
+    }
+    // Load parameters into C++ objects
+    SignatureUnlockKeys cppUnlockKeys;
+    SignedData cppDataToSign;
+    if (unlockKeys != nullptr) {
+        if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+            return EC_WrongParam;
+        }
+    }
+    // Prepare signing data
+    jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
+    // Get type of key
+    jint signingKey             = CC7_JNI_GET_FIELD_INT(dataToSign, requestClazz, "signingKey");
+    cppDataToSign.signingKey    = static_cast<SignedData::SigningKey>(signingKey);
+    cppDataToSign.data          = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(dataToSign, requestClazz, "data"));
+    // Call session
+    auto ec = session->signDataWithHmacKey(cppDataToSign, cppUnlockKeys);
+    if (ec == EC_Ok) {
+        CC7_JNI_SET_FIELD_BYTEARRAY(dataToSign, requestClazz, "signature",  cc7::jni::CopyToJavaByteArray(env, cppDataToSign.signature));
+    }
+    return (jint) ec;
 }
 
 // ----------------------------------------------------------------------------

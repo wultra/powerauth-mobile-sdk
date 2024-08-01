@@ -27,8 +27,7 @@ import static io.getlime.security.powerauth.core.SigningDataKey.HMAC_APPLICATION
 import static io.getlime.security.powerauth.core.SigningDataKey.HMAC_ACTIVATION;
 
 /**
- * The <code>EciesEncryptorScope</code> defines how {@link EciesEncryptor} encryptor
- * is configured in {@link Session#getEciesEncryptor(int, SignatureUnlockKeys, byte[]) Session.getEciesEncryptor} method.
+ * The <code>SigningDataKey</code> defines key type for signature validation or calculation.
  */
 @Retention(RetentionPolicy.SOURCE)
 @IntDef({ECDSA_MASTER_SERVER_KEY, ECDSA_PERSONALIZED_KEY, HMAC_APPLICATION, HMAC_ACTIVATION})

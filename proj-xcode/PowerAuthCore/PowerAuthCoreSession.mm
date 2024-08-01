@@ -295,6 +295,22 @@ using namespace io::getlime::powerAuth;
     return error == EC_Ok;
 }
 
+- (BOOL) signDataWithHmacKey:(nonnull PowerAuthCoreSignedData*)dataToSign 
+                        keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+{
+    REQUIRE_READ_ACCESS();
+    ErrorCode error;
+    if (dataToSign != nil) {
+        SignatureUnlockKeys cpp_keys;
+        PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+        error = _session->signDataWithHmacKey(dataToSign.signedDataRef, cpp_keys);
+    } else {
+        error = EC_WrongParam;
+    }
+    REPORT_ERROR_CODE(@"signDataWithHmacKey", error);
+    return error == EC_Ok;
+}
+
 
 #pragma mark - Signature keys management
 

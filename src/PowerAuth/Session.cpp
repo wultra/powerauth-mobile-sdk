@@ -680,6 +680,10 @@ namespace powerAuth
             CC7_LOG("Session %p: ServerSig: Session has no valid setup.", this);
             return EC_WrongState;
         }
+        if (!data.isEcdsaSignature()) {
+            CC7_LOG("Session %p: ServerSig: Unsupported key.", this);
+            return EC_WrongParam;
+        }
         bool use_master_server_key = data.signingKey == SignedData::ECDSA_MasterServerKey;
         if (!use_master_server_key && !hasValidActivation()) {
             CC7_LOG("Session %p: ServerSig: There's no valid activation.", this);
@@ -711,6 +715,39 @@ namespace powerAuth
         EC_KEY_free(ec_public_key);
         
         return success ? EC_Ok : EC_Encryption;
+    }
+
+    ErrorCode Session::signDataWithHmacKey(SignedData &data, const SignatureUnlockKeys & keys) const
+    {
+        LOCK_GUARD();
+        if (!hasValidSetup()) {
+            CC7_LOG("Session %p: HmacSign: Session has no valid setup.", this);
+            return EC_WrongState;
+        }
+        if (!data.isHmacSignature()) {
+            CC7_LOG("Session %p: HmacSign: Unsupported key.", this);
+            return EC_WrongParam;
+        }
+        bool app_scope = data.signingKey == SignedData::HMAC_Application;
+        if (!app_scope && !hasValidActivation()) {
+            CC7_LOG("Session %p: ServerSig: There's no valid activation.", this);
+            return EC_WrongState;
+        }
+        cc7::ByteArray signing_key;
+        if (app_scope) {
+            signing_key.readFromBase64String(_setup.applicationSecret);
+        } else {
+            // Unlock transport key
+            protocol::SignatureKeys plain;
+            protocol::SignatureUnlockKeysReq unlock_request(protocol::SF_Transport, &keys, eek(), nullptr, 0);
+            if (false == protocol::UnlockSignatureKeys(plain, _pd->sk, unlock_request)) {
+                CC7_LOG("Session %p: HmacSign: You have to provide possession key.", this);
+                return EC_WrongParam;
+            }
+            signing_key = plain.transportKey;
+        }
+        data.signature = crypto::HMAC_SHA256(data.data, signing_key);
+        return data.signature.empty() ? EC_Encryption : EC_Ok;
     }
     
     // MARK: - Signature keys management -

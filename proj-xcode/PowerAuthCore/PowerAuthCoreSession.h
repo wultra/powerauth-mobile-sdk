@@ -324,6 +324,23 @@
  */
 - (BOOL) verifyServerSignedData:(nonnull PowerAuthCoreSignedData*)signedData;
 
+/**
+ Calculates HMAC-SHA256 signature with using key specified in |dataToSign|. The output signature is
+ also stored to provided data object. If `HMAC_Activation` key is requested, then |unlockKeys| must
+ contain possession factor unlock key and the session must have valid activation.
+ 
+ Returns YES if signature is calculated. In case of error, you can determine the failure reason
+ from DEBUG log:
+    PowerAuthCoreErrorCode_Ok          if operation succeeded and signature is computed.
+    PowerAuthCoreErrorCode_Encryption  if cryptographic operation failed.
+    PowerAuthCoreErrorCode_WrongState  if session contains invalid setup, or valid activation is required
+                                        for the requested key.
+    PowerAuthCoreErrorCode_WrongParam  if keys structure doesn't contain possession factor unlock key
+                                        and the key is required.
+ */
+- (BOOL) signDataWithHmacKey:(nonnull PowerAuthCoreSignedData*)dataToSign
+                        keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
+
 #pragma mark - Signature keys management
 
 /**

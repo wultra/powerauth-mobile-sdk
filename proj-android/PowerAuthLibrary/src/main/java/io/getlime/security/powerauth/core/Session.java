@@ -356,6 +356,17 @@ public class Session {
     @ErrorCode
     public native int verifyServerSignedData(SignedData signedData);
 
+    /**
+     * Calculates HMAC-SHA256 signature with using key specified in {@link SignedData} object. The output signature is
+     * also stored to provided data object. If {@link SigningDataKey#HMAC_ACTIVATION} key is requested, then unlock keys
+     * must object must contain possession factor unlock key and the session must have valid activation.
+     * @param dataToSign Object containing data to sign and the key to use for the signature calculation.
+     * @param unlockKeys Required for {@link SigningDataKey#HMAC_ACTIVATION} key.
+     * @return integer comparable to constants available at {@link ErrorCode} class.
+     */
+    @ErrorCode
+    public native int signDataWithHmacKey(SignedData dataToSign, SignatureUnlockKeys unlockKeys);
+
     //
     // Signature keys management
     //

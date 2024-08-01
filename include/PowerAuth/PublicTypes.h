@@ -375,7 +375,15 @@ namespace powerAuth
             /**
              `KEY_SERVER_PRIVATE` key was used for signature calculation
              */
-            ECDSA_PersonalizedKey = 1
+            ECDSA_PersonalizedKey = 1,
+            /**
+             `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
+             */
+            HMAC_Application = 2,
+            /**
+             `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
+             */
+            HMAC_Activation = 3
         };
         
         /**
@@ -397,6 +405,20 @@ namespace powerAuth
         SignedData(SigningKey signingKey = ECDSA_MasterServerKey) :
             signingKey(signingKey)
         {
+        }
+        
+        /**
+         Determine whether the signing key is set to one from ECDSA variants.
+         */
+        bool isEcdsaSignature() const {
+            return signingKey == ECDSA_PersonalizedKey || signingKey == ECDSA_MasterServerKey;
+        }
+        
+        /**
+         Determine whether the signing key is set to one from HMAC viarants.
+         */
+        bool isHmacSignature() const {
+            return signingKey == HMAC_Activation || signingKey == HMAC_Application;
         }
     };
     

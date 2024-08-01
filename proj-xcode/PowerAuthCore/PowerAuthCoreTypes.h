@@ -303,6 +303,14 @@ typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
      `KEY_SERVER_PRIVATE` key was used for signature calculation
      */
     PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
+    /**
+     `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
+     */
+    PowerAuthCoreSigningDataKey_HMAC_Application = 2,
+    /**
+     `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
+     */
+    PowerAuthCoreSigningDataKey_HMAC_Activation = 3
 };
 
 /**

@@ -307,6 +307,20 @@ namespace powerAuth
                  EC_WrongParam  if data structure doesn't contain signature
          */
         ErrorCode verifyServerSignedData(const SignedData & data) const;
+        
+        /**
+         Calculates HMAC-SHA256 signature with using key specified in |data|. The output signature is 
+         also stored to provided data object. If `HMAC_Activation` key is requested, then |keys| must
+         contain possession factor unlock key and the session must have valid activation.
+         
+         Returns EC_Ok,         if operation succeeded and signature is computed.
+                 EC_Encryption  if cryptographic operation failed.
+                 EC_WrongState  if session contains invalid setup, or valid activation is required
+                                for the requested key.
+                 EC_WrongParam  if keys structure doesn't contain possession factor unlock key
+                                and the key is required.
+         */
+        ErrorCode signDataWithHmacKey(SignedData & data, const SignatureUnlockKeys & keys) const;
 
         
         // MARK: - Signature keys management -

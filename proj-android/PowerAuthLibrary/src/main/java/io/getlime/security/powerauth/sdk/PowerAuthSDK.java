@@ -1789,7 +1789,8 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Verify signature
-        SignedData signedData = new SignedData(data, signature, useMasterKey);
+        final int signingKey = useMasterKey ? SigningDataKey.ECDSA_MASTER_SERVER_KEY : SigningDataKey.ECDSA_PERSONALIZED_KEY;
+        final SignedData signedData = new SignedData(data, signature, signingKey);
         return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
     }
 

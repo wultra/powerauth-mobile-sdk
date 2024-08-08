@@ -60,6 +60,12 @@ using namespace io::getlime::powerAuth;
     return _setup;
 }
 
+- (NSString*) applicationKey
+{
+    return cc7::objc::CopyToNSString(_setup.applicationKey);
+}
+
+
 - (void) setExternalEncryptionKey:(NSData *)externalEncryptionKey
 {
     _setup.externalEncryptionKey = cc7::objc::CopyFromNSData(externalEncryptionKey);
@@ -68,7 +74,6 @@ using namespace io::getlime::powerAuth;
 {
     return cc7::objc::CopyToNSData(_setup.externalEncryptionKey);
 }
-
 @end
 
 @implementation PowerAuthCoreHTTPRequestData

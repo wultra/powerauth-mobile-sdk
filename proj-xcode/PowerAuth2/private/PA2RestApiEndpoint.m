@@ -159,11 +159,31 @@
                                               flags:FL_ALLOWED_IN_UPGRADE];
 }
 
++ (instancetype) getTemporaryKey
+{
+    // FL_ALLOWED_IN_UPGRADE is probably ignored because endoint is not signed.
+    // We keep it only to return semantically correct information in `isAvailableInProtocolUpgrade`
+    return [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/keystore/create"
+                                            request:[PA2JwtObject class]
+                                           response:[PA2JwtObject class]
+                                          encryptor:PA2EncryptorId_None
+                                          authUriId:nil
+                                              flags:FL_ALLOWED_IN_UPGRADE];
+
+}
+
 #pragma mark - Public getters
 
 - (BOOL) isEncrypted
 {
     return _encryptor != PA2EncryptorId_None;
+}
+
+- (BOOL) isEncryptedWithApplicationScope
+{
+    return _encryptor == PA2EncryptorId_ActivationPayload ||
+            _encryptor == PA2EncryptorId_ActivationRequest ||
+            _encryptor == PA2EncryptorId_GenericApplicationScope;
 }
 
 - (BOOL) isSigned

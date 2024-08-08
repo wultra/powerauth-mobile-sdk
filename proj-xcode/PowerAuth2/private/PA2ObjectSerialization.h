@@ -30,7 +30,7 @@
  Serializes PA2NetworkObject into JSON data. If the object is nil, then
  data with an empty brackets is returned (e.g. "{}")
  */
-+ (NSData*) serializeObject:(id<PA2Encodable>)object;
++ (NSData*) serializeObject:(NSObject<PA2Encodable>*)object;
 
 /**
  Deserializes PA2NetworkObject from JSON Data. You must specify an object's class to
@@ -81,5 +81,35 @@
 + (NSData*) decryptData:(NSData*)data
               decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
                   error:(NSError**)error;
+
+@end
+
+
+@interface PA2ObjectSerialization (JWT)
+
+/**
+ Serialize object into Base64Url encoded string.
+ */
++ (NSString*) serializeJwtObject:(id<PA2Encodable>)object;
+
+/**
+ Deserialize object from Base64Url encoded string.
+ */
++ (id<PA2Decodable>) deserializeJwtObject:(NSString*)data forClass:(Class)aClass error:(NSError**)error;
+
+@end
+
+
+@interface NSData (JWTEncoded)
+
+/**
+ Init data with Base64Url encoded string. The "JWT Encoded" naming is used to avoid conflicts with another libraries.
+ */
+- (instancetype) initWithJwtEncodedString:(NSString*)jwtEncodedString;
+
+/**
+ Return bytes represented as Base64Url encoded string.
+ */
+- (NSString*) jwtEncodedString;
 
 @end

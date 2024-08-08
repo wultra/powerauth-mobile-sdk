@@ -735,7 +735,7 @@ namespace powerAuth
         }
         cc7::ByteArray signing_key;
         if (app_scope) {
-            signing_key.readFromBase64String(_setup.applicationSecret);
+            signing_key = cc7::MakeRange(_setup.applicationSecret);
         } else {
             // Unlock transport key
             protocol::SignatureKeys plain;
@@ -744,7 +744,7 @@ namespace powerAuth
                 CC7_LOG("Session %p: HmacSign: You have to provide possession key.", this);
                 return EC_WrongParam;
             }
-            signing_key = plain.transportKey;
+            signing_key = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain.transportKey);
         }
         data.signature = crypto::HMAC_SHA256(data.data, signing_key);
         return data.signature.empty() ? EC_Encryption : EC_Ok;

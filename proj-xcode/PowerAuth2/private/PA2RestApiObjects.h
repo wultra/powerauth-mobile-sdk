@@ -23,6 +23,8 @@
 #import "PA2RemoveTokenRequest.h"
 #import "PA2ConfirmRecoveryCodeRequest.h"
 #import "PA2EncryptedRequest.h"
+#import "PA2GetTemporaryKeyRequest.h"
+#import "PA2JwtObject.h"
 
 // Response objects
 #import "PA2GetServerStatusResponse.h"
@@ -35,4 +37,5 @@
 #import "PA2EncryptedResponse.h"
 #import "PA2UpgradeStartV3Response.h"
 #import "PA2ConfirmRecoveryCodeResponse.h"
+#import "PA2GetTemporaryKeyResponse.h"
 #import <PowerAuth2/PowerAuthUserInfo.h>

@@ -20,7 +20,7 @@
 @class PowerAuthAuthorizationHttpHeader;
 @class PowerAuthCoreEciesEncryptor;
 @class PowerAuthAuthentication;
-
+@class PA2KeystoreService;
 /**
  The `PA2PrivateCryptoHelper` protocol provides a minimal interface for
  a several cryptographic tasks required internally in the SDK, but provided
@@ -42,5 +42,10 @@
                                                   endpoint:(PA2RestApiEndpoint*)endpoint
                                             authentication:(PowerAuthAuthentication*)authentication
                                                      error:(NSError**)error;
+
+/**
+ Returns instance of keystore service.
+ */
+- (PA2KeystoreService*) keystoreService;
 
 @end

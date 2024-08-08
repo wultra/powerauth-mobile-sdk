@@ -50,6 +50,11 @@
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * configuration;
 /**
+ Application key extracted from the cryptographic configuration.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
+
+/**
  Optional external encryption key. If the data object size is equal to 16 bytes,
  then the key is considered as valid and will be used during the cryptographic operations.
  

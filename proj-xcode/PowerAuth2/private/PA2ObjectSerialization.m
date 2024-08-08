@@ -178,3 +178,71 @@
 
 @end
 
+#pragma mark - Base64Url
+
+static NSString * ConvertToBase64Url(NSString * base64)
+{
+    // Remove padding and replace Base64 characters with Base64Url equivalent.
+    return [[[base64 stringByReplacingOccurrencesOfString:@"=" withString:@""]
+             stringByReplacingOccurrencesOfString:@"+" withString:@"-"]
+            stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+}
+
+static NSString * ConvertFromBase64Url(NSString * base64Url)
+{
+    // At first, translate special Base64Url characters into regular Base64 characters
+    NSString * base64 = [[base64Url stringByReplacingOccurrencesOfString:@"_" withString:@"/"]
+                         stringByReplacingOccurrencesOfString:@"-" withString:@"+"];
+    // Padding is optional, so append '=' if no padding is found
+    if (![base64 hasSuffix:@"="]) {
+        // Append suffix if not present
+        NSUInteger padCount = 4 - (base64.length & 3);
+        if (padCount < 4) {
+            base64 = [base64 stringByAppendingString:[@"===" substringToIndex:padCount]];
+        }
+    }
+    return base64;
+}
+
+@implementation NSData (JWTEncoded)
+
+- (instancetype) initWithJwtEncodedString:(NSString *)jwtEncodedString
+{
+    NSString * base64 = ConvertFromBase64Url(jwtEncodedString);
+    if (base64) {
+        return [self initWithBase64EncodedString:base64 options:0];
+    }
+    return nil;
+}
+
+- (NSString*) jwtEncodedString
+{
+    return ConvertToBase64Url([self base64EncodedStringWithOptions:0]);
+}
+
+@end
+
+#pragma mark - JWT
+
+@implementation PA2ObjectSerialization (JWT)
+
++ (NSString*) serializeJwtObject:(id<PA2Encodable>)object
+{
+    NSString * base64 = [[self serializeObject:object] base64EncodedStringWithOptions:0];
+    return ConvertToBase64Url(base64);
+}
+
++ (id<PA2Decodable>) deserializeJwtObject:(NSString*)data forClass:(Class)aClass error:(NSError**)error
+{
+    NSString * base64 = ConvertFromBase64Url(data);
+    NSData * objectData = [[NSData alloc] initWithBase64EncodedString:base64 options:0];
+    if (!objectData) {
+        if (error) {
+            *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Failed to decode JWT object.");
+        }
+        return nil;
+    }
+    return [self deserializeObject:objectData forClass:aClass error:error];
+}
+
+@end

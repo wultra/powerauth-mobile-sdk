@@ -49,6 +49,10 @@
 /// Returns YES, if request requires encryption
 @property (nonatomic, assign, readonly) BOOL isEncrypted;
 
+/// Returns YES, if request requires application scopeed encryption
+@property (nonatomic, assign, readonly) BOOL isEncryptedWithApplicationScope;
+
+
 /// Returns YES, if request needs to be signed with PA signature
 @property (nonatomic, assign, readonly) BOOL isSigned;
 
@@ -81,5 +85,7 @@
 + (instancetype) getUserInfo;
 
 + (instancetype) getSystemStatus;
+
++ (instancetype) getTemporaryKey;
 
 @end

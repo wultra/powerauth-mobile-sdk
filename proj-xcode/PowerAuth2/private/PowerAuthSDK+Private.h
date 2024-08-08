@@ -34,6 +34,10 @@
  Contains instance identifier
  */
 @property (nonatomic, strong, readonly) NSString * privateInstanceId;
+/**
+ Contains instnace of keystore service.
+ */
+@property (nonatomic, strong, readonly) PA2KeystoreService * keystoreService;
 
 /**
  Returns key required for unlok the possesion factor.

@@ -28,6 +28,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.gson.reflect.TypeToken;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -2530,22 +2531,17 @@ public class PowerAuthSDK {
     @Nullable
     public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
         final JsonSerialization serialization = new JsonSerialization();
-        final byte[] serializedClaims = serialization.serializeObject(claims);
-        return signDataWithDevicePrivateKey(context, authentication, serializedClaims, new IDataSignatureListener() {
+        final String jwtHeader = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
+        final String jwtClaims = serialization.serializeJwtObject(claims);
+        final String jwtHeaderAndClaims = jwtHeader + "." + jwtClaims;
+        final byte[] signedData = jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII);
+        return signDataWithDevicePrivateKey(context, authentication, signedData, new IDataSignatureListener() {
             @Override
             public void onDataSignedSucceed(@NonNull byte[] signature) {
-                // Prepare header
-                final HashMap<String, String> header = new HashMap<>();
-                header.put("alg", "ES256");
-                header.put("typ", "JWT");
-                final byte[] headerData = serialization.serializeObject(header);
-                final String headerBase64 = Base64.encodeToString(headerData, Base64.NO_WRAP);
-                // Prepare claims data
-                final String claimsBase64 = Base64.encodeToString(serializedClaims, Base64.NO_WRAP);
                 // Encoded signature
-                final String signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP);
+                final String jwtSignature = Base64.encodeToString(signature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
                 // Construct final JWT
-                final String jwt = headerBase64 + "." + claimsBase64 + "." + signatureBase64;
+                final String jwt = jwtHeaderAndClaims + "." + jwtSignature;
                 listener.onJwtSignatureSucceed(jwt);
             }
 

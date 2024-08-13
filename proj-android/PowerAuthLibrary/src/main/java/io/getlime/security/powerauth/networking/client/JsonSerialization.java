@@ -293,7 +293,7 @@ public class JsonSerialization {
         }
         final byte[] objectBytes;
         try {
-            objectBytes = Base64.decode(data, Base64.NO_WRAP| Base64.URL_SAFE | Base64.NO_PADDING);
+            objectBytes = Base64.decode(data, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
         } catch (IllegalArgumentException e) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Failed to deserialize JWT object.", e);
         }

@@ -493,7 +493,7 @@ public class StandardActivationTest {
         claimsObject.forEach((key, value) -> {
             assertEquals(originalClaims.get(key), value);
         });
-        // Decode claims and encode back to Base64
+        // Prepare signed data
         final String jwtSignedDatasBase64 = Base64.encodeToString((jwtHeader + "." + jwtClaims).getBytes(StandardCharsets.US_ASCII), Base64.NO_WRAP);
         // Decode signature and encode back to Base64
         final String jwtSignatureBase64 = Base64.encodeToString(

@@ -2534,8 +2534,7 @@ public class PowerAuthSDK {
         final String jwtHeader = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
         final String jwtClaims = serialization.serializeJwtObject(claims);
         final String jwtHeaderAndClaims = jwtHeader + "." + jwtClaims;
-        final byte[] signedData = jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII);
-        return signDataWithDevicePrivateKey(context, authentication, signedData, new IDataSignatureListener() {
+        return signDataWithDevicePrivateKey(context, authentication, jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII), new IDataSignatureListener() {
             @Override
             public void onDataSignedSucceed(@NonNull byte[] signature) {
                 // Encoded signature

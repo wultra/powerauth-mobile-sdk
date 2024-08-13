@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -492,11 +493,8 @@ public class StandardActivationTest {
         claimsObject.forEach((key, value) -> {
             assertEquals(originalClaims.get(key), value);
         });
-        // Decode claims and encode back to Base64
-        final String jwtClaimsBase64 = Base64.encodeToString(
-                Base64.decode(jwtClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING),
-                Base64.NO_WRAP
-        );
+        // Prepare signed data
+        final String jwtSignedDatasBase64 = Base64.encodeToString((jwtHeader + "." + jwtClaims).getBytes(StandardCharsets.US_ASCII), Base64.NO_WRAP);
         // Decode signature and encode back to Base64
         final String jwtSignatureBase64 = Base64.encodeToString(
                 Base64.decode(jwtSignature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING),
@@ -504,7 +502,7 @@ public class StandardActivationTest {
         );
 
         // Validate signature
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtClaimsBase64, jwtSignatureBase64);
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64);
         assertTrue(result);
     }
 }

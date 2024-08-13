@@ -30,7 +30,7 @@
  Serializes PA2NetworkObject into JSON data. If the object is nil, then
  data with an empty brackets is returned (e.g. "{}")
  */
-+ (NSData*) serializeObject:(NSObject<PA2Encodable>*)object;
++ (NSData*) serializeObject:(id<PA2Encodable>)object;
 
 /**
  Deserializes PA2NetworkObject from JSON Data. You must specify an object's class to

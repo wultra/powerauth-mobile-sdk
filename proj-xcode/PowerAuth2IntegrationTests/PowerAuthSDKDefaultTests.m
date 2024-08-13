@@ -1353,9 +1353,10 @@
         XCTAssertEqualObjects(originalObj, obj);
     }];
     // Validate signature
+    NSData * jwtSignedData = [[NSString stringWithFormat:@"%@.%@", jwtHeader, jwtClaims] dataUsingEncoding:NSASCIIStringEncoding];
     NSData * jwtSignatureData = [[NSData alloc] initWithJwtEncodedString:jwtSignature];
     XCTAssertNotNil(jwtSignatureData);
-    BOOL result = [_helper.testServerApi verifyECDSASignature:_sdk.activationIdentifier data:jwtClaimsData signature:jwtSignatureData];
+    BOOL result = [_helper.testServerApi verifyECDSASignature:_sdk.activationIdentifier data:jwtSignedData signature:jwtSignatureData];
     XCTAssertTrue(result);
 }
 

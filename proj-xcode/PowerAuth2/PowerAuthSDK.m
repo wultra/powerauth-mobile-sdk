@@ -1427,18 +1427,16 @@ static PowerAuthSDK * s_inst;
         }
         
         // Prepare JWT Header
-        NSDictionary *header = @{ @"alg": @"ES256", @"typ": @"JWT" };
-        NSData *headerData = [NSJSONSerialization dataWithJSONObject:header options:0 error:nil];
-        NSString *headerBase64Encoded = [headerData base64EncodedStringWithOptions:0];
+        NSString * jwtHeader = @"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
         
         // Base64 Encode Claims Data
-        NSString *claimsBase64Encoded = [claimsData base64EncodedStringWithOptions:0];
+        NSString *jwtClaims = [claimsData jwtEncodedString];
         
         // Base64 Encode Signature
-        NSString *signatureBase64Encoded = [signature base64EncodedStringWithOptions:0];
+        NSString *jwtSignature = [signature jwtEncodedString];
         
         // Construct JWT
-        NSString *jwt = [NSString stringWithFormat:@"%@.%@.%@", headerBase64Encoded, claimsBase64Encoded, signatureBase64Encoded];
+        NSString *jwt = [NSString stringWithFormat:@"%@.%@.%@", jwtHeader, jwtClaims, jwtSignature];
         
         callback(jwt, nil);
     }];

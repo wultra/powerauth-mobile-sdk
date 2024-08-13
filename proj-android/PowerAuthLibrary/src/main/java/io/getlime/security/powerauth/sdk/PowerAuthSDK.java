@@ -2535,16 +2535,12 @@ public class PowerAuthSDK {
         return signDataWithDevicePrivateKey(context, authentication, serializedClaims, new IDataSignatureListener() {
             @Override
             public void onDataSignedSucceed(@NonNull byte[] signature) {
-                // Prepare header
-                final HashMap<String, String> header = new HashMap<>();
-                header.put("alg", "ES256");
-                header.put("typ", "JWT");
-                final byte[] headerData = serialization.serializeObject(header);
-                final String headerBase64 = Base64.encodeToString(headerData, Base64.NO_WRAP);
+                // Header
+                final String headerBase64 = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
                 // Prepare claims data
-                final String claimsBase64 = Base64.encodeToString(serializedClaims, Base64.NO_WRAP);
+                final String claimsBase64 = Base64.encodeToString(serializedClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
                 // Encoded signature
-                final String signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP);
+                final String signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
                 // Construct final JWT
                 final String jwt = headerBase64 + "." + claimsBase64 + "." + signatureBase64;
                 listener.onJwtSignatureSucceed(jwt);

@@ -483,17 +483,28 @@ public class StandardActivationTest {
         final String jwtClaims = jwtComponents[1];
         final String jwtSignature = jwtComponents[2];
         // Validate header
-        Map<String, Object> headerObject = jsonSerialization.deserializeObject(Base64.decode(jwtHeader, Base64.NO_WRAP), new TypeToken<Map<String, Object>>() {});
+        Map<String, Object> headerObject = jsonSerialization.deserializeObject(Base64.decode(jwtHeader, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING), new TypeToken<Map<String, Object>>() {});
         assertEquals("JWT", headerObject.get("typ"));
         assertEquals("ES256", headerObject.get("alg"));
         // Validate claims
-        Map<String, Object> claimsObject = jsonSerialization.deserializeObject(Base64.decode(jwtClaims, Base64.NO_WRAP), new TypeToken<Map<String, Object>>() {});
+        Map<String, Object> claimsObject = jsonSerialization.deserializeObject(Base64.decode(jwtClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING), new TypeToken<Map<String, Object>>() {});
         assertEquals(originalClaims.keySet().size(), claimsObject.keySet().size());
         claimsObject.forEach((key, value) -> {
             assertEquals(originalClaims.get(key), value);
         });
+        // Decode claims and encode back to Base64
+        final String jwtClaimsBase64 = Base64.encodeToString(
+                Base64.decode(jwtClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING),
+                Base64.NO_WRAP
+        );
+        // Decode signature and encode back to Base64
+        final String jwtSignatureBase64 = Base64.encodeToString(
+                Base64.decode(jwtSignature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING),
+                Base64.NO_WRAP
+        );
+
         // Validate signature
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtClaims, jwtSignature);
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtClaimsBase64, jwtSignatureBase64);
         assertTrue(result);
     }
 }

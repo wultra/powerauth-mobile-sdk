@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.networking.client;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.util.Base64;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -260,6 +262,42 @@ public class JsonSerialization {
         }
         // 3. Deserialize the object
         return deserializeObject(plainData, type);
+    }
+
+    // JWT
+
+    /**
+     * Serialize object into Base64Url encoded string.
+     * @param object Object to serialize.
+     * @return Object serialized into Base64Jwt encoded string.
+     * @param <TRequest> Type of object.
+     */
+    @NonNull
+    public <TRequest> String serializeJwtObject(@Nullable TRequest object) {
+        byte[] data = serializeObject(object);
+        return Base64.encodeToString(data, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
+    }
+
+    /**
+     * Deserialize object from Base64Url encoded string.
+     * @param data String with serialized object.
+     * @param type Type of object to deserialize.
+     * @return Deserialized object.
+     * @param <TResponse> Type of object.
+     * @throws PowerAuthErrorException In case that string doesn't contain JWT encoded data.
+     */
+    @NonNull
+    public <TResponse> TResponse deserializeJwtObject(@Nullable String data, @NonNull TypeToken<TResponse> type) throws PowerAuthErrorException {
+        if (data == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Failed to deserialize JWT object.");
+        }
+        final byte[] objectBytes;
+        try {
+            objectBytes = Base64.decode(data, Base64.NO_WRAP| Base64.URL_SAFE | Base64.NO_PADDING);
+        } catch (IllegalArgumentException e) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.NETWORK_ERROR, "Failed to deserialize JWT object.", e);
+        }
+        return deserializeObject(objectBytes, type);
     }
 
     // Lazy initialized GSON & JsonParser

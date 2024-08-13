@@ -15,6 +15,7 @@
  */
 
 #import "PowerAuthSDKDefaultTests.h"
+#import "PA2ObjectSerialization.h"
 
 @implementation PowerAuthSDKDefaultTests
 
@@ -1336,14 +1337,14 @@
     NSString * jwtClaims = jwtComponents[1];
     NSString * jwtSignature = jwtComponents[2];
     // Validate header
-    NSData * jwtHeaderData = [[NSData alloc] initWithBase64EncodedString:jwtHeader options:0];
+    NSData * jwtHeaderData = [[NSData alloc] initWithJwtEncodedString:jwtHeader];
     XCTAssertNotNil(jwtHeaderData);
     NSDictionary * headerObject = [NSJSONSerialization JSONObjectWithData:jwtHeaderData options:0 error:NULL];
     XCTAssertNotNil(headerObject);
     XCTAssertEqualObjects(@"JWT", headerObject[@"typ"]);
     XCTAssertEqualObjects(@"ES256", headerObject[@"alg"]);
     // Validate claims
-    NSData * jwtClaimsData = [[NSData alloc] initWithBase64EncodedString:jwtClaims options:0];
+    NSData * jwtClaimsData = [[NSData alloc] initWithJwtEncodedString:jwtClaims];
     XCTAssertNotNil(jwtClaimsData);
     NSDictionary * claims = [NSJSONSerialization JSONObjectWithData:jwtClaimsData options:0 error:NULL];
     XCTAssertEqual(originalClaims.count, claims.count);
@@ -1352,7 +1353,7 @@
         XCTAssertEqualObjects(originalObj, obj);
     }];
     // Validate signature
-    NSData * jwtSignatureData = [[NSData alloc] initWithBase64EncodedString:jwtSignature options:0];
+    NSData * jwtSignatureData = [[NSData alloc] initWithJwtEncodedString:jwtSignature];
     XCTAssertNotNil(jwtSignatureData);
     BOOL result = [_helper.testServerApi verifyECDSASignature:_sdk.activationIdentifier data:jwtClaimsData signature:jwtSignatureData];
     XCTAssertTrue(result);

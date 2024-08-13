@@ -238,7 +238,7 @@ static NSString * ConvertFromBase64Url(NSString * base64Url)
     NSData * objectData = [[NSData alloc] initWithBase64EncodedString:base64 options:0];
     if (!objectData) {
         if (error) {
-            *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Failed to decode JWT object.");
+            *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Failed to deserialize JWT object.");
         }
         return nil;
     }

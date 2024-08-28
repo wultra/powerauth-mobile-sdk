@@ -348,7 +348,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 {
     [self checkForValidConnection];
     NSArray * params;
-    if (_testServerConfig.serverMaxProtovolVersion == PATS_P32) {
+    if (_testServerConfig.serverMaxProtovolVersion >= PATS_P32) {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
     } else {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];

@@ -46,6 +46,7 @@
     if (self) {
         _client = httpClient;
         _sessionProvider = sessionProvider;
+        _applicationKey = applicationKey;
         _deviceRelatedKey = deviceRelatedKey;
         _encryptorScope = encryptorScope;
         _delegate = delegate;
@@ -162,16 +163,17 @@
         return nil;
     }
     if (![jwtHeaderObj.typ isEqualToString:@"JWT"]) {
-        *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Unsupported JWT response");
+        *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Unsupported JWT type in response");
     }
     if (![jwtHeaderObj.alg isEqualToString:@"ES256"]) {
         *error = PA2MakeError(PowerAuthErrorCode_NetworkError, @"Unsupported JWT algorithm in response");
         return nil;
     }
     PowerAuthCoreSignedData * signedData = [[PowerAuthCoreSignedData alloc] init];
-    signedData.data = [[[jwtHeader stringByAppendingString:@"."] stringByAppendingString:jwtPayload] dataUsingEncoding:NSASCIIStringEncoding];
-    signedData.signature = [[NSData alloc] initWithJwtEncodedString:jwtSignature];
     signedData.signingDataKey = _isApplicationScope ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
+    signedData.signatureFormat = PowerAuthCoreSignatureFormat_ECDSA_JOSE;
+    signedData.data = [[NSString stringWithFormat:@"%@.%@", jwtHeader, jwtPayload] dataUsingEncoding:NSUTF8StringEncoding];
+    signedData.signature = [[NSData alloc] initWithJwtEncodedString:jwtSignature];
     BOOL valid = [_sessionProvider readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
         return [session verifyServerSignedData:signedData];
     }];

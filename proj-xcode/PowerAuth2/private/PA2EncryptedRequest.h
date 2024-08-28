@@ -22,6 +22,7 @@
 
 - (id) initWithCryptogram:(PowerAuthCoreEciesCryptogram*)cryptogram;
 
+@property (nonatomic, strong) NSString * temporaryKeyId;
 @property (nonatomic, strong) NSString * ephemeralPublicKey;
 @property (nonatomic, strong) NSString * encryptedData;
 @property (nonatomic, strong) NSString * mac;

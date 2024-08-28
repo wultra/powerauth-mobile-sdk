@@ -16,6 +16,7 @@
 
 #import <XCTest/XCTest.h>
 #import <PowerAuth2/PowerAuth2.h>
+#import <PowerAuthCore/PowerAuthCore.h>
 
 #import "PA2ObjectSerialization.h"
 #import "PA2PrivateMacros.h"
@@ -54,6 +55,17 @@
     XCTAssertTrue([data.text isEqualToString:@"💩??"]);
     serializedData = [PA2ObjectSerialization serializeJwtObject:data];
     XCTAssertTrue([@"eyJ0ZXh0Ijoi8J-SqT8_In0" isEqualToString:serializedData]);
+}
+
+- (void) testJwtDataConversion
+{
+    for (NSUInteger i = 0; i < 1000; i++) {
+        NSUInteger len = arc4random_uniform(129);
+        NSData * input = [PowerAuthCoreCryptoUtils randomBytes:len];
+        NSString * inputB64url = [input jwtEncodedString];
+        NSData * output = [[NSData alloc] initWithJwtEncodedString:inputB64url];
+        XCTAssertEqualObjects(input, output);
+    }
 }
 
 @end

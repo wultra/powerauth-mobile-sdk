@@ -37,6 +37,9 @@
 - (NSDictionary*) toDictionary
 {
     NSMutableDictionary * dict = [NSMutableDictionary dictionaryWithCapacity:3];
+    if (_temporaryKeyId) {
+        dict[@"temporaryKeyId"] = _temporaryKeyId;
+    }
     if (_ephemeralPublicKey) {
         dict[@"ephemeralPublicKey"] = _ephemeralPublicKey;
     }

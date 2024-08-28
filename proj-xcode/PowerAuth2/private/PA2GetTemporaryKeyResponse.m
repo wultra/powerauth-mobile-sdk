@@ -23,13 +23,13 @@
 {
     self = [super init];
     if (self) {
-        _appKey         = PA2ObjectAs(dictionary[@"appKey"], NSString);
+        _appKey         = PA2ObjectAs(dictionary[@"applicationKey"], NSString);
         _activationId   = PA2ObjectAs(dictionary[@"activationId"], NSString);
         _challenge      = PA2ObjectAs(dictionary[@"challenge"], NSString);
-        _keyId          = PA2ObjectAs(dictionary[@"keyId"], NSString);
         _publicKey      = PA2ObjectAs(dictionary[@"publicKey"], NSString);
-        _expiration     = [PA2ObjectAs(dictionary[@"expiration"], NSNumber) unsignedLongLongValue];
-        _serverTime     = [PA2ObjectAs(dictionary[@"serverTime"], NSNumber) unsignedLongLongValue];
+        _keyId          = PA2ObjectAs(dictionary[@"sub"], NSString);
+        _expiration     = [PA2ObjectAs(dictionary[@"exp_ms"], NSNumber) unsignedLongLongValue];
+        _serverTime     = [PA2ObjectAs(dictionary[@"iat_ms"], NSNumber) unsignedLongLongValue];
     }
     return self;
 }

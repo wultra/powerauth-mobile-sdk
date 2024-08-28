@@ -29,7 +29,7 @@
 
 #pragma mark - Activation
 
-+ (instancetype) createActivationWithCustomStep:(NSError*(^)(void))customStep
++ (instancetype) createActivationWithCustomStep:(NSError*(^)(PA2RestApiEndpoint * endpoint))customStep
 {
     PA2RestApiEndpoint * endpoint = [[PA2RestApiEndpoint alloc] initWithPath:@"/pa/v3/activation/create"
                                                                      request:[PA2CreateActivationRequest class]

@@ -40,7 +40,7 @@
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary
 {
     return [self initWithTyp:PA2ObjectAs(dictionary[@"typ"], NSString)
-                     withAlg:PA2ObjectAs(dictionary[@"typ"], NSString)];
+                     withAlg:PA2ObjectAs(dictionary[@"alg"], NSString)];
 }
 
 - (NSDictionary<NSString *,NSObject *> *)toDictionary

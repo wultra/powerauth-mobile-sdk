@@ -401,6 +401,60 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 #endif
 }
 
+
+- (PowerAuthCoreSignatureUnlockKeys*) signatureKeysForAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                               error:(NSError **)error
+{
+    // Validate authentication object usage
+    [authentication validateUsage:NO];
+    
+    // Generate signature key encryption keys
+    NSData *possessionKey = nil;
+    NSData *biometryKey = nil;
+    if (authentication.usePossession) {
+        if (authentication.overridenPossessionKey) {
+            possessionKey = authentication.overridenPossessionKey;
+        } else {
+            possessionKey = [self deviceRelatedKey];
+        }
+    }
+    if (authentication.useBiometry) {
+        if (authentication.overridenBiometryKey) {
+            // application specified a custom biometry key
+            biometryKey = authentication.overridenBiometryKey;
+        } else {
+            // default biometry key should be fetched
+            biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication error:error];
+            if (!biometryKey) {
+                return nil;
+            }
+        }
+    }
+    
+    // Prepare signature unlock keys structure
+    PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+    keys.possessionUnlockKey = possessionKey;
+    keys.biometryUnlockKey = biometryKey;
+    keys.userPassword = authentication.password;
+    if (error) { *error = nil; }
+    return keys;
+}
+
+- (PowerAuthCoreSignatureFactor) determineSignatureFactorForAuthentication:(PowerAuthAuthentication*)authentication
+{
+    PowerAuthCoreSignatureFactor factor = 0;
+    if (authentication.usePossession) {
+        factor |= PowerAuthCoreSignatureFactor_Possession;
+    }
+    if (authentication.password != nil) {
+        factor |= PowerAuthCoreSignatureFactor_Knowledge;
+    }
+    if (authentication.useBiometry) {
+        factor |= PowerAuthCoreSignatureFactor_Biometry;
+    }
+    return factor;
+}
+
 - (id<PowerAuthOperationTask>) fetchEncryptedVaultUnlockKey:(PowerAuthAuthentication*)authentication
                                                      reason:(PA2VaultUnlockReason)reason
                                                    callback:(void(^)(NSString * encryptedEncryptionKey, NSError *error))callback
@@ -552,27 +606,33 @@ static PowerAuthSDK * s_inst;
     requestData.platform = [PowerAuthSystem platform];
     requestData.deviceInfo = [PowerAuthSystem deviceInfo];
     
-    PowerAuthCoreEciesEncryptor * decryptor = [[_sessionInterface writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+    // Start an activation
+    error = [_sessionInterface writeTaskWithSession:^NSError*(PowerAuthCoreSession * session) {
         return [self prepareActivation:activation
                             forRequest:request
                            requestData:requestData
                                session:session];
-    }] extractResult:&error];
-    
-    if (!decryptor) {
+    }];
+    if (error) {
         callback(nil, error);
         return nil;
     }
-    
+        
     // The create activation endpoint needs a custom object processing where we encrypt the inner data
     // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
-    // service is already synchronized.
-    PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint createActivationWithCustomStep:^NSError *{
+    // service is already synchronized and tempoerary key is acquired.
+    PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint createActivationWithCustomStep:^NSError*(PA2RestApiEndpoint * endpoint) {
         // Encrypt payload and put it directly to the request object.
         NSError * localError = nil;
-        request.activationData = [PA2ObjectSerialization encryptObject:requestData
-                                                             encryptor:decryptor
-                                                                 error:&localError];
+        PowerAuthCoreEciesEncryptor * decryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];;
+        if (decryptor && !localError) {
+            request.activationData = [PA2ObjectSerialization encryptObject:requestData
+                                                                 encryptor:decryptor
+                                                                     error:&localError];
+        }
+        if (!localError) {
+            endpoint.customData = decryptor;
+        }
         return localError;
     }];
     
@@ -586,7 +646,7 @@ static PowerAuthSDK * s_inst;
                             if (status == PowerAuthRestApiResponseStatus_OK) {
                                 // Validate response from the server
                                 return [self validateActivationResponse:response
-                                                              decryptor:decryptor
+                                                              decryptor:endpoint.customData
                                                                 session:session];
                             }
                             [session resetSession:NO];
@@ -765,10 +825,10 @@ static PowerAuthSDK * s_inst;
  The method requires request & request data and if everything's right, then request.activationData
  is prepared and metods returns a new decryptor, required for response decryption.
  */
-- (PA2Result<PowerAuthCoreEciesEncryptor*>*) prepareActivation:(PowerAuthActivation*)activation
-                                                    forRequest:(PA2CreateActivationRequest*)request
-                                                   requestData:(PA2CreateActivationRequestData*)requestData
-                                                       session:(PowerAuthCoreSession*)session
+- (NSError*) prepareActivation:(PowerAuthActivation*)activation
+                    forRequest:(PA2CreateActivationRequest*)request
+                   requestData:(PA2CreateActivationRequestData*)requestData
+                       session:(PowerAuthCoreSession*)session
 {
     BOOL resetState = YES;
     NSError * localError = nil;
@@ -783,16 +843,8 @@ static PowerAuthSDK * s_inst;
         if (resultStep1) {
             // Keep device's public key in requestData
             requestData.devicePublicKey = resultStep1.devicePublicKey;
-
-            // Now we need to ecrypt request data with the Layer2 encryptor.
-            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];
-            if (!localError) {
-                // Everything looks OS, so finally, try notify other apps that this instance started the activation.
-                localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
-                if (!localError) {
-                    return [PA2Result success:privateEncryptor];
-                }
-            }
+            // Everything looks OS, so finally, try notify other apps that this instance started the activation.
+            localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
         } else {
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
         }
@@ -800,10 +852,10 @@ static PowerAuthSDK * s_inst;
         resetState = NO; // Don't reset state, there's already existing or pendign activation
         localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
     }
-    if (resetState) {
+    if (localError && resetState) {
         [session resetSession:NO];
     }
-    return [PA2Result failure:localError];
+    return localError;
 }
 
 /**
@@ -1039,6 +1091,45 @@ static PowerAuthSDK * s_inst;
 }
 
 
+/**
+ This private method implements both online & offline signature calculations. Unlike the public interfaces, method accepts
+ PA2HTTPRequestData object as a source for data for signing and returns structured PA2HTTPRequestDataSignature object.
+ */
+- (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData
+                                                authentication:(PowerAuthAuthentication*)authentication
+                                                         error:(NSError**)error
+{
+    [self checkForValidSetup];
+    
+    return [[_sessionInterface writeTaskWithSession:^PA2Result<PowerAuthCoreHTTPRequestDataSignature*>* (PowerAuthCoreSession * session) {
+        // Check if there is an activation present
+        if (!session.hasValidActivation) {
+            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_MissingActivation, nil)];
+        }
+        
+        // Determine authentication factor type
+        PowerAuthCoreSignatureFactor factor = [self determineSignatureFactorForAuthentication:authentication];
+        if (factor == 0) {
+            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_WrongParameter, nil)];
+        }
+        
+        // Generate signature key encryption keys
+        NSError * localError = nil;
+        PowerAuthCoreSignatureUnlockKeys *keys = [self signatureKeysForAuthentication:authentication error:&localError];
+        if (keys == nil) { // Unable to fetch Touch ID related record - maybe user or iOS canacelled the operation?
+            return [PA2Result failure:localError];
+        }
+        
+        // Compute signature for provided values and return result.
+        PowerAuthCoreHTTPRequestDataSignature * signature = [session signHttpRequestData:requestData keys:keys factor:factor];
+        if (signature == nil) {
+            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_SignatureError, nil)];
+        }
+        return [PA2Result success:signature];
+        
+    }] extractResult:error];
+}
+
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
                       signature:(nonnull NSString*)signature
                       masterKey:(BOOL)masterKey
@@ -1049,6 +1140,7 @@ static PowerAuthSDK * s_inst;
         signedData.signingDataKey = masterKey ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
         signedData.data = data;
         signedData.signatureBase64 = signature;
+        signedData.signatureFormat = PowerAuthCoreSignatureFormat_ECDSA_DER;
         return [session verifyServerSignedData: signedData];
     }];
 }
@@ -1388,6 +1480,7 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                        data:(NSData*)data
+                                                     format:(PowerAuthCoreSignatureFormat)format
                                                    callback:(void(^)(NSData *signature, NSError *error))callback
 {
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
@@ -1399,7 +1492,8 @@ static PowerAuthSDK * s_inst;
             signature = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
                 return [session signDataWithDevicePrivateKey:encryptedEncryptionKey
                                                         keys:keys
-                                                        data:data];
+                                                        data:data
+                                                      format:format];
             }];
             // Propagate error
             if (!signature) {
@@ -1409,6 +1503,17 @@ static PowerAuthSDK * s_inst;
         // Call back to application
         callback(signature, error);
     }];
+
+}
+
+- (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
+                                                       data:(NSData*)data
+                                                   callback:(void(^)(NSData *signature, NSError *error))callback
+{
+    return [self signDataWithDevicePrivateKey:authentication
+                                         data:data
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_DER
+                                     callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
@@ -1424,6 +1529,7 @@ static PowerAuthSDK * s_inst;
     // Calculate signature
     return [self signDataWithDevicePrivateKey:authentication
                                          data:[signedData dataUsingEncoding:NSASCIIStringEncoding]
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_JOSE
                                      callback:^(NSData * signature, NSError * error) {
         // Handle error
         if (error) {

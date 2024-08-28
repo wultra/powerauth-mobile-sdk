@@ -750,7 +750,7 @@ namespace powerAuth
                 CC7_LOG("Session %p: HmacSign: You have to provide possession key.", this);
                 return EC_WrongParam;
             }
-            signing_key = crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), plain.transportKey);
+            signing_key = protocol::DeriveSecretKeyFromIndex(plain.transportKey, cc7::FromBase64String(_setup.applicationSecret));
         }
         data.signature = crypto::HMAC_SHA256(data.data, signing_key);
         return data.signature.empty() ? EC_Encryption : EC_Ok;

@@ -94,7 +94,11 @@
     }
     if (!_appVersion.supported) {
         NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
-        return NO;
+        if (![self supportApplicationVersion:_appVersion.applicationVersionId]) {
+            NSLog(@"Failed to set application version '%@' supported", _appVersion.applicationVersionName);
+            return NO;
+        }
+        _appVersion.supported = YES;
     }
     
     _hasValidConnection = YES;
@@ -348,7 +352,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 {
     [self checkForValidConnection];
     NSArray * params;
-    if (_testServerConfig.serverMaxProtovolVersion == PATS_P32) {
+    if (_testServerConfig.serverMaxProtovolVersion >= PATS_P32) {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
     } else {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];

@@ -697,7 +697,13 @@ namespace powerAuth
         }
         if (nullptr != ec_public_key) {
             // validate signature
-            success = crypto::ECDSA_ValidateSignature(data.data, data.signature, ec_public_key);
+            if (data.signatureFormat == SignedData::ECDSA_JOSE) {
+                // Convert signature from JOSE to DER first.
+                success = crypto::ECDSA_ValidateSignature(data.data, crypto::ECDSA_JOSEtoDER(data.signature), ec_public_key);
+            } else {
+                // No signature conversion required.
+                success = crypto::ECDSA_ValidateSignature(data.data, data.signature, ec_public_key);
+            }
             //
         } else {
             CC7_LOG("Session %p: ServerSig: %s public key is invalid.", this, use_master_server_key ? "Master server" : "Server");
@@ -862,7 +868,8 @@ namespace powerAuth
     }
     
     ErrorCode Session::signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
-                                                    const cc7::ByteRange & in_data, cc7::ByteArray & out_signature)
+                                                    const cc7::ByteRange & in_data, SignedData::SignatureFormat out_format,
+                                                    cc7::ByteArray & out_signature)
     {
         LOCK_GUARD();
         cc7::ByteArray vault_key;
@@ -889,6 +896,13 @@ namespace powerAuth
             if (!crypto::ECDSA_ComputeSignature(in_data, device_private_key, out_signature)) {
                 // Signature calculation failed.
                 break;
+            }
+            if (out_format == SignedData::ECDSA_JOSE) {
+                out_signature = crypto::ECDSA_DERtoJOSE(out_signature);
+                if (out_signature.empty()) {
+                    // Conversion to JOSE format failed.
+                    break;
+                }
             }
             code = EC_Ok;
         } while (false);

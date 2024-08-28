@@ -106,6 +106,11 @@ namespace utils
         bool writeCount(size_t count);
         
         /**
+         Write a count to the stream in ASN.1 binary format.
+         */
+        bool writeAsn1Count(size_t count);
+        
+        /**
          Returns maximum supported value which can be serialized as 
          a counter. The returned value is the same for all supported
          platforms and CPU architectures.

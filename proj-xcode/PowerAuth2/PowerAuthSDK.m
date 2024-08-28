@@ -1464,6 +1464,7 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                        data:(NSData*)data
+                                                     format:(PowerAuthCoreSignatureFormat)format
                                                    callback:(void(^)(NSData *signature, NSError *error))callback
 {
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
@@ -1475,7 +1476,8 @@ static PowerAuthSDK * s_inst;
             signature = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
                 return [session signDataWithDevicePrivateKey:encryptedEncryptionKey
                                                         keys:keys
-                                                        data:data];
+                                                        data:data
+                                                      format:format];
             }];
             // Propagate error
             if (!signature) {
@@ -1485,6 +1487,16 @@ static PowerAuthSDK * s_inst;
         // Call back to application
         callback(signature, error);
     }];
+}
+
+- (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
+                                                       data:(NSData*)data
+                                                   callback:(void(^)(NSData *signature, NSError *error))callback
+{
+    return [self signDataWithDevicePrivateKey:authentication
+                                         data:data
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_DER
+                                     callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
@@ -1500,6 +1512,7 @@ static PowerAuthSDK * s_inst;
     // Calculate signature
     return [self signDataWithDevicePrivateKey:authentication
                                          data:[signedData dataUsingEncoding:NSASCIIStringEncoding]
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_JOSE
                                      callback:^(NSData * signature, NSError * error) {
         // Handle error
         if (error) {

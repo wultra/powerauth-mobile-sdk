@@ -53,6 +53,9 @@
 
 PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 {
+    if (serverVer >= PATS_V1_9) {
+        return PATS_P33;
+    }
     if (serverVer >= PATS_V1_5) {
         return PATS_P32;
     }
@@ -60,7 +63,7 @@ PowerAuthProtocolVersion PATSProtoVer(PowerAuthTestServerVersion serverVer)
 }
 
 static int s_KnownVersions[] = {
-    PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5,
+    PATS_V1_0, PATS_V1_1, PATS_V1_2, PATS_V1_2_5, PATS_V1_3, PATS_V1_4, PATS_V1_5, PATS_V1_6, PATS_V1_7, PATS_V1_8, PATS_V1_9,
     0
 };
 

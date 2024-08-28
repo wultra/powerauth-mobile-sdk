@@ -380,15 +380,17 @@ using namespace io::getlime::powerAuth;
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
                                              data:(nonnull NSData*)data
+                                           format:(PowerAuthCoreSignatureFormat)format
 {
     REQUIRE_READ_ACCESS();
     std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
     cc7::ByteArray cpp_data     = cc7::objc::CopyFromNSData(data);
+    auto cpp_format             = static_cast<SignedData::SignatureFormat>(format);
     SignatureUnlockKeys cpp_keys;
     PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
         
     cc7::ByteArray cpp_signature;
-    auto error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_signature);
+    auto error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_format, cpp_signature);
     if (error == EC_Ok) {
         return cc7::objc::CopyToNSData(cpp_signature);
     }

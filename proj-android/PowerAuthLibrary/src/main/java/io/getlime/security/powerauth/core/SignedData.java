@@ -34,15 +34,22 @@ public class SignedData {
      */
     @SigningDataKey
     public final int signingKey;
+    /**
+     * Format of signature expected at input, or produced at output.
+     */
+    @SignatureFormat
+    public final int signatureFormat;
 
     /**
      * @param data data protected with signature
      * @param signature signature calculated for data
      * @param signingKey Key used to sign data, or will be used for the signature calculation.
+     * @param signatureFormat Format of signature expected at input, or produced at output.
      */
-    public SignedData(byte[] data, byte[] signature, @SigningDataKey int signingKey) {
+    public SignedData(byte[] data, byte[] signature, @SigningDataKey int signingKey, @SignatureFormat int signatureFormat) {
         this.data = data;
         this.signature = signature;
         this.signingKey = signingKey;
+        this.signatureFormat = signatureFormat;
     }
 }

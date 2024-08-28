@@ -29,7 +29,6 @@ import androidx.fragment.app.FragmentActivity;
 import com.google.gson.reflect.TypeToken;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
@@ -1791,7 +1790,7 @@ public class PowerAuthSDK {
 
         // Verify signature
         final int signingKey = useMasterKey ? SigningDataKey.ECDSA_MASTER_SERVER_KEY : SigningDataKey.ECDSA_PERSONALIZED_KEY;
-        final SignedData signedData = new SignedData(data, signature, signingKey);
+        final SignedData signedData = new SignedData(data, signature, signingKey, SignatureFormat.ECDSA_DER);
         return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
     }
 
@@ -1805,7 +1804,20 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
+        return signDataWithDevicePrivateKeyImpl(context, authentication, data, SignatureFormat.ECDSA_DER, listener);
+    }
 
+    /**
+     * Sign provided data with a private key that is stored in secure vault.
+     * @param context Context.
+     * @param authentication Authentication object for vault unlock request.
+     * @param data Data to be signed.
+     * @param signatureFormat Format of output signature.
+     * @param listener Listener with callbacks to signature status.
+     * @return Async task associated with vault unlock request.
+     */
+    private @Nullable
+    ICancelable signDataWithDevicePrivateKeyImpl(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @SignatureFormat int signatureFormat, @NonNull final IDataSignatureListener listener) {
         // Fetch vault encryption key using vault unlock request.
         return this.fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
             @Override
@@ -1813,7 +1825,7 @@ public class PowerAuthSDK {
                 if (encryptedEncryptionKey != null) {
                     // Let's sign the data
                     SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                    byte[] signature = mSession.signDataWithDevicePrivateKey(encryptedEncryptionKey, keys, data);
+                    byte[] signature = mSession.signDataWithDevicePrivateKey(encryptedEncryptionKey, keys, data, signatureFormat);
                     // Propagate error
                     if (signature != null) {
                         listener.onDataSignedSucceed(signature);
@@ -1830,7 +1842,9 @@ public class PowerAuthSDK {
                 listener.onDataSignedFailed(t);
             }
         });
+
     }
+
 
     /**
      * Change the password using local re-encryption, do not validate old password by calling any endpoint.
@@ -2535,7 +2549,7 @@ public class PowerAuthSDK {
         final String jwtHeader = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
         final String jwtClaims = serialization.serializeJwtObject(claims);
         final String jwtHeaderAndClaims = jwtHeader + "." + jwtClaims;
-        return signDataWithDevicePrivateKey(context, authentication, jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII), new IDataSignatureListener() {
+        return signDataWithDevicePrivateKeyImpl(context, authentication, jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII), SignatureFormat.ECDSA_JOSE, new IDataSignatureListener() {
             @Override
             public void onDataSignedSucceed(@NonNull byte[] signature) {
                 // Encoded signature

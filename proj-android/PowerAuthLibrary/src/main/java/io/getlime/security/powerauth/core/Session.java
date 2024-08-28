@@ -477,10 +477,11 @@ public class Session {
      * @param cVaultKey encrypted vault key
      * @param unlockKeys unlock keys object with required possession factor
      * @param data data to be signed
+     * @param signatureFormat Format of produced signature.
      *
      * @return array of bytes with calculated signature or null in case of failure.
      */
-    public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data);
+    public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, @SignatureFormat int signatureFormat);
 
     //
     // External encryption key

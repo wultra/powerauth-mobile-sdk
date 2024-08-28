@@ -834,7 +834,7 @@ namespace powerAuthTests
                     keys.possessionUnlockKey = possessionUnlock;
                     
                     cc7::ByteArray signature;
-                    ec = s1.signDataWithDevicePrivateKey(cVaultKey, keys, cc7::MakeRange("Hello World!"), signature);
+                    ec = s1.signDataWithDevicePrivateKey(cVaultKey, keys, cc7::MakeRange("Hello World!"), SignedData::ECDSA_DER, signature);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertTrue(!signature.empty());
                     // Validate signature...

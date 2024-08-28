@@ -240,6 +240,38 @@ namespace utils
         }
         return true;
     }
+
+    bool DataReader::readAsn1Count(size_t &out_value)
+    {
+        byte tmp[4] = { 0, 0, 0, 0 };
+        if (!readByte(tmp[0])) {
+            return false;
+        }
+        if (!(tmp[0] & 0x80)) {
+            // One byte with length lesser than 0x80
+            out_value = tmp[0];
+            //
+        } else {
+            // Length is encoded in multiple bytes. The first byte determines the length
+            // of encoded length. Bit 7 is set to 1.
+            size_t llength = tmp[0] & 0x7F;
+            tmp[0] = 0;
+            if (llength > 4 || !llength) {
+                // Too long, we support up to 4 bytes length. Other invalid
+                // value is zero.
+                return false;
+            }
+            size_t offset = 4 - llength;
+            if (!readRawMemory(tmp + offset, llength)) {
+                return false;
+            }
+            out_value = (size_t(tmp[0]) << 24) |
+                        (size_t(tmp[1]) << 16) |
+                        (size_t(tmp[2]) << 8 ) |
+                         size_t(tmp[3]);
+        }
+        return true;
+    }
     
     // Data versioning
     

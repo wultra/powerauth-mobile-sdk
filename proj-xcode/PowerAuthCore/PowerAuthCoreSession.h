@@ -457,7 +457,8 @@
  */
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                             data:(nonnull NSData*)data;
+                                             data:(nonnull NSData*)data
+                                           format:(PowerAuthCoreSignatureFormat)format;
 
 #pragma mark - External Encryption Key
 

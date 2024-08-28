@@ -36,6 +36,7 @@ namespace powerAuthTests
         pa2DataWriterReaderTests()
         {
             CC7_REGISTER_TEST_METHOD(testReadWriteCount)
+            CC7_REGISTER_TEST_METHOD(testReadWriteAsn1Count)
             CC7_REGISTER_TEST_METHOD(testReadWriteMethods)
             CC7_REGISTER_TEST_METHOD(testNotEnoughData)
             CC7_REGISTER_TEST_METHOD(testVersions)
@@ -79,6 +80,57 @@ namespace powerAuthTests
             }
             // There must be at least one pass when write_result is false.
             ccstAssertTrue(simulated_failure_passed, "Max value not tested properly.");
+        }
+        
+        /*
+         The test validates writeAsn1Count() / readAsn1Count() functionality
+         */
+        void testReadWriteAsn1Count()
+        {
+            size_t test_value = 1;
+            size_t restored_value;
+            bool simulated_failure_passed = false;
+            while (test_value <= ((size_t)-1)/2) {
+                
+                DataWriter writer;
+                bool write_result = writer.writeAsn1Count(test_value);
+                DataReader reader(writer.serializedData());
+                bool read_result = reader.readAsn1Count(restored_value);
+                
+                if (test_value <= DataWriter::maxCount()) {
+                    // Values should be correct
+                    ccstAssertTrue(write_result);
+                    ccstAssertTrue(read_result);
+                    ccstAssertEqual(reader.remainingSize(), 0);
+                    ccstAssertEqual(test_value, restored_value, "Restored: 0x%x, Expected 0x%x", restored_value, test_value);
+                } else {
+                    ccstAssertFalse(write_result);
+                    // read result is not important
+                    simulated_failure_passed = true;
+                }
+                
+                // Calculate next test value
+                if (test_value & 1) {
+                    test_value += 1;
+                } else {
+                    test_value = (test_value << 1) - 1;
+                }
+            }
+            // There must be at least one pass when write_result is false.
+            ccstAssertTrue(simulated_failure_passed, "Max value not tested properly.");
+            // Now test a special cases
+            {
+                // Length encoded in 3 bytes
+                DataWriter writer;
+                writer.writeByte(0x83);
+                writer.writeByte(0x10);
+                writer.writeByte(0x3E);
+                writer.writeByte(0x8F);
+                DataReader reader(writer.serializedData());
+                size_t size;
+                ccstAssertTrue(reader.readAsn1Count(size));
+                ccstAssertEqual(0x103E8F, size);
+            }
         }
         
         void readWriteSequenceTest(ByteArray * arr)

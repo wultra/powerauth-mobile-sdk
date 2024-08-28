@@ -429,7 +429,8 @@ namespace powerAuth
                  EC_WrongParam, if some required parameter is missing
          */
         ErrorCode signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
-                                               const cc7::ByteRange & data, cc7::ByteArray & out_signature);
+                                               const cc7::ByteRange & data, SignedData::SignatureFormat out_format,
+                                               cc7::ByteArray & out_signature);
         
     private:
 

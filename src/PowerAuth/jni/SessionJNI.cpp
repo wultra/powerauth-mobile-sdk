@@ -461,13 +461,15 @@ CC7_JNI_METHOD_PARAMS(jint, verifyServerSignedData, jobject signedData)
     }
     // Load parameters into C++ objects
     jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
-    // Get type of key
+    // Get enum types
     jint signingKey             = CC7_JNI_GET_FIELD_INT(signedData, requestClazz, "signingKey");
+    jint signatureFormat        = CC7_JNI_GET_FIELD_INT(signedData, requestClazz, "signatureFormat");
     // Prepare cpp structure
     SignedData cppSignedData;
-    cppSignedData.signingKey    = static_cast<SignedData::SigningKey>(signingKey);
-    cppSignedData.data          = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
-    cppSignedData.signature     = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
+    cppSignedData.signingKey        = static_cast<SignedData::SigningKey>(signingKey);
+    cppSignedData.signatureFormat   = static_cast<SignedData::SignatureFormat>(signatureFormat);
+    cppSignedData.data              = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
+    cppSignedData.signature         = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
     return (jint) session->verifyServerSignedData(cppSignedData);
 }
 
@@ -483,7 +485,6 @@ CC7_JNI_METHOD_PARAMS(jint, signDataWithHmacKey, jobject dataToSign, jobject unl
     }
     // Load parameters into C++ objects
     SignatureUnlockKeys cppUnlockKeys;
-    SignedData cppDataToSign;
     if (unlockKeys != nullptr) {
         if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
             return EC_WrongParam;
@@ -493,8 +494,12 @@ CC7_JNI_METHOD_PARAMS(jint, signDataWithHmacKey, jobject dataToSign, jobject unl
     jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
     // Get type of key
     jint signingKey             = CC7_JNI_GET_FIELD_INT(dataToSign, requestClazz, "signingKey");
-    cppDataToSign.signingKey    = static_cast<SignedData::SigningKey>(signingKey);
-    cppDataToSign.data          = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(dataToSign, requestClazz, "data"));
+    jint signatureFormat        = CC7_JNI_GET_FIELD_INT(dataToSign, requestClazz, "signatureFormat");
+    // Prepare cpp structure
+    SignedData cppDataToSign;
+    cppDataToSign.signingKey        = static_cast<SignedData::SigningKey>(signingKey);
+    cppDataToSign.signatureFormat   = static_cast<SignedData::SignatureFormat>(signatureFormat);
+    cppDataToSign.data              = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(dataToSign, requestClazz, "data"));
     // Call session
     auto ec = session->signDataWithHmacKey(cppDataToSign, cppUnlockKeys);
     if (ec == EC_Ok) {
@@ -607,9 +612,9 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, deriveCryptographicKeyFromVaultKey, jstring cV
 }
 
 //
-// public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data);
+// public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, int signatureFormat);
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKey, jobject unlockKeys, jbyteArray data)
+CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKey, jobject unlockKeys, jbyteArray data, jint signatureFormat)
 {
     auto session = CC7_THIS_OBJ();
     if (!session || !cVaultKey || !unlockKeys || !data) {
@@ -619,12 +624,13 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKe
     // Load parameters into C++ objects 
     std::string cppCVaultKey = cc7::jni::CopyFromJavaString(env, cVaultKey);
     cc7::ByteArray cppData   = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto cppSignatureFormat  = static_cast<SignedData::SignatureFormat>(signatureFormat);
     SignatureUnlockKeys cppUnlockKeys;
     if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
         return NULL;
     }
     cc7::ByteArray signature;
-    ErrorCode code = session->signDataWithDevicePrivateKey(cppCVaultKey, cppUnlockKeys, cppData, signature);
+    ErrorCode code = session->signDataWithDevicePrivateKey(cppCVaultKey, cppUnlockKeys, cppData, cppSignatureFormat, signature);
     if (code != EC_Ok) {
         return NULL;
     }

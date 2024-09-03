@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2024 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.interfaces;
-
-import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+package io.getlime.security.powerauth.networking.model.entity;
 
 /**
- * Defines custom operation executed while endpoint is processed.
+ * The JwtObject represents JWT request and response.
  */
-@FunctionalInterface
-public interface ICustomEndpointOperation {
-    void customEndpointOperation(@NonNull IEndpointDefinition endpointDefinition) throws PowerAuthErrorException;
+public class JwtObject {
+
+    /**
+     * Full JWT formatted string
+     */
+    public final String jwt;
+
+    /**
+     * Construct object with JWT formatted string.
+     * @param jwt JWT formatted string.
+     */
+    public JwtObject(String jwt) {
+        this.jwt = jwt;
+    }
 }

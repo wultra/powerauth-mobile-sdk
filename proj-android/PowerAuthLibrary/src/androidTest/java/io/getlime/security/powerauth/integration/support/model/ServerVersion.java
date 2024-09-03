@@ -43,7 +43,7 @@ public enum ServerVersion {
     /**
      * Contains constant for the latest PowerAuth Server version.
      */
-    public static final ServerVersion LATEST = V1_8_0;
+    public static final ServerVersion LATEST = V1_9_0;
 
     /**
      * Server version represented as string.

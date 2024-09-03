@@ -20,6 +20,8 @@
 #import "PA2GetTemporaryKeyResponse.h"
 #import <PowerAuth2/PowerAuthLog.h>
 
+#define PUBLIC_KEY_EXPIRATION_THRESHOLD 10.0
+
 #pragma mark - Service data
 
 @interface PA2PublicKeyInfo : NSObject
@@ -76,30 +78,31 @@
         callback(PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
         return nil;
     }
-    if ([self hasKeyForEncryptorScope:encryptorScope]) {
-        callback(nil);
-        return nil;
-    }
     
     [_lock lock];
-    
-    id<PowerAuthOperationTask> task;
-    PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
-    PA2GetTemporaryKeyTask * mainTask = pki.task;
-    if (!mainTask) {
-        mainTask = [[PA2GetTemporaryKeyTask alloc] initWithHttpClient:_httpClient
-                                                      sessionProvider:_sessionInterface
-                                                           sharedLock:_lock
-                                                       applicationKey:_applicationKey
-                                                     deviceRelatedKey:_deviceRelatedKey
-                                                       encryptorScope:encryptorScope
-                                                             delegate:self];
-        pki.task = mainTask;
-        pki.timeSynchronizationTask = [_timeService startTimeSynchronizationTask];
+    id<PowerAuthOperationTask> task = nil;
+    if ([self hasKeyForEncryptorScope:encryptorScope]) {
+        // Key already exist
+        callback(nil);
+    } else {
+        // Key must be received from the server
+        PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
+        PA2GetTemporaryKeyTask * mainTask = pki.task;
+        if (!mainTask) {
+            mainTask = [[PA2GetTemporaryKeyTask alloc] initWithHttpClient:_httpClient
+                                                          sessionProvider:_sessionInterface
+                                                               sharedLock:_lock
+                                                           applicationKey:_applicationKey
+                                                         deviceRelatedKey:_deviceRelatedKey
+                                                           encryptorScope:encryptorScope
+                                                                 delegate:self];
+            pki.task = mainTask;
+            pki.timeSynchronizationTask = [_timeService startTimeSynchronizationTask];
+        }
+        task = [mainTask createChildTask:^(PA2GetTemporaryKeyResponse * _Nullable result, NSError * _Nullable error) {
+            callback(error);
+        }];
     }
-    task = [mainTask createChildTask:^(PA2GetTemporaryKeyResponse * _Nullable result, NSError * _Nullable error) {
-        callback(error);
-    }];
     [_lock unlock];
     return task;
 }
@@ -120,7 +123,7 @@
     PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
     NSTimeInterval expiration = pki.expiration;
     keyIsSet = expiration >= 0.0;
-    keyIsExpired = expiration < [_timeService currentTime];
+    keyIsExpired = expiration - PUBLIC_KEY_EXPIRATION_THRESHOLD < [_timeService currentTime];
     if (keyIsExpired) {
         pki.expiration = -1;
     }

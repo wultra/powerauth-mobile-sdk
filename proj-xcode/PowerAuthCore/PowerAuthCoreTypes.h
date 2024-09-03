@@ -350,7 +350,7 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
  */
 @interface PowerAuthCoreSignedData : NSObject
 /**
- A signign key to use.
+ A signing key to use.
  */
 @property (nonatomic, assign) PowerAuthCoreSigningDataKey signingDataKey;
 /**

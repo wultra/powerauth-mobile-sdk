@@ -63,6 +63,13 @@ public class EciesMetadata {
         return activationIdentifier;
     }
 
+    /**
+     * @return Identifier of temporary key.
+     */
+    public @NonNull String getTemporaryKeyId() {
+        return temporaryKeyId;
+    }
+
     // HTTP header
 
     /**
@@ -76,8 +83,7 @@ public class EciesMetadata {
      * @return String with HTTP request header's value.
      */
     public @NonNull String getHttpHeaderValue() {
-        final String result = "PowerAuth version=\"3.3\" application_key=\"" + applicationKey +
-                "\" temporary_key_id=\"" + temporaryKeyId + "\"";
+        final String result = "PowerAuth version=\"3.3\" application_key=\"" + applicationKey + "\"";
         if (activationIdentifier != null) {
             return result + " activation_id=\"" + activationIdentifier + "\"";
         }

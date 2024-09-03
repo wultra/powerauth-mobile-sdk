@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Wultra s.r.o.
+ * Copyright 2024 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.networking.interfaces;
-
-import androidx.annotation.NonNull;
-import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+package io.getlime.security.powerauth.networking.model.entity;
 
 /**
- * Defines custom operation executed while endpoint is processed.
+ * The JwtHeader class represents a header in JWT signature.
  */
-@FunctionalInterface
-public interface ICustomEndpointOperation {
-    void customEndpointOperation(@NonNull IEndpointDefinition endpointDefinition) throws PowerAuthErrorException;
+public class JwtHeader {
+    /**
+     * Type of object.
+     */
+    public final String typ;
+    /**
+     * Algorithm used in JWT.
+     */
+    public final String alg;
+
+    /**
+     * Construct object with JWT type and algorithm.
+     * @param typ Type of JWT.
+     * @param alg Algorithm used in JWT.
+     */
+    public JwtHeader(String typ, String alg) {
+        this.typ = typ;
+        this.alg = alg;
+    }
 }

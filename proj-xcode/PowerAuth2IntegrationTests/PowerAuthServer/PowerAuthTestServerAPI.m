@@ -94,7 +94,11 @@
     }
     if (!_appVersion.supported) {
         NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
-        return NO;
+        if (![self supportApplicationVersion:_appVersion.applicationVersionId]) {
+            NSLog(@"Failed to set application version '%@' supported", _appVersion.applicationVersionName);
+            return NO;
+        }
+        _appVersion.supported = YES;
     }
     
     _hasValidConnection = YES;

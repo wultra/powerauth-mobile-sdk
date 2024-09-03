@@ -160,6 +160,7 @@ public class JsonSerialization {
     @NonNull
     public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
         final EciesEncryptedRequest request = encryptObjectToRequest(object, encryptor);
+        request.setTemporaryKeyId(encryptor.getMetadata().getTemporaryKeyId());
         return serializeObject(request);
     }
 
@@ -228,6 +229,7 @@ public class JsonSerialization {
         }
         // 3. Construct final request object from the cryptogram
         final EciesEncryptedRequest request = new EciesEncryptedRequest();
+        request.setTemporaryKeyId(encryptor.getMetadata().getTemporaryKeyId());
         request.setEncryptedData(cryptogram.getBodyBase64());
         request.setEphemeralPublicKey(cryptogram.getKeyBase64());
         request.setMac(cryptogram.getMacBase64());

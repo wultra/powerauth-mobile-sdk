@@ -17,6 +17,7 @@ Related projects
 
 If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check following migration guides:
 
+- [Migration from version `1.8.x` to `1.9.x`](docs/Migration-from-1.8-to-1.9.md)
 - [Migration from version `1.7.x` to `1.8.x`](docs/Migration-from-1.7-to-1.8.md)
 - [Migration from version `1.6.x` to `1.7.x`](docs/Migration-from-1.6-to-1.7.md)
 - [Migration from version `1.5.x` to `1.6.x`](docs/Migration-from-1.5-to-1.6.md)
@@ -32,11 +33,12 @@ If you need to upgrade PowerAuth Mobile SDK to a newer version, you can check fo
 
 | Mobile SDK | Protocol | PowerAuth Server    | Support Status                    |
 |------------|----------|---------------------|-----------------------------------|
-| `1.8.x`    | `V3.2`   | `1.5+`              | Fully supported                   |
-| `1.7.x`    | `V3.1`   | `0.24+`             | Security & Functionality bugfixes |
+| `1.9.x`    | `V3.3`   | `1.9+`              | Fully supported                   |
+| `1.8.x`    | `V3.2`   | `1.5+`              | Security & Functionality bugfixes |
+| `1.7.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
 | `1.6.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
 | `1.5.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
-| `1.4.x`    | `V3.1`   | `0.24+`             | Security bugfixes                 |
+| `1.4.x`    | `V3.1`   | `0.24+`             | Not supported                     |
 | `1.3.x`    | `V3.1`   | `0.23+`             | Not supported                     |
 | `1.2.x`    | `V3.0`   | `0.22+`             | Not supported                     |
 | `1.1.x`    | `V3.0`   | `0.21+`             | Not supported                     |

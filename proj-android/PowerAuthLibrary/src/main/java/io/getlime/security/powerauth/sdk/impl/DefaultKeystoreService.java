@@ -47,6 +47,10 @@ public class DefaultKeystoreService implements IKeystoreService, GetTemporaryKey
     private final PublicKeyInfo applicationScopePublicKeyInfo;
     private final PublicKeyInfo activationScopePublicKeyInfo;
 
+    /**
+     * We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
+     * we move the expiration time to backward.
+     */
     private static final long EXPIRATION_THRESHOLD = 10_000;
 
     /**

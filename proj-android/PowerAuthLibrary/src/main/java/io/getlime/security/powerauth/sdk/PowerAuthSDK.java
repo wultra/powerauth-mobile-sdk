@@ -2576,15 +2576,83 @@ public class PowerAuthSDK {
 
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
-     * The returned encryptor is cryptographically bounded to the PowerAuth configuration, so it can be used
+     * The returned encryptor is cryptographically bound to the PowerAuth configuration, so it can be used
      * with or without a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
      * object, allowing you to properly setup HTTP header for the request.
+     *
+     * @param listener Listener with the callback methods.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    public @Nullable ICancelable getEciesEncryptorForApplicationScope(@NonNull IGetEciesEncryptorListener listener) {
+        return createEciesEncryptor(null, listener, true);
+    }
+
+    /**
+     * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
+     * The returned encryptor is cryptographically bound to a device's activation, so it can be used only
+     * when this instance has a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
+     * <p>
+     * Note that the created encryptor has no reference to this instance of {@link PowerAuthSDK}. This means
+     * that if the instance will lose its activation in the future, then the encryptor will still be capable
+     * to encrypt, or decrypt the data. This is an expected behavior, so if you plan to keep the encryptor for
+     * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
+     *
+     * @param context Android {@link Context} object
+     * @param listener Listener with the callback methods.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    public @Nullable ICancelable getEciesEncryptorForActivationScope(@NonNull Context context, @NonNull IGetEciesEncryptorListener listener) {
+        return createEciesEncryptor(context, listener, false);
+    }
+
+    /**
+     * Create application or activation scoped ECIES encryptor.
+     * @param context Android context, required for activation scoped encryptor.
+     * @param listener Listener with the callback methods.
+     * @param applicationScope If {@code true} then encryptor in application scope is created.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    private @Nullable ICancelable createEciesEncryptor(@Nullable final Context context, @NonNull final IGetEciesEncryptorListener listener, final boolean applicationScope) {
+        final IPrivateCryptoHelper helper = getCryptoHelper(context);
+        return mKeystoreService.createKeyForEncryptor(applicationScope ? EciesEncryptorScope.APPLICATION : EciesEncryptorScope.ACTIVATION, helper, new ICreateKeyListener() {
+            @Override
+            public void onCreateKeySucceeded() {
+                try {
+                    final EciesEncryptor encryptor = helper.getEciesEncryptor(applicationScope ? EciesEncryptorId.GENERIC_APPLICATION_SCOPE : EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);
+                    listener.onGetEciesEncryptorSuccess(encryptor);
+                } catch (PowerAuthErrorException exception) {
+                    listener.onGetEciesEncryptorFailed(exception);
+                }
+            }
+
+            @Override
+            public void onCreateKeyFailed(@NonNull Throwable throwable) {
+                listener.onGetEciesEncryptorFailed(throwable);
+            }
+        });
+    }
+
+    /**
+     * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
+     * The returned encryptor is cryptographically bound to the PowerAuth configuration, so it can be used
+     * with or without a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
+     * <p>
+     * Note that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
+     * key is still valid. You should use new {@link #getEciesEncryptorForApplicationScope(IGetEciesEncryptorListener)}
+     * as a replacement.
      *
      * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration.
      *         You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.
+     * @deprecated Use {@link #getEciesEncryptorForApplicationScope(IGetEciesEncryptorListener)} as a replacement.
      */
+    @Deprecated // 1.9.0
     public @Nullable EciesEncryptor getEciesEncryptorForApplicationScope() throws PowerAuthErrorException {
         final IPrivateCryptoHelper helper = getCryptoHelper(null);
         return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_APPLICATION_SCOPE);
@@ -2592,7 +2660,7 @@ public class PowerAuthSDK {
 
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
-     * The returned encryptor is cryptographically bounded to a device's activation, so it can be used only
+     * The returned encryptor is cryptographically bound to a device's activation, so it can be used only
      * when this instance has a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
      * object, allowing you to properly setup HTTP header for the request.
      * <p>
@@ -2600,13 +2668,19 @@ public class PowerAuthSDK {
      * that if the instance will loose its activation in the future, then the encryptor will still be capable
      * to encrypt, or decrypt the data. This is an expected behavior, so if you plan to keep the encryptor for
      * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
+     * <p>
+     * Note that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
+     * key is still valid. You should use new {@link #getEciesEncryptorForActivationScope(Context, IGetEciesEncryptorListener)}
+     * as a replacement.
      *
      * @param context Android {@link Context} object
      * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration or there's
      *         no activation. You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.
+     * @deprecated Use {@link #getEciesEncryptorForActivationScope(Context, IGetEciesEncryptorListener)} as a replacement.
      */
+    @Deprecated // 1.9.0
     public @Nullable EciesEncryptor getEciesEncryptorForActivationScope(@NonNull final Context context) throws PowerAuthErrorException {
         final IPrivateCryptoHelper helper = getCryptoHelper(context);
         return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);

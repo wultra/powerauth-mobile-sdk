@@ -25,35 +25,14 @@
 {
     self = [super init];
     if (self) {
-        _ephemeralPublicKey = cryptogram.keyBase64;
-        _encryptedData = cryptogram.bodyBase64;
-        _mac = cryptogram.macBase64;
-        _nonce = cryptogram.nonceBase64;
-        _timestamp = cryptogram.timestamp;
+        _cryptogram = cryptogram;
     }
     return self;
 }
 
 - (NSDictionary*) toDictionary
 {
-    NSMutableDictionary * dict = [NSMutableDictionary dictionaryWithCapacity:3];
-    if (_temporaryKeyId) {
-        dict[@"temporaryKeyId"] = _temporaryKeyId;
-    }
-    if (_ephemeralPublicKey) {
-        dict[@"ephemeralPublicKey"] = _ephemeralPublicKey;
-    }
-    if (_encryptedData) {
-        dict[@"encryptedData"] = _encryptedData;
-    }
-    if (_mac) {
-        dict[@"mac"] = _mac;
-    }
-    if (_nonce) {
-        dict[@"nonce"] = _nonce;
-    }
-    dict[@"timestamp"] = @(_timestamp);
-    return dict;
+    return [_cryptogram requestPayload];
 }
 
 @end

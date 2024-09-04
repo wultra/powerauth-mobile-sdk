@@ -108,7 +108,7 @@ public class GetTemporaryKeyTask extends GroupedTask<GetTemporaryKeyResponse> {
             if (requestPair == null) {
                 return;
             }
-            ICancelable cancelable = httpClient.post(requestPair.first, new GetTemporaryKeyEndpoint(), cryptoHelper, new INetworkResponseListener<>() {
+            ICancelable cancelable = httpClient.post(requestPair.second, new GetTemporaryKeyEndpoint(), cryptoHelper, new INetworkResponseListener<>() {
                 @Override
                 public void onNetworkResponse(@NonNull JwtObject jwtObject) {
                     try {

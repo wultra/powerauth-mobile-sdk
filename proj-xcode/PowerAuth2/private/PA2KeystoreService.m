@@ -20,6 +20,8 @@
 #import "PA2GetTemporaryKeyResponse.h"
 #import <PowerAuth2/PowerAuthLog.h>
 
+// We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
+// we move the expiration time to backward.
 #define PUBLIC_KEY_EXPIRATION_THRESHOLD 10.0
 
 #pragma mark - Service data

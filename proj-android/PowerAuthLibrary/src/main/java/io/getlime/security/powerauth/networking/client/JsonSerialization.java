@@ -160,7 +160,6 @@ public class JsonSerialization {
     @NonNull
     public <TRequest> byte[] encryptObject(@Nullable TRequest object, @NonNull EciesEncryptor encryptor) throws PowerAuthErrorException {
         final EciesEncryptedRequest request = encryptObjectToRequest(object, encryptor);
-        request.setTemporaryKeyId(encryptor.getMetadata().getTemporaryKeyId());
         return serializeObject(request);
     }
 
@@ -178,7 +177,10 @@ public class JsonSerialization {
         // 1. Deserialize bytes into response object
         final EciesEncryptedResponse response = deserializeObject(data, TypeToken.get(EciesEncryptedResponse.class));
         // 2. Construct cryptogram with data & mac (response doesn't contain ephemeral key)
-        final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac(), null, response.getNonce(), response.getTimestamp());
+        final EciesCryptogram cryptogram = EciesCryptogram.fromEncryptedResponse(response);
+        if (cryptogram == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Invalid encrypted response received.");
+        }
         // 3. Decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {
@@ -228,14 +230,7 @@ public class JsonSerialization {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to encrypt object data.");
         }
         // 3. Construct final request object from the cryptogram
-        final EciesEncryptedRequest request = new EciesEncryptedRequest();
-        request.setTemporaryKeyId(encryptor.getMetadata().getTemporaryKeyId());
-        request.setEncryptedData(cryptogram.getBodyBase64());
-        request.setEphemeralPublicKey(cryptogram.getKeyBase64());
-        request.setMac(cryptogram.getMacBase64());
-        request.setNonce(cryptogram.getNonceBase64());
-        request.setTimestamp(cryptogram.timestamp);
-        return request;
+        return cryptogram.toEncryptedRequest();
     }
 
 
@@ -256,7 +251,10 @@ public class JsonSerialization {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Empty response cannot be decrypted.");
         }
         // 1. Convert response into cryptogram object
-        final EciesCryptogram cryptogram = new EciesCryptogram(response.getEncryptedData(), response.getMac(), null, response.getNonce(), response.getTimestamp());
+        final EciesCryptogram cryptogram = EciesCryptogram.fromEncryptedResponse(response);
+        if (cryptogram == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Invalid encrypted response received.");
+        }
         // 2. Try to decrypt the response
         final byte[] plainData = decryptor.decryptResponse(cryptogram);
         if (plainData == null) {

@@ -129,9 +129,7 @@
         return nil;
     }
     // Finally, construct a request body from cryptogram
-    PA2EncryptedRequest * encryptedRequest = [[PA2EncryptedRequest alloc] initWithCryptogram:cryptogram];
-    encryptedRequest.temporaryKeyId = encryptor.associatedMetaData.temporaryKeyId;
-    return encryptedRequest;
+    return [[PA2EncryptedRequest alloc] initWithCryptogram:cryptogram];
 }
 
 

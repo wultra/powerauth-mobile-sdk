@@ -9,8 +9,9 @@
         "1.6" : "v15",
         "1.7" : "v15",
         "1.8" : "v15",
+        "1.9" : "v19",
         
-        "*"   : "v15"
+        "*"   : "v19"
     },
     "mappings": {
         "v10": {
@@ -20,7 +21,8 @@
             "CreateApplicationVersion":     "CreateApplicationVersion_v10",
             "SupportApplicationVersion":    "SupportApplicationVersion_v10",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v10",
-            "TokenValidate":                "TokenValidate_v10"
+            "TokenValidate":                "TokenValidate_v10",
+            "VerifyECDSASignature":         "VerifyECDSASignature_v10"
         },
         "v13": {
             "GetApplicationList":           "GetApplicationList_v13",
@@ -29,12 +31,19 @@
             "CreateApplicationVersion":     "CreateApplicationVersion_v13",
             "SupportApplicationVersion":    "SupportApplicationVersion_v13",
             "UnsupportApplicationVersion":  "UnsupportApplicationVersion_v13",
-            "TokenValidate":                "TokenValidate_v10"
+            "TokenValidate":                "TokenValidate_v10",
+            "VerifyECDSASignature":         "VerifyECDSASignature_v10"
         },
         "v15": { "#base": "v13",
             "GetApplicationDetail":         "GetApplicationDetail_v15",
             "CreateApplicationVersion":     "CreateApplicationVersion_v15",
             "TokenValidate":                "TokenValidate_v15"
+        },
+        "v19": { "#base": "v15",
+            "GetApplicationDetail":         "GetApplicationDetail_v15",
+            "CreateApplicationVersion":     "CreateApplicationVersion_v15",
+            "TokenValidate":                "TokenValidate_v15",
+            "VerifyECDSASignature":         "VerifyECDSASignature_v19"
         }
-    }   
+    }
 }

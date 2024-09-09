@@ -502,7 +502,7 @@ public class StandardActivationTest {
         );
 
         // Validate signature
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64);
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, "JOSE");
         assertTrue(result);
     }
 }

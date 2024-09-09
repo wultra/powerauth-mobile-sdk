@@ -502,7 +502,8 @@ public class StandardActivationTest {
         );
 
         // Validate signature
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64);
+        // Note that signature format is supported from PAS 1.9+
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, "JOSE");
         assertTrue(result);
     }
 }

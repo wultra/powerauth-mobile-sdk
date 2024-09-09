@@ -339,12 +339,25 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
 {
-    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
-    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
-    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:@[activationId, dataB64, signatureB64]];
-    return [response[@"signatureValid"] boolValue];
+    return [self verifyECDSASignature:activationId data:data signature:signature signatureFormat:nil];
 }
 
+- (BOOL) verifyECDSASignature:(NSString*)activationId
+                         data:(NSData*)data
+                    signature:(NSData*)signature
+              signatureFormat:(NSString*)signatureFormat
+{
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+    NSArray * params;
+    if (signatureFormat) {
+        params = @[activationId, dataB64, signatureB64, signatureFormat];
+    } else {
+        params = @[activationId, dataB64, signatureB64];
+    }
+    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:params];
+    return [response[@"signatureValid"] boolValue];
+}
 
 #pragma mark - Tokens
 

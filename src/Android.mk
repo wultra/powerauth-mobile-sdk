@@ -130,9 +130,9 @@ LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES 	:= PowerAuth2
 LOCAL_LDLIBS            := -llog
 ifeq ($(NDK_DEBUG),1)
-	LOCAL_LDFLAGS       := -Wl,--hash-style=both,--exclude-libs,ALL
+	LOCAL_LDFLAGS       := -Wl,-z,max-page-size=16384,--hash-style=both,--exclude-libs,ALL
 else
-	LOCAL_LDFLAGS       := -Wl,--hash-style=both,-s,--exclude-libs,ALL
+	LOCAL_LDFLAGS       := -Wl,-z,max-page-size=16384,--hash-style=both,-s,--exclude-libs,ALL
 endif
 
 LOCAL_C_INCLUDES := \

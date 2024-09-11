@@ -191,7 +191,7 @@ The original activation method uses a one-time activation code generated in Powe
 Use the following code to create an activation once you have an activation code:
 
 ```swift
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create an activation object with the given activation code.
@@ -213,12 +213,16 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 
 If the received activation result also contains recovery data, then you should display those values to the user. To do that, please read the [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
+
 #### Additional Activation OTP
 
 If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure the `PowerAuthActivation` object:
 
 ```swift
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 let activationOtp = "12345"
 
@@ -234,6 +238,10 @@ guard let activation = try? PowerAuthActivation(activationCode: activationCode, 
 Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
 <!-- end -->
 
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
+
 ### Activation via Custom Credentials
 
 You may also create an activation using any custom login data - it can be anything that the server can use to obtain the user ID to associate with a new activation. Since the credentials are custom, the server's implementation must be able to process such a request. Unlike the previous versions of SDK, the custom activation no longer requires a custom activation endpoint.
@@ -242,7 +250,7 @@ Use the following code to create an activation using custom credentials:
 
 ```swift
 // Create a new activation with a given device name and custom login credentials
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let credentials = [
     "username": "john.doe@example.com",
     "password": "YBzBEM"
@@ -265,8 +273,13 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 }
 ```
 
+<!-- begin box warning -->
 Note that by using weak identity attributes to create an activation, the resulting activation confirms a "blurry identity". This may greatly limit the legal weight and usability of a signature. We recommend using a strong identity verification before activation can actually be created.
+<!-- end -->
 
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
 
 ### Activation via Recovery Code
 
@@ -275,7 +288,7 @@ If the PowerAuth Server is configured to support [Recovery Codes](https://github
 Use the following code to create an activation using the recovery code:
 
 ```swift
-let deviceName = "John Tramonta" // or UIDevice.current.name
+let deviceName = "John Tramonta" // or UIDevice.current.name (see warning below)
 let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PowerAuthActivationCodeUtil
 
@@ -303,6 +316,10 @@ powerAuthSDK.createActivation(activation) { (result, error) in
     }
 }
 ```
+
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
 
 ### Customize Activation
 

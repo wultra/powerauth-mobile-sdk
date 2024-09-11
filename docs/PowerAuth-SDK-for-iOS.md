@@ -1770,13 +1770,10 @@ To share the activation's state just assign an instance of the `PowerAuthSharing
 
 ```swift
 // Prepare the configuration
-let configuration = PowerAuthConfiguration()
-// Standard configuration
-configuration.instanceId = "SharedInstance"
-configuration.appKey = "sbG8gd...MTIzNA=="
-configuration.appSecret = "aGVsbG...MTIzNA=="
-configuration.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-configuration.baseEndpointUrl = "https://localhost:8080/demo-server"
+let configuration = PowerAuthConfiguration(
+        instanceId: Bundle.main.bundleIdentifier!,
+        baseEndpointUrl: "https://localhost:8080/demo-server",
+        configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 // Assign sharing configuration
 configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     appGroup: "group.your.app.group", 
@@ -1789,7 +1786,7 @@ let powerAuthSDK = PowerAuthSDK(configuration)
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
 
-- `appGroup` is the name of the app group shared between your applications.
+- `appGroup` is the name of the app group shared between your applications. Be aware, that the length of app group encoded in UTF-8, should not exceed 26 characters. See [troubleshooting](#length-of-application-group) section for more details.
 - `appIdentifier` is an identifier unique across your all applications that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
 - `keychainAccessGroup` is an access group for keychain sharing.
 
@@ -2218,3 +2215,15 @@ The tvOS SDK is not required by default since the SDK version 1.7.7. If your bui
 ```sh
 pod cache clean 'PowerAuthCore' --all
 ```
+
+### Length of application group
+
+In case you use the [Activation data sharing](#share-activation-data) feature, the length of the application group encoded in UTF-8 must not exceed **26 characters**. This limitation exists because the feature relies on named shared memory objects, and iOS imposes an undocumented restriction on the length of such object names.
+
+The total length is limited to 31 characters, but the shared memory object name must be prefixed with your app group, separated by a period (.), to function properly across your applications. We chose to use a 4-character long shared memory object name, generated from the PowerAuthSDK’s instance identifier. As a result, the actual limit for your app group name is:
+
+```
+31 - 1 - 4 = 26
+```
+
+You can extend the length of the application group slightly by providing your own `sharedMemoryIdentifier` in the `PowerAuthSharingConfiguration`. In theory, this allows you to use an app group name of up to 29 characters, leaving 1 character for the shared memory identifier. However, this is generally not recommended. A custom identifier should only be used if your application already employs shared memory and the SDK’s generated identifier conflicts with your existing shared memory objects.

@@ -1758,7 +1758,7 @@ You can remove EEK from an existing activation if the key is no longer required.
 
 ## Share Activation Data
 
-This chapter explains how to share the `PowerAuthSDK` activation state between multiple applications from the same vendor. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
+This chapter explains how to share the `PowerAuthSDK` activation state between multiple applications from the same vendor, or between application and its extensions. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
 
 <!-- begin box warning -->
 This feature is not supported on the macOS Catalyst platform.

@@ -475,28 +475,18 @@ if powerAuthSDK.hasValidActivation() {
 
         // If no error occurred, process the status
         if let status = status {
-            // Activation state: .created, .pendingCommit, .blocked, .removed, .deadlock
+            // Activation states are explained in detail in "Activation states" chapter below
             switch status.state {
             case .pendingCommit:
-                // Activation is awaiting commit on the server.
                 print("Waiting for commit")
             case .active:
-                // Activation is valid and active.
                 print("Activation is active")
             case .blocked:
-                // Activation is blocked. You can display unblock
-                // instructions to the user.
                 print("Activation is blocked")
             case .removed:
-                // Activation is no longer valid on the server.
-                // You can inform the user about this situation and remove
-                // activation locally.
                 print("Activation is no longer valid")
                 powerAuthSDK.removeActivationLocal()
             case .deadlock:
-                // Local activation is technically blocked and no longer
-                // can be used for the signature calculations. You can inform
-                // user about this situation and remove activation locally.
                 print("Activation is technically blocked")
                 powerAuthSDK.removeActivationLocal()
             case .created:
@@ -529,7 +519,41 @@ if powerAuthSDK.hasValidActivation() {
 
 Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCode.protocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
-To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+### Activation states
+
+This chapter explains activation states in detail. To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+
+#### `PowerAuthActivationState.created` 
+
+The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
+
+#### `PowerAuthActivationState.pendingCommig`
+
+The activation record is created and key exchange between the client and server already took place, but the activation record needs additional approval before it can be used.
+
+#### `PowerAuthActivationState.active`
+
+The activation record is created and active. It is ready to be used for typical use-cases, such as generating signatures.
+
+#### `PowerAuthActivationState.blocked` 
+
+The activation record is blocked and cannot be used for most of the use-cases, such as generating signatures. It can be unblocked and activated again.
+
+#### `PowerAuthActivationState.removed`
+
+The activation record is removed and permanently blocked. It cannot be used for generating signatures or ever unblocked. You can inform user about this situation and remove the activation locally.
+
+#### `PowerAuthActivationState.deadlock` 
+
+The local activation is technically blocked and can no longer be used for signature calculations. You can inform the user about this situation and remove the activation locally.
+
+The reason why the mobile client is no longer capable of calculating valid signatures is that the logical counter is out of sync between the client and the server. This may happen only if the mobile client calculates too many PowerAuth signatures without subsequent validation on the server. For example:
+
+- If your application repeatedly constructs HTTP requests with a PowerAuth signature while the network is unreachable.
+- If your application repeatedly creates authentication tokens while the network is unreachable. For example, when trying to register for push notifications in the background, without user interaction.
+- If you calculate too many offline signatures without subsequent validation.
+
+In rare situations, this may also happen in development or testing environments, where you’re able to restore the state of the activation on the server from a snapshot.
 
 ## Data Signing
 

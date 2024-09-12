@@ -813,36 +813,25 @@ fun validateTypedCharacters(input: String): String? {
 
 To obtain detailed activation status information, use the following code:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Check if there is some activation on the device
 if (powerAuthSDK.hasValidActivation()) {
     // If there is an activation on the device, check the status with server
     powerAuthSDK.fetchActivationStatusWithCallback(context, object: IActivationStatusListener {
         override fun onActivationStatusSucceed(status: ActivationStatus) {
-            // Activation state: State_Created, State_Pending_Commit, State_Active, State_Blocked, State_Removed, State_Deadlock
+            // Activation states are explained in detail in "Activation states" chapter below
             when (status.state) {
                 ActivationStatus.State_Pending_Commit ->
-                    // Activation is awaiting commit on the server.
                     Log.i(TAG, "Waiting for commit")
                 ActivationStatus.State_Active ->
-                    // Activation is valid and active.
                     Log.i(TAG, "Activation is active")
                 ActivationStatus.State_Blocked ->
-                    // Activation is blocked. You can display unblock
-                    // instructions to the user.
                     Log.i(TAG, "Activation is blocked")
                 ActivationStatus.State_Removed -> {
-                    // Activation is no longer valid on the server.
-                    // You can inform user about this situation and remove
-                    // activation locally.
                     Log.i(TAG, "Activation is no longer valid")
                     powerAuthSDK.removeActivationLocal(context)
                 }
                 ActivationStatus.State_Deadlock -> {
-                    // Local activation is technically blocked and no longer
-                    // can be used for the signature calculations. You can inform
-                    // user about this situation and remove activation locally.
                     Log.i(TAG, "Activation is technically blocked")
                     powerAuthSDK.removeActivationLocal(context)
                 }
@@ -867,75 +856,44 @@ if (powerAuthSDK.hasValidActivation()) {
     // No activation present on device
 }
 ```
-```java
-// Check if there is some activation on the device
-if (powerAuthSDK.hasValidActivation()) {
-    // If there is an activation on the device, check the status with server
-    powerAuthSDK.fetchActivationStatusWithCallback(context, new IActivationStatusListener() {
-        @Override
-        public void onActivationStatusSucceed(ActivationStatus status) {
-            // Activation state: State_Created, State_Pending_Commit, State_Active, State_Blocked, State_Removed, State_Deadlock
-            switch (status.state) {
-                case ActivationStatus.State_Pending_Commit:
-                    // Activation is awaiting commit on the server.
-                    android.util.Log.i(TAG, "Waiting for commit");
-                    break;
-                case ActivationStatus.State_Active:
-                    // Activation is valid and active.
-                    android.util.Log.i(TAG, "Activation is active");
-                    break;
-                case ActivationStatus.State_Blocked:
-                    // Activation is blocked. You can display unblock
-                    // instructions to the user.
-                    android.util.Log.i(TAG, "Activation is blocked");
-                    break;
-                case ActivationStatus.State_Removed:
-                    // Activation is no longer valid on the server.
-                    // You can inform user about this situation and remove
-                    // activation locally.
-                    android.util.Log.i(TAG, "Activation is no longer valid");
-                    powerAuthSDK.removeActivationLocal(context);
-                    break;
-                case ActivationStatus.State_Deadlock:
-                    // Local activation is technically blocked and no longer
-                    // can be used for the signature calculations. You can inform
-                    // user about this situation and remove activation locally.
-                    android.util.Log.i(TAG, "Activation is technically blocked");
-                    powerAuthSDK.removeActivationLocal(context);
-                    break;
-                case ActivationStatus.State_Created:
-                    // Activation is just created. This is the internal
-                    // state on the server and therefore can be ignored
-                    // on the mobile application.
-                default:
-                    android.util.Log.i(TAG, "Unknown state");
-                    break;
-            }
-
-            // Failed login attempts, remaining = max - current
-            int currentFailCount = status.failCount;
-            int maxAllowedFailCount = status.maxFailCount;
-            int remainingFailCount = status.getRemainingAttempts();
-
-            if (status.getCustomObject() != null) {
-                // Custom object contains any proprietary server specific data
-            }
-        }
-
-        @Override
-        public void onActivationStatusFailed(Throwable t) {
-            // Network error occurred, report it to the user
-        }
-    });
-} else {
-    // No activation present on device
-}
-```
-<!-- end -->
 
 Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCodes.PROTOCOL_UPGRADE`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
-To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+### Activation states
+
+This chapter explains activation states in detail. To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+
+#### `ActivationStatus.State_Created` 
+
+The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
+
+#### `ActivationStatus.State_Pending_Commit`
+
+The activation record is created and key exchange between the client and server already took place, but the activation record needs additional approval before it can be used.
+
+#### `ActivationStatus.State_Active`
+
+The activation record is created and active. It is ready to be used for typical use-cases, such as generating signatures.
+
+#### `ActivationStatus.State_Blocked`
+
+The activation record is blocked and cannot be used for most of the use-cases, such as generating signatures. It can be unblocked and activated again.
+
+#### `ActivationStatus.State_Removed`
+
+The activation record is removed and permanently blocked. It cannot be used for generating signatures or ever unblocked. You can inform user about this situation and remove the activation locally.
+
+#### `ActivationStatus.State_Deadlock`
+
+The local activation is technically blocked and can no longer be used for signature calculations. You can inform the user about this situation and remove the activation locally.
+
+The reason why the mobile client is no longer capable of calculating valid signatures is that the logical counter is out of sync between the client and the server. This may happen only if the mobile client calculates too many PowerAuth signatures without subsequent validation on the server. For example:
+
+- If your application repeatedly constructs HTTP requests with a PowerAuth signature while the network is unreachable.
+- If your application repeatedly creates authentication tokens while the network is unreachable. For example, when trying to register for push notifications in the background, without user interaction.
+- If you calculate too many offline signatures without subsequent validation.
+
+In rare situations, this may also happen in development or testing environments, where you’re able to restore the state of the activation on the server from a snapshot.
 
 ## Data Signing
 

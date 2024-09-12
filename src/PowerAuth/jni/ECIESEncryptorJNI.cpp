@@ -34,7 +34,7 @@ CC7_JNI_MODULE_CLASS_BEGIN()
 // Helper functions
 // ----------------------------------------------------------------------------
 
-jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & cryptogram, const ECIESParameters & parameters)
+jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & cryptogram, const ECIESParameters & parameters, const std::string & temporaryKeyId)
 {
     if (!env) {
         CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
@@ -51,6 +51,7 @@ jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const ECIESCryptogram & 
     CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "mac",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.mac));
     CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "key",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.key));
     CC7_JNI_SET_FIELD_BYTEARRAY(resultObject, resultClazz, "nonce",  cc7::jni::CopyToNullableJavaByteArray(env, cryptogram.nonce));
+    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "temporaryKeyId", cc7::jni::CopyToNullableJavaString(env, temporaryKeyId));
     CC7_JNI_SET_FIELD_LONG(resultObject, resultClazz, "timestamp",  (jlong) parameters.timestamp);
     return resultObject;
 }
@@ -82,7 +83,7 @@ jobject CreateJavaEncryptorFromCppObject(JNIEnv * env, const ECIESEncryptor & en
     return resultObject;
 }
 
-static cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor)
+static cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor, std::string & out_temporary_key_id)
 {
     if (!env) {
         CC7_ASSERT(false, "Missing required parameter or java environment is not valid.");
@@ -101,9 +102,10 @@ static cc7::ByteArray LoadAssociatedData(JNIEnv * env, jobject encryptor)
         return cc7::ByteArray();
     }
     // Extract parameters from EciesMetaData object
+    out_temporary_key_id = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "temporaryKeyId"));
     auto applicationKey = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "applicationKey"));
     auto activationId = cc7::jni::CopyFromJavaString(env, CC7_JNI_GET_FIELD_STRING(metaData, metaDataClazz, "activationIdentifier"));
-    return ECIESUtils::buildAssociatedData(applicationKey, activationId);
+    return ECIESUtils::buildAssociatedData(applicationKey, out_temporary_key_id, activationId);
 }
 
 // ----------------------------------------------------------------------------
@@ -244,8 +246,9 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequestImpl, jbyteArray requestData, jlong
     // Encrypt request
     ECIESCryptogram cppCryptogram;
     ECIESParameters cppParameters;
+    std::string temporaryKeyId;
     cppParameters.timestamp = (cc7::U64)timestamp;
-    cppParameters.associatedData = LoadAssociatedData(env, thiz);
+    cppParameters.associatedData = LoadAssociatedData(env, thiz, temporaryKeyId);
     if (cppParameters.associatedData.empty()) {
         return nullptr;
     }
@@ -254,7 +257,7 @@ CC7_JNI_METHOD_PARAMS(jobject, encryptRequestImpl, jbyteArray requestData, jlong
         CC7_ASSERT(false, "ECIESCryptogram.encryptRequest: failed with error code %d", ec);
         return nullptr;
     }
-    return CreateJavaCryptogramFromCppObject(env, cppCryptogram, cppParameters);
+    return CreateJavaCryptogramFromCppObject(env, cppCryptogram, cppParameters, temporaryKeyId);
 }
 
 //
@@ -270,7 +273,8 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, decryptResponseImpl, jobject cryptogram)
     // Copy parameters to CPP objects
     ECIESCryptogram cppCryptogram;
     ECIESParameters cppParameters;
-    cppParameters.associatedData = LoadAssociatedData(env, thiz);
+    std::string foo;
+    cppParameters.associatedData = LoadAssociatedData(env, thiz, foo);
     if (cppParameters.associatedData.empty()) {
         return nullptr;
     }

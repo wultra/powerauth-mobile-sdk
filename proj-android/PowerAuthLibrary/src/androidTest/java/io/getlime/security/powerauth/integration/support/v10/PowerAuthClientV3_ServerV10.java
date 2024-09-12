@@ -319,7 +319,10 @@ public class PowerAuthClientV3_ServerV10 implements PowerAuthServerApi {
     }
 
     @Override
-    public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature) throws Exception {
+    public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @Nullable String format) throws Exception {
+        if (format != null && !"DER".equals(format)) {
+            throw new IllegalArgumentException("Unsupported format: " + format);
+        }
         final VerifyEcdsaSignatureEndpoint.Request request = new VerifyEcdsaSignatureEndpoint.Request();
         request.setActivationId(activationId);
         request.setData(data);

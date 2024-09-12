@@ -99,7 +99,7 @@
     tokenIdentifier = _tokenData.identifier;
 
     // Prepare data for HMAC
-    NSString * protocolVersion = @"3.2";
+    NSString * protocolVersion = @"3.3";
     NSNumber * currentTimeMs = @((int64_t)([timeService currentTime] * 1000.0));
     NSString * currentTimeString = [currentTimeMs stringValue];
     NSData * currentTimeData = [currentTimeString dataUsingEncoding:NSASCIIStringEncoding];

@@ -65,6 +65,12 @@ namespace powerAuthTests
             ccstAssertTrue(success);
             ccstAssertFalse(signature.empty());
             
+            // convert to JOSE and back to DER
+            auto jose_signature = crypto::ECDSA_DERtoJOSE(signature);
+            ccstAssertFalse(signature.empty());
+            auto der_signature = crypto::ECDSA_JOSEtoDER(jose_signature);
+            ccstAssertEqual(signature, der_signature);
+            
             // Validate signature
             auto result = crypto::ECDSA_ValidateSignature(message, signature, public_key);
             ccstAssertTrue(result);

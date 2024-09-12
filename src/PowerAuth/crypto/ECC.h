@@ -90,6 +90,15 @@ namespace crypto
      Computes signature for data with given private key.
      */
     bool            ECDSA_ComputeSignature(const cc7::ByteRange & data, EC_KEY * privateKey, cc7::ByteArray & signature);
+
+    /**
+     Convert ECDSA signature from DER format to JOSE. If operation fails, then returned array is empty.
+     */
+    cc7::ByteArray  ECDSA_DERtoJOSE(const cc7::ByteRange & der_signature);
+    /**
+     Convert ECDSA signature from JOSE to DER format. If operation fails, then returned array is empty.
+     */
+    cc7::ByteArray  ECDSA_JOSEtoDER(const cc7::ByteRange & jose_signature);
     
     // -------------------------------------------------------------------------------------------
     // MARK: - ECDH -

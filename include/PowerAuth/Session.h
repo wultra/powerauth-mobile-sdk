@@ -38,6 +38,7 @@ namespace powerAuth
     {
         struct PersistentData;
         struct ActivationData;
+        struct SessionData;
     }
     
     /**
@@ -86,9 +87,10 @@ namespace powerAuth
         
         /**
          Resets session into its initial state. The existing session's setup and the external encryption
-         key is preserved by this call.
+         key is preserved by this call. If |full_reset| parameter is true, then also resets data not relevant
+         to the activation state. For example, ECIES public key for application scope.
          */
-        void resetSession();
+        void resetSession(bool full_reset = true);
 
         
         // MARK: - State probing -
@@ -305,6 +307,20 @@ namespace powerAuth
                  EC_WrongParam  if data structure doesn't contain signature
          */
         ErrorCode verifyServerSignedData(const SignedData & data) const;
+        
+        /**
+         Calculates HMAC-SHA256 signature with using key specified in |data|. The output signature is 
+         also stored to provided data object. If `HMAC_Activation` key is requested, then |keys| must
+         contain possession factor unlock key and the session must have valid activation.
+         
+         Returns EC_Ok,         if operation succeeded and signature is computed.
+                 EC_Encryption  if cryptographic operation failed.
+                 EC_WrongState  if session contains invalid setup, or valid activation is required
+                                for the requested key.
+                 EC_WrongParam  if keys structure doesn't contain possession factor unlock key
+                                and the key is required.
+         */
+        ErrorCode signDataWithHmacKey(SignedData & data, const SignatureUnlockKeys & keys) const;
 
         
         // MARK: - Signature keys management -
@@ -413,7 +429,8 @@ namespace powerAuth
                  EC_WrongParam, if some required parameter is missing
          */
         ErrorCode signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
-                                               const cc7::ByteRange & data, cc7::ByteArray & out_signature);
+                                               const cc7::ByteRange & data, SignedData::SignatureFormat out_format,
+                                               cc7::ByteArray & out_signature);
         
     private:
 
@@ -493,7 +510,37 @@ namespace powerAuth
          */
         ErrorCode getEciesEncryptor(ECIESEncryptorScope scope, const SignatureUnlockKeys & keys,
                                     const cc7::ByteRange & sharedInfo1, ECIESEncryptor & out_encryptor) const;
-
+        /**
+         Sets a server's public key and its identifier for ECIES encryption. The scope of the encryption is
+         determined by |scope| parameter.
+         
+         Returns EC_Ok          if operation succeeded.
+                 EC_WrongState  if activation scope is used and the session has no valid activation, or
+                                if session object has no valid setup.
+                 EC_WrongParam  if public key is empty, or doesn't contain Base64 encoded data, or
+                                if key identifier is empty.
+         */
+        ErrorCode setPublicKeyForEciesScope(ECIESEncryptorScope scope, const std::string & public_key, const std::string & key_id);
+        
+        /**
+         Removes a server's public key and its identifier store for the given scope. It's safe to call this
+         function if key for given scope is not set.
+         */
+        void removePublicKeyForEciesScope(ECIESEncryptorScope scope);
+        
+        /**
+         Determines whether session contains stored server's public key for ECIES scope.
+         */
+        bool hasPublicKeyForEciesScope(ECIESEncryptorScope scope) const;
+        
+        /**
+         Returns identifier of server's public key for given scope. If no key is set, or if function is called in
+         wrong state, then returns empty string.
+         */
+        std::string getPublicKeyIdForEciesScope(ECIESEncryptorScope scope) const;
+        
+    public:
+        
         // MARK: - Utilities for generic keys -
         
         /**
@@ -663,6 +710,12 @@ namespace powerAuth
          during the activation process.
          */
         protocol::ActivationData * _ad;
+        
+        /**
+         Pointer to private session data structure. The pointer is valid during the whole
+         Session object lifetime.
+         */
+        protocol::SessionData * _sd;
         
         /**
          Commits a |new_pd| and |new_state| as a new valid session state.

@@ -63,6 +63,8 @@ static void _TestGen(NSString * format, ...)
     NSString * _activationId;
     NSArray * _sharedInfo1Values;
     NSUInteger _sharedInfo1Index;
+    NSString * _tempKeyIdActivation;
+    NSString * _tempKeyIdApplication;
     
     io::getlime::powerAuth::ECIESDecryptor _decryptor;
     
@@ -89,6 +91,8 @@ static void _TestGen(NSString * format, ...)
         @[@"/pa/recovery/confirm",      @"CONFIRM_RECOVERY_CODE"]
     ];
     _timeService = [[TestTimeService alloc] init];
+    _tempKeyIdActivation = [NSUUID UUID].UUIDString;
+    _tempKeyIdApplication = [NSUUID UUID].UUIDString;
 }
 
 - (void) testGenerateEciesTestVectors
@@ -101,7 +105,6 @@ static void _TestGen(NSString * format, ...)
     NSMutableArray * arrSharedInfo1s = [NSMutableArray array];
     NSMutableArray * arrEncryptedRequests = [NSMutableArray array];
     NSMutableArray * arrEncryptedResponses = [NSMutableArray array];
-    
     td[@"configuration"] = @{
         @"keyMasterPrivate": [_masterKeyPair.privateKey.privateKeyBytes base64EncodedStringWithOptions:0],
         @"keyMasterPublic": [_masterKeyPair.publicKey.publicKeyBytes base64EncodedStringWithOptions:0],
@@ -110,7 +113,9 @@ static void _TestGen(NSString * format, ...)
         @"applicationKey": _appKey,
         @"applicationSecret": _appSecret,
         @"transportKey": [_transportKey base64EncodedStringWithOptions:0],
-        @"activationId": _activationId
+        @"activationId": _activationId,
+        @"tempKeyIdApplication": _tempKeyIdApplication,
+        @"tempKeyIdActivation": _tempKeyIdActivation
     };
     td[@"testData"] = tda;
     for (int i = 0; i < 16; i++) {
@@ -152,6 +157,7 @@ static void _TestGen(NSString * format, ...)
         [arrScopes addObject:@(appScope)];
         
         NSDictionary * req = @{
+            @"temporaryKeyId": appScope ? _tempKeyIdApplication : _tempKeyIdActivation,
             @"ephemeralPublicKey": request.keyBase64,
             @"encryptedData": request.bodyBase64,
             @"mac": request.macBase64,
@@ -189,6 +195,8 @@ static void _TestGen(NSString * format, ...)
     TestGen(@"final PublicKey masterServerPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(\"%@\"));", td[@"configuration"][@"keyMasterPublic"]);
     TestGen(@"final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(ByteUtils.concat(new byte[1], Base64.getDecoder().decode(\"%@\")));", td[@"configuration"][@"keyServerPrivate"]);
     TestGen(@"final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(\"%@\"));", td[@"configuration"][@"keyServerPublic"]);
+    TestGen(@"final String tempKeyIdApplication = \"%@\";", _tempKeyIdApplication);
+    TestGen(@"final String tempKeyIdActivation = \"%@\";", _tempKeyIdActivation);
     TestGen(@"final String activationId = \"%@\";", _activationId);
     TestGen(@"final String applicationKey = \"%@\";", _appKey);
     TestGen(@"final String applicationSecret = \"%@\";", _appSecret);
@@ -227,6 +235,7 @@ static void _TestGen(NSString * format, ...)
     TestGen(@"final EncryptedRequest[] encryptedRequest = {");
     [arrEncryptedRequests enumerateObjectsUsingBlock:^(NSDictionary * obj, NSUInteger idx, BOOL * _Nonnull stop) {
         TestGen(@"    new EncryptedRequest(");
+        TestGen(@"        \"%@\",", obj[@"temporaryKeyId"]);
         TestGen(@"        \"%@\",", obj[@"ephemeralPublicKey"]);
         TestGen(@"        \"%@\",", obj[@"encryptedData"]);
         TestGen(@"        \"%@\",", obj[@"mac"]);
@@ -279,6 +288,7 @@ static void _TestGen(NSString * format, ...)
 - (PowerAuthCoreEciesEncryptor*) createEncryptor:(BOOL)appScope sh1:(NSString*)sh1
 {
     NSData * publicKeyBytes = appScope ? _masterKeyPair.publicKey.publicKeyBytes : _serverKeyPair.publicKey.publicKeyBytes;
+    NSString * tempKeyId = appScope ? _tempKeyIdApplication : _tempKeyIdActivation;
     NSData * sharedInfo1 = [sh1 dataUsingEncoding:NSUTF8StringEncoding];
     NSData * sharedInfo2 = [self sh2ForScope:appScope];
     NSString * activationId = appScope ? nil : _activationId;
@@ -286,7 +296,9 @@ static void _TestGen(NSString * format, ...)
                                                                                              publicKey:publicKeyBytes
                                                                                            sharedInfo1:sharedInfo1
                                                                                            sharedInfo2:sharedInfo2];
-    encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:_appKey activationIdentifier:activationId];
+    encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:_appKey
+                                                                               temporaryKeyId:tempKeyId
+                                                                         activationIdentifier:activationId];
     return encryptor;
 }
 

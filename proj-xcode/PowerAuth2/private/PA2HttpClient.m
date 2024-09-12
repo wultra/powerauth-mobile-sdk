@@ -18,6 +18,7 @@
 #import "PA2AsyncOperation.h"
 #import "PA2CompositeTask.h"
 #import "PA2PrivateMacros.h"
+#import "PA2KeystoreService.h"
 #import "PowerAuthLog.h"
 #import "PA2Result.h"
 
@@ -174,9 +175,15 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
                                completion:(void(^)(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError * error))completion
                                    cancel:(void(^)(void))customCancelBlock
 {
-    if (endpoint.requireSynchronizedTime && !_timeService.isTimeSynchronized) {
-        // Endpoint require encryption and time is not synchronized yet. We have to create a composite task that cover both
-        // time synchronization and actual request execution.
+    PA2KeystoreService * keystoreService = _cryptoHelper.keystoreService;
+    
+    PowerAuthCoreEciesEncryptorScope encryptorScope = endpoint.isEncryptedWithApplicationScope ? PowerAuthCoreEciesEncryptorScope_Application : PowerAuthCoreEciesEncryptorScope_Activation;
+    BOOL requireTimeSynchronization = endpoint.requireSynchronizedTime && !_timeService.isTimeSynchronized;
+    BOOL requireEncryptionKey = endpoint.isEncrypted && ![keystoreService hasKeyForEncryptorScope:encryptorScope];
+
+    if (requireTimeSynchronization || requireEncryptionKey) {
+        // Endpoint require encryption key or time is not synchronized yet. We have to create a composite task that handle multiple
+        // requests before an actual request is executed.
         PA2CompositeTask * compositeTask = [[PA2CompositeTask alloc] initWithCancelBlock:customCancelBlock];
         // Prepare common completion block with the composite task.
         void (^compositeCompletion)(PowerAuthRestApiResponseStatus, id<PA2Decodable>, NSError *) = ^(PowerAuthRestApiResponseStatus status, id<PA2Decodable> response, NSError *error) {
@@ -189,18 +196,34 @@ static void _LogHttpResponse(PA2RestApiEndpoint * endpoint, NSHTTPURLResponse * 
                 }
             });
         };
-        // Start the time synchronization
-        id<PowerAuthOperationTask> synchronizationTask = [_timeService synchronizeTimeWithCallback:^(NSError * error) {
-            if (!error) {
-                // The time has been successfully synchronized, we can continue with the actual request.
-                NSOperation* actualOperation = [self postOperationWithObject:object to:endpoint auth:authentication completion:compositeCompletion cancel:nil];
-                [compositeTask replaceOperationTask:actualOperation];
-            } else {
-                // Report error to composite completion.
-                compositeCompletion(PowerAuthRestApiResponseStatus_ERROR, nil, error);
-            }
-        } callbackQueue:_completionQueue];
-        [compositeTask replaceOperationTask:synchronizationTask];
+        // Now determine what type of task should be executed before an actual task.
+        if (requireEncryptionKey) {
+            // Acquire temporary encryption key. This also synchronizes time as a side effect.
+            id<PowerAuthOperationTask> getKeyTask = [keystoreService createKeyForEncryptorScope:encryptorScope callback:^(NSError * error) {
+                if (!error) {
+                    // The temporary encryption key has been successfully obtained, we can continue with the actual request.
+                    NSOperation* actualOperation = [self postOperationWithObject:object to:endpoint auth:authentication completion:compositeCompletion cancel:nil];
+                    [compositeTask replaceOperationTask:actualOperation];
+                } else {
+                    // Report error to composite completion.
+                    compositeCompletion(PowerAuthRestApiResponseStatus_ERROR, nil, error);
+                }
+            }];
+            [compositeTask replaceOperationTask:getKeyTask];
+        } else {
+            // Start the time synchronization
+            id<PowerAuthOperationTask> synchronizationTask = [_timeService synchronizeTimeWithCallback:^(NSError * error) {
+                if (!error) {
+                    // The time has been successfully synchronized, we can continue with the actual request.
+                    NSOperation* actualOperation = [self postOperationWithObject:object to:endpoint auth:authentication completion:compositeCompletion cancel:nil];
+                    [compositeTask replaceOperationTask:actualOperation];
+                } else {
+                    // Report error to composite completion.
+                    compositeCompletion(PowerAuthRestApiResponseStatus_ERROR, nil, error);
+                }
+            } callbackQueue:_completionQueue];
+            [compositeTask replaceOperationTask:synchronizationTask];
+        }
         return compositeTask;
     }
     // Endpoint doesn't require time synchronization, or time is already synchronized.

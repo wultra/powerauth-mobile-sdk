@@ -1255,20 +1255,20 @@ The following steps are typically required for a full E2EE request and response 
    import PowerAuthCore
    
    // Encryptor for "application" scope.
-   guard let encryptor = powerAuthSDK.eciesEncryptorForApplicationScope() else { ...failure... }
+   sdk.eciesEncryptorForApplicationScope { encryptor, error in
+      if let encryptor {
+        // success
+      } else {
+        // failure
+      }
+   }
    // ...or similar, for an "activation" scope.
-   guard let encryptor = powerAuthSDK.eciesEncryptorForActivationScope() else { ...failure... }
-   ```
-
-1. Make sure that the PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
-   ```swift
-   let timeService = powerAuthSDK.timeSynchronizationService
-   if !timeService.isTimeSynchronized {
-       timeService.synchronizeTime(callback: { error in
-           if error != nil {
-               // failure
-           }
-       }, callbackQueue: .main)
+   sdk.eciesEncryptorForActivationScope { encryptor, error in
+      if let encryptor {
+        // success
+      } else {
+        // failure
+      }
    }
    ```
 
@@ -1279,18 +1279,16 @@ The following steps are typically required for a full E2EE request and response 
    guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
    ```
 
-1. Construct a JSON from the provided cryptogram object. The dictionary with the following keys is expected:
-   - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
-   - `encryptedData` property fill with `cryptogram.bodyBase64`
-   - `mac` property fill with `cryptogram.macBase64`
-   - `nonce` property fill with `cryptogram.nonceBase64`
-   - `timestamp` property fill with `cryptogram.timestamp`
-
+1. Construct a JSON from the provided cryptogram object:
+   ```swift
+   guard let requestBody = try? JSONSerialization.data(withJSONObject: cryptogram.requestPayload()) else { ...failure... }
+   ```
    So, the final request JSON should look like this:
    ```json
    {
+      "temporaryKeyId" : "UUID",
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
-      "encryptedData": "BASE64-DATA-BLOB",
+      "encryptedData" : "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
       "nonce" : "BASE64-NONCE",
       "timestamp" : 1694172789256
@@ -1309,7 +1307,7 @@ The following steps are typically required for a full E2EE request and response 
 1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-1. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON response typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
@@ -1318,14 +1316,10 @@ The following steps are typically required for a full E2EE request and response 
       "timestamp": 1694172789256
    }
    ```
-   So, you need to create yet another "cryptogram" object, but with only two properties set:
+   So, you need to create yet another "cryptogram" object:
    ```swift
-   let responseCryptogram = PowerAuthCoreEciesCryptogram()
-   responseCryptogram.bodyBase64 = response.getEncryptedData()
-   responseCryptogram.macBase64 = response.getMac()
-   responseCryptogram.nonceBase64 = response.getNonce()
-   responseCryptogram.timestamp = response.getTimestamp()
-
+   guard let response = try? JSONSerialization.jsonObject(with: responseBody) else { ...failure... }
+   guard let responseCryptogram = PowerAuthCoreEciesCryptogram(responsePayload: response) else { ...not a dictionary... }
    guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
    ```
 

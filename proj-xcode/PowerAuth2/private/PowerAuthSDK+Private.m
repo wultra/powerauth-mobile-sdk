@@ -31,9 +31,9 @@
 }
 
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForData:(NSData*)data
-                                                  endpoint:(PA2RestApiEndpoint*)endpoint
-                                            authentication:(PowerAuthAuthentication*)authentication
-                                                     error:(NSError**)error
+                                                        endpoint:(PA2RestApiEndpoint*)endpoint
+                                                  authentication:(PowerAuthAuthentication*)authentication
+                                                           error:(NSError**)error
 {
     return [[self.sessionProvider writeTaskWithSession:^PA2Result<PowerAuthAuthorizationHttpHeader*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
         if (self.hasPendingProtocolUpgrade || self.hasProtocolUpgradeAvailable) {

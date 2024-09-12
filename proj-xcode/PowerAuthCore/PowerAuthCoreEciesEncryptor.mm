@@ -117,6 +117,7 @@ using namespace io::getlime::powerAuth;
     }
     PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
     cryptogram.timestamp = [timeService currentTime] * 1000.0;
+    cryptogram.temporaryKeyId = _associatedMetaData.temporaryKeyId;
     // Prepare ECIES parameters
     ECIESParameters params;
     params.timestamp = cryptogram.timestamp;
@@ -174,6 +175,48 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreEciesCryptogram
 {
     ECIESCryptogram _c;
+}
+
+static inline void _SafeDictionarySet(NSMutableDictionary * dict, NSString * key, id value)
+{
+    if (value) [dict setObject:value forKey:key];
+}
+
+static inline id _SafeDictionaryGet(NSDictionary * dict, NSString * key, Class aClass)
+{
+    id value = dict[key];
+    if ([value isKindOfClass:aClass]) {
+        return value;
+    }
+    return nil;
+}
+
+- (instancetype) initWithResponsePayload:(id)responsePayload
+{
+    if (![responsePayload isKindOfClass:[NSDictionary class]]) {
+        return nil;
+    }
+    NSDictionary * dict = (NSDictionary*)responsePayload;
+    self = [super init];
+    if (self) {
+        self.bodyBase64     =  _SafeDictionaryGet(dict, @"encryptedData", [NSString class]);
+        self.nonceBase64    =  _SafeDictionaryGet(dict, @"nonce", [NSString class]);
+        self.macBase64      =  _SafeDictionaryGet(dict, @"mac", [NSString class]);
+        self.timestamp      = [_SafeDictionaryGet(dict, @"timestamp", [NSNumber class]) unsignedLongLongValue];
+    }
+    return self;
+}
+
+- (NSDictionary*) requestPayload
+{
+    NSMutableDictionary * payload = [NSMutableDictionary dictionary];
+    _SafeDictionarySet(payload, @"temporaryKeyId", _temporaryKeyId);
+    _SafeDictionarySet(payload, @"ephemeralPublicKey", self.keyBase64);
+    _SafeDictionarySet(payload, @"encryptedData", self.bodyBase64);
+    _SafeDictionarySet(payload, @"nonce", self.nonceBase64);
+    _SafeDictionarySet(payload, @"mac", self.macBase64);
+    payload[@"timestamp"] = @(_timestamp);
+    return payload;
 }
 
 - (ECIESCryptogram &) cryptogramRef
@@ -266,11 +309,13 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreEciesMetaData
 
 - (instancetype) initWithApplicationKey:(NSString*)applicationKey
+                         temporaryKeyId:(NSString*)temporaryKeyId
                    activationIdentifier:(NSString*)activationIdentifier
 {
     self = [super init];
     if (self) {
         _applicationKey = applicationKey;
+        _temporaryKeyId = temporaryKeyId;
         _activationIdentifier = activationIdentifier;
     }
     return self;
@@ -285,10 +330,10 @@ using namespace io::getlime::powerAuth;
 {
     NSString * protocolVersion = [PowerAuthCoreSession maxSupportedHttpProtocolVersion:PowerAuthCoreProtocolVersion_NA];
     NSString * value = [[[[@"PowerAuth version=\""
-                         stringByAppendingString:protocolVersion]
-                        stringByAppendingString:@"\", application_key=\""]
-                         stringByAppendingString:_applicationKey]
-                        stringByAppendingString:@"\""];
+                           stringByAppendingString:protocolVersion]
+                          stringByAppendingString:@"\", application_key=\""]
+                           stringByAppendingString:_applicationKey]
+                          stringByAppendingString:@"\""];
     if (_activationIdentifier) {
         return [[[value stringByAppendingString:@", activation_id=\""]
                  stringByAppendingString:_activationIdentifier]
@@ -300,8 +345,9 @@ using namespace io::getlime::powerAuth;
 - (cc7::ByteArray) associatedData
 {
     auto appKey = cc7::objc::CopyFromNSString(_applicationKey);
+    auto keyId = cc7::objc::CopyFromNSString(_temporaryKeyId);
     auto activationId = cc7::objc::CopyFromNSString(_activationIdentifier);
-    return ECIESUtils::buildAssociatedData(appKey, activationId);
+    return ECIESUtils::buildAssociatedData(appKey, keyId, activationId);
 }
 
 @end

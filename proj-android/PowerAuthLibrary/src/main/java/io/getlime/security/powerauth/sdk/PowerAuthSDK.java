@@ -28,7 +28,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.google.gson.reflect.TypeToken;
 
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
@@ -77,6 +77,7 @@ public class PowerAuthSDK {
     private final @NonNull PowerAuthTokenStore mTokenStore;
     private final @NonNull IServerStatusProvider mServerStatusProvider;
     private final @NonNull TimeSynchronizationService mTimeSynchronizationService;
+    private final @NonNull IKeystoreService mKeystoreService;
 
     /**
      * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
@@ -213,6 +214,10 @@ public class PowerAuthSDK {
             // Prepare low-level Session object.
             final Session session = new Session(mConfiguration.getSessionSetup(), timeSynchronizationService);
 
+            // Prepare keystore service and conned it with HTTP client
+            final DefaultKeystoreService keystoreService = new DefaultKeystoreService(timeSynchronizationService, session, mCallbackDispatcher, sharedLock, httpClient);
+            httpClient.setKeystoreService(keystoreService);
+
             // Create a final PowerAuthSDK instance
             final PowerAuthSDK instance = new PowerAuthSDK(
                     sharedLock,
@@ -227,7 +232,8 @@ public class PowerAuthSDK {
                     tokenStoreKeychain,
                     mCallbackDispatcher,
                     serverStatusProvider,
-                    timeSynchronizationService);
+                    timeSynchronizationService,
+                    keystoreService);
 
             // Register time service for automatic reset.
             PowerAuthAppLifecycleListener.getInstance().registerTimeSynchronizationService(context, timeSynchronizationService);
@@ -251,8 +257,9 @@ public class PowerAuthSDK {
      * @param biometryKeychain          Keychain that store biometry-related key.
      * @param tokenStoreKeychain        Keychain that store tokens.
      * @param callbackDispatcher        Dispatcher that handle callbacks back to application.
-     * @param serverStatusProvider      Implementation of IServerStatusProvider.
-     * @param timeSynchronizationService Implementation of IPowerAuthTimeSynchronizationService.
+     * @param serverStatusProvider      Implementation of {@link IServerStatusProvider}.
+     * @param timeSynchronizationService Implementation of {@link IPowerAuthTimeSynchronizationService}.
+     * @param keystoreService           Implementation of {@link IKeystoreService}.
      */
     private PowerAuthSDK(
             @NonNull ReentrantLock sharedLock,
@@ -267,7 +274,8 @@ public class PowerAuthSDK {
             @NonNull Keychain tokenStoreKeychain,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull IServerStatusProvider serverStatusProvider,
-            @NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService) {
+            @NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService,
+            @NonNull IKeystoreService keystoreService) {
         this.mLock = sharedLock;
         this.mSession = session;
         this.mConfiguration = configuration;
@@ -281,6 +289,7 @@ public class PowerAuthSDK {
         this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
         this.mServerStatusProvider = serverStatusProvider;
         this.mTimeSynchronizationService = (TimeSynchronizationService) timeSynchronizationService;
+        this.mKeystoreService = keystoreService;
     }
 
     /**
@@ -319,6 +328,17 @@ public class PowerAuthSDK {
                 return context == null ? null : deviceRelatedKey(context);
             }
 
+            @NonNull
+            @Override
+            public IKeystoreService getKeystoreService() {
+                return mKeystoreService;
+            }
+
+            @NonNull
+            @Override
+            public Session getCoreSession() {
+                return mSession;
+            }
         };
     }
 
@@ -553,7 +573,7 @@ public class PowerAuthSDK {
      */
     @CheckResult
     public boolean restoreState(byte[] state) {
-        mSession.resetSession();
+        mSession.resetSession(false);
         final int result = mSession.deserializeState(state);
         return result == ErrorCode.OK;
     }
@@ -642,125 +662,112 @@ public class PowerAuthSDK {
 
         final IPrivateCryptoHelper cryptoHelper = getCryptoHelper(null);
         final JsonSerialization serialization = new JsonSerialization();
-        final EciesEncryptor encryptor;
 
-        try {
-            // Prepare cryptographic helper & Layer2 ECIES encryptor
-            encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
+        // Prepare low level activation parameters
+        final ActivationStep1Param step1Param;
+        if (activation.activationCode != null) {
+            step1Param = new ActivationStep1Param(activation.activationCode.activationCode, activation.activationCode.activationSignature);
+        } else {
+            step1Param = null;
+        }
 
-            // Prepare low level activation parameters
-            final ActivationStep1Param step1Param;
-            if (activation.activationCode != null) {
-                step1Param = new ActivationStep1Param(activation.activationCode.activationCode, activation.activationCode.activationSignature);
-            } else {
-                step1Param = null;
-            }
-
-            // Start the activation
-            final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
-            if (step1Result.errorCode != ErrorCode.OK) {
-                // Looks like create activation failed
-                final int errorCode = step1Result.errorCode == ErrorCode.Encryption
-                        ? PowerAuthErrorCodes.SIGNATURE_ERROR
-                        : PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
-                dispatchCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
-                    }
-                });
-                return null;
-            }
-
-            // Prepare level 2 payload
-            final ActivationLayer2Request privateData = new ActivationLayer2Request();
-            privateData.setActivationName(activation.activationName);
-            privateData.setExtras(activation.extras);
-            privateData.setActivationOtp(activation.additionalActivationOtp);
-            privateData.setDevicePublicKey(step1Result.devicePublicKey);
-            privateData.setPlatform(PowerAuthSystem.getPlatform());
-            privateData.setDeviceInfo(PowerAuthSystem.getDeviceInfo());
-
-            // Prepare level 1 payload
-            final ActivationLayer1Request request = new ActivationLayer1Request();
-            request.setType(activation.activationType);
-            request.setIdentityAttributes(activation.identityAttributes);
-            request.setCustomAttributes(activation.customAttributes);
-
-            // The create activation endpoint needs a custom object processing where we encrypt the inner data
-            // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
-            // service is already synchronized.
-            final CreateActivationEndpoint endpointDefinition = new CreateActivationEndpoint(() -> {
-                // Set encrypted level 2 activation data to the request.
-                request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
-            });
-
-            // Fire HTTP request
-            return mClient.post(
-                    request,
-                    endpointDefinition,
-                    cryptoHelper,
-                    new INetworkResponseListener<ActivationLayer1Response>() {
-                        @Override
-                        public void onNetworkResponse(@NonNull ActivationLayer1Response response) {
-                            // Process response from the server
-                            try {
-                                // Try to decrypt Layer2 object from response
-                                final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
-                                // Prepare Step2 param for low level session
-                                final RecoveryData recoveryData;
-                                if (layer2Response.getActivationRecovery() != null) {
-                                    final ActivationRecovery rd = layer2Response.getActivationRecovery();
-                                    recoveryData = new RecoveryData(rd.getRecoveryCode(), rd.getPuk());
-                                } else {
-                                    recoveryData = null;
-                                }
-                                final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), recoveryData);
-                                // Validate the response
-                                final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
-                                //
-                                if (step2Result.errorCode == ErrorCode.OK) {
-                                    final UserInfo userInfo = response.getUserInfo() != null ? new UserInfo(response.getUserInfo()) : null;
-                                    final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData, userInfo);
-                                    setLastFetchedUserInfo(userInfo);
-                                    listener.onActivationCreateSucceed(result);
-                                    return;
-                                }
-                                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Invalid activation data received from the server.");
-
-                            } catch (PowerAuthErrorException e) {
-                                // In case of error, reset the session & report that exception
-                                mSession.resetSession();
-                                listener.onActivationCreateFailed(e);
-                            }
-                        }
-
-                        @Override
-                        public void onNetworkError(@NonNull Throwable throwable) {
-                            // In case of error, reset the session & report that exception
-                            mSession.resetSession();
-                            listener.onActivationCreateFailed(throwable);
-                        }
-
-                        @Override
-                        public void onCancel() {
-                            // In case of cancel, reset the session
-                            mSession.resetSession();
-                        }
-                    });
-
-        } catch (final PowerAuthErrorException e) {
-            mSession.resetSession();
+        // Start the activation
+        final ActivationStep1Result step1Result = mSession.startActivation(step1Param);
+        if (step1Result.errorCode != ErrorCode.OK) {
+            // Looks like create activation failed
+            final int errorCode = step1Result.errorCode == ErrorCode.Encryption
+                    ? PowerAuthErrorCodes.SIGNATURE_ERROR
+                    : PowerAuthErrorCodes.INVALID_ACTIVATION_DATA;
             dispatchCallback(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onActivationCreateFailed(e);
+                    listener.onActivationCreateFailed(new PowerAuthErrorException(errorCode));
                 }
             });
             return null;
         }
-    }
 
+        // Prepare level 2 payload
+        final ActivationLayer2Request privateData = new ActivationLayer2Request();
+        privateData.setActivationName(activation.activationName);
+        privateData.setExtras(activation.extras);
+        privateData.setActivationOtp(activation.additionalActivationOtp);
+        privateData.setDevicePublicKey(step1Result.devicePublicKey);
+        privateData.setPlatform(PowerAuthSystem.getPlatform());
+        privateData.setDeviceInfo(PowerAuthSystem.getDeviceInfo());
+
+        // Prepare level 1 payload
+        final ActivationLayer1Request request = new ActivationLayer1Request();
+        request.setType(activation.activationType);
+        request.setIdentityAttributes(activation.identityAttributes);
+        request.setCustomAttributes(activation.customAttributes);
+
+        // The create activation endpoint needs a custom object processing where we encrypt the inner data
+        // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
+        // service is already synchronized.
+        final CreateActivationEndpoint endpointDefinition = new CreateActivationEndpoint((endpoint) -> {
+            // Set encrypted level 2 activation data to the request.
+            // Prepare cryptographic helper & Layer2 ECIES encryptor
+            final EciesEncryptor encryptor = cryptoHelper.getEciesEncryptor(EciesEncryptorId.ACTIVATION_PAYLOAD);
+            request.setActivationData(serialization.encryptObjectToRequest(privateData, encryptor));
+            ((CreateActivationEndpoint) endpoint).setLayer2Encryptor(encryptor);
+        });
+
+        // Fire HTTP request
+        return mClient.post(
+                request,
+                endpointDefinition,
+                cryptoHelper,
+                new INetworkResponseListener<>() {
+                    @Override
+                    public void onNetworkResponse(@NonNull ActivationLayer1Response response) {
+                        // Process response from the server
+                        try {
+                            // Try to decrypt Layer2 object from response
+                            final EciesEncryptor encryptor = endpointDefinition.getLayer2Encryptor();
+                            final ActivationLayer2Response layer2Response = serialization.decryptObjectFromResponse(response.getActivationData(), encryptor, TypeToken.get(ActivationLayer2Response.class));
+                            // Prepare Step2 param for low level session
+                            final RecoveryData recoveryData;
+                            if (layer2Response.getActivationRecovery() != null) {
+                                final ActivationRecovery rd = layer2Response.getActivationRecovery();
+                                recoveryData = new RecoveryData(rd.getRecoveryCode(), rd.getPuk());
+                            } else {
+                                recoveryData = null;
+                            }
+                            final ActivationStep2Param step2Param = new ActivationStep2Param(layer2Response.getActivationId(), layer2Response.getServerPublicKey(), layer2Response.getCtrData(), recoveryData);
+                            // Validate the response
+                            final ActivationStep2Result step2Result = mSession.validateActivationResponse(step2Param);
+                            //
+                            if (step2Result.errorCode == ErrorCode.OK) {
+                                final UserInfo userInfo = response.getUserInfo() != null ? new UserInfo(response.getUserInfo()) : null;
+                                final CreateActivationResult result = new CreateActivationResult(step2Result.activationFingerprint, response.getCustomAttributes(), recoveryData, userInfo);
+                                setLastFetchedUserInfo(userInfo);
+                                listener.onActivationCreateSucceed(result);
+                                return;
+                            }
+                            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Invalid activation data received from the server.");
+
+                        } catch (PowerAuthErrorException e) {
+                            // In case of error, reset the session & report that exception
+                            mSession.resetSession(false);
+                            listener.onActivationCreateFailed(e);
+                        }
+                    }
+
+                    @Override
+                    public void onNetworkError(@NonNull Throwable throwable) {
+                        // In case of error, reset the session & report that exception
+                        mSession.resetSession(false);
+                        listener.onActivationCreateFailed(throwable);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // In case of cancel, reset the session
+                        mSession.resetSession(false);
+                    }
+                });
+    }
 
     /**
      * Create a new standard activation with given name and activation code by calling a PowerAuth Standard RESTful API.
@@ -1628,7 +1635,7 @@ public class PowerAuthSDK {
         getTokenStore().removeAllLocalTokens(context);
 
         // Reset C++ session
-        mSession.resetSession();
+        mSession.resetSession(false);
         // Serialize will notify state listener
         saveSerializedState();
         // Cancel possible pending activation status task
@@ -1789,7 +1796,8 @@ public class PowerAuthSDK {
         checkForValidSetup();
 
         // Verify signature
-        SignedData signedData = new SignedData(data, signature, useMasterKey);
+        final int signingKey = useMasterKey ? SigningDataKey.ECDSA_MASTER_SERVER_KEY : SigningDataKey.ECDSA_PERSONALIZED_KEY;
+        final SignedData signedData = new SignedData(data, signature, signingKey, SignatureFormat.ECDSA_DER);
         return mSession.verifyServerSignedData(signedData) == ErrorCode.OK;
     }
 
@@ -1803,7 +1811,20 @@ public class PowerAuthSDK {
      */
     public @Nullable
     ICancelable signDataWithDevicePrivateKey(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @NonNull final IDataSignatureListener listener) {
+        return signDataWithDevicePrivateKeyImpl(context, authentication, data, SignatureFormat.ECDSA_DER, listener);
+    }
 
+    /**
+     * Sign provided data with a private key that is stored in secure vault.
+     * @param context Context.
+     * @param authentication Authentication object for vault unlock request.
+     * @param data Data to be signed.
+     * @param signatureFormat Format of output signature.
+     * @param listener Listener with callbacks to signature status.
+     * @return Async task associated with vault unlock request.
+     */
+    private @Nullable
+    ICancelable signDataWithDevicePrivateKeyImpl(@NonNull final Context context, @NonNull PowerAuthAuthentication authentication, @NonNull final byte[] data, @SignatureFormat int signatureFormat, @NonNull final IDataSignatureListener listener) {
         // Fetch vault encryption key using vault unlock request.
         return this.fetchEncryptedVaultUnlockKey(context, authentication, VaultUnlockReason.SIGN_WITH_DEVICE_PRIVATE_KEY, new IFetchEncryptedVaultUnlockKeyListener() {
             @Override
@@ -1811,7 +1832,7 @@ public class PowerAuthSDK {
                 if (encryptedEncryptionKey != null) {
                     // Let's sign the data
                     SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                    byte[] signature = mSession.signDataWithDevicePrivateKey(encryptedEncryptionKey, keys, data);
+                    byte[] signature = mSession.signDataWithDevicePrivateKey(encryptedEncryptionKey, keys, data, signatureFormat);
                     // Propagate error
                     if (signature != null) {
                         listener.onDataSignedSucceed(signature);
@@ -1829,6 +1850,7 @@ public class PowerAuthSDK {
             }
         });
     }
+
 
     /**
      * Change the password using local re-encryption, do not validate old password by calling any endpoint.
@@ -2530,22 +2552,16 @@ public class PowerAuthSDK {
     @Nullable
     public ICancelable signJwtWithDevicePrivateKey(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull Map<String, Object> claims, @NonNull IJwtSignatureListener listener) {
         final JsonSerialization serialization = new JsonSerialization();
-        final byte[] serializedClaims = serialization.serializeObject(claims);
-        return signDataWithDevicePrivateKey(context, authentication, serializedClaims, new IDataSignatureListener() {
+        final String jwtHeader = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9"; // {"alg":"ES256","typ":"JWT"}
+        final String jwtClaims = serialization.serializeJwtObject(claims);
+        final String jwtHeaderAndClaims = jwtHeader + "." + jwtClaims;
+        return signDataWithDevicePrivateKeyImpl(context, authentication, jwtHeaderAndClaims.getBytes(StandardCharsets.US_ASCII), SignatureFormat.ECDSA_JOSE, new IDataSignatureListener() {
             @Override
             public void onDataSignedSucceed(@NonNull byte[] signature) {
-                // Prepare header
-                final HashMap<String, String> header = new HashMap<>();
-                header.put("alg", "ES256");
-                header.put("typ", "JWT");
-                final byte[] headerData = serialization.serializeObject(header);
-                final String headerBase64 = Base64.encodeToString(headerData, Base64.NO_WRAP);
-                // Prepare claims data
-                final String claimsBase64 = Base64.encodeToString(serializedClaims, Base64.NO_WRAP);
                 // Encoded signature
-                final String signatureBase64 = Base64.encodeToString(signature, Base64.NO_WRAP);
+                final String jwtSignature = Base64.encodeToString(signature, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
                 // Construct final JWT
-                final String jwt = headerBase64 + "." + claimsBase64 + "." + signatureBase64;
+                final String jwt = jwtHeaderAndClaims + "." + jwtSignature;
                 listener.onJwtSignatureSucceed(jwt);
             }
 
@@ -2560,15 +2576,83 @@ public class PowerAuthSDK {
 
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
-     * The returned encryptor is cryptographically bounded to the PowerAuth configuration, so it can be used
+     * The returned encryptor is cryptographically bound to the PowerAuth configuration, so it can be used
      * with or without a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
      * object, allowing you to properly setup HTTP header for the request.
+     *
+     * @param listener Listener with the callback methods.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    public @Nullable ICancelable getEciesEncryptorForApplicationScope(@NonNull IGetEciesEncryptorListener listener) {
+        return createEciesEncryptor(null, listener, true);
+    }
+
+    /**
+     * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
+     * The returned encryptor is cryptographically bound to a device's activation, so it can be used only
+     * when this instance has a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
+     * <p>
+     * Note that the created encryptor has no reference to this instance of {@link PowerAuthSDK}. This means
+     * that if the instance will lose its activation in the future, then the encryptor will still be capable
+     * to encrypt, or decrypt the data. This is an expected behavior, so if you plan to keep the encryptor for
+     * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
+     *
+     * @param context Android {@link Context} object
+     * @param listener Listener with the callback methods.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    public @Nullable ICancelable getEciesEncryptorForActivationScope(@NonNull Context context, @NonNull IGetEciesEncryptorListener listener) {
+        return createEciesEncryptor(context, listener, false);
+    }
+
+    /**
+     * Create application or activation scoped ECIES encryptor.
+     * @param context Android context, required for activation scoped encryptor.
+     * @param listener Listener with the callback methods.
+     * @param applicationScope If {@code true} then encryptor in application scope is created.
+     * @return {@link ICancelable} operation in case that the temporary encryption key needs to be acquired from the server. If the key is already
+     *         present, then returns {@code null}.
+     */
+    private @Nullable ICancelable createEciesEncryptor(@Nullable final Context context, @NonNull final IGetEciesEncryptorListener listener, final boolean applicationScope) {
+        final IPrivateCryptoHelper helper = getCryptoHelper(context);
+        return mKeystoreService.createKeyForEncryptor(applicationScope ? EciesEncryptorScope.APPLICATION : EciesEncryptorScope.ACTIVATION, helper, new ICreateKeyListener() {
+            @Override
+            public void onCreateKeySucceeded() {
+                try {
+                    final EciesEncryptor encryptor = helper.getEciesEncryptor(applicationScope ? EciesEncryptorId.GENERIC_APPLICATION_SCOPE : EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);
+                    listener.onGetEciesEncryptorSuccess(encryptor);
+                } catch (PowerAuthErrorException exception) {
+                    listener.onGetEciesEncryptorFailed(exception);
+                }
+            }
+
+            @Override
+            public void onCreateKeyFailed(@NonNull Throwable throwable) {
+                listener.onGetEciesEncryptorFailed(throwable);
+            }
+        });
+    }
+
+    /**
+     * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
+     * The returned encryptor is cryptographically bound to the PowerAuth configuration, so it can be used
+     * with or without a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
+     * object, allowing you to properly setup HTTP header for the request.
+     * <p>
+     * Note that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
+     * key is still valid. You should use new {@link #getEciesEncryptorForApplicationScope(IGetEciesEncryptorListener)}
+     * as a replacement.
      *
      * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration.
      *         You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.
+     * @deprecated Use {@link #getEciesEncryptorForApplicationScope(IGetEciesEncryptorListener)} as a replacement.
      */
+    @Deprecated // 1.9.0
     public @Nullable EciesEncryptor getEciesEncryptorForApplicationScope() throws PowerAuthErrorException {
         final IPrivateCryptoHelper helper = getCryptoHelper(null);
         return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_APPLICATION_SCOPE);
@@ -2576,7 +2660,7 @@ public class PowerAuthSDK {
 
     /**
      * Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes.
-     * The returned encryptor is cryptographically bounded to a device's activation, so it can be used only
+     * The returned encryptor is cryptographically bound to a device's activation, so it can be used only
      * when this instance has a valid activation. The encryptor also contains an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}
      * object, allowing you to properly setup HTTP header for the request.
      * <p>
@@ -2584,13 +2668,19 @@ public class PowerAuthSDK {
      * that if the instance will loose its activation in the future, then the encryptor will still be capable
      * to encrypt, or decrypt the data. This is an expected behavior, so if you plan to keep the encryptor for
      * multiple requests, then it's up to you to release its instance after you change the state of {@code PowerAuthSDK}.
+     * <p>
+     * Note that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
+     * key is still valid. You should use new {@link #getEciesEncryptorForActivationScope(Context, IGetEciesEncryptorListener)}
+     * as a replacement.
      *
      * @param context Android {@link Context} object
      * @return New instance of {@link EciesEncryptor} object with an associated {@link io.getlime.security.powerauth.ecies.EciesMetadata}.
      * @throws PowerAuthErrorException if {@link PowerAuthConfiguration} contains an invalid configuration or there's
      *         no activation. You can call {@link PowerAuthErrorException#getPowerAuthErrorCode()} to get a more
      *         detailed information about the failure.
+     * @deprecated Use {@link #getEciesEncryptorForActivationScope(Context, IGetEciesEncryptorListener)} as a replacement.
      */
+    @Deprecated // 1.9.0
     public @Nullable EciesEncryptor getEciesEncryptorForActivationScope(@NonNull final Context context) throws PowerAuthErrorException {
         final IPrivateCryptoHelper helper = getCryptoHelper(context);
         return helper.getEciesEncryptor(EciesEncryptorId.GENERIC_ACTIVATION_SCOPE);

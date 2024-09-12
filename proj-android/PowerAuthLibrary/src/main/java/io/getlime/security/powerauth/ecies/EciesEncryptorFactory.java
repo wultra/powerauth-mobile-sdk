@@ -80,6 +80,10 @@ public class EciesEncryptorFactory {
         final byte[] sharedInfo1Bytes = sharedInfo1 != null ? sharedInfo1.getBytes(Charset.defaultCharset()) : null;
         final SignatureUnlockKeys unlockKeys;
         final String activationId;
+        final String temporaryKeyId = mSession.getPublicKeyIdForEciesScope(scope);
+        if (temporaryKeyId == null) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Temporary key for ECIES is not set");
+        }
         if (scope == EciesEncryptorScope.ACTIVATION) {
             if (mPossessionUnlockKey == null) {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Device related key is missing for activation scoped encryptor");
@@ -97,7 +101,7 @@ public class EciesEncryptorFactory {
         if (encryptor == null) {
             throw new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to create ECIES encryptor");
         }
-        encryptor.setMetadata(new EciesMetadata(mSession.getApplicationKey(), activationId));
+        encryptor.setMetadata(new EciesMetadata(mSession.getApplicationKey(), temporaryKeyId, activationId));
         return encryptor;
     }
 }

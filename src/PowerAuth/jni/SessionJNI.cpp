@@ -98,13 +98,13 @@ CC7_JNI_METHOD_PARAMS(void, destroy, jlong handle)
 }
 
 //
-// public native void resetSession()
+// public native void resetSession(boolean fullReset)
 //
-CC7_JNI_METHOD(void, resetSession)
+CC7_JNI_METHOD_PARAMS(void, resetSession, jboolean fullReset)
 {
     auto session = CC7_THIS_OBJ();
     if (session) {
-        session->resetSession();
+        session->resetSession(fullReset);
     }
 }
 
@@ -461,14 +461,51 @@ CC7_JNI_METHOD_PARAMS(jint, verifyServerSignedData, jobject signedData)
     }
     // Load parameters into C++ objects
     jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
-    // Get type of key
-    bool useMasterKey           = CC7_JNI_GET_FIELD_BOOL(signedData, requestClazz, "useMasterKey");
+    // Get enum types
+    jint signingKey             = CC7_JNI_GET_FIELD_INT(signedData, requestClazz, "signingKey");
+    jint signatureFormat        = CC7_JNI_GET_FIELD_INT(signedData, requestClazz, "signatureFormat");
     // Prepare cpp structure
     SignedData cppSignedData;
-    cppSignedData.signingKey    = useMasterKey ? SignedData::ECDSA_MasterServerKey : SignedData::ECDSA_PersonalizedKey;
-    cppSignedData.data          = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
-    cppSignedData.signature     = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
+    cppSignedData.signingKey        = static_cast<SignedData::SigningKey>(signingKey);
+    cppSignedData.signatureFormat   = static_cast<SignedData::SignatureFormat>(signatureFormat);
+    cppSignedData.data              = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "data"));
+    cppSignedData.signature         = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(signedData, requestClazz, "signature"));
     return (jint) session->verifyServerSignedData(cppSignedData);
+}
+
+//
+// public native int signDataWithHmacKey(SignedData dataToSign, SignatureUnlockKeys unlockKeys)
+//
+CC7_JNI_METHOD_PARAMS(jint, signDataWithHmacKey, jobject dataToSign, jobject unlockKeys)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session || !dataToSign) {
+        CC7_ASSERT(false, "Missing dataToSign or internal handle.");
+        return EC_WrongParam;
+    }
+    // Load parameters into C++ objects
+    SignatureUnlockKeys cppUnlockKeys;
+    if (unlockKeys != nullptr) {
+        if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
+            return EC_WrongParam;
+        }
+    }
+    // Prepare signing data
+    jclass requestClazz         = CC7_JNI_MODULE_FIND_CLASS("SignedData");
+    // Get type of key
+    jint signingKey             = CC7_JNI_GET_FIELD_INT(dataToSign, requestClazz, "signingKey");
+    jint signatureFormat        = CC7_JNI_GET_FIELD_INT(dataToSign, requestClazz, "signatureFormat");
+    // Prepare cpp structure
+    SignedData cppDataToSign;
+    cppDataToSign.signingKey        = static_cast<SignedData::SigningKey>(signingKey);
+    cppDataToSign.signatureFormat   = static_cast<SignedData::SignatureFormat>(signatureFormat);
+    cppDataToSign.data              = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(dataToSign, requestClazz, "data"));
+    // Call session
+    auto ec = session->signDataWithHmacKey(cppDataToSign, cppUnlockKeys);
+    if (ec == EC_Ok) {
+        CC7_JNI_SET_FIELD_BYTEARRAY(dataToSign, requestClazz, "signature",  cc7::jni::CopyToJavaByteArray(env, cppDataToSign.signature));
+    }
+    return (jint) ec;
 }
 
 // ----------------------------------------------------------------------------
@@ -575,9 +612,9 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, deriveCryptographicKeyFromVaultKey, jstring cV
 }
 
 //
-// public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data);
+// public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, int signatureFormat);
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKey, jobject unlockKeys, jbyteArray data)
+CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKey, jobject unlockKeys, jbyteArray data, jint signatureFormat)
 {
     auto session = CC7_THIS_OBJ();
     if (!session || !cVaultKey || !unlockKeys || !data) {
@@ -587,12 +624,13 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, signDataWithDevicePrivateKey, jstring cVaultKe
     // Load parameters into C++ objects 
     std::string cppCVaultKey = cc7::jni::CopyFromJavaString(env, cVaultKey);
     cc7::ByteArray cppData   = cc7::jni::CopyFromJavaByteArray(env, data);
+    auto cppSignatureFormat  = static_cast<SignedData::SignatureFormat>(signatureFormat);
     SignatureUnlockKeys cppUnlockKeys;
     if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
         return NULL;
     }
     cc7::ByteArray signature;
-    ErrorCode code = session->signDataWithDevicePrivateKey(cppCVaultKey, cppUnlockKeys, cppData, signature);
+    ErrorCode code = session->signDataWithDevicePrivateKey(cppCVaultKey, cppUnlockKeys, cppData, cppSignatureFormat, signature);
     if (code != EC_Ok) {
         return NULL;
     }
@@ -696,6 +734,72 @@ CC7_JNI_METHOD_PARAMS(jobject, getEciesEncryptorImpl, jint scope, jobject unlock
     return CreateJavaEncryptorFromCppObject(env, cppEncryptor, timeService);
 }
 
+//
+// public native int setPublicKeyForEciesScope(int scope, String publicKey, String publicKeyId)
+//
+CC7_JNI_METHOD_PARAMS(jint, setPublicKeyForEciesScope, jint scope, jstring publicKey, jstring publicKeyId)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return EC_WrongState;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    auto cppPublicKey = cc7::jni::CopyFromJavaString(env, publicKey);
+    auto cppPublicKeyId = cc7::jni::CopyFromJavaString(env, publicKeyId);
+    // Call Session
+    return session->setPublicKeyForEciesScope(cppScope, cppPublicKey, cppPublicKeyId);
+}
+
+//
+// public native int removePublicKeyForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(void, removePublicKeyForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    session->removePublicKeyForEciesScope(cppScope);
+}
+
+//
+// public native boolean hasPublicKeyForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(jboolean, hasPublicKeyForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return false;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    return session->hasPublicKeyForEciesScope(cppScope);
+}
+
+//
+// public native String getPublicKeyIdForEciesScope(int scope)
+//
+CC7_JNI_METHOD_PARAMS(jstring, getPublicKeyIdForEciesScope, jint scope)
+{
+    auto session = CC7_THIS_OBJ();
+    if (!session) {
+        CC7_ASSERT(false, "Missing internal handle.");
+        return nullptr;
+    }
+    // Load parameters into C++ objects
+    auto cppScope = (ECIESEncryptorScope) scope;
+    // Call Session
+    auto cppPublicKeyId = session->getPublicKeyIdForEciesScope(cppScope);
+    return cc7::jni::CopyToNullableJavaString(env, cppPublicKeyId);
+}
 
 // ----------------------------------------------------------------------------
 // Utilities

@@ -44,6 +44,22 @@ namespace powerAuthTests
     {
     public:
         
+        struct ECKeyPair
+        {
+            EC_KEY * private_key;
+            std::string public_key_str;
+            
+            ECKeyPair() {
+                private_key = crypto::ECC_GenerateKeyPair();
+                public_key_str = crypto::ECC_ExportPublicKeyToB64(private_key);
+            }
+            
+            ~ECKeyPair() {
+                EC_KEY_free(private_key);
+                private_key = nullptr;
+            }
+        };
+        
         pa2SessionTests()
         {
             CC7_REGISTER_TEST_METHOD(testKeyValueMapNormalization);
@@ -58,9 +74,10 @@ namespace powerAuthTests
             CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV4ToV5);
         }
         
-        EC_KEY *    _masterServerPrivateKey;
+        ECKeyPair   _masterServerPrivateKey;
+        ECKeyPair   _eciesApplicationScopedPrivateKey;
+        ECKeyPair   _eciesActivationScopedPrivateKey;
         
-        std::string _masterServerPublicKeyStr;
         SessionSetup _setup;
         
         std::string _activation_code;
@@ -69,17 +86,13 @@ namespace powerAuthTests
         std::string _recovery_code;
         std::string _recovery_puk;
 
-        const std::string PA_VER = "3.2";
+        const std::string PA_VER = "3.3";
         
         void setUp() override
         {
-            _masterServerPrivateKey = crypto::ECC_GenerateKeyPair();
-            ccstAssertNotNull(_masterServerPrivateKey);
-            _masterServerPublicKeyStr = crypto::ECC_ExportPublicKeyToB64(_masterServerPrivateKey);
-            
             _setup.applicationKey           = "MDEyMzQ1Njc4OUFCQ0RFRg==";
             _setup.applicationSecret        = "QUJDREVGMDEyMzQ1Njc4OQ==";
-            _setup.masterServerPublicKey    = _masterServerPublicKeyStr;
+            _setup.masterServerPublicKey    = _masterServerPrivateKey.public_key_str;
 
             // prepare some other constants
             _activation_code    = "VVVVV-VVVVV-VVVVV-VTFVA";
@@ -91,8 +104,6 @@ namespace powerAuthTests
         
         void tearDown() override
         {
-            EC_KEY_free(_masterServerPrivateKey);
-            _masterServerPrivateKey = nullptr;
         }
         
         // unit tests
@@ -236,6 +247,7 @@ namespace powerAuthTests
                 }
                 
                 const bool USE_RECOVERY_CODE = break_in_step == 4;
+                const bool TEST_ECIES_RESET = break_in_step == 4;
             
                 EC_KEY * serverPrivateKey = nullptr;
                 EC_KEY * devicePublicKey  = nullptr;
@@ -822,7 +834,7 @@ namespace powerAuthTests
                     keys.possessionUnlockKey = possessionUnlock;
                     
                     cc7::ByteArray signature;
-                    ec = s1.signDataWithDevicePrivateKey(cVaultKey, keys, cc7::MakeRange("Hello World!"), signature);
+                    ec = s1.signDataWithDevicePrivateKey(cVaultKey, keys, cc7::MakeRange("Hello World!"), SignedData::ECDSA_DER, signature);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertTrue(!signature.empty());
                     // Validate signature...
@@ -881,13 +893,19 @@ namespace powerAuthTests
                 }
                 // ECIES "application" scope
                 {
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ec = s1.setPublicKeyForEciesScope(ECIES_ApplicationScope, _eciesApplicationScopedPrivateKey.public_key_str, "ecies-app-scope");
+                    ccstAssertEqual(ec, EC_Ok);
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
                     SignatureUnlockKeys foo;
                     ECIESEncryptor encryptor;
                     ec = s1.getEciesEncryptor(ECIES_ApplicationScope, foo, cc7::MakeRange("/pa/test"), encryptor);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/test"));
                     ccstAssertEqual(encryptor.sharedInfo2(), crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
-                    ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_setup.masterServerPublicKey));
+                    ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_eciesApplicationScopedPrivateKey.public_key_str));
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
@@ -896,7 +914,7 @@ namespace powerAuthTests
                     
                     // ...and decrypt on "server" side
                     ECIESCryptogram request_dec;
-                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_masterServerPrivateKey),
+                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_eciesApplicationScopedPrivateKey.private_key),
                                              cc7::MakeRange("/pa/test"),
                                              crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
                     cc7::ByteArray request_data;
@@ -905,7 +923,15 @@ namespace powerAuthTests
                     ccstAssertEqual(request_data, cc7::MakeRange("Hello!"));
                 }
                 // ECIES "activation" scope
-                {                   
+                {
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ec = s1.setPublicKeyForEciesScope(ECIES_ActivationScope, _eciesActivationScopedPrivateKey.public_key_str, "ecies-act-scope");
+                    ccstAssertEqual(ec, EC_Ok);
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+
+                    
                     SignatureUnlockKeys keys;
                     keys.possessionUnlockKey = possessionUnlock;
                     ECIESEncryptor encryptor;
@@ -913,7 +939,7 @@ namespace powerAuthTests
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/activation/test"));
                     ccstAssertEqual(encryptor.sharedInfo2(), crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
-                    ccstAssertEqual(encryptor.publicKey(), crypto::ECC_ExportPublicKey(serverPrivateKey));
+                    ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_eciesActivationScopedPrivateKey.public_key_str));
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
@@ -922,7 +948,7 @@ namespace powerAuthTests
                     
                     // ...and decrypt on "server" side
                     ECIESCryptogram request_dec;
-                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(serverPrivateKey),
+                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_eciesActivationScopedPrivateKey.private_key),
                                              cc7::MakeRange("/pa/activation/test"),
                                              crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
                     cc7::ByteArray request_data;
@@ -950,6 +976,46 @@ namespace powerAuthTests
                     ccstAssertEqual(ec, EC_WrongState);
                     ccstAssertTrue(recovery_data.isEmpty());
                 }
+                if (TEST_ECIES_RESET) {
+                    // Test Reset session
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("ecies-app-scope", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("ecies-act-scope", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                    s1.resetSession(false);
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("ecies-app-scope", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                    s1.resetSession(true);
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                    //
+                    ccstAssertEqual(EC_WrongState, s1.setPublicKeyForEciesScope(ECIES_ActivationScope, _eciesActivationScopedPrivateKey.public_key_str, "another-key-id"));
+                } else {
+                    // Test remove key
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("ecies-app-scope", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("ecies-act-scope", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                    //
+                    s1.removePublicKeyForEciesScope(ECIES_ActivationScope);
+                    ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("ecies-app-scope", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                    //
+                    s1.removePublicKeyForEciesScope(ECIES_ApplicationScope);
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertFalse(s1.hasPublicKeyForEciesScope(ECIES_ActivationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ApplicationScope));
+                    ccstAssertEqual("", s1.getPublicKeyIdForEciesScope(ECIES_ActivationScope));
+                }
+                // Remove ECIES key should always work
+                s1.removePublicKeyForEciesScope(ECIES_ActivationScope);
+                s1.removePublicKeyForEciesScope(ECIES_ApplicationScope);
                 
                 // release keys, just for sure
                 EC_KEY_free(serverPrivateKey);
@@ -1210,7 +1276,7 @@ namespace powerAuthTests
         std::string T_calculateActivationSignature(const std::string & code)
         {
             cc7::ByteArray signature;
-            bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(code), _masterServerPrivateKey, signature);
+            bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(code), _masterServerPrivateKey.private_key, signature);
             if (!result) {
                 ccstFailure("Activation signature calculation failed");
                 return std::string();
@@ -1222,7 +1288,7 @@ namespace powerAuthTests
         {
             cc7::ByteArray signature;
             if (private_key == nullptr) {
-                private_key = _masterServerPrivateKey;
+                private_key = _masterServerPrivateKey.private_key;
             }
             bool result = crypto::ECDSA_ComputeSignature(data, private_key, signature);
             if (!result) {

@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import java.util.concurrent.Executor;
 
+import io.getlime.security.powerauth.core.EciesEncryptorScope;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
 import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
@@ -29,9 +30,7 @@ import io.getlime.security.powerauth.networking.response.ITimeSynchronizationLis
 import io.getlime.security.powerauth.sdk.IPowerAuthTimeSynchronizationService;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
-import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
+import io.getlime.security.powerauth.sdk.impl.*;
 
 /**
  * The {@code HttpClient} class provides a high level networking functionality, including
@@ -48,6 +47,7 @@ public class HttpClient {
     private final @NonNull IExecutorProvider executorProvider;
     private final @NonNull ICallbackDispatcher callbackDispatcher;
     private IPowerAuthTimeSynchronizationService timeSynchronizationService;
+    private IKeystoreService keystoreService;
 
     /**
      * @param configuration HTTP client configuration
@@ -89,7 +89,7 @@ public class HttpClient {
     }
 
     /**
-     * Set time synchronization service to the HTTP client.
+     * Set time synchronization service to the HTTP client. If the service is already set, then throws {@link IllegalStateException}.
      * @param timeSynchronizationService Time synchronization service implementation.
      */
     public void setTimeSynchronizationService(@NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService) {
@@ -97,6 +97,41 @@ public class HttpClient {
             throw new IllegalStateException();
         }
         this.timeSynchronizationService = timeSynchronizationService;
+    }
+
+    /**
+     * Get time synchronization service associated to the HTTP client. If service is not set, then throws {@link IllegalStateException}.
+     * @return Implementation of {@link IPowerAuthTimeSynchronizationService}.
+     */
+    @NonNull
+    IPowerAuthTimeSynchronizationService getTimeSynchronizationService() {
+        if (timeSynchronizationService == null) {
+            throw new IllegalStateException();
+        }
+        return timeSynchronizationService;
+    }
+
+    /**
+     * Set keystore service to the HTTP client. If the service is already set, then throws {@link IllegalStateException}.
+     * @param keystoreService Keystore service implementation.
+     */
+    public void setKeystoreService(@Nullable IKeystoreService keystoreService) {
+        if (this.keystoreService != null) {
+            throw new IllegalStateException();
+        }
+        this.keystoreService = keystoreService;
+    }
+
+    /**
+     * Get keystore service associated to the HTTP client. If service is not set, then throws {@link IllegalStateException}.
+     * @return Implementation of {@link IKeystoreService}.
+     */
+    @NonNull
+    IKeystoreService getKeystoreService() {
+        if (keystoreService == null) {
+            throw new IllegalStateException();
+        }
+        return keystoreService;
     }
 
     /**
@@ -139,44 +174,50 @@ public class HttpClient {
             @Nullable PowerAuthAuthentication authentication,
             @NonNull INetworkResponseListener<TResponse> listener) {
 
-        if (endpoint.isRequireSynchronizedTime()) {
-            // Get the time synchronization service. It supposed to be set by the PowerAuthSDK's builder in SDK construction.
-            final IPowerAuthTimeSynchronizationService tss = timeSynchronizationService;
-            if (tss == null) {
-                throw new IllegalStateException("Time synchronization service is not set.");
-            }
-            if (!tss.isTimeSynchronized()) {
-                // Endpoint require encryption and time is not synchronized yet. We have to create a composite task that cover both
-                // time synchronization and actual request execution.
-                final CompositeCancelableTask compositeTask = new CompositeCancelableTask(true);
-                compositeTask.setCancelCallback(() -> {
-                    callbackDispatcher.dispatchCallback(listener::onCancel);
+        final IKeystoreService kss = getKeystoreService();
+        final IPowerAuthTimeSynchronizationService tss = getTimeSynchronizationService();
+        final int encryptorScope = endpoint.isEncryptedWithApplicationScope() ? EciesEncryptorScope.APPLICATION : EciesEncryptorScope.ACTIVATION;
+        final boolean requireTimeSynchronization = endpoint.isRequireSynchronizedTime() && !tss.isTimeSynchronized();
+        final boolean requireEncryptionKey = endpoint.isEncrypted() && !kss.containsKeyForEncryptor(encryptorScope);
+
+        if (requireTimeSynchronization || requireEncryptionKey) {
+            // Endpoint require encryption key or time synchronization. We have to create a composite task that cover
+            // multiple tasks including an actual request execution.
+            final CompositeCancelableTask compositeTask = new CompositeCancelableTask(true);
+            compositeTask.setCancelCallback(() -> {
+                callbackDispatcher.dispatchCallback(listener::onCancel);
+            });
+            // Now determine what type of task should be executed before an actual task.
+            if (requireEncryptionKey) {
+                // Temporary encryption key must be acquired from the server. This operation also automatically
+                // synchronize the time.
+                if (helper == null) {
+                    throw new IllegalArgumentException();
+                }
+                final ICancelable getKeyTask = kss.createKeyForEncryptor(encryptorScope, helper, new ICreateKeyListener() {
+                    @Override
+                    public void onCreateKeySucceeded() {
+                        // Encryption key successfully acquired, we can continue with the actual request.
+                        compositePostImpl(object, endpoint, helper, authentication, compositeTask, listener);
+                    }
+
+                    @Override
+                    public void onCreateKeyFailed(@NonNull Throwable throwable) {
+                        if (compositeTask.setCompleted()) {
+                            listener.onNetworkError(throwable);
+                        }
+                    }
                 });
+                if (getKeyTask != null) {
+                    compositeTask.addCancelable(getKeyTask);
+                }
+            } else {
+                // Only time synchronization is required
                 final ICancelable synchronizationTask = tss.synchronizeTime(new ITimeSynchronizationListener() {
                     @Override
                     public void onTimeSynchronizationSucceeded() {
                         // The time has been successfully synchronized, we can continue with the actual request.
-                        final ICancelable actualTask = postImpl(object, endpoint, helper, authentication, new INetworkResponseListener<TResponse>() {
-                            @Override
-                            public void onNetworkResponse(@NonNull TResponse tResponse) {
-                                if (compositeTask.setCompleted()) {
-                                    listener.onNetworkResponse(tResponse);
-                                }
-                            }
-
-                            @Override
-                            public void onNetworkError(@NonNull Throwable throwable) {
-                                if (compositeTask.setCompleted()) {
-                                    listener.onNetworkError(throwable);
-                                }
-                            }
-
-                            @Override
-                            public void onCancel() {
-                                // We can ignore the cancel, because it's handled already by the composite task.
-                            }
-                        });
-                        compositeTask.addCancelable(actualTask);
+                        compositePostImpl(object, endpoint, helper, authentication, compositeTask, listener);
                     }
 
                     @Override
@@ -189,12 +230,55 @@ public class HttpClient {
                 if (synchronizationTask != null) {
                     compositeTask.addCancelable(synchronizationTask);
                 }
-                // Return composite task instead of original operation.
-                return compositeTask;
             }
+            // Return composite task instead of original operation.
+            return compositeTask;
         }
-        // Endpoint doesn't require time synchronization, or time is already synchronized.
+
+        // Endpoint doesn't require time synchronization or encryption.
         return postImpl(object, endpoint, helper, authentication, listener);
+    }
+
+    /**
+     * Function creates an asynchronous operation with HTTP request and includes the operation into composite task.
+     * @param object object to be serialized into POST request
+     * @param endpoint object defining the endpoint
+     * @param helper cryptographic helper
+     * @param authentication optional authentication object, if request has to be signed with PowerAuth signature
+     * @param compositeTask composite task reported back to the application
+     * @param listener response listener
+     * @param <TRequest> type of request object
+     * @param <TResponse> type of response object
+     */
+    private <TRequest, TResponse> void compositePostImpl(
+            @Nullable TRequest object,
+            @NonNull IEndpointDefinition<TResponse> endpoint,
+            @Nullable IPrivateCryptoHelper helper,
+            @Nullable PowerAuthAuthentication authentication,
+            @NonNull CompositeCancelableTask compositeTask,
+            @NonNull INetworkResponseListener<TResponse> listener) {
+        // Create actual HTTP
+        final ICancelable actualTask = postImpl(object, endpoint, helper, authentication, new INetworkResponseListener<TResponse>() {
+            @Override
+            public void onNetworkResponse(@NonNull TResponse tResponse) {
+                if (compositeTask.setCompleted()) {
+                    listener.onNetworkResponse(tResponse);
+                }
+            }
+
+            @Override
+            public void onNetworkError(@NonNull Throwable throwable) {
+                if (compositeTask.setCompleted()) {
+                    listener.onNetworkError(throwable);
+                }
+            }
+
+            @Override
+            public void onCancel() {
+                // We can ignore the cancel, because it's handled already by the composite task.
+            }
+        });
+        compositeTask.addCancelable(actualTask);
     }
 
     /**

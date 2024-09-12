@@ -74,9 +74,9 @@
     }
     
     // Execute custom step before the request is serialized.
-    NSError * (^beforeSerialization)(void) = _endpoint.beforeRequestSerialization;
+    NSError * (^beforeSerialization)(PA2RestApiEndpoint*) = _endpoint.beforeRequestSerialization;
     if (beforeSerialization) {
-        NSError * customStepError = beforeSerialization();
+        NSError * customStepError = beforeSerialization(_endpoint);
         if (customStepError) {
             if (error) *error = customStepError;
             return nil;

@@ -177,7 +177,7 @@ class HttpRequestHelper<TRequest, TResponse> {
         // Execute custom step before the request is serialized.
         ICustomEndpointOperation beforeRequestSerialization = endpoint.getBeforeRequestSerializationOperation();
         if (beforeRequestSerialization != null) {
-            beforeRequestSerialization.customEndpointOperation();
+            beforeRequestSerialization.customEndpointOperation(endpoint);
         }
 
         // Encrypt the request data if the endpoint has encryptor specified

@@ -73,6 +73,10 @@
     return [[_sessionProvider readTaskWithSession:^PA2Result<PowerAuthCoreEciesEncryptor*>* _Nullable(PowerAuthCoreSession * _Nonnull session) {
         // Prepare data required for encryptor construction
         NSString * activationId = nil;
+        NSString * temporaryKeyId = [session publicKeyIdForEciesScope:scope];
+        if (!temporaryKeyId) {
+            return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_Encryption, @"Temporary key for ECIES is not set")];
+        }
         PowerAuthCoreSignatureUnlockKeys * unlockKeys = nil;
         if (scope == PowerAuthCoreEciesEncryptorScope_Activation) {
             // For activation scope, also prepare activation ID and possession unlock key.
@@ -84,7 +88,7 @@
             unlockKeys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
             unlockKeys.possessionUnlockKey = _deviceRelatedKey;
         }
-        // Prepare the rest of information required for o
+        // Prepare the rest of information required for encryptor creation
         NSData * sharedInfo1Data = [sharedInfo1 dataUsingEncoding:NSUTF8StringEncoding];
         NSString * applicationKey = session.applicationKey;
         // Now create the encryptor
@@ -96,6 +100,7 @@
         }
         // And assign the associated metadata
         encryptor.associatedMetaData = [[PowerAuthCoreEciesMetaData alloc] initWithApplicationKey:applicationKey
+                                                                                   temporaryKeyId:temporaryKeyId
                                                                              activationIdentifier:activationId];
         return [PA2Result success:encryptor];
     }] extractResult:error];

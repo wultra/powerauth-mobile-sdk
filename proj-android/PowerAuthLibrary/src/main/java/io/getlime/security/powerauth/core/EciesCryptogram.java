@@ -17,12 +17,19 @@
 package io.getlime.security.powerauth.core;
 
 import android.util.Base64;
+import androidx.annotation.Nullable;
+import io.getlime.security.powerauth.networking.model.request.EciesEncryptedRequest;
+import io.getlime.security.powerauth.networking.model.response.EciesEncryptedResponse;
+import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
  * The <code>EciesCryptogram</code> object represents cryptogram transmitted over the network.
  */
 public class EciesCryptogram {
-
+    /**
+     * An identifier of temporary key.
+     */
+    public final String temporaryKeyId;
     /**
      * An encrypted data
      */
@@ -93,6 +100,7 @@ public class EciesCryptogram {
      * object initialization.
      */
     public EciesCryptogram() {
+        this.temporaryKeyId = null;
         this.body = null;
         this.mac = null;
         this.key = null;
@@ -103,13 +111,15 @@ public class EciesCryptogram {
     /**
      * Constructs a cryptogram with body, mac and key. The key can and nonce be null for responses received
      * from the server.
+     * @param temporaryKeyId Identifier of temporary encryption key.
      * @param body encrypted data
      * @param mac MAC computed for encrypted data
      * @param key An optional ephemeral key
      * @param nonce An optional nonce.
      * @param timestamp Timestamp with milliseconds precision.
      */
-    public EciesCryptogram(byte[] body, byte[] mac, byte[] key, byte[] nonce, long timestamp) {
+    public EciesCryptogram(String temporaryKeyId, byte[] body, byte[] mac, byte[] key, byte[] nonce, long timestamp) {
+        this.temporaryKeyId = temporaryKeyId;
         this.body = body;
         this.mac = mac;
         this.key = key;
@@ -126,11 +136,50 @@ public class EciesCryptogram {
      * @param nonceBase64 An optional nonce in Base64 format.
      * @param timestamp Timestamp with milliseconds precision.
      */
-    public EciesCryptogram(String bodyBase64, String macBase64, String keyBase64, String nonceBase64, long timestamp) {
+    public EciesCryptogram(String temporaryKeyId, String bodyBase64, String macBase64, String keyBase64, String nonceBase64, long timestamp) {
+        this.temporaryKeyId = temporaryKeyId;
         this.body = (bodyBase64 != null) ? Base64.decode(bodyBase64, Base64.NO_WRAP) : null;
         this.mac  = (macBase64  != null) ? Base64.decode(macBase64, Base64.NO_WRAP) : null;
         this.key  = (keyBase64  != null) ? Base64.decode(keyBase64, Base64.NO_WRAP) : null;
         this.nonce = (nonceBase64 != null) ? Base64.decode(nonceBase64, Base64.NO_WRAP) : null;
         this.timestamp = timestamp;
+    }
+
+    /**
+     * Convert cryptogram into encrypted request object.
+     * @return New instance of {@link EciesEncryptedRequest} object with all parameters set from the cryptogram.
+     */
+    public EciesEncryptedRequest toEncryptedRequest() {
+        final EciesEncryptedRequest request = new EciesEncryptedRequest();
+        request.setTemporaryKeyId(temporaryKeyId);
+        request.setEncryptedData(getBodyBase64());
+        request.setMac(getMacBase64());
+        request.setNonce(getNonceBase64());
+        request.setEphemeralPublicKey(getKeyBase64());
+        request.setTimestamp(timestamp);
+        return request;
+    }
+
+    /**
+     * Construct cryptogram from {@link EciesEncryptedResponse} received from the server.
+     * @param response Encrypted response object received from the server.
+     * @return Cryptogram with response received from the server, or {@code null} in case some required parameter is missing.
+     */
+    @Nullable
+    public static EciesCryptogram fromEncryptedResponse(EciesEncryptedResponse response) {
+        if (response != null) {
+            try {
+                return new EciesCryptogram(
+                        null,
+                        response.getEncryptedData(),
+                        response.getMac(),
+                        null,
+                        response.getNonce(),
+                        response.getTimestamp());
+            } catch (IllegalArgumentException e) {
+                PowerAuthLog.e("Failed to parse encrypted response: " + e.getMessage());
+            }
+        }
+        return null;
     }
 }

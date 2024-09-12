@@ -22,7 +22,7 @@
 /**
  Creates a new ECIESCryptogram java object from given C++ cryptogram structure.
  */
-CC7_EXTERN_C jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const io::getlime::powerAuth::ECIESCryptogram & cryptogram, const io::getlime::powerAuth::ECIESParameters & parameters);
+CC7_EXTERN_C jobject CreateJavaCryptogramFromCppObject(JNIEnv * env, const io::getlime::powerAuth::ECIESCryptogram & cryptogram, const io::getlime::powerAuth::ECIESParameters & parameters, const std::string & temporaryKeyId);
 
 /**
  Loads a content from ECIESCryptogram java object into cryptogram C++ structure.

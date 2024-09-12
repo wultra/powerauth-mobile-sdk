@@ -72,10 +72,10 @@ using namespace io::getlime::powerAuth;
     delete _session;
 }
 
-- (void) resetSession
+- (void) resetSession:(BOOL)fullReset
 {
     REQUIRE_WRITE_ACCESS();
-    _session->resetSession();
+    _session->resetSession(fullReset);
 }
 
 
@@ -295,6 +295,22 @@ using namespace io::getlime::powerAuth;
     return error == EC_Ok;
 }
 
+- (BOOL) signDataWithHmacKey:(nonnull PowerAuthCoreSignedData*)dataToSign 
+                        keys:(nullable PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+{
+    REQUIRE_READ_ACCESS();
+    ErrorCode error;
+    if (dataToSign != nil) {
+        SignatureUnlockKeys cpp_keys;
+        PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
+        error = _session->signDataWithHmacKey(dataToSign.signedDataRef, cpp_keys);
+    } else {
+        error = EC_WrongParam;
+    }
+    REPORT_ERROR_CODE(@"signDataWithHmacKey", error);
+    return error == EC_Ok;
+}
+
 
 #pragma mark - Signature keys management
 
@@ -364,15 +380,17 @@ using namespace io::getlime::powerAuth;
 - (nullable NSData*) signDataWithDevicePrivateKey:(nonnull NSString*)cVaultKey
                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
                                              data:(nonnull NSData*)data
+                                           format:(PowerAuthCoreSignatureFormat)format
 {
     REQUIRE_READ_ACCESS();
     std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
     cc7::ByteArray cpp_data     = cc7::objc::CopyFromNSData(data);
+    auto cpp_format             = static_cast<SignedData::SignatureFormat>(format);
     SignatureUnlockKeys cpp_keys;
     PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
         
     cc7::ByteArray cpp_signature;
-    auto error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_signature);
+    auto error = _session->signDataWithDevicePrivateKey(cpp_c_vault_key, cpp_keys, cpp_data, cpp_format, cpp_signature);
     if (error == EC_Ok) {
         return cc7::objc::CopyToNSData(cpp_signature);
     }
@@ -433,6 +451,37 @@ using namespace io::getlime::powerAuth;
         return nil;
     }
     return [[PowerAuthCoreEciesEncryptor alloc] initWithObject:cpp_encryptor timeService:_timeService];
+}
+
+- (PowerAuthCoreErrorCode) setPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
+                                           publicKey:(NSString*)publicKey
+                                         publicKeyId:(NSString*)publicKeyId
+{
+    REQUIRE_READ_ACCESS();  // we don't nodify shared data, so read access is OK
+    auto cpp_scope = static_cast<ECIESEncryptorScope>(scope);
+    auto cpp_public_key = cc7::objc::CopyFromNSString(publicKey);
+    auto cpp_public_key_id = cc7::objc::CopyFromNSString(publicKeyId);
+    auto error = _session->setPublicKeyForEciesScope(cpp_scope, cpp_public_key, cpp_public_key_id);
+    REPORT_ERROR_CODE(@"SetPublicKeyForEciesScope", error);
+    return static_cast<PowerAuthCoreErrorCode>(error);
+}
+
+- (void) removePublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
+{
+    REQUIRE_READ_ACCESS();  // we don't nodify shared data, so read access is OK
+    _session->removePublicKeyForEciesScope(static_cast<ECIESEncryptorScope>(scope));
+}
+
+- (BOOL) hasPublicKeyForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
+{
+    REQUIRE_READ_ACCESS();
+    return _session->hasPublicKeyForEciesScope(static_cast<ECIESEncryptorScope>(scope));
+}
+
+- (NSString*) publicKeyIdForEciesScope:(PowerAuthCoreEciesEncryptorScope)scope
+{
+    REQUIRE_READ_ACCESS();
+    return cc7::objc::CopyToNullableNSString(_session->getPublicKeyIdForEciesScope(static_cast<ECIESEncryptorScope>(scope)));
 }
 
 #pragma mark - Utilities for generic keys

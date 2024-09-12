@@ -405,15 +405,15 @@ namespace powerAuth
     // MARK: - Utilities -
     //
 
-    cc7::ByteArray ECIESUtils::buildAssociatedData(const std::string &applicationKey, const std::string &activationId) {
+    cc7::ByteArray ECIESUtils::buildAssociatedData(const std::string &applicationKey, const std::string & temporaryKeyId, const std::string &activationId) {
         auto version = Version_GetMaxSupportedHttpProtocolVersion(Version_Latest);
         cc7::ByteArray ad;
         if (activationId.empty()) {
             // Application scope
-            ad = utils::ByteUtils_Join({ cc7::MakeRange(version), cc7::MakeRange(applicationKey) });
+            ad = utils::ByteUtils_Join({ cc7::MakeRange(version), cc7::MakeRange(applicationKey), cc7::MakeRange(temporaryKeyId) });
         } else {
             // Activation scope
-            ad = utils::ByteUtils_Join({ cc7::MakeRange(version), cc7::MakeRange(applicationKey), cc7::MakeRange(activationId) });
+            ad = utils::ByteUtils_Join({ cc7::MakeRange(version), cc7::MakeRange(applicationKey), cc7::MakeRange(activationId), cc7::MakeRange(temporaryKeyId) });
         }
         return ad;
     }

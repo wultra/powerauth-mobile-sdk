@@ -22,6 +22,7 @@ package io.getlime.security.powerauth.networking.model.request;
  */
 public class EciesEncryptedRequest {
 
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
@@ -105,5 +106,21 @@ public class EciesEncryptedRequest {
      */
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    /**
+     * Get identifier of temporary key.
+     * @return Identifier of temporary key
+     */
+    public String getTemporaryKeyId() {
+        return temporaryKeyId;
+    }
+
+    /**
+     * Set identifier of temporary key.
+     * @param temporaryKeyId identifier of temporary key.
+     */
+    public void setTemporaryKeyId(String temporaryKeyId) {
+        this.temporaryKeyId = temporaryKeyId;
     }
 }

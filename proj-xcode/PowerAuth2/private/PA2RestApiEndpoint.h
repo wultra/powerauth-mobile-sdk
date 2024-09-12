@@ -49,6 +49,10 @@
 /// Returns YES, if request requires encryption
 @property (nonatomic, assign, readonly) BOOL isEncrypted;
 
+/// Returns YES, if request requires application scopeed encryption
+@property (nonatomic, assign, readonly) BOOL isEncryptedWithApplicationScope;
+
+
 /// Returns YES, if request needs to be signed with PA signature
 @property (nonatomic, assign, readonly) BOOL isSigned;
 
@@ -59,11 +63,14 @@
 @property (nonatomic, assign, readonly) BOOL requireSynchronizedTime;
 
 /// Contains block that will be executed on networking queue, before the request is serialized.
-@property (nonatomic, strong, readonly) NSError *(^beforeRequestSerialization)(void);
+@property (nonatomic, strong, readonly) NSError *(^beforeRequestSerialization)(PA2RestApiEndpoint * endpoint);
+
+/// Arbitrary data produced in custom serialization steps.
+@property (nonatomic, strong) id customData;
 
 #pragma mark - Endpoint construction
 
-+ (instancetype) createActivationWithCustomStep:(NSError*(^)(void))customStep;
++ (instancetype) createActivationWithCustomStep:(NSError*(^)(PA2RestApiEndpoint * endpoint))customStep;
 + (instancetype) getActivationStatus;
 + (instancetype) removeActivation;
 
@@ -81,5 +88,7 @@
 + (instancetype) getUserInfo;
 
 + (instancetype) getSystemStatus;
+
++ (instancetype) getTemporaryKey;
 
 @end

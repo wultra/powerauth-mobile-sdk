@@ -50,6 +50,11 @@
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * configuration;
 /**
+ Application key extracted from the cryptographic configuration.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
+
+/**
  Optional external encryption key. If the data object size is equal to 16 bytes,
  then the key is considered as valid and will be used during the cryptographic operations.
  
@@ -303,14 +308,55 @@ typedef NS_ENUM(int, PowerAuthCoreSigningDataKey) {
      `KEY_SERVER_PRIVATE` key was used for signature calculation
      */
     PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey = 1,
+    /**
+     `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
+     */
+    PowerAuthCoreSigningDataKey_HMAC_Application = 2,
+    /**
+     `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
+     */
+    PowerAuthCoreSigningDataKey_HMAC_Activation = 3
+};
+
+/**
+ The `PowerAuthCoreSignatureFormat` enumeration defines signature type expected at input, or produced
+ at output.
+ */
+typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
+    /**
+     If used, then `PowerAuthCoreSignatureFormat_ECDSA_DER` is used for ECDSA signature.
+     For the HMAC signature, the raw bytes is always used.
+     */
+    PowerAuthCoreSignatureFormat_Default = 0,
+    /**
+     ECDSA signature in DER format is expected at input, or produced at output:
+     ```
+     // ASN.1 notation:
+     ECDSASignature ::= SEQUENCE {
+         r   INTEGER,
+         s   INTEGER
+     }
+     ```
+     */
+    PowerAuthCoreSignatureFormat_ECDSA_DER = 1,
+    /**
+     ECDSA signature in JOSE format is epxpected at input, or produced at output.
+     */
+    PowerAuthCoreSignatureFormat_ECDSA_JOSE = 2
 };
 
 /**
  The PowerAuthCoreSignedData object contains data and signature calculated from data.
  */
 @interface PowerAuthCoreSignedData : NSObject
-
+/**
+ A signing key to use.
+ */
 @property (nonatomic, assign) PowerAuthCoreSigningDataKey signingDataKey;
+/**
+ A format of signature expected at input or produced at output.
+ */
+@property (nonatomic, assign) PowerAuthCoreSignatureFormat signatureFormat;
 /**
  A data protected with signature
  */

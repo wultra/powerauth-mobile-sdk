@@ -156,13 +156,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     }()
 
     private static func setupPowerAuth() -> PowerAuthExtensionSDK {
-        let config = PowerAuthConfiguration()
-        config.instanceId = "your-app-bundle-name";
-        config.appKey = "sbG8gd...MTIzNA=="
-        config.appSecret = "aGVsbG...MTIzNA=="
-        config.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-        // URL is optional, the current version of Extensions SDK doesn't perform its own networking.
-        config.baseEndpointUrl = "https://localhost:8080/demo-server"
+        let config = PowerAuthConfiguration(
+            instanceId: Bundle.main.bundleIdentifier!,
+            baseEndpointUrl: "https://localhost:8080/demo-server",
+            configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
         let keychainConfig = PowerAuthKeychainConfiguration.sharedInstance()
         keychainConfig.keychainAttribute_AccessGroup = "KEYCHAIN_GROUP_IDENTIFIER"

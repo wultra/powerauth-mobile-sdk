@@ -18,7 +18,7 @@
 
 @interface PA2GetTemporaryKeyRequest : NSObject<PA2Encodable>
 
-@property (nonatomic, strong) NSString * appKey;
+@property (nonatomic, strong) NSString * applicationKey;
 @property (nonatomic, strong) NSString * activationId;
 @property (nonatomic, strong) NSString * challenge;
 

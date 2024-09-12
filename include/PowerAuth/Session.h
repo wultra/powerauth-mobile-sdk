@@ -87,7 +87,7 @@ namespace powerAuth
         
         /**
          Resets session into its initial state. The existing session's setup and the external encryption
-         key is preserved by this call. If |full_reset\ parameter is true, then also resets data not relevant
+         key is preserved by this call. If |full_reset| parameter is true, then also resets data not relevant
          to the activation state. For example, ECIES public key for application scope.
          */
         void resetSession(bool full_reset = true);

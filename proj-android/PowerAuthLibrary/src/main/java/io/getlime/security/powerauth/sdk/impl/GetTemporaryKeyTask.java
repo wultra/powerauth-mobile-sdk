@@ -176,7 +176,7 @@ public class GetTemporaryKeyTask extends GroupedTask<GetTemporaryKeyResponse> {
         final String jwtHeaderPlusPayload = jwtHeader + jwtPayload;
         final SignedData dataToSign = new SignedData(jwtHeaderPlusPayload.getBytes(StandardCharsets.US_ASCII), null, signingKey, SignatureFormat.DEFAULT);
         if (ErrorCode.OK != session.signDataWithHmacKey(dataToSign, unlockKeys)) {
-            this.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR));
+            this.complete(new PowerAuthErrorException(PowerAuthErrorCodes.ENCRYPTION_ERROR, "Failed to calculate JWT signature"));
             return null;
         }
         final String jwtSignature = Base64.encodeToString(dataToSign.signature, Base64.NO_WRAP | Base64.NO_PADDING | Base64.URL_SAFE);

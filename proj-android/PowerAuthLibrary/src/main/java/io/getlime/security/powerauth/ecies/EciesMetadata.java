@@ -32,6 +32,7 @@ public class EciesMetadata {
 
     /**
      * @param applicationKey Base64 string with an application key cryptographic constant
+     * @param temporaryKeyId Temporary encryption key identifier
      * @param activationIdentifier String with an activation identifier
      */
     public EciesMetadata(@NonNull String applicationKey, @NonNull String temporaryKeyId, @Nullable String activationIdentifier) {
@@ -43,21 +44,21 @@ public class EciesMetadata {
     // Getters
 
     /**
-     * @return Base64 string with an application key cryptographic constant
+     * @return Base64 string with an application key cryptographic constant.
      */
     public @NonNull String getActivationKey() {
         return applicationKey;
     }
 
     /**
-     * @return Temporary key identifier
+     * @return Application key identifier.
      */
     public @NonNull String getApplicationKey() {
         return applicationKey;
     }
 
     /**
-     * @return Base64 String with an activation identifier
+     * @return Base64 String with an activation identifier.
      */
     public @Nullable String getActivationIdentifier() {
         return activationIdentifier;

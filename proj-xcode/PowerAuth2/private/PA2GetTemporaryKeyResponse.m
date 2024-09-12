@@ -23,7 +23,7 @@
 {
     self = [super init];
     if (self) {
-        _appKey         = PA2ObjectAs(dictionary[@"applicationKey"], NSString);
+        _applicationKey         = PA2ObjectAs(dictionary[@"applicationKey"], NSString);
         _activationId   = PA2ObjectAs(dictionary[@"activationId"], NSString);
         _challenge      = PA2ObjectAs(dictionary[@"challenge"], NSString);
         _publicKey      = PA2ObjectAs(dictionary[@"publicKey"], NSString);

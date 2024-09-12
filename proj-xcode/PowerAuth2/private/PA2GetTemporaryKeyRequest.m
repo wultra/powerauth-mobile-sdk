@@ -21,9 +21,9 @@
 - (NSDictionary<NSString *,NSObject *> *)toDictionary
 {
     if (_activationId) {
-        return @{ @"applicationKey" : _appKey, @"activationId": _activationId, @"challenge" : _challenge };
+        return @{ @"applicationKey" : _applicationKey, @"activationId": _activationId, @"challenge" : _challenge };
     } else {
-        return @{ @"applicationKey" : _appKey, @"challenge" : _challenge };
+        return @{ @"applicationKey" : _applicationKey, @"challenge" : _challenge };
     }
 }
 

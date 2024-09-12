@@ -18,7 +18,7 @@
 
 @interface PA2GetTemporaryKeyResponse : NSObject<PA2Decodable>
 
-@property (nonatomic, strong) NSString * appKey;
+@property (nonatomic, strong) NSString * applicationKey;
 @property (nonatomic, strong) NSString * activationId;
 @property (nonatomic, strong) NSString * challenge;
 @property (nonatomic, strong) NSString * keyId;

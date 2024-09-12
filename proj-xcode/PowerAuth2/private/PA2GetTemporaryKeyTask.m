@@ -106,7 +106,7 @@
             }
         }
         // Update input request object
-        request.appKey = _applicationKey;
+        request.applicationKey = _applicationKey;
         request.activationId = activationId;
         request.challenge = [[PowerAuthCoreCryptoUtils randomBytes:18] base64EncodedStringWithOptions:0];
         // Prepare JWT string
@@ -187,7 +187,7 @@
 - (BOOL) validateResponse:(PA2GetTemporaryKeyResponse*)response withRequest:(PA2GetTemporaryKeyRequest*)request
 {
     BOOL match = [response.challenge isEqualToString:request.challenge];
-    match = match && [response.appKey isEqualToString:request.appKey];
+    match = match && [response.applicationKey isEqualToString:request.applicationKey];
     if (!_isApplicationScope) {
         match = match && [response.activationId isEqualToString:request.activationId];
     }

@@ -1464,6 +1464,7 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                        data:(NSData*)data
+                                                     format:(PowerAuthCoreSignatureFormat)format
                                                    callback:(void(^)(NSData *signature, NSError *error))callback
 {
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
@@ -1475,7 +1476,8 @@ static PowerAuthSDK * s_inst;
             signature = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
                 return [session signDataWithDevicePrivateKey:encryptedEncryptionKey
                                                         keys:keys
-                                                        data:data];
+                                                        data:data
+                                                      format:format];
             }];
             // Propagate error
             if (!signature) {
@@ -1487,35 +1489,41 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+- (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
+                                                       data:(NSData*)data
+                                                   callback:(void(^)(NSData *signature, NSError *error))callback
+{
+    return [self signDataWithDevicePrivateKey:authentication
+                                         data:data
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_DER
+                                     callback:callback];
+}
+
 - (id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                     claims:(NSDictionary<NSString*, NSObject*>*)claims
                                                   callback:(void(^)(NSString *jwt, NSError *error))callback
 {
+    // Prepare JWT Header
+    NSString * jwtHeader = @"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9."; // {"alg":"ES256","typ":"JWT"}
     // Prepare claims data
-    NSData *claimsData = [NSJSONSerialization dataWithJSONObject:claims options:0 error:nil];
+    NSData * claimsData = [NSJSONSerialization dataWithJSONObject:claims options:0 error:nil];
+    // Prepare data for signing
+    NSString * signedData = [jwtHeader stringByAppendingString:[claimsData jwtEncodedString]];
+    // Calculate signature
     return [self signDataWithDevicePrivateKey:authentication
-                                         data:claimsData
-                                     callback:^(NSData * _Nullable signature, NSError * _Nullable error) {
+                                         data:[signedData dataUsingEncoding:NSASCIIStringEncoding]
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_JOSE
+                                     callback:^(NSData * signature, NSError * error) {
         // Handle error
         if (error) {
             callback(nil, error);
             return;
         }
-        
-        // Prepare JWT Header
-        NSDictionary *header = @{ @"alg": @"ES256", @"typ": @"JWT" };
-        NSData *headerData = [NSJSONSerialization dataWithJSONObject:header options:0 error:nil];
-        NSString *headerBase64Encoded = [headerData base64EncodedStringWithOptions:0];
-        
-        // Base64 Encode Claims Data
-        NSString *claimsBase64Encoded = [claimsData base64EncodedStringWithOptions:0];
-        
         // Base64 Encode Signature
-        NSString *signatureBase64Encoded = [signature base64EncodedStringWithOptions:0];
-        
+        NSString *jwtSignature = [signature jwtEncodedString];
         // Construct JWT
-        NSString *jwt = [NSString stringWithFormat:@"%@.%@.%@", headerBase64Encoded, claimsBase64Encoded, signatureBase64Encoded];
-        
+        NSString *jwt = [[signedData stringByAppendingString:@"."] stringByAppendingString:jwtSignature];
+        // Call back to application
         callback(jwt, nil);
     }];
 }

@@ -94,7 +94,11 @@
     }
     if (!_appVersion.supported) {
         NSLog(@"Application version '%@' is not supported", _appVersion.applicationVersionName);
-        return NO;
+        if (![self supportApplicationVersion:_appVersion.applicationVersionId]) {
+            NSLog(@"Failed to set application version '%@' supported", _appVersion.applicationVersionName);
+            return NO;
+        }
+        _appVersion.supported = YES;
     }
     
     _hasValidConnection = YES;
@@ -335,12 +339,25 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 
 - (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature
 {
-    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
-    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
-    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:@[activationId, dataB64, signatureB64]];
-    return [response[@"signatureValid"] boolValue];
+    return [self verifyECDSASignature:activationId data:data signature:signature signatureFormat:nil];
 }
 
+- (BOOL) verifyECDSASignature:(NSString*)activationId
+                         data:(NSData*)data
+                    signature:(NSData*)signature
+              signatureFormat:(NSString*)signatureFormat
+{
+    NSString * dataB64 = [data base64EncodedStringWithOptions:0];
+    NSString * signatureB64 = [signature base64EncodedStringWithOptions:0];
+    NSArray * params;
+    if (signatureFormat) {
+        params = @[activationId, dataB64, signatureB64, signatureFormat];
+    } else {
+        params = @[activationId, dataB64, signatureB64];
+    }
+    NSDictionary * response = [_rest request:@"VerifyECDSASignature" params:params];
+    return [response[@"signatureValid"] boolValue];
+}
 
 #pragma mark - Tokens
 
@@ -348,7 +365,7 @@ static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)
 {
     [self checkForValidConnection];
     NSArray * params;
-    if (_testServerConfig.serverMaxProtovolVersion == PATS_P32) {
+    if (_testServerConfig.serverMaxProtovolVersion >= PATS_P32) {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp, request.protocolVersion];
     } else {
         params = @[ request.tokenIdentifier, request.tokenDigest, request.nonce, request.timestamp];

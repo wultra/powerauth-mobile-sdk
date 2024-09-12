@@ -378,10 +378,38 @@ namespace powerAuth
             ECDSA_PersonalizedKey = 1
         };
         
+        enum SignatureFormat
+        {
+            /**
+             If default signature is used, then `ECDSA_DER` is used for ECDSA signature.
+             The raw bytes are always used for HMAC signatures.
+             */
+            Default = 0,
+            /**
+             ECDSA signature in DER format is expected at input, or produced at output:
+             ```
+             ASN.1 notation:
+             ECDSASignature ::= SEQUENCE {
+                 r   INTEGER,
+                 s   INTEGER
+             }
+             ```
+             */
+            ECDSA_DER = 1,
+            /**
+             ECDSA signature in JOSE format is epxpected at input, or produced at output.
+             */
+            ECDSA_JOSE = 2,
+        };
+        
         /**
          A key type used for signature calculation.
          */
         SigningKey signingKey;
+        /**
+         Format of signature expected at input, or produced at output.
+         */
+        SignatureFormat signatureFormat;
         /**
          An arbitrary data
          */
@@ -394,8 +422,9 @@ namespace powerAuth
         /**
          Default constructor
          */
-        SignedData(SigningKey signingKey = ECDSA_MasterServerKey) :
-            signingKey(signingKey)
+        SignedData(SigningKey signingKey = ECDSA_MasterServerKey, SignatureFormat signatureFormat = Default) :
+            signingKey(signingKey),
+            signatureFormat(signatureFormat)
         {
         }
     };

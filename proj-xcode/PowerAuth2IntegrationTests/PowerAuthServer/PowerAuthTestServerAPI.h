@@ -202,10 +202,19 @@
                                           allowBiometry:(BOOL)allowBiometry;
 
 /**
- Request for the asymmetric signature (ECDSA) validation procedure.
+ Request for the asymmetric signature (ECDSA) validation procedure. The signature format is DER.
  */
-- (BOOL) verifyECDSASignature:(NSString*)activationId data:(NSData*)data signature:(NSData*)signature;
-
+- (BOOL) verifyECDSASignature:(NSString*)activationId
+                         data:(NSData*)data
+                    signature:(NSData*)signature;
+/**
+ Request for the asymmetric signature (ECDSA) validation procedure. Use nil (fallback to "DER") or "JOSE" as
+ signature format.
+ */
+- (BOOL) verifyECDSASignature:(NSString*)activationId
+                         data:(NSData*)data
+                    signature:(NSData*)signature
+              signatureFormat:(NSString*)signatureFormat;
 
 #pragma mark - Tokens
 

@@ -301,10 +301,11 @@ public interface PowerAuthServerApi {
      * @param activationId Activation identifier.
      * @param data Signed data.
      * @param signature Signature for data.
+     * @param format Signature format. Use "DER" (default if not provided) or "JOSE".
      * @return {@code true} if signature is valid.
      * @throws Exception In case of failure.
      */
-    boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature) throws Exception;
+    boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @Nullable String format) throws Exception;
 
     /**
      * Create a payload for offline QR code, signed with non-personalized private key.

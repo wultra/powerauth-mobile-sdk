@@ -21,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.core.ProtocolVersion;
+import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.networking.response.IGenerateTokenHeaderListener;
 import org.junit.After;
 import org.junit.Before;
@@ -410,7 +412,7 @@ public class TokenStoreTest {
         assertEquals("X-PowerAuth-Token", header.getKey());
         Map<String, String> headerComponents = signatureHelper.parseAuthorizationHeader(header);
         // Validate values
-        assertEquals(testHelper.getProtocolVersionForHeader(), headerComponents.get("version"));
+        assertEquals(Session.getMaxSupportedHttpProtocolVersion(ProtocolVersion.V3), headerComponents.get("version"));
         assertEquals(token.getTokenIdentifier(), headerComponents.get("token_id"));
 
         String tokenId = Objects.requireNonNull(headerComponents.get("token_id"));

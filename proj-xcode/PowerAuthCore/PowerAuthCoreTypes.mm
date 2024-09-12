@@ -151,6 +151,17 @@ using namespace io::getlime::powerAuth;
     _signedData.signingKey = static_cast<SignedData::SigningKey>(signingDataKey);
 }
 
+// Signature type
+
+- (PowerAuthCoreSignatureFormat) signatureFormat
+{
+    return static_cast<PowerAuthCoreSignatureFormat>(_signedData.signatureFormat);
+}
+
+- (void) setSignatureFormat:(PowerAuthCoreSignatureFormat)signatureType
+{
+    _signedData.signatureFormat = static_cast<SignedData::SignatureFormat>(signatureType);
+}
 
 // Bytes setters and getters
 

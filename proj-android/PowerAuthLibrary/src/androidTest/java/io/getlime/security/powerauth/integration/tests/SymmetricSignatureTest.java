@@ -21,6 +21,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.core.ProtocolVersion;
+import io.getlime.security.powerauth.core.Session;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -190,7 +192,7 @@ public class SymmetricSignatureTest {
             final String sigType = Objects.requireNonNull(sigComponents.get("pa_signature_type")).toUpperCase();
             final String sigValue = sigComponents.get("pa_signature");
 
-            assertEquals(testHelper.getProtocolVersionForHeader(), sigVersion);
+            assertEquals(Session.getMaxSupportedHttpProtocolVersion(ProtocolVersion.V3), sigVersion);
             assertNotNull(sigActivationId);
             assertNotNull(sigNonce);
             assertNotNull(sigAppKey);

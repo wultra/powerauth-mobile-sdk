@@ -3,7 +3,8 @@
     "parameters": [
         "activationId",
         "data",
-        "signature"
+        "signature",
+        "signatureFormat"
     ],
     "response": {
         "class": "dictionary"

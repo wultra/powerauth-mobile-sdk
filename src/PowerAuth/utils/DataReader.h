@@ -144,6 +144,11 @@ namespace utils
          to DataWriter::writeCount().
          */
         bool readCount(size_t & out_value);
+        /**
+         Reads count in ASN.1 format from the data stream. This is complementary method
+         to DataWriter::writeAsn1Count().
+         */
+        bool readAsn1Count(size_t & out_value);
         
         // Data versioning
         

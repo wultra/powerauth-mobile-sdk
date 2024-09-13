@@ -135,7 +135,7 @@ public class BiometricAuthentication {
                 @Override
                 public void onBiometricKeyUnavailable() {
                     // Remove the default key, because the biometric key is no longer available.
-                    device.getBiometricKeystore().removeBiometricKeyEncryptor();
+                    device.getBiometricKeystore().removeBiometricKeyEncryptor(request.getKeystoreAlias());
                 }
             });
             final IBiometricKeyEncryptorProvider biometricKeyEncryptorProvider = new DefaultBiometricKeyEncryptorProvider(request, getBiometricKeystore());
@@ -170,7 +170,7 @@ public class BiometricAuthentication {
             }
             // Failed to use biometric authentication. At first, we should cleanup the possible stored
             // biometric key.
-            device.getBiometricKeystore().removeBiometricKeyEncryptor();
+            device.getBiometricKeystore().removeBiometricKeyEncryptor(request.getKeystoreAlias());
 
             // Now show the error dialog, and report the exception later.
             if (exception == null) {

@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.biometry;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
@@ -38,7 +39,7 @@ public interface IBiometricKeystore {
      * @return {@code true} in case a key for biometric key encryptor is present, false otherwise.
      *         Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
      */
-    boolean containsBiometricKeyEncryptor();
+    boolean containsBiometricKeyEncryptor(@NonNull String keyId);
 
     /**
      * Generate a new biometry related Keystore key and return object that provide KEK encryption and decryption.
@@ -52,17 +53,24 @@ public interface IBiometricKeystore {
      * @return New generated {@link IBiometricKeyEncryptor} key or {@code null} in case of failure.
      */
     @Nullable
-    IBiometricKeyEncryptor createBiometricKeyEncryptor(boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
 
     /**
      * Removes an encryption key from Keystore.
      */
-    void removeBiometricKeyEncryptor();
+    void removeBiometricKeyEncryptor(@NonNull String keyId);
 
     /**
      * @return {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore or {@code null}
      *         if no such key is stored.
      */
     @Nullable
-    IBiometricKeyEncryptor getBiometricKeyEncryptor();
+    IBiometricKeyEncryptor getBiometricKeyEncryptor(@NonNull String keyId);
+
+    /**
+     * Return identifier of legacy key shared between multiple PowerAuthSDK instances.
+     * @return Identifier of shared legacy key.
+     */
+    @NonNull
+    String getLegacySharedKeyId();
 }

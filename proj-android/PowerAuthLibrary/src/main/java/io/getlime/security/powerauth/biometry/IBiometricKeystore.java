@@ -35,6 +35,7 @@ public interface IBiometricKeystore {
     /**
      * Check if a key for biometric key encryptor is present in Keystore and {@link IBiometricKeyEncryptor}
      * can be acquired.
+     * @param keyId Key identifier.
      *
      * @return {@code true} in case a key for biometric key encryptor is present, false otherwise.
      *         Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
@@ -49,6 +50,7 @@ public interface IBiometricKeystore {
      *
      * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on biometric enrollment.
      * @param useSymmetricKey Sets whether symmetric key should be created.
+     * @param keyId Key identifier.
      *
      * @return New generated {@link IBiometricKeyEncryptor} key or {@code null} in case of failure.
      */
@@ -57,10 +59,13 @@ public interface IBiometricKeystore {
 
     /**
      * Removes an encryption key from Keystore.
+     * @param keyId Key identifier.
      */
     void removeBiometricKeyEncryptor(@NonNull String keyId);
 
     /**
+     * Get implementation of {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore.
+     * @param keyId Key identifier.
      * @return {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore or {@code null}
      *         if no such key is stored.
      */

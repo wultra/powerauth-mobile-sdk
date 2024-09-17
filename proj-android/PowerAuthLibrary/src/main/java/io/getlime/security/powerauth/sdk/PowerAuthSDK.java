@@ -78,6 +78,7 @@ public class PowerAuthSDK {
     private final @NonNull IServerStatusProvider mServerStatusProvider;
     private final @NonNull TimeSynchronizationService mTimeSynchronizationService;
     private final @NonNull IKeystoreService mKeystoreService;
+    private final @NonNull BiometricDataMapper mBiometricDataMapper;
 
     /**
      * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
@@ -214,6 +215,9 @@ public class PowerAuthSDK {
             // Prepare low-level Session object.
             final Session session = new Session(mConfiguration.getSessionSetup(), timeSynchronizationService);
 
+            // Prepare biometric data mapping provider
+            final BiometricDataMapper biometricDataMapper = new BiometricDataMapper(sharedLock, session, mConfiguration, mKeychainConfiguration, biometryKeychain);
+
             // Prepare keystore service and conned it with HTTP client
             final DefaultKeystoreService keystoreService = new DefaultKeystoreService(timeSynchronizationService, session, mCallbackDispatcher, sharedLock, httpClient);
             httpClient.setKeystoreService(keystoreService);
@@ -230,6 +234,7 @@ public class PowerAuthSDK {
                     possessionEncryptionKeyProvider,
                     biometryKeychain,
                     tokenStoreKeychain,
+                    biometricDataMapper,
                     mCallbackDispatcher,
                     serverStatusProvider,
                     timeSynchronizationService,
@@ -272,6 +277,7 @@ public class PowerAuthSDK {
             @NonNull IPossessionFactorEncryptionKeyProvider possessionKeyProvider,
             @NonNull Keychain biometryKeychain,
             @NonNull Keychain tokenStoreKeychain,
+            @NonNull BiometricDataMapper biometricDataMapper,
             @NonNull ICallbackDispatcher callbackDispatcher,
             @NonNull IServerStatusProvider serverStatusProvider,
             @NonNull IPowerAuthTimeSynchronizationService timeSynchronizationService,
@@ -285,6 +291,7 @@ public class PowerAuthSDK {
         this.mStateListener = stateListener;
         this.mPossessionFactorEncryptionKeyProvider = possessionKeyProvider;
         this.mBiometryKeychain = biometryKeychain;
+        this.mBiometricDataMapper = biometricDataMapper;
         this.mCallbackDispatcher = callbackDispatcher;
         this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
         this.mServerStatusProvider = serverStatusProvider;
@@ -1613,22 +1620,22 @@ public class PowerAuthSDK {
      * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
      * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
      * <p>
-     * <b>NOTE:</b> This method is useful for situations, where the application has multiple SDK instances activated at the same time and
-     * you need to manage a lifetime of shared biometry key.
+     * <b>NOTE:</b>The removeSharedBiometryKey parameter is now ignored, because PowerAuthSDK no longer use the shared key for a newly created
+     * biometry factors.
      *
      * @param context                   Android context.
-     * @param removeSharedBiometryKey   If set to true, then also shared biometry key will be removed.
+     * @param removeSharedBiometryKey   This parameter is ignored.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
 
         checkForValidSetup();
 
-        final BiometryConfig biometryConfig = getBiometryConfig(null, context, false, true);
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
         if (mSession.hasBiometryFactor()) {
-            mBiometryKeychain.remove(biometryConfig.keychainKey);
+            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
         }
-        BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor(biometryConfig.keystoreId);
+        BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
 
         // Remove all tokens from token store
         getTokenStore().cancelAllRequests();
@@ -1938,85 +1945,6 @@ public class PowerAuthSDK {
         });
     }
 
-    // Biometrics
-
-    private static class BiometryConfig {
-        final boolean isLegacyConfig;
-        final @NonNull String keystoreId;
-        final @NonNull String keychainKey;
-        BiometryConfig(boolean isLegacyConfig, @NonNull String keystoreId, @NonNull String keychainKey) {
-            this.isLegacyConfig = isLegacyConfig;
-            this.keystoreId = keystoreId;
-            this.keychainKey = keychainKey;
-        }
-    }
-
-    private BiometryConfig mBiometryConfig = null;
-
-    @NonNull
-    private BiometryConfig getBiometryConfig(@Nullable IBiometricKeystore keyStore, @NonNull Context context, boolean setupNewKey, boolean removeKey) {
-        try {
-            mLock.lock();
-
-            if (keyStore == null) {
-                keyStore = BiometricAuthentication.getBiometricKeystore();
-            }
-
-            // New per-instance identifiers
-            final String instanceKeystoreId = mConfiguration.getInstanceId();
-            final String instanceKeychainKey = mKeychainConfiguration.getKeychainKeyBiometry() != null
-                    ? mKeychainConfiguration.getKeychainKeyBiometry()
-                    : mConfiguration.getInstanceId();
-
-            if (mBiometryConfig == null) {
-                if (!setupNewKey && mKeychainConfiguration.isFallbackToSharedBiometryKeyEnabled()) {
-                    // Legacy identifiers.
-                    final String legacyKeystoreId = keyStore.getLegacySharedKeyId();
-                    final String legacyKeychainKey = mKeychainConfiguration.getKeychainKeyBiometry() != null
-                            ? mKeychainConfiguration.getKeychainKeyBiometry()                   // If app provides its key, then use it.
-                            : PowerAuthKeychainConfiguration.KEYCHAIN_KEY_SHARED_BIOMETRY_KEY;  // Otherwise use legacy key identifier
-
-                    if (mSession.hasBiometryFactor()) {
-                        // Looks like session has a biometry factor configured.
-                        // if per-instance keys are set, then don't use the shared encryptor and keychain data. We already have a new
-                        // setup applied on per-instance basis.
-                        if (!mBiometryKeychain.contains(instanceKeychainKey) && !keyStore.containsBiometricKeyEncryptor(instanceKeystoreId)) {
-                            if (mBiometryKeychain.contains(legacyKeychainKey) && keyStore.containsBiometricKeyEncryptor(legacyKeystoreId)) {
-                                // Looks like keychain and keystore contains data for a shared key, so try to use such key instead.
-                                mBiometryConfig = new BiometryConfig(true, legacyKeystoreId, legacyKeychainKey);
-                            }
-                        }
-                    }
-                }
-                if (mBiometryConfig == null) {
-                    // Legacy config was not created, so create a new one, to use per-instance identifiers.
-                    mBiometryConfig = new BiometryConfig(false, instanceKeystoreId, instanceKeychainKey);
-                }
-            }
-            if (removeKey) {
-                // We're going to remove key. If the current config is still legacy, then we should return this legacy
-                // config and simultaneously setup a new one.
-                if (mBiometryConfig.isLegacyConfig) {
-                    final BiometryConfig legacyConfig = mBiometryConfig;
-                    mBiometryConfig = new BiometryConfig(false, instanceKeystoreId, instanceKeychainKey);
-                    return legacyConfig;
-                }
-            }
-            return mBiometryConfig;
-        } finally {
-            mLock.unlock();
-        }
-    }
-
-    private void clearBiometryConfig() {
-        try {
-            mLock.lock();
-            mBiometryConfig = null;
-        } finally {
-            mLock.unlock();
-        }
-    }
-
     /**
      * Check if the current PowerAuth instance has biometry factor in place.
      *
@@ -2029,11 +1957,11 @@ public class PowerAuthSDK {
 
         // Initialize keystore
         final IBiometricKeystore keyStore = BiometricAuthentication.getBiometricKeystore();
-        final BiometryConfig biometryConfig = getBiometryConfig(keyStore, context, false, false);
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keyStore, context, BiometricDataMapper.BIO_MAPPING_NOOP);
 
         // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
-        return mSession.hasBiometryFactor() && keyStore.containsBiometricKeyEncryptor(biometryConfig.keystoreId) &&
-                mBiometryKeychain.contains(biometryConfig.keychainKey);
+        return mSession.hasBiometryFactor() && keyStore.containsBiometricKeyEncryptor(biometricDataMapping.keystoreId) &&
+                mBiometryKeychain.contains(biometricDataMapping.keychainKey);
     }
 
     /**
@@ -2307,10 +2235,10 @@ public class PowerAuthSDK {
         if (result == ErrorCode.OK) {
             // Update state after each successful calculations
             final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
-            final BiometryConfig biometryConfig = getBiometryConfig(keystore, context, false, true);
+            final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
             saveSerializedState();
-            mBiometryKeychain.remove(biometryConfig.keychainKey);
-            keystore.removeBiometricKeyEncryptor(biometryConfig.keystoreId);
+            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
+            keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
         }
         return result == ErrorCode.OK;
     }
@@ -2546,14 +2474,14 @@ public class PowerAuthSDK {
             final boolean forceGenerateNewKey,
             final @NonNull IBiometricAuthenticationCallback callback) {
 
-        final BiometryConfig biometryConfig = getBiometryConfig(null, context, forceGenerateNewKey, false);
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, forceGenerateNewKey ? BiometricDataMapper.BIO_MAPPING_CREATE_KEY : BiometricDataMapper.BIO_MAPPING_NOOP);
         final byte[] rawKeyData;
         if (forceGenerateNewKey) {
             // new key has to be generated
             rawKeyData = mSession.generateSignatureUnlockKey();
         } else {
             // old key should be used, if present
-            rawKeyData = mBiometryKeychain.getData(biometryConfig.keychainKey);
+            rawKeyData = mBiometryKeychain.getData(biometricDataMapping.keychainKey);
         }
 
         if (rawKeyData == null) {
@@ -2571,7 +2499,7 @@ public class PowerAuthSDK {
                 .setTitle(title)
                 .setDescription(description)
                 .setRawKeyData(rawKeyData)
-                .setKeystoreAlias(biometryConfig.keystoreId)
+                .setKeystoreAlias(biometricDataMapping.keystoreId)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
                 .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
@@ -2592,7 +2520,7 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 // Store the new key, if a new key was generated
                 if (biometricKeyData.isNewKey()) {
-                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
                 }
                 byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData());
                 callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));

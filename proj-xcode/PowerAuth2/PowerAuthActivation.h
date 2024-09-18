@@ -30,6 +30,74 @@
 /**
  Create an instance of `PowerAuthActivation` configured with the activation code. The activation code may contain
  an optional signature part, in case that it is scanned from QR code.
+  
+ @param activationCode Activation code, obtained either via QR code scanning or by manual entry.
+ @param error Error reference in case some error occurs.
+ @return New instance of `PowerAuthActivation` or `nil` in case that activation code is invalid.
+ */
++ (nullable instancetype) activationWithActivationCode:(nonnull NSString*)activationCode
+                                                 error:(NSError * _Nullable * _Nullable)error;
+
+/**
+ Creates an instance of `PowerAuthActivation` with an identity attributes for the custom activation purposes.
+  
+ @param identityAttributes Custom activation parameters that are used to prove identity of a user.
+ @param error Error reference in case some error occurs.
+ @return New instance of `PowerAuthActivation` or `nil` in case that identity attributes are empty.
+ */
++ (nullable instancetype) activationWithIdentityAttributes:(nonnull NSDictionary<NSString*,NSString*>*)identityAttributes
+                                                     error:(NSError * _Nullable * _Nullable)error;
+
+/**
+ Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
+ 
+ @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+ @param recoveryPuk PUK obtained by manual entry.
+ @param error Error reference in case some error occurs.
+ @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
+ */
++ (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
+                                         recoveryPuk:(nonnull NSString*)recoveryPuk
+                                               error:(NSError * _Nullable * _Nullable)error;
+
+/**
+ Creates an instance of `PowerAuthActivation` with OpenID connect credentials.
+ 
+ @param providerId OAuth 2.0 provider identification.
+ @param code OAuth 2.0 authorization code.
+ @param nonce Nonce used in the OAuth 2.0 flow.
+ @param codeVerifier Optional code verifier, in case that PKCE extension is used for an activation.
+ @param error Error reference in case some error occurs.
+ @return New instance of `PowerAuthActivation` or `nil` in case that some parameter contains empty string.
+ */
++ (nullable instancetype) activationWithOidcProviderId:(nonnull NSString*)providerId
+                                                  code:(nonnull NSString*)code
+                                                 nonce:(nonnull NSString*)nonce
+                                          codeVerifier:(nullable NSString*)codeVerifier
+                                                 error:(NSError * _Nullable * _Nullable)error;
+
+#pragma mark - Obsolete methods (will be deprecated in future version)
+
+/**
+ Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
+ 
+ The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
+ `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
+ an activation record on PowerAuth Server.
+ 
+ @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
+ @param recoveryPuk PUK obtained by manual entry.
+ @param name Activation name to be used for the activation.
+ @param error Error reference in case some error occurs.
+ @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
+ */
++ (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
+                                         recoveryPuk:(nonnull NSString*)recoveryPuk
+                                                name:(nullable NSString*)name
+                                               error:(NSError * _Nullable * _Nullable)error;
+/**
+ Create an instance of `PowerAuthActivation` configured with the activation code. The activation code may contain
+ an optional signature part, in case that it is scanned from QR code.
  
  The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
  `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
@@ -60,26 +128,19 @@
                                                       name:(nullable NSString*)name
                                                      error:(NSError * _Nullable * _Nullable)error;
 
+
+#pragma mark - Activation customization
+
 /**
- Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
- 
- The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
+ Sets activation name. The activation's name parameter is optional, but recommended to set. You can use the value obtained from
  `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
  an activation record on PowerAuth Server.
  
- @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
- @param recoveryPuk PUK obtained by manual entry.
- @param name Activation name to be used for the activation.
- @param error Error reference in case some error occurs.
- @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
+ @param activationName Name of activation.
+ @return The same object instance.
  */
-+ (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
-                                         recoveryPuk:(nonnull NSString*)recoveryPuk
-                                                name:(nullable NSString*)name
-                                               error:(NSError * _Nullable * _Nullable)error;
-
-
-#pragma mark - Activation customization
+- (nonnull instancetype) withActivationName:(nonnull NSString*)activationName
+                         NS_SWIFT_NAME(with(activationName:));
 
 /**
  Sets extra attributes of the activation, used for application specific purposes (for example, info about the client

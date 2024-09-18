@@ -86,7 +86,8 @@ public class PowerAuthActivationBuilderTest {
         additionalAttributes.put("test", "value");
         additionalAttributes.put("zero", 0);
 
-        PowerAuthActivation activation = PowerAuthActivation.Builder.activation("W65WE-3T7VI-7FBS2-A4OYA", "Named activation")
+        PowerAuthActivation activation = PowerAuthActivation.Builder.activation("W65WE-3T7VI-7FBS2-A4OYA")
+                .setActivationName("Named activation")
                 .setExtras("extras")
                 .setCustomAttributes(additionalAttributes)
                 .build();
@@ -123,15 +124,85 @@ public class PowerAuthActivationBuilderTest {
 
     @Test(expected = PowerAuthErrorException.class)
     public void createStandardActivationWithInvalidCode() throws Exception {
-        PowerAuthActivation.Builder.activation("W65WE-3T7VI-7FBS2-A4OYB", null)
+        PowerAuthActivation.Builder.activation("W65WE-3T7VI-7FBS2-A4OYB")
                 .build();
+    }
+
+    // OIDC
+
+    @Test
+    public void createOidcActivation() throws Exception {
+        final String providerId = "abc123";
+        final String code = "ABCDEFGH";
+        final String nonce = "K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o";
+        final String codeVerifier = "G3hsI1KZX1o~K0p-5lT3F7yZ4bC8dE2jX9aQ6nO2rP3uS7wT5mV8jW1oY6xB3sD09tR4vU3qM1nG7kL6hV5wY2pJ0aF3eK9dQ8xN4mS2zB7oU5tL1cJ3vX6yP8rE2wO9n";
+        PowerAuthActivation activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, null)
+                .build();
+
+        assertNotNull(activation);
+        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertNotNull(activation.identityAttributes);
+        assertEquals("oidc", activation.identityAttributes.get("method"));
+        assertEquals(providerId, activation.identityAttributes.get("providerId"));
+        assertEquals(code, activation.identityAttributes.get("code"));
+        assertEquals(nonce, activation.identityAttributes.get("nonce"));
+        assertNull(activation.identityAttributes.get("codeVerifier"));
+        assertNull(activation.activationName);
+
+        activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, codeVerifier)
+                .build();
+
+        assertNotNull(activation);
+        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertNotNull(activation.identityAttributes);
+        assertEquals("oidc", activation.identityAttributes.get("method"));
+        assertEquals(providerId, activation.identityAttributes.get("providerId"));
+        assertEquals(code, activation.identityAttributes.get("code"));
+        assertEquals(nonce, activation.identityAttributes.get("nonce"));
+        assertEquals(codeVerifier, activation.identityAttributes.get("codeVerifier"));
+        assertNull(activation.activationName);
+    }
+
+    @Test
+    public void createOidcActivationWithName() throws Exception {
+        final String providerId = "abc123";
+        final String code = "ABCDEFGH";
+        final String nonce = "K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o";
+        final String codeVerifier = "G3hsI1KZX1o~K0p-5lT3F7yZ4bC8dE2jX9aQ6nO2rP3uS7wT5mV8jW1oY6xB3sD09tR4vU3qM1nG7kL6hV5wY2pJ0aF3eK9dQ8xN4mS2zB7oU5tL1cJ3vX6yP8rE2wO9n";
+        PowerAuthActivation activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, null)
+                .setActivationName("OIDC Activation")
+                .build();
+
+        assertNotNull(activation);
+        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertNotNull(activation.identityAttributes);
+        assertEquals("oidc", activation.identityAttributes.get("method"));
+        assertEquals(providerId, activation.identityAttributes.get("providerId"));
+        assertEquals(code, activation.identityAttributes.get("code"));
+        assertEquals(nonce, activation.identityAttributes.get("nonce"));
+        assertNull(activation.identityAttributes.get("codeVerifier"));
+        assertEquals("OIDC Activation", activation.activationName);
+
+        activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, codeVerifier)
+                .setActivationName("OIDC Activation")
+                .build();
+
+        assertNotNull(activation);
+        assertEquals(ActivationType.DIRECT, activation.activationType);
+        assertNotNull(activation.identityAttributes);
+        assertEquals("oidc", activation.identityAttributes.get("method"));
+        assertEquals(providerId, activation.identityAttributes.get("providerId"));
+        assertEquals(code, activation.identityAttributes.get("code"));
+        assertEquals(nonce, activation.identityAttributes.get("nonce"));
+        assertEquals(codeVerifier, activation.identityAttributes.get("codeVerifier"));
+        assertEquals("OIDC Activation", activation.activationName);
     }
 
     // Recovery activations
 
     @Test
     public void createRecoveryActivation() throws Exception {
-        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890", null)
+        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890")
                 .build();
 
         assertNotNull(activation);
@@ -144,7 +215,7 @@ public class PowerAuthActivationBuilderTest {
 
     @Test
     public void createRecoveryActivationFromQrCode() throws Exception {
-        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("R:W65WE-3T7VI-7FBS2-A4OYA", "1234567890", null)
+        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("R:W65WE-3T7VI-7FBS2-A4OYA", "1234567890")
                 .build();
 
         assertNotNull(activation);
@@ -157,7 +228,8 @@ public class PowerAuthActivationBuilderTest {
 
     @Test
     public void createRecoveryActivationWithName() throws Exception {
-        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890", "Recovery")
+        PowerAuthActivation activation = PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890")
+                .setActivationName("Recovery")
                 .build();
 
         assertNotNull(activation);
@@ -193,20 +265,21 @@ public class PowerAuthActivationBuilderTest {
 
     @Test(expected = PowerAuthErrorException.class)
     public void createRecoveryActivationWithOtp() throws Exception {
-        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890", "Recovery")
+        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "1234567890")
+                .setActivationName("Recovery")
                 .setAdditionalActivationOtp("1234")
                 .build();
     }
 
     @Test(expected = PowerAuthErrorException.class)
     public void createRecoveryActivationWithInvalidCode() throws Exception {
-        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYB", "1234567890", null)
+        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYB", "1234567890")
                 .build();
     }
 
     @Test(expected = PowerAuthErrorException.class)
     public void createRecoveryActivationWithInvalidPuk() throws Exception {
-        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "123456789", null)
+        PowerAuthActivation.Builder.recoveryActivation("W65WE-3T7VI-7FBS2-A4OYA", "123456789")
                 .build();
     }
 
@@ -218,7 +291,7 @@ public class PowerAuthActivationBuilderTest {
         identityAttributes.put("login", "juraj");
         identityAttributes.put("password", "nbusr123");
 
-        PowerAuthActivation activation = PowerAuthActivation.Builder.customActivation(identityAttributes, null)
+        PowerAuthActivation activation = PowerAuthActivation.Builder.customActivation(identityAttributes)
                 .build();
 
         assertNotNull(activation);
@@ -236,7 +309,8 @@ public class PowerAuthActivationBuilderTest {
         identityAttributes.put("login", "juraj");
         identityAttributes.put("password", "nbusr123");
 
-        PowerAuthActivation activation = PowerAuthActivation.Builder.customActivation(identityAttributes, "CustomActivation")
+        PowerAuthActivation activation = PowerAuthActivation.Builder.customActivation(identityAttributes)
+                .setActivationName("CustomActivation")
                 .build();
 
         assertNotNull(activation);

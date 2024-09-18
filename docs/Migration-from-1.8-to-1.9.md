@@ -6,6 +6,7 @@ PowerAuth Mobile SDK in version `1.9.0` provides the following improvements:
   - The PowerAuth protocol is no longer use EC key-pairs for encryption and signature calculation (dual use problem.)
   - The End-To-End encryption is now using a temporary keys to improve the forward secrecy of our ECIES scheme.
 - Simplified construction of encrypted request and response. Check updated [Android](PowerAuth-SDK-for-Android.md#end-to-end-encryption) or [iOS](PowerAuth-SDK-for-iOS.md#end-to-end-encryption) documentation for more details.
+- Now it's possible to create an activation via OpenID Connect provider.
 
 ### Compatibility with PowerAuth Server
 

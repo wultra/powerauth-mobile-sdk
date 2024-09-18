@@ -61,6 +61,12 @@
 #pragma mark - Static initializers
 
 + (instancetype) activationWithActivationCode:(NSString*)activationCode
+                                        error:(NSError**)error
+{
+    return [self activationWithActivationCode:activationCode name:nil error:error];
+}
+
++ (instancetype) activationWithActivationCode:(NSString*)activationCode
                                          name:(NSString*)name
                                         error:(NSError**)error
 {
@@ -79,6 +85,12 @@
 }
 
 + (instancetype) activationWithIdentityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
+                                            error:(NSError**)error
+{
+    return [self activationWithIdentityAttributes:identityAttributes name:nil error:error];
+}
+
++ (instancetype) activationWithIdentityAttributes:(NSDictionary<NSString*,NSString*>*)identityAttributes
                                              name:(NSString*)name
                                             error:(NSError**)error
 {
@@ -92,6 +104,13 @@
                                                     activationType:@"CUSTOM"
                                                     activationCode:nil
                                                               name:name];
+}
+
++ (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
+                                recoveryPuk:(NSString*)recoveryPuk
+                                      error:(NSError**)error
+{
+    return [self activationWithRecoveryCode:recoveryCode recoveryPuk:recoveryPuk name:nil error:error];
 }
 
 + (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
@@ -119,8 +138,38 @@
                                                               name:name];
 }
 
++ (instancetype) activationWithOidcProviderId:(NSString *)providerId
+                                         code:(NSString *)code
+                                        nonce:(NSString *)nonce
+                                 codeVerifier:(NSString*)codeVerifier
+                                        error:(NSError **)error
+{
+    if (!providerId.length || !code.length || !nonce.length || (codeVerifier && !codeVerifier.length)) {
+        if (error) {
+            *error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, @"Empty activation parameter");
+        }
+        return nil;
+    }
+    NSDictionary * identityAttributes;
+    if (codeVerifier) {
+        identityAttributes = @{ @"method": @"oidc", @"providerId": providerId, @"code": code, @"nonce": nonce, @"codeVerifier": codeVerifier };
+    } else {
+        identityAttributes = @{ @"method": @"oidc", @"providerId": providerId, @"code": code, @"nonce": nonce };
+    }
+    return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
+                                                    activationType:@"DIRECT"
+                                                    activationCode:nil
+                                                              name:nil];
+}
+
 
 #pragma mark - Customization
+
+- (instancetype) withActivationName:(NSString *)activationName
+{
+    _name = activationName;
+    return self;
+}
 
 - (instancetype) withExtras:(NSString *)extras
 {

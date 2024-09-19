@@ -17,10 +17,13 @@
 package io.getlime.security.powerauth.biometry.impl;
 
 import android.os.Build;
+import android.util.Base64;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -33,6 +36,7 @@ import javax.crypto.SecretKey;
 
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
 import io.getlime.security.powerauth.biometry.IBiometricKeystore;
+import io.getlime.security.powerauth.core.CryptoUtils;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -41,7 +45,8 @@ import io.getlime.security.powerauth.system.PowerAuthLog;
 @RequiresApi(api = Build.VERSION_CODES.M)
 public class BiometricKeystore implements IBiometricKeystore {
 
-    private static final String KEY_NAME = "io.getlime.PowerAuthKeychain.KeyStore.BiometryKeychain";
+    private static final String KEY_NAME_PREFIX = "com.wultra.powerauth.biometricKey.";
+    private static final String LEGACY_KEY_NAME = "io.getlime.PowerAuthKeychain.KeyStore.BiometryKeychain";
     private static final String PROVIDER_NAME = "AndroidKeyStore";
 
     private KeyStore mKeyStore;
@@ -56,61 +61,40 @@ public class BiometricKeystore implements IBiometricKeystore {
         }
     }
 
-    /**
-     * Check if the Keystore is ready.
-     * @return True if Keystore is ready, false otherwise.
-     */
     @Override
     public boolean isKeystoreReady() {
         return mKeyStore != null;
     }
 
-    /**
-     * Check if a default key is present in Keystore
-     *
-     * @return True in case a default key is present, false otherwise. Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
-     */
     @Override
-    public boolean containsBiometricKeyEncryptor() {
+    public boolean containsBiometricKeyEncryptor(@NonNull String keyId) {
         if (!isKeystoreReady()) {
             return false;
         }
         try {
-            return mKeyStore.containsAlias(KEY_NAME);
+            return mKeyStore.containsAlias(getKeystoreAlias(keyId));
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.containsBiometricKeyEncryptor failed: " + e.getMessage());
             return false;
         }
     }
 
-    /**
-     * Generate a new biometry related Keystore key with default key name.
-     *
-     * The key that is created during this process is used to encrypt key stored in shared preferences,
-     * in order to derive key used for biometric authentication.
-     * @param invalidateByBiometricEnrollment If true, then internal key stored in KeyStore will be invalidated on next biometric enrollment.
-     * @param useSymmetricKey If true, then symmetric key will be created.
-     * @return New generated {@link SecretKey} key or {@code null} in case of failure.
-     */
     @Override
     public @Nullable
-    IBiometricKeyEncryptor createBiometricKeyEncryptor(boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
-        removeBiometricKeyEncryptor();
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
+        removeBiometricKeyEncryptor(keyId);
         if (useSymmetricKey) {
-            return BiometricKeyEncryptorAes.createAesEncryptor(PROVIDER_NAME, KEY_NAME, invalidateByBiometricEnrollment);
+            return BiometricKeyEncryptorAes.createAesEncryptor(PROVIDER_NAME, getKeystoreAlias(keyId), invalidateByBiometricEnrollment);
         } else {
-            return BiometricKeyEncryptorRsa.createRsaEncryptor(PROVIDER_NAME, KEY_NAME, invalidateByBiometricEnrollment);
+            return BiometricKeyEncryptorRsa.createRsaEncryptor(PROVIDER_NAME, getKeystoreAlias(keyId), invalidateByBiometricEnrollment);
         }
     }
 
-    /**
-     * Removes an encryption key from Keystore.
-     */
     @Override
-    public void removeBiometricKeyEncryptor() {
+    public void removeBiometricKeyEncryptor(@NonNull String keyId) {
         try {
-            if (containsBiometricKeyEncryptor()) {
-                mKeyStore.deleteEntry(KEY_NAME);
+            if (containsBiometricKeyEncryptor(keyId)) {
+                mKeyStore.deleteEntry(getKeystoreAlias(keyId));
             }
         } catch (KeyStoreException e) {
             PowerAuthLog.e("BiometricKeystore.removeBiometricKeyEncryptor failed: " + e.getMessage());
@@ -122,13 +106,13 @@ public class BiometricKeystore implements IBiometricKeystore {
      */
     @Override
     @Nullable
-    public IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+    public IBiometricKeyEncryptor getBiometricKeyEncryptor(@NonNull String keyId) {
         if (!isKeystoreReady()) {
             return null;
         }
         try {
             mKeyStore.load(null);
-            final Key key = mKeyStore.getKey(KEY_NAME, null);
+            final Key key = mKeyStore.getKey(getKeystoreAlias(keyId), null);
             if (key instanceof SecretKey) {
                 // AES symmetric key
                 return new BiometricKeyEncryptorAes((SecretKey)key);
@@ -145,4 +129,27 @@ public class BiometricKeystore implements IBiometricKeystore {
         }
     }
 
+    @Override
+    @NonNull
+    public String getLegacySharedKeyId() {
+        return LEGACY_KEY_NAME;
+    }
+
+    /**
+     * Function return alias for key stored in KeyStore for given key identifier. If the key identifier is equal to
+     * legacy key name, then the alias is legacy key name. Otherwise, the key alias is calculated as
+     * {@code KEY_NAME_PREFIX + SHA256(keyId)}.
+     * @param keyId Key identifier.
+     * @return Key alias to key stored in KeyStore.
+     */
+    @NonNull
+    private String getKeystoreAlias(@NonNull String keyId) {
+        if (LEGACY_KEY_NAME.equals(keyId)) {
+            return LEGACY_KEY_NAME;
+        }
+        final String keyIdHash = Base64.encodeToString(
+                CryptoUtils.hashSha256(keyId.getBytes(StandardCharsets.UTF_8)),
+                Base64.NO_WRAP | Base64.NO_PADDING | Base64.URL_SAFE);
+        return KEY_NAME_PREFIX + keyIdHash;
+    }
 }

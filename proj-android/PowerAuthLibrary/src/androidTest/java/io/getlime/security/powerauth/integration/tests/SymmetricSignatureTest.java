@@ -190,7 +190,7 @@ public class SymmetricSignatureTest {
             final String sigType = Objects.requireNonNull(sigComponents.get("pa_signature_type")).toUpperCase();
             final String sigValue = sigComponents.get("pa_signature");
 
-            assertEquals(testHelper.getProtocolVersionForHeader(), sigVersion);
+            assertEquals("3.1", sigVersion);
             assertNotNull(sigActivationId);
             assertNotNull(sigNonce);
             assertNotNull(sigAppKey);

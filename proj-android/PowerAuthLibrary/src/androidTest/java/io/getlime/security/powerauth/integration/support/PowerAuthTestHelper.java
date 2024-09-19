@@ -27,7 +27,6 @@ import io.getlime.security.powerauth.integration.support.client.PowerAuthClientF
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
-import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
@@ -484,6 +483,6 @@ public class PowerAuthTestHelper {
      * @return Expected protocol version for HTTP headers.
      */
     public @NonNull String getProtocolVersionForHeader() {
-        return ProtocolVersion.V3_1.versionForHeader;
+        return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
     }
 }

@@ -124,6 +124,39 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationData, error.code);
 }
 
+#pragma mark - OIDC
+
+- (void) testOidcActivation
+{
+    NSString * providerId = @"abc123";
+    NSString * code = @"ABCDEFGH";
+    NSString * nonce = @"K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o";
+    NSString * codeVerifier = @"G3hsI1KZX1o~K0p-5lT3F7yZ4bC8dE2jX9aQ6nO2rP3uS7wT5mV8jW1oY6xB3sD09tR4vU3qM1nG7kL6hV5wY2pJ0aF3eK9dQ8xN4mS2zB7oU5tL1cJ3vX6yP8rE2wO9n";
+    id act1Identity = @{ @"method": @"oidc", @"providerId": providerId, @"code": code, @"nonce": nonce };
+    id act2Identity = @{ @"method": @"oidc", @"providerId": providerId, @"code": code, @"nonce": nonce, @"codeVerifier": codeVerifier };
+    NSError * error = nil;
+    PowerAuthActivation * act1 = [PowerAuthActivation activationWithOidcProviderId:providerId code:code nonce:nonce codeVerifier:nil error:&error];
+    XCTAssertNotNil(act1);
+    XCTAssertNil(error);
+    XCTAssertEqualObjects(@"DIRECT", act1.activationType);
+    XCTAssertEqualObjects(act1Identity, act1.identityAttributes);
+    XCTAssertNil(act1.activationCode);
+    XCTAssertNil(act1.name);
+    XCTAssertNil(act1.extras);
+    XCTAssertNil(act1.customAttributes);
+    XCTAssertTrue([act1 validate]);
+
+    PowerAuthActivation * act2 = [PowerAuthActivation activationWithOidcProviderId:providerId code:code nonce:nonce codeVerifier:codeVerifier error:&error];
+    XCTAssertNotNil(act2);
+    XCTAssertNil(error);
+    XCTAssertEqualObjects(@"DIRECT", act2.activationType);
+    XCTAssertEqualObjects(act2Identity, act2.identityAttributes);
+    XCTAssertNil(act2.activationCode);
+    XCTAssertNil(act2.name);
+    XCTAssertNil(act2.extras);
+    XCTAssertNil(act2.customAttributes);
+    XCTAssertTrue([act2 validate]);
+}
 
 #pragma mark - Custom
 
@@ -178,15 +211,16 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     id expectedCustomAttrs = @{@"isPrimary":@(NO)};
     id expectedExtras = @"FL:123";
     NSError * error = nil;
-    PowerAuthActivation * act1 = [[[PowerAuthActivation activationWithActivationCode:@"VVVVV-VVVVV-VVVVV-VTFVA" name:nil error:&error]
-                                   withExtras:@"FL:123"]
+    PowerAuthActivation * act1 = [[[[PowerAuthActivation activationWithActivationCode:@"VVVVV-VVVVV-VVVVV-VTFVA" name:nil error:&error]
+                                    withActivationName:@"foo"]
+                                            withExtras:@"FL:123"]
                                   withCustomAttributes:@{@"isPrimary":@(NO)}];
     XCTAssertNotNil(act1);
     XCTAssertNil(error);
     XCTAssertEqualObjects(@"CODE", act1.activationType);
     XCTAssertEqualObjects(@{@"code":@"VVVVV-VVVVV-VVVVV-VTFVA"}, act1.identityAttributes);
     XCTAssertEqualObjects(@"VVVVV-VVVVV-VVVVV-VTFVA", act1.activationCode.activationCode);
-    XCTAssertNil(act1.name);
+    XCTAssertEqualObjects(@"foo", act1.name);
     XCTAssertEqualObjects(expectedExtras, act1.extras);
     XCTAssertEqualObjects(expectedCustomAttrs, act1.customAttributes);
     XCTAssertTrue([act1 validate]);

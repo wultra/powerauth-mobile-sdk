@@ -7,6 +7,7 @@
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
   - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via OpenID Connect](#activation-via-openid-connect)
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
   - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
@@ -346,6 +347,45 @@ try {
 <!-- begin box warning -->
 Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
 <!-- end -->
+
+### Activation via OpenID Connect
+
+You may also create an activation using OIDC protocol:
+
+```kotlin
+// Create a new activation with a given device name and login credentials
+val deviceName = "Juraj's JiaYu S3"
+// Get the following information from your OpenID provider
+val providerId = "1234567890abcdef"
+val code = "1234567890abcdef"
+val nonce = "K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o"
+val codeVerifier = "G3hsI1KZX1o~K0p-5lT3F7yZ4...6yP8rE2wO9n" // code verifier is optional
+
+// Create an activation object with the given credentials.
+val activation: PowerAuthActivation
+try {
+    activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, codeVerifier)
+                    .setActivationName(deviceName)
+                    .build()
+} catch (e: PowerAuthErrorException) {
+    // Credentials dictionary is empty
+}
+
+// Create a new activation with the given activation object
+powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
+    override fun onActivationCreateSucceed(result: CreateActivationResult) {
+        val fingerprint = result.activationFingerprint
+        val activationRecovery = result.recoveryData
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
+        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
+        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
+    }
+
+    override fun onActivationCreateFailed(t: Throwable) {
+        // Error occurred, report it to the user
+    }
+})
+```
 
 ### Activation via Custom Credentials
 

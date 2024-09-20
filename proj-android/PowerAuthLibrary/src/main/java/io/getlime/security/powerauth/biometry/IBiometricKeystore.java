@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.biometry;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
@@ -34,11 +35,12 @@ public interface IBiometricKeystore {
     /**
      * Check if a key for biometric key encryptor is present in Keystore and {@link IBiometricKeyEncryptor}
      * can be acquired.
+     * @param keyId Key identifier.
      *
      * @return {@code true} in case a key for biometric key encryptor is present, false otherwise.
      *         Method returns false in case Keystore is not properly initialized (call {@link #isKeystoreReady()}).
      */
-    boolean containsBiometricKeyEncryptor();
+    boolean containsBiometricKeyEncryptor(@NonNull String keyId);
 
     /**
      * Generate a new biometry related Keystore key and return object that provide KEK encryption and decryption.
@@ -48,21 +50,32 @@ public interface IBiometricKeystore {
      *
      * @param invalidateByBiometricEnrollment Sets whether the new key should be invalidated on biometric enrollment.
      * @param useSymmetricKey Sets whether symmetric key should be created.
+     * @param keyId Key identifier.
      *
      * @return New generated {@link IBiometricKeyEncryptor} key or {@code null} in case of failure.
      */
     @Nullable
-    IBiometricKeyEncryptor createBiometricKeyEncryptor(boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
+    IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey);
 
     /**
      * Removes an encryption key from Keystore.
+     * @param keyId Key identifier.
      */
-    void removeBiometricKeyEncryptor();
+    void removeBiometricKeyEncryptor(@NonNull String keyId);
 
     /**
+     * Get implementation of {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore.
+     * @param keyId Key identifier.
      * @return {@link IBiometricKeyEncryptor} constructed with key stored in KeyStore or {@code null}
      *         if no such key is stored.
      */
     @Nullable
-    IBiometricKeyEncryptor getBiometricKeyEncryptor();
+    IBiometricKeyEncryptor getBiometricKeyEncryptor(@NonNull String keyId);
+
+    /**
+     * Return identifier of legacy key shared between multiple PowerAuthSDK instances.
+     * @return Identifier of shared legacy key.
+     */
+    @NonNull
+    String getLegacySharedKeyId();
 }

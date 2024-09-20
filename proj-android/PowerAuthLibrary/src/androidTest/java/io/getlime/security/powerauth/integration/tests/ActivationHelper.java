@@ -189,17 +189,15 @@ public class ActivationHelper {
             invalidAuthentication = null;
             createActivationResult = null;
         }
-        removeActivationLocal(true);
+        removeActivationLocal();
     }
 
     /**
      * Remove activation locally.
-     *
-     * @param removeSharedBiometryKey If true, then also remove a shared biometry key.
      */
-    public void removeActivationLocal(boolean removeSharedBiometryKey) {
+    public void removeActivationLocal() {
         if (powerAuthSDK.hasValidActivation()) {
-            powerAuthSDK.removeActivationLocal(testHelper.getContext(), removeSharedBiometryKey);
+            powerAuthSDK.removeActivationLocal(testHelper.getContext());
         }
     }
 

@@ -252,7 +252,7 @@ public class StandardActivationTest {
     public void testRemoveActivationLocal() throws Exception {
         activationHelper.createStandardActivation(true, null);
         // Remove activation
-        powerAuthSDK.removeActivationLocal(testHelper.getContext(), true);
+        powerAuthSDK.removeActivationLocal(testHelper.getContext());
         // Back to Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());

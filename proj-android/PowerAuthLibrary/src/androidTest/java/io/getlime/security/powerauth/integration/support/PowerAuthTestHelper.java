@@ -208,7 +208,7 @@ public class PowerAuthTestHelper {
                 if (sdk.hasValidActivation()) {
                     Logger.e("Shared PowerAuthSDK has a valid activation at test initialization.");
                 }
-                sdk.removeActivationLocal(context, true);
+                sdk.removeActivationLocal(context);
             } else {
                 if (!sdk.hasValidActivation()) {
                     Logger.e("Shared PowerAuthSDK doesn't have a valid activation at test initialization.");
@@ -449,7 +449,7 @@ public class PowerAuthTestHelper {
                 .keychainConfiguration(getSharedPowerAuthKeychainConfiguration())
                 .build(getContext());
         if (resetActivation && sdk.hasValidActivation()) {
-            sdk.removeActivationLocal(getContext(), true);
+            sdk.removeActivationLocal(getContext());
         }
         return sdk;
     }

@@ -1610,25 +1610,6 @@ public class PowerAuthSDK {
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public void removeActivationLocal(@NonNull Context context) {
-        removeActivationLocal(context, true);
-    }
-
-    /**
-     * Removes existing activation from the device.
-     * <p>
-     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
-     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
-     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
-     * <p>
-     * <b>NOTE:</b>The removeSharedBiometryKey parameter is now ignored, because PowerAuthSDK no longer use the shared key for a newly created
-     * biometry factors.
-     *
-     * @param context                   Android context.
-     * @param removeSharedBiometryKey   This parameter is ignored.
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
-     */
-    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
-
         checkForValidSetup();
 
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
@@ -1649,6 +1630,26 @@ public class PowerAuthSDK {
         cancelGetActivationStatusTask();
         // Clear possible cached data
         clearCachedData();
+    }
+
+    /**
+     * Removes existing activation from the device.
+     * <p>
+     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
+     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
+     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+     * <p>
+     * <b>NOTE:</b>The removeSharedBiometryKey parameter is now ignored, because PowerAuthSDK no longer use the shared key for a newly created
+     * biometry factors.
+     *
+     * @param context                   Android context.
+     * @param removeSharedBiometryKey   This parameter is ignored.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #removeActivationLocal(Context)} as a replacement.
+     */
+    @Deprecated // 1.7.10 - remove in 1.10.0
+    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
+        removeActivationLocal(context);
     }
 
     /**

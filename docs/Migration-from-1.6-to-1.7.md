@@ -214,3 +214,12 @@ The behavior of `PowerAuthSDK.authenticateUsingBiometry()` has been slightly cha
 ### tvOS
 
 The `PowerAuthSDK.authenticateUsingBiometry()` function is no longer available on tvOS platform.
+
+## Changes in 1.7.10+
+
+### Android
+
+- The shared biometry-related encryption key is no longer supported in `PowerAuthSDK`. If an activation is already using the shared key, then it's in use until the activation or the biometry factor is removed. As part of this change, the following methods are now deprecated:
+  - Method `PowerAuthSDK.removeActivationLocal(Context, boolean)` is now deprecated. Use `removeActivationLocal(Context)` as a replacement.
+  - Method `PowerAuthKeychainConfiguration.getKeychainBiometryDefaultKey()` is now deprecated. Use `getKeychainKeyBiometry()` as a replacement.
+  - Method `PowerAuthKeychainConfiguration.Builder.keychainBiometryDefaultKey(String)` is now deprecated. Use `keychainKeyBiometry(String)` as a replacement.

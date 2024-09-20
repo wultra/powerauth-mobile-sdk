@@ -19,6 +19,11 @@ PowerAuth Mobile SDK in version `1.9.0` provides the following improvements:
   - Synchronous method `getEciesEncryptorForApplicationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
   - Synchronous method `getEciesEncryptorForActivationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
 
+- The shared biometry-related encryption key is no longer supported in `PowerAuthSDK`. If an activation is already using the shared key, then it's in use until the activation or the biometry factor is removed. As part of this change, the following methods are now deprecated:
+  - Method `PowerAuthSDK.removeActivationLocal(Context, boolean)` is now deprecated. Use `removeActivationLocal(Context)` as a replacement.
+  - Method `PowerAuthKeychainConfiguration.getKeychainBiometryDefaultKey()` is now deprecated. Use `getKeychainKeyBiometry()` as a replacement.
+  - Method `PowerAuthKeychainConfiguration.Builder.keychainBiometryDefaultKey(String)` is now deprecated. Use `keychainKeyBiometry(String)` as a replacement.
+  
 - Removed all interfaces deprecated in release `1.8.x`
 
 ### Other changes

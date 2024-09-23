@@ -174,12 +174,42 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
-### Additional configuration properties
+### Additional configuration
+
+The `PowerAuthConfiguration` has the following additional properties:
 
 - `offlineSignatureComponentLength` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
-- `keychainKey_Biometry` - Specifies the 'key' used to store this PowerAuthSDK instance biometry-related key in the biometry key keychain. If not set, then `instanceId` is applied.
-- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for debugging purposes.
+- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for the debugging purposes.
+- `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
+
+### HTTP client configuration
+
+The `PowerAuthClientConfiguration` object contains configuration for a HTTP client used internally by `PowerAuthSDK` object. It has the following configuration properties:
+
+- `defaultRequestTimeout` - Property that specifies the default HTTP client request timeout. The default value is 20.0 seconds.
+- `sslValidationStrategy` - Property that specifies the SSL validation strategy applied by the client. The default value is the default `URLSession` behavior. See [Working with Invalid SSL Certificates](#working-with-invalid-ssl-certificates) chapter for more details.
+- `requestInterceptors`- Property that specifies the list of [request interceptors](#request-interceptors) used by the client before the request is executed. The default value is `nil`.
+- `userAgent` -  Property that specifies the content of User-Agent request header. The default is value calculated in `PowerAuthSystem.defaultUserAgent()` function. If you set `nil` to this property, then the default value provided by operating system is used.
+
+### Keychain configuration
+
+The `PowerAuthKeychainConfiguration` object contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
+
+- `keychainAttribute_AccessGroup` - Property that specifies a keychain access group in case that keychain is shared between multiple applications or between application and its extensions.
+- `keychainAttribute_UserDefaultsSuiteName` - Property that specifies the name of `UserDefaults` suite to store the flag indicating that application has been re-installed. If the value is not provided, then `UserDefaults.standardUserDefaults` suite is used.
+- `linkBiometricItemsToCurrentSet` - If set, then the item protected with the biometry is invalidated if fingers are added or removed for Touch ID, or if the user re-enrolls for Face ID. The default value is `false` (e.g. changing biometry in the system doesn't invalidate the entry)
+- `allowBiometricAuthenticationFallbackToDevicePasscode` - If set to `true`, then the item protected with the biometry can be accessed also with a device passcode. If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is `false`, so fallback to device's passcode is not enabled.
+- `invalidateLocalAuthenticationContextAfterUse` - If set to `true`, then the `LAContext` object provided by application is invalidated after the use in SDK. The default value is `true`, so `LAContext` cannot be reused for getting keys protected with biometry.
+
+The following properties are also available for configuration but are not recommended to be altered under typical circumstances, as changing them may impact the library’s stability or intended behavior:
+
+- `keychainInstanceName_Status` - Property that specifies the name of the Keychain service used to store statuses for different PowerAuth instances. You should not change this property unless you have a valid reason to do so.
+- `keychainInstanceName_Possession` - Property that specifies the name of the Keychain service used to store possession factor related key (one value for all `PowerAuthSDK` instances).
+- `keychainInstanceName_Biometry` - Property that specifies the name of the Keychain service used to store biometry related keys for different `PowerAuthSDK` instances.
+- `keychainInstanceName_TokenStore` - Property that specifies the name of the Keychain service used to store content of `PowerAuthToken` objects.
+- `keychainKey_Possession` - Property that specifies a storage key used to store possession fator related key in an associated possession Keychain service.
+
 
 ## Activation
 
@@ -542,7 +572,7 @@ Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCod
 
 ### Activation states
 
-This chapter explains activation states in detail. To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
 #### `PowerAuthActivationState.created` 
 
@@ -2071,10 +2101,6 @@ let powerAuthSDK = PowerAuthSDK(
     clientConfiguration: clientConfig
 )
 ```
-
-<!-- begin box info -->
-Note that since SDK version `0.18.0`, changing `PowerAuthClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.
-<!-- end -->
 
 ### Debugging
 

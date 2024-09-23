@@ -144,13 +144,41 @@ PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallback
 ```
 
 
-### Additional configuration methods
+### Additional configuration
 
 The `PowerAuthConfiguration.Builder` class provides the following additional methods that can alter the configuration:
 
 - `offlineSignatureComponentLength()` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey()` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `disableAutomaticProtocolUpgrade()` - Disables the automatic protocol upgrade. This option should be used only for debugging purposes.
+
+### HTTP client configuration
+
+The `PowerAuthClientConfiguration.Builder` class contains configuration for a HTTP client used internally by `PowerAuthSDK` class. It has the following configuration properties:
+
+- `timeouts()` - Function specifies connection and read timeout in milliseconds.
+- `allowUnsecuredConnection()` - Enables or disables connection to unsecured servers. Do not use this option in the production build of your application. 
+- `clientValidationStrategy()` - Specifies TLS client validation strategy. See [Working with Invalid SSL Certificates](#working-with-invalid-ssl-certificates) for more details.
+- `requestInterceptor()` - Adds a [request interceptor](#request-interceptors) used by the client before the request is executed.
+- `userAgent()` - Specifies value for User-Agent HTTP request header. See [Custom User-Agent](#custom-user-agent) chapter for more details.
+
+### Keychain configuration
+
+The `PowerAuthKeychainConfiguration.builder` class contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
+
+- `linkBiometricItemsToCurrentSet()` -  Function specifies whether the item protected with the biometry is invalidated if fingers are added or removed, or if the user re-enrolls for face. See [Biometry Factor-Related Key Lifetime](#biometry-factor-related-key-lifetime) chapter for more details.
+- `confirmBiometricAuthentication()` - Function specifies whether the user's confirmation will be required after the successful biometric authentication. See [Biometric Authentication Confirmation](#biometric-authentication-confirmation) chapter for more details.
+- `authenticateOnBiometricKeySetup()` - Function specifies whether biometric key setup always require a biometric authentication. See [Enable Biometric Authentication](#enable-biometric-authentication) chapter for more details.
+- `enableFallbackToSharedBiometryKey()` - Function specifies whether `PowerAuthSDK` instance should also do additional lookup for a legacy biometric key, previously shared between multiple PowerAuthSDK object instances. The default value is `true` and the fallback is enabled. If your application is using multiple `PowerAuthSDK` instances, then it's recommended to set this option to `false` to avoid use of the shared key between such instances.
+- `minimalRequiredKeychainProtection()` - Function specifies minimal required keychain protection level that must be supported on the current device. See [Activation Data Protection](#activation-data-protection) chapter for more details.
+
+The following properties are also available for configuration but are not recommended to be altered under typical circumstances, as changing them may impact the library’s stability or intended behavior:
+
+- `keychainStatusId()` - Function specifies name of the Keychain file used for storing the status information.
+- `keychainBiometryId()` - Function specifies name of the Keychain file used for storing the biometry key information.
+- `keychainTokenStoreId()` - Function specifies name of the Keychain file used for storing the access tokens.
+- `keychainKeyBiometry()` - Function specifies name of the key to the biometry Keychain to store biometry-factor protection key.
+
 
 ### Activation Data Protection
 
@@ -901,7 +929,7 @@ Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCod
 
 ### Activation states
 
-This chapter explains activation states in detail. To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
 
 #### `ActivationStatus.State_Created` 
 

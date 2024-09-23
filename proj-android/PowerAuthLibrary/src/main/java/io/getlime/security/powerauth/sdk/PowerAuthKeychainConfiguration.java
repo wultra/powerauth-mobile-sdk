@@ -127,7 +127,9 @@ public class PowerAuthKeychainConfiguration {
 
     /**
      * Get whether fallback to shared, legacy biometry key is enabled. By default, this is enabled for the compatibility
-     * reasons. If
+     * reasons. If set, then {@code PowerAuthSDK} does additional lookup for a legacy biometric key, previously shared
+     * between multiple {@code PowerAuthSDK} object instances.
+     *
      * @return {@code true} if fallback to shared, legacy biometry key is enabled.
      */
     public boolean isFallbackToSharedBiometryKeyEnabled() {

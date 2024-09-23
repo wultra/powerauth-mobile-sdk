@@ -54,12 +54,12 @@ public class DefaultBiometricKeyEncryptorProvider implements IBiometricKeyEncryp
     public IBiometricKeyEncryptor getBiometricKeyEncryptor() throws PowerAuthErrorException {
         if (encryptor == null) {
             if (request.isForceGenerateNewKey()) {
-                encryptor = keystore.createBiometricKeyEncryptor(request.isInvalidateByBiometricEnrollment(), request.isUseSymmetricCipher());
+                encryptor = keystore.createBiometricKeyEncryptor(request.getKeystoreAlias(), request.isInvalidateByBiometricEnrollment(), request.isUseSymmetricCipher());
                 if (encryptor == null) {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_SUPPORTED, "Keystore failed to generate a new biometric key.");
                 }
             } else {
-                encryptor = keystore.getBiometricKeyEncryptor();
+                encryptor = keystore.getBiometricKeyEncryptor(request.getKeystoreAlias());
                 if (encryptor == null) {
                     throw new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_NOT_AVAILABLE, "Cannot get biometric key from the keystore.");
                 }

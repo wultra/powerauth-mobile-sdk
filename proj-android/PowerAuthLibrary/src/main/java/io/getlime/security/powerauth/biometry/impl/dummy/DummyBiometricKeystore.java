@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.biometry.impl.dummy;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
@@ -33,23 +34,29 @@ public class DummyBiometricKeystore implements IBiometricKeystore {
     }
 
     @Override
-    public boolean containsBiometricKeyEncryptor() {
+    public boolean containsBiometricKeyEncryptor(@NonNull String keyId) {
         return false;
     }
 
     @Nullable
     @Override
-    public IBiometricKeyEncryptor createBiometricKeyEncryptor(boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
+    public IBiometricKeyEncryptor createBiometricKeyEncryptor(@NonNull String keyId, boolean invalidateByBiometricEnrollment, boolean useSymmetricKey) {
         return null;
     }
 
     @Override
-    public void removeBiometricKeyEncryptor() {
+    public void removeBiometricKeyEncryptor(@NonNull String keyId) {
     }
 
     @Nullable
     @Override
-    public IBiometricKeyEncryptor getBiometricKeyEncryptor() {
+    public IBiometricKeyEncryptor getBiometricKeyEncryptor(@NonNull String keyId) {
         return null;
+    }
+
+    @NonNull
+    @Override
+    public String getLegacySharedKeyId() {
+        return "";
     }
 }

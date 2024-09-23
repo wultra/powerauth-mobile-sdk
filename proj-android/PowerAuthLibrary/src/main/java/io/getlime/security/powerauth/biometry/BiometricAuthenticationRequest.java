@@ -38,6 +38,7 @@ public class BiometricAuthenticationRequest {
     private final @NonNull CharSequence title;
     private final @Nullable CharSequence subtitle;
     private final @NonNull CharSequence description;
+    private final @NonNull String keystoreAlias;
     private final boolean forceGenerateNewKey;
     private final boolean invalidateByBiometricEnrollment;
     private final boolean userConfirmationRequired;
@@ -52,6 +53,7 @@ public class BiometricAuthenticationRequest {
             @NonNull CharSequence description,
             @Nullable Fragment fragment,
             @Nullable FragmentActivity fragmentActivity,
+            @NonNull String keystoreAlias,
             boolean forceGenerateNewKey,
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
@@ -64,6 +66,7 @@ public class BiometricAuthenticationRequest {
         this.description = description;
         this.fragment = fragment;
         this.fragmentActivity = fragmentActivity;
+        this.keystoreAlias = keystoreAlias;
         this.forceGenerateNewKey = forceGenerateNewKey;
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
@@ -106,6 +109,14 @@ public class BiometricAuthenticationRequest {
      */
     public @Nullable FragmentActivity getFragmentActivity() {
         return fragmentActivity;
+    }
+
+    /**
+     * @return Alias to Android Keystore for the existing, or the new created key.
+     */
+    @NonNull
+    public String getKeystoreAlias() {
+        return keystoreAlias;
     }
 
     /**
@@ -173,6 +184,7 @@ public class BiometricAuthenticationRequest {
         private Fragment fragment;
         private FragmentActivity fragmentActivity;
 
+        private String keystoreAlias;
         private boolean forceGenerateNewKey = false;
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
@@ -200,6 +212,9 @@ public class BiometricAuthenticationRequest {
             if (TextUtils.isEmpty(title) || TextUtils.isEmpty(description)) {
                 throw new IllegalArgumentException("Title and description is required.");
             }
+            if (keystoreAlias == null) {
+                throw new IllegalArgumentException("KeyStore alias is required.");
+            }
             if (rawKeyData == null) {
                 throw new IllegalArgumentException("RawKeyData is required.");
             }
@@ -218,6 +233,7 @@ public class BiometricAuthenticationRequest {
                     description,
                     fragment,
                     fragmentActivity,
+                    keystoreAlias,
                     forceGenerateNewKey,
                     invalidateByBiometricEnrollment,
                     userConfirmationRequired,
@@ -314,6 +330,16 @@ public class BiometricAuthenticationRequest {
          */
         public Builder setFragmentActivity(@NonNull FragmentActivity fragmentActivity) {
             this.fragmentActivity = fragmentActivity;
+            return this;
+        }
+
+        /**
+         * Required: Set alias for a new or existing key stored in the Android Keystore.
+         * @param keystoreAlias Alias to key to create or access.
+         * @return This value will never be {@code null}.
+         */
+        public Builder setKeystoreAlias(@NonNull String keystoreAlias) {
+            this.keystoreAlias = keystoreAlias;
             return this;
         }
 

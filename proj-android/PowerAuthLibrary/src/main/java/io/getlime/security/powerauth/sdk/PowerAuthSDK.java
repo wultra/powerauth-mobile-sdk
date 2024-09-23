@@ -99,20 +99,7 @@ import io.getlime.security.powerauth.networking.response.IGetRecoveryDataListene
 import io.getlime.security.powerauth.networking.response.IUserInfoListener;
 import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
 import io.getlime.security.powerauth.networking.response.UserInfo;
-import io.getlime.security.powerauth.sdk.impl.CompositeCancelableTask;
-import io.getlime.security.powerauth.sdk.impl.DefaultExecutorProvider;
-import io.getlime.security.powerauth.sdk.impl.DefaultPossessionFactorEncryptionKeyProvider;
-import io.getlime.security.powerauth.sdk.impl.DefaultSavePowerAuthStateListener;
-import io.getlime.security.powerauth.sdk.impl.DummyCancelable;
-import io.getlime.security.powerauth.sdk.impl.FragmentHelper;
-import io.getlime.security.powerauth.sdk.impl.GetActivationStatusTask;
-import io.getlime.security.powerauth.sdk.impl.ICallbackDispatcher;
-import io.getlime.security.powerauth.sdk.impl.IPossessionFactorEncryptionKeyProvider;
-import io.getlime.security.powerauth.sdk.impl.IPrivateCryptoHelper;
-import io.getlime.security.powerauth.sdk.impl.ISavePowerAuthStateListener;
-import io.getlime.security.powerauth.sdk.impl.ITaskCompletion;
-import io.getlime.security.powerauth.sdk.impl.MainThreadExecutor;
-import io.getlime.security.powerauth.sdk.impl.VaultUnlockReason;
+import io.getlime.security.powerauth.sdk.impl.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -134,6 +121,7 @@ public class PowerAuthSDK {
     private final @NonNull Keychain mBiometryKeychain;
     private final @NonNull ICallbackDispatcher mCallbackDispatcher;
     private final @NonNull PowerAuthTokenStore mTokenStore;
+    private final @NonNull BiometricDataMapper mBiometricDataMapper;
 
     /**
      * A builder that collects configurations and arguments for {@link PowerAuthSDK}.
@@ -268,8 +256,13 @@ public class PowerAuthSDK {
             );
             final Session session = new Session(sessionSetup);
 
+            // Biometric data mapper
+            final ReentrantLock sharedLock = new ReentrantLock();
+            final BiometricDataMapper biometricDataMapper = new BiometricDataMapper(sharedLock, session, mConfiguration, mKeychainConfiguration, biometryKeychain);
+
             // Create a final PowerAuthSDK instance
             final PowerAuthSDK instance = new PowerAuthSDK(
+                    sharedLock,
                     session,
                     mConfiguration,
                     mKeychainConfiguration,
@@ -279,6 +272,7 @@ public class PowerAuthSDK {
                     possessionEncryptionKeyProvider,
                     biometryKeychain,
                     tokenStoreKeychain,
+                    biometricDataMapper,
                     mCallbackDispatcher);
 
             // Restore state of this SDK instance.
@@ -290,6 +284,7 @@ public class PowerAuthSDK {
     /**
      * Private class constructor. Use {@link Builder} to create an instance of this class.
      *
+     * @param sharedLock                Reentrant lock shared between multiple SDK objects.
      * @param session                   Low-level {@link Session} instance.
      * @param configuration             Main {@link PowerAuthConfiguration}.
      * @param keychainConfiguration     Keychain configuration.
@@ -299,9 +294,11 @@ public class PowerAuthSDK {
      * @param possessionKeyProvider     Possession factor encryption key provider.
      * @param biometryKeychain          Keychain that store biometry-related key.
      * @param tokenStoreKeychain        Keychain that store tokens.
+     * @param biometricDataMapper       Object that helps to get biometric-related encryption key from keychain and keystore.
      * @param callbackDispatcher        Dispatcher that handle callbacks back to application.
      */
     private PowerAuthSDK(
+            @NonNull ReentrantLock sharedLock,
             @NonNull Session session,
             @NonNull PowerAuthConfiguration configuration,
             @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
@@ -311,8 +308,9 @@ public class PowerAuthSDK {
             @NonNull IPossessionFactorEncryptionKeyProvider possessionKeyProvider,
             @NonNull Keychain biometryKeychain,
             @NonNull Keychain tokenStoreKeychain,
+            @NonNull BiometricDataMapper biometricDataMapper,
             @NonNull ICallbackDispatcher callbackDispatcher) {
-        this.mLock = new ReentrantLock();
+        this.mLock = sharedLock;
         this.mSession = session;
         this.mConfiguration = configuration;
         this.mKeychainConfiguration = keychainConfiguration;
@@ -321,6 +319,7 @@ public class PowerAuthSDK {
         this.mStateListener = stateListener;
         this.mPossessionFactorEncryptionKeyProvider = possessionKeyProvider;
         this.mBiometryKeychain = biometryKeychain;
+        this.mBiometricDataMapper = biometricDataMapper;
         this.mCallbackDispatcher = callbackDispatcher;
         this.mTokenStore = new PowerAuthTokenStore(this, tokenStoreKeychain, client);
     }
@@ -1430,40 +1429,21 @@ public class PowerAuthSDK {
      * user has to remove the activation by using another channel (typically internet banking, or similar web management console)
      * <p>
      * <b>WARNING:</b> Note that if you have multiple activated SDK instances used in your application at the same time, then you should keep
-     * shared biometry key intact if it's still used in another SDK instance. For this kind of situations, it's recommended to use
+     * shared biometry key intact if it's still used in another SDK instance. For this kind of situation, it's recommended to use
      * another form of this method, where you can decide whether the key should be removed.
      *
      * @param context  Context
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
     public void removeActivationLocal(@NonNull Context context) {
-        removeActivationLocal(context, true);
-    }
-
-    /**
-     * Removes existing activation from the device.
-     * <p>
-     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
-     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
-     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
-     * <p>
-     * <b>NOTE:</b> This method is useful for situations, where the application has multiple SDK instances activated at the same time and
-     * you need to manage a lifetime of shared biometry key.
-     *
-     * @param context                   Android context.
-     * @param removeSharedBiometryKey   If set to true, then also shared biometry key will be removed.
-     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
-     */
-    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
-
         checkForValidSetup();
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (removeSharedBiometryKey && mSession.hasBiometryFactor()) {
-                mBiometryKeychain.remove(mKeychainConfiguration.getKeychainBiometryDefaultKey());
-            }
-            BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
+        if (mSession.hasBiometryFactor()) {
+            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
         }
+        BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
+
         // Remove all tokens from token store
         getTokenStore().cancelAllRequests();
         getTokenStore().removeAllLocalTokens(context);
@@ -1476,6 +1456,26 @@ public class PowerAuthSDK {
         cancelGetActivationStatusTask();
         // Clear possible cached data
         clearCachedData();
+    }
+
+    /**
+     * Removes existing activation from the device.
+     * <p>
+     * This method removes the activation session state and optionally also shared biometry factor key. Cached possession related
+     * key remains intact. Unlike the `removeActivationWithAuthentication`, this method doesn't inform server about activation removal.
+     * In this case user has to remove the activation by using another channel (typically internet banking, or similar web management console)
+     * <p>
+     * <b>NOTE:</b>The removeSharedBiometryKey parameter is now ignored, because PowerAuthSDK no longer use the shared key for a newly created
+     * biometry factors.
+     *
+     * @param context                   Android context.
+     * @param removeSharedBiometryKey   This parameter is ignored.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #removeActivationLocal(Context)} as a replacement.
+     */
+    @Deprecated // 1.7.10 - remove in 1.10.0
+    public void removeActivationLocal(@NonNull Context context, boolean removeSharedBiometryKey) {
+        removeActivationLocal(context);
     }
 
     /**
@@ -1774,10 +1774,11 @@ public class PowerAuthSDK {
 
         // Initialize keystore
         final IBiometricKeystore keyStore = BiometricAuthentication.getBiometricKeystore();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keyStore, context, BiometricDataMapper.BIO_MAPPING_NOOP);
 
         // Check if there is biometry factor in session, key in PA2Keychain and key in keystore.
-        return mSession.hasBiometryFactor() && keyStore.containsBiometricKeyEncryptor() &&
-                mBiometryKeychain.contains(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+        return mSession.hasBiometryFactor() && keyStore.containsBiometricKeyEncryptor(biometricDataMapping.keystoreId) &&
+                mBiometryKeychain.contains(biometricDataMapping.keychainKey);
     }
 
     /**
@@ -2044,9 +2045,11 @@ public class PowerAuthSDK {
         final int result = mSession.removeBiometryFactor();
         if (result == ErrorCode.OK) {
             // Update state after each successful calculations
+            final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
+            final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
             saveSerializedState();
-            mBiometryKeychain.remove(mKeychainConfiguration.getKeychainBiometryDefaultKey());
-            BiometricAuthentication.getBiometricKeystore().removeBiometricKeyEncryptor();
+            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
+            keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
         }
         return result == ErrorCode.OK;
     }
@@ -2226,13 +2229,14 @@ public class PowerAuthSDK {
             final boolean forceGenerateNewKey,
             final @NonNull IBiometricAuthenticationCallback callback) {
 
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, forceGenerateNewKey ? BiometricDataMapper.BIO_MAPPING_CREATE_KEY : BiometricDataMapper.BIO_MAPPING_NOOP);
         final byte[] rawKeyData;
         if (forceGenerateNewKey) {
             // new key has to be generated
             rawKeyData = mSession.generateSignatureUnlockKey();
         } else {
             // old key should be used, if present
-            rawKeyData = mBiometryKeychain.getData(mKeychainConfiguration.getKeychainBiometryDefaultKey());
+            rawKeyData = mBiometryKeychain.getData(biometricDataMapping.keychainKey);
         }
 
         if (rawKeyData == null) {
@@ -2251,6 +2255,7 @@ public class PowerAuthSDK {
                 .setTitle(title)
                 .setDescription(description)
                 .setRawKeyData(rawKeyData)
+                .setKeystoreAlias(biometricDataMapping.keystoreId)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
                 .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
@@ -2271,7 +2276,7 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 // Store the new key, if a new key was generated
                 if (biometricKeyData.isNewKey()) {
-                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), mKeychainConfiguration.getKeychainBiometryDefaultKey());
+                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
                 }
                 byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData());
                 callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));

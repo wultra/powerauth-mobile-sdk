@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.getlime.security.powerauth.integration.support.v13;
+package io.getlime.security.powerauth.integration.support.v19;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,29 +37,29 @@ import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
 import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
 import io.getlime.security.powerauth.integration.support.model.TokenInfo;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.BlockActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.CommitActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.CreateApplicationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.CreateApplicationVersionEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.CreateNonPersonalizedOfflineSignaturePayloadEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.CreatePersonalizedOfflineSignaturePayloadEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.GetActivationStatusEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.GetApplicationDetailEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.GetApplicationListEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.GetRecoveryConfigEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.GetSystemStatusEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.InitActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.RemoveActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.SetApplicationVersionSupportedEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.UnblockActivationEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.UpdateActivationOtpEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.UpdateRecoveryConfigEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.ValidateTokenEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.VerifyEcdsaSignatureEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.VerifyOfflineSignatureEndpoint;
-import io.getlime.security.powerauth.integration.support.v13.endpoints.VerifyOnlineSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.BlockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.CommitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.CreateApplicationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.CreateApplicationVersionEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.CreateNonPersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.CreatePersonalizedOfflineSignaturePayloadEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.GetActivationStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.GetApplicationDetailEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.GetApplicationListEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.GetRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.GetSystemStatusEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.InitActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.RemoveActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.SetApplicationVersionSupportedEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.UnblockActivationEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.UpdateActivationOtpEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.UpdateRecoveryConfigEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.ValidateTokenEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.VerifyEcdsaSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.VerifyOfflineSignatureEndpoint;
+import io.getlime.security.powerauth.integration.support.v19.endpoints.VerifyOnlineSignatureEndpoint;
 
-public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
+public class PowerAuthClientV3_ServerV19 implements PowerAuthServerApi {
 
     private final @NonNull HttpRestClient restClient;
     private final @NonNull ServerVersion minSupportedVersion;
@@ -74,7 +74,7 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
      * @param minSupportedVersion Minimum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      * @param maxSupportedVersion Maximum supported server version. If {@code null} is provided, then {@link ServerVersion#LATEST} is used.
      */
-    public PowerAuthClientV3_ServerV13(@NonNull String serverApiUrl, @Nullable String authorization, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
+    public PowerAuthClientV3_ServerV19(@NonNull String serverApiUrl, @Nullable String authorization, @Nullable ServerVersion minSupportedVersion, @Nullable ServerVersion maxSupportedVersion) throws Exception {
         this.restClient = new HttpRestClient(serverApiUrl, authorization);
         this.minSupportedVersion = minSupportedVersion == null ? ServerVersion.LATEST : minSupportedVersion;
         this.maxSupportedVersion = maxSupportedVersion == null ? ServerVersion.LATEST : maxSupportedVersion;
@@ -334,6 +334,7 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
         request.setTokenDigest(tokenDigest);
         request.setNonce(nonce);
         request.setTimestamp(timestamp);
+        request.setProtocolVersion(protocolVersion);
         return restClient.send(request, new ValidateTokenEndpoint());
     }
 
@@ -353,13 +354,11 @@ public class PowerAuthClientV3_ServerV13 implements PowerAuthServerApi {
 
     @Override
     public boolean verifyEcdsaSignature(@NonNull String activationId, @NonNull String data, @NonNull String signature, @Nullable String format) throws Exception {
-        if (format != null && !"DER".equals(format)) {
-            throw new IllegalArgumentException("Unsupported format: " + format);
-        }
         final VerifyEcdsaSignatureEndpoint.Request request = new VerifyEcdsaSignatureEndpoint.Request();
         request.setActivationId(activationId);
         request.setData(data);
         request.setSignature(signature);
+        request.setSignatureFormat(format);
         final VerifyEcdsaSignatureEndpoint.Response response = restClient.send(request, new VerifyEcdsaSignatureEndpoint());
         return response.isSignatureValid();
     }

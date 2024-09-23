@@ -27,7 +27,6 @@ import io.getlime.security.powerauth.integration.support.client.PowerAuthClientF
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
-import io.getlime.security.powerauth.integration.support.model.ProtocolVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
 import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
@@ -209,7 +208,7 @@ public class PowerAuthTestHelper {
                 if (sdk.hasValidActivation()) {
                     Logger.e("Shared PowerAuthSDK has a valid activation at test initialization.");
                 }
-                sdk.removeActivationLocal(context, true);
+                sdk.removeActivationLocal(context);
             } else {
                 if (!sdk.hasValidActivation()) {
                     Logger.e("Shared PowerAuthSDK doesn't have a valid activation at test initialization.");
@@ -452,7 +451,7 @@ public class PowerAuthTestHelper {
                 .keychainConfiguration(getSharedPowerAuthKeychainConfiguration())
                 .build(getContext());
         if (resetActivation && sdk.hasValidActivation()) {
-            sdk.removeActivationLocal(getContext(), true);
+            sdk.removeActivationLocal(getContext());
         }
         return sdk;
     }
@@ -484,6 +483,6 @@ public class PowerAuthTestHelper {
      * @return Expected protocol version for HTTP headers.
      */
     public @NonNull String getProtocolVersionForHeader() {
-        return ProtocolVersion.V3_1.versionForHeader;
+        return testConfig.getServerVersion().maxProtocolVersion.versionForHeader;
     }
 }

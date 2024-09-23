@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.networking.interfaces;
 
+import androidx.annotation.NonNull;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
 /**
@@ -23,5 +24,5 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
  */
 @FunctionalInterface
 public interface ICustomEndpointOperation {
-    void customEndpointOperation() throws PowerAuthErrorException;
+    void customEndpointOperation(@NonNull IEndpointDefinition endpointDefinition) throws PowerAuthErrorException;
 }

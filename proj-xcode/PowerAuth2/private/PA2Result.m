@@ -49,6 +49,11 @@
     return [[PA2Result alloc] initWithResult:nil error:failure data:data];
 }
 
++ (id)success:(id)result orFailure:(NSError*)failure
+{
+    return [[PA2Result alloc] initWithResult:result error:failure data:nil];
+}
+
 - (id) extractResult:(NSError**)error
 {
     if (error) {

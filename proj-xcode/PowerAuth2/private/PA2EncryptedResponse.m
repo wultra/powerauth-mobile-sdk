@@ -25,22 +25,9 @@
 {
     self = [super init];
     if (self) {
-        _encryptedData      = PA2ObjectAs(dict[@"encryptedData"], NSString);
-        _nonce              = PA2ObjectAs(dict[@"nonce"], NSString);
-        _mac                = PA2ObjectAs(dict[@"mac"], NSString);
-        _timestamp          = [PA2ObjectAs(dict[@"timestamp"], NSNumber) unsignedLongLongValue];
+        _cryptogram = [[PowerAuthCoreEciesCryptogram alloc] initWithResponsePayload:dict];
     }
     return self;
-}
-
-- (PowerAuthCoreEciesCryptogram*) cryptogram
-{
-    PowerAuthCoreEciesCryptogram * cryptogram = [[PowerAuthCoreEciesCryptogram alloc] init];
-    cryptogram.bodyBase64 = _encryptedData;
-    cryptogram.nonceBase64 = _nonce;
-    cryptogram.macBase64 = _mac;
-    cryptogram.timestamp = _timestamp;
-    return cryptogram;
 }
 
 @end

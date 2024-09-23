@@ -135,6 +135,35 @@ namespace utils
         }
         return true;
     }
+
+    bool DataWriter::writeAsn1Count(size_t n)
+    {
+        if (n <= 0x7F) {
+            //
+            writeByte(n);
+            //
+        } else if (n <= 0xFF) {
+            //
+            writeByte(0x81);
+            writeByte(n);
+            //
+        } else if (n <= 0xFFFF) {
+            //
+            writeByte(0x82);
+            writeU16(n);
+            //
+        } else if (n <= 0x3FFFFFFF) {
+            //
+            writeByte(0x84);
+            writeU32((cc7::U32)n);
+            //
+        } else {
+            // ASN.1 supports even bigger numbers, but it's overkill for our purpose
+            CC7_ASSERT(false, "Count is too big.");
+            return false;
+        }
+        return true;
+    }
     
     size_t DataWriter::maxCount()
     {

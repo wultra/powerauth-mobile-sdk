@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.sdk;
 
 import androidx.annotation.NonNull;
 
+import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.keychain.KeychainProtection;
 
 /**
@@ -28,19 +29,22 @@ public class PowerAuthKeychainConfiguration {
     public static final String KEYCHAIN_ID_STATUS = "io.getlime.PowerAuthKeychain.StatusKeychain";
     public static final String KEYCHAIN_ID_BIOMETRY = "io.getlime.PowerAuthKeychain.BiometryKeychain";
     public static final String KEYCHAIN_ID_TOKEN_STORE = "io.getlime.PowerAuthKeychain.TokenStoreKeychain";
-    public static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
+    public static final String KEYCHAIN_KEY_BIOMETRY_DEFAULT = null;
+    public static final String KEYCHAIN_KEY_SHARED_BIOMETRY_KEY = "io.getlime.PowerAuthKeychain.BiometryKeychain.DefaultKey";
     public static final boolean DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET = true;
     public static final boolean DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION = false;
     public static final boolean DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP = true;
+    public static final boolean DEFAULT_ENABLE_FALLBACK_TO_SHARED_BIOMETRY_KEY = true;
     public static final @KeychainProtection int DEFAULT_REQUIRED_KEYCHAIN_PROTECTION = KeychainProtection.NONE;
 
     private final @NonNull String keychainIdStatus;
     private final @NonNull String keychainIdBiometry;
     private final @NonNull String keychainIdTokenStore;
-    private final @NonNull String keychainKeyBiometryDefault;
+    private final @Nullable String keychainKeyBiometry;
     private final boolean linkBiometricItemsToCurrentSet;
     private final boolean confirmBiometricAuthentication;
     private final boolean authenticateOnBiometricKeySetup;
+    private final boolean enableFallbackToSharedBiometryKey;
     private final @KeychainProtection int minimalRequiredKeychainProtection;
 
     /**
@@ -61,10 +65,21 @@ public class PowerAuthKeychainConfiguration {
 
     /**
      * Get name of the Keychain key used for storing the default biometry key information.
-     * @return Name of the biometry Keychain key.
+     * @return Name of the default biometry Keychain key.
+     * @deprecated Use {@link #getKeychainKeyBiometry()} method instead.
      */
+    @Deprecated // 1.7.10 - remove in 1.10.0
     public @NonNull String getKeychainBiometryDefaultKey() {
-        return keychainKeyBiometryDefault;
+       return keychainKeyBiometry == null ? KEYCHAIN_KEY_SHARED_BIOMETRY_KEY : keychainKeyBiometry;
+    }
+
+    /**
+     * Get name of the Keychain key used for storing the biometry key information for the PowerAuthSDK instance. If null
+     * then PowerAuthSDK instance will use its instance identifier to store the biometry key information.
+     * @return Get name of the Keychain key used for storing the biometry key information for the PowerAuthSDK instance.
+     */
+    public @Nullable String getKeychainKeyBiometry() {
+        return keychainKeyBiometry;
     }
 
     /**
@@ -111,6 +126,17 @@ public class PowerAuthKeychainConfiguration {
     }
 
     /**
+     * Get whether fallback to shared, legacy biometry key is enabled. By default, this is enabled for the compatibility
+     * reasons. If set, then {@code PowerAuthSDK} does additional lookup for a legacy biometric key, previously shared
+     * between multiple {@code PowerAuthSDK} object instances.
+     *
+     * @return {@code true} if fallback to shared, legacy biometry key is enabled.
+     */
+    public boolean isFallbackToSharedBiometryKeyEnabled() {
+        return enableFallbackToSharedBiometryKey;
+    }
+
+    /**
      * Get minimal required keychain protection level that must be supported on the current device.
      * If the level of protection on the device is insufficient, then you cannot use PowerAuth
      * mobile SDK on the device. If not configured, then {@link KeychainProtection#NONE} is used
@@ -128,7 +154,7 @@ public class PowerAuthKeychainConfiguration {
      *
      * @param keychainIdStatus                  Name of the Keychain file used for storing the status information.
      * @param keychainIdBiometry                Name of the Keychain file used for storing the biometry key information.
-     * @param keychainKeyBiometryDefault        Name of the Keychain key used to store the default biometry key.
+     * @param keychainKeyBiometry               Name of the Keychain key used for storing the biometry key information for the PowerAuthSDK instance.
      * @param keychainIdTokenStore              Name of the Keychain file used for storing the access tokens.
      * @param linkBiometricItemsToCurrentSet    If set, then the item protected with the biometry is invalidated
      *                                          if fingers are added or removed, or if the user re-enrolls for face.
@@ -137,25 +163,29 @@ public class PowerAuthKeychainConfiguration {
      *                                          and may be ignored.
      * @param authenticateOnBiometricKeySetup   If set, then the biometric key setup always require biometric authentication.
      *                                          If not set, then only usage of biometric key require biometric authentication.
+     * @param enableFallbackToSharedBiometryKey If set, then the PowerAuthSDK does one more additional lookup to use legacy
+     *                                          key shared between multiple PowerAuthSDK instances.
      * @param minimalRequiredKeychainProtection {@link KeychainProtection} constant with minimal required keychain
      *                                          protection level that must be supported on the current device.
      */
     private PowerAuthKeychainConfiguration(
             @NonNull String keychainIdStatus,
             @NonNull String keychainIdBiometry,
-            @NonNull String keychainKeyBiometryDefault,
+            @Nullable String keychainKeyBiometry,
             @NonNull String keychainIdTokenStore,
             boolean linkBiometricItemsToCurrentSet,
             boolean confirmBiometricAuthentication,
             boolean authenticateOnBiometricKeySetup,
+            boolean enableFallbackToSharedBiometryKey,
             @KeychainProtection int minimalRequiredKeychainProtection) {
         this.keychainIdStatus = keychainIdStatus;
         this.keychainIdBiometry = keychainIdBiometry;
-        this.keychainKeyBiometryDefault = keychainKeyBiometryDefault;
+        this.keychainKeyBiometry = keychainKeyBiometry;
         this.keychainIdTokenStore = keychainIdTokenStore;
         this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
         this.confirmBiometricAuthentication = confirmBiometricAuthentication;
         this.authenticateOnBiometricKeySetup = authenticateOnBiometricKeySetup;
+        this.enableFallbackToSharedBiometryKey = enableFallbackToSharedBiometryKey;
         this.minimalRequiredKeychainProtection = minimalRequiredKeychainProtection;
     }
 
@@ -167,10 +197,11 @@ public class PowerAuthKeychainConfiguration {
         private @NonNull String keychainStatusId = KEYCHAIN_ID_STATUS;
         private @NonNull String keychainBiometryId = KEYCHAIN_ID_BIOMETRY;
         private @NonNull String keychainTokenStoreId = KEYCHAIN_ID_TOKEN_STORE;
-        private @NonNull String keychainBiometryDefaultKey = KEYCHAIN_KEY_BIOMETRY_DEFAULT;
+        private @Nullable String keychainKeyBiometry = KEYCHAIN_KEY_BIOMETRY_DEFAULT;
         private boolean linkBiometricItemsToCurrentSet = DEFAULT_LINK_BIOMETRY_ITEMS_TO_CURRENT_SET;
         private boolean confirmBiometricAuthentication = DEFAULT_CONFIRM_BIOMETRIC_AUTHENTICATION;
         private boolean authenticateOnBiometricKeySetup = DEFAULT_AUTHENTICATE_ON_BIOMETRIC_KEY_SETUP;
+        private boolean enableFallbackToSharedBiometryKey = DEFAULT_ENABLE_FALLBACK_TO_SHARED_BIOMETRY_KEY;
         private @KeychainProtection int minimalRequiredKeychainProtection = DEFAULT_REQUIRED_KEYCHAIN_PROTECTION;
 
         /**
@@ -215,11 +246,23 @@ public class PowerAuthKeychainConfiguration {
         /**
          * Set name of the Keychain key used to store the default biometry key.
          *
-         * @param keychainBiometryDefaultKey Name of the Keychain key used to store the default biometry key.
+         * @param keychainKeyBiometry Name of the Keychain key used to store the default biometry key.
+         * @return {@link Builder}
+         * @deprecated Use {@link #keychainKeyBiometry(String)} as a replacement.
+         */
+        @Deprecated // 1.7.10 - remove in 1.10.0
+        public @NonNull Builder keychainBiometryDefaultKey(@NonNull String keychainKeyBiometry) {
+            this.keychainKeyBiometry = keychainKeyBiometry;
+            return this;
+        }
+
+        /**
+         * Set the name of the key to the biometry Keychain to store biometry-factor protection key.
+         * @param keychainKeyBiometry name of the key to biometry keychain to store data containing biometry related encryption key.
          * @return {@link Builder}
          */
-        public @NonNull Builder keychainBiometryDefaultKey(@NonNull String keychainBiometryDefaultKey) {
-            this.keychainBiometryDefaultKey = keychainBiometryDefaultKey;
+        public @NonNull Builder keychainKeyBiometry(@NonNull String keychainKeyBiometry) {
+            this.keychainKeyBiometry = keychainKeyBiometry;
             return this;
         }
 
@@ -257,7 +300,7 @@ public class PowerAuthKeychainConfiguration {
          * <p>
          * If set to {@code false}, then RSA cipher is used and only the usage of biometric key
          * require the biometric authentication. This is due to fact, that RSA cipher can encrypt
-         * data with using it's public key available immediate after the key-pair is created in
+         * data with using its public key available immediate after the key-pair is created in
          * Android KeyStore.
          * <p>
          * The default value is {@code true}.
@@ -268,6 +311,20 @@ public class PowerAuthKeychainConfiguration {
          */
         public @NonNull Builder authenticateOnBiometricKeySetup(boolean authenticate) {
             this.authenticateOnBiometricKeySetup = authenticate;
+            return this;
+        }
+
+        /**
+         * (Optional) Set, whether PowerAuthSDK instance should also do additional lookup for a legacy biometric key,
+         * previously shared between multiple PowerAuthSDK object instances.
+         * <p>
+         * The default value is {@code true} and the fallback is enabled.
+         *
+         * @param enable If {@code true} then fallback to legacy key is enabled.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder enableFallbackToSharedBiometryKey(boolean enable) {
+            this.enableFallbackToSharedBiometryKey = enable;
             return this;
         }
 
@@ -294,11 +351,12 @@ public class PowerAuthKeychainConfiguration {
             return new PowerAuthKeychainConfiguration(
                     keychainStatusId,
                     keychainBiometryId,
-                    keychainBiometryDefaultKey,
+                    keychainKeyBiometry,
                     keychainTokenStoreId,
                     linkBiometricItemsToCurrentSet,
                     confirmBiometricAuthentication,
                     authenticateOnBiometricKeySetup,
+                    enableFallbackToSharedBiometryKey,
                     minimalRequiredKeychainProtection);
         }
     }

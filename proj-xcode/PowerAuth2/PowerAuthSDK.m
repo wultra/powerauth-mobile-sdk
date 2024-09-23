@@ -26,6 +26,7 @@
 #import "PA2AsyncOperation.h"
 #import "PA2ObjectSerialization.h"
 
+#import "PA2KeystoreService.h"
 #import "PA2TimeSynchronizationService.h"
 #import "PA2PrivateTokenKeychainStore.h"
 #import "PA2PrivateHttpTokenProvider.h"
@@ -61,6 +62,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     PowerAuthKeychainConfiguration * _keychainConfiguration;
     PowerAuthClientConfiguration * _clientConfiguration;
     
+    PA2KeystoreService * _keystoreService;
     PA2TimeSynchronizationService * _timeSynchronizationService;
     id<PowerAuthPrivateTokenStore> _tokenStore;
     PA2HttpClient *_client;
@@ -269,10 +271,16 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     return _configuration.instanceId;
 }
 
-/**
- This private method checks for valid PowerAuthCoreSessionSetup and throws a PowerAuthExceptionMissingConfig exception when the provided configuration
- is not correct or is missing.
- */
+- (id<PowerAuthCoreSessionProvider>) sessionProvider
+{
+    return _sessionInterface;
+}
+
+- (id<PA2SessionInterface>) sessionInterface
+{
+    return _sessionInterface;   // same as "sessionProvider" but exposes private interfaces
+}
+
 - (void) checkForValidSetup
 {
     // This is OK to directly access _coreSession without a proper locking. Setup depends on runtime configuration,
@@ -283,6 +291,21 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 }
 
 #pragma mark - Key management
+
+- (PA2KeystoreService*) keystoreService
+{
+    [_lock lock];
+    if (!_keystoreService) {
+        // Create keystore service
+        _keystoreService = [[PA2KeystoreService alloc] initWithHttpClient:_client
+                                                              timeService:_timeSynchronizationService
+                                                         deviceRelatedKey:[self deviceRelatedKey]
+                                                             sessionSetup:_coreSession.sessionSetup
+                                                               sharedLock:_lock];
+    }
+    [_lock unlock];
+    return _keystoreService;
+}
 
 - (NSData*) deviceRelatedKey
 {
@@ -540,11 +563,6 @@ static PowerAuthSDK * s_inst;
     return _sessionInterface.hasPendingProtocolUpgrade;
 }
 
-- (id<PowerAuthCoreSessionProvider>) sessionProvider
-{
-    return _sessionInterface;
-}
-
 - (void) cancelAllPendingTasks
 {
     [_getActivationStatusTask cancel];
@@ -588,27 +606,33 @@ static PowerAuthSDK * s_inst;
     requestData.platform = [PowerAuthSystem platform];
     requestData.deviceInfo = [PowerAuthSystem deviceInfo];
     
-    PowerAuthCoreEciesEncryptor * decryptor = [[_sessionInterface writeTaskWithSession:^id _Nullable(PowerAuthCoreSession * _Nonnull session) {
+    // Start an activation
+    error = [_sessionInterface writeTaskWithSession:^NSError*(PowerAuthCoreSession * session) {
         return [self prepareActivation:activation
                             forRequest:request
                            requestData:requestData
                                session:session];
-    }] extractResult:&error];
-    
-    if (!decryptor) {
+    }];
+    if (error) {
         callback(nil, error);
         return nil;
     }
-    
+        
     // The create activation endpoint needs a custom object processing where we encrypt the inner data
     // with a different encryptor. We have to do this in the HTTP client's queue to guarantee that time
-    // service is already synchronized.
-    PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint createActivationWithCustomStep:^NSError *{
+    // service is already synchronized and tempoerary key is acquired.
+    PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint createActivationWithCustomStep:^NSError*(PA2RestApiEndpoint * endpoint) {
         // Encrypt payload and put it directly to the request object.
         NSError * localError = nil;
-        request.activationData = [PA2ObjectSerialization encryptObject:requestData
-                                                             encryptor:decryptor
-                                                                 error:&localError];
+        PowerAuthCoreEciesEncryptor * decryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];;
+        if (decryptor && !localError) {
+            request.activationData = [PA2ObjectSerialization encryptObject:requestData
+                                                                 encryptor:decryptor
+                                                                     error:&localError];
+        }
+        if (!localError) {
+            endpoint.customData = decryptor;
+        }
         return localError;
     }];
     
@@ -622,10 +646,10 @@ static PowerAuthSDK * s_inst;
                             if (status == PowerAuthRestApiResponseStatus_OK) {
                                 // Validate response from the server
                                 return [self validateActivationResponse:response
-                                                              decryptor:decryptor
+                                                              decryptor:endpoint.customData
                                                                 session:session];
                             }
-                            [session resetSession];
+                            [session resetSession:NO];
                             return [PA2Result failure:error ? error : PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil)];
                         }] extractResult:&error];
         
@@ -801,10 +825,10 @@ static PowerAuthSDK * s_inst;
  The method requires request & request data and if everything's right, then request.activationData
  is prepared and metods returns a new decryptor, required for response decryption.
  */
-- (PA2Result<PowerAuthCoreEciesEncryptor*>*) prepareActivation:(PowerAuthActivation*)activation
-                                                    forRequest:(PA2CreateActivationRequest*)request
-                                                   requestData:(PA2CreateActivationRequestData*)requestData
-                                                       session:(PowerAuthCoreSession*)session
+- (NSError*) prepareActivation:(PowerAuthActivation*)activation
+                    forRequest:(PA2CreateActivationRequest*)request
+                   requestData:(PA2CreateActivationRequestData*)requestData
+                       session:(PowerAuthCoreSession*)session
 {
     BOOL resetState = YES;
     NSError * localError = nil;
@@ -819,16 +843,8 @@ static PowerAuthSDK * s_inst;
         if (resultStep1) {
             // Keep device's public key in requestData
             requestData.devicePublicKey = resultStep1.devicePublicKey;
-
-            // Now we need to ecrypt request data with the Layer2 encryptor.
-            PowerAuthCoreEciesEncryptor * privateEncryptor = [self encryptorWithId:PA2EncryptorId_ActivationPayload error:&localError];
-            if (!localError) {
-                // Everything looks OS, so finally, try notify other apps that this instance started the activation.
-                localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
-                if (!localError) {
-                    return [PA2Result success:privateEncryptor];
-                }
-            }
+            // Everything looks OS, so finally, try notify other apps that this instance started the activation.
+            localError = [_sessionInterface startExternalPendingOperation:PowerAuthExternalPendingOperationType_Activation];
         } else {
             localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationData, nil);
         }
@@ -836,10 +852,10 @@ static PowerAuthSDK * s_inst;
         resetState = NO; // Don't reset state, there's already existing or pendign activation
         localError = PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
     }
-    if (resetState) {
-        [session resetSession];
+    if (localError && resetState) {
+        [session resetSession:NO];
     }
-    return [PA2Result failure:localError];
+    return localError;
 }
 
 /**
@@ -884,7 +900,7 @@ static PowerAuthSDK * s_inst;
         }
     }
     // If failure, then reset session and report error.
-    [session resetSession];
+    [session resetSession:NO];
     return [PA2Result failure:localError];
 }
 
@@ -987,7 +1003,7 @@ static PowerAuthSDK * s_inst;
             PowerAuthLog(@"Removing activaton data from keychain failed. We can't recover from this error.");
         }
         [_tokenStore removeAllLocalTokens];
-        [session resetSession];
+        [session resetSession:NO];
     }];
 }
 
@@ -1114,7 +1130,6 @@ static PowerAuthSDK * s_inst;
     }] extractResult:error];
 }
 
-
 - (BOOL) verifyServerSignedData:(nonnull NSData*)data
                       signature:(nonnull NSString*)signature
                       masterKey:(BOOL)masterKey
@@ -1125,6 +1140,7 @@ static PowerAuthSDK * s_inst;
         signedData.signingDataKey = masterKey ? PowerAuthCoreSigningDataKey_ECDSA_MasterServerKey : PowerAuthCoreSigningDataKey_ECDSA_PersonalizedKey;
         signedData.data = data;
         signedData.signatureBase64 = signature;
+        signedData.signatureFormat = PowerAuthCoreSignatureFormat_ECDSA_DER;
         return [session verifyServerSignedData: signedData];
     }];
 }
@@ -1464,6 +1480,7 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                        data:(NSData*)data
+                                                     format:(PowerAuthCoreSignatureFormat)format
                                                    callback:(void(^)(NSData *signature, NSError *error))callback
 {
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_SIGN_WITH_DEVICE_PRIVATE_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
@@ -1475,7 +1492,8 @@ static PowerAuthSDK * s_inst;
             signature = [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
                 return [session signDataWithDevicePrivateKey:encryptedEncryptionKey
                                                         keys:keys
-                                                        data:data];
+                                                        data:data
+                                                      format:format];
             }];
             // Propagate error
             if (!signature) {
@@ -1485,37 +1503,44 @@ static PowerAuthSDK * s_inst;
         // Call back to application
         callback(signature, error);
     }];
+
+}
+
+- (id<PowerAuthOperationTask>) signDataWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
+                                                       data:(NSData*)data
+                                                   callback:(void(^)(NSData *signature, NSError *error))callback
+{
+    return [self signDataWithDevicePrivateKey:authentication
+                                         data:data
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_DER
+                                     callback:callback];
 }
 
 - (id<PowerAuthOperationTask>) signJwtWithDevicePrivateKey:(PowerAuthAuthentication*)authentication
                                                     claims:(NSDictionary<NSString*, NSObject*>*)claims
                                                   callback:(void(^)(NSString *jwt, NSError *error))callback
 {
+    // Prepare JWT Header
+    NSString * jwtHeader = @"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9."; // {"alg":"ES256","typ":"JWT"}
     // Prepare claims data
-    NSData *claimsData = [NSJSONSerialization dataWithJSONObject:claims options:0 error:nil];
+    NSData * claimsData = [NSJSONSerialization dataWithJSONObject:claims options:0 error:nil];
+    // Prepare data for signing
+    NSString * signedData = [jwtHeader stringByAppendingString:[claimsData jwtEncodedString]];
+    // Calculate signature
     return [self signDataWithDevicePrivateKey:authentication
-                                         data:claimsData
-                                     callback:^(NSData * _Nullable signature, NSError * _Nullable error) {
+                                         data:[signedData dataUsingEncoding:NSASCIIStringEncoding]
+                                       format:PowerAuthCoreSignatureFormat_ECDSA_JOSE
+                                     callback:^(NSData * signature, NSError * error) {
         // Handle error
         if (error) {
             callback(nil, error);
             return;
         }
-        
-        // Prepare JWT Header
-        NSDictionary *header = @{ @"alg": @"ES256", @"typ": @"JWT" };
-        NSData *headerData = [NSJSONSerialization dataWithJSONObject:header options:0 error:nil];
-        NSString *headerBase64Encoded = [headerData base64EncodedStringWithOptions:0];
-        
-        // Base64 Encode Claims Data
-        NSString *claimsBase64Encoded = [claimsData base64EncodedStringWithOptions:0];
-        
         // Base64 Encode Signature
-        NSString *signatureBase64Encoded = [signature base64EncodedStringWithOptions:0];
-        
+        NSString *jwtSignature = [signature jwtEncodedString];
         // Construct JWT
-        NSString *jwt = [NSString stringWithFormat:@"%@.%@.%@", headerBase64Encoded, claimsBase64Encoded, signatureBase64Encoded];
-        
+        NSString *jwt = [[signedData stringByAppendingString:@"."] stringByAppendingString:jwtSignature];
+        // Call back to application
         callback(jwt, nil);
     }];
 }
@@ -1526,23 +1551,61 @@ static PowerAuthSDK * s_inst;
 
 @implementation PowerAuthSDK (E2EE)
 
-- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
+- (id<PowerAuthOperationTask>) eciesEncryptorForApplicationScopeWithCallback:(void (^)(PowerAuthCoreEciesEncryptor *, NSError *))callback
 {
-    PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:nil];
-    return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope error:nil];
+    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Application callback:callback];
 }
 
+- (id<PowerAuthOperationTask>) eciesEncryptorForActivationScopeWithCallback:(void (^)(PowerAuthCoreEciesEncryptor *, NSError *))callback
+{
+    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Activation callback:callback];
+}
+
+// Private
+
+- (id<PowerAuthOperationTask>) eciesEncryptorWithScope:(PowerAuthCoreEciesEncryptorScope)scope
+                                              callback:(void (^)(PowerAuthCoreEciesEncryptor *, NSError *))callback
+{
+    return [_keystoreService createKeyForEncryptorScope:scope callback:^(NSError * error) {
+        PowerAuthCoreEciesEncryptor * encryptor;
+        if (!error) {
+            encryptor = [self eciesEncryptorWithScope:scope error:&error];
+        } else {
+            encryptor = nil;
+        }
+        callback(encryptor, error);
+    }];
+}
+
+- (PowerAuthCoreEciesEncryptor*) eciesEncryptorWithScope:(PowerAuthCoreEciesEncryptorScope)scope error:(NSError**)error
+{
+    if (scope == PowerAuthCoreEciesEncryptorScope_Activation) {
+        return [[_sessionInterface readTaskWithSession:^PA2Result*(PowerAuthCoreSession * session) {
+            if (!session.hasValidActivation) {
+                return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_MissingActivation, nil)];
+            }
+            NSError * error = nil;
+            NSData * deviceKey = [self deviceRelatedKey];
+            PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:deviceKey];
+            PowerAuthCoreEciesEncryptor * encryptor = [factory encryptorWithId:PA2EncryptorId_GenericActivationScope error:&error];
+            return [PA2Result success:encryptor orFailure:error];
+        }] extractResult:error];
+    } else {
+        PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:nil];
+        return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope error:error];
+    }
+}
+
+// PA2_DEPRECATED(1.9.0)
+- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
+{
+    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Application error:nil];
+}
+
+// PA2_DEPRECATED(1.9.0)
 - (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
 {
-    return [_sessionInterface readTaskWithSession:^id (PowerAuthCoreSession * session) {
-        if (!session.hasValidActivation) {
-            PowerAuthLog(@"eciesEncryptorForActivation: There's no activation.");
-            return nil;
-        }
-        NSData * deviceKey = [self deviceRelatedKey];
-        PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:deviceKey];
-        return [factory encryptorWithId:PA2EncryptorId_GenericActivationScope error:nil];
-    }];
+    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Activation error:nil];
 }
 
 @end

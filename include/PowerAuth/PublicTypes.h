@@ -156,7 +156,7 @@ namespace powerAuth
     };
 
     /**
-     Returns textual representation for given protocol version. For example, for `Version_V3` returns "3.2".
+     Returns textual representation for given protocol version. For example, for `Version_V3` returns "3.3".
      You can use `Version_NA` to get the lastest supported version.
      */
     extern std::string Version_GetMaxSupportedHttpProtocolVersion(Version protocol_version);
@@ -375,7 +375,39 @@ namespace powerAuth
             /**
              `KEY_SERVER_PRIVATE` key was used for signature calculation
              */
-            ECDSA_PersonalizedKey = 1
+            ECDSA_PersonalizedKey = 1,
+            /**
+             `APP_SECRET` key is used for HMAC-SHA256 signature calculation.
+             */
+            HMAC_Application = 2,
+            /**
+             `KEY_TRANSPORT` key is used for HMAC-SHA256 signature calculation.
+             */
+            HMAC_Activation = 3
+        };
+        
+        enum SignatureFormat
+        {
+            /**
+             If default signature is used, then `ECDSA_DER` is used for ECDSA signature.
+             The raw bytes are always used for HMAC signatures.
+             */
+            Default = 0,
+            /**
+             ECDSA signature in DER format is expected at input, or produced at output:
+             ```
+             ASN.1 notation:
+             ECDSASignature ::= SEQUENCE {
+                 r   INTEGER,
+                 s   INTEGER
+             }
+             ```
+             */
+            ECDSA_DER = 1,
+            /**
+             ECDSA signature in JOSE format is epxpected at input, or produced at output.
+             */
+            ECDSA_JOSE = 2,
         };
         
         /**
@@ -383,20 +415,39 @@ namespace powerAuth
          */
         SigningKey signingKey;
         /**
-         An arbitrary data
+         Format of signature expected at input, or produced at output.
+         */
+        SignatureFormat signatureFormat;
+        /**
+         An arbitrary data.
          */
         cc7::ByteArray data;
         /**
-         A signagure calculated for data
+         A signagure calculated for data.
          */
         cc7::ByteArray signature;
         
         /**
-         Default constructor
+         Default constructor.
          */
-        SignedData(SigningKey signingKey = ECDSA_MasterServerKey) :
-            signingKey(signingKey)
+        SignedData(SigningKey signingKey = ECDSA_MasterServerKey, SignatureFormat signatureFormat = Default) :
+            signingKey(signingKey),
+            signatureFormat(signatureFormat)
         {
+        }
+        
+        /**
+         Determine whether the signing key is set to one from ECDSA variants.
+         */
+        bool isEcdsaSignature() const {
+            return signingKey == ECDSA_PersonalizedKey || signingKey == ECDSA_MasterServerKey;
+        }
+        
+        /**
+         Determine whether the signing key is set to one from HMAC viarants.
+         */
+        bool isHmacSignature() const {
+            return signingKey == HMAC_Activation || signingKey == HMAC_Application;
         }
     };
     

@@ -30,20 +30,26 @@ public class SignedData {
      */
     public final byte[] signature;
     /**
-     * If true, then the master server's public key is used for validation, otherwise
-     * the personalized server's public key is used.
+     * Key to use for signature validation or computation.
      */
-    public final boolean useMasterKey;
+    @SigningDataKey
+    public final int signingKey;
+    /**
+     * Format of signature expected at input, or produced at output.
+     */
+    @SignatureFormat
+    public final int signatureFormat;
 
     /**
      * @param data data protected with signature
      * @param signature signature calculated for data
-     * @param useMasterKey If true, then the master server's public key is used for validation, otherwise
-     *                     the personalized server's public key is used.
+     * @param signingKey Key used to sign data, or will be used for the signature calculation.
+     * @param signatureFormat Format of signature expected at input, or produced at output.
      */
-    public SignedData(byte[] data, byte[] signature, boolean useMasterKey) {
+    public SignedData(byte[] data, byte[] signature, @SigningDataKey int signingKey, @SignatureFormat int signatureFormat) {
         this.data = data;
         this.signature = signature;
-        this.useMasterKey = useMasterKey;
+        this.signingKey = signingKey;
+        this.signatureFormat = signatureFormat;
     }
 }

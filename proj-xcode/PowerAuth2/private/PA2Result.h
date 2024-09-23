@@ -57,6 +57,12 @@
                                   withData:(nonnull id)data;
 
 /**
+ Create result object with failure or success. If both
+ */
++ (nonnull PA2Result<ResultType>*) success:(nullable ResultType)result
+                                 orFailure:(nullable NSError*)failure;
+
+/**
  Return result and set error to provided NSError pointer in case result is failure.
  */
 - (nullable ResultType) extractResult:(NSError* _Nullable* _Nullable)error;

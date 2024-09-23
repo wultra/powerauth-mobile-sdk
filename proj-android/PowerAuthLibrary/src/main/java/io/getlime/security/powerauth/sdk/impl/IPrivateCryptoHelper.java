@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.core.Session;
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
@@ -66,4 +67,15 @@ public interface IPrivateCryptoHelper {
      *         {@link android.content.Context} object is not available for the crypto helper.
      */
     @Nullable byte[] getDeviceRelatedKey();
+
+    /**
+     * @return Object implementing {@link IKeystoreService} interface.
+     */
+    @NonNull IKeystoreService getKeystoreService();
+
+    /**
+     * @return Core {@link Session} object associated with this helper.
+     */
+    @NonNull Session getCoreSession();
+
 }

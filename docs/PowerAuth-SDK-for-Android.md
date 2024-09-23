@@ -7,6 +7,7 @@
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
   - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via OpenID Connect](#activation-via-openid-connect)
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
   - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
@@ -346,6 +347,45 @@ try {
 <!-- begin box warning -->
 Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
 <!-- end -->
+
+### Activation via OpenID Connect
+
+You may also create an activation using OIDC protocol:
+
+```kotlin
+// Create a new activation with a given device name and login credentials
+val deviceName = "Juraj's JiaYu S3"
+// Get the following information from your OpenID provider
+val providerId = "1234567890abcdef"
+val code = "1234567890abcdef"
+val nonce = "K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o"
+val codeVerifier = "G3hsI1KZX1o~K0p-5lT3F7yZ4...6yP8rE2wO9n" // code verifier is optional
+
+// Create an activation object with the given credentials.
+val activation: PowerAuthActivation
+try {
+    activation = PowerAuthActivation.Builder.oidcActivation(providerId, code, nonce, codeVerifier)
+                    .setActivationName(deviceName)
+                    .build()
+} catch (e: PowerAuthErrorException) {
+    // Credentials dictionary is empty
+}
+
+// Create a new activation with the given activation object
+powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
+    override fun onActivationCreateSucceed(result: CreateActivationResult) {
+        val fingerprint = result.activationFingerprint
+        val activationRecovery = result.recoveryData
+        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
+        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
+        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
+    }
+
+    override fun onActivationCreateFailed(t: Throwable) {
+        // Error occurred, report it to the user
+    }
+})
+```
 
 ### Activation via Custom Credentials
 
@@ -2049,28 +2089,28 @@ The following steps are typically required for a full E2EE request and response 
 1. Acquire the right encryptor from the `PowerAuthSDK` instance. For example:
    ```kotlin
    // Encryptor for "application" scope.
-   val encryptor = powerAuthSDK.eciesEncryptorForApplicationScope
+   val cancelable = powerAuthSDK.eciesEncryptorForApplicationScope(object : IGetEciesEncryptorListener {
+        override fun onGetEciesEncryptorSuccess(encryptor: EciesEncryptor) {
+            // Success
+        }
+
+        override fun onGetEciesEncryptorFailed(t: Throwable) {
+            // Failure
+        }
+   })
    // ...or similar, for an "activation" scope.
-   val encryptor = powerAuthSDK.getEciesEncryptorForActivationScope(context)
+   val cancelable = powerAuthSDK.getEciesEncryptorForActivationScope(context, object : IGetEciesEncryptorListener {
+        override fun onGetEciesEncryptorSuccess(encryptor: EciesEncryptor) {
+            // Success
+        }
+
+        override fun onGetEciesEncryptorFailed(t: Throwable) {
+            // Failure
+        }
+   })
    ```
 
 1. Serialize your request payload, if needed, into a sequence of bytes. This step typically means that you need to serialize your model object into a JSON-formatted sequence of bytes.
-
-1. Make sure that the PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
-   ```kotlin
-   val timeService = powerAuthSDK.timeSynchronizationService
-   if (!timeService.isTimeSynchronized) {
-       timeService.synchronizeTime(object : ITimeSynchronizationListener {
-           override fun onTimeSynchronizationSucceeded() {
-               // Success
-           }
-
-           override fun onTimeSynchronizationFailed(t: Throwable) {
-               // Failure
-           }
-       })
-   }
-   ```
 
 1. Encrypt your payload:
    ```kotlin
@@ -2080,16 +2120,15 @@ The following steps are typically required for a full E2EE request and response 
    }  
    ```
 
-1. Construct a JSON from the provided cryptogram object. The dictionary with the following keys is expected:
-   - `ephemeralPublicKey` property fill with `cryptogram.getKeyBase64()`
-   - `encryptedData` property fill with `cryptogram.getBodyBase64()`
-   - `mac` property fill with `cryptogram.getMacBase64()`
-   - `nonce` property fill with `cryptogram.getNonceBase64()`
-   - `timestamp` property fill with `cryptogram.getTimestamp()`
-
+1. Construct a JSON from the provided cryptogram object:
+   ```kotlin
+   val requestObject = cryptogram.toEncryptedRequest()
+   val requestJson = Gson().toJson(requestObject)
+   ```
    So, the final request JSON should look like this:
    ```json
    {
+      "temporaryKeyId" : "UUID",
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
       "encryptedData" : "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
@@ -2110,7 +2149,7 @@ The following steps are typically required for a full E2EE request and response 
 1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-1. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON response typically looks like this:
    ```json
    {
       "encryptedData" : "BASE64-DATA-BLOB",
@@ -2119,10 +2158,13 @@ The following steps are typically required for a full E2EE request and response 
       "timestamp" : 1694172789256
    }
    ```
-   
-   So, you need to create yet another "cryptogram" object, but with only two properties set:
+   So, you need to create yet another "cryptogram" object:
    ```kotlin
-   val responseCryptogram = EciesCryptogram(response.encryptedData, response.mac)
+   val responseObject = Gson().fromJson(responseData, EciesEncryptedResponse::class.java)
+   val responseCryptogram = EciesCryptogram.fromEncryptedResponse(responseObject)
+   if (responseCryptogram == null) {
+       // failure
+   }
    val responseData = encryptor.decryptResponse(responseCryptogram)
    if (responseData == null) {
        // failed to decrypt response data

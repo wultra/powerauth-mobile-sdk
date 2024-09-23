@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.reflect.TypeToken;
 
+import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.ecies.EciesEncryptorId;
 import io.getlime.security.powerauth.networking.interfaces.ICustomEndpointOperation;
 import io.getlime.security.powerauth.networking.interfaces.IEndpointDefinition;
@@ -29,6 +30,7 @@ import io.getlime.security.powerauth.networking.model.response.ActivationLayer1R
 public class CreateActivationEndpoint implements IEndpointDefinition<ActivationLayer1Response> {
 
     private final ICustomEndpointOperation beforeRequestSerialization;
+    private EciesEncryptor layer2Encryptor;
 
     /**
      * Construct endpoint with a custom serialization step executed before the request is serialized.
@@ -65,5 +67,21 @@ public class CreateActivationEndpoint implements IEndpointDefinition<ActivationL
     @Override
     public ICustomEndpointOperation getBeforeRequestSerializationOperation() {
         return beforeRequestSerialization;
+    }
+
+    /**
+     * Get ECIES encryptor for layer-2 encryption.
+     * @return ECIES encryptor for layer-2 encryption.
+     */
+    public EciesEncryptor getLayer2Encryptor() {
+        return layer2Encryptor;
+    }
+
+    /**
+     * Set ECIES encryptor for layer-2 encryption.
+     * @param encryptor ECIES encryptor for layer-2 encryption.
+     */
+    public void setLayer2Encryptor(EciesEncryptor encryptor) {
+        this.layer2Encryptor = encryptor;
     }
 }

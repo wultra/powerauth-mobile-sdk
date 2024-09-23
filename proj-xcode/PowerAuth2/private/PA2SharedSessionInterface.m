@@ -273,7 +273,7 @@ typedef struct LocalContext {
 
 - (void) resetSession
 {
-    WRITE_BLOCK([_session resetSession])
+    WRITE_BLOCK([_session resetSession:NO])
 }
 
 - (NSString*) activationIdentifier
@@ -446,7 +446,7 @@ READ_BOOL_WRAPPER(hasProtocolUpgradeAvailable)
     if (statusData) {
         [_session deserializeState:statusData];
     } else {
-        [_session resetSession];
+        [_session resetSession:NO];
     }
     _stateBefore = [_session serializedState];
     

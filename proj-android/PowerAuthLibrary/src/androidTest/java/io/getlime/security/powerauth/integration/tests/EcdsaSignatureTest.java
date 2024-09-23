@@ -91,7 +91,7 @@ public class EcdsaSignatureTest {
         final String signatureForVerification = Base64.encodeToString(signatureForData, Base64.NO_WRAP);
 
         // Now validate that signature on the server.
-        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), dataForVerification, signatureForVerification);
+        boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), dataForVerification, signatureForVerification, null);
         assertTrue(result);
     }
 

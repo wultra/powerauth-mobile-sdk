@@ -147,6 +147,20 @@
 @interface PowerAuthCoreEciesCryptogram : NSObject
 
 /**
+ Initialize cryptogram with JSON dictionary containing encrypted response payload.
+ */
+- (nullable instancetype) initWithResponsePayload:(nonnull id)responsePayload;
+
+/**
+ Get encrypted request payload in form of dictionary serializable to JSON.
+ */
+- (nonnull NSDictionary*) requestPayload;
+
+/**
+ Temporary key identifier
+ */
+@property (nonatomic, strong, nullable) NSString * temporaryKeyId;
+/**
  Encrypted data
  */
 @property (nonatomic, strong, nullable) NSData * body;
@@ -205,12 +219,18 @@
  Initializes object with required `applicationKey` and with optional `activationIdentifier`
  */
 - (nonnull instancetype) initWithApplicationKey:(nonnull NSString*)applicationKey
+                                 temporaryKeyId:(nonnull NSString*)temporaryKeyId
                            activationIdentifier:(nullable NSString*)activationIdentifier;
 
 /**
  Contains required application key required for the HTTP header construction.
  */
 @property (nonatomic, strong, readonly, nonnull) NSString * applicationKey;
+
+/**
+ Contains required temporary key identifier required for the HTTP header construction.
+ */
+@property (nonatomic, strong, readonly, nonnull) NSString * temporaryKeyId;
 
 /**
  Contains optional activation identifier.

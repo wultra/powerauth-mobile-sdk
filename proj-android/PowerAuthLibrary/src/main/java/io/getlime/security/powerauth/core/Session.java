@@ -103,8 +103,11 @@ public class Session {
     /**
      * Resets session into its initial state. The existing session's setup and EEK is preserved
      * after the call.
+     *
+     * @param fullReset If {@code true}, then also resets data not relevant to the activation state. For example, ECIES public
+     *                  key for application scope.
      */
-    public native void resetSession();
+    public native void resetSession(boolean fullReset);
     
     /**
      * Returns true if dynamic library was compiled with a debug features. It is highly recommended
@@ -353,6 +356,17 @@ public class Session {
     @ErrorCode
     public native int verifyServerSignedData(SignedData signedData);
 
+    /**
+     * Calculates HMAC-SHA256 signature with using key specified in {@link SignedData} object. The output signature is
+     * also stored to provided data object. If {@link SigningDataKey#HMAC_ACTIVATION} key is requested, then unlock keys
+     * must object must contain possession factor unlock key and the session must have valid activation.
+     * @param dataToSign Object containing data to sign and the key to use for the signature calculation.
+     * @param unlockKeys Required for {@link SigningDataKey#HMAC_ACTIVATION} key.
+     * @return integer comparable to constants available at {@link ErrorCode} class.
+     */
+    @ErrorCode
+    public native int signDataWithHmacKey(SignedData dataToSign, SignatureUnlockKeys unlockKeys);
+
     //
     // Signature keys management
     //
@@ -463,10 +477,11 @@ public class Session {
      * @param cVaultKey encrypted vault key
      * @param unlockKeys unlock keys object with required possession factor
      * @param data data to be signed
+     * @param signatureFormat Format of produced signature.
      *
      * @return array of bytes with calculated signature or null in case of failure.
      */
-    public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data);
+    public native byte[] signDataWithDevicePrivateKey(String cVaultKey, SignatureUnlockKeys unlockKeys, byte[] data, @SignatureFormat int signatureFormat);
 
     //
     // External encryption key
@@ -535,7 +550,7 @@ public class Session {
      *
      * @return {@link EciesEncryptor} object or nil in case of error
      */
-    public EciesEncryptor getEciesEncryptor(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1) {
+    public EciesEncryptor getEciesEncryptor(@EciesEncryptorScope int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1) {
         return getEciesEncryptorImpl(scope, unlockKeys, sharedInfo1, timeService);
     }
 
@@ -551,7 +566,44 @@ public class Session {
      *
      * @return {@link EciesEncryptor} object or nil in case of error
      */
-    private native EciesEncryptor getEciesEncryptorImpl(int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1, ICoreTimeService timeService);
+    private native EciesEncryptor getEciesEncryptorImpl(@EciesEncryptorScope int scope, SignatureUnlockKeys unlockKeys, byte[] sharedInfo1, ICoreTimeService timeService);
+
+    /**
+     *  Sets a server's public key and its identifier for ECIES encryption.
+     * @param scope Scope of the server's public key.
+     * @param publicKey Public key encoded as Base64 string.
+     * @param publicKeyId Identifier of new public key.
+     * @return <ul>
+     *          <li>{@link ErrorCode#OK} in case of success.</li>
+     *          <li>{@link ErrorCode#WrongParam} if null or empty string is provided.</li>
+     *          <li>{@link ErrorCode#WrongState} if activation scope is used and the session has no valid activation.</li>
+     *         </ul>
+     */
+    @ErrorCode
+    public native int setPublicKeyForEciesScope(@EciesEncryptorScope int scope, @NonNull String publicKey, @NonNull String publicKeyId);
+
+    /**
+     * Removes a server's public key and its identifier store for the given scope. It's safe to call this
+     * function if key for given scope is not set.
+     * @param scope Scope of the key to remove.
+     */
+    public native void removePublicKeyForEciesScope(@EciesEncryptorScope int scope);
+
+    /**
+     * Determines whether session contains stored server's public key for ECIES scope.
+     * @param scope Scope of the key.
+     * @return {@code true} if session has stored server's public key for the requested scope.
+     */
+    public native boolean hasPublicKeyForEciesScope(@EciesEncryptorScope int scope);
+
+    /**
+     * Returns identifier of server's public key for given scope.
+     * @param scope Scope of the key.
+     * @return Identifier of the stored server's public key, or {@code null} if no key is stored, or method is called
+     * in the wrong activation state.
+     */
+    @Nullable
+    public native String getPublicKeyIdForEciesScope(@EciesEncryptorScope int scope);
 
     //
     // Utilities
@@ -656,7 +708,7 @@ public class Session {
 
     /**
      * Return textual representation for given protocol version. For example, for {@link ProtocolVersion#V3}
-     * returns {@code "3.2"}. You can use {@link ProtocolVersion#NA} to get the latest supported version.
+     * returns {@code "3.3"}. You can use {@link ProtocolVersion#NA} to get the latest supported version.
      *
      * @param version Version to convert to string
      * @return Textual representation for given protocol version.
@@ -668,7 +720,7 @@ public class Session {
 
     /**
      * Return textual representation for given integer value of protocol version. For example,
-     * for {@link ProtocolVersion#V3} returns {@code "3.2"}. You can use {@link ProtocolVersion#NA}
+     * for {@link ProtocolVersion#V3} returns {@code "3.3"}. You can use {@link ProtocolVersion#NA}
      * to get the latest supported version.
      *
      * @param protocolVersionValue Integer value from {@link ProtocolVersion} enum.

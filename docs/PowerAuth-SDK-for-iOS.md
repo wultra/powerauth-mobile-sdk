@@ -13,6 +13,7 @@
 - [SDK Configuration](#configuration)
 - [Device Activation](#activation)
   - [Activation via Activation Code](#activation-via-activation-code)
+  - [Activation via OpenID Connect](#activation-via-openid-connect)
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
   - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
@@ -237,6 +238,26 @@ guard let activation = try? PowerAuthActivation(activationCode: activationCode, 
 <!-- begin box warning -->
 Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
 <!-- end -->
+
+### Activation via OpenID Connect
+
+You may also create an activation using OIDC protocol:
+
+```swift
+// Create a new activation with a given device name and custom login credentials
+let deviceName = "Petr's iPhone 7"  // or UIDevice.current.name (see warning below)
+// Get the following information from your OpenID provider
+let providerId = "1234567890abcdef"
+let code = "1234567890abcdef"
+let nonce = "K1mP3rT9bQ8lV6zN7sW2xY4dJ5oU0fA1gH29o"
+let codeVerifier = "G3hsI1KZX1o~K0p-5lT3F7yZ4...6yP8rE2wO9n" // code verifier is optional
+
+// create an activation object with the given OIDC parameters
+guard let activation = try? PowerAuthActivation(oidcProviderId: providerId, code: code, nonce: nonce, codeVerifier: codeVerifier)
+    .with(activationName: deviceName) else {
+    // Activation parameter contains empty string
+}
+```
 
 <!-- begin box warning -->
 Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
@@ -1296,20 +1317,20 @@ The following steps are typically required for a full E2EE request and response 
    import PowerAuthCore
    
    // Encryptor for "application" scope.
-   guard let encryptor = powerAuthSDK.eciesEncryptorForApplicationScope() else { ...failure... }
+   sdk.eciesEncryptorForApplicationScope { encryptor, error in
+      if let encryptor {
+        // success
+      } else {
+        // failure
+      }
+   }
    // ...or similar, for an "activation" scope.
-   guard let encryptor = powerAuthSDK.eciesEncryptorForActivationScope() else { ...failure... }
-   ```
-
-1. Make sure that the PowerAuth SDK instance has [time synchronized with the server](#synchronized-time):
-   ```swift
-   let timeService = powerAuthSDK.timeSynchronizationService
-   if !timeService.isTimeSynchronized {
-       timeService.synchronizeTime(callback: { error in
-           if error != nil {
-               // failure
-           }
-       }, callbackQueue: .main)
+   sdk.eciesEncryptorForActivationScope { encryptor, error in
+      if let encryptor {
+        // success
+      } else {
+        // failure
+      }
    }
    ```
 
@@ -1320,18 +1341,16 @@ The following steps are typically required for a full E2EE request and response 
    guard let cryptogram = encryptor.encryptRequest(payloadData) else { ...failure... }
    ```
 
-1. Construct a JSON from the provided cryptogram object. The dictionary with the following keys is expected:
-   - `ephemeralPublicKey` property fill with `cryptogram.keyBase64`
-   - `encryptedData` property fill with `cryptogram.bodyBase64`
-   - `mac` property fill with `cryptogram.macBase64`
-   - `nonce` property fill with `cryptogram.nonceBase64`
-   - `timestamp` property fill with `cryptogram.timestamp`
-
+1. Construct a JSON from the provided cryptogram object:
+   ```swift
+   guard let requestBody = try? JSONSerialization.data(withJSONObject: cryptogram.requestPayload()) else { ...failure... }
+   ```
    So, the final request JSON should look like this:
    ```json
    {
+      "temporaryKeyId" : "UUID",
       "ephemeralPublicKey" : "BASE64-DATA-BLOB",
-      "encryptedData": "BASE64-DATA-BLOB",
+      "encryptedData" : "BASE64-DATA-BLOB",
       "mac" : "BASE64-DATA-BLOB",
       "nonce" : "BASE64-NONCE",
       "timestamp" : 1694172789256
@@ -1350,7 +1369,7 @@ The following steps are typically required for a full E2EE request and response 
 1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
 
-1. Decrypt the response. The received JSON typically looks like this:
+1. Decrypt the response. The received JSON response typically looks like this:
    ```json
    {
       "encryptedData": "BASE64-DATA-BLOB",
@@ -1359,14 +1378,10 @@ The following steps are typically required for a full E2EE request and response 
       "timestamp": 1694172789256
    }
    ```
-   So, you need to create yet another "cryptogram" object, but with only two properties set:
+   So, you need to create yet another "cryptogram" object:
    ```swift
-   let responseCryptogram = PowerAuthCoreEciesCryptogram()
-   responseCryptogram.bodyBase64 = response.getEncryptedData()
-   responseCryptogram.macBase64 = response.getMac()
-   responseCryptogram.nonceBase64 = response.getNonce()
-   responseCryptogram.timestamp = response.getTimestamp()
-
+   guard let response = try? JSONSerialization.jsonObject(with: responseBody) else { ...failure... }
+   guard let responseCryptogram = PowerAuthCoreEciesCryptogram(responsePayload: response) else { ...not a dictionary... }
    guard let responseData = encryptor.decryptResponse(responseCryptogram) else { ... failed to decrypt data ... }
    ```
 

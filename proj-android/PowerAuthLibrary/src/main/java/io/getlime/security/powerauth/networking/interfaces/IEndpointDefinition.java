@@ -60,6 +60,23 @@ public interface IEndpointDefinition<TResponse> {
     }
 
     /**
+     * @return {@code true} if endpoint is using ECIES encryption.
+     */
+    default boolean isEncrypted() {
+        return getEncryptorId() != EciesEncryptorId.NONE;
+    }
+
+    /**
+     * @return {@code true} if endpoint is using application scoped encryptor.
+     */
+    default boolean isEncryptedWithApplicationScope() {
+        final EciesEncryptorId encryptorId = getEncryptorId();
+        return encryptorId == EciesEncryptorId.ACTIVATION_PAYLOAD ||
+                encryptorId == EciesEncryptorId.ACTIVATION_REQUEST ||
+                encryptorId == EciesEncryptorId.GENERIC_APPLICATION_SCOPE;
+    }
+
+    /**
      * @return Type of response object. By default, returns null.
      */
     @Nullable

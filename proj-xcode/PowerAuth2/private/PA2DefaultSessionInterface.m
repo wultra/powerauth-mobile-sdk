@@ -68,7 +68,7 @@
     if (statusData) {
         [_session deserializeState:statusData];
     } else {
-        [_session resetSession];
+        [_session resetSession:NO];
     }
     _stateBefore = [_session serializedState];
     
@@ -159,7 +159,7 @@
 - (void) resetSession
 {
     WRITE_ACCESS_LOCK();
-    [_session resetSession];
+    [_session resetSession:NO];
     WRITE_ACCESS_UNLOCK();
 }
 

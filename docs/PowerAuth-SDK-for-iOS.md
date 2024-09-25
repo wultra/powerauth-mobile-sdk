@@ -174,12 +174,42 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
-### Additional configuration properties
+### Additional configuration
+
+The `PowerAuthConfiguration` has the following additional properties:
 
 - `offlineSignatureComponentLength` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey` - See [External Encryption Key](#external-encryption-key) chapter for more details.
-- `keychainKey_Biometry` - Specifies the 'key' used to store this PowerAuthSDK instance biometry-related key in the biometry key keychain. If not set, then `instanceId` is applied.
-- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for debugging purposes.
+- `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for the debugging purposes.
+- `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
+
+### HTTP client configuration
+
+The `PowerAuthClientConfiguration` object contains configuration for a HTTP client used internally by `PowerAuthSDK` object. It has the following configuration properties:
+
+- `defaultRequestTimeout` - Property that specifies the default HTTP client request timeout. The default value is 20.0 seconds.
+- `sslValidationStrategy` - Property that specifies the SSL validation strategy applied by the client. The default value is the default `URLSession` behavior. See [Working with Invalid SSL Certificates](#working-with-invalid-ssl-certificates) chapter for more details.
+- `requestInterceptors`- Property that specifies the list of [request interceptors](#request-interceptors) used by the client before the request is executed. The default value is `nil`.
+- `userAgent` -  Property that specifies the content of User-Agent request header. The default is value calculated in `PowerAuthSystem.defaultUserAgent()` function. If you set `nil` to this property, then the default value provided by operating system is used.
+
+### Keychain configuration
+
+The `PowerAuthKeychainConfiguration` object contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
+
+- `keychainAttribute_AccessGroup` - Property that specifies a keychain access group in case that keychain is shared between multiple applications or between application and its extensions.
+- `keychainAttribute_UserDefaultsSuiteName` - Property that specifies the name of `UserDefaults` suite to store the flag indicating that application has been re-installed. If the value is not provided, then `UserDefaults.standardUserDefaults` suite is used.
+- `linkBiometricItemsToCurrentSet` - If set, then the item protected with the biometry is invalidated if fingers are added or removed for Touch ID, or if the user re-enrolls for Face ID. The default value is `false` (e.g. changing biometry in the system doesn't invalidate the entry)
+- `allowBiometricAuthenticationFallbackToDevicePasscode` - If set to `true`, then the item protected with the biometry can be accessed also with a device passcode. If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is `false`, so fallback to device's passcode is not enabled.
+- `invalidateLocalAuthenticationContextAfterUse` - If set to `true`, then the `LAContext` object provided by application is invalidated after the use in SDK. The default value is `true`, so `LAContext` cannot be reused for getting keys protected with biometry.
+
+The following properties are also available for configuration but are not recommended to be altered under typical circumstances, as changing them may impact the library’s stability or intended behavior:
+
+- `keychainInstanceName_Status` - Property that specifies the name of the Keychain service used to store statuses for different PowerAuth instances. You should not change this property unless you have a valid reason to do so.
+- `keychainInstanceName_Possession` - Property that specifies the name of the Keychain service used to store possession factor related key (one value for all `PowerAuthSDK` instances).
+- `keychainInstanceName_Biometry` - Property that specifies the name of the Keychain service used to store biometry related keys for different `PowerAuthSDK` instances.
+- `keychainInstanceName_TokenStore` - Property that specifies the name of the Keychain service used to store content of `PowerAuthToken` objects.
+- `keychainKey_Possession` - Property that specifies a storage key used to store possession fator related key in an associated possession Keychain service.
+
 
 ## Activation
 
@@ -192,7 +222,7 @@ The original activation method uses a one-time activation code generated in Powe
 Use the following code to create an activation once you have an activation code:
 
 ```swift
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 
 // Create an activation object with the given activation code.
@@ -214,12 +244,16 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 
 If the received activation result also contains recovery data, then you should display those values to the user. To do that, please read the [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
+
 #### Additional Activation OTP
 
 If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure the `PowerAuthActivation` object:
 
 ```swift
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let activationCode = "VVVVV-VVVVV-VVVVV-VTFVA" // let user type or QR-scan this value
 let activationOtp = "12345"
 
@@ -267,7 +301,7 @@ Use the following code to create an activation using custom credentials:
 
 ```swift
 // Create a new activation with a given device name and custom login credentials
-let deviceName = "Petr's iPhone 7" // or UIDevice.current.name
+let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
 let credentials = [
     "username": "john.doe@example.com",
     "password": "YBzBEM"
@@ -290,8 +324,13 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 }
 ```
 
+<!-- begin box warning -->
 Note that by using weak identity attributes to create an activation, the resulting activation confirms a "blurry identity". This may greatly limit the legal weight and usability of a signature. We recommend using a strong identity verification before activation can actually be created.
+<!-- end -->
 
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
 
 ### Activation via Recovery Code
 
@@ -300,7 +339,7 @@ If the PowerAuth Server is configured to support [Recovery Codes](https://github
 Use the following code to create an activation using the recovery code:
 
 ```swift
-let deviceName = "John Tramonta" // or UIDevice.current.name
+let deviceName = "John Tramonta" // or UIDevice.current.name (see warning below)
 let recoveryCode = "55555-55555-55555-55YMA" // User's input
 let puk = "0123456789" // User's input. You should validate RC & PUK with using PowerAuthActivationCodeUtil
 
@@ -328,6 +367,10 @@ powerAuthSDK.createActivation(activation) { (result, error) in
     }
 }
 ```
+
+<!-- begin box warning -->
+Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
+<!-- end -->
 
 ### Customize Activation
 
@@ -483,28 +526,18 @@ if powerAuthSDK.hasValidActivation() {
 
         // If no error occurred, process the status
         if let status = status {
-            // Activation state: .created, .pendingCommit, .blocked, .removed, .deadlock
+            // Activation states are explained in detail in "Activation states" chapter below
             switch status.state {
             case .pendingCommit:
-                // Activation is awaiting commit on the server.
                 print("Waiting for commit")
             case .active:
-                // Activation is valid and active.
                 print("Activation is active")
             case .blocked:
-                // Activation is blocked. You can display unblock
-                // instructions to the user.
                 print("Activation is blocked")
             case .removed:
-                // Activation is no longer valid on the server.
-                // You can inform the user about this situation and remove
-                // activation locally.
                 print("Activation is no longer valid")
                 powerAuthSDK.removeActivationLocal()
             case .deadlock:
-                // Local activation is technically blocked and no longer
-                // can be used for the signature calculations. You can inform
-                // user about this situation and remove activation locally.
                 print("Activation is technically blocked")
                 powerAuthSDK.removeActivationLocal()
             case .created:
@@ -537,7 +570,41 @@ if powerAuthSDK.hasValidActivation() {
 
 Note that the status fetch may fail at an unrecoverable error `PowerAuthErrorCode.protocolUpgrade`, meaning that it's not possible to upgrade the PowerAuth protocol to a newer version. In this case, it's recommended to [remove the activation locally](#activation-removal).
 
-To get more information about activation states, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+### Activation states
+
+This chapter explains activation states in detail. To get more information about activation lifecycle, check the [Activation States](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states) chapter available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
+
+#### `PowerAuthActivationState.created` 
+
+The activation record is created using an external channel, such as the Internet banking, but the key exchange between the client and server did not happen yet. This state is never reported to the mobile client.
+
+#### `PowerAuthActivationState.pendingCommig`
+
+The activation record is created, and the key exchange between the client and server has already taken place, but the activation record on the server requires additional approval before it can be used. This approval is typically performed through an internet banking platform by the client or handled by an authorized representative in a back office system.
+
+#### `PowerAuthActivationState.active`
+
+The activation record is created and active. It is ready to be used for typical use-cases, such as generating signatures.
+
+#### `PowerAuthActivationState.blocked` 
+
+The activation record is blocked and cannot be used for most use-cases, such as generating signatures. While it can be unblocked and activated again, the unblock process cannot be performed locally on the mobile device and requires intervention through an external system, such as internet banking or a back office platform.
+
+#### `PowerAuthActivationState.removed`
+
+The activation record is removed and permanently blocked. It cannot be used for generating signatures or ever unblocked. You can inform user about this situation and remove the activation locally.
+
+#### `PowerAuthActivationState.deadlock` 
+
+The local activation is technically blocked and can no longer be used for signature calculations. You can inform the user about this situation and remove the activation locally.
+
+The reason why the mobile client is no longer capable of calculating valid signatures is that the logical counter is out of sync between the client and the server. This may happen only if the mobile client calculates too many PowerAuth signatures without subsequent validation on the server. For example:
+
+- If your application repeatedly constructs HTTP requests with a PowerAuth signature while the network is unreachable.
+- If your application repeatedly creates authentication tokens while the network is unreachable. For example, when trying to register for push notifications in the background, without user interaction.
+- If you calculate too many offline signatures without subsequent validation.
+
+In rare situations, this may also happen in development or testing environments, where you’re able to restore the state of the activation on the server from a snapshot.
 
 ## Data Signing
 
@@ -1777,7 +1844,7 @@ You can remove EEK from an existing activation if the key is no longer required.
 
 ## Share Activation Data
 
-This chapter explains how to share the `PowerAuthSDK` activation state between multiple applications from the same vendor. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
+This chapter explains how to share the `PowerAuthSDK` activation state between multiple applications from the same vendor, or between application and its extensions. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
 
 <!-- begin box warning -->
 This feature is not supported on the macOS Catalyst platform.
@@ -1789,13 +1856,10 @@ To share the activation's state just assign an instance of the `PowerAuthSharing
 
 ```swift
 // Prepare the configuration
-let configuration = PowerAuthConfiguration()
-// Standard configuration
-configuration.instanceId = "SharedInstance"
-configuration.appKey = "sbG8gd...MTIzNA=="
-configuration.appSecret = "aGVsbG...MTIzNA=="
-configuration.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-configuration.baseEndpointUrl = "https://localhost:8080/demo-server"
+let configuration = PowerAuthConfiguration(
+        instanceId: Bundle.main.bundleIdentifier!,
+        baseEndpointUrl: "https://localhost:8080/demo-server",
+        configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 // Assign sharing configuration
 configuration.sharingConfiguration = PowerAuthSharingConfiguration(
     appGroup: "group.your.app.group", 
@@ -1808,7 +1872,7 @@ let powerAuthSDK = PowerAuthSDK(configuration)
 
 The `PowerAuthSharingConfiguration` object contains the following properties:
 
-- `appGroup` is the name of the app group shared between your applications.
+- `appGroup` is the name of the app group shared between your applications. Be aware, that the length of app group encoded in UTF-8, should not exceed 26 characters. See [troubleshooting](#length-of-application-group) section for more details.
 - `appIdentifier` is an identifier unique across your all applications that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
 - `keychainAccessGroup` is an access group for keychain sharing.
 
@@ -2038,10 +2102,6 @@ let powerAuthSDK = PowerAuthSDK(
 )
 ```
 
-<!-- begin box info -->
-Note that since SDK version `0.18.0`, changing `PowerAuthClientConfiguration` no longer affects networking for previously instantiated `PowerAuthSDK` objects.
-<!-- end -->
-
 ### Debugging
 
 The debug log is by default turned off. To turn it on, use the following code:
@@ -2237,3 +2297,15 @@ The tvOS SDK is not required by default since the SDK version 1.7.7. If your bui
 ```sh
 pod cache clean 'PowerAuthCore' --all
 ```
+
+### Length of application group
+
+In case you use the [Activation data sharing](#share-activation-data) feature, the length of the application group encoded in UTF-8 must not exceed **26 characters**. This limitation exists because the feature relies on named shared memory objects, and iOS imposes an undocumented restriction on the length of such object names.
+
+The total length is limited to 31 characters, but the shared memory object name must be prefixed with your app group, separated by a period (.), to function properly across your applications. We chose to use a 4-character long shared memory object name, generated from the PowerAuthSDK’s instance identifier. As a result, the actual limit for your app group name is:
+
+```
+31 - 1 - 4 = 26
+```
+
+You can extend the length of the application group slightly by providing your own `sharedMemoryIdentifier` in the `PowerAuthSharingConfiguration`. In theory, this allows you to use an app group name of up to 29 characters, leaving 1 character for the shared memory identifier. However, this is generally not recommended. A custom identifier should only be used if your application already employs shared memory and the SDK’s generated identifier conflicts with your existing shared memory objects.

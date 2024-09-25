@@ -3,6 +3,7 @@
 <!-- begin remove -->
 ## Table of Contents
 
+- [Introduction](#introduction)
 - [Installation](#installation)
    - [CocoaPods Installation](#cocoapods)
    - [Manual Installation](#manual)
@@ -23,6 +24,15 @@ Related documents:
 - [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md)
 - [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
 <!-- end -->
+
+## Introduction
+
+The PowerAuth Mobile SDK Extensions library is a lightweight counterpart to the full-featured PowerAuth Mobile SDK, providing limited functionality, such as:
+
+- Retrieving information about activation presence
+- Obtaining authentication tokens
+
+If you need to perform more operations in your extension, such as calculating [PowerAuth symmetric signatures](./PowerAuth-SDK-for-iOS.md#symmetric-multi-factor-signature), you can use the full-featured [PowerAuth mobile SDK](./PowerAuth-SDK-for-iOS.md). This can be achieved by configuring [activation data sharing](./PowerAuth-SDK-for-iOS.md#share-activation-data) in both your application and the extension.
 
 ## Installation
 
@@ -146,13 +156,10 @@ class TodayViewController: UIViewController, NCWidgetProviding {
     }()
 
     private static func setupPowerAuth() -> PowerAuthExtensionSDK {
-        let config = PowerAuthConfiguration()
-        config.instanceId = "your-app-bundle-name";
-        config.appKey = "sbG8gd...MTIzNA=="
-        config.appSecret = "aGVsbG...MTIzNA=="
-        config.masterServerPublicKey = "MTIzNDU2Nz...jc4OTAxMg=="
-        // URL is optional, the current version of Extensions SDK doesn't perform its own networking.
-        config.baseEndpointUrl = "https://localhost:8080/demo-server"
+        let config = PowerAuthConfiguration(
+            instanceId: Bundle.main.bundleIdentifier!,
+            baseEndpointUrl: "https://localhost:8080/demo-server",
+            configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
         let keychainConfig = PowerAuthKeychainConfiguration.sharedInstance()
         keychainConfig.keychainAttribute_AccessGroup = "KEYCHAIN_GROUP_IDENTIFIER"

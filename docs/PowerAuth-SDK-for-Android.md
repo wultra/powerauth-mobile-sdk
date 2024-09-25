@@ -164,7 +164,7 @@ The `PowerAuthClientConfiguration.Builder` class contains configuration for a HT
 
 ### Keychain configuration
 
-The `PowerAuthKeychainConfiguration.builder` class contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
+The `PowerAuthKeychainConfiguration.Builder` class contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
 
 - `linkBiometricItemsToCurrentSet()` -  Function specifies whether the item protected with the biometry is invalidated if fingers are added or removed, or if the user re-enrolls for face. See [Biometry Factor-Related Key Lifetime](#biometry-factor-related-key-lifetime) chapter for more details.
 - `confirmBiometricAuthentication()` - Function specifies whether the user's confirmation will be required after the successful biometric authentication. See [Biometric Authentication Confirmation](#biometric-authentication-confirmation) chapter for more details.
@@ -937,7 +937,7 @@ The activation record is created using an external channel, such as the Internet
 
 #### `ActivationStatus.State_Pending_Commit`
 
-The activation record is created and key exchange between the client and server already took place, but the activation record needs additional approval before it can be used.
+The activation record is created, and the key exchange between the client and server has already taken place, but the activation record on the server requires additional approval before it can be used. This approval is typically performed through an internet banking platform by the client or handled by an authorized representative in a back office system.
 
 #### `ActivationStatus.State_Active`
 
@@ -945,7 +945,7 @@ The activation record is created and active. It is ready to be used for typical 
 
 #### `ActivationStatus.State_Blocked`
 
-The activation record is blocked and cannot be used for most of the use-cases, such as generating signatures. It can be unblocked and activated again.
+The activation record is blocked and cannot be used for most use-cases, such as generating signatures. While it can be unblocked and activated again, the unblock process cannot be performed locally on the mobile device and requires intervention through an external system, such as internet banking or a back office platform.
 
 #### `ActivationStatus.State_Removed`
 

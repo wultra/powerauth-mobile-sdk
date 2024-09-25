@@ -580,7 +580,7 @@ The activation record is created using an external channel, such as the Internet
 
 #### `PowerAuthActivationState.pendingCommig`
 
-The activation record is created and key exchange between the client and server already took place, but the activation record needs additional approval before it can be used.
+The activation record is created, and the key exchange between the client and server has already taken place, but the activation record on the server requires additional approval before it can be used. This approval is typically performed through an internet banking platform by the client or handled by an authorized representative in a back office system.
 
 #### `PowerAuthActivationState.active`
 
@@ -588,7 +588,7 @@ The activation record is created and active. It is ready to be used for typical 
 
 #### `PowerAuthActivationState.blocked` 
 
-The activation record is blocked and cannot be used for most of the use-cases, such as generating signatures. It can be unblocked and activated again.
+The activation record is blocked and cannot be used for most use-cases, such as generating signatures. While it can be unblocked and activated again, the unblock process cannot be performed locally on the mobile device and requires intervention through an external system, such as internet banking or a back office platform.
 
 #### `PowerAuthActivationState.removed`
 

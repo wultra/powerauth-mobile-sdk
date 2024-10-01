@@ -579,34 +579,6 @@
  */
 - (nullable id<PowerAuthOperationTask>) eciesEncryptorForActivationScopeWithCallback:(nonnull void(^)(PowerAuthCoreEciesEncryptor * _Nullable encryptor, NSError * _Nullable error))callback;
 
-/**
- Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes. The returned encryptor is
- cryptographically bound to the PowerAuth configuration, so it can be used with or without a valid activation. The encryptor also contains
- an associated `PowerAuthCoreEciesMetaData` object, allowing you to properly setup HTTP header for the request.
- 
- Be aware that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
- key is still valid. You should use the new asynchronous function as a replacement.
- 
- @return New instance of `PowerAuthCoreEciesEncryptor` object or nil if `PowerAuthConfiguration` contains an invalid data.
- */
-- (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope PA2_DEPRECATED(1.9.0);
-
-/**
- Creates a new instance of ECIES encryptor suited for application's general end-to-end encryption purposes. The returned encryptor is
- cryptographically bound to a device's activation, so it can be used only when this instance has a valid activation. The encryptor also contains
- an associated `PowerAuthCoreEciesMetaData` object, allowing you to properly setup HTTP header for the request.
- 
- Note that the created encryptor has no reference to this instance of `PowerAuthSDK`. This means that if the `PowerAuthSDK` will loose its
- activation in future, then the encryptor will still be capable to encrypt, or decrypt the data. This is an expected behavior, so if you
- plan to keep the encryptor for multiple requests, then it's up to you to release its instance after you change the state of PowerAuthSDK.
- 
- Be aware that this method is deprecated because doesn't guarantee that encryptor is provided, or the temporary encryption
- key is still valid. You should use the new asynchronous function as a replacement.
- 
- @return New instance of `PowerAuthCoreEciesEncryptor` object or nil if there's no valid activation.
- */
-- (nullable PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope PA2_DEPRECATED(1.9.0);
-
 @end
 
 // -----------------------------------------------------------------------

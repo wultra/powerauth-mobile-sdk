@@ -1574,18 +1574,6 @@ static PowerAuthSDK * s_inst;
     }
 }
 
-// PA2_DEPRECATED(1.9.0)
-- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
-{
-    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Application error:nil];
-}
-
-// PA2_DEPRECATED(1.9.0)
-- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
-{
-    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Activation error:nil];
-}
-
 @end
 
 

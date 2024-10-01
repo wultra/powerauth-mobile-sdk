@@ -50,7 +50,7 @@ You can use new `EciesCryptogram.toEncryptedRequest()` method to convert cryptog
 
 ### API changes
 
-- The following methods are no longer available in `PowerAuthSDK` class:
+- The following functions are no longer available in `PowerAuthSDK` class:
   - Synchronous function `eciesEncryptorForApplicationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
   - Synchronous function `eciesEncryptorForActivationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
 

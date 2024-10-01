@@ -782,28 +782,6 @@ static PowerAuthSDK * s_inst;
     return !reportedError;
 }
 
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithPassword:(NSString*)password
-                                error:(NSError**)error
-{
-    return [self persistActivationWithPassword:password error:error];
-}
-
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithCorePassword:(PowerAuthCorePassword *)password
-                                    error:(NSError **)error
-{
-    return [self persistActivationWithCorePassword:password error:error];
-}
-
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-                                      error:(NSError**)error
-{
-    return [self persistActivationWithAuthentication:authentication error:error];
-}
-
-
 - (NSString*) activationIdentifier
 {
     return _sessionInterface.activationIdentifier;

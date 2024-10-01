@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
     # General information
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuth2'
-    s.version           = '1.8.2'
+    s.version           = '1.8.3'
     s.summary           = 'PowerAuth Mobile SDK for iOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
         :type => 'Apache License, Version 2.0', 
         :file => 'LICENSE' 
     }
-    s.dependency 'PowerAuthCore', '~> 1.8.2'
+    s.dependency 'PowerAuthCore', '~> 1.8.3'
         
     # Source files
     s.source = { 

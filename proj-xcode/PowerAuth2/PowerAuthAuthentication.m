@@ -157,19 +157,6 @@
                                 customPossessionKey:customPossessionKey];
 }
 
-// Commit - Deprecated
-
-+ (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
-{
-    return [self persistWithPassword:password];
-}
-
-+ (PowerAuthAuthentication*) commitWithPassword:(NSString*)password
-                            customPossessionKey:(NSData*)customPossessionKey
-{
-    return [self persistWithPassword:password customPossessionKey:customPossessionKey];
-}
-
 // MARK: Commit, Possession + Knowledge + Biometry
 
 + (PowerAuthAuthentication*) commitWithPasswordAndBiometry:(NSString*)password
@@ -350,31 +337,6 @@
                                             customPossessionKey:customPossessionKey
                                               customBiometryKey:customBiometryKey];
 }
-
-// PA2_DEPRECATED(1.8.0)
-+ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
-{
-    return [self persistWithCorePassword:password];
-}
-// PA2_DEPRECATED(1.8.0)
-+ (PowerAuthAuthentication*) commitWithCorePassword:(PowerAuthCorePassword*)password
-                                customPossessionKey:(NSData*)customPossessionKey
-{
-    return [self persistWithCorePassword:password customPossessionKey:customPossessionKey];
-}
-// PA2_DEPRECATED(1.8.0)
-+ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
-{
-    return [self persistWithCorePasswordAndBiometry:password];
-}
-// PA2_DEPRECATED(1.8.0)
-+ (PowerAuthAuthentication*) commitWithCorePasswordAndBiometry:(PowerAuthCorePassword*)password
-                                             customBiometryKey:(NSData*)customBiometryKey
-                                           customPossessionKey:(NSData*)customPossessionKey
-{
-    return [self persistWithCorePasswordAndBiometry:password customBiometryKey:customBiometryKey customPossessionKey:customPossessionKey];
-}
-
 
 + (PowerAuthAuthentication *) possessionWithCorePassword:(PowerAuthCorePassword*)password
 {

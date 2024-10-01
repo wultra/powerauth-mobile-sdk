@@ -16,7 +16,7 @@ PowerAuth Mobile SDK in version `1.9.0` provides the following improvements:
 
 ### API changes
 
-- The following methods are now deprecated in the `PowerAuthSDK` class:
+- The following methods are no longer available in the `PowerAuthSDK` class:
   - Synchronous method `getEciesEncryptorForApplicationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
   - Synchronous method `getEciesEncryptorForActivationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
 
@@ -50,7 +50,7 @@ You can use new `EciesCryptogram.toEncryptedRequest()` method to convert cryptog
 
 ### API changes
 
-- The following methods in `PowerAuthSDK` are now deprecated:
+- The following functions are no longer available in `PowerAuthSDK` class:
   - Synchronous function `eciesEncryptorForApplicationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
   - Synchronous function `eciesEncryptorForActivationScope()` is replaced with asynchronous variant that guarantees the temporary encryption key is prepared.
 

@@ -782,28 +782,6 @@ static PowerAuthSDK * s_inst;
     return !reportedError;
 }
 
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithPassword:(NSString*)password
-                                error:(NSError**)error
-{
-    return [self persistActivationWithPassword:password error:error];
-}
-
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithCorePassword:(PowerAuthCorePassword *)password
-                                    error:(NSError **)error
-{
-    return [self persistActivationWithCorePassword:password error:error];
-}
-
-// PA2_DEPRECATED(1.8.0)
-- (BOOL) commitActivationWithAuthentication:(PowerAuthAuthentication*)authentication
-                                      error:(NSError**)error
-{
-    return [self persistActivationWithAuthentication:authentication error:error];
-}
-
-
 - (NSString*) activationIdentifier
 {
     return _sessionInterface.activationIdentifier;
@@ -1594,18 +1572,6 @@ static PowerAuthSDK * s_inst;
         PA2PrivateEncryptorFactory * factory = [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:nil];
         return [factory encryptorWithId:PA2EncryptorId_GenericApplicationScope error:error];
     }
-}
-
-// PA2_DEPRECATED(1.9.0)
-- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForApplicationScope
-{
-    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Application error:nil];
-}
-
-// PA2_DEPRECATED(1.9.0)
-- (PowerAuthCoreEciesEncryptor*) eciesEncryptorForActivationScope
-{
-    return [self eciesEncryptorWithScope:PowerAuthCoreEciesEncryptorScope_Activation error:nil];
 }
 
 @end

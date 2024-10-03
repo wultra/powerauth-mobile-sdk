@@ -1363,4 +1363,36 @@
     XCTAssertTrue(result);
 }
 
+#pragma mark - ECIES
+
+- (void) testEncryptorCreation
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthCoreEciesEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk eciesEncryptorForApplicationScopeWithCallback:^(PowerAuthCoreEciesEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+    
+    // Re-create SDK to reset internal objects
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+    XCTAssertTrue(_sdk.hasValidActivation);
+    
+    encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk eciesEncryptorForApplicationScopeWithCallback:^(PowerAuthCoreEciesEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:encryptor];
+        }];
+    }];
+    XCTAssertNotNil(encryptor);
+}
+
 @end

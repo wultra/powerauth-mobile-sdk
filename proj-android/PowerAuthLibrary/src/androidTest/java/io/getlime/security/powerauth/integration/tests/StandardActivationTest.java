@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.reflect.TypeToken;
+import io.getlime.security.powerauth.core.EciesEncryptor;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
@@ -505,5 +506,47 @@ public class StandardActivationTest {
         // Note that signature format is supported from PAS 1.9+
         boolean result = testHelper.getServerApi().verifyEcdsaSignature(activationHelper.getActivation().getActivationId(), jwtSignedDatasBase64, jwtSignatureBase64, "JOSE");
         assertTrue(result);
+    }
+
+    @Test
+    public void testEciesEncryptors() throws Exception {
+        EciesEncryptor encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEciesEncryptorForApplicationScope(new IGetEciesEncryptorListener() {
+                @Override
+                public void onGetEciesEncryptorSuccess(@NonNull EciesEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEciesEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
+
+        // Now create activation
+        activationHelper.createStandardActivation(true, null);
+        final ActivationHelper.HelperState activationHelperState = activationHelper.getHelperState();
+
+        // Now re-instantiate PowerAuthSDK (e.g. with no-EEK in configuration)
+        testHelper = new PowerAuthTestHelper.Builder().build(true);
+        powerAuthSDK = testHelper.getSharedSdk();
+        activationHelper = new ActivationHelper(testHelper, activationHelperState);
+
+        encryptor = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.getEciesEncryptorForApplicationScope(new IGetEciesEncryptorListener() {
+                @Override
+                public void onGetEciesEncryptorSuccess(@NonNull EciesEncryptor encryptor) {
+                    resultCatcher.completeWithResult(encryptor);
+                }
+
+                @Override
+                public void onGetEciesEncryptorFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithError(t);
+                }
+            });
+        });
+        assertNotNull(encryptor);
     }
 }

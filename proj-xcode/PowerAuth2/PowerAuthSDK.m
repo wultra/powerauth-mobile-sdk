@@ -1544,7 +1544,7 @@ static PowerAuthSDK * s_inst;
 - (id<PowerAuthOperationTask>) eciesEncryptorWithScope:(PowerAuthCoreEciesEncryptorScope)scope
                                               callback:(void (^)(PowerAuthCoreEciesEncryptor *, NSError *))callback
 {
-    return [_keystoreService createKeyForEncryptorScope:scope callback:^(NSError * error) {
+    return [[self keystoreService] createKeyForEncryptorScope:scope callback:^(NSError * error) {
         PowerAuthCoreEciesEncryptor * encryptor;
         if (!error) {
             encryptor = [self eciesEncryptorWithScope:scope error:&error];

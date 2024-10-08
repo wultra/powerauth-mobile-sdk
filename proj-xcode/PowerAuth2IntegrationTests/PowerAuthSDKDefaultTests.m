@@ -1395,4 +1395,32 @@
     XCTAssertNotNil(encryptor);
 }
 
+
+- (void) testTemporaryKeyExpiration
+{
+    // This test requires PAS configured for a very short temporary key lifespan.
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES];
+    if (!activation) {
+        return;
+    }
+
+    BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(NSData * _Nullable encryptionKey, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+    
+    [NSThread sleepForTimeInterval:15.0];
+    
+    result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(NSData * _Nullable encryptionKey, NSError * _Nullable error) {
+            [waiting reportCompletion:@(error == nil)];
+        }];
+    }] boolValue];
+    XCTAssertTrue(result);
+}
+
 @end

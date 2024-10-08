@@ -125,7 +125,7 @@
     PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
     NSTimeInterval expiration = pki.expiration;
     keyIsSet = expiration >= 0.0;
-    keyIsExpired = expiration - PUBLIC_KEY_EXPIRATION_THRESHOLD < [_timeService currentTime];
+    keyIsExpired = [_timeService currentTime] >= expiration - PUBLIC_KEY_EXPIRATION_THRESHOLD;
     if (keyIsExpired) {
         pki.expiration = -1;
     }

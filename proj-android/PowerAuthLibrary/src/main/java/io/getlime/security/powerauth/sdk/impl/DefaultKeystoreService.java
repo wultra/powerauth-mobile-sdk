@@ -82,7 +82,7 @@ public class DefaultKeystoreService implements IKeystoreService, GetTemporaryKey
             lock.lock();
             if (session.hasPublicKeyForEciesScope(scope)) {
                 final PublicKeyInfo publicKeyInfo = getPublicKeyInfoForScope(scope);
-                if (publicKeyInfo.expiration >= 0 && publicKeyInfo.expiration - EXPIRATION_THRESHOLD < timeService.getCurrentTime()) {
+                if (publicKeyInfo.expiration >= 0 && (timeService.getCurrentTime() < publicKeyInfo.expiration - EXPIRATION_THRESHOLD)) {
                     return true;
                 }
                 PowerAuthLog.d("Removing expired public key for ECIES encryptor " + scope);

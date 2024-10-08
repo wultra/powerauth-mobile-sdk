@@ -549,4 +549,43 @@ public class StandardActivationTest {
         });
         assertNotNull(encryptor);
     }
+
+    /*
+    @Test
+    public void testEciesTemporaryKeyExpiration() throws Exception {
+        // This test requires PAS configured for a very short temporary key lifespan.
+        activationHelper.createStandardActivation(true, null);
+
+        Boolean result = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
+                @Override
+                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onFetchEncryptionKeyFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertTrue(result);
+
+        Thread.sleep(15_000);
+        result = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
+                @Override
+                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onFetchEncryptionKeyFailed(@NonNull Throwable t) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertTrue(result);
+    }
+    */
 }

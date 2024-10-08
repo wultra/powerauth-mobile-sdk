@@ -550,7 +550,6 @@ public class StandardActivationTest {
         assertNotNull(encryptor);
     }
 
-    /*
     @Test
     public void testEciesTemporaryKeyExpiration() throws Exception {
         // This test requires PAS configured for a very short temporary key lifespan.
@@ -587,5 +586,4 @@ public class StandardActivationTest {
         });
         assertTrue(result);
     }
-    */
 }

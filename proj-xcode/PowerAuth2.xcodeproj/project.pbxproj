@@ -382,6 +382,8 @@
 		BF97A72B28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
 		BF97A72C28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
 		BF97A72D28A3E594002F3ACE /* PowerAuthCorePasswordHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A72828A3E594002F3ACE /* PowerAuthCorePasswordHelper.m */; };
+		BF9961592CE50E730099B8E1 /* PowerAuth2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB53B24C85FE200F9DDB2 /* PowerAuth2.framework */; };
+		BF99615A2CE50E7A0099B8E1 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF5EB49824C85D6300F9DDB2 /* PowerAuthCore.framework */; };
 		BF9C1F7522411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9C1F7322411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.h */; };
 		BF9C1F7622411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = BF9C1F7422411BFA00CA5027 /* PA2ConfirmRecoveryCodeResponse.m */; };
 		BF9D9C412174E3C7004FAE9C /* PA2UpgradeStartV3Response.h in Headers */ = {isa = PBXBuildFile; fileRef = BF9D9C3F2174E3C7004FAE9C /* PA2UpgradeStartV3Response.h */; };
@@ -553,6 +555,13 @@
 			proxyType = 2;
 			remoteGlobalIDString = BF86E6EC26395F2C004C8AE5;
 			remoteInfo = "PowerAuthCoreTests-tvos";
+		};
+		BF9961512CE50E630099B8E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BF4DBB931CDF3130008F3A47 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF5EB4A024C85FE200F9DDB2;
+			remoteInfo = "PowerAuth2-tvos";
 		};
 		BFB47D6120753640008A6A52 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -903,6 +912,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF99615A2CE50E7A0099B8E1 /* PowerAuthCore.framework in Frameworks */,
+				BF9961592CE50E730099B8E1 /* PowerAuth2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1768,6 +1779,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BF9961522CE50E630099B8E1 /* PBXTargetDependency */,
 			);
 			name = "PowerAuth2TestsHostApp-tvos";
 			productName = PowerAuthTestsHostApp;
@@ -2290,6 +2302,11 @@
 			isa = PBXTargetDependency;
 			target = BFC1926B27FAF603001455C1 /* PowerAuth2TestsHostApp-tvos */;
 			targetProxy = BF667E9528359C93006E97F8 /* PBXContainerItemProxy */;
+		};
+		BF9961522CE50E630099B8E1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF5EB4A024C85FE200F9DDB2 /* PowerAuth2-tvos */;
+			targetProxy = BF9961512CE50E630099B8E1 /* PBXContainerItemProxy */;
 		};
 		BFB47D69207536A7008A6A52 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

@@ -183,7 +183,7 @@
     }
     __block NSString * mappingKey = nil;
     [versions enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * value, BOOL * stop) {
-        if ([serverVersion isEqualToString:key] || [serverVersion hasPrefix:key] || [serverVersion hasPrefix:[key stringByAppendingString:@"."]]) {
+        if ([serverVersion isEqualToString:key] || [serverVersion hasPrefix:[key stringByAppendingString:@"."]]) {
             mappingKey = value;
             *stop = YES;
         }

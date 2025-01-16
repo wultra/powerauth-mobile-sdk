@@ -42,7 +42,6 @@ public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActiva
 
         private String activationId;
         private String externalUserId;
-        private boolean revokeRecoveryCodes;
 
         public String getActivationId() {
             return activationId;
@@ -58,14 +57,6 @@ public class RemoveActivationEndpoint implements IServerApiEndpoint<RemoveActiva
 
         public void setExternalUserId(String externalUserId) {
             this.externalUserId = externalUserId;
-        }
-
-        public boolean isRevokeRecoveryCodes() {
-            return revokeRecoveryCodes;
-        }
-
-        public void setRevokeRecoveryCodes(boolean revokeRecoveryCodes) {
-            this.revokeRecoveryCodes = revokeRecoveryCodes;
         }
     }
 

@@ -151,18 +151,6 @@ public class PowerAuthActivation {
             return customActivation(identityAttributes, null);
         }
 
-        /**
-         * Construct a {@link Builder} object with recovery activation code and PUK.
-         *
-         * @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
-         * @param puk PUK obtained by manual entry.
-         * @return {@link Builder} instance.
-         * @throws PowerAuthErrorException In case that recovery code or PUK is invalid.
-         */
-        public static @NonNull Builder recoveryActivation(@NonNull String recoveryCode, @NonNull String puk) throws PowerAuthErrorException {
-            return recoveryActivation(recoveryCode, puk, null);
-        }
-
         // Obsolete methods (will be deprecated in some future version)
 
         /**
@@ -206,33 +194,6 @@ public class PowerAuthActivation {
                 throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_DATA, "Empty identity attributes");
             }
             return new Builder(ActivationType.CUSTOM, identityAttributes, activationName, null);
-        }
-
-        /**
-         * Construct a {@link Builder} object with recovery activation code and PUK.
-         * <p>
-         * The activation's name parameter is optional, but recommended to set. You can use the value obtained from
-         * {@code Settings.System.getString(getContentResolver(), "device_name")} or let the user set the name.
-         * The name of activation will be associated with an activation record on PowerAuth Server.
-         *
-         * @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
-         * @param puk PUK obtained by manual entry.
-         * @param activationName Activation name to be used for the activation.
-         * @return {@link Builder} instance.
-         * @throws PowerAuthErrorException In case that recovery code or PUK is invalid.
-         */
-        public static @NonNull Builder recoveryActivation(@NonNull String recoveryCode, @NonNull String puk, @Nullable String activationName) throws PowerAuthErrorException {
-            final ActivationCode code = ActivationCodeUtil.parseFromRecoveryCode(recoveryCode);
-            if (code == null) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery code");
-            }
-            if (!ActivationCodeUtil.validateRecoveryPuk(puk)) {
-                throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_CODE, "Invalid recovery PUK");
-            }
-            final Map<String, String> identityAttributes = new HashMap<>(2);
-            identityAttributes.put("recoveryCode", code.activationCode);
-            identityAttributes.put("puk", puk);
-            return new Builder(ActivationType.RECOVERY, identityAttributes, activationName, null);
         }
 
         // Activation object customization

@@ -80,12 +80,6 @@ public enum EciesEncryptorId {
      */
     TOKEN_CREATE(EciesEncryptorScope.ACTIVATION, "/pa/token/create"),
 
-    /**
-     * Constructs a new encryptor for the confirm recovery code request purposes. The content encrypted
-     * with this object can be decrypted only by the PowerAuth server.
-     */
-    CONFIRM_RECOVERY_CODE(EciesEncryptorScope.ACTIVATION, "/pa/recovery/confirm")
-
     ;
 
     /**

@@ -57,24 +57,4 @@ public class ErrorResponseApiException extends FailedApiException {
     public Error getErrorResponse() {
         return errorResponse;
     }
-
-
-    /**
-     * @return Index of valid PUK in case that recovery activation did fail and
-     *         there's still some recovery PUK available. Returns -1 if the information is not
-     *         available in the error response.
-     */
-    public int getCurrentRecoveryPukIndex() {
-        final JsonObject errorResponse = getResponseObjectFromResponseJson();
-        if (errorResponse != null) {
-            final JsonElement currentRecoveryPukIndex = errorResponse.get("currentRecoveryPukIndex");
-            if (currentRecoveryPukIndex != null && currentRecoveryPukIndex.isJsonPrimitive()) {
-                final JsonPrimitive value = currentRecoveryPukIndex.getAsJsonPrimitive();
-                if (value.isNumber()) {
-                    return value.getAsInt();
-                }
-            }
-        }
-        return -1;
-    }
 }

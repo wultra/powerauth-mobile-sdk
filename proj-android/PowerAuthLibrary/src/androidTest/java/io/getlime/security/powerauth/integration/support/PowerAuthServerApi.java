@@ -28,7 +28,6 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
-import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
 import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
@@ -114,24 +113,6 @@ public interface PowerAuthServerApi {
      */
     void setApplicationVersionSupported(String applicationVersionId, boolean supported) throws Exception;
 
-    // Recovery config
-
-    /**
-     * Get recovery config for application.
-     *
-     * @param applicationId Application identifier.
-     * @return {@link RecoveryConfig} object.
-     * @throws Exception In case of failure.
-     */
-    @NonNull RecoveryConfig getRecoveryConfig(String applicationId) throws Exception;
-
-    /**
-     * Update recovery config for application specified in {@link RecoveryConfig} object.
-     * @param recoveryConfig Config that specifies application and fields that should be updated.
-     * @throws Exception In case of failure.
-     */
-    void updateRecoveryConfig(@NonNull RecoveryConfig recoveryConfig) throws Exception;
-
     // Activation
 
     /**
@@ -197,10 +178,9 @@ public interface PowerAuthServerApi {
      *
      * @param activationId Activation identifier.
      * @param externalUserId Optional external user identifier.
-     * @param revokeRecoveryCodes Also revoke recovery codes associated to this activation.
      * @throws Exception In case of failure.
      */
-    void activationRemove(@NonNull String activationId, @Nullable String externalUserId, boolean revokeRecoveryCodes) throws Exception;
+    void activationRemove(@NonNull String activationId, @Nullable String externalUserId) throws Exception;
 
     /**
      * Remove activation on the server and also revoke any associated recovery code with it.

@@ -33,16 +33,10 @@ public class ActivationStep2Param {
      * Initial value for hash-based counter.
      */
     public final String ctrData;
-    /**
-     * Data for activation recovery. May contain null, in case
-     * that there's no recovery available.
-     */
-    public final RecoveryData activationRecovery;
 
-    public ActivationStep2Param(String activationId, String serverPublicKey, String ctrData, RecoveryData activationRecovery) {
+    public ActivationStep2Param(String activationId, String serverPublicKey, String ctrData) {
         this.activationId = activationId;
         this.serverPublicKey = serverPublicKey;
         this.ctrData = ctrData;
-        this.activationRecovery = activationRecovery;
     }
 }

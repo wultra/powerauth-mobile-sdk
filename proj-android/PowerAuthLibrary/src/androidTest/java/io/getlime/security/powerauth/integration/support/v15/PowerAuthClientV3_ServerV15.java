@@ -31,7 +31,6 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.integration.support.model.OfflineSignaturePayload;
-import io.getlime.security.powerauth.integration.support.model.RecoveryConfig;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.integration.support.model.ServerVersion;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
@@ -46,14 +45,12 @@ import io.getlime.security.powerauth.integration.support.v15.endpoints.CreatePer
 import io.getlime.security.powerauth.integration.support.v15.endpoints.GetActivationStatusEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.GetApplicationDetailEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.GetApplicationListEndpoint;
-import io.getlime.security.powerauth.integration.support.v15.endpoints.GetRecoveryConfigEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.GetSystemStatusEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.InitActivationEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.RemoveActivationEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.SetApplicationVersionSupportedEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.UnblockActivationEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.UpdateActivationOtpEndpoint;
-import io.getlime.security.powerauth.integration.support.v15.endpoints.UpdateRecoveryConfigEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.ValidateTokenEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.VerifyEcdsaSignatureEndpoint;
 import io.getlime.security.powerauth.integration.support.v15.endpoints.VerifyOfflineSignatureEndpoint;
@@ -191,23 +188,6 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
 
     @NonNull
     @Override
-    public RecoveryConfig getRecoveryConfig(String applicationId) throws Exception {
-        final GetRecoveryConfigEndpoint.Request request = new GetRecoveryConfigEndpoint.Request();
-        request.setApplicationId(applicationId);
-        return restClient.send(request, new GetRecoveryConfigEndpoint());
-    }
-
-    @Override
-    public void updateRecoveryConfig(@NonNull RecoveryConfig recoveryConfig) throws Exception {
-        final UpdateRecoveryConfigEndpoint.Request request = new UpdateRecoveryConfigEndpoint.Request(recoveryConfig);
-        final UpdateRecoveryConfigEndpoint.Response response = restClient.send(request, new UpdateRecoveryConfigEndpoint());
-        if (!response.isUpdated()) {
-            throw new Exception("Recovery config for application " + recoveryConfig.getApplicationId() + " is not updated after successful response.");
-        }
-    }
-
-    @NonNull
-    @Override
     public Activation activationInit(@NonNull Application application, @NonNull String userId, @Nullable String otp, @Nullable ActivationOtpValidation otpValidation, @Nullable Long maxFailureCount) throws Exception {
         if ((otp != null && otpValidation == null) || (otp == null) && (otpValidation != null)) {
             throw new Exception("Invalid combination of activation OTP and OTP validation.");
@@ -262,11 +242,10 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
     }
 
     @Override
-    public void activationRemove(@NonNull String activationId, @Nullable String externalUserId, boolean revokeRecoveryCodes) throws Exception {
+    public void activationRemove(@NonNull String activationId, @Nullable String externalUserId) throws Exception {
         final RemoveActivationEndpoint.Request request = new RemoveActivationEndpoint.Request();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         final RemoveActivationEndpoint.Response response = restClient.send(request, new RemoveActivationEndpoint());
         if (!response.isRemoved()) {
             throw new Exception("Activation " + activationId + " is not removed after request success.");
@@ -275,7 +254,7 @@ public class PowerAuthClientV3_ServerV15 implements PowerAuthServerApi {
 
     @Override
     public void activationRemove(@NonNull Activation activation) throws Exception {
-        activationRemove(activation.getActivationId(), ServerConstants.DEFAULT_EXTERNAL_USER_ID, true);
+        activationRemove(activation.getActivationId(), ServerConstants.DEFAULT_EXTERNAL_USER_ID);
     }
 
     @Override

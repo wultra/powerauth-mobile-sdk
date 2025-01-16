@@ -23,6 +23,5 @@ package io.getlime.security.powerauth.networking.model.entity;
 public enum ActivationType {
     CODE,
     DIRECT,
-    CUSTOM,
-    RECOVERY
+    CUSTOM
 }

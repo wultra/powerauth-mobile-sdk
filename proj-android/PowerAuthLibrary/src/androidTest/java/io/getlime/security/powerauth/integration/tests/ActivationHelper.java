@@ -177,12 +177,11 @@ public class ActivationHelper {
 
     /**
      * Remove activation on the server and locally, from PowerAuthSDK instance.
-     * @param revokeRecoveryCodes Set true to also revoke possible recovery codes associated with the activation.
      * @throws Exception In case of failure.
      */
-    public void removeActivation(boolean revokeRecoveryCodes) throws Exception {
+    public void removeActivation() throws Exception {
         if (activation != null) {
-            testHelper.getServerApi().activationRemove(activation.getActivationId(), ServerConstants.DEFAULT_EXTERNAL_USER_ID, revokeRecoveryCodes);
+            testHelper.getServerApi().activationRemove(activation.getActivationId(), ServerConstants.DEFAULT_EXTERNAL_USER_ID);
             activation = null;
             validAuthentication = null;
             invalidAuthentication = null;
@@ -465,12 +464,12 @@ public class ActivationHelper {
     }
 
     /**
-     * Function removes activation on the server and locally. Unlike {@link #removeActivation(boolean)}, this
+     * Function removes activation on the server and locally. Unlike {@link #removeActivation()}, this
      * method catch all possible errors and allows tests to continue.
      */
     public void cleanupAfterTest() {
         try {
-            removeActivation(true);
+            removeActivation();
         } catch (Exception ex) {
             Logger.e("ActivationHelper failed to remove activation: " + ex.getMessage());
         }

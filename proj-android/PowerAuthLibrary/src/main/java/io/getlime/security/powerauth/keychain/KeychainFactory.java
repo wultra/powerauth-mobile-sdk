@@ -155,7 +155,12 @@ public class KeychainFactory {
     @NonNull
     private static Keychain createKeychain(@NonNull Context context, @NonNull SharedData sharedData, @NonNull String identifier) {
         final SharedPreferences preferences = context.getSharedPreferences(identifier, Context.MODE_PRIVATE);
-        final boolean isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
+        final boolean isAlreadyEncrypted;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            isAlreadyEncrypted = EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences);
+        } else {
+            isAlreadyEncrypted = false;
+        }
         final int keychainProtection = sharedData.getKeychainProtection(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (keychainProtection != KeychainProtection.NONE || isAlreadyEncrypted) {
@@ -181,10 +186,12 @@ public class KeychainFactory {
 
         // Otherwise just return the legacy keychain.
         final Keychain keychain =  new LegacyKeychain(context, identifier);
-        if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
-            // Print error in case that keychain was previously encrypted and now it's not.
-            PowerAuthLog.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
-            keychain.removeAll();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (EncryptedKeychain.isEncryptedContentInSharedPreferences(preferences)) {
+                // Print error in case that keychain was previously encrypted and now it's not.
+                PowerAuthLog.e("KeychainFactory: " + identifier + ": The content was previously encrypted but the encryption is no longer available.");
+                keychain.removeAll();
+            }
         }
         return keychain;
     }
@@ -225,7 +232,7 @@ public class KeychainFactory {
          * Contains {@code 0} if keychain protection level is not determined yet, or the determined
          * level of {@link KeychainProtection}.
          */
-        private @KeychainProtection int keychainProtection;
+        private int keychainProtection;
 
         /**
          * @return Map containing an already instantiated keychain objects.
@@ -371,7 +378,7 @@ public class KeychainFactory {
                     }
                 }
                 // If keychain protection is still undetermined, then it means that some operation
-                // above failed. So, we have to fallback to NONE.
+                // above failed. So, we have to fall back to NONE.
                 if (keychainProtection == 0) {
                     keychainProtection = KeychainProtection.NONE;
                 }

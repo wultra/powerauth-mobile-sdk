@@ -16,6 +16,7 @@
 
 #import "PA2ConfirmRecoveryCodeRequest.h"
 
+// PA2_DEPRECATED(1.10.0)
 @implementation PA2ConfirmRecoveryCodeRequest
 
 - (NSDictionary*) toDictionary

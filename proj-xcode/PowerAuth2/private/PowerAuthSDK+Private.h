@@ -74,11 +74,6 @@
 #endif // defined(PA2_WATCH_SUPPORT)
 // -----------------------------------------------------------------------
 
-// Reveal private init in PowerAuthActivationRecoveryData object
-@interface PowerAuthActivationRecoveryData (Private)
-- (instancetype) initWithRecoveryData:(PowerAuthCoreRecoveryData*)recoveryData;
-@end
-
 // Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
 @interface PowerAuthKeychainConfiguration (BiometricAccess)
 @property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;

@@ -654,21 +654,4 @@
  */
 + (nonnull NSString*) maxSupportedHttpProtocolVersion:(PowerAuthCoreProtocolVersion)protocolVersion;
 
-
-#pragma mark - Recovery codes
-
-/**
- Returns YES, if session contains an activation recovery data.
- */
-@property (nonatomic, assign, readonly) BOOL hasActivationRecoveryData;
-
-/**
- Returns an activation recovery data. You have to provide encrypted vault key |c_vault_key| and
- |keys| structure where the valid possessionUnlockKey is set.
- 
- This function access the session's state, so read access must be guaranteed.
- */
-- (nullable PowerAuthCoreRecoveryData*) activationRecoveryData:(nonnull NSString*)cVaultKey
-                                                          keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys;
-
 @end

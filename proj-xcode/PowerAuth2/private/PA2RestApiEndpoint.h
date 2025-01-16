@@ -83,8 +83,6 @@
 + (instancetype) getToken;
 + (instancetype) removeToken;
 
-+ (instancetype) confirmRecoveryCode;
-
 + (instancetype) getUserInfo;
 
 + (instancetype) getSystemStatus;

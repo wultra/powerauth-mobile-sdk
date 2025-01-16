@@ -76,54 +76,6 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationCode, error.code);
 }
 
-
-#pragma mark - Recovery
-
-- (void) testRecoveryActivation
-{
-    id act1Identity = @{@"recoveryCode" : @"VVVVV-VVVVV-VVVVV-VTFVA" , @"puk" : @"0123456789"};
-    NSError * error = nil;
-    PowerAuthActivation * act1 = [PowerAuthActivation activationWithRecoveryCode:@"VVVVV-VVVVV-VVVVV-VTFVA" recoveryPuk:@"0123456789" name:nil error:&error];
-    XCTAssertNotNil(act1);
-    XCTAssertNil(error);
-    XCTAssertEqualObjects(@"RECOVERY", act1.activationType);
-    XCTAssertEqualObjects(act1Identity, act1.identityAttributes);
-    XCTAssertNil(act1.activationCode);
-    XCTAssertNil(act1.name);
-    XCTAssertNil(act1.extras);
-    XCTAssertNil(act1.customAttributes);
-    XCTAssertTrue([act1 validate]);
-    
-    id act2Identity = @{@"recoveryCode" : @"3PZ2Z-DOXSL-PSSQI-I5VBA" , @"puk" : @"0123456789"};
-    PowerAuthActivation * act2 = [PowerAuthActivation activationWithRecoveryCode:@"R:3PZ2Z-DOXSL-PSSQI-I5VBA" recoveryPuk:@"0123456789" name:@"John Tramonta" error:nil];
-    XCTAssertNotNil(act2);
-    XCTAssertNil(error);
-    XCTAssertEqualObjects(@"RECOVERY", act2.activationType);
-    XCTAssertEqualObjects(act2Identity, act2.identityAttributes);
-    XCTAssertNil(act2.activationCode);
-    XCTAssertEqualObjects(@"John Tramonta", act2.name);
-    XCTAssertTrue([act2 validate]);
-}
-
-- (void) testRecoveryActivationInvalid
-{
-    NSError * error = nil;
-    PowerAuthActivation * act1 = [PowerAuthActivation activationWithRecoveryCode:@"12345" recoveryPuk:@"0123456789" name:nil error:&error];
-    XCTAssertNil(act1);
-    XCTAssertTrue([PowerAuthErrorDomain isEqualToString:error.domain]);
-    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationCode, error.code);
-    PowerAuthActivation * act2 = [PowerAuthActivation activationWithRecoveryCode:@"3PZ2Z-DOXSL-PSSQI-I5VBA" recoveryPuk:@"1234" name:nil error:&error];
-    XCTAssertNil(act2);
-    XCTAssertTrue([PowerAuthErrorDomain isEqualToString:error.domain]);
-    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationCode, error.code);
-    PowerAuthActivation * act3 = [[PowerAuthActivation activationWithRecoveryCode:@"VVVVV-VVVVV-VVVVV-VTFVA" recoveryPuk:@"0123456789" name:nil error:&error] withAdditionalActivationOtp:@"1234"];
-    XCTAssertNotNil(act3);
-    error = [act3 validateAndGetError];
-    XCTAssertNotNil(error);
-    XCTAssertTrue([PowerAuthErrorDomain isEqualToString:error.domain]);
-    XCTAssertEqual(PowerAuthErrorCode_InvalidActivationData, error.code);
-}
-
 #pragma mark - OIDC
 
 - (void) testOidcActivation
@@ -224,25 +176,7 @@ The `PowerAuthActivationTests` test class validates `PowerAuthActivation` object
     XCTAssertEqualObjects(expectedExtras, act1.extras);
     XCTAssertEqualObjects(expectedCustomAttrs, act1.customAttributes);
     XCTAssertTrue([act1 validate]);
-    
-    // Recovery
-    id act2Identity = @{@"recoveryCode" : @"3PZ2Z-DOXSL-PSSQI-I5VBA" , @"puk" : @"0123456789"};
-    PowerAuthActivation * act2 = [[[PowerAuthActivation activationWithRecoveryCode:@"R:3PZ2Z-DOXSL-PSSQI-I5VBA"
-                                                                       recoveryPuk:@"0123456789"
-                                                                              name:@"John Tramonta"
-                                                                             error:&error]
-                                   withExtras:@"FL:123"]
-                                  withCustomAttributes:@{@"isPrimary":@(NO)}];
-    XCTAssertNotNil(act2);
-    XCTAssertNil(error);
-    XCTAssertEqualObjects(@"RECOVERY", act2.activationType);
-    XCTAssertEqualObjects(act2Identity, act2.identityAttributes);
-    XCTAssertNil(act2.activationCode);
-    XCTAssertEqualObjects(@"John Tramonta", act2.name);
-    XCTAssertEqualObjects(expectedExtras, act2.extras);
-    XCTAssertEqualObjects(expectedCustomAttrs, act2.customAttributes);
-    XCTAssertTrue([act2 validate]);
-    
+        
     // Custom
     id act3Identity = @{ @"username" : @"elvis", @"password" : @"lives" };
     id act3IdentityExp = @{ @"username" : @"elvis", @"password" : @"lives" };

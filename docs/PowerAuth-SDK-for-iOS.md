@@ -15,7 +15,6 @@
   - [Activation via Activation Code](#activation-via-activation-code)
   - [Activation via OpenID Connect](#activation-via-openid-connect)
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
-  - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
   - [Persisting Activation Data](#persisting-activation-data)
   - [Validating User Inputs](#validating-user-inputs)
@@ -33,9 +32,6 @@
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
-- [Recovery Codes](#recovery-codes)
-  - [Getting Recovery Data](#getting-recovery-data)
-  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [Apple Watch Support](#apple-watch-support)
   - [Prepare Watch Connectivity](#prepare-watch-connectivity)
@@ -235,14 +231,11 @@ powerAuthSDK.createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains the 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
-        // If the server supports recovery codes for activations, then the `activationRecovery` property contains an object with information about activation recovery.
     } else {
         // Error occurred, report it to the user
     }
 }
 ```
-
-If the received activation result also contains recovery data, then you should display those values to the user. To do that, please read the [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
 <!-- begin box warning -->
 Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
@@ -317,7 +310,6 @@ powerAuthSDK.createActivation(activation) { (result, error) in
     if error == nil {
         // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
         // The 'result' contains 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
-        // If the server supports recovery codes for activations, then the `activationRecovery` property contains an object with information about activation recovery.
     } else {
         // Error occurred, report it to the user
     }
@@ -327,46 +319,6 @@ powerAuthSDK.createActivation(activation) { (result, error) in
 <!-- begin box warning -->
 Note that by using weak identity attributes to create an activation, the resulting activation confirms a "blurry identity". This may greatly limit the legal weight and usability of a signature. We recommend using a strong identity verification before activation can actually be created.
 <!-- end -->
-
-<!-- begin box warning -->
-Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
-<!-- end -->
-
-### Activation via Recovery Code
-
-If the PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then also you can create an activation via the recovery code and PUK.
-
-Use the following code to create an activation using the recovery code:
-
-```swift
-let deviceName = "John Tramonta" // or UIDevice.current.name (see warning below)
-let recoveryCode = "55555-55555-55555-55YMA" // User's input
-let puk = "0123456789" // User's input. You should validate RC & PUK with using PowerAuthActivationCodeUtil
-
-// Create activation object with recovery code and PUK
-guard let activation = try? PowerAuthActivation(recoveryCode: recoveryCode, recoveryPuk: puk, name: deviceName) else {
-    // Recovery code or PUK is not valid.
-}
-
-// Create a new activation with just created activation object
-powerAuthSDK.createActivation(activation) { (result, error) in
-    if let error = error {
-        // Error occurred, report it to the user
-        // On top of regular error processing, you should handle a special situation, when the server gives an additional information
-        // about which PUK must be used for the recovery. The information is valid only when a recovery code from a postcard is applied.
-        if let responseError = (error.userInfo[PowerAuthErrorDomain] as? PowerAuthRestApiErrorResponse)?.responseObject {
-            let currentRecoveryPukIndex = responseError.currentRecoveryPukIndex
-            if currentRecoveryPukIndex > 0 {
-                // The PUK index is known, you should inform the user that it has to rewrite PUK from a specific position.
-            }
-        }
-    } else {
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable Touch ID switch, ...) and persist
-        // The 'result' contains the 'activationFingerprint' property, representing the device public key - it may be used as visual confirmation
-        // If the server supports recovery codes for activations, then the `activationRecovery` property contains an object with information about activation recovery.
-    }
-}
-```
 
 <!-- begin box warning -->
 Note that if you use `UIDevice.current.name` for a device’s name, your application must include an [appropriate entitlement](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_device-information_user-assigned-device-name); otherwise, the operating system will provide a generic `iPhone` string.
@@ -434,7 +386,6 @@ The mobile SDK provides a couple of functions in the `PowerAuthActivationCodeUti
 
 - Parse activation code when it's scanned from QR code
 - Validate a whole code at once
-- Validate recovery code or PUK
 - Auto-correct characters typed on the fly
 
 #### Validating Scanned QR Code
@@ -475,24 +426,9 @@ let isInvalid = PowerAuthActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contain a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
-#### Validating Recovery Code and PUK
-
-To validate a recovery code at once, you can call the `PowerAuthActivationCodeUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
-
-```swift
-let isValid1 = PowerAuthActivationCodeUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA")
-let isValid2 = PowerAuthActivationCodeUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA")
-```
-
-To validate PUK at once, you can call the `PowerAuthActivationCodeUtil.validateRecoveryPuk()` function:
-
-```swift
-let isValid   = PowerAuthActivationCodeUtil.validateRecoveryPuk("0123456789")
-```
-
 #### Auto-Correcting Typed Characters
 
-You can implement auto-correcting of typed characters by using the `PowerAuthActivationCodeUtil.validateAndCorrectTypedCharacter()` function on screens, where the user is supposed to enter an activation or recovery code. This technique is possible because Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
+You can implement auto-correcting of typed characters by using the `PowerAuthActivationCodeUtil.validateAndCorrectTypedCharacter()` function on screens, where the user is supposed to enter an activation code. This technique is possible because Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
 
 Here's an example of how to iterate over the string and validate it character by character:
 
@@ -1450,93 +1386,6 @@ powerAuthSDK.fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
 }
 ```
 
-## Recovery Codes
-
-The recovery codes allow your users to recover their activation in case their device is lost or stolen. Before you start, please read the [Activation Recovery](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) document, available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
-
-To recover an activation, the user has to re-type two separate values:
-
-1. Recovery Code itself, which is very similar to an activation code. So you can detect typing errors before you submit such code to the server.
-1. PUK, which is an additional numeric value and acts as a one-time password in the scheme.
-
-PowerAuth currently supports two basic types of recovery codes:
-
-1. Recovery Code bound to a previous PowerAuth activation.
-   - This type of code can be obtained only in an already-activated application.
-   - This type of code has only one PUK available, so only one recovery operation is possible.
-   - The activation associated with the code is removed once the recovery operation succeeds.
-
-2. Recovery Code delivered via OOB channel, typically in the form of a securely printed postcard, delivered by the post service.
-   - This type of code has typically more than one PUK associated with the code, so it can be used multiple times.
-   - The user has to keep that postcard in a safe and secure place, and mark already used PUKs.
-   - The code delivery must be confirmed by the user before the code can be used for a recovery operation.
-
-The feature is not automatically available. It must be enabled and configured on the PowerAuth Server. If it's so, then your mobile application can use several methods related to this feature.
-
-### Getting Recovery Data
-
-If the recovery data was received during the activation process, then you can later display that information to the user. To check the existence of recovery data and get that information, use the following code:
-
-```swift
-guard powerAuthSdk.hasActivationRecoveryData() else {
-    // Recovery information is not available
-    return
-}
-
-// 2FA signature - uses device-related key and user PIN code
-let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
-
-powerAuthSdk.activationRecoveryData(auth) { recoveryData, error in
-    if let recoveryData = recoveryData {
-        let recoveryCode = recoveryData.recoveryCode
-        let puk = recoveryData.puk
-        // Show values on the screen
-    } else {
-        // Show an error
-    }
-}
-```
-
-The obtained information is very sensitive, so you should be very careful how your application manipulates the received values:
-
-- You should never store `recoveryCode` or `puk` on the device.
-- You should never print the values to the debug log.
-- You should never send the values over the network.
-- You should never copy the values to the clipboard.
-- You should require a PIN code every time to display the values on the screen.
-- You should warn the user that taking a screenshot of the values is not recommended.
-- Do not cache the values in RAM.
-
-You should inform the user that:
-
-- Making a screenshot when values are displayed on the screen is dangerous.
-- The user should write down those values on paper and keep it as safe as possible for future use.
-
-
-### Confirm Recovery Postcard
-
-The recovery postcard can contain the recovery code and multiple PUK values on one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before the user confirms its physical delivery. To confirm such recovery code, use the following code:
-
-```swift
-// 2FA signature with possession factor is required
-let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
-
-let recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
-powerAuthSDK.confirmRecoveryCode(recoveryCode, authentication: auth) { alreadyConfirmed, error in
-    if let error = error {
-        // Process error
-    } else {
-        if alreadyConfirmed {
-           print("Recovery code has been already confirmed. This is not an error, just information.")
-        } else {
-           print("Recovery code has been successfully confirmed.")
-        }
-    }
-}
-```
-
-The `alreadyConfirmed` boolean indicates that the code was already confirmed in the past. You can choose a different "success" screen, describing that the user has already confirmed such code. Also, note that codes bound to the activations are already confirmed.
-
 ## Token-Based Authentication
 
 <!-- begin box warning -->
@@ -2016,7 +1865,7 @@ if error == nil {
             print("Error code for error that occurs when activation state is invalid")
         
         case .invalidActivationCode:
-            print("Error code for error that occurs when activation or recovery code is invalid")
+            print("Error code for error that occurs when activation code is invalid")
             
         case .invalidActivationData:
             print("Error code for error that occurs when activation data is invalid")

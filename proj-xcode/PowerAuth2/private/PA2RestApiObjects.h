@@ -30,7 +30,6 @@
 #import "PA2GetServerStatusResponse.h"
 #import "PA2CreateActivationResponse.h"
 #import "PA2CreateActivationResponseData.h"
-#import "PA2CreateActivationRecoveryData.h"
 #import "PA2GetActivationStatusResponse.h"
 #import "PA2VaultUnlockResponse.h"
 #import "PA2GetTokenResponse.h"

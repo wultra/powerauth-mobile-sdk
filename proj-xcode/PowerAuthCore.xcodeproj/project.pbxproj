@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
-		BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
 		BF2040C42A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */; };
 		BF2040C52A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */; };
 		BF28A1D82A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -48,7 +47,6 @@
 		BF6ADD7E24C84C0C001B3E5E /* DataReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E72073E00D00735ED2 /* DataReader.cpp */; };
 		BF6ADD7F24C84C0C001B3E5E /* ProtocolUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */; };
 		BF6ADD8724C84C28001B3E5E /* libPowerAuthCoreLib-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */; };
-		BF6ADD9424C84FE0001B3E5E /* pa2RecoveryCodeTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */; };
 		BF6ADD9524C84FE0001B3E5E /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BF6ADD9624C84FE0001B3E5E /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
 		BF6ADD9724C84FE0001B3E5E /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
@@ -366,7 +364,6 @@
 		BF1B33F02334C042009BA222 /* signatures-v31.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v31.json"; sourceTree = "<group>"; };
 		BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "activation-status-blob-iv.json"; sourceTree = "<group>"; };
 		BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationStatusBlobTests.cpp; sourceTree = "<group>"; };
-		BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2RecoveryCodeTests.cpp; sourceTree = "<group>"; };
 		BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreEciesEncryptorTest.mm; sourceTree = "<group>"; };
 		BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreTimeService.h; sourceTree = "<group>"; };
 		BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreDebugMonitor.h; sourceTree = "<group>"; };
@@ -639,7 +636,6 @@
 			children = (
 				BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */,
 				BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */,
-				BF1EC6C9223A936A00883236 /* pa2RecoveryCodeTests.cpp */,
 				BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */,
 				BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */,
 				BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */,
@@ -1358,7 +1354,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF6ADD9424C84FE0001B3E5E /* pa2RecoveryCodeTests.cpp in Sources */,
 				BFEEEBEC2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */,
 				BF6ADD9524C84FE0001B3E5E /* pa2CryptoAESTests.cpp in Sources */,
 				BF6ADD9624C84FE0001B3E5E /* g_pa2Files.cpp in Sources */,
@@ -1417,7 +1412,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF1EC6CA223A936A00883236 /* pa2RecoveryCodeTests.cpp in Sources */,
 				BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */,
 				BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */,
 				BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */,

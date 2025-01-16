@@ -66,24 +66,9 @@
     return [PowerAuthCoreOtpUtil validateActivationCode:activationCode];
 }
 
-+ (BOOL) validateRecoveryCode:(NSString*)recoveryCode
-{
-    return [PowerAuthCoreOtpUtil validateRecoveryCode:recoveryCode];
-}
-
-+ (BOOL) validateRecoveryPuk:(NSString*)recoveryCode
-{
-    return [PowerAuthCoreOtpUtil validateRecoveryPuk:recoveryCode];
-}
-
 + (PowerAuthActivationCode*) parseFromActivationCode:(NSString*)activationCode
 {
     return [[PowerAuthCoreOtpUtil parseFromActivationCode:activationCode] toSdkActivationCode];
-}
-
-+ (PowerAuthActivationCode*) parseFromRecoveryCode:(NSString*)recoveryCode
-{
-    return [[PowerAuthCoreOtpUtil parseFromRecoveryCode:recoveryCode] toSdkActivationCode];
 }
 
 @end

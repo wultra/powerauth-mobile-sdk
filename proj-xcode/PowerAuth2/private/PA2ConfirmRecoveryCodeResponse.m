@@ -18,6 +18,7 @@
 #import "PA2ConfirmRecoveryCodeResponse.h"
 #import "PA2PrivateMacros.h"
 
+// PA2_DEPRECATED(1.10.0)
 @implementation PA2ConfirmRecoveryCodeResponse
 
 - (instancetype) initWithDictionary:(NSDictionary<NSString *,NSObject *> *)dictionary

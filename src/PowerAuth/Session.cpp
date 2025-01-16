@@ -330,11 +330,6 @@ namespace powerAuth
         
         auto error_code = EC_Encryption;
         do {
-            // Validate (optional) recovery data
-            if (!protocol::ValidateRecoveryData(param.activationRecovery)) {
-                CC7_LOG("Session %p: Step 2: Invalid recovery data.", this);
-                return EC_WrongParam;
-            }
             // Validate CTR_DATA
             if (!_ad->ctrData.readFromBase64String(param.ctrData) || _ad->ctrData.size() != protocol::SIGNATURE_KEY_SIZE) {
                 // Note that we treat all B64 decode failures as an encryption error.
@@ -365,7 +360,6 @@ namespace powerAuth
             
             // Everything is OK, keep other data for later
             _ad->activationId = param.activationId;
-            _ad->recoveryData = param.activationRecovery;
             
             error_code = EC_Ok;
             
@@ -433,12 +427,7 @@ namespace powerAuth
             if (pd->cDevicePrivateKey.empty()) {
                 CC7_LOG("Session %p: Step 3: Unable to encrypt device private key.", this);
                 break;
-            }
-            if (!protocol::SerializeRecoveryData(_ad->recoveryData, vault_key, pd->cRecoveryData)) {
-                CC7_LOG("Session %p: Step 3: Unable to encrypt recovery data.", this);
-                break;
-            }
-            
+            }            
             // Final step is PD validation. If this step fails, then there's an internal problem.
             if (!protocol::ValidatePersistentData(*pd)) {
                 CC7_LOG("Session %p: Step 3: Persistent data is invalid.", this);
@@ -1310,39 +1299,7 @@ namespace powerAuth
         }
         return EC_WrongState;
     }
-
-
-    // MARK: - Recovery code -
-    
-    bool Session::hasActivationRecoveryData() const
-    {
-        LOCK_GUARD();
-        return hasValidActivation() && !_pd->cRecoveryData.empty();
-    }
-    
-    
-    ErrorCode Session::getActivationRecoveryData(const std::string & c_vault_key, const SignatureUnlockKeys & keys, RecoveryData & out_recovery_data)
-    {
-        LOCK_GUARD();
-        if (!hasValidActivation()) {
-            CC7_LOG("Session %p: RecoveryData: Session has no valid activation.", this);
-            return EC_WrongState;
-        }
-        if (_pd->cRecoveryData.empty()) {
-            CC7_LOG("Session %p: RecoveryData: Session has no recovery data available.", this);
-            return EC_WrongState;
-        }
-        cc7::ByteArray vault_key;
-        auto ec = decryptVaultKey(c_vault_key, keys, vault_key);
-        if (ec == EC_Ok) {
-            if (!protocol::DeserializeRecoveryData(_pd->cRecoveryData, vault_key, out_recovery_data)) {
-                CC7_LOG("Session %p: RecoveryData: Cannot decrypt or deserialize recovery data.", this);
-                ec = EC_Encryption;
-            }
-        }
-        return ec;
-    }
-    
+   
     // MARK: - Private methods -
     
     /*

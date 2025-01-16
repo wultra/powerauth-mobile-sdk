@@ -72,6 +72,7 @@ namespace powerAuthTests
             CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV2ToV5);
             CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV3ToV5);
             CC7_REGISTER_TEST_METHOD(testPersistentDataUpgradeFromV4ToV5);
+            CC7_REGISTER_TEST_METHOD(testSkipRecoveryDataInV5)
         }
         
         ECKeyPair   _masterServerPrivateKey;
@@ -246,7 +247,6 @@ namespace powerAuthTests
                     ccstMessage("%s || Let's don't break the activation", eek_msg);
                 }
                 
-                const bool USE_RECOVERY_CODE = break_in_step == 4;
                 const bool TEST_ECIES_RESET = break_in_step == 4;
             
                 EC_KEY * serverPrivateKey = nullptr;
@@ -322,11 +322,6 @@ namespace powerAuthTests
                     param2.activationId             = _activation_id;
                     param2.ctrData                  = CTR_DATA.base64String();
                     param2.serverPublicKey          = serverPublicKey.base64String();
-                    if (USE_RECOVERY_CODE) {
-                        // Store recovery code
-                        param2.activationRecovery.recoveryCode = _recovery_code;
-                        param2.activationRecovery.puk = _recovery_puk;
-                    }
                     
                     // calculate hkKEY_DEVICE_PUBLIC on dummy server's side
                     auto fingerprint_data = crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey);
@@ -459,8 +454,6 @@ namespace powerAuthTests
                     ccstAssertTrue(s1.hasValidActivation());
                     // Compare whether the fingerprint is still correct
                     ccstAssertEqual(s1.activationFingerprint(), ACTIVATION_FINGERPRINT);
-                    // Validate existence of recovery data
-                    ccstAssertTrue(s1.hasActivationRecoveryData() == USE_RECOVERY_CODE);
                 }
                 // Signature test #1
                 {
@@ -956,26 +949,6 @@ namespace powerAuthTests
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(request_data, cc7::MakeRange("Plan9!"));
                 }
-                // Recovery codes
-                if (USE_RECOVERY_CODE) {
-                    // Recovery data is available
-                    SignatureUnlockKeys keys;
-                    keys.possessionUnlockKey = possessionUnlock;
-                    RecoveryData recovery_data;
-                    ec = s1.getActivationRecoveryData(cVaultKey, keys, recovery_data);
-                    ccstAssertEqual(ec, EC_Ok);
-                    ccstAssertFalse(recovery_data.isEmpty());
-                    ccstAssertEqual(recovery_data.recoveryCode, _recovery_code);
-                    ccstAssertEqual(recovery_data.puk, _recovery_puk);
-                } else {
-                    // Recovery data is not available
-                    SignatureUnlockKeys keys;
-                    keys.possessionUnlockKey = possessionUnlock;
-                    RecoveryData recovery_data;
-                    ec = s1.getActivationRecoveryData(cVaultKey, keys, recovery_data);
-                    ccstAssertEqual(ec, EC_WrongState);
-                    ccstAssertTrue(recovery_data.isEmpty());
-                }
                 if (TEST_ECIES_RESET) {
                     // Test Reset session
                     ccstAssertTrue(s1.hasPublicKeyForEciesScope(ECIES_ApplicationScope));
@@ -1122,7 +1095,6 @@ namespace powerAuthTests
             ccstAssertFalse(s1.hasExternalEncryptionKey());
             ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
             ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
-            ccstAssertFalse(s1.hasActivationRecoveryData());
 
             ec = s1.startProtocolUpgrade();
             ccstAssertEqual(ec, EC_Ok);
@@ -1189,7 +1161,6 @@ namespace powerAuthTests
             ccstAssertFalse(s1.hasExternalEncryptionKey());
             ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
             ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
-            ccstAssertFalse(s1.hasActivationRecoveryData());
             
             auto v5_data = s1.saveSessionState();
             s1.resetSession();
@@ -1203,7 +1174,6 @@ namespace powerAuthTests
             ccstAssertFalse(s1.hasExternalEncryptionKey());
             ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
             ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
-            ccstAssertFalse(s1.hasActivationRecoveryData());
             
             // Try low level function. The ctr_byte must not be available.
             protocol::PersistentData pd;
@@ -1243,7 +1213,6 @@ namespace powerAuthTests
             ccstAssertFalse(s1.hasExternalEncryptionKey());
             ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
             ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
-            ccstAssertFalse(s1.hasActivationRecoveryData());
             
             auto v5_data = s1.saveSessionState();
             s1.resetSession();
@@ -1257,7 +1226,6 @@ namespace powerAuthTests
             ccstAssertFalse(s1.hasExternalEncryptionKey());
             ccstAssertEqual(s1.activationIdentifier(), "FULL-BUT-FAKE-ACTIVATION-ID");
             ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
-            ccstAssertFalse(s1.hasActivationRecoveryData());
             
             // Try low level function. The ctr_byte must not be available.
             protocol::PersistentData pd;
@@ -1268,6 +1236,50 @@ namespace powerAuthTests
             auto b_result = protocol::DeserializePersistentData(pd, data_reader);
             ccstAssertTrue(b_result);
             ccstAssertEqual(pd.flags.hasSignatureCounterByte, 0);
+        }
+        
+        void testSkipRecoveryDataInV5()
+        {
+            // constants
+            SessionSetup setup;
+            setup.applicationKey     = "MDEyMzQ1Njc4OUFCQ0RFRg==";
+            setup.applicationSecret  = "QUJDREVGMDEyMzQ1Njc4OQ==";
+            setup.masterServerPublicKey = "AuCDGp3fAHL695yWxCP6d+jZEzwZleOdmCU+qFIImjBs";
+            
+            Session s1(setup);
+            const auto activationId = std::string("6c536561-cf7a-4ad2-ac40-e9c62493f9a3");
+            const auto activationFingerprint = std::string("58727422");
+            // The following sequence of data contains V5 persistent data with encrypted recovery code and PUK. The new loader in SDK 1.10 should properly skip this payload.
+            auto v5_data = cc7::FromBase64String("UEECUDYQEBdQCpAMPu3ezKccRLMr3yQ2YzUzNjU2MS1jZjdhLTRhZDItYWM0MC1lOWM2MjQ5M2Y5YTMAACcQEPyBOyTBrp+zdEwm+XO"
+                                                 "9ziIQ26hRbh2VQM9MHX9Agy/guxDJ+nJUxSToxG2tumhGyCqLABAbZ5S0cwJ9JmFdyUAS0Oc4QQQ3x+wVZm1xTlS+UQAtK9xZ+3JG6k"
+                                                 "UY/gyHOVgf6nREtM39BmrsGImS4ICdY5g/gm5vJtRfL5X07rdsmxbPQ5R8IQIz/Y8sTT8qXBl+bVjn/mUtCcNH2KdEhx+GFhr6B6khE"
+                                                 "zAixbkEYlhLh0LC+qzb5L+hdIWwg1/xon93T7SCZ0w/fnWKw51yEWvU0GFJTrx5+W4AAAQAMC+xmCKOL0gmhTRbBzwNMWvSl8BLyUTh"
+                                                 "W0tdk38pUu9R/ybdoErBwrtGBzm0MLmZIAA=");
+            auto ec = s1.loadSessionState(v5_data);
+            ccstAssertTrue(ec == EC_Ok);
+            ccstAssertEqual(s1.protocolVersion(), Version_V3);
+            ccstAssertFalse(s1.canStartActivation());
+            ccstAssertTrue(s1.hasValidActivation());
+            ccstAssertFalse(s1.hasPendingActivation());
+            ccstAssertFalse(s1.hasExternalEncryptionKey());
+            ccstAssertEqual(activationId, s1.activationIdentifier());
+            ccstAssertEqual(activationFingerprint, s1.activationFingerprint());
+            ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
+            
+            // If session's state is serialized in SDK 1.10, then the RC part is no longer present in the serialized data.
+            auto v5_data_2 = s1.saveSessionState();
+            ccstAssertNotEqual(v5_data, v5_data_2);
+            
+            // Now try to reload data without RC
+            ec = s1.loadSessionState(v5_data);
+            ccstAssertTrue(ec == EC_Ok);
+            ccstAssertFalse(s1.canStartActivation());
+            ccstAssertTrue(s1.hasValidActivation());
+            ccstAssertFalse(s1.hasPendingActivation());
+            ccstAssertFalse(s1.hasExternalEncryptionKey());
+            ccstAssertEqual(activationId, s1.activationIdentifier());
+            ccstAssertEqual(activationFingerprint, s1.activationFingerprint());
+            ccstAssertEqual(Version_NA, s1.pendingProtocolUpgradeVersion());
         }
         
         

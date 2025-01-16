@@ -53,23 +53,6 @@ CC7_JNI_METHOD_PARAMS(jobject, parseFromActivationCode, jstring activationCode)
     return resultObject;
 }
 
-//
-// public native static ActivationCode parseFromRecoveryCode(String recoveryCode)
-//
-CC7_JNI_METHOD_PARAMS(jobject, parseFromRecoveryCode, jstring activationCode)
-{
-    std::string cppActivationCode = cc7::jni::CopyFromJavaString(env, activationCode);
-    OtpComponents cppComponents;
-    if (false == OtpUtil::parseRecoveryCode(cppActivationCode, cppComponents)) {
-        return NULL;
-    }
-    // Copy cppResult into java result object
-    jclass  resultClazz  = CC7_JNI_MODULE_FIND_CLASS("ActivationCode");
-    jobject resultObject = cc7::jni::CreateJavaObject(env, CC7_JNI_MODULE_CLASS_PATH("ActivationCode"), "()V");
-    CC7_JNI_SET_FIELD_STRING(resultObject, resultClazz, "activationCode",   cc7::jni::CopyToJavaString(env, cppComponents.activationCode));
-    return resultObject;
-}
-
 // ----------------------------------------------------------------------------
 // Validations
 // ----------------------------------------------------------------------------
@@ -97,24 +80,6 @@ CC7_JNI_METHOD_PARAMS(jboolean, validateActivationCode, jstring activationCode)
 {
     std::string cppActivationCode = cc7::jni::CopyFromJavaString(env, activationCode);
     return (jboolean) OtpUtil::validateActivationCode(cppActivationCode);
-}
-
-//
-// public native static boolean validateRecoveryCode(String recoveryCode)
-//
-CC7_JNI_METHOD_PARAMS(jboolean, validateRecoveryCode, jstring recoveryCode)
-{
-    std::string cppRecoveryCode = cc7::jni::CopyFromJavaString(env, recoveryCode);
-    return (jboolean) OtpUtil::validateRecoveryCode(cppRecoveryCode);
-}
-
-//
-// public native static boolean validateRecoveryPuk(String recoveryPuk)
-//
-CC7_JNI_METHOD_PARAMS(jboolean, validateRecoveryPuk, jstring recoveryPuk)
-{
-    std::string cppRecoveryPuk = cc7::jni::CopyFromJavaString(env, recoveryPuk);
-    return (jboolean) OtpUtil::validateRecoveryPuk(cppRecoveryPuk);
 }
 
 } // extern "C"

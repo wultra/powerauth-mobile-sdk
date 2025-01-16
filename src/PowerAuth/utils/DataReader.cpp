@@ -88,6 +88,15 @@ namespace utils
         _offset += size;
         return true;
     }
+
+    bool DataReader::skipDataOrString()
+    {
+        size_t count;
+        if (!readCount(count)) {
+            return false;
+        }
+        return skipBytes(count);
+    }
     
     bool DataReader::readData(ByteArray & out_data, size_t expected_size)
     {

@@ -95,6 +95,11 @@ namespace utils
         bool skipBytes(size_t size);
         
         /**
+         Skips sequence of bytes serialized as Data or String.
+         */
+        bool skipDataOrString();
+        
+        /**
          Reads data object into |out_data|.
          You can specify exact |expected_size| or 0 for any size.
          */

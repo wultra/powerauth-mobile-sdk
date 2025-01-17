@@ -1632,7 +1632,7 @@ public class PowerAuthSDK {
 
     /**
      * Change the password using local re-encryption, do not validate old password by calling any endpoint.
-     *
+     * <p>
      * You are responsible for validating the old password against some server endpoint yourself before using it in this method.
      * If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
      * existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
@@ -1641,14 +1641,16 @@ public class PowerAuthSDK {
      * @param newPassword New password to be set to store the data.
      * @return Returns 'true' in case password was changed without error, 'false' otherwise.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Method is deprecated, use {@link #changePassword(Context, String, String, IChangePasswordListener)} as a replacement.
      */
+    @Deprecated // 1.10.0
     public boolean changePasswordUnsafe(@NonNull final String oldPassword, @NonNull final String newPassword) {
-        return changePasswordUnsafe(new Password(oldPassword), new Password(newPassword));
+        return changePasswordUnsafeImpl(new Password(oldPassword), new Password(newPassword));
     }
 
     /**
      * Change the password using local re-encryption, do not validate old password by calling any endpoint.
-     *
+     * <p>
      * You are responsible for validating the old password against some server endpoint yourself before using it in this method.
      * If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
      * existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
@@ -1657,8 +1659,23 @@ public class PowerAuthSDK {
      * @param newPassword New password to be set to store the data.
      * @return Returns 'true' in case password was changed without error, 'false' otherwise.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Method is deprecated, use {@link #changePassword(Context, Password, Password, IChangePasswordListener)} as a replacement.
      */
+    @Deprecated // 1.10.0
     public boolean changePasswordUnsafe(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
+        return changePasswordUnsafeImpl(oldPassword, newPassword);
+    }
+
+    /**
+     * Change the password using local re-encryption. This is private implementation of deprecated function.
+     *
+     * @param oldPassword Old password, currently set to store the data.
+     * @param newPassword New password to be set to store the data.
+     * @return Returns 'true' in case password was changed without error, 'false' otherwise.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    //@Deprecated // 1.10.0
+    private boolean changePasswordUnsafeImpl(@NonNull final Password oldPassword, @NonNull final Password newPassword) {
         final int result = mSession.changeUserPassword(oldPassword, newPassword);
         if (result == ErrorCode.OK) {
             saveSerializedState();

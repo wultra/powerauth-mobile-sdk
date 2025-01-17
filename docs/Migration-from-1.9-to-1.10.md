@@ -13,6 +13,9 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 ### API changes
 
+- The following methods in `PowerAuthSDK` class are deprecated:
+  - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
     - `createRecoveryActivation()`
@@ -43,12 +46,15 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 ### API changes
 
+- The following methods in `PowerAuthSDK` class are deprecated:
+  - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
-    - `createActivation(withName:, recoveryCode:, recoveryPuk:, extras:, callback:)`
+    - `createActivation(withName:recoveryCode:recoveryPuk:extras:callback:)`
     - `hasActivationRecoveryData()`
-    - `activationRecoveryData(authentication:, callback:)`
-    - `confirm(recoveryCode:, authentication:, callback:)`
+    - `activationRecoveryData(authentication:callback:)`
+    - `confirm(recoveryCode:, authentication:callback:)`
   - Methods removed in `PowerAuthActivationCodeUtil`:
     - `validateRecoveryCode()`
     - `validateRecoveryPuk()`
@@ -56,7 +62,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
   - Other changes:
     - removed class `PowerAuthActivationRecoveryData`
     - removed property `PowerAuthActivationResult.activationRecovery`
-    - removed constructor `PowerAuthActivation(recoveryCode:, recoveryPuk:, name:)`
+    - removed constructor `PowerAuthActivation(recoveryCode:recoveryPuk:name:)`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

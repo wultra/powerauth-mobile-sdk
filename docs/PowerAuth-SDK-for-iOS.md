@@ -1693,17 +1693,62 @@ You can remove EEK from an existing activation if the key is no longer required.
 
 ## Share Activation Data
 
-This chapter explains how to share the `PowerAuthSDK` activation state between multiple applications from the same vendor, or between application and its extensions. Before you start, you should read [Prepare Data Sharing](PowerAuth-SDK-for-iOS-Extensions.md#prepare-data-sharing) chapter from PowerAuth SDK for iOS Extensions to configure *Keychain Sharing* and *App Groups* in your Xcode project. 
+This chapter explains how to share the `PowerAuthSDK` activation state between application and its extensions, or between multiple applications from the same vendor.
 
 <!-- begin box warning -->
 This feature is not supported on the macOS Catalyst platform.
 <!-- end -->
+
+### Prepare Activation Data Sharing
+
+The App Extension normally doesn't have access to data created by the main application, so the first step is to set up data sharing for your project.
+
+#### Keychain Sharing
+
+iOS SDK stores its most sensitive data into the iOS keychain, so you need to configure the keychain sharing first. If you're not familiar with keychain sharing, then don't worry about that, the keychain is shared only between the vendor's applications. So the sensitive information is not exposed to 3rd party applications.
+
+1. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the applications's target under the **TARGETS** heading in the sidebar.
+2. Now select **Signing & Capabilities** tab and click **+ Capability** button.
+3. Find and add **Keychain Sharing** capability.
+4. Click "+" in just created **Keychain Sharing** capability and Xcode will predefine first **Keychain Group** to your application's bundle name. Let's call this value as `KEYCHAIN_GROUP_NAME`
+
+<!-- begin box info -->
+The predefined group is usually beneficial because iOS is by default using that group for storing all keychain entries created in the application. So, If your application is already using PowerAuth and you're going to just add extension support, then this is the most simple way to set up a keychain sharing.
+<!-- end -->
+
+Now you have to do a similar setup for your application's extension:
+
+5. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the extensions's target under the **TARGETS** heading in the sidebar.
+6. Select **Signing & Capabilities** tab and click **+ Capability** button.
+7. Find and add **Keychain Sharing** capability.
+8. Click "+" in just created **Keychain Sharing** capability and add the same `KEYCHAIN_GROUP_NAME` as you did for the application's target.
+9. (optional) Repeat steps 4 to 6 for all other extensions which supposed to use shared activation data.
+
+Now you need to know your **Team ID** (the unique identifier assigned to your team by Apple). Unfortunately, the identifier is not simply visible in Xcode, so you'll have to log in to Apple's [development portal](http://developer.apple.com/account) and look for that identifier on your membership details page.
+
+If you know the Team ID, then the final `KEYCHAIN_GROUP_IDENTIFIER` constant is composed as `TEAM_ID.KEYCHAIN_GROUP_NAME`. So, it should look like: `KTT00000MR.com.powerauth.demo.App`.
+
+#### App Groups
+
+The PowerAuth SDK for iOS is using one boolean flag stored in the `UserDefaults` facility, to determine whether the application has been reinstalled. Unfortunately, the `UserDefaults.standard` created by the application cannot be shared with the app extension, so you have to create a new application group to share that data.
+
+1. Select your application project in the **Project Navigator** to navigate to the target configuration window and select the applications's target under the **TARGETS** heading in the sidebar.
+2. Now select **Signing & Capabilities** tab and click **+ Capability** button.
+3. Find and add **App Groups** capability.
+3. Click "+" in just created **App Groups** capability add a group with the desired identifier and turn this particular group ON (e.g. make sure that the checkmark close to the group's name is selected). Let's call this value `APP_GROUP_IDENTIFIER`. If the group already exists, then just click the checkmark to turn it ON.
+4. Now switch to the application's extension target, select the **Capabilities** tab, and also expand the **App Groups** section.
+5. Turn "ON" **App Groups** for extension and add an app group with the same name as you did in step 3.
+
+You can optionally check a troubleshooting section if you need to [migrate the keychain initialization flag](#userdefaults-migration) from standard user defaults to a shared one.
 
 ### Configure Activation Data Sharing
 
 To share the activation's state just assign an instance of the `PowerAuthSharingConfiguration` object into `PowerAuthConfiguration`:
 
 ```swift
+// Keychain sharing and App Group constants
+let keychainSharing = "KTT00000MR.com.powerauth.demo.App"   // KEYCHAIN_GROUP_IDENTIFIER constant
+let appGroup = "group.your.app.group"                       // APP_GROUP_IDENTIFIER constant
 // Prepare the configuration
 let configuration = PowerAuthConfiguration(
         instanceId: Bundle.main.bundleIdentifier!,
@@ -1711,9 +1756,9 @@ let configuration = PowerAuthConfiguration(
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 // Assign sharing configuration
 configuration.sharingConfiguration = PowerAuthSharingConfiguration(
-    appGroup: "group.your.app.group", 
+    appGroup: appGroup,
     appIdentifier: "com.powerauth.demo.App", 
-    keychainAccessGroup: "KTT00000MR.com.powerauth.demo.App")
+    keychainAccessGroup: keychainSharing)
 
 // Create a PowerAuthSDK instance
 let powerAuthSDK = PowerAuthSDK(configuration)
@@ -1722,11 +1767,10 @@ let powerAuthSDK = PowerAuthSDK(configuration)
 The `PowerAuthSharingConfiguration` object contains the following properties:
 
 - `appGroup` is the name of the app group shared between your applications. Be aware, that the length of app group encoded in UTF-8, should not exceed 26 characters. See [troubleshooting](#length-of-application-group) section for more details.
-- `appIdentifier` is an identifier unique across your all applications that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
+- `appIdentifier` is an identifier unique across your all applications or extensions that are supposed to use the shared activation data. You can use your applications' bundle identifiers or any other identifier that can be then processed in all your applications. Due to technical limitations, the length of the identifier must not exceed 127 bytes, if represented in UTF-8.
 - `keychainAccessGroup` is an access group for keychain sharing.
 
-Unlike the regular configuration the `instanceId` value in `PowerAuthConfiguration` should not be based on the application's bundle identifier. This is because all your applications must use the same identifier, so it's recommended to use some predefined constant string.
-
+Unlike the regular configuration the `instanceId` value in `PowerAuthConfiguration` should not be derived on the application's bundle identifier. This is because all applications and extensions that share PowerAuth data must use the same identifier. To ensure consistency, use a predefined constant string or an identifier based on the first application that integrated PowerAuth. This guarantees that all related components can access the same PowerAuth instance without conflicts.
 
 ### External pending operations
 
@@ -2158,3 +2202,25 @@ The total length is limited to 31 characters, but the shared memory object name 
 ```
 
 You can extend the length of the application group slightly by providing your own `sharedMemoryIdentifier` in the `PowerAuthSharingConfiguration`. In theory, this allows you to use an app group name of up to 29 characters, leaving 1 character for the shared memory identifier. However, this is generally not recommended. A custom identifier should only be used if your application already employs shared memory and the SDK’s generated identifier conflicts with your existing shared memory objects.
+
+### UserDefaults Migration
+
+If your previous version of the application did not use shared data between the application and the extension, then you probably need to migrate the keychain status flag from `UserDefaults.standard` to a shared one. We recommend performing this migration at the main application's startup code and **BEFORE** the `PowerAuthSDK` object is configured and used:
+
+```swift
+private func migrateUserDefaults(appGroup: String) {
+    guard let shared = UserDefaults(suiteName: appGroup) else {
+        fatalError("AppGroup is not configured properly")
+    }
+    if shared.bool(forKey: PowerAuthKeychain_Initialized) {
+        return // migration is not required
+    }
+    let standard = UserDefaults.standard
+    if standard.bool(forKey: PowerAuthKeychain_Initialized) {
+        standard.removeObject(forKey: PowerAuthKeychain_Initialized)
+        standard.synchronize()
+        shared.set(true, forKey: PowerAuthKeychain_Initialized)
+        shared.synchronize()
+    }
+}
+```

@@ -6,7 +6,6 @@
 - [Installation](#installation)
   - [Supported Platforms](#supported-platforms)
   - [CocoaPods Installation](#cocoapods)
-  - [Manual Installation](#manual)
   - [Carthage Installation](#carthage)
 - [Post-Installation Steps](#post-installation-steps)
   - [Include PowerAuth SDK in Your Sources](#include-powerauth-sdk-in-your-sources)
@@ -52,13 +51,12 @@
 
 Related documents:
 
-- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions.md)
 - [PowerAuth SDK for watchOS](./PowerAuth-SDK-for-watchOS.md)
 <!-- end -->
 
 ## Installation
 
-This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In the current version, you can choose between CocoaPods and manual library integration.
+This chapter describes how to get PowerAuth SDK for iOS and tvOS up and running in your app. In the current version, you can choose between CocoaPods and Swift Package Manager library integration.
 
 ### Supported Platforms
 
@@ -96,25 +94,6 @@ $ pod install
 
 If you wish to integrate the PowerAuth SDK into your app via SPM, please visit the [PowerAuth mobile SDK for Swift PM
 ](https://github.com/wultra/powerauth-mobile-sdk-spm)
-
-### Manual
-
-If you prefer not to use CocoaPods as a dependency manager, you can integrate PowerAuth into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).
-
-#### Git Submodules
-
-1. Open up the Terminal app and go to your top-level project directory and add the library as a submodule:
-    ```sh
-    $ git submodule add https://github.com/wultra/powerauth-mobile-sdk.git PowerAuthLib
-    $ git submodule update --init --recursive
-    ```
-    The first command will clone PowerAuth SDK into the `PowerAuthLib` folder, and the second will update all nested submodules.
-
-2. Open the new `PowerAuthLib` folder, and go to the `proj-xcode` sub-folder
-3. Drag the `PowerAuthLib.xcodeproj` project file into **Project Navigator** of your application's Xcode project. It should appear nested underneath your application's blue project icon.
-4. Select your application project in the Project Navigator to navigate to the target configuration window and select the extension's target under the **TARGETS** heading in the sidebar.
-5. Now select **Build Phases** tab and expand the **Target Dependencies** section. Click on the "Plus Sign" and choose the **"PowerAuth2"** framework from the **"PowerAuthLib"** project.
-6. Next, in the same **Build Phases** tab, expand **Link With Libraries** section. Click on the "Plus Sign" and choose the **"PowerAuth2.framework"** from the **"PowerAuthLib"** project.
 
 ### Carthage
 

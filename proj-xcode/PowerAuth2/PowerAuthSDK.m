@@ -1144,8 +1144,10 @@ static PowerAuthSDK * s_inst;
 - (BOOL) unsafeChangePasswordFrom:(NSString*)oldPassword
                                to:(NSString*)newPassword
 {
-    return [self unsafeChangeCorePasswordFrom:[PowerAuthCorePassword passwordWithString:oldPassword]
-                                           to:[PowerAuthCorePassword passwordWithString:newPassword]];
+    return [_sessionInterface writeBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
+        return [session changeUserPassword:[PowerAuthCorePassword passwordWithString:oldPassword]
+                               newPassword:[PowerAuthCorePassword passwordWithString:newPassword]];
+    }];
 }
 
 - (id<PowerAuthOperationTask>) changePasswordFrom:(NSString*)oldPassword

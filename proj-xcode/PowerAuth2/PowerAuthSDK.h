@@ -333,6 +333,8 @@
  If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
  existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
  
+ Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
+ 
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
  @return Returns YES in case password was changed without error, NO otherwise.
@@ -340,13 +342,16 @@
  */
 - (BOOL) unsafeChangePasswordFrom:(nonnull NSString*)oldPassword
                                to:(nonnull NSString*)newPassword
-                        NS_SWIFT_NAME(unsafeChangePassword(from:to:));
+                        NS_SWIFT_NAME(unsafeChangePassword(from:to:))
+                        PA2_DEPRECATED(1.10.0);
 
 /** Change the password using local re-encryption, do not validate old password by calling any endpoint.
  
  You are responsible for validating the old password against some server endpoint yourself before using it in this method.
  If you do not validate the old password to make sure it is correct, calling this method will corrupt the local data, since
  existing data will be decrypted using invalid PIN code and re-encrypted with a new one.
+ 
+ Method is deprecated and you should use `changePassword(from:to:callback:)` as a replacement.
  
  @param oldPassword Old password, currently set to store the data.
  @param newPassword New password, to be set in case authentication with old password passes.
@@ -355,7 +360,8 @@
  */
 - (BOOL) unsafeChangeCorePasswordFrom:(nonnull PowerAuthCorePassword*)oldPassword
                                    to:(nonnull PowerAuthCorePassword*)newPassword
-                        NS_SWIFT_NAME(unsafeChangePassword(from:to:));
+                        NS_SWIFT_NAME(unsafeChangePassword(from:to:))
+                        PA2_DEPRECATED(1.10.0);
 
 /** Change the password, validate old password by calling a PowerAuth Standard RESTful API endpoint '/pa/signature/validate'.
  

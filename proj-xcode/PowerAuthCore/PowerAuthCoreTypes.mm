@@ -224,9 +224,6 @@ using namespace io::getlime::powerAuth;
 @implementation PowerAuthCoreSignatureUnlockKeys
 @end
 
-@implementation PowerAuthCoreRecoveryData
-@end
-
 @implementation PowerAuthCoreActivationStep1Param
 @end
 
@@ -383,30 +380,11 @@ void PowerAuthCoreActivationStep2ParamToStruct(PowerAuthCoreActivationStep2Param
     cpp_p2.activationId             = cc7::objc::CopyFromNSString(p2.activationId);
     cpp_p2.serverPublicKey          = cc7::objc::CopyFromNSString(p2.serverPublicKey);
     cpp_p2.ctrData                  = cc7::objc::CopyFromNSString(p2.ctrData);
-    PowerAuthCoreRecoveryDataToStruct(p2.activationRecovery, cpp_p2.activationRecovery);
 }
 
 PowerAuthCoreActivationStep2Result * PowerAuthCoreActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2)
 {
     PowerAuthCoreActivationStep2Result * res = [[PowerAuthCoreActivationStep2Result alloc] init];
     res.activationFingerprint       = cc7::objc::CopyToNSString(cpp_r2.activationFingerprint);
-    return res;
-}
-
-void PowerAuthCoreRecoveryDataToStruct(PowerAuthCoreRecoveryData * rd, io::getlime::powerAuth::RecoveryData& cpp_rd)
-{
-    cpp_rd.recoveryCode = cc7::objc::CopyFromNSString(rd.recoveryCode);
-    cpp_rd.puk          = cc7::objc::CopyFromNSString(rd.puk);
-}
-
-PowerAuthCoreRecoveryData * PowerAuthCoreRecoveryDataToObject(const io::getlime::powerAuth::RecoveryData& cpp_rd)
-{
-    if (cpp_rd.isEmpty()) {
-        CC7_ASSERT(false, "Empty structure should be handled before the conversion.");
-        return nil;
-    }
-    PowerAuthCoreRecoveryData * res = [[PowerAuthCoreRecoveryData alloc] init];
-    res.recoveryCode    = cc7::objc::CopyToNSString(cpp_rd.recoveryCode);
-    res.puk             = cc7::objc::CopyToNSString(cpp_rd.puk);
     return res;
 }

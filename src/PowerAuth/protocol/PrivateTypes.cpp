@@ -196,8 +196,9 @@ namespace protocol
         // flags
         writer.writeU32     (pd.flagsU32);
 
-        // encrypted recovery data (PD v4)
-        writer.writeData    (pd.cRecoveryData);
+        // encrypted recovery data (PD v4), for compatibility reason, we store
+        // zero count only (e.g. no recovery data is available)
+        writer.writeCount(0);
         
         // Counter byte (PD v5)
         writer.writeByte    (pd.signatureCounterByte);
@@ -238,11 +239,9 @@ namespace protocol
         // Copy external key flag to the SignatureKeys structure
         pd.sk.usesExternalKey = pd.flags.usesExternalKey;
         
-        // encrypted recovery data (PD v4)
+        // encrypted recovery data (PD v4). For a compatibility reasons, we just skip possible stored bytes.
         if (reader.currentVersion() >= PD_VERSION_V4) {
-            result = result && reader.readData  (pd.cRecoveryData);
-        } else {
-            pd.cRecoveryData.clear();
+            result = result && reader.skipDataOrString();
         }
         
         // signature counter byte (PD v5)
@@ -259,73 +258,6 @@ namespace protocol
         
         return result;
     }
-    
-    
-    //
-    // MARK: - Recovery codes -
-    //
-    
-    const cc7::byte RD_TAG        = 'R';
-    const cc7::byte RD_VERSION_V1 = '1';    // recovery data version
-    
-    bool ValidateRecoveryData(const RecoveryData & data)
-    {
-        if (data.isEmpty()) {
-            return true;
-        }
-        // Validate recovery code and PUK. Recovery code should not contain "R:" prefix.
-        return OtpUtil::validateRecoveryCode(data.recoveryCode, false) &&
-               OtpUtil::validateRecoveryPuk(data.puk);
-    }
-    
-    bool SerializeRecoveryData(const RecoveryData & data, const cc7::ByteRange vault_key, cc7::ByteArray & out_data)
-    {
-        CC7_ASSERT(ValidateRecoveryData(data), "Invalid recovery data");
-        
-        if (data.isEmpty()) {
-            out_data.clear();
-            return true;
-        }
-        // Serialize structure to sequence of bytes
-        utils::DataWriter writer;
-        writer.openVersion(RD_TAG, RD_VERSION_V1);
-        writer.writeString(data.recoveryCode);
-        writer.writeString(data.puk);
-        writer.closeVersion();
-        
-        // Encrypt sequence of bytes
-        out_data = crypto::AES_CBC_Encrypt_Padding(vault_key, ZERO_IV, writer.serializedData());
-        return !out_data.empty();
-    }
-    
-    bool DeserializeRecoveryData(const cc7::ByteRange & serialized, const cc7::ByteRange vault_key, RecoveryData & out_data)
-    {
-        // Should not be called with an empty data. Unlike in serialization routine, we consider this as an error.
-        if (serialized.empty()) {
-            CC7_ASSERT(false, "Should not be called when recovery data is not available");
-            return false;
-        }
-        
-        // Decrypt serialized sequence of bytes.
-        bool error = false;
-        auto decrypted = crypto::AES_CBC_Decrypt_Padding(vault_key, ZERO_IV, serialized, &error);
-        if (error) {
-            return false;
-        }
-        
-        utils::DataReader reader(decrypted);
-
-        // Open version with V1, which automatically allows deserialization of future variants.
-        bool result = reader.openVersion(RD_TAG, RD_VERSION_V1);
-        result = result && reader.readString(out_data.recoveryCode);
-        result = result && reader.readString(out_data.puk);
-        result = result && reader.closeVersion();
-        
-        result = result && ValidateRecoveryData(out_data);
-        
-        return result;
-    }
-
 
     //
     // MARK: - Session Data -

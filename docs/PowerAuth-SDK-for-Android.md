@@ -9,7 +9,6 @@
   - [Activation via Activation Code](#activation-via-activation-code)
   - [Activation via OpenID Connect](#activation-via-openid-connect)
   - [Activation via Custom Credentials](#activation-via-custom-credentials)
-  - [Activation via Recovery Code](#activation-via-recovery-code)
   - [Customize Activation](#customize-activation)
   - [Persisting Activation Data](#persisting-activation-data)
   - [Validating User Inputs](#validating-user-inputs)
@@ -26,9 +25,6 @@
 - [Device Activation Removal](#activation-removal)
 - [End-To-End Encryption](#end-to-end-encryption)
 - [Secure Vault](#secure-vault)
-- [Recovery Codes](#recovery-codes)
-  - [Getting Recovery Data](#getting-recovery-data)
-  - [Confirm Recovery Postcard](#confirm-recovery-postcard)
 - [Token-Based Authentication](#token-based-authentication)
 - [External Encryption Key](#external-encryption-key)
 - [Synchronized Time](#synchronized-time)
@@ -289,10 +285,8 @@ try {
 powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
-        val activationRecovery = result.recoveryData
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     override fun onActivationCreateFailed(t: Throwable) {
@@ -317,10 +311,8 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
-        final RecoveryData activationRecovery = result.getRecoveryData();
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Fingerprint Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     @Override
@@ -330,8 +322,6 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
 });
 ```
 <!-- end -->
-
-If the received activation result also contains recovery data, then you should display those values to the user. To do that, please read the [Getting Recovery Data](#getting-recovery-data) section of this document, which describes how to treat that sensitive information. This is relevant for all types of activation you use.
 
 #### Additional Activation OTP
 
@@ -403,10 +393,8 @@ try {
 powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
-        val activationRecovery = result.recoveryData
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     override fun onActivationCreateFailed(t: Throwable) {
@@ -439,10 +427,8 @@ try {
 powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
     override fun onActivationCreateSucceed(result: CreateActivationResult) {
         val fingerprint = result.activationFingerprint
-        val activationRecovery = result.recoveryData
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     override fun onActivationCreateFailed(t: Throwable) {
@@ -470,10 +456,8 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
     @Override
     public void onActivationCreateSucceed(CreateActivationResult result) {
         final String fingerprint = result.getActivationFingerprint();
-        final RecoveryData activationRecovery = result.getRecoveryData();
         // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
         // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
     }
 
     @Override
@@ -485,93 +469,6 @@ powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
 <!-- end -->
 
 Note that by using weak identity attributes to create an activation, the resulting activation confirms a "blurry identity". This may greatly limit the legal weight and usability of a signature. We recommend using a strong identity verification before activation can actually be created.
-
-
-### Activation via Recovery Code
-
-If the PowerAuth Server is configured to support [Recovery Codes](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md), then also you can create an activation via the recovery code and PUK.
-
-Use the following code to create an activation using the recovery code:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-val deviceName = "John Tramonta"
-val recoveryCode = "55555-55555-55555-55YMA" // User's input
-val puk = "0123456789" // User's input. You should validate RC & PUK with using ActivationCodeUtil
-
-// Create an activation object with the given recovery code and PUK.
-val activation: PowerAuthActivation
-try {
-    activation = PowerAuthActivation.Builder.recoveryActivation(recoveryCode, puk, deviceName).build();
-} catch (e: PowerAuthErrorException) {
-    // Invalid recovery code or PUK
-}
-
-// Create a new activation with the given activation object
-powerAuthSDK.createActivation(activation, object: ICreateActivationListener {
-    override fun onActivationCreateSucceed(result: CreateActivationResult) {
-        val fingerprint = result.activationFingerprint
-        val activationRecovery = result.recoveryData
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
-        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
-    }
-
-    override fun onActivationCreateFailed(t: Throwable) {
-        // Error occurred, report it to the user
-        // On top of regular error processing, you should handle a special situation, when the server gives additional information
-        // about which PUK must be used for the recovery. The information is valid only when recovery code from a postcard is applied.
-        if (t is ErrorResponseApiException) {
-            val errorResponse = t.errorResponse
-            val currentRecoveryPukIndex = t.currentRecoveryPukIndex
-            if (currentRecoveryPukIndex > 0) {
-                // The PUK index is known, you should inform the user that it has to rewrite PUK from a specific position.
-            }
-        }
-    }
-})
-```
-```java
-final String deviceName = "John Tramonta"
-final String recoveryCode = "55555-55555-55555-55YMA" // User's input
-final String puk = "0123456789" // User's input. You should validate RC & PUK with using ActivationCodeUtil
-
-// Create an activation object with the given recovery code and PUK.
-final PowerAuthActivation activation;
-try {
-    activation = PowerAuthActivation.Builder.recoveryActivation(recoveryCode, puk, deviceName).build();
-} catch (PowerAuthErrorException e) {
-    // Invalid recovery code or PUK
-}
-
-// Create a new activation with the given activation object
-powerAuthSDK.createActivation(activation, new ICreateActivationListener() {
-    @Override
-    public void onActivationCreateSucceed(CreateActivationResult result) {
-        final String fingerprint = result.getActivationFingerprint();
-        final RecoveryData activationRecovery = result.getRecoveryData();
-        // No error occurred, proceed to credentials entry (PIN prompt, Enable "Biometric Authentication" switch, ...) and persist
-        // The 'fingerprint' value represents the combination of device and server public keys - it may be used as visual confirmation
-        // If the server supports recovery codes for activation, then `activationRecovery` contains object with information about activation recovery.
-    }
-
-    @Override
-    public void onActivationCreateFailed(Throwable t) {
-        // Error occurred, report it to the user
-        // On top of regular error processing, you should handle a special situation, when the server gives an additional information
-        // about which PUK must be used for the recovery. The information is valid only when a recovery code from a postcard is applied.
-        if (t instanceof ErrorResponseApiException) {
-            ErrorResponseApiException exception = (ErrorResponseApiException) t;
-            Error errorResponse = exception.getErrorResponse();
-            int currentRecoveryPukIndex = exception.getCurrentRecoveryPukIndex();
-            if (currentRecoveryPukIndex > 0) {
-                // The PUK index is known, you should inform the user that it has to rewrite PUK from a specific position.
-            }
-        }
-    }
-});
-```
-<!-- end -->
 
 ### Customize Activation
 
@@ -727,7 +624,6 @@ The mobile SDK provides a couple of functions in `ActivationCodeUtil` class, hel
 
 - Parse activation code when it's scanned from QR code
 - Validate a whole code at once
-- Validate recovery code or PUK
 - Auto-correct characters typed on the fly
 
 #### Validating Scanned QR Code
@@ -799,35 +695,9 @@ boolean isInvalid = ActivationCodeUtil.validateActivationCode("VVVVV-VVVVV-VVVVV
 
 If your application is using your own validation, then you should switch to functions provided by SDK. The reason for that is that since SDK `1.0.0`, all activation codes contain a checksum, so it's possible to detect mistyped characters before you start the activation. Check our [Activation Code](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md) documentation for more details.
 
-#### Validating Recovery Code and PUK
-
-To validate a recovery code at once, you can call `ActivationCodeUtil.validateRecoveryCode()` function. You can provide the whole code, which may or may not contain `"R:"` prefix. So, you can validate manually entered codes, but also codes scanned from QR. For example:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-val isValid1 = ActivationCodeUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA")
-val isValid2 = ActivationCodeUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA")
-```
-```java
-boolean isValid1 = ActivationCodeUtil.validateRecoveryCode("VVVVV-VVVVV-VVVVV-VTFVA");
-boolean isValid2 = ActivationCodeUtil.validateRecoveryCode("R:VVVVV-VVVVV-VVVVV-VTFVA");
-```
-<!-- end -->
-
-To validate PUK at once, you can call `ActivationCodeUtil.validateRecoveryPuk()` function:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-val isValid = ActivationCodeUtil.validateRecoveryPuk("0123456789")
-```
-```java
-boolean isValid   = ActivationCodeUtil.validateRecoveryPuk("0123456789");
-```
-<!-- end -->
-
 #### Auto-Correcting Typed Characters
 
-You can implement auto-correcting of typed characters by using `ActivationCodeUtil.validateAndCorrectTypedCharacter()` function in screens, where the user is supposed to enter an activation or recovery code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
+You can implement auto-correcting of typed characters by using `ActivationCodeUtil.validateAndCorrectTypedCharacter()` function in screens, where the user is supposed to enter an activation code. This technique is possible due to the fact that Base32 is constructed so that it doesn't contain visually confusing characters. For example, `1` (number one) and `I` (capital I) are confusing, so only `I` is allowed. The benefit is that the provided function can correct typed `1` and translate it to `I`.
 
 Here's an example how to iterate over the string and validate it character by character:
 
@@ -2259,142 +2129,6 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, new IFetchEncryp
 ```
 <!-- end -->
 
-## Recovery Codes
-
-The recovery codes allow your users to recover their activation in case their device is lost or stolen. Before you start, please read the [Activation Recovery](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Recovery.md) document, available in our [powerauth-crypto](https://github.com/wultra/powerauth-crypto) repository.
-
-To recover an activation, the user has to re-type two separate values:
-
-1. Recovery Code itself, which is very similar to an activation code. So you can detect typing errors before you submit such code to the server.
-1. PUK, which is an additional numeric value and acts as a one-time password in the scheme.
-
-PowerAuth currently supports two basic types of recovery codes:
-
-1. Recovery Code bound to a previous PowerAuth activation.
-   - This type of code can be obtained only in an already-activated application.
-   - This type of code has only one PUK available, so only one recovery operation is possible.
-   - The activation associated with the code is removed once the recovery operation succeeds.
-
-2. Recovery Code delivered via OOB channel, typically in the form of a securely printed postcard, delivered by the post service.
-   - This type of code has typically more than one PUK associated with the code, so it can be used multiple times.
-   - The user has to keep that postcard in a safe and secure place, and mark already used PUKs.
-   - The code delivery must be confirmed by the user before the code can be used for a recovery operation.
-
-The feature is not automatically available. It must be enabled and configured on the PowerAuth Server. If it's so, then your mobile application can use several methods related to this feature.
-
-### Getting Recovery Data
-
-If the recovery data was received during the activation process, then you can later display that information to the user. To check the existence of recovery data and get that information, use the following code:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-if (!powerAuthSDK.hasActivationRecoveryData()) {
-    // Recovery information is not available
-    return
-}
-
-// 2FA signature - uses device-related key and user PIN code
-val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
-
-powerAuthSDK.getActivationRecoveryData(context, authentication, object: IGetRecoveryDataListener {
-    override fun onGetRecoveryDataSucceeded(recoveryData: RecoveryData) {
-        val recoveryCode = recoveryData.recoveryCode
-        val puk = recoveryData.puk
-        // Show values on the screen...
-    }
-
-    override fun onGetRecoveryDataFailed(t: Throwable) {
-        // Report error
-    }
-})
-```
-```java
-if (!powerAuthSDK.hasActivationRecoveryData()) {
-    // Recovery information is not available
-    return;
-}
-
-// 2FA signature - uses device-related key and user PIN code
-PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
-
-powerAuthSDK.getActivationRecoveryData(context, authentication, new IGetRecoveryDataListener() {
-    @Override
-    public void onGetRecoveryDataSucceeded(RecoveryData recoveryData) {
-        final String recoveryCode = recoveryData.recoveryCode;
-        final String puk = recoveryData.puk;
-        // Show values on the screen...
-    }
-
-    @Override
-    public void onGetRecoveryDataFailed(Throwable t) {
-        // Report error
-    }
-});
-```
-<!-- end -->
-
-The obtained information is very sensitive, so you should be very careful how your application manipulates the received values:
-
-- You should never store `recoveryCode` or `puk` on the device.
-- You should never print the values to the debug log.
-- You should never send the values over the network.
-- You should never copy the values to the clipboard.
-- You should require a PIN code every time to display the values on the screen.
-- You should warn the user that taking a screenshot of the values is not recommended.
-- Do not cache the values in RAM.
-
-You should inform the user that:
-
-- Making a screenshot when values are displayed on the screen is dangerous.
-- The user should write down those values on paper and keep it as safe as possible for future use.
-
-
-### Confirm Recovery Postcard
-
-The recovery postcard can contain the recovery code and multiple PUK values on one printed card. Due to security reasons, this kind of recovery code cannot be used for the recovery operation before the user confirms its physical delivery. To confirm such recovery code, use the following code:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-// 2FA signature with possession factor is required
-val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
-val recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
-powerAuthSDK.confirmRecoveryCode(context, authentication, recoveryCode, object: IConfirmRecoveryCodeListener {
-    override fun onRecoveryCodeConfirmed(alreadyConfirmed: Boolean) {
-        if (alreadyConfirmed) {
-            android.util.Log.d(TAG, "Recovery code has been already confirmed. This is not an error, just information.")
-        } else {
-            android.util.Log.d(TAG, "Recovery code has been successfully confirmed.")
-        }
-    }
-
-    override fun onRecoveryCodeConfirmFailed(t: Throwable) {
-        // Report error
-    }
-})
-```
-```java
-// 2FA signature with possession factor is required
-final PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
-final String recoveryCode = "VVVVV-VVVVV-VVVVV-VTFVA" // You can also use code scanned from QR
-powerAuthSDK.confirmRecoveryCode(context, authentication, recoveryCode, new IConfirmRecoveryCodeListener{
-    @Override
-    public void onRecoveryCodeConfirmed(boolean alreadyConfirmed) {
-        if (alreadyConfirmed) {
-            android.util.Log.d(TAG, "Recovery code has been already confirmed. This is not an error, just information.");
-        } else {
-            android.util.Log.d(TAG, "Recovery code has been successfully confirmed.");
-        }
-    }
-
-    @Override
-    public void onRecoveryCodeConfirmFailed(Throwable t) {
-        // Report error
-    }
-});
-```
-<!-- end -->
-
-The `alreadyConfirmed` boolean indicates that the code was already confirmed in the past. You can choose a different "success" screen, describing that the user has already confirmed such code. Also, note that codes bound to the activations are already confirmed.
 
 ## Token-Based Authentication
 

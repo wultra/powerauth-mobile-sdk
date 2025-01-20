@@ -174,16 +174,6 @@ namespace powerAuth
 
     
     //
-    // MARK: - RecoveryData -
-    //
-    
-    bool RecoveryData::isEmpty() const
-    {
-        return recoveryCode.empty() && puk.empty();
-    }
-    
-    
-    //
     // MARK: - ActivationStatus -
     //
     

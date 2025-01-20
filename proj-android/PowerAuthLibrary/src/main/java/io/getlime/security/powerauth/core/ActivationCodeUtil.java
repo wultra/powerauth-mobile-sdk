@@ -21,17 +21,12 @@ import androidx.annotation.Nullable;
 
 /**
  * The {@code PowerAuthActivationCodeUtil} class provides various set of methods for parsing
- * and validating activation or recovery codes.
+ * and validating activation codes.
  * <p>
  * Current format of code:
  * <pre>
  * code without signature:  CCCCC-CCCCC-CCCCC-CCCCC
  * code with signature:     CCCCC-CCCCC-CCCCC-CCCCC#BASE64_STRING_WITH_SIGNATURE
- *
- * recovery code:           CCCCC-CCCCC-CCCCC-CCCCC
- * recovery code from QR:   R:CCCCC-CCCCC-CCCCC-CCCCC
- *
- * recovery PUK:            DDDDDDDDDD
  * </pre>
  * <ul>
  *   <li>
@@ -62,18 +57,7 @@ public class ActivationCodeUtil {
     public native static ActivationCode parseFromActivationCode(@NonNull String activationCode);
 
     /**
-     * Parses an input recovery code (which may or may not contain an optional "R:" prefix) and
-     * returns {@link ActivationCode} object filled with valid data. The method doesn't perform an auto-correction,
-     * so the provided code must be valid.
-     *
-     * @param recoveryCode string with a recovery code.
-     * @return {@link ActivationCode} object if code is valid, or null
-     */
-    @Nullable
-    public native static ActivationCode parseFromRecoveryCode(@NonNull String recoveryCode);
-
-    /**
-     * Returns true if UTF codepoint is a valid character allowed in the activation or recovery code.
+     * Returns true if UTF codepoint is a valid character allowed in the activation code.
      * The method strictly checks whether the character is from [A-Z2-7] characters range.
      *
      * @param utfCodepoint unicode code point to be validated.
@@ -110,24 +94,4 @@ public class ActivationCodeUtil {
      * @return true if code is valid
      */
     public native static boolean validateActivationCode(@NonNull String activationCode);
-
-    /**
-     * Returns true if provided string is a valid recovery code. You can use this method to validate
-     * a whole user-typed recovery code at once. The input code may contain "R:" prefix, if code is
-     * scanned from QR code.
-     *
-     * @param recoveryCode recovery code which may, or may not contain "R:" prefix.
-     * @return true if code is valid
-     */
-    public native static boolean validateRecoveryCode(@NonNull String recoveryCode);
-
-    /**
-     * Returns true if provided recovery PUK appears to be valid. You can use this method to validate
-     * a whole user-typed recovery PUK at once. In current version, only 10 digits long string is
-     * considered as a valid PUK.
-     *
-     * @param recoveryPuk recovery code which may, or may not contain "R:" prefix.
-     * @return true if PUK appears to be a valid
-     */
-    public native static boolean validateRecoveryPuk(@NonNull String recoveryPuk);
 }

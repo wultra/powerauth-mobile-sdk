@@ -106,38 +106,6 @@
                                                               name:name];
 }
 
-+ (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
-                                recoveryPuk:(NSString*)recoveryPuk
-                                      error:(NSError**)error
-{
-    return [self activationWithRecoveryCode:recoveryCode recoveryPuk:recoveryPuk name:nil error:error];
-}
-
-+ (instancetype) activationWithRecoveryCode:(NSString*)recoveryCode
-                                recoveryPuk:(NSString*)recoveryPuk
-                                       name:(NSString*)name
-                                      error:(NSError**)error
-{
-    PowerAuthActivationCode * otp = [PowerAuthActivationCodeUtil parseFromRecoveryCode:recoveryCode];
-    if (!otp) {
-        if (error) {
-            *error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, @"Invalid recovery code");
-        }
-        return nil;
-    }
-    if (![PowerAuthActivationCodeUtil validateRecoveryPuk:recoveryPuk]) {
-        if (error) {
-            *error = PA2MakeError(PowerAuthErrorCode_InvalidActivationCode, @"Invalid recovery PUK");
-        }
-        return nil;
-    }
-    NSDictionary * identityAttributes = @{ @"recoveryCode" : otp.activationCode, @"puk" : recoveryPuk };
-    return [[PowerAuthActivation alloc] initWithIdentityAttributes:identityAttributes
-                                                    activationType:@"RECOVERY"
-                                                    activationCode:nil
-                                                              name:name];
-}
-
 + (instancetype) activationWithOidcProviderId:(NSString *)providerId
                                          code:(NSString *)code
                                         nonce:(NSString *)nonce

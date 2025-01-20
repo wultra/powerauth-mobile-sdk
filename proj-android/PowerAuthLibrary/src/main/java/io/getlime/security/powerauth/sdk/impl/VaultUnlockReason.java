@@ -28,7 +28,7 @@ import static io.getlime.security.powerauth.sdk.impl.VaultUnlockReason.*;
  * Constants for Vault Unlock reasons.
  */
 @Retention(RetentionPolicy.SOURCE)
-@StringDef({ADD_BIOMETRY, FETCH_ENCRYPTION_KEY, SIGN_WITH_DEVICE_PRIVATE_KEY, RECOVERY_CODE})
+@StringDef({ADD_BIOMETRY, FETCH_ENCRYPTION_KEY, SIGN_WITH_DEVICE_PRIVATE_KEY})
 public @interface VaultUnlockReason {
 
     /**
@@ -43,8 +43,4 @@ public @interface VaultUnlockReason {
      * Sign with device private key is the reason for vault unlock.
      */
     String SIGN_WITH_DEVICE_PRIVATE_KEY = "SIGN_WITH_DEVICE_PRIVATE_KEY";
-    /**
-     * Get recovery code is the reason for vault unlock.
-     */
-    String RECOVERY_CODE = "RECOVERY_CODE";
 }

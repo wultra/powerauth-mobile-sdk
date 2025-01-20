@@ -22,9 +22,8 @@
 - (NSString*) description
 {
     NSString * fingerprint = _activationFingerprint ? _activationFingerprint : @"<null>";
-    NSString * rc = _activationRecovery ? [@", recovery=" stringByAppendingString:[_activationRecovery description]] : @"";
     NSString * attrs = _customAttributes ? [@", attributes=" stringByAppendingString:[_customAttributes description]] : @"";
-    return [NSString stringWithFormat:@"<PowerAuthActivationResult fingerprint=%@%@%@>", fingerprint, rc,attrs];
+    return [NSString stringWithFormat:@"<PowerAuthActivationResult fingerprint=%@%@>", fingerprint, attrs];
 }
 #endif
 

@@ -85,7 +85,6 @@ namespace protocol
         
         cc7::ByteArray  masterSharedSecret;     // The result of ECDH. This value is VERY sensitive!
         cc7::ByteArray  ctrData;                // Initial value for hash-based counter
-        RecoveryData    recoveryData;           // Received recovery data
         
         // Construction, destruction
         
@@ -173,10 +172,6 @@ namespace protocol
          Encrypted device's private key.
          */
         cc7::ByteArray  cDevicePrivateKey;
-        /**
-         Encrypted recovery data.
-         */
-        cc7::ByteArray  cRecoveryData;
 
         struct _Flags {
             /**
@@ -318,32 +313,6 @@ namespace protocol
      */
     bool DeserializePersistentData(PersistentData & pd, utils::DataReader & reader);
 
-    
-    //
-    // MARK: - Recovery codes -
-    //
-    
-    /**
-     Validates |data| in provided structure and returns true if structure contains valid data. The true is returned also
-     in case that RecoveryData structure is empty.
-     */
-    bool ValidateRecoveryData(const RecoveryData & data);
-    
-    /**
-     Serializes provided |data| structure into sequence of bytes and then encrypts that sequence with using |vaultKey|.
-     The resulted sequence of bytes is stored to the |out_data| array. If |data| structure is empty, then result is
-     an empty sequence of bytes.
-     
-     Returns false in case of encryption failure.
-     */
-    bool SerializeRecoveryData(const RecoveryData & data, const cc7::ByteRange vault_key, cc7::ByteArray & out_data);
-    
-    /**
-     Decrypts provided |serialized| data with using vault key and then deserializes decrypted sequence into |out_data|
-     structure. Returns true in case that both steps succeeded.
-     */
-    bool DeserializeRecoveryData(const cc7::ByteRange & serialized, const cc7::ByteRange vault_key, RecoveryData & out_data);
-    
     //
     // MARK: - Session Data -
     //

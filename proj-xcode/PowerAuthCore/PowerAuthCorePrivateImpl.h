@@ -101,15 +101,6 @@ CC7_EXTERN_C void PowerAuthCoreActivationStep2ParamToStruct(PowerAuthCoreActivat
  */
 CC7_EXTERN_C PowerAuthCoreActivationStep2Result * PowerAuthCoreActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
 
-/**
- Converts PowerAuthCoreRecoveryData object into RecoveryData C++ structure
- */
-CC7_EXTERN_C void PowerAuthCoreRecoveryDataToStruct(PowerAuthCoreRecoveryData * rd, io::getlime::powerAuth::RecoveryData& cpp_rd);
-/**
- Returns new instance of PowerAuthCoreRecoveryData object, with content copied from RecoveryData C++ structure
- */
-CC7_EXTERN_C PowerAuthCoreRecoveryData * PowerAuthCoreRecoveryDataToObject(const io::getlime::powerAuth::RecoveryData& cpp_rd);
-
 #pragma mark - Debug functions
 
 #if defined(DEBUG)

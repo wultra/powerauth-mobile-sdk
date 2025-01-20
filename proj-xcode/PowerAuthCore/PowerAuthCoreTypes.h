@@ -379,25 +379,6 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
 @end
 
 
-#pragma mark - Recovery codes -
-
-/**
- RecoveryData object contains information about recovery code and PUK, created
- during the activation process.
- */
-@interface PowerAuthCoreRecoveryData : NSObject
-/**
- Contains recovery code.
- */
-@property (nonatomic, strong, nonnull) NSString * recoveryCode;
-/**
- Contains PUK, valid with recovery code.
- */
-@property (nonatomic, strong, nonnull) NSString * puk;
-
-@end
-
-
 #pragma mark - Activation steps -
 
 /**
@@ -446,10 +427,6 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFormat) {
  Initial value for hash-based counter.
  */
 @property (nonatomic, strong, nonnull) NSString * ctrData;
-/**
- If configured on the server, contains recovery data received from the server.
- */
-@property (nonatomic, strong, nullable) PowerAuthCoreRecoveryData * activationRecovery;
 
 @end
 

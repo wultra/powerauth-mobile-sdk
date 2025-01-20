@@ -150,13 +150,6 @@
  */
 - (BOOL) removeActivation:(NSString*)activationId;
 
-/**
- Removes an existing activation and revokes all associated recovery codes.
- Returns YES if activation was successfully removed. Note that you can still check status
- of removed activation.
-*/
-- (BOOL) removeActivation:(NSString*)activationId revokeRecoveryCodes:(BOOL)revokeRecoveryCodes;
-
 #pragma mark - SOAP Signatures
 
 /**

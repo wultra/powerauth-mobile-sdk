@@ -34,7 +34,7 @@ public class ActivationStep1Result {
     public final String devicePublicKey;
     
     public ActivationStep1Result() {
-        this.errorCode = 0;
+        this.errorCode = ErrorCode.OK;
         this.devicePublicKey = null;
     }
 }

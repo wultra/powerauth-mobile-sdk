@@ -16,6 +16,7 @@
 
 #import "PA2Codable.h"
 
+// PA2_DEPRECATED(1.10.0)
 @interface PA2ConfirmRecoveryCodeRequest : NSObject <PA2Encodable>
 
 @property (nonnull, nonatomic, strong) NSString * recoveryCode;

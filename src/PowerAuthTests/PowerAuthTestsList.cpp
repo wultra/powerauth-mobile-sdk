@@ -45,7 +45,6 @@ namespace powerAuthTests
         
         // Protocol tests
         CC7_ADD_UNIT_TEST(pa2ProtocolUtilsTests, list);
-        CC7_ADD_UNIT_TEST(pa2RecoveryCodeTests, list);
         CC7_ADD_UNIT_TEST(pa2URLEncodingTests, list);
         CC7_ADD_UNIT_TEST(pa2SignatureKeysDerivationTest, list);
         CC7_ADD_UNIT_TEST(pa2MasterSecretKeyComputation, list);

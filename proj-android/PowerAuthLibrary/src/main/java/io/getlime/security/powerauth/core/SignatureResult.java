@@ -45,7 +45,7 @@ public class SignatureResult {
      * Constructor used from JNI code.
      */
     public SignatureResult() {
-        this.errorCode = 0;
+        this.errorCode = ErrorCode.OK;
         this.authHeaderValue = null;
         this.signatureCode = null;
     }

@@ -16,6 +16,7 @@
 
 #import "PA2Codable.h"
 
+// PA2_DEPRECATED(1.10.0)
 @interface PA2ConfirmRecoveryCodeResponse : NSObject<PA2Decodable>
 
 @property (nonatomic, assign) BOOL alreadyConfirmed;

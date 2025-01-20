@@ -49,18 +49,6 @@
                                                      error:(NSError * _Nullable * _Nullable)error;
 
 /**
- Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
- 
- @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
- @param recoveryPuk PUK obtained by manual entry.
- @param error Error reference in case some error occurs.
- @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
- */
-+ (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
-                                         recoveryPuk:(nonnull NSString*)recoveryPuk
-                                               error:(NSError * _Nullable * _Nullable)error;
-
-/**
  Creates an instance of `PowerAuthActivation` with OpenID connect credentials.
  
  @param providerId OAuth 2.0 provider identification.
@@ -78,23 +66,6 @@
 
 #pragma mark - Obsolete methods (will be deprecated in future version)
 
-/**
- Creates an instance of `PowerAuthActivation` with a recovery activation code and PUK.
- 
- The activation's `name` parameter is optional, but recommended to set. You can use the value obtained from
- `UIDevice.current.name` or let the user set the name. The name of activation will be associated with
- an activation record on PowerAuth Server.
- 
- @param recoveryCode Recovery code, obtained either via QR code scanning or by manual entry.
- @param recoveryPuk PUK obtained by manual entry.
- @param name Activation name to be used for the activation.
- @param error Error reference in case some error occurs.
- @return New instance of `PowerAuthActivation` or `nil` in case that recovery code, or recovery PUK is invalid.
- */
-+ (nullable instancetype) activationWithRecoveryCode:(nonnull NSString*)recoveryCode
-                                         recoveryPuk:(nonnull NSString*)recoveryPuk
-                                                name:(nullable NSString*)name
-                                               error:(NSError * _Nullable * _Nullable)error;
 /**
  Create an instance of `PowerAuthActivation` configured with the activation code. The activation code may contain
  an optional signature part, in case that it is scanned from QR code.

@@ -215,18 +215,14 @@
 
 - (BOOL) removeActivation:(NSString *)activationId
 {
-    return [self removeActivation:activationId revokeRecoveryCodes:NO];
-}
-
-- (BOOL) removeActivation:(NSString*)activationId revokeRecoveryCodes:(BOOL)revokeRecoveryCodes
-{
     [self checkForValidConnection];
-    NSDictionary * response = [_rest request:@"ActivationRemove" params:@[activationId, @(revokeRecoveryCodes)]];
+    NSDictionary * response = [_rest request:@"ActivationRemove" params:@[activationId, @YES]];
     if (![response[@"removed"] boolValue]) {
         NSLog(@"The requested activation '%@' was not removed.", activationId);
         return NO;
     }
     return YES;
+
 }
 
 static PATSActivationStatusEnum _String_to_ActivationStatusEnum(NSString * str)

@@ -24,6 +24,4 @@
 @property (nonatomic, strong) NSString * serverPublicKey;
 @property (nonatomic, strong) NSString * ctrData;
 
-@property (nonatomic, strong) PA2CreateActivationRecoveryData * activationRecovery;
-
 @end

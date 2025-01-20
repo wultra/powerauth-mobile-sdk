@@ -550,28 +550,4 @@ using namespace io::getlime::powerAuth;
     return cc7::objc::CopyToNSString(Version_GetMaxSupportedHttpProtocolVersion(static_cast<Version>(protocolVersion)));
 }
 
-#pragma mark - Recovery codes
-
-- (BOOL) hasActivationRecoveryData
-{
-    REQUIRE_READ_ACCESS();
-    return _session->hasActivationRecoveryData();
-}
-
-- (PowerAuthCoreRecoveryData*) activationRecoveryData:(NSString *)cVaultKey keys:(PowerAuthCoreSignatureUnlockKeys *)unlockKeys
-{
-    REQUIRE_READ_ACCESS();
-    std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
-    SignatureUnlockKeys cpp_keys;
-    PowerAuthCoreSignatureUnlockKeysToStruct(unlockKeys, cpp_keys);
-    
-    RecoveryData cpp_recovery_data;
-    ErrorCode error = _session->getActivationRecoveryData(cpp_c_vault_key, cpp_keys, cpp_recovery_data);
-    if (error != EC_Ok) {
-        REPORT_ERROR_CODE(@"ActivationRecoveryData", error);
-        return nil;
-    }
-    return PowerAuthCoreRecoveryDataToObject(cpp_recovery_data);
-}
-
 @end

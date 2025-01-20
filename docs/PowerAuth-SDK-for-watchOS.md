@@ -5,7 +5,6 @@
 
 - [Installation](#installation)
    - [CocoaPods Installation](#cocoapods)
-   - [Manual Installation](#manual)
 - [SDK Configuration](#configuration)
    - [Prepare Watch Connectivity](#prepare-watch-connectivity)
    - [Configure PowerAuth for WatchKit](#configure-powerauth-for-watchkit)
@@ -22,7 +21,6 @@
 Related documents:
 
 - [PowerAuth SDK for iOS](./PowerAuth-SDK-for-iOS.md) / or go directly to [Apple Watch section](./PowerAuth-SDK-for-iOS.md#apple-watch-support)
-- [PowerAuth SDK for iOS App Extensions](./PowerAuth-SDK-for-iOS-Extensions.md)
 <!-- end -->
 
 ## Installation
@@ -65,27 +63,6 @@ $ pod install
 <!-- begin box info -->
 Check [troubleshooting section](#cocoapods-integration-fails) of this document when `pod update` or `pod install` doesn't work.
 <!-- end -->
-
-### Manual
-
-If you prefer not to use CocoaPods as dependency manager, you can integrate Watch SDK into your project manually as a git [submodule](http://git-scm.com/docs/git-submodule).
-
-#### Git Submodules
-
-The integration process is quite similar to integration of our library for IOS:
-
-1. Open up the Terminal.app and go to your top-level project directory and add the library as a submodule:
-    ```sh
-    $ git submodule add https://github.com/wultra/powerauth-mobile-sdk.git PowerAuthLib
-    $ git submodule update --init --recursive
-    ```
-    The first command will clone PowerAuth SDK into the `PowerAuthLib` folder and second will update all nested submodules. We're expecting that you already did this when you integrated PowerAuth into your application.
-
-2. Open the new `PowerAuthLib` folder, and go to the `proj-xcode` sub-folder
-3. Drag the `PowerAuthExtensionSdk.xcodeproj` project file into **Project Navigator** of your application's Xcode project. It should appear nested underneath your application's blue project icon.
-4. Select your application project in the Project Navigator to navigate to the target configuration window and select the watch app's target under the **TARGETS** heading in the sidebar.
-5. Now select **Build Phases** tab and expand **Target Dependencies** section. Click on the "Plus Sign" and choose **"PowerAuth2ForWatch"** framework from the **"PowerAuthExtensionSdk"** project.
-6. Next, in the same **Build Phases** tab expand **Link With Libraries** section. Click on the "Plus Sign" and choose **"PowerAuth2ForWatch.framework"** from the **"PowerAuthExtensionSdk"** project.
 
 ## Configuration
 

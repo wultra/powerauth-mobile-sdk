@@ -5,7 +5,6 @@ To connect to the [PowerAuth](https://www.wultra.com/product/powerauth-mobile-se
 ## Integration Tutorials
 
 - [PowerAuth SDK for iOS and tvOS Apps](PowerAuth-SDK-for-iOS.md)
-- [PowerAuth SDK for iOS and tvOS Extensions](PowerAuth-SDK-for-iOS-Extensions.md)
 - [PowerAuth SDK for watchOS](PowerAuth-SDK-for-watchOS.md)
 - [PowerAuth SDK for Android Apps](PowerAuth-SDK-for-Android.md)
 

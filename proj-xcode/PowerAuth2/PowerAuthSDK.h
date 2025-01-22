@@ -20,6 +20,7 @@
 #import <PowerAuth2/PowerAuthAuthentication.h>
 #import <PowerAuth2/PowerAuthConfiguration.h>
 #import <PowerAuth2/PowerAuthClientConfiguration.h>
+#import <PowerAuth2/PowerAuthBiometricConfiguration.h>
 #import <PowerAuth2/PowerAuthKeychainConfiguration.h>
 #import <PowerAuth2/PowerAuthToken.h>
 #import <PowerAuth2/PowerAuthToken+WatchSupport.h>
@@ -65,6 +66,13 @@
  */
 @property (nonatomic, strong, nonnull, readonly) PowerAuthClientConfiguration *clientConfiguration;
 /**
+ Instance of `PowerAuthBiometricConfiguration` object, provided during the object initialization.
+ 
+ Note that the copy of internal object is always returned and thus making changes to the returned object
+ doesn't affect this SDK instance.
+ */
+@property (nonatomic, strong, nonnull, readonly) PowerAuthBiometricConfiguration *biometricConfiguration;
+/**
  Instance of `PowerAuthKeychainConfiguration` object, provided during the object initialization.
  
  Note that the copy of internal object is always returned and thus making changes to the returned object
@@ -92,19 +100,35 @@
  Creates an instance of SDK and initializes it with given configuration objects.
  
  @param configuration to be used for initialization.
- @param keychainConfiguration to be used for keychain configuration. If nil is provided, then `PowerAuthKeychainConfiguration.sharedInstance()` is used.
- @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then `PowerAuthClientConfiguration.sharedInstance()` is used.
+ @param biometricConfiguration to be used for biometric configuration. If nil is provided, then the default configuration is applied.
+ @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is applied.
+ @param keychainConfiguration to be used for keychain configuration. If nil is provided, then the default configuration is applied.
  
  @return Initialized instance.
  @exception NSException thrown in case configuration is not valid.
  */
-- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
-                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
-                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
+- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                        biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                           clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                         keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration;
+
+/**
+ Creates an instance of SDK and initializes it with given configuration objects.
+ 
+ @param configuration to be used for initialization.
+ @param biometricConfiguration to be used for biometric configuration. If nil is provided, then the default configuration is applied.
+ @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is applied.
+ 
+ @return Initialized instance.
+ @exception NSException thrown in case configuration is not valid.
+ */
+- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                        biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                           clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
 
 /**
  Creates an instance of SDK and initializes it with given configuration.
- The appropriate shared configs are used for object's `clientConfiguration` and `keychainConfiguration` properties.
+ The default configs are used for object's biometric, keychain and client configurations.
      
  @param configuration to be used for initialization.
  @return Initialized instance.
@@ -112,16 +136,38 @@
  */
 - (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration;
 
+/** Creates an instance of SDK and initializes it with given configuration objects.
+ 
+ This constructor is deprecated. Please use one of constructors that takes also `PowerAuthBiometricConfiguration` in parameter.
+ 
+ @param configuration to be used for initialization.
+ @param keychainConfiguration to be used for keychain configuration. If nil is provided, then the default configuration is used.
+ @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is used.
+ 
+ @return Initialized instance.
+ @exception NSException thrown in case configuration is not valid.
+ */
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                                PA2_DEPRECATED(1.10.0);
+
 /**
  Creates a default shared instance and initializes it with given configuration.
- The appropriate shared configs are used for shared instance's `clientConfiguration` and `keychainConfiguration` properties.
+ The appropriate default configs are used for shared instance's configuration properties.
+ 
+ This static method is deprecated and will be removed in a future release. To ensure better control and flexibility, manage the global instance
+ of the `PowerAuthSDK` class within your application code.
  
  @param configuration to be used for initialization.
  */
-+ (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration;
++ (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration PA2_DEPRECATED(1.10.0);
 
 /**
  Creates a default shared instance and initializes it with given configuration objects.
+ 
+ This static method is deprecated and will be removed in a future release. To ensure better control and flexibility, manage the global instance
+ of the `PowerAuthSDK` class within your application code.
  
  @param configuration to be used for initialization.
  @param keychainConfiguration to be used for keychain configuration. If nil is provided, then `PowerAuthKeychainConfiguration.sharedInstance()` is used.
@@ -129,13 +175,17 @@
  */
 + (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration
       keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
-        clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
+        clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+            PA2_DEPRECATED(1.10.0);
 
 /** Return the default shared instance of the PowerAuth SDK.
  
+ This static method is deprecated and will be removed in a future release. To ensure better control and flexibility, manage the global instance
+ of the `PowerAuthSDK` class within your application code.
+ 
  @return Shared instance of the PowerAuth SDK.
  */
-+ (nonnull PowerAuthSDK*) sharedInstance;
++ (nonnull PowerAuthSDK*) sharedInstance PA2_DEPRECATED(1.10.0);
 
 /**
  Create a new activation.

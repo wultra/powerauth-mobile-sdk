@@ -106,7 +106,7 @@ static NSString * PA_Ver = @"3.3";
     return [self createCustom:nil];
 }
 
-+ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration ** configuration, PowerAuthKeychainConfiguration ** keychainConfiguration, PowerAuthClientConfiguration ** clientConfiguration))configurator
++ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration ** configuration, PowerAuthBiometricConfiguration ** biometricConfiguration, PowerAuthKeychainConfiguration ** keychainConfiguration, PowerAuthClientConfiguration ** clientConfiguration))configurator
 {
     [self setupLog];
     
@@ -135,10 +135,11 @@ static NSString * PA_Ver = @"3.3";
     config.appSecret = testServerApi.appVersion.applicationSecret;
     config.masterServerPublicKey = testServerApi.appDetail.masterPublicKey;
 #endif // PA2_SIMPLIFIED_CONFIG
-    PowerAuthKeychainConfiguration * keychainConfig = [[PowerAuthKeychainConfiguration sharedInstance] copy];
-    PowerAuthClientConfiguration * clientConfig = [[PowerAuthClientConfiguration sharedInstance] copy];
+    PowerAuthKeychainConfiguration * keychainConfig = [[PowerAuthKeychainConfiguration alloc] init];
+    PowerAuthClientConfiguration * clientConfig = [[PowerAuthClientConfiguration alloc] init];
+    PowerAuthBiometricConfiguration * biometricConfig = [[PowerAuthBiometricConfiguration alloc] init];
     if (configurator) {
-        configurator(&config, &keychainConfig, &clientConfig);
+        configurator(&config, &biometricConfig, &keychainConfig, &clientConfig);
     }
     result = [config validateConfiguration];
     XCTAssertTrue(result, @"Constructed configuration is not valid.");
@@ -147,8 +148,9 @@ static NSString * PA_Ver = @"3.3";
     }
     
     PowerAuthSDK *sdk = [[PowerAuthSDK alloc] initWithConfiguration:config
-                                              keychainConfiguration:keychainConfig
-                                                clientConfiguration:clientConfig];
+                                             biometricConfiguration:biometricConfig
+                                                clientConfiguration:clientConfig
+                                              keychainConfiguration:keychainConfig];
     [sdk removeActivationLocal];
     
     result = sdk != nil;
@@ -448,11 +450,15 @@ static NSString * PA_Ver = @"3.3";
 }
 
 - (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
-                        keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
-                          clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
+                                biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
+                                 keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+                                   clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
 {
     if (configuration == nil) {
         configuration = [_sdk.configuration copy];
+    }
+    if (biometricConfiguration == nil) {
+        biometricConfiguration = [_sdk.biometricConfiguration copy];
     }
     if (keychainConfiguration == nil) {
         keychainConfiguration = [_sdk.keychainConfiguration copy];
@@ -461,8 +467,9 @@ static NSString * PA_Ver = @"3.3";
         clientConfiguration = [_sdk.clientConfiguration copy];
     }
     _sdk = [[PowerAuthSDK alloc] initWithConfiguration:configuration
-                                 keychainConfiguration:keychainConfiguration
-                                   clientConfiguration:clientConfiguration];
+                                biometricConfiguration:biometricConfiguration
+                                   clientConfiguration:clientConfiguration
+                                 keychainConfiguration:keychainConfiguration];
     return _sdk;
 }
 

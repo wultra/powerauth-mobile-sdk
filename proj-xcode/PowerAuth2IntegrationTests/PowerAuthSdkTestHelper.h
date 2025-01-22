@@ -58,7 +58,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 /**
  Create custom helper that allows you alter configurations provided to PowerAuthSDK before the instance is created.
  */
-+ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration ** configuration, PowerAuthKeychainConfiguration ** keychainConfiguration, PowerAuthClientConfiguration ** clientConfiguration))configurator;
++ (PowerAuthSdkTestHelper*) createCustom:(void (^)(PowerAuthConfiguration ** configuration, PowerAuthBiometricConfiguration ** biometricConfiguration, PowerAuthKeychainConfiguration ** keychainConfiguration, PowerAuthClientConfiguration ** clientConfiguration))configurator;
 /**
  Clone the existing test helper but with altered configuration.
  */
@@ -85,6 +85,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
  appropriate configuration from current PowerAuthSDK will be used.
  */
 - (PowerAuthSDK*) reCreateSdkInstanceWithConfiguration:(PowerAuthConfiguration*)configuration
+                                biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
                                  keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
                                    clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration;
 

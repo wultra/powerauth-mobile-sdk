@@ -35,6 +35,7 @@
 
 
 - (void) prepareConfigs:(PowerAuthConfiguration**)configuration
+        biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration
          keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
            clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
             forTestName:(NSString*)testName
@@ -46,8 +47,8 @@
 
 - (void) reconfigureForTest:(NSString *)testName
 {
-    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration **configuration, PowerAuthKeychainConfiguration **keychainConfiguration, PowerAuthClientConfiguration **clientConfiguration) {
-        [self prepareConfigs:configuration keychainConfig:keychainConfiguration clientConfig:clientConfiguration forTestName:testName];
+    _helper = [PowerAuthSdkTestHelper createCustom:^(PowerAuthConfiguration **configuration, PowerAuthBiometricConfiguration **biometricConfiguration, PowerAuthKeychainConfiguration **keychainConfiguration, PowerAuthClientConfiguration **clientConfiguration) {
+        [self prepareConfigs:configuration biometricConfig:biometricConfiguration keychainConfig:keychainConfiguration clientConfig:clientConfiguration forTestName:testName];
     }];
     [_helper printConfig];
     _sdk = _helper.sdk;
@@ -919,7 +920,7 @@
     NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
     newConfig.externalEncryptionKey = eek;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig keychainConfiguration:nil clientConfiguration:nil];
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
     XCTAssertTrue(_sdk.hasExternalEncryptionKey);
     
     PowerAuthSdkActivation * activation = [_helper createActivation:YES];
@@ -997,7 +998,7 @@
     // Now re-instantiate SDK and try to set EEK manually
     PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
     newConfig.externalEncryptionKey = nil;
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig keychainConfiguration:nil clientConfiguration:nil];
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     // Activation status should work
     PowerAuthActivationStatus * status = [_helper fetchActivationStatus];
@@ -1274,7 +1275,7 @@
     }
     
     // Re-create SDK to reset internal objects
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:nil biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
     XCTAssertTrue(_sdk.hasValidActivation);
     
     encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {

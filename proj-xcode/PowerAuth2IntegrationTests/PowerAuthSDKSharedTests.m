@@ -62,6 +62,7 @@
 }
 
 - (void) prepareConfigs:(PowerAuthConfiguration **)configuration
+        biometricConfig:(PowerAuthBiometricConfiguration **)biometricConfiguration
          keychainConfig:(PowerAuthKeychainConfiguration **)keychainConfiguration
            clientConfig:(PowerAuthClientConfiguration **)clientConfiguration
             forTestName:(NSString*)testName
@@ -76,6 +77,7 @@
     (*configuration).sharingConfiguration = sharingConfig;
     
     [super prepareConfigs:configuration
+          biometricConfig:biometricConfiguration
            keychainConfig:keychainConfiguration
              clientConfig:clientConfiguration
               forTestName:testName];

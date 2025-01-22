@@ -74,12 +74,15 @@
 #endif // defined(PA2_WATCH_SUPPORT)
 // -----------------------------------------------------------------------
 
-// Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
-@interface PowerAuthKeychainConfiguration (BiometricAccess)
-@property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
-@end
-
 // Reveal private property that helps convert LAContext or prompt into PowerAuthKeychainAuthentication.
 @interface PowerAuthAuthentication (KeychainAuth)
 @property (nonatomic, strong, readonly) PowerAuthKeychainAuthentication * keychainAuthentication;
+@end
+
+@interface PowerAuthBiometricConfiguration (PrivateSupport)
+// Reveal private constructor that allows create PowerAuthBiometricConfiguration from PowerAuthKeychainConfiguration
+// PA2_DEPRECATED(1.10.0), remove in 2.0.0
+- (instancetype) initWithKeychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration;
+// Reveal private readonly property that helps distinguish between "current" or "any set" biometric access.
+@property (nonatomic, readonly) PowerAuthKeychainItemAccess biometricItemAccess;
 @end

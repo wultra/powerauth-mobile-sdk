@@ -58,18 +58,3 @@
 }
 
 @end
-
-@implementation PowerAuthKeychainConfiguration (BiometricAccess)
-
-- (PowerAuthKeychainItemAccess) biometricItemAccess
-{
-    if (self.allowBiometricAuthenticationFallbackToDevicePasscode) {
-        return PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode;
-    } else if (self.linkBiometricItemsToCurrentSet) {
-        return PowerAuthKeychainItemAccess_CurrentBiometricSet;
-    } else {
-        return PowerAuthKeychainItemAccess_AnyBiometricSet;
-    }
-}
-
-@end

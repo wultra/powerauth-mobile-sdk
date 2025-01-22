@@ -59,6 +59,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     id<PA2SessionInterface> _sessionInterface;
     PowerAuthCoreSession * _coreSession;
     PowerAuthConfiguration * _configuration;
+    PowerAuthBiometricConfiguration * _biometricConfiguration;
     PowerAuthKeychainConfiguration * _keychainConfiguration;
     PowerAuthClientConfiguration * _clientConfiguration;
     
@@ -83,9 +84,29 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 
 #pragma mark - Private methods
 
+/**
+ The private function returns biometric configuration created from the provided configurations. If application still provide the deprecated keychain configuration,
+ then the function constructs biometric configuration from the parameters provided in keychain configuration. If no configuration is provided, then returns the default
+ biometric configuration.
+ */
+static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthBiometricConfiguration * biometricConfiguration, PowerAuthKeychainConfiguration * keychainConfiguration)
+{
+    if (biometricConfiguration) {
+        return [biometricConfiguration copy];
+    }
+    if (keychainConfiguration) {
+        return [[PowerAuthBiometricConfiguration alloc] initWithKeychainConfiguration:keychainConfiguration];
+    }
+    return [[PowerAuthBiometricConfiguration alloc] init];
+}
+
+/**
+ Initialize instance of SDK object. The method should be called only from the object's constructor.
+ */
 - (void) initializeWithConfiguration:(PowerAuthConfiguration*)configuration
-               keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
+              biometricConfiguration:(PowerAuthBiometricConfiguration*)biometricConfiguration
                  clientConfiguration:(PowerAuthClientConfiguration*)clientConfiguration
+               keychainConfiguration:(PowerAuthKeychainConfiguration*)keychainConfiguration
 {
     
     // Check if the configuration was nil
@@ -103,19 +124,27 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     
     // Make copy of configuration objects
     _configuration = [configuration copy];
-    _keychainConfiguration = [(keychainConfiguration ? keychainConfiguration : [PowerAuthKeychainConfiguration sharedInstance]) copy];
-    _clientConfiguration = [(clientConfiguration ? clientConfiguration : [PowerAuthClientConfiguration sharedInstance]) copy];
+    _biometricConfiguration = _BuildBiometricConfiguration(biometricConfiguration, keychainConfiguration);
+    _keychainConfiguration = keychainConfiguration ? [keychainConfiguration copy] : [[PowerAuthKeychainConfiguration alloc] init];
+    _clientConfiguration = clientConfiguration ? [clientConfiguration copy] : [[PowerAuthClientConfiguration alloc] init];
     
     // Prepare identifier for biometry related keys - use instanceId by default, or a custom value if set
     _biometryKeyIdentifier = _configuration.keychainKey_Biometry ? _configuration.keychainKey_Biometry : _configuration.instanceId;
     
     // Alter keychain in case that PowerAuthSharingConfiguration is used
     PowerAuthSharingConfiguration * sharingConfiguration = _configuration.sharingConfiguration;
-    NSString * biometryKeychainAccessGroup = nil;
+    NSString * keychainAccessGroup = nil;
+    NSString * userDefaultsSuiteName = nil;
     if (sharingConfiguration != nil) {
-        _keychainConfiguration.keychainAttribute_UserDefaultsSuiteName = sharingConfiguration.appGroup;
-        _keychainConfiguration.keychainAttribute_AccessGroup = sharingConfiguration.keychainAccessGroup;
-        biometryKeychainAccessGroup = sharingConfiguration.keychainAccessGroup;
+        userDefaultsSuiteName = sharingConfiguration.appGroup;
+        keychainAccessGroup = sharingConfiguration.keychainAccessGroup;
+    } else if (_keychainConfiguration) {
+        // Using deprecated interfaces internally.
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        userDefaultsSuiteName = _keychainConfiguration.keychainAttribute_UserDefaultsSuiteName;
+        keychainAccessGroup = _keychainConfiguration.keychainAttribute_AccessGroup;
+        #pragma clang diagnostic pop
     }
     // Prepare time synchronization sevice.
     //
@@ -136,23 +165,26 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
     
     // Create a new keychain instances
     _statusKeychain         = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Status
-                                                                accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+                                                                accessGroup:keychainAccessGroup];
     _sharedKeychain         = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Possession
-                                                                accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+                                                                accessGroup:keychainAccessGroup];
     _biometryOnlyKeychain   = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_Biometry
-                                                                accessGroup:biometryKeychainAccessGroup];
+                                                                accessGroup:keychainAccessGroup];
     
     // Initialize token store with its own keychain as a backing storage and remote token provider.
     PowerAuthKeychain * tokenStoreKeychain = [[PowerAuthKeychain alloc] initWithIdentifier:_keychainConfiguration.keychainInstanceName_TokenStore
-                                                                               accessGroup:_keychainConfiguration.keychainAttribute_AccessGroup];
+                                                                               accessGroup:keychainAccessGroup];
     // Make sure to reset keychain data after app re-install.
     // Important: This deletes all Keychain data in all PowerAuthSDK instances!
     // By default, the code uses standard user defaults, use `PowerAuthKeychainConfiguration.keychainAttribute_UserDefaultsSuiteName` to use `NSUserDefaults` with a custom suite name.
     NSUserDefaults *userDefaults = nil;
-    if (_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName != nil) {
-        userDefaults = [[NSUserDefaults alloc] initWithSuiteName:_keychainConfiguration.keychainAttribute_UserDefaultsSuiteName];
+    if (userDefaultsSuiteName) {
+        userDefaults = [[NSUserDefaults alloc] initWithSuiteName:userDefaultsSuiteName];
     } else {
         userDefaults = [NSUserDefaults standardUserDefaults];
+    }
+    if (!userDefaults) {
+        [PowerAuthSDK throwInvalidConfigurationException];
     }
     if ([userDefaults boolForKey:PowerAuthKeychain_Initialized] == NO) {
         [_statusKeychain deleteAllData];
@@ -258,6 +290,11 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 - (PowerAuthClientConfiguration*) clientConfiguration
 {
     return [_clientConfiguration copy];
+}
+
+- (PowerAuthBiometricConfiguration*) biometricConfiguration
+{
+    return [_biometricConfiguration copy];
 }
 
 - (PowerAuthKeychainConfiguration*) keychainConfiguration
@@ -386,7 +423,7 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
         *error = nil;
     }
 
-    if (key && _keychainConfiguration.invalidateLocalAuthenticationContextAfterUse) {
+    if (key && _biometricConfiguration.invalidateLocalAuthenticationContextAfterUse) {
         [authentication.context invalidate];
     }
     return key;
@@ -486,31 +523,60 @@ NSString *const PowerAuthExceptionMissingConfig = @"PowerAuthExceptionMissingCon
 
 #pragma mark Initializers and SDK instance getters
 
-static PowerAuthSDK * s_inst;
-
-- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
-                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
-                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+- (instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                   clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                 keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
 {
     self = [super init];
     if (self) {
         [self initializeWithConfiguration:configuration
-                    keychainConfiguration:keychainConfiguration
-                      clientConfiguration:clientConfiguration];
+                   biometricConfiguration:biometricConfiguration
+                      clientConfiguration:clientConfiguration
+                    keychainConfiguration:keychainConfiguration];
     }
     return self;
 }
 
-- (instancetype)initWithConfiguration:(PowerAuthConfiguration *)configuration
+- (instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                   clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
 {
-    return [self initWithConfiguration:configuration keychainConfiguration:nil clientConfiguration:nil];
+    return [self initWithConfiguration:configuration
+                biometricConfiguration:biometricConfiguration
+                   clientConfiguration:clientConfiguration
+                 keychainConfiguration:nil];
 }
 
+- (instancetype) initWithConfiguration:(PowerAuthConfiguration *)configuration
+{
+    return [self initWithConfiguration:configuration
+                biometricConfiguration:nil
+                   clientConfiguration:nil
+                 keychainConfiguration:nil];
+}
+
+// PA2_DEPRECATED(1.10.0)
+- (instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                 keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                   clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+{
+    return [self initWithConfiguration:configuration
+                biometricConfiguration:nil
+                   clientConfiguration:clientConfiguration
+                 keychainConfiguration:keychainConfiguration];
+}
+
+// PA2_DEPRECATED(1.10.0)
 + (void) initSharedInstance:(PowerAuthConfiguration*)configuration
 {
     [self initSharedInstance:configuration keychainConfiguration:nil clientConfiguration:nil];
 }
 
+// PA2_DEPRECATED(1.10.0)
+static PowerAuthSDK * s_inst;
+
+// PA2_DEPRECATED(1.10.0)
 + (void) initSharedInstance:(nonnull PowerAuthConfiguration *)configuration
       keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
         clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
@@ -518,11 +584,13 @@ static PowerAuthSDK * s_inst;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         s_inst = [[PowerAuthSDK alloc] initWithConfiguration:configuration
-                                       keychainConfiguration:keychainConfiguration
-                                         clientConfiguration:clientConfiguration];
+                                      biometricConfiguration:nil
+                                         clientConfiguration:clientConfiguration
+                                       keychainConfiguration:keychainConfiguration];
     });
 }
 
+// PA2_DEPRECATED(1.10.0)
 + (PowerAuthSDK*) sharedInstance
 {
     if (!s_inst) {
@@ -753,7 +821,7 @@ static PowerAuthSDK * s_inst;
         if (result) {
             [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
             if (biometryKey) {
-                [_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
+                [_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
             }
             // Clear TokenStore
             [_tokenStore removeAllLocalTokens];
@@ -1186,7 +1254,7 @@ static PowerAuthSDK * s_inst;
                 if ([session addBiometryFactor:encryptedEncryptionKey keys:keys]) {
                     // Update keychain values after each successful calculations
                     [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-                    [_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_keychainConfiguration.biometricItemAccess];
+                    [_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
                     return nil;
                 } else {
                     return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
@@ -1293,7 +1361,7 @@ static PowerAuthSDK * s_inst;
     }
     // Prepare policy based on keychain configuration.
     LAPolicy policy;
-    if (_keychainConfiguration.biometricItemAccess == PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode) {
+    if (_biometricConfiguration.biometricItemAccess == PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode) {
         // The naming is awkward, but 'LAPolicyDeviceOwnerAuthentication' really means that
         // we're requesting biometry and the device's passcode
         policy = LAPolicyDeviceOwnerAuthentication;

@@ -88,8 +88,10 @@
 /**
  Return the shared in stance of a client configuration object.
  
+ This static method is deprecated. Please use the configuration object created and managed by your application.
+ 
  @return Shared instance of a client configuration.
  */
-+ (nonnull instancetype) sharedInstance;
++ (nonnull instancetype) sharedInstance PA2_DEPRECATED(1.10.0);
 
 @end

@@ -100,7 +100,10 @@ public class PowerAuthKeychainConfiguration {
      *
      * @return {@code true} when items protected with biometry are linked to the current set
      *         of biometry, configured in the system.
+     *
+     * @deprecated Use {@link PowerAuthBiometricConfiguration#isInvalidateBiometricFactorAfterChange()} instead.
      */
+    @Deprecated // 1.10.0
     public boolean isLinkBiometricItemsToCurrentSet() {
         return linkBiometricItemsToCurrentSet;
     }
@@ -111,7 +114,10 @@ public class PowerAuthKeychainConfiguration {
      *
      * @return {@code true} if additional user's confirmation should be required after the successful
      *         biometric authentication.
+     *
+     * @deprecated Use {@link PowerAuthBiometricConfiguration#isConfirmBiometricAuthentication()} instead.
      */
+    @Deprecated // 1.10.0
     public boolean isConfirmBiometricAuthentication() {
         return confirmBiometricAuthentication;
     }
@@ -120,7 +126,10 @@ public class PowerAuthKeychainConfiguration {
      * Get whether biometric authentication is required also for biometric key setup.
      *
      * @return {@code true} if biometric authentication is required for biometric key setup.
+     *
+     * @deprecated Use {@link PowerAuthBiometricConfiguration#isAuthenticateOnBiometricKeySetup()} instead.
      */
+    @Deprecated // 1.10.0
     public boolean isAuthenticateOnBiometricKeySetup() {
         return authenticateOnBiometricKeySetup;
     }
@@ -131,7 +140,10 @@ public class PowerAuthKeychainConfiguration {
      * between multiple {@code PowerAuthSDK} object instances.
      *
      * @return {@code true} if fallback to shared, legacy biometry key is enabled.
+     *
+     * @deprecated Use {@link PowerAuthBiometricConfiguration#isFallbackToSharedBiometryKeyEnabled()} instead.
      */
+    @Deprecated // 1.10.0
     public boolean isFallbackToSharedBiometryKeyEnabled() {
         return enableFallbackToSharedBiometryKey;
     }
@@ -273,7 +285,10 @@ public class PowerAuthKeychainConfiguration {
          * @param linkBiometricItemsToCurrentSet If set, then the item protected with the biometry is invalidated
          *                                       if fingers are added or removed, or if the user re-enrolls for face.
          * @return {@link Builder}
+         *
+         * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#invalidateBiometricFactorAfterChange(boolean)} instead.
          */
+        @Deprecated // 1.10.0
         public @NonNull Builder linkBiometricItemsToCurrentSet(boolean linkBiometricItemsToCurrentSet) {
             this.linkBiometricItemsToCurrentSet = linkBiometricItemsToCurrentSet;
             return this;
@@ -286,7 +301,10 @@ public class PowerAuthKeychainConfiguration {
          *                                       biometric authentication. Note that this is just hint for the system
          *                                       and may be ignored.
          * @return {@link Builder}
+         *
+         * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#confirmBiometricAuthentication(boolean)} instead.
          */
+        @Deprecated // 1.10.0
         public @NonNull Builder confirmBiometricAuthentication(boolean confirmBiometricAuthentication) {
             this.confirmBiometricAuthentication = confirmBiometricAuthentication;
             return this;
@@ -308,7 +326,10 @@ public class PowerAuthKeychainConfiguration {
          * @param authenticate If set, then biometric authentication is required for both setup and usage
          *                     of biometric key.
          * @return {@link Builder}
+         *
+         * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#authenticateOnBiometricKeySetup(boolean)} instead.
          */
+        @Deprecated // 1.10.0
         public @NonNull Builder authenticateOnBiometricKeySetup(boolean authenticate) {
             this.authenticateOnBiometricKeySetup = authenticate;
             return this;
@@ -322,7 +343,10 @@ public class PowerAuthKeychainConfiguration {
          *
          * @param enable If {@code true} then fallback to legacy key is enabled.
          * @return {@link Builder}
+         *
+         * @deprecated Use {@link PowerAuthBiometricConfiguration.Builder#enableFallbackToSharedBiometryKey(boolean)} instead.
          */
+        @Deprecated // 1.10.0
         public @NonNull Builder enableFallbackToSharedBiometryKey(boolean enable) {
             this.enableFallbackToSharedBiometryKey = enable;
             return this;

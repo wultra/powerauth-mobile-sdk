@@ -148,6 +148,16 @@ The `PowerAuthConfiguration.Builder` class provides the following additional met
 - `externalEncryptionKey()` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `disableAutomaticProtocolUpgrade()` - Disables the automatic protocol upgrade. This option should be used only for debugging purposes.
 
+### Biometric configuration
+
+The `PowerAuthBiometricConfiguration.Builder` class contains biometric configuration for `PowerAuthSDK` class. It has the following configuration properties:
+
+- `invalidateBiometricFactorAfterChange()` - Function specifies whether the biometric factor key is invalidated if fingers are added or removed, or if the user re-enrolls for face. See [Biometry Factor-Related Key Lifetime](#biometry-factor-related-key-lifetime) chapter for more details.
+- `confirmBiometricAuthentication()` - Function specifies whether the user's confirmation will be required after the successful biometric authentication. See [Biometric Authentication Confirmation](#biometric-authentication-confirmation) chapter for more details.
+- `authenticateOnBiometricKeySetup()` - Function specifies whether setup for biometric factor always require a biometric authentication. See [Enable Biometric Authentication](#enable-biometric-authentication) chapter for more details.
+- `enableFallbackToSharedBiometryKey()` - Function specifies whether `PowerAuthSDK` instance should also do additional lookup for a legacy biometric key, previously shared between multiple `PowerAuthSDK` object instances. The default value is `true` and the fallback is enabled. If your application is using multiple `PowerAuthSDK` instances, then it's recommended to set this option to `false` to avoid use of the shared key between such instances.
+
+
 ### HTTP client configuration
 
 The `PowerAuthClientConfiguration.Builder` class contains configuration for a HTTP client used internally by `PowerAuthSDK` class. It has the following configuration properties:
@@ -162,10 +172,6 @@ The `PowerAuthClientConfiguration.Builder` class contains configuration for a HT
 
 The `PowerAuthKeychainConfiguration.Builder` class contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
 
-- `linkBiometricItemsToCurrentSet()` -  Function specifies whether the item protected with the biometry is invalidated if fingers are added or removed, or if the user re-enrolls for face. See [Biometry Factor-Related Key Lifetime](#biometry-factor-related-key-lifetime) chapter for more details.
-- `confirmBiometricAuthentication()` - Function specifies whether the user's confirmation will be required after the successful biometric authentication. See [Biometric Authentication Confirmation](#biometric-authentication-confirmation) chapter for more details.
-- `authenticateOnBiometricKeySetup()` - Function specifies whether biometric key setup always require a biometric authentication. See [Enable Biometric Authentication](#enable-biometric-authentication) chapter for more details.
-- `enableFallbackToSharedBiometryKey()` - Function specifies whether `PowerAuthSDK` instance should also do additional lookup for a legacy biometric key, previously shared between multiple PowerAuthSDK object instances. The default value is `true` and the fallback is enabled. If your application is using multiple `PowerAuthSDK` instances, then it's recommended to set this option to `false` to avoid use of the shared key between such instances.
 - `minimalRequiredKeychainProtection()` - Function specifies minimal required keychain protection level that must be supported on the current device. See [Activation Data Protection](#activation-data-protection) chapter for more details.
 
 The following properties are also available for configuration but are not recommended to be altered under typical circumstances, as changing them may impact the library’s stability or intended behavior:
@@ -175,6 +181,12 @@ The following properties are also available for configuration but are not recomm
 - `keychainTokenStoreId()` - Function specifies name of the Keychain file used for storing the access tokens.
 - `keychainKeyBiometry()` - Function specifies name of the key to the biometry Keychain to store biometry-factor protection key.
 
+The following properties are deprecated and moved to [Biometric Configuration](#biometric-configuration) class:
+
+- `linkBiometricItemsToCurrentSet()` -  Function specifies whether the item protected with the biometry is invalidated if fingers are added or removed, or if the user re-enrolls for face. See [Biometry Factor-Related Key Lifetime](#biometry-factor-related-key-lifetime) chapter for more details.
+- `confirmBiometricAuthentication()` - Function specifies whether the user's confirmation will be required after the successful biometric authentication. See [Biometric Authentication Confirmation](#biometric-authentication-confirmation) chapter for more details.
+- `authenticateOnBiometricKeySetup()` - Function specifies whether biometric key setup always require a biometric authentication. See [Enable Biometric Authentication](#enable-biometric-authentication) chapter for more details.
+- `enableFallbackToSharedBiometryKey()` - Function specifies whether `PowerAuthSDK` instance should also do additional lookup for a legacy biometric key, previously shared between multiple PowerAuthSDK object instances. The default value is `true` and the fallback is enabled. If your application is using multiple `PowerAuthSDK` instances, then it's recommended to set this option to `false` to avoid use of the shared key between such instances.
 
 ### Activation Data Protection
 
@@ -1620,25 +1632,25 @@ powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authenticati
 ```
 <!-- end -->
 
-By default, PowerAuth SDK asks the user to authenticate with the biometric sensor also during the setup procedure (or during the [activation persist](#persisting-activation-data)). To alter this behavior, use the following code to change the `PowerAuthKeychainConfiguration` provided to the `PowerAuthSDK` instance:
+By default, PowerAuth SDK asks the user to authenticate with the biometric sensor also during the setup procedure (or during the [activation persist](#persisting-activation-data)). To alter this behavior, use the following code to change the `PowerAuthBiometricConfiguration` provided to the `PowerAuthSDK` instance:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-val keychainConfig = PowerAuthKeychainConfiguration.Builder()
+val biometricConfig = PowerAuthBiometricConfiguration.Builder()
     .authenticateOnBiometricKeySetup(false)
     .build()
 // Apply keychain configuration
 val powerAuthSDK = PowerAuthSDK.Builder(configuration)
-    .keychainConfiguration(keychainConfig)
+    .biometricConfiguration(biometricConfig)
     .build(getApplicationContext())
 ```
 ```java
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+PowerAuthBiometricConfiguration biometricConfig = new PowerAuthBiometricConfiguration.Builder()
         .authenticateOnBiometricKeySetup(false)
         .build();
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
-        .keychainConfiguration(keychainConfig)
+        .biometricConfiguration(biometricConfig)
         .build(getApplicationContext());
 ```
 <!-- end -->
@@ -1745,27 +1757,27 @@ The Android source codes contain a list of devices with strong biometry support.
 
 ### Biometry Factor-Related Key Lifetime
 
-By default, the biometry factor-related key is invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is no longer available for the signing operation. To change this behavior, you have to provide the `PowerAuthKeychainConfiguration` object with the `linkBiometricItemsToCurrentSet` parameter set to `false` and use that configuration for the `PowerAuthSDK` instance construction:
+By default, the biometry factor-related key is invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is no longer available for the signing operation. To change this behavior, you have to provide the `PowerAuthBiometricConfiguration` object with the `invalidateBiometricFactorAfterChange` parameter set to `false` and use that configuration for the `PowerAuthSDK` instance construction:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-// Use false for the 'linkBiometricItemsToCurrentSet' parameter.
-val keychainConfig = PowerAuthKeychainConfiguration.Builder()
-    .linkBiometricItemsToCurrentSet(false)
+// Use false for the 'invalidateBiometricFactorAfterChange' parameter.
+val biometricConfig = PowerAuthBiometricConfiguration.Builder()
+    .invalidateBiometricFactorAfterChange(false)
     .build()
 // Apply keychain configuration
 val powerAuthSDK = PowerAuthSDK.Builder(configuration)
-    .keychainConfiguration(keychainConfig)
+    .biometricConfiguration(biometricConfig)
     .build(getApplicationContext())
 ```
 ```java
 // Use false for the 'linkBiometricItemsToCurrentSet' parameter.
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
-            .linkBiometricItemsToCurrentSet(false)
+PowerAuthBiometricConfiguration biometricConfig = new PowerAuthBiometricConfiguration.Builder()
+            .invalidateBiometricFactorAfterChange(false)
             .build();
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
-        .keychainConfiguration(keychainConfig)
+        .biometricConfiguration(biometricConfig)
         .build(getApplicationContext());
 ```
 <!-- end -->
@@ -1850,27 +1862,27 @@ Note that you still should [Customize Biometric Dialog Resources](#customize-bio
 
 #### Biometric Authentication Confirmation
 
-On Android 10+ systems, it's possible to configure `BiometricPrompt` to ask for an additional confirmation after the user is successfully authenticated. The default behavior for PowerAuth Mobile SDK is that such confirmation is not required. To change this behavior, you have to provide the `PowerAuthKeychainConfiguration` object with the `confirmBiometricAuthentication` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+On Android 10+ systems, it's possible to configure `BiometricPrompt` to ask for an additional confirmation after the user is successfully authenticated. The default behavior for PowerAuth Mobile SDK is that such confirmation is not required. To change this behavior, you have to provide the `PowerAuthBiometricConfiguration` object with the `confirmBiometricAuthentication` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Use true for the 'confirmBiometricAuthentication' parameter.
-val keychainConfig = PowerAuthKeychainConfiguration.Builder()
+val biometricConfig = PowerAuthBiometricConfiguration.Builder()
     .confirmBiometricAuthentication(true)
     .build()
 // Apply keychain configuration
 val powerAuthSDK = PowerAuthSDK.Builder(configuration)
-    .keychainConfiguration(keychainConfig)
+    .biometricConfiguration(biometricConfig)
     .build(context)
 ```
 ```java
 // Use true for the 'confirmBiometricAuthentication' parameter.
-PowerAuthKeychainConfiguration keychainConfig = new PowerAuthKeychainConfiguration.Builder()
+PowerAuthBiometricConfiguration biometricConfig = new PowerAuthBiometricConfiguration.Builder()
         .confirmBiometricAuthentication(true)
         .build();
 // Apply keychain configuration
 PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
-        .keychainConfiguration(keychainConfig)
+        .biometricConfiguration(biometricConfig)
         .build(getApplicationContext());
 ```
 <!-- end -->

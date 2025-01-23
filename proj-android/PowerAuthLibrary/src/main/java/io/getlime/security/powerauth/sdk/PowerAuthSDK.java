@@ -66,6 +66,7 @@ public class PowerAuthSDK {
     private final @NonNull ReentrantLock mLock;
     private final @NonNull Session mSession;
     private final @NonNull PowerAuthConfiguration mConfiguration;
+    private final @NonNull PowerAuthBiometricConfiguration mBiometricConfiguration;
     private final @NonNull PowerAuthKeychainConfiguration mKeychainConfiguration;
     private final @NonNull IExecutorProvider mExecutorProvider;
     private final @NonNull HttpClient mClient;
@@ -85,6 +86,7 @@ public class PowerAuthSDK {
     public static class Builder {
 
         private final @NonNull PowerAuthConfiguration mConfiguration;
+        private PowerAuthBiometricConfiguration mBiometricConfiguration;
         private PowerAuthClientConfiguration mClientConfiguration;
         private PowerAuthKeychainConfiguration mKeychainConfiguration;
         private ISavePowerAuthStateListener mStateListener;
@@ -97,6 +99,16 @@ public class PowerAuthSDK {
          */
         public Builder(@NonNull PowerAuthConfiguration configuration) {
             this.mConfiguration = configuration;
+        }
+
+        /**
+         * Set custom biometric configuration.
+         * @param biometricConfiguration Biometric configuration.
+         * @return {@link Builder}
+         */
+        public @NonNull Builder biometricConfiguration(@NonNull PowerAuthBiometricConfiguration biometricConfiguration) {
+            this.mBiometricConfiguration = biometricConfiguration;
+            return this;
         }
 
         /**
@@ -174,6 +186,16 @@ public class PowerAuthSDK {
             }
 
             // Create default configuration objects
+            if (mBiometricConfiguration == null) {
+                if (mKeychainConfiguration == null) {
+                    // No config object provided, use default biometric configuration.
+                    mBiometricConfiguration = new PowerAuthBiometricConfiguration.Builder().build();
+                } else {
+                    // As fallback, construct biometric configuration from the keychain configuration.
+                    // @Deprecated // 1.10.0
+                    mBiometricConfiguration = new PowerAuthBiometricConfiguration(mKeychainConfiguration);
+                }
+            }
             if (mKeychainConfiguration == null) {
                 mKeychainConfiguration = new PowerAuthKeychainConfiguration.Builder().build();
             }
@@ -226,6 +248,7 @@ public class PowerAuthSDK {
                     sharedLock,
                     session,
                     mConfiguration,
+                    mBiometricConfiguration,
                     mKeychainConfiguration,
                     executorProvider,
                     httpClient,
@@ -253,6 +276,7 @@ public class PowerAuthSDK {
      * @param sharedLock                Reentrant lock shared between various internal classes.
      * @param session                   Low-level {@link Session} instance.
      * @param configuration             Main {@link PowerAuthConfiguration}.
+     * @param biometricConfiguration    Biometric configuration.
      * @param keychainConfiguration     Keychain configuration.
      * @param executorProvider          Thread executor provider.
      * @param client                    HTTP client implementation.
@@ -269,6 +293,7 @@ public class PowerAuthSDK {
             @NonNull ReentrantLock sharedLock,
             @NonNull Session session,
             @NonNull PowerAuthConfiguration configuration,
+            @NonNull PowerAuthBiometricConfiguration biometricConfiguration,
             @NonNull PowerAuthKeychainConfiguration keychainConfiguration,
             @NonNull IExecutorProvider executorProvider,
             @NonNull HttpClient client,
@@ -284,6 +309,7 @@ public class PowerAuthSDK {
         this.mLock = sharedLock;
         this.mSession = session;
         this.mConfiguration = configuration;
+        this.mBiometricConfiguration = biometricConfiguration;
         this.mKeychainConfiguration = keychainConfiguration;
         this.mExecutorProvider = executorProvider;
         this.mClient = client;
@@ -556,6 +582,27 @@ public class PowerAuthSDK {
      */
     public @NonNull PowerAuthConfiguration getConfiguration() {
         return mConfiguration;
+    }
+
+    /**
+     * @return Biometric configuration provided during the SDK object construction.
+     */
+    public @NonNull PowerAuthBiometricConfiguration getBiometricConfiguration() {
+        return mBiometricConfiguration;
+    }
+
+    /**
+     * @return Client configuration provided during the SDK object construction.
+     */
+    public @NonNull PowerAuthClientConfiguration getClientConfiguration() {
+        return mClient.getClientConfiguration();
+    }
+
+    /**
+     * @return Keychain configuration provided during the SDK object construction.
+     */
+    public @NonNull PowerAuthKeychainConfiguration getKeychainConfiguration() {
+        return mKeychainConfiguration;
     }
 
     /**
@@ -2240,8 +2287,8 @@ public class PowerAuthSDK {
                 .setDescription(description)
                 .setRawKeyData(rawKeyData)
                 .setKeystoreAlias(biometricDataMapping.keystoreId)
-                .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
-                .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
+                .setForceGenerateNewKey(forceGenerateNewKey, mBiometricConfiguration.isInvalidateBiometricFactorAfterChange(), mBiometricConfiguration.isAuthenticateOnBiometricKeySetup())
+                .setUserConfirmationRequired(mBiometricConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
         if (fragmentHelper.getFragment() != null) {
             authenticationRequestBuilder.setFragment(fragmentHelper.getFragment());

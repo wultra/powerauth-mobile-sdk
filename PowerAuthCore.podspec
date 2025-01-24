@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-sdk.sh buildCore --out-dir Build/PowerAuthCore --optional-tvos
+        ./scripts/ios-build-sdk.sh buildCore --out-dir Build/PowerAuthCore --optional-tvos --include-dsyms
     CMD
     
     # Produced files

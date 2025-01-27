@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
     s.cocoapods_version = '>= 1.10'
     s.name              = 'PowerAuthCore'
     s.version           = '%DEPLOY_VERSION%'
-    s.summary           = 'PowerAuthCore library for iOS'
+    s.summary           = 'PowerAuthCore library for iOS and tvOS'
     s.homepage          = 'https://github.com/wultra/powerauth-mobile-sdk'
     s.social_media_url  = 'https://twitter.com/wultra'
     s.documentation_url = 'https://github.com/wultra/powerauth-mobile-sdk/blob/develop/docs/PowerAuth-SDK-for-iOS.md'
@@ -27,7 +27,7 @@ Pod::Spec.new do |s|
     
     # XCFramework  build    
     s.prepare_command = <<-CMD
-        ./scripts/ios-build-sdk.sh buildCore --out-dir Build/PowerAuthCore --optional-tvos
+        ./scripts/ios-build-sdk.sh buildCore --out-dir Build/PowerAuthCore --optional-tvos --include-dsyms
     CMD
     
     # Produced files

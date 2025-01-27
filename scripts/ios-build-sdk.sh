@@ -59,6 +59,7 @@ DO_COPYSDK=0
 OPT_LEGACY_ARCH=0
 OPT_USE_BITCODE=0
 OPT_WEAK_TVOS=0
+OPT_INCLUDE_DSYMS=0
 
 # -----------------------------------------------------------------------------
 # USAGE prints help and exits the script with error code from provided parameter
@@ -81,6 +82,7 @@ function USAGE
     echo "  -nc | --no-clean  disable 'clean' before 'build'"
     echo "                    also disables temporary data cleanup after build"
     echo "  --optional-tvos   tvOS is not required when SDK is not installed"
+    echo "  --include-dsyms   include debug symbols into final xcframework"
     echo "  -v0               turn off all prints to stdout"
     echo "  -v1               print only basic log about build progress"
     echo "  -v2               print full build log with rich debug info"
@@ -347,8 +349,14 @@ function BUILD_COMMAND
 
     # Add produced platform framework to the list
     local FINAL_FW="${ARCHIVE_PATH}/Products/Library/Frameworks/${OUT_FW}.framework"
+    local FINAL_DSYM="${ARCHIVE_PATH}/dSYMs/${OUT_FW}.framework.dSYM"
     [[ ! -d "${FINAL_FW}" ]] && FAILURE "Xcode build did not produce '${OUT_FW}.framework' for platform ${PLATFORM}"
     ALL_FAT_LIBS+=("${FINAL_FW}")
+    ALL_XCFW_ARGS+=" -framework ${FINAL_FW}"
+    if [ x$OPT_INCLUDE_DSYMS == x1 ]; then
+        [[ ! -d "${FINAL_DSYM}" ]] && FAILURE "Xcode build did not produce dSYMs for '${OUT_FW}.framework' for platform ${PLATFORM}"
+        ALL_XCFW_ARGS+=" -debug-symbols ${FINAL_DSYM}"
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -377,6 +385,7 @@ function BUILD_LIB
     PREPARE_OPENSSL
 
     ALL_FAT_LIBS=()
+    ALL_XCFW_ARGS=
     
     BUILD_PATCH_ARCHITECTURES
     
@@ -390,14 +399,12 @@ function BUILD_LIB
     LOG_LINE
     LOG "Creating final ${OUT_FW}.xcframework..."
     local XCFW_PATH="${OUT_DIR}/${OUT_FW}.xcframework"
-    local XCFW_ARGS=
     for ARG in ${ALL_FAT_LIBS[@]}; do
-        XCFW_ARGS+="-framework ${ARG} "
         DEBUG_LOG "  - source fw: ${ARG}"
     done
     DEBUG_LOG "  - target fw: ${XCFW_PATH}"
     
-    xcodebuild -create-xcframework $XCFW_ARGS -output "${XCFW_PATH}"    
+    xcodebuild -create-xcframework $ALL_XCFW_ARGS -output "${XCFW_PATH}"    
 }
 
 # -----------------------------------------------------------------------------
@@ -526,6 +533,9 @@ do
             ;;
         --optional-tvos)
             OPT_WEAK_TVOS=1
+            ;;
+        --include-dsyms)
+            OPT_INCLUDE_DSYMS=1
             ;;
         --legacy-archs)
             OPT_LEGACY_ARCH=1

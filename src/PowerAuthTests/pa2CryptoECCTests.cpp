@@ -38,7 +38,7 @@ namespace powerAuthTests
         {
             CC7_REGISTER_TEST_METHOD(testKeyImportExport)
             CC7_REGISTER_TEST_METHOD(testPubKeyImport)
-            //CC7_REGISTER_TEST_METHOD(testImportPerformance)
+            CC7_REGISTER_TEST_METHOD(testImportPerformance)
         }
 
         struct test_data {
@@ -49,7 +49,7 @@ namespace powerAuthTests
         void testKeyImportExport()
         {
             // Generate key-pair
-            auto key_pair = crypto::ECC_GenerateKeyPair();
+            auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
             if (!key_pair) {
                 ccstFailure();
                 return;
@@ -59,26 +59,21 @@ namespace powerAuthTests
             ccstAssertFalse(private_key_export.empty());
             auto public_key_export = crypto::ECC_ExportPublicKeyToB64(key_pair);
             ccstAssertFalse(public_key_export.empty());
-            EC_KEY_free(key_pair);
             // Import public & private key back to OpenSSL structure.
-            auto public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, public_key_export);
-            if (!public_key) {
+            auto public_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, public_key_export);
+            if (!public_key.isValid()) {
                 ccstFailure();
                 return;
             }
             ccstAssertEqual(public_key_export, crypto::ECC_ExportPublicKeyToB64(public_key));
             
-            auto private_key = crypto::ECC_ImportPrivateKey(nullptr, private_key_export);
-            if (!private_key) {
+            auto private_key = crypto::ECC_ImportPrivateKey(crypto::P256, private_key_export);
+            if (!private_key.isValid()) {
                 ccstFailure();
-                EC_KEY_free(public_key);
                 return;
             }
             ccstAssertEqual(private_key_export, crypto::ECC_ExportPrivateKey(private_key));
-            ccstAssertEqual(1, EC_KEY_can_sign(private_key));
-            
-            EC_KEY_free(private_key);
-            EC_KEY_free(public_key);
+            ccstAssertEqual(1, EVP_PKEY_can_sign(private_key));
         }
                 
         void testPubKeyImport()
@@ -113,8 +108,8 @@ namespace powerAuthTests
                 if (!test_key) {
                     break;
                 }
-                EC_KEY * pub_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, test_key, nullptr);
-                bool imported = pub_key != nullptr;
+                auto pub_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, test_key);
+                bool imported = pub_key.isValid();
                 if (imported != td.import_result) {
                     if (imported) {
                         ccstFailure("Public key '%s' should not be imported.", test_key);
@@ -126,7 +121,6 @@ namespace powerAuthTests
                         ccstMessage("OpenSSL failure: %s", buffer);
                     }
                 }
-                EC_KEY_free(pub_key);
             }
         }
         
@@ -152,8 +146,8 @@ namespace powerAuthTests
                 for (int iter = 0; iter < 1000; iter++) {
                     for (int index = 0; index < 10; index++) {
                         const char * test_key = test_vectors[index].point;
-                        auto imported_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, test_key);
-                        ccstAssertNotNull(imported_key);
+                        auto imported_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, test_key);
+                        ccstAssertTrue(imported_key.isValid());
                         iterations++;
                     }
                 }

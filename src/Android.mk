@@ -50,6 +50,7 @@ LOCAL_SRC_FILES := \
 	PowerAuth/crypto/KDF.cpp \
 	PowerAuth/crypto/MAC.cpp \
 	PowerAuth/crypto/ECC.cpp \
+	PowerAuth/crypto/OSSLObjects.cpp \
 	PowerAuth/crypto/PKCS7Padding.cpp \
 	PowerAuth/crypto/PRNG.cpp \
 	PowerAuth/protocol/Constants.cpp \

@@ -19,6 +19,7 @@
 #include <openssl/evp.h>
 #include <openssl/ecdh.h>
 #include <cc7/Endian.h>
+#include "OSSLObjects.h"
 
 namespace io
 {
@@ -57,11 +58,40 @@ namespace crypto
     // -------------------------------------------------------------------------------------------
     // MARK: - ECDH ANSI X9.63 -
     //
+
+    /// Key derivation function from X9.63/SECG
+    /// (copied from OpenSSL sources)
+    static int ecdh_kdf_X9_63(unsigned char *out, size_t outlen,
+                              const unsigned char *Z, size_t Zlen,
+                              const unsigned char *sinfo, size_t sinfolen,
+                              const EVP_MD *md)
+    {
+        int ret = 0;
+        EVP_KDF_CTX *kctx = NULL;
+        OSSL_PARAM params[4], *p = params;
+        const char *mdname = EVP_MD_get0_name(md);
+        EVP_KDF *kdf = EVP_KDF_fetch(NULL, OSSL_KDF_NAME_X963KDF, NULL);
+
+        if ((kctx = EVP_KDF_CTX_new(kdf)) != NULL) {
+            *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST,
+                                                    (char *)mdname, 0);
+            *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY,
+                                                     (void *)Z, Zlen);
+            *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_INFO,
+                                                     (void *)sinfo, sinfolen);
+            *p = OSSL_PARAM_construct_end();
+
+            ret = EVP_KDF_derive(kctx, out, outlen, params) > 0;
+            EVP_KDF_CTX_free(kctx);
+        }
+        EVP_KDF_free(kdf);
+        return ret;
+    }
     
     cc7::ByteArray ECDH_KDF_X9_63_SHA256(const cc7::ByteRange & secret, const cc7::ByteRange & info1, size_t output_bytes)
     {
         cc7::ByteArray result(output_bytes, 0);
-        if (1 != ECDH_KDF_X9_62(result.data(), (int)output_bytes, secret.data(), (int)secret.size(), info1.data(), (int)info1.size(), EVP_sha256())) {
+        if (1 != ecdh_kdf_X9_63(result.data(), (int)output_bytes, secret.data(), (int)secret.size(), info1.data(), (int)info1.size(), EVP_sha256())) {
             CC7_LOG("ECDH_KDF_X9_62 has failed!");
             result.clear();
         }

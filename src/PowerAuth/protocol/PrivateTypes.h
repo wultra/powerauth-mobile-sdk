@@ -17,7 +17,7 @@
 #pragma once
 
 #include <PowerAuth/PublicTypes.h>
-#include <openssl/ec.h>
+#include "../crypto/OSSLObjects.h"
 
 // Forward declarations
 
@@ -69,9 +69,9 @@ namespace protocol
     {
         // OpenSSL EC keys, used during the activation
         
-        EC_KEY *        masterServerPublicKey;
-        EC_KEY *        devicePrivateKey;
-        EC_KEY *        serverPublicKey;
+        crypto::EVPKeyPair        masterServerPublicKey;
+        crypto::EVPKeyPair        devicePrivateKey;
+        crypto::EVPKeyPair        serverPublicKey;
         
         // Information gathered during the activation
         
@@ -88,19 +88,9 @@ namespace protocol
         
         // Construction, destruction
         
-        ActivationData() :
-            masterServerPublicKey(nullptr),
-            devicePrivateKey(nullptr),
-            serverPublicKey(nullptr)
+        ActivationData()
         {
-        }
-        
-        ~ActivationData()
-        {
-            EC_KEY_free(masterServerPublicKey);
-            EC_KEY_free(devicePrivateKey);
-            EC_KEY_free(serverPublicKey);
-        }
+        }        
     };
     
     

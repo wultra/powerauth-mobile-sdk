@@ -34,7 +34,7 @@ namespace protocol
     // MARK: - Helpers and utilities related to PA2 -
     //
     
-    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk)
+    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, const crypto::EVPKeyPair & mk)
     {
         CC7_ASSERT(mk, "mk is required parametr");
         if (code.empty() && sig.empty()) {
@@ -531,17 +531,15 @@ namespace protocol
     std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key, const cc7::ByteRange & server_pub_key, const std::string activation_id, Version v)
     {
         std::string result;
-        
-        crypto::BNContext ctx;
-        
-        EC_KEY * device_public_key = nullptr;
-        EC_KEY * server_public_key = nullptr;
+        auto device_public_key = crypto::EVPKeyPair::invalid();
+        auto server_public_key = crypto::EVPKeyPair::invalid();
         do {
-            crypto::BNContext ctx;
-            
             // Import device's public key
-            device_public_key = crypto::ECC_ImportPublicKey(nullptr, device_pub_key, ctx);
-            auto device_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(device_public_key, ctx);
+            device_public_key = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, device_pub_key);
+            if (!device_public_key.isValid()) {
+                break;
+            }
+            auto device_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(device_public_key);
             if (device_coord_x.empty()) {
                 break;
             }
@@ -553,8 +551,11 @@ namespace protocol
             } else {
                 // V3 activation
                 // Import server's public key
-                server_public_key = crypto::ECC_ImportPublicKey(nullptr, server_pub_key, ctx);
-                auto server_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(server_public_key, ctx);
+                server_public_key = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, server_pub_key);
+                if (!server_public_key.isValid()) {
+                    break;
+                }
+                auto server_coord_x = crypto::ECC_ExportPublicKeyToNormalizedForm(server_public_key);
                 if (server_coord_x.empty()) {
                     break;
                 }
@@ -572,10 +573,6 @@ namespace protocol
             }
             
         } while (false);
-        
-        // Release OpenSSL objects
-        EC_KEY_free(device_public_key);
-        EC_KEY_free(server_public_key);
         
         return result;
     }

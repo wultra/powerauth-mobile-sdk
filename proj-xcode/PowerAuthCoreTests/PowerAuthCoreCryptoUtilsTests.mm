@@ -91,6 +91,9 @@ struct EcdsaTestData {
     NSMutableData * testData = [[PowerAuthCoreCryptoUtils randomBytes:128] mutableCopy];
     XCTAssertNotNil(testData);
     NSData * signature = [PowerAuthCoreCryptoUtils ecdsaComputeSignature:testData withPrivateKey:keyPair.privateKey];
+    NSLog(@"Data: %@", [testData base64EncodedStringWithOptions:0]);
+    NSLog(@"PubK: %@", [keyPair.publicKey.publicKeyBytes base64EncodedStringWithOptions:0]);
+    NSLog(@"Sign: %@", [signature base64EncodedStringWithOptions:0]);
     BOOL result = [PowerAuthCoreCryptoUtils ecdsaValidateSignature:signature forData:testData forPublicKey:keyPair.publicKey];
     XCTAssertTrue(result);
     unsigned char * bytePtr = (unsigned char *)[testData mutableBytes];

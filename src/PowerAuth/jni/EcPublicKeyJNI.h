@@ -18,7 +18,6 @@
 
 #include <cc7/jni/JniHelper.h>
 #include <PowerAuth/crypto/ECC.h>
-#include <openssl/ec.h>
 
 namespace io
 {
@@ -37,13 +36,9 @@ namespace jni
          * Create new instance of EcPrivateKeyJNI from provided private key data. Function returns
          * nullptr if provided data doesn't represent private key.
          */
-        static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data, BN_CTX * ctx = nullptr) {
-            auto ec_key = crypto::ECC_ImportPublicKey(nullptr, public_key_data, ctx);
-            return ec_key != nullptr ? new EcPublicKeyJNI(ec_key) : nullptr;
-        }
-
-        ~EcPublicKeyJNI() {
-            EC_KEY_free(ec_key);
+        static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data) {
+            auto ec_key = crypto::ECC_ImportPublicKey(crypto::P256, public_key_data);
+            return ec_key.isValid() ? new EcPublicKeyJNI(ec_key) : nullptr;
         }
 
         /**
@@ -51,21 +46,21 @@ namespace jni
          * have valid public key.
          */
         cc7::ByteArray publicKeyBytes() const {
-            return crypto::ECC_ExportPublicKey(ec_key);
+            return crypto::ECC_ExportPublicKey(_ec_key);
         }
 
         /**
          * Return pointer to public key implementation.
          */
-        EC_KEY * keyPtr() const {
-            return ec_key;
+        crypto::EVPKeyPair & keyPtr() {
+            return _ec_key;
         }
 
     private:
 
-        EcPublicKeyJNI(EC_KEY * ec_key) : ec_key(ec_key) {}
+        EcPublicKeyJNI(crypto::EVPKeyPair & ec_key) : _ec_key(ec_key) {}
 
-        EC_KEY * ec_key;
+        crypto::EVPKeyPair _ec_key;
     };
     
 } // io::getlime::powerAuth::jni

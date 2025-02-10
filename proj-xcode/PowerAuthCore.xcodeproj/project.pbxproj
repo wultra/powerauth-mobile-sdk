@@ -97,6 +97,8 @@
 		BF99D90F2073E15100735ED2 /* KDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8D52073E00D00735ED2 /* KDF.cpp */; };
 		BF99D9102073E15100735ED2 /* MAC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8DB2073E00D00735ED2 /* MAC.cpp */; };
 		BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
+		BFA85D552D43F27500E60260 /* OSSLObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFA85D542D43F27300E60260 /* OSSLObjects.cpp */; };
+		BFA85D562D43F27500E60260 /* OSSLObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFA85D542D43F27300E60260 /* OSSLObjects.cpp */; };
 		BFA98090253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */; };
 		BFA98091253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */; };
 		BFA98092253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807C253DA559004D2CF9 /* PowerAuthCoreMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -424,7 +426,7 @@
 		BF99D8D32073E00D00735ED2 /* PRNG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PRNG.h; sourceTree = "<group>"; };
 		BF99D8D42073E00D00735ED2 /* PKCS7Padding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PKCS7Padding.h; sourceTree = "<group>"; };
 		BF99D8D52073E00D00735ED2 /* KDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KDF.cpp; sourceTree = "<group>"; };
-		BF99D8D62073E00D00735ED2 /* LLObjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLObjects.h; sourceTree = "<group>"; };
+		BF99D8D62073E00D00735ED2 /* LLObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLObject.h; sourceTree = "<group>"; };
 		BF99D8D72073E00D00735ED2 /* CryptoUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CryptoUtils.h; sourceTree = "<group>"; };
 		BF99D8D82073E00D00735ED2 /* PRNG.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PRNG.cpp; sourceTree = "<group>"; };
 		BF99D8D92073E00D00735ED2 /* AES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AES.h; sourceTree = "<group>"; };
@@ -456,6 +458,8 @@
 		BF99D8FF2073E00D00735ED2 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreLibTests-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLibTests-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF9AFF062992707900400D5B /* signatures-offline.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-offline.json"; sourceTree = "<group>"; };
+		BFA85D532D43F26300E60260 /* OSSLObjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OSSLObjects.h; sourceTree = "<group>"; };
+		BFA85D542D43F27300E60260 /* OSSLObjects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OSSLObjects.cpp; sourceTree = "<group>"; };
 		BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCorePassword.mm; sourceTree = "<group>"; };
 		BFA9807B253DA559004D2CF9 /* core.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = core.modulemap; sourceTree = "<group>"; };
 		BFA9807C253DA559004D2CF9 /* PowerAuthCoreMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreMacros.h; sourceTree = "<group>"; };
@@ -742,7 +746,9 @@
 		BF99D8D12073E00D00735ED2 /* crypto */ = {
 			isa = PBXGroup;
 			children = (
-				BF99D8D62073E00D00735ED2 /* LLObjects.h */,
+				BF99D8D62073E00D00735ED2 /* LLObject.h */,
+				BFA85D532D43F26300E60260 /* OSSLObjects.h */,
+				BFA85D542D43F27300E60260 /* OSSLObjects.cpp */,
 				BF99D8D72073E00D00735ED2 /* CryptoUtils.h */,
 				BF99D8D42073E00D00735ED2 /* PKCS7Padding.h */,
 				BF99D8DF2073E00D00735ED2 /* PKCS7Padding.cpp */,
@@ -1264,6 +1270,7 @@
 			files = (
 				BF99D90B2073E15100735ED2 /* PRNG.cpp in Sources */,
 				BF99D9102073E15100735ED2 /* MAC.cpp in Sources */,
+				BFA85D552D43F27500E60260 /* OSSLObjects.cpp in Sources */,
 				BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */,
 				BF99D9032073E14100735ED2 /* Password.cpp in Sources */,
 				BFB47D1720753324008A6A52 /* DataWriter.cpp in Sources */,
@@ -1327,6 +1334,7 @@
 			files = (
 				BF6ADD6B24C84C0C001B3E5E /* PRNG.cpp in Sources */,
 				BF6ADD6C24C84C0C001B3E5E /* MAC.cpp in Sources */,
+				BFA85D562D43F27500E60260 /* OSSLObjects.cpp in Sources */,
 				BF6ADD6D24C84C0C001B3E5E /* OtpUtil.cpp in Sources */,
 				BF6ADD6E24C84C0C001B3E5E /* Password.cpp in Sources */,
 				BF6ADD6F24C84C0C001B3E5E /* DataWriter.cpp in Sources */,
@@ -1538,7 +1546,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1610,7 +1617,6 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;

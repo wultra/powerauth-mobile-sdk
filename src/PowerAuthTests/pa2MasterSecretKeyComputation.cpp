@@ -50,10 +50,9 @@ namespace powerAuthTests
                 ByteArray   masterSecretKey  = item.dataFromBase64StringAtPath("output.masterSecretKey");
                 
                 protocol::ActivationData ad;
-                ad.devicePrivateKey = crypto::ECC_ImportPrivateKey(nullptr, devicePrivateKey);
-                ad.devicePrivateKey = crypto::ECC_ImportPublicKey(ad.devicePrivateKey, devicePublicKey);
-                ccstAssertNotNull(ad.devicePrivateKey);
-                ad.serverPublicKey  = crypto::ECC_ImportPublicKey(nullptr, serverPublicKey);
+                ad.devicePrivateKey = crypto::ECC_ImportPrivateKey(crypto::P256, devicePrivateKey);
+                ccstAssertTrue(ad.devicePrivateKey.isValid());
+                ad.serverPublicKey  = crypto::ECC_ImportPublicKey(crypto::P256, serverPublicKey);
                 ByteArray ourMasterSecretKey = crypto::ECDH_SharedSecret(ad.serverPublicKey, ad.devicePrivateKey);
                 ByteArray reducedMasterSecretKey = protocol::ReduceSharedSecret(ourMasterSecretKey);
                 ccstAssertEqual(reducedMasterSecretKey, masterSecretKey);

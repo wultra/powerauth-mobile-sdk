@@ -61,12 +61,10 @@ namespace protocol
             
             // optional master key validation
             if (result && also_validate_key) {
-                EC_KEY * foo_key = crypto::ECC_ImportPublicKey(nullptr, foo_data);
-                if (nullptr == foo_key) {
+                auto foo_key = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, foo_data);
+                if (!foo_key.isValid()) {
                     CC7_LOG("ValidateSessionSetup: Provided masterServerPublicKey is invalid.");
                     result = false;
-                } else {
-                    EC_KEY_free(foo_key);
                 }
             }
         }

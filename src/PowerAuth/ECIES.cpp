@@ -87,23 +87,23 @@ namespace powerAuth
     
     ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key)
     {
-        crypto::BNContext ctx;
-        EC_KEY *pubk = nullptr, *ephemeral = nullptr;
+        auto pubk = crypto::EVPKeyPair::invalid();
+        auto ephemeral = crypto::EVPKeyPair::invalid();
         ECIESEnvelopeKey ek;
         do {
-            pubk = crypto::ECC_ImportPublicKey(nullptr, public_key, ctx);
-            if (!pubk) {
+            pubk = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, public_key);
+            if (!pubk.isValid()) {
                 break;
             }
-            ephemeral = crypto::ECC_GenerateKeyPair();
-            if (!ephemeral) {
+            ephemeral = crypto::ECC_GenerateKeyPair(crypto::EllipticCurve::P256);
+            if (!ephemeral.isValid()) {
                 break;
             }
             auto sharedSecret = crypto::ECDH_SharedSecret(pubk, ephemeral);
             if (sharedSecret.empty()) {
                 break;
             }
-            out_ephemeral_key = crypto::ECC_ExportPublicKey(ephemeral, ctx);
+            out_ephemeral_key = crypto::ECC_ExportPublicKey(ephemeral);
             if (out_ephemeral_key.empty()) {
                 break;
             }
@@ -113,27 +113,23 @@ namespace powerAuth
             ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
             
         } while (false);
-        
-        // Releace OpenSSL resources
-        EC_KEY_free(pubk);
-        EC_KEY_free(ephemeral);
-        
         return ek;
     }
     
     ECIESEnvelopeKey ECIESEnvelopeKey::fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1)
     {
-        crypto::BNContext ctx;
-        EC_KEY *privk = nullptr, *ephemeral = nullptr;
+        auto privk = crypto::EVPKeyPair::invalid();
+        auto ephemeral = crypto::EVPKeyPair::invalid();
+
         ECIESEnvelopeKey ek;
         
         do {
-            privk = crypto::ECC_ImportPrivateKey(nullptr, private_key);
-            if (!privk) {
+            privk = crypto::ECC_ImportPrivateKey(crypto::EllipticCurve::P256, private_key);
+            if (!privk.isValid()) {
                 break;
             }
-            ephemeral = crypto::ECC_ImportPublicKey(nullptr, ephemeral_key);
-            if (!ephemeral) {
+            ephemeral = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, ephemeral_key);
+            if (!ephemeral.isValid()) {
                 break;
             }
             auto sharedSecret = crypto::ECDH_SharedSecret(ephemeral, privk);
@@ -145,12 +141,7 @@ namespace powerAuth
             // Derive shared secret
             ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
             
-        } while (false);
-        
-        // Releace OpenSSL resources
-        EC_KEY_free(privk);
-        EC_KEY_free(ephemeral);
-        
+        } while (false);        
         return ek;
     }
 

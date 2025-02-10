@@ -28,7 +28,11 @@ namespace crypto
 {
     /**
      The `TLLRefObject` template helper class is responsible for capturing and managing lifetime of
-     low-level reference counter objects from OpenSSL.
+     low-level objects from OpenSSL. This variant of template is designed to manage reference-counter objects,
+     such as `EVP_PKEY` structure.
+     
+     The template class implements casting operator to `T*` and therefore can be easily used as
+     a parameter to functions, which requires pointet to type T.
      */
     template <typename T, T* (*CreateFunc)(), void (*RetainFunc)(T*), void (*ReleaseFunc)(T*)> class TLLRefObject {
     public:
@@ -47,14 +51,15 @@ namespace crypto
             return TLLRefObject(ll_object, true);
         }
         
-        // Create an invalid object.
+        // Create an invalid object (e.g. low-level object is not defined).
         static TLLRefObject invalid() {
             return TLLRefObject(nullptr, false);
         }
         
-        // Create an empty opbject.
+        // Create an empty object. If CreateFunc template parameter is not provided, then
+        // it's equal to ::invalid().
         static TLLRefObject empty() {
-            return TLLRefObject(CreateFunc(), false);
+            return TLLRefObject(CreateFunc ? CreateFunc() : nullptr, false);
         }
         
         // Return low level object captured in this object.
@@ -137,11 +142,8 @@ namespace crypto
 
     /**
      The `TLLObject` template helper class is responsible for capturing and managing lifetime of
-     low-level objects from OpenSSL.
-     
-     If you do not provide pointer to low-level then the helper will create
-     new one internally. The internally created context is
-     automatically destroyed with the TLLObject instance.
+     low-level objects from OpenSSL. This variant of template is suited for non-reference counter
+     objects, such as BIGNUM.
      
      The template class implements casting operator to `T*` and therefore can be easily used as
      a parameter to functions, which requires pointet to type T.
@@ -149,22 +151,25 @@ namespace crypto
     template <typename T, T* (*CreateFunc)(), void (*ReleaseFunc)(T*)> class TLLObject {
     public:
                 
-        // Take ownership of provided object. The reference count is not increased.
+        // Take ownership of provided object. The low level object will be destroyed in object's
+        // constructor.
         static TLLObject take(T * ll_object) {
             return TLLObject(ll_object, true);
         }
         
-        // Capture provided low-level object without taking the ownership.
+        // Capture provided low-level object without taking the ownership. The low level object
+        // is not destroyed in object's constructor.
         static TLLObject wrap(T * ll_object) {
             return TLLObject(ll_object, false);
         }
 
-        // Create an invalid object.
+        // Create an invalid object (e.g. low-level object is not defined).
         static TLLObject invalid() {
             return TLLObject(nullptr, false);
         }
         
-        // Create an empty object.
+        // Create an empty object. If CreateFunc template parameter is not provided, then
+        // it's equal to ::invalid().
         static TLLObject empty() {
             return TLLObject(CreateFunc ? CreateFunc() : nullptr, true);
         }

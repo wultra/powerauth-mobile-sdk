@@ -114,7 +114,10 @@
     XCTAssertTrue(result);
 
     // Simulate application's restart
-    _sdk = [_helper reCreateSdkInstanceWithConfiguration:_sdk.configuration keychainConfiguration:_sdk.keychainConfiguration clientConfiguration:_sdk.clientConfiguration];
+    _sdk = [_helper reCreateSdkInstanceWithConfiguration:_sdk.configuration
+                                  biometricConfiguration:_sdk.biometricConfiguration
+                                   keychainConfiguration:_sdk.keychainConfiguration
+                                     clientConfiguration:_sdk.clientConfiguration];
     tokenStore = _sdk.tokenStore;
     
     // Calculate header with asynchronous method

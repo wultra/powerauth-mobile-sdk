@@ -25,6 +25,7 @@ import io.getlime.security.powerauth.keychain.KeychainProtection;
 
 import static org.junit.Assert.*;
 
+/** @noinspection deprecation*/
 @RunWith(AndroidJUnit4.class)
 public class PowerAuthKeychainConfigurationBuilderTest {
 

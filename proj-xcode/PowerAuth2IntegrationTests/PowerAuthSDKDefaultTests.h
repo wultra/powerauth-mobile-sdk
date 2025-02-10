@@ -31,6 +31,7 @@
 @property (nonatomic, strong, readonly) PowerAuthSDK * sdk;
 
 - (void) prepareConfigs:(PowerAuthConfiguration**)configuration
+        biometricConfig:(PowerAuthBiometricConfiguration**)biometricConfiguration
          keychainConfig:(PowerAuthKeychainConfiguration**)keychainConfiguration
            clientConfig:(PowerAuthClientConfiguration**)clientConfiguration
             forTestName:(NSString*)testName;

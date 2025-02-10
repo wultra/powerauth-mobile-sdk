@@ -2,8 +2,8 @@
 
 PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
-- Removed support of activation by recovery code.
-
+- PowerAuth mobile SDK no longer supports activation by the recovery code.
+- New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
 
 ### Compatibility with PowerAuth Server
 
@@ -15,6 +15,16 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - The following methods in `PowerAuthSDK` class are deprecated:
   - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+
+- The following methods in `PowerAuthKeychainConfiguration` are now deprecated:
+  - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
+  - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+  - `isAuthenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+  - `isFallbackToSharedBiometryKeyEnabled()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+  - `Builder.linkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.Builder.invalidateBiometricFactorAfterChange(boolean)` instead.
+  - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+  - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+  - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -48,6 +58,18 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - The following methods in `PowerAuthSDK` class are deprecated:
   - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+  - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
+
+- All static methods for accessing a various shared instances are now deprecated:
+  - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.
+  - `PowerAuthClientConfiguration.sharedInstance()` - use a class constructor with no parameters if you want to create the default configuration.
+  - `PowerAuthKeychainConfiguration.sharedInstance()` - use a class constructor with no parameters if you want to create the default configuration.
+
+- The following properties in `PowerAuthKeychainConfiguration` class are now deprecated:
+  - `linkBiometricItemsToCurrentSet` - use new `PowerAuthBiometricConfiguration.invalidateBiometricFactorAfterChange` instead, with the same meaning.
+  - `allowBiometricAuthenticationFallbackToDevicePasscode` - use new `PowerAuthBiometricConfiguration.allowFallbackToDevicePasscode` instead, with the same meaning.
+  - `invalidateLocalAuthenticationContextAfterUse` - use new `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead, with the same meaning.
+  - Be aware that if you provide both, `PowerAuthBiometricConfiguration` and  `PowerAuthKeychainConfiguration` objects to initialize `PowerAuthSDK`, then the values from the biometric configuration takes precedence.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:

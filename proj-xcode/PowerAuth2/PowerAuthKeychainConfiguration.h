@@ -58,8 +58,10 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
 
 /**
  Access group name used by the PowerAuthSDK keychain instances.
+ 
+ The property is deprecated, you can use `PowerAuthSharingConfiguration` to properly configure activation data sharing between applications and extensions.
  */
-@property (nonatomic, strong, nullable) NSString *keychainAttribute_AccessGroup;
+@property (nonatomic, strong, nullable) NSString *keychainAttribute_AccessGroup PA2_DEPRECATED(1.10.0);
 
 /**
  Suite name used by the NSUserDefaults that check for Keychain data presence.
@@ -67,8 +69,10 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
  If the value is not set, `standardUserDefaults` are used. Otherwise, user defaults with given suite name are created.
  In case a developer started using SDK with no suite name specified, the developer is responsible for migrating data
  to the new `NSUserDefaults` before using the SDK with the new suite name.
+ 
+ The property is deprecated, you can use `PowerAuthSharingConfiguration` to properly configure activation data sharing between applications and extensions.
  */
-@property (nonatomic, strong, nullable) NSString *keychainAttribute_UserDefaultsSuiteName;
+@property (nonatomic, strong, nullable) NSString *keychainAttribute_UserDefaultsSuiteName PA2_DEPRECATED(1.10.0);
 
 /**
  Name of the Keychain service used to store statuses for different PowerAuth instances.
@@ -98,26 +102,37 @@ extern NSString * __nonnull const PowerAuthKeychainKey_Possession;
  If set, then the item protected with the biometry is invalidated if fingers are added or removed
  for Touch ID, or if the user re-enrolls for Face ID. The default value is NO (e.g. changing biometry
  in the system doesn't invalidate the entry)
+ 
+ This property is deprecated. Please use `PowerAuthBiometricConfiguration.invalidateBiometricFactorAfterChange` instead.
+ If both configuration classes are used to initialize `PowerAuthSDK`, the value from `PowerAuthBiometricConfiguration` takes precedence.
  */
-@property (nonatomic, assign) BOOL linkBiometricItemsToCurrentSet;
+@property (nonatomic, assign) BOOL linkBiometricItemsToCurrentSet PA2_DEPRECATED(1.10.0);
 
 /**
  If set to YES, then the item protected with the biometry can be accessed also with a device passcode.
  If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is NO, so fallback
  to device's passcode is not enabled.
+ 
+ This property is deprecated. Please use `PowerAuthBiometricConfiguration.allowFallbackToDevicePasscode` instead.
+ If both configuration classes are used to initialize `PowerAuthSDK`, the value from `PowerAuthBiometricConfiguration` takes precedence.
  */
-@property (nonatomic, assign) BOOL allowBiometricAuthenticationFallbackToDevicePasscode;
+@property (nonatomic, assign) BOOL allowBiometricAuthenticationFallbackToDevicePasscode PA2_DEPRECATED(1.10.0);
 
 /**
  If set to YES, then the LAContext object provided by application is invalidated after the use in SDK.
  The default value is YES, so `LAContext` cannot be reused for getting keys protected with biometry.
+ 
+ This property is deprecated. Please use `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead.
+ If both configuration classes are used to initialize `PowerAuthSDK`, the value from `PowerAuthBiometricConfiguration` takes precedence.
  */
-@property (nonatomic, assign) BOOL invalidateLocalAuthenticationContextAfterUse;
+@property (nonatomic, assign) BOOL invalidateLocalAuthenticationContextAfterUse PA2_DEPRECATED(1.10.0);
 
 /** Return the shared in stance of a Keychain configuration object.
  
+ This static method is deprecated. Please use the configuration object created and managed by your application.
+ 
  @return Shared instance of a Keychain configuration.
  */
-+ (nonnull instancetype) sharedInstance;
++ (nonnull instancetype) sharedInstance PA2_DEPRECATED(1.10.0);
 
 @end

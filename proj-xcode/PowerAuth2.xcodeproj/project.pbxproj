@@ -434,6 +434,10 @@
 		BFEC963A21B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFEC963821B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFEC963B21B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m in Sources */ = {isa = PBXBuildFile; fileRef = BFEC963921B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m */; };
 		BFEC963E21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFEC963C21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFF6045A2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF604592D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m */; };
+		BFF6045B2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BFF604582D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFF6045C2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h in Headers */ = {isa = PBXBuildFile; fileRef = BFF604582D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BFF6045D2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF604592D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m */; };
 		BFF6716B243376B0009279CA /* PowerAuthActivation.h in Headers */ = {isa = PBXBuildFile; fileRef = BFF67169243376B0009279CA /* PowerAuthActivation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFF6716C243376B0009279CA /* PowerAuthActivation.m in Sources */ = {isa = PBXBuildFile; fileRef = BFF6716A243376B0009279CA /* PowerAuthActivation.m */; };
 		BFF711DE265D4FC800DB696A /* PowerAuthWCSessionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA0E2A1200D12420011F0A6 /* PowerAuthWCSessionManager.m */; };
@@ -823,6 +827,8 @@
 		BFEC963921B6932D00FB5165 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthBasicHttpAuthenticationRequestInterceptor.m; sourceTree = "<group>"; };
 		BFEC963C21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCustomHeaderRequestInterceptor.h; sourceTree = "<group>"; };
 		BFEC963D21B6990400FB5165 /* PowerAuthCustomHeaderRequestInterceptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCustomHeaderRequestInterceptor.m; sourceTree = "<group>"; };
+		BFF604582D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthBiometricConfiguration.h; sourceTree = "<group>"; };
+		BFF604592D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthBiometricConfiguration.m; sourceTree = "<group>"; };
 		BFF67169243376B0009279CA /* PowerAuthActivation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthActivation.h; sourceTree = "<group>"; };
 		BFF6716A243376B0009279CA /* PowerAuthActivation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthActivation.m; sourceTree = "<group>"; };
 		BFFB0B9B2167A541004A06E2 /* PA2CreateActivationRequestData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PA2CreateActivationRequestData.h; sourceTree = "<group>"; };
@@ -1023,6 +1029,8 @@
 				1B0A239C1D6C6F9E00D24167 /* PowerAuthConfiguration.m */,
 				BF8BFBEA215BBA7B001D6852 /* PowerAuthClientConfiguration.h */,
 				BF8BFBEB215BBA7B001D6852 /* PowerAuthClientConfiguration.m */,
+				BFF604582D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h */,
+				BFF604592D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m */,
 				BF28AA2427EC710F00FBFCEB /* PowerAuthSharingConfiguration.h */,
 				BF28AA2527EC710F00FBFCEB /* PowerAuthSharingConfiguration.m */,
 				BFF67169243376B0009279CA /* PowerAuthActivation.h */,
@@ -1492,6 +1500,7 @@
 				BF38903A2A97861100D7A18E /* PA2TimeSynchronizationService.h in Headers */,
 				BFFECE972636EC41001DA7A9 /* PowerAuthSessionStatusProvider.h in Headers */,
 				BFFECEB926383CF7001DA7A9 /* PowerAuthDeprecated.h in Headers */,
+				BFF6045C2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h in Headers */,
 				BF5EB53124C85FE200F9DDB2 /* PowerAuthSDK.h in Headers */,
 				BF08256D2631670D00B34E24 /* PowerAuthActivationResult.h in Headers */,
 				BF5EB53224C85FE200F9DDB2 /* PowerAuthRestApiError.h in Headers */,
@@ -1612,6 +1621,7 @@
 				BF02103F2164C67F009745A2 /* PA2HttpClient.h in Headers */,
 				BFD3896F2C62640F0087F96D /* PA2GetTemporaryKeyRequest.h in Headers */,
 				BF8CF50D2032EB41002A6B6E /* PA2PrivateMacros.h in Headers */,
+				BFF6045B2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2042,6 +2052,7 @@
 				BF28AA1A27EB1EDE00FBFCEB /* PA2SessionDataProvider.m in Sources */,
 				BF28AA2F27ECA34900FBFCEB /* PowerAuthExternalPendingOperation.m in Sources */,
 				BF5EB4C824C85FE200F9DDB2 /* PowerAuthBasicHttpAuthenticationRequestInterceptor.m in Sources */,
+				BFF6045D2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m in Sources */,
 				BF5EB4C924C85FE200F9DDB2 /* PowerAuthConfiguration.m in Sources */,
 				BF5EB4CA24C85FE200F9DDB2 /* PA2PrivateEncryptorFactory.m in Sources */,
 				BF5EB4CC24C85FE200F9DDB2 /* PA2CreateActivationResponseData.m in Sources */,
@@ -2203,6 +2214,7 @@
 				BFADA9C921B6C0CE001C6EC2 /* PowerAuthCustomHeaderRequestInterceptor.m in Sources */,
 				BF8CF4BD2032EB41002A6B6E /* PowerAuthRestApiErrorResponse.m in Sources */,
 				BF28AA0D27EA09F000FBFCEB /* PA2SharedSessionInterface.m in Sources */,
+				BFF6045A2D3FFCDC0053C3E6 /* PowerAuthBiometricConfiguration.m in Sources */,
 				BF0210442164D403009745A2 /* PA2AsyncOperation.m in Sources */,
 				BF8CF4BE2032EB41002A6B6E /* PA2PrivateHttpTokenProvider.m in Sources */,
 				BF8CF4C02032EB41002A6B6E /* PA2EncryptedRequest.m in Sources */,

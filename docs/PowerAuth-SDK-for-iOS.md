@@ -158,6 +158,14 @@ The `PowerAuthConfiguration` has the following additional properties:
 - `disableAutomaticProtocolUpgrade` - If set to `true`, then automatic protocol upgrade is disabled. This option should be used only for the debugging purposes.
 - `keychainKey_Biometry` - Specifies the 'key' used to store the `PowerAuthSDK` instance’s biometry-related key in the biometry keychain. If not set, the `instanceId` is applied. Do not alter this configuration unless you have a valid reason to do so.
 
+### Biometric configuration
+
+The `PowerAuthBiometricConfiguration` object configures biometric authentication in the `PowerAuthSDK` object. It has the following configuration properties:
+
+- `invalidateBiometricFactorAfterChange` - If set to `true`, the biometric factor is invalidated when fingers are added or removed for Touch ID, or when the user re-enrolls for Face ID. The default value is false (i.e., changing biometric settings in the system does not invalidate the biometric factor).
+- `allowFallbackToDevicePasscode` -  If set to `true`, an item protected with biometry can also be accessed using the device passcode. If enabled, the `invalidateBiometricFactorAfterChange` option has no effect. The default value is `false`, meaning fallback to the device passcode is not enabled.
+- `invalidateLocalAuthenticationContextAfterUse` - If set to `true`, the `LAContext` object provided by the application is invalidated after use in the SDK. The default value is true, meaning `LAContext` cannot be reused for retrieving keys protected with biometry.
+
 ### HTTP client configuration
 
 The `PowerAuthClientConfiguration` object contains configuration for a HTTP client used internally by `PowerAuthSDK` object. It has the following configuration properties:
@@ -169,21 +177,27 @@ The `PowerAuthClientConfiguration` object contains configuration for a HTTP clie
 
 ### Keychain configuration
 
-The `PowerAuthKeychainConfiguration` object contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally. The configuration contains the following properties:
+The `PowerAuthKeychainConfiguration` object contains configuration for a keychain-based storage used by `PowerAuthSDK` class internally.
 
-- `keychainAttribute_AccessGroup` - Property that specifies a keychain access group in case that keychain is shared between multiple applications or between application and its extensions.
-- `keychainAttribute_UserDefaultsSuiteName` - Property that specifies the name of `UserDefaults` suite to store the flag indicating that application has been re-installed. If the value is not provided, then `UserDefaults.standardUserDefaults` suite is used.
-- `linkBiometricItemsToCurrentSet` - If set, then the item protected with the biometry is invalidated if fingers are added or removed for Touch ID, or if the user re-enrolls for Face ID. The default value is `false` (e.g. changing biometry in the system doesn't invalidate the entry)
-- `allowBiometricAuthenticationFallbackToDevicePasscode` - If set to `true`, then the item protected with the biometry can be accessed also with a device passcode. If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is `false`, so fallback to device's passcode is not enabled.
-- `invalidateLocalAuthenticationContextAfterUse` - If set to `true`, then the `LAContext` object provided by application is invalidated after the use in SDK. The default value is `true`, so `LAContext` cannot be reused for getting keys protected with biometry.
+<!-- begin box warning -->
+We strongly discourage you from altering the properties in this configuration unless you know what you are doing.
+<!-- end -->
 
-The following properties are also available for configuration but are not recommended to be altered under typical circumstances, as changing them may impact the library’s stability or intended behavior:
+The configuration contains the following properties:
 
 - `keychainInstanceName_Status` - Property that specifies the name of the Keychain service used to store statuses for different PowerAuth instances. You should not change this property unless you have a valid reason to do so.
 - `keychainInstanceName_Possession` - Property that specifies the name of the Keychain service used to store possession factor related key (one value for all `PowerAuthSDK` instances).
 - `keychainInstanceName_Biometry` - Property that specifies the name of the Keychain service used to store biometry related keys for different `PowerAuthSDK` instances.
 - `keychainInstanceName_TokenStore` - Property that specifies the name of the Keychain service used to store content of `PowerAuthToken` objects.
-- `keychainKey_Possession` - Property that specifies a storage key used to store possession fator related key in an associated possession Keychain service.
+- `keychainKey_Possession` - Property that specifies a storage key used to store possession factor related key in an associated possession Keychain service.
+
+The following properties are defined, but deprecated:
+
+- `keychainAttribute_AccessGroup` - Property that specifies a keychain access group in case that keychain is shared between multiple applications or between application and its extensions. Use configuration for [Activation Data Sharing](#configure-activation-data-sharing) instead.
+- `keychainAttribute_UserDefaultsSuiteName` - Property that specifies the name of `UserDefaults` suite to store the flag indicating that application has been re-installed. If the value is not provided, then `UserDefaults.standardUserDefaults` suite is used. Use configuration for [Activation Data Sharing](#configure-activation-data-sharing) instead.
+- `linkBiometricItemsToCurrentSet` - If set, then the item protected with the biometry is invalidated if fingers are added or removed for Touch ID, or if the user re-enrolls for Face ID. The default value is `false` (e.g. changing biometry in the system doesn't invalidate the entry). Use `PowerAuthBiometricConfiguration.invalidateBiometricFactorAfterChange` instead.
+- `allowBiometricAuthenticationFallbackToDevicePasscode` - If set to `true`, then the item protected with the biometry can be accessed also with a device passcode. If set, then `linkBiometricItemsToCurrentSet` option has no effect. The default is `false`, so fallback to device's passcode is not enabled. Use `PowerAuthBiometricConfiguration.allowFallbackToDevicePasscode` instead.
+- `invalidateLocalAuthenticationContextAfterUse` - If set to `true`, then the `LAContext` object provided by application is invalidated after the use in SDK. The default value is `true`, so `LAContext` cannot be reused for getting keys protected with biometry. Use `PowerAuthBiometricConfiguration.invalidateLocalAuthenticationContextAfterUse` instead.
 
 
 ## Activation
@@ -1037,20 +1051,20 @@ powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { 
 
 ### Biometry Factor-Related Key Lifetime
 
-By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide the `PowerAuthKeychainConfiguration` object with the `linkBiometricItemsToCurrentSet` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+By default, the biometry factor-related key is **NOT** invalidated after the biometry enrolled in the system is changed. For example, if the user adds or removes the finger or enrolls with a new face, then the biometry factor-related key is still available for the signing operation. To change this behavior, you have to provide the `PowerAuthBiometricConfiguration` object with the `invalidateBiometricFactorAfterChange` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
 ```swift
 // Prepare your PA config
 let configuration = PowerAuthConfiguration()
 // ...
 
-// Prepare PowerAuthKeychainConfiguration
-// Set true to the 'linkBiometricItemsToCurrentSet' property.
-let keychainConfiguration = PowerAuthKeychainConfiguration()
-keychainConfiguration.linkBiometricItemsToCurrentSet = true
+// Prepare PowerAuthBiometricConfiguration
+// Set true to the 'invalidateBiometricFactorAfterChange' property.
+let biometricConfiguration = PowerAuthBiometricConfiguration()
+biometricConfiguration.invalidateBiometricFactorAfterChange = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ```
 
 <!-- begin box warning -->
@@ -1059,23 +1073,23 @@ Be aware that the configuration above is effective only for the new keys. So, if
 
 ### Fallback biometry to device passcode
 
-By default, the fallback from biometric authentication to authenticate with the device's passcode is not allowed. To change this behavior, you have to provide the `PowerAuthKeychainConfiguration` object with the `allowBiometricAuthenticationFallbackToDevicePasscode` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
+By default, the fallback from biometric authentication to authenticate with the device's passcode is not allowed. To change this behavior, you have to provide the `PowerAuthBiometricConfiguration` object with the `allowFallbackToDevicePasscode` parameter set to `true` and use that configuration for the `PowerAuthSDK` instance construction:
 
 ```swift
 // Prepare your PA config
 let configuration = PowerAuthConfiguration()
 // ...
 
-// Prepare PowerAuthKeychainConfiguration
-// Set true to the 'allowBiometricAuthenticationFallbackToDevicePasscode' property.
-let keychainConfiguration = PowerAuthKeychainConfiguration()
-keychainConfiguration.allowBiometricAuthenticationFallbackToDevicePasscode = true
+// Prepare PowerAuthBiometricConfiguration
+// Set true to the 'allowFallbackToDevicePasscode' property.
+let biometricConfiguration = PowerAuthBiometricConfiguration()
+biometricConfiguration.allowFallbackToDevicePasscode = true
 
 // Init PowerAuthSDK instance
-let powerAuthSDK = PowerAuthSDK(configuration: configuration, keychainConfiguration: keychainConfiguration, clientConfiguration: nil)
+let powerAuthSDK = PowerAuthSDK(configuration: configuration, biometricConfiguration: biometricConfiguration, clientConfiguration: nil)
 ``` 
 
-Once the configuration above is used, then the `linkBiometricItemsToCurrentSet` option does not affect the biometry factor-related key lifetime. 
+Once the configuration above is used, then the `invalidateBiometricFactorAfterChange` option does not affect the biometry factor-related key lifetime. 
 
 <!-- begin box warning -->
 It's not recommended to allow fallback to device passcodes if your application falls under EU banking regulations or your application needs to distinguish between the biometric and the knowledge-factor-based signatures. This is because if the biometry factor-related key is unlocked with the device's passcode, then it's no longer a biometric signature.
@@ -1118,7 +1132,7 @@ If you plan to pre-authorize `LAContext` and use it for multiple biometry signat
 - Multiple signatures in a row could be problematic if your application falls under EU banking regulations.
 - It would be difficult to prove that the user authorized the request if your application contains a bug and does the signature on the user's behalf or with the wrong context.
 
-If you still insist to re-use `LAContext` then you have to alter `PowerAuthKeychainConfiguration` and set `invalidateLocalAuthenticationContextAfterUse` to `false`.
+If you still insist to re-use `LAContext` then you have to alter `PowerAuthBiometricConfiguration` and set `invalidateLocalAuthenticationContextAfterUse` to `false`.
 
 
 ## Biometry troubleshooting
@@ -1960,16 +1974,13 @@ Here's the list of important error codes, which the application should properly 
 Sometimes, you may need to develop or test your application against a service that runs over HTTPS protocol with an invalid (self-signed) SSL certificate. By default, the HTTP client used in PowerAuth SDK communication validates the certificate. To disable the certificate validation, add the following code just before your `PowerAuthSDK` instance configuration:
 
 ```swift
-// Set `PowerAuthClientSslNoValidationStrategy as the default client SSL certificate validation strategy`
-PowerAuthClientConfiguration.sharedInstance().sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
-
-// In case you're setting the `PowerAuthClientConfiguration` explicitly, use:
+// Create a custom  `PowerAuthClientConfiguration` object:
 let clientConfig = PowerAuthClientConfiguration()
 clientConfig.sslValidationStrategy = PowerAuthClientSslNoValidationStrategy()
 // configure the PowerAuthSDK object
 let powerAuthSDK = PowerAuthSDK(
     configuration: PowerAuthConfiguration(...),
-    keychainConfiguration: nil, // optional, default will be used when nil
+    biometricConfiguration: nil, // optional, default will be used when nil
     clientConfiguration: clientConfig
 )
 ```

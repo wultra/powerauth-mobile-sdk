@@ -240,15 +240,53 @@
                                                           extras:(nullable NSString*)extras
                                                         callback:(nonnull void(^)(PowerAuthActivationResult * _Nullable result, NSError * _Nullable error))callback;
 
+
+/**
+ Persist activation that was created and store related data using provided authentication instance.
+ 
+ @param authentication An authentication instance specifying what factors should be stored.
+ @param callback A callback called when the process finishes - it contains an error in case of failure.
+ @exception NSException thrown in case configuration is not present.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                   callback:(nonnull void(^)(NSError * _Nullable error))callback;
+
+/**
+ Persist activation that was created and store related data using default authentication instance setup with provided password.
+  
+ @param password Password to be used for the knowledge related authentication factor.
+ @param callback A callback called when the process finishes - it contains an error in case of failure.
+ @exception NSException thrown in case configuration is not present.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) persistActivationWithPassword:(nonnull NSString*)password
+                                                             callback:(nonnull void(^)(NSError * _Nullable error))callback
+                                                                NS_SWIFT_NAME(persistActivation(withPassword:callback:));
+
+/**
+ Persist activation that was created and store related data using default authentication instance setup with provided password.
+  
+ @param password Password to be used for the knowledge related authentication factor.
+ @param callback A callback called when the process finishes - it contains an error in case of failure.
+ @exception NSException thrown in case configuration is not present.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
+                                                                 callback:(nonnull void(^)(NSError * _Nullable error))callback
+                                                                    NS_SWIFT_NAME(persistActivation(withPassword:callback:));
+
 /**
  Persist activation that was created and store related data using provided authentication instance.
  
  @param authentication An authentication instance specifying what factors should be stored.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
-                                       error:(NSError * _Nullable * _Nullable)error;
+                                       error:(NSError * _Nullable * _Nullable)error
+                                        PA2_DEPRECATED(1.10.0);
 
 /** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
@@ -257,10 +295,12 @@
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithPassword:(nonnull NSString*)password
                                  error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(persistActivation(withPassword:));
+                            NS_SWIFT_NAME(persistActivation(withPassword:))
+                            PA2_DEPRECATED(1.10.0);
 
 /** Persist activation that was created and store related data using default authentication instance setup with provided password.
  
@@ -269,10 +309,12 @@
  @param password Password to be used for the knowledge related authentication factor.
  @param error Error reference in case some error occurs.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Please use asynchronous variant of this method as a replacement.
  */
 - (BOOL) persistActivationWithCorePassword:(nonnull PowerAuthCorePassword*)password
                                      error:(NSError * _Nullable * _Nullable)error
-                            NS_SWIFT_NAME(persistActivation(withPassword:));
+                            NS_SWIFT_NAME(persistActivation(withPassword:))
+                             PA2_DEPRECATED(1.10.0);
 
 /**
  Read only property contains fingerprint calculated from device's public key or nil if object has no valid activation.

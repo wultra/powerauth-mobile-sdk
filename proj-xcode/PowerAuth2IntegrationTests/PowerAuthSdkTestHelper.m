@@ -307,13 +307,25 @@ static NSString * PA_Ver = @"3.3";
     
     // 3) CLIENT: Now it's time to commit activation locally
     PowerAuthAuthentication * auth = commitWithBio ? [self createAuthenticationWithBiometry] : [self createAuthentication];
-    if (commitWithPass) {
-        result = [_sdk persistActivationWithPassword:auth.password.extractedPassword error:&error];
-    } else if (commitWithCorePass) {
-        result = [_sdk persistActivationWithCorePassword:auth.password error:&error];
-    } else {
-        // By default, use authentication for commit
-        result = [_sdk persistActivationWithAuthentication:auth error:&error];
+    error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        if (commitWithPass) {
+            [_sdk persistActivationWithPassword:auth.password.extractedPassword callback:^(NSError * _Nullable error) {
+                [waiting reportCompletion:error];
+            }];
+        } else if (commitWithCorePass) {
+            [_sdk persistActivationWithCorePassword:auth.password callback:^(NSError * _Nullable error) {
+                [waiting reportCompletion:error];
+            }];
+        } else {
+            // By default, use authentication for commit
+            [_sdk persistActivationWithAuthentication:auth callback:^(NSError * _Nullable error) {
+                [waiting reportCompletion:error];
+            }];
+        }
+    }];
+    result = error == nil;
+    if (error) {
+        XCTFail(@"Persist activation failed: %@", error);
     }
     if (!result) {
         return nil;

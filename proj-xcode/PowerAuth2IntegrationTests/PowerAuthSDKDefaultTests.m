@@ -852,9 +852,12 @@
     
     XCTAssertTrue(_sdk.hasValidActivation);
     
-    NSError * err = nil;
-    BOOL res = [_sdk persistActivationWithPassword:@"1234" error:&err];
-    XCTAssertFalse(res);
+    NSError * err = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk persistActivationWithPassword:@"1234" callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    XCTAssertNotNil(err);
     XCTAssertEqual(PowerAuthErrorCode_InvalidActivationState, err.powerAuthErrorCode);
     
     XCTAssertTrue(_sdk.hasValidActivation);

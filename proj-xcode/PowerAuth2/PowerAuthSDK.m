@@ -770,8 +770,34 @@ static PowerAuthSDK * s_inst;
     return [self createActivation:activation callback:callback];
 }
 
-#pragma mark Commit
+#pragma mark Persist
 
+- (id<PowerAuthOperationTask>) persistActivationWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                          callback:(void(^)(NSError * error))callback
+{
+    [self checkForValidSetup];
+    callback([self persistActivationInSession:authentication]);
+    // In Crypto 3.3, there's no activation confirmation, so "persist" can be executed immediately.
+    return nil;
+}
+
+- (id<PowerAuthOperationTask>) persistActivationWithPassword:(NSString*)password
+                                                    callback:(void(^)(NSError * error))callback
+{
+    return [self persistActivationWithAuthentication:[PowerAuthAuthentication persistWithPassword:password]
+                                            callback:callback];
+}
+
+- (id<PowerAuthOperationTask>) persistActivationWithCorePassword:(PowerAuthCorePassword*)password
+                                                        callback:(void(^)(NSError * error))callback
+{
+    return [self persistActivationWithAuthentication:[PowerAuthAuthentication persistWithCorePassword:password]
+                                            callback:callback];
+}
+
+#pragma mark Persist - deprecated
+
+// PA2_DEPRECATED(1.10.0)
 - (BOOL) persistActivationWithPassword:(NSString*)password
                                  error:(NSError**)error
 {
@@ -779,6 +805,7 @@ static PowerAuthSDK * s_inst;
                                                error:error];
 }
 
+// PA2_DEPRECATED(1.10.0)
 - (BOOL) persistActivationWithCorePassword:(PowerAuthCorePassword *)password
                                      error:(NSError **)error
 {
@@ -786,48 +813,12 @@ static PowerAuthSDK * s_inst;
                                                error:error];
 }
 
+// PA2_DEPRECATED(1.10.0)
 - (BOOL) persistActivationWithAuthentication:(PowerAuthAuthentication*)authentication
                                        error:(NSError**)error
 {
     [self checkForValidSetup];
-    
-    // Validate authentication object usage
-    [authentication validateUsage:YES];
-    
-    NSError * reportedError = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
-        // Check if there is a pending activation present and not an already existing valid activation
-        if (!session.hasPendingActivation) {
-            return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-        }
-        // Prepare key encryption keys
-        NSData *possessionKey = nil;
-        NSData *biometryKey = nil;
-        if (authentication.usePossession) {
-            possessionKey = [self deviceRelatedKey];
-        }
-        if (authentication.useBiometry) {
-            biometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
-        }
-        
-        // Prepare signature unlock keys structure
-        PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
-        keys.possessionUnlockKey = possessionKey;
-        keys.biometryUnlockKey = biometryKey;
-        keys.userPassword = authentication.password;
-        
-        // Complete the activation
-        BOOL result = [session completeActivation:keys];
-        // Store keys in Keychain
-        if (result) {
-            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-            if (biometryKey) {
-                [_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
-            }
-            // Clear TokenStore
-            [_tokenStore removeAllLocalTokens];
-        }
-        return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
-    }];
+    NSError * reportedError = [self persistActivationInSession:authentication];
     if (reportedError && error) {
         *error = reportedError;
     }
@@ -925,6 +916,46 @@ static PowerAuthSDK * s_inst;
     return [PA2Result failure:localError];
 }
 
+- (NSError*) persistActivationInSession:(PowerAuthAuthentication*)authentication
+{
+    // Validate authentication object usage
+    [authentication validateUsage:YES];
+    
+    return [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
+        // Check if there is a pending activation present and not an already existing valid activation
+        if (!session.hasPendingActivation) {
+            return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
+        }
+        // Prepare key encryption keys
+        NSData *possessionKey = nil;
+        NSData *biometryKey = nil;
+        if (authentication.usePossession) {
+            possessionKey = [self deviceRelatedKey];
+        }
+        if (authentication.useBiometry) {
+            biometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
+        }
+        
+        // Prepare signature unlock keys structure
+        PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];
+        keys.possessionUnlockKey = possessionKey;
+        keys.biometryUnlockKey = biometryKey;
+        keys.userPassword = authentication.password;
+        
+        // Complete the activation
+        BOOL result = [session completeActivation:keys];
+        // Store keys in Keychain
+        if (result) {
+            [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+            if (biometryKey) {
+                [_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
+            }
+            // Clear TokenStore
+            [_tokenStore removeAllLocalTokens];
+        }
+        return result ? nil : PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
+    }];
+}
 
 #pragma mark Getting activations state
 

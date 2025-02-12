@@ -354,7 +354,12 @@ After you create an activation using one of the methods mentioned above, you nee
 
 ```swift
 do {
-    try powerAuthSDK.persistActivation(withPassword: "1234")
+    powerAuthSDK.persistActivation(withPassword: "1234") { error in
+        guard let error {
+            // process error
+        }
+        // success
+    }
 } catch _ {
     // happens only in case SDK was not configured or activation is not in a state to be persisted
 }
@@ -365,8 +370,12 @@ This code has created activation with two factors: possession (key stored using 
 ```swift
 do {
     let auth = PowerAuthAuthentication.persistWithPasswordAndBiometry(password: "1234")
-
-    try powerAuthSDK.persistActivation(with: auth)
+    powerAuthSDK.persistActivation(with: auth) { error in
+        guard let error {
+            // process error
+        }
+        // success
+    }
 } catch _ {
     // happens only in case SDK was not configured or activation is not in a state to be persisted
 }
@@ -1867,7 +1876,7 @@ In other cases, you receive an error via an exception, like in this example:
 
 ```swift
 do {
-    try powerAuthSDK.persistActivation(withPassword: "1234")
+    try powerAuthSDK.removeExternalEncryptionKey()
 } catch let error as NSError {
     // Handle 'error' here
 }

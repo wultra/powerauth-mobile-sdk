@@ -33,13 +33,13 @@ namespace protocol
     /**
      Validates "shortId-OTP" sequence with provided master key and signature
      */
-    bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, EC_KEY * mk);
+    bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, const crypto::EVPKeyPair & mk);
     
     /**
      Validates "activationCode" sequence with provided master key and signature.
      The code & signature may be empty for custom activation.
      */
-    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, EC_KEY * mk);
+    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, const crypto::EVPKeyPair & mk);
     
     /**
      Reduces size of shared secret produced in ECDH.

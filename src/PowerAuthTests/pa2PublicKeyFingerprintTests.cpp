@@ -52,7 +52,6 @@ namespace powerAuthTests
                 std::string fingerprint = protocol::CalculateActivationFingerprint(devicePublicKeyData, serverPublicKeyData, activationId, Version_V3);
                 if (fingerprint != expectedFingerprint) {
                     ccstFailure("Doesn't match: Expected %s vs %s", expectedFingerprint.c_str(), fingerprint.c_str());
-                    break;
                 }
             }
         }

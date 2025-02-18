@@ -265,11 +265,9 @@ namespace powerAuth
         auto ad = new protocol::ActivationData();
         
         do {
-            crypto::BNContext ctx;
-            
             // Import master server public key & try to validate OTP+ShortID signature
-            ad->masterServerPublicKey = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
-            if (nullptr == ad->masterServerPublicKey) {
+            ad->masterServerPublicKey = crypto::ECC_ImportPublicKeyFromB64(crypto::EllipticCurve::P256, _setup.masterServerPublicKey);
+            if (!ad->masterServerPublicKey.isValid()) {
                 CC7_LOG("Session %p: Step 1: Master server public key is invalid.", this);
                 break;
             }
@@ -282,12 +280,12 @@ namespace powerAuth
             crypto::ReseedPRNG();
             
             // Generate device's private & public key pair
-            ad->devicePrivateKey = crypto::ECC_GenerateKeyPair();
-            if (nullptr == ad->devicePrivateKey) {
+            ad->devicePrivateKey = crypto::ECC_GenerateKeyPair(crypto::EllipticCurve::P256);
+            if (!ad->devicePrivateKey.isValid()) {
                 CC7_LOG("Session %p: Step 1: Private key pair generator failed.", this);
                 break;
             }
-            ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey, ctx);
+            ad->devicePublicKeyData = crypto::ECC_ExportPublicKey(ad->devicePrivateKey);
             if (ad->devicePublicKeyData.empty()) {
                 CC7_LOG("Session %p: Step 1: Unable to export public key.", this);
                 break;
@@ -338,8 +336,8 @@ namespace powerAuth
             }
             // Now try to import server's public key
             _ad->serverPublicKeyData.readFromBase64String(param.serverPublicKey);
-            _ad->serverPublicKey = crypto::ECC_ImportPublicKey(nullptr, _ad->serverPublicKeyData);
-            if (!_ad->serverPublicKey) {
+            _ad->serverPublicKey = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, _ad->serverPublicKeyData);
+            if (!_ad->serverPublicKey.isValid()) {
                 CC7_LOG("Session %p: Step 2: Server's public key is not valid.", this);
                 break;
             }
@@ -684,16 +682,15 @@ namespace powerAuth
         }
         // Import public key
         bool success = false;
-        crypto::BNContext ctx;
-        EC_KEY * ec_public_key;
+        auto ec_public_key = crypto::EVPKeyPair::invalid();
         if (use_master_server_key) {
             // Import master server public key
-            ec_public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, _setup.masterServerPublicKey, ctx);
+            ec_public_key = crypto::ECC_ImportPublicKeyFromB64(crypto::EllipticCurve::P256, _setup.masterServerPublicKey);
         } else {
             // Import server public key, which is personalized and associated with this session.
-            ec_public_key = crypto::ECC_ImportPublicKey(nullptr, _pd->serverPublicKey);
+            ec_public_key = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, _pd->serverPublicKey);
         }
-        if (nullptr != ec_public_key) {
+        if (ec_public_key.isValid()) {
             // validate signature
             if (data.signatureFormat == SignedData::ECDSA_JOSE) {
                 // Convert signature from JOSE to DER first.
@@ -706,9 +703,6 @@ namespace powerAuth
         } else {
             CC7_LOG("Session %p: ServerSig: %s public key is invalid.", this, use_master_server_key ? "Master server" : "Server");
         }
-        // Free allocated OpenSSL resources
-        EC_KEY_free(ec_public_key);
-        
         return success ? EC_Ok : EC_Encryption;
     }
 
@@ -805,9 +799,9 @@ namespace powerAuth
         }
 
         // Ok, we have vault key and now we can decrypt stored device's private key.
-        crypto::BNContext ctx;
-        EC_KEY * device_private_key = nullptr;
-        EC_KEY * server_public_key  = nullptr;
+        
+        auto device_private_key = crypto::EVPKeyPair::invalid();
+        auto server_public_key  = crypto::EVPKeyPair::invalid();
         code = EC_Encryption;
         
         do {
@@ -819,8 +813,8 @@ namespace powerAuth
                 break;
             }
             // Import device's private & server's public key
-            device_private_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
-            server_public_key  = crypto::ECC_ImportPublicKey(nullptr, _pd->serverPublicKey, ctx);
+            device_private_key = crypto::ECC_ImportPrivateKey(crypto::EllipticCurve::P256, device_private_key_data);
+            server_public_key  = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, _pd->serverPublicKey);
             cc7::ByteArray master_secret = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(server_public_key, device_private_key));
             if (master_secret.empty()) {
                 break;
@@ -844,9 +838,6 @@ namespace powerAuth
             code = EC_Ok;
 
         } while (false);
-
-        EC_KEY_free(device_private_key);
-        EC_KEY_free(server_public_key);
 
         return code;
     }
@@ -910,8 +901,7 @@ namespace powerAuth
         }
         
         // Ok, we have vault key and now we can decrypt stored device's private key.
-        crypto::BNContext ctx;
-        EC_KEY * device_private_key = nullptr;
+        auto device_private_key = crypto::EVPKeyPair::invalid();
         code = EC_Encryption;
         
         do {
@@ -923,7 +913,7 @@ namespace powerAuth
                 break;
             }
             // Import device's private key & calculate signature
-            device_private_key = crypto::ECC_ImportPrivateKey(nullptr, device_private_key_data, ctx);
+            device_private_key = crypto::ECC_ImportPrivateKey(crypto::EllipticCurve::P256, device_private_key_data);
             if (!crypto::ECDSA_ComputeSignature(in_data, device_private_key, out_signature)) {
                 // Signature calculation failed.
                 break;
@@ -937,8 +927,6 @@ namespace powerAuth
             }
             code = EC_Ok;
         } while (false);
-        
-        EC_KEY_free(device_private_key);
         
         return code;
     }

@@ -38,12 +38,13 @@ public enum ServerVersion {
     V1_8_0("1.8", 1008000, ProtocolVersion.V3_2),
     V1_9_0("1.9", 1009000, ProtocolVersion.V3_3),
     V1_10_0("1.10", 1010000, ProtocolVersion.V3_3),
+    V2_0_0("2.0", 2000000, ProtocolVersion.V4_0),
     ;
 
     /**
      * Contains constant for the latest PowerAuth Server version.
      */
-    public static final ServerVersion LATEST = V1_10_0;
+    public static final ServerVersion LATEST = V2_0_0;
 
     /**
      * Server version represented as string.

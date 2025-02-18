@@ -24,7 +24,8 @@ public enum ProtocolVersion {
     V3(30, "3.0"),
     V3_1(31, "3.1"),
     V3_2(32, "3.2"),
-    V3_3(33, "3.3");
+    V3_3(33, "3.3"),
+    V4_0(40, "4.0");
 
     public final int version;
     public final String versionForHeader;

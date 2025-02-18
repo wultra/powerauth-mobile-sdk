@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,211 +37,280 @@ namespace crypto
     using namespace io::getlime::powerAuth;
 
     // -------------------------------------------------------------------------------------------
-    // MARK: - ECC routines -
-    //
-    const int ECC_CURVE = NID_X9_62_prime256v1;
-    
-    EC_KEY * ECC_ImportPublicKey(EC_KEY * key, const cc7::ByteRange & publicKey, BN_CTX * c)
+    // MARK: - Private functions -
+
+    static inline bool IsECKey(const EVPKeyPair & key)
     {
-        bool result = false;
-        
-        BNContext ctx(c);
-        
-        if (!key) {
-            // Create a new key if key object is null.
-            key = EC_KEY_new_by_curve_name(ECC_CURVE);
+        return key.isValid() && EVP_PKEY_get_id(key) == EVP_PKEY_EC;
+    }
+
+    static const char * CurveToName(EllipticCurve curve)
+    {
+        switch (curve) {
+            case EllipticCurve::P256:
+                return "P-256";
+            case EllipticCurve::P384:
+                return "P-384";
+            default:
+                return nullptr;
         }
-        const EC_GROUP * group = key ? EC_KEY_get0_group(key) : nullptr;
-        EC_POINT *       point = key ? EC_POINT_new(group)    : nullptr;
-        
-        // If point is valid, then key & group is valid. Try to convert bytes to key and set it to
-        // the key structure.
-        if (point && (1 == EC_POINT_oct2point(group, point, publicKey.data(), publicKey.size(), ctx))) {
-            // Set makes copy of key and therefore we have to cleanup point later
-            result = (1 == EC_KEY_set_public_key(key, point));
-            // Validate imported public key.
-            result = result && (1 == EC_KEY_check_key(key));
-        }
-        
-        if (point) {
-            EC_POINT_free(point);
-        }
-        if (!result) {
-            if (key) {
-                // we don't care if key was created outside.
-                // error typically means that whole structure is wrong
-                // and useless.
-                EC_KEY_free(key);
-                key = nullptr;
+    }
+
+    static std::string GetGroupName(const EVPKeyPair & key)
+    {
+        std::string out;
+        size_t name_len = 0;
+        if (EVP_PKEY_get_group_name(key, NULL, 0, &name_len) == 1) {
+            cc7::ByteArray data;
+            data.resize(name_len);
+            if (EVP_PKEY_get_group_name(key, (char*)data.data(), data.size(), &name_len) != 1) {
+                out.assign((const char*)data.data(), data.size());
             }
         }
-        return key;
+        return out;
+    }
+
+    static cc7::ByteArray GetKeyParameter(const EVPKeyPair & key, const char * param_name)
+    {
+        cc7::ByteArray out;
+        size_t data_len = 0;
+        if (EVP_PKEY_get_octet_string_param(key, param_name, nullptr, 0, &data_len)) {
+            out.resize(data_len);
+            if (!EVP_PKEY_get_octet_string_param(key, param_name, out.data(), out.size(), &data_len)) {
+                out.clear();
+                OSSL_print_errors();
+            }
+            out.resize(data_len);
+        }
+        return out;
+    }
+
+
+    static bool ValidatePublicKey(const EVPKeyPair & key)
+    {
+        BIGNUM * coord_x = nullptr;
+        BIGNUM * coord_y = nullptr;
+        // Extract X
+        if (!EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_EC_PUB_X, &coord_x)) {
+            return false;
+        }
+        auto x = BigNum::take(coord_x);
+        // Extract Y
+        if (!EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_EC_PUB_Y, &coord_y)) {
+            return false;
+        }
+        auto y = BigNum::take(coord_y);
+        // Check infinity
+        if (BN_is_zero(x) || BN_is_zero(y)) {
+            return false;
+        }
+        return true;
+    }
+
+
+    // -------------------------------------------------------------------------------------------
+    // MARK: - ECC routines -
+    //
+
+    EVPKeyPair ECC_ImportPublicKey(EllipticCurve curve, const cc7::ByteRange & publicKey)
+    {
+        while (true) {
+            auto builder = OSSLParamBuilder::empty();
+            OSSL_PARAM_BLD_push_utf8_string(builder, OSSL_PKEY_PARAM_GROUP_NAME, CurveToName(curve), 0);
+            OSSL_PARAM_BLD_push_octet_string(builder, OSSL_PKEY_PARAM_PUB_KEY, publicKey.data(), publicKey.size());
+            
+            auto params = OSSLParam::take(OSSL_PARAM_BLD_to_param(builder));
+            auto ctx = EVPKeyPairContext::take(EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL));
+            if (!ctx.isValid() || EVP_PKEY_fromdata_init(ctx) <= 0) {
+                break;
+            }
+            EVP_PKEY * pkey = nullptr;
+            if (EVP_PKEY_fromdata(ctx, &pkey, EVP_PKEY_PUBLIC_KEY, params) <= 0) {
+                break;
+            }
+            auto result = EVPKeyPair::take(pkey);
+            if (!ValidatePublicKey(result)) {
+                break;
+            }
+            return result;
+        }
+        OSSL_print_errors();
+        return EVPKeyPair::invalid();
     }
     
     
-    EC_KEY * ECC_ImportPublicKeyFromB64(EC_KEY * key, const std::string & publicKey, BN_CTX * c)
+    EVPKeyPair ECC_ImportPublicKeyFromB64(EllipticCurve curve, const std::string & publicKey)
     {
         cc7::ByteArray keyData = cc7::FromBase64String(publicKey);
         if (keyData.empty()) {
-            if (key) {
-                // we don't care if key was created outside.
-                // error typically means that whole structure is wrong
-                // and useless.
-                EC_KEY_free(key);
-            }
-            return nullptr;
+            return EVPKeyPair::invalid();
         }
-        return ECC_ImportPublicKey(key, keyData, c);
+        return ECC_ImportPublicKey(curve, keyData);
     }
     
     
-    cc7::ByteArray ECC_ExportPublicKey(EC_KEY * key, BN_CTX * c)
+    cc7::ByteArray ECC_ExportPublicKey(const EVPKeyPair & key, bool compressed)
     {
-        BNContext ctx(c);
-        if (!key) {
-            return cc7::ByteArray();
-        }
-        const EC_POINT * publicKey = EC_KEY_get0_public_key(key);
-        size_t expected_len = EC_POINT_point2oct(EC_KEY_get0_group(key), publicKey, POINT_CONVERSION_COMPRESSED, nullptr, 0, ctx);
-        if (expected_len == 0) {
-            return cc7::ByteArray();
-        }
-        cc7::ByteArray out(expected_len, 0);
-        size_t written_len  = EC_POINT_point2oct(EC_KEY_get0_group(key), publicKey, POINT_CONVERSION_COMPRESSED, out.data(), out.size(), ctx);
-        if (expected_len != written_len) {
-            out.clear();
+        cc7::ByteArray out;
+        if (IsECKey(key)) {
+            auto key_format = compressed ? OSSL_PKEY_EC_POINT_CONVERSION_FORMAT_COMPRESSED : OSSL_PKEY_EC_POINT_CONVERSION_FORMAT_UNCOMPRESSED;
+            if (EVP_PKEY_set_utf8_string_param(key, OSSL_PKEY_PARAM_EC_POINT_CONVERSION_FORMAT, key_format)) {
+                out = GetKeyParameter(key, OSSL_PKEY_PARAM_PUB_KEY);
+            }
         }
         return out;
-        
     }
     
     
-    std::string ECC_ExportPublicKeyToB64(EC_KEY * key, BN_CTX * c)
+    std::string ECC_ExportPublicKeyToB64(const EVPKeyPair & key, bool compressed)
     {
-        auto keyData = ECC_ExportPublicKey(key, c);
+        auto keyData = ECC_ExportPublicKey(key, compressed);
         return cc7::ToBase64String(keyData);
     }
     
     
-    cc7::ByteArray ECC_ExportPublicKeyToNormalizedForm(EC_KEY * key, BN_CTX * c)
+    cc7::ByteArray ECC_ExportPublicKeyToNormalizedForm(const EVPKeyPair & key)
     {
         cc7::ByteArray out;
-        do {
-            if (!key) {
-                break;
+        if (IsECKey(key)) {
+            BIGNUM * coord_x = nullptr;
+            if (EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_EC_PUB_X, &coord_x)) {
+                out = BigNum_ToArray(BigNum::take(coord_x));
             }
-            BNContext ctx(c);
-            const EC_POINT * point = EC_KEY_get0_public_key(key);
-            BIGNUM * x = BN_CTX_get(ctx);
-            BIGNUM * y = BN_CTX_get(ctx);
-            if (!x || !y || !point) {
-                break;
-            }
-            const EC_GROUP * group = EC_KEY_get0_group(key);
-            if (EC_POINT_is_at_infinity(group, point)) {
-                break;
-            }
-            if (!EC_POINT_get_affine_coordinates_GFp(group, point, x, y, ctx)) {
-                break;
-            }
-            // Export X to bytes...
-            out.resize(BN_num_bytes(x));
-            BN_bn2bin(x, out.data());
-            
-        } while (false);
+        }
         return out;
     }
     
     
-    EC_KEY * ECC_ImportPrivateKey(EC_KEY * key, const cc7::ByteRange & privateKeyData, BN_CTX * c)
+    EVPKeyPair ECC_ImportPrivateKey(EllipticCurve curve, const cc7::ByteRange & privateKeyData)
     {
-        bool result = false;
-        BNContext ctx(c);
-        if (!key) {
-            key = EC_KEY_new_by_curve_name(ECC_CURVE);
+        while (true) {
+            auto builder = OSSLParamBuilder::empty();
+            auto privateKeyBN = BigNum_FromArray(privateKeyData);
+            OSSL_PARAM_BLD_push_utf8_string(builder, OSSL_PKEY_PARAM_GROUP_NAME, CurveToName(curve), 0);
+            OSSL_PARAM_BLD_push_BN(builder, OSSL_PKEY_PARAM_PRIV_KEY, privateKeyBN);
+            
+            auto params = OSSLParam::take(OSSL_PARAM_BLD_to_param(builder));
+            auto ctx = EVPKeyPairContext::take(EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL));
+            if (!ctx.isValid() || EVP_PKEY_fromdata_init(ctx) <= 0) {
+                break;
+            }
+            EVP_PKEY * pkey = nullptr;
+            if (EVP_PKEY_fromdata(ctx, &pkey, EVP_PKEY_PRIVATE_KEY, params) <= 0) {
+                break;
+            }
+            return EVPKeyPair::take(pkey);
         }
-        BIGNUM * s = BN_CTX_get(ctx);
-        if (s && nullptr != BN_bin2bn(privateKeyData.data(), (int)privateKeyData.size(), s)) {
-            result = (1 == EC_KEY_set_private_key(key, s));
-        }
-        if (!result) {
-            EC_KEY_free(key);
-            key = nullptr;
-        }
-        return key;
+        OSSL_print_errors();
+        return EVPKeyPair::invalid();
     }
-    
-    cc7::ByteArray ECC_ExportPrivateKey(EC_KEY * key, BN_CTX * c)
+
+
+    cc7::ByteArray ECC_ExportPrivateKey(const EVPKeyPair & key )
     {
-        cc7::ByteArray keyData;
-        const BIGNUM * private_key = EC_KEY_get0_private_key(key);
-        keyData.resize(BN_num_bytes(private_key));
-        BN_bn2bin(private_key, keyData.data());
-        return keyData;
-    }
-    
-    
-    EC_KEY * ECC_GenerateKeyPair()
-    {
-        EC_KEY * key = EC_KEY_new_by_curve_name(ECC_CURVE);
-        if (key) {
-            if (1 != EC_KEY_generate_key(key)) {
-                EC_KEY_free(key);
-                key = nullptr;
+        cc7::ByteArray out;
+        if (IsECKey(key)) {
+            BIGNUM * private_key = nullptr;
+            if (EVP_PKEY_get_bn_param(key, OSSL_PKEY_PARAM_PRIV_KEY, &private_key)) {
+                out = BigNum_ToArray(BigNum::take(private_key));
             }
         }
-        return key;
+        return out;
+    }
+    
+    
+    EVPKeyPair ECC_GenerateKeyPair(EllipticCurve curve)
+    {
+        while (true) {
+            auto ctx = EVPKeyPairContext::take(EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL));
+            if (!ctx.isValid()) {
+                break;
+            }
+            // Initialize keygen
+            if (EVP_PKEY_keygen_init(ctx) <= 0) {
+                break;
+            }
+            // Set the curve
+            if (EVP_PKEY_CTX_set_group_name(ctx, CurveToName(curve)) <= 0) {
+                break;
+            }
+            EVP_PKEY * pkey = nullptr;
+            if (EVP_PKEY_generate(ctx, &pkey) <= 0) {
+                break;
+            }
+            return EVPKeyPair::take(pkey);
+        }
+        OSSL_print_errors();
+        return EVPKeyPair::invalid();
     }
     
     // -------------------------------------------------------------------------------------------
     // MARK: - ECDSA -
     //
     
-    bool ECDSA_ValidateSignature(const cc7::ByteRange & signedData, const cc7::ByteRange & signature, EC_KEY * publicKey)
+    bool ECDSA_ValidateSignature(const cc7::ByteRange & signedData, const cc7::ByteRange & signature, const EVPKeyPair & publicKey)
     {
-        if (!publicKey) {
-            CC7_ASSERT(false, "Missing public key");
-            return false;
+        bool result = false;
+        do {
+            if (!IsECKey(publicKey)) {
+                break;
+            }
+            auto ctx = EVPMDContext::empty();
+            if (!ctx.isValid()) {
+                break;
+            }
+            if (EVP_DigestVerifyInit(ctx, nullptr, EVP_sha256(), nullptr, publicKey) != 1) {
+                break;
+            }
+            if (EVP_DigestVerifyUpdate(ctx, signedData.data(), signedData.size()) != 1) {
+                break;
+            }
+            auto r = EVP_DigestVerifyFinal(ctx, signature.data(), signature.size());
+            result = r == 1;
+
+        } while (false);
+        
+        if (!result) {
+            OSSL_print_errors();
         }
-        cc7::ByteArray signedDataHash = SHA256(signedData);
-        if (signedDataHash.size() == 0) {
-            return false;
-        }
-        int result = ECDSA_verify(0,
-                                  signedDataHash.data(), (int)signedDataHash.size(),
-                                  signature.data(),      (int)signature.size(),
-                                  publicKey);
-        if (result != 1) {
-            ERR_print_errors_fp(stdout);
-        }
+        
         return result == 1;
     }
     
-    bool ECDSA_ComputeSignature(const cc7::ByteRange & data, EC_KEY * privateKey, cc7::ByteArray & signature)
+    bool ECDSA_ComputeSignature(const cc7::ByteRange & data, const EVPKeyPair & privateKey, cc7::ByteArray & signature)
     {
-        if (!privateKey) {
-            CC7_ASSERT(false, "Missing private key");
-            return false;
+        bool result = false;
+        do {
+            if (!IsECKey(privateKey) || !EVP_PKEY_can_sign(privateKey)) {
+                break;
+            }
+            auto ctx = EVPMDContext::empty();
+            if (!ctx.isValid()) {
+                break;
+            }
+            if (EVP_DigestSignInit(ctx, nullptr, EVP_sha256(), nullptr, privateKey) != 1) {
+                break;
+            }
+            if (EVP_DigestSignUpdate(ctx, data.data(), data.size()) != 1) {
+                break;
+            }
+            size_t sig_length = 0;
+            if (EVP_DigestSignFinal(ctx, nullptr, &sig_length) != 1) {
+                break;
+            }
+            signature.resize(sig_length);
+            if (EVP_DigestSignFinal(ctx, signature.data(), &sig_length) != 1) {
+                break;
+            }
+            signature.resize(sig_length);
+            result = true;
+        } while (false);
+        
+        if (!result) {
+            OSSL_print_errors();
         }
-        cc7::ByteArray dataHash = SHA256(data);
-        if (dataHash.size() == 0) {
-            return false;
-        }
-        int expectedSize = ECDSA_size(privateKey);
-        if (expectedSize <= 0) {
-            return false;
-        }
-        signature.resize(expectedSize);
-        unsigned int signatureSize = expectedSize;
-        int result = ECDSA_sign(0,
-                                dataHash.data(), (int)dataHash.size(),
-                                signature.data(), &signatureSize,
-                                privateKey);
-        if (result != 1) {
-            return false;
-        }
-        signature.resize(signatureSize);
-        return true;
+        
+        return result;
     }
 
     // -------------------------------------------------------------------------------------------
@@ -376,31 +445,38 @@ namespace crypto
     // MARK: - ECDH -
     //
     
-    cc7::ByteArray ECDH_SharedSecret(EC_KEY * pubKey, EC_KEY * priKey)
+    cc7::ByteArray ECDH_SharedSecret(const EVPKeyPair & publicKey, const EVPKeyPair & privateKey)
     {
-        if (!pubKey || !priKey) {
-            return cc7::ByteArray();
+        cc7::ByteArray out;
+        do {
+            if (!IsECKey(publicKey) || !IsECKey(privateKey)) {
+                break;
+            }
+            if (GetGroupName(publicKey) != GetGroupName(privateKey)) {
+                break;
+            }
+            auto ctx = EVPKeyPairContext::take(EVP_PKEY_CTX_new_from_pkey(NULL, privateKey, NULL));
+            if (!ctx.isValid() || EVP_PKEY_derive_init(ctx) <= 0) {
+                break;
+            }
+            
+            if (EVP_PKEY_derive_set_peer_ex(ctx, publicKey, 1) <= 0) {
+                break;
+            }
+            size_t key_size = 0;
+            if (EVP_PKEY_derive(ctx, NULL, &key_size) <= 0) {
+                break;
+            }
+            out.resize(key_size);
+            if (EVP_PKEY_derive(ctx, out.data(), &key_size) <= 0) {
+                out.clear();
+                break;
+            }
+        } while (false);
+        if (out.empty()) {
+            OSSL_print_errors();
         }
-        const EC_POINT * pubPoint =  EC_KEY_get0_public_key(pubKey);
-        if (!pubPoint) {
-            // You have provided key without public point
-            return cc7::ByteArray();
-        }
-        // Calculate an expected size for shared secret.
-        //  (check https://wiki.openssl.org/index.php/Elliptic_Curve_Diffie_Hellman for details)
-        
-        const EC_GROUP * group = EC_KEY_get0_group(priKey);
-        size_t expectedSize = (EC_GROUP_get_degree(group) + 7) / 8;
-        
-        cc7::ByteArray secret(expectedSize, 0);
-        int returnedSize = ECDH_compute_key(secret.data(), secret.size(), pubPoint, priKey, nullptr);
-        if (returnedSize < 0 || (expectedSize != (size_t)returnedSize)) {
-#ifdef DEBUG
-            ERR_print_errors_fp(stderr);
-#endif
-            return cc7::ByteArray();
-        }
-        return secret;
+        return out;
     }
     
 } // io::getlime::powerAuth::crypto

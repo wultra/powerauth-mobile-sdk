@@ -552,83 +552,68 @@ try {
 
 After you create an activation using one of the methods mentioned above, you need to persist the activation - to use provided user credentials to store the activation data on the device. Use the following code to do this.
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Persist activation using given PIN
-val result = powerAuthSDK.persistActivationWithPassword(context, pin)
-if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in the state to be persisted
-}
-```
-```java
-// Persist activation using given PIN
-int result = powerAuthSDK.persistActivationWithPassword(context, pin);
-if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in the state to be persisted
-}
-```
-<!-- end -->
-
-This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case, a simple PIN code). If you would like to enable biometric authentication support at this moment, use the following code instead of the one above:
-
-<!-- begin codetabs Kotlin Java -->
-```kotlin
-// Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, object: IPersistActivationWithBiometricsListener {
-    override fun onBiometricDialogCancelled() {
-        // Biometric enrolment cancelled by user
+val authentication = PowerAuthAuthentication.persistWithPassword(pin)
+val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authentication, object: IPersistActivationListener {
+    override fun onPersistActivationSucceeded() {
+        // Success
     }
 
-    override fun onBiometricDialogSuccess() {
-        // success, activation has been persisted
+    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+        // Failure
     }
 
-    override fun onBiometricDialogFailed(error: PowerAuthErrorException) {
-        // failure, typically as a result of API misuse, or a biometric authentication failure
+    override fun onPersistActivationCancelled(userCancel: Boolean) {
+        if (userCancel) {
+            // user cancelled the biometric authentication dialog
+        } else {
+            // Your application canceled the provided cancelable object
+        }
     }
 })
 ```
-```java
-// Persist activation using given PIN and ad-hoc generated biometric related key
-powerAuthSDK.persistActivation(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", pin, new IPersistActivationWithBiometricsListener() {
-    @Override
-    public void onBiometricDialogCancelled() {
-        // Biometric enrolment cancelled by user
-    }
 
-    @Override
-    public void onBiometricDialogSuccess() {
-        // success, activation has been persisted
-    }
+This code has created activation with two factors: possession (key stored using a key derived from a device fingerprint) and knowledge (password, in our case, a simple PIN code). If you would like to enable biometric authentication support at this moment, use the following code instead of the one above:
 
-    @Override
-    public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
-        // failure, typically as a result of API misuse, or a biometric authentication failure
-    }
-});
-```
-<!-- end -->
-
-Also, you can use the following code to create activation with the best granularity control:
-
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
-val authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometryFactorRelatedKey)
-val result = powerAuthSDK.persistActivationWithAuthentication(context, authentication)
-if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in the state to be persisted
-}
-```
-```java
-PowerAuthAuthentication authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometryFactorRelatedKey);
-int result =  powerAuthSDK.persistActivationWithAuthentication(context, authentication);
-if (result != PowerAuthErrorCodes.SUCCEED) {
-    // happens only in case SDK was not configured or activation is not in the state to be persisted
-}
-```
-<!-- end -->
+// Prepare biometric prompt.
+val biometricPrompt = PowerAuthBiometricPrompt.Builder(parentFragment)  // You can also use fragment activity in the constructor
+                        .setTitle("Enable Biometric Authentication")
+                        .setDescription("To enable biometric authentication, use the biometric sensor on your device.")
+                        .build()
+// Persist activation using given PIN and biometry
+val authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometricPrompt)
+val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authentication, object: IPersistActivationListener {
+    override fun onPersistActivationSucceeded() {
+        // Success
+    }
 
-Note that you currently need to obtain the biometry factor-related key yourself - you have to use `BiometricPrompt.CryptoObject` or integration with Android `KeyStore` to do so.
+    override fun onPersistActivationFailed(error: PowerAuthErrorException) {
+        // Failure
+    }
+
+    override fun onPersistActivationCancelled(userCancel: Boolean) {
+        if (userCancel) {
+            // user cancelled the biometric authentication dialog
+        } else {
+            // Your application canceled the provided cancelable object
+        }
+    }
+})
+```
+
+If `PowerAuthSDK` is configured to do not authenticate on biometric key setup (e.g. `PowerAuthBiometricConfiguration` has `authenticateOnBiometricKeySetup` set to `false`), then you can use a "dummy" biometric prompt to simplify your code:
+
+```kotlin
+// Prepare biometric prompt.
+val biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(parentFragment)
+// Persist activation using given PIN and biometry
+val authentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(pin, biometricPrompt)
+val cancelable = powerAuthSDK.persistActivationWithAuthentication(context, authentication, object: IPersistActivationListener {
+    // Example is the same as above
+})
+```
 
 ### Validating User Inputs
 
@@ -1634,7 +1619,6 @@ powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authenticati
 
 By default, PowerAuth SDK asks the user to authenticate with the biometric sensor also during the setup procedure (or during the [activation persist](#persisting-activation-data)). To alter this behavior, use the following code to change the `PowerAuthBiometricConfiguration` provided to the `PowerAuthSDK` instance:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 val biometricConfig = PowerAuthBiometricConfiguration.Builder()
     .authenticateOnBiometricKeySetup(false)
@@ -1644,16 +1628,6 @@ val powerAuthSDK = PowerAuthSDK.Builder(configuration)
     .biometricConfiguration(biometricConfig)
     .build(getApplicationContext())
 ```
-```java
-PowerAuthBiometricConfiguration biometricConfig = new PowerAuthBiometricConfiguration.Builder()
-        .authenticateOnBiometricKeySetup(false)
-        .build();
-// Apply keychain configuration
-PowerAuthSDK powerAuthSDK = new PowerAuthSDK.Builder(configuration)
-        .biometricConfiguration(biometricConfig)
-        .build(getApplicationContext());
-```
-<!-- end -->
 
 <!-- begin box info -->
 Note that the RSA key pair is internally generated for the configuration above. That may take more time on older devices than the default configuration. Your application should display a waiting indicator on its own because SDK doesn't display an authentication dialog during the key-pair generation.

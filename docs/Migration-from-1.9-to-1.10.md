@@ -15,6 +15,9 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - The following methods in `PowerAuthSDK` class are deprecated:
   - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+  - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+  - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+  - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.
 
 - The following methods in `PowerAuthKeychainConfiguration` are now deprecated:
   - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
@@ -25,6 +28,9 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
   - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
   - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
   - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+
+- The following classes and interfaces are now deprecated:
+  - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:

@@ -46,17 +46,15 @@ namespace powerAuthTests
         
         struct ECKeyPair
         {
-            EC_KEY * private_key;
+            crypto::EVPKeyPair private_key;
             std::string public_key_str;
             
             ECKeyPair() {
-                private_key = crypto::ECC_GenerateKeyPair();
+                private_key = crypto::ECC_GenerateKeyPair(crypto::EllipticCurve::P256);
                 public_key_str = crypto::ECC_ExportPublicKeyToB64(private_key);
             }
             
             ~ECKeyPair() {
-                EC_KEY_free(private_key);
-                private_key = nullptr;
             }
         };
         
@@ -249,8 +247,8 @@ namespace powerAuthTests
                 
                 const bool TEST_ECIES_RESET = break_in_step == 4;
             
-                EC_KEY * serverPrivateKey = nullptr;
-                EC_KEY * devicePublicKey  = nullptr;
+                auto serverPrivateKey = crypto::EVPKeyPair::invalid();
+                auto devicePublicKey  = crypto::EVPKeyPair::invalid();
 
                 s1.resetSession();
                 
@@ -305,12 +303,12 @@ namespace powerAuthTests
                 cc7::ByteArray CTR_DATA;
                 {
                     // Let's make response for client
-                    serverPrivateKey = crypto::ECC_GenerateKeyPair();
+                    serverPrivateKey = crypto::ECC_GenerateKeyPair(crypto::P256);
                     
                     cc7::ByteArray KEY_DEVICE_PUBLIC    = cc7::FromBase64String(result1.devicePublicKey);
                     ccstAssertTrue(KEY_DEVICE_PUBLIC.size() > 0);
-                    devicePublicKey                     = crypto::ECC_ImportPublicKey(nullptr, KEY_DEVICE_PUBLIC);
-                    ccstAssertNotNull(devicePublicKey);
+                    devicePublicKey                     = crypto::ECC_ImportPublicKey(crypto::P256, KEY_DEVICE_PUBLIC);
+                    ccstAssertTrue(devicePublicKey.isValid());
                     
                     // Prepare the response data
                     cc7::ByteArray serverPublicKey      = crypto::ECC_ExportPublicKey(serverPrivateKey);
@@ -326,7 +324,7 @@ namespace powerAuthTests
                     // calculate hkKEY_DEVICE_PUBLIC on dummy server's side
                     auto fingerprint_data = crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey);
                     fingerprint_data.append(cc7::MakeRange(_activation_id));
-                    fingerprint_data.append(crypto::ECC_ExportPublicKeyToNormalizedForm(crypto::ECC_ImportPublicKey(nullptr, serverPublicKey)));
+                    fingerprint_data.append(crypto::ECC_ExportPublicKeyToNormalizedForm(crypto::ECC_ImportPublicKey(crypto::P256, serverPublicKey)));
                     cc7::ByteArray hash = crypto::SHA256(fingerprint_data);
                     size_t off    = hash.size() - 4;
                     uint32_t v = ((hash[off] & 0x7f) << 24) | (hash[off+1] << 16) | (hash[off+2] << 8) | hash[off+3];
@@ -869,7 +867,7 @@ namespace powerAuthTests
                     SignedData signedData;
                     signedData.signingKey = SignedData::ECDSA_PersonalizedKey;
                     signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
-                    signedData.signature = T_calculateServerSignature(signedData.data, serverPrivateKey);
+                    signedData.signature = T_calculateServerSignature(signedData.data, &serverPrivateKey);
                     // Verify...
                     ec = s1.verifyServerSignedData(signedData);
                     ccstAssertTrue(ec == EC_Ok);
@@ -989,10 +987,6 @@ namespace powerAuthTests
                 // Remove ECIES key should always work
                 s1.removePublicKeyForEciesScope(ECIES_ActivationScope);
                 s1.removePublicKeyForEciesScope(ECIES_ApplicationScope);
-                
-                // release keys, just for sure
-                EC_KEY_free(serverPrivateKey);
-                EC_KEY_free(devicePublicKey);
                 
             } // for (int break_in_step...
         }
@@ -1296,13 +1290,13 @@ namespace powerAuthTests
             return signature.base64String();
         }
         
-        cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, EC_KEY * private_key = nullptr)
+        cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, crypto::EVPKeyPair * private_key = nullptr)
         {
             cc7::ByteArray signature;
             if (private_key == nullptr) {
-                private_key = _masterServerPrivateKey.private_key;
+                private_key = &_masterServerPrivateKey.private_key;
             }
-            bool result = crypto::ECDSA_ComputeSignature(data, private_key, signature);
+            bool result = crypto::ECDSA_ComputeSignature(data, *private_key, signature);
             if (!result) {
                 ccstFailure("Server signature calculation failed");
                 return cc7::ByteArray();

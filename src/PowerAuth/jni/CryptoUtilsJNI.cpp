@@ -37,22 +37,20 @@ extern "C" {
 CC7_JNI_METHOD(jobject, ecGenerateKeyPair)
 {
     jobject result = nullptr;
-    EC_KEY * key_pair = nullptr;
     EcPrivateKeyJNI * cpp_private_key = nullptr;
     EcPublicKeyJNI * cpp_public_key = nullptr;
-    crypto::BNContext ctx;
 
     do {
-        key_pair = crypto::ECC_GenerateKeyPair();
-        if (key_pair == nullptr) {
+        auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
+        if (!key_pair.isValid()) {
             CC7_ASSERT(false, "Failed to generate EC key-pair");
             break;
         }
-        cpp_private_key = EcPrivateKeyJNI::createFromBytes(crypto::ECC_ExportPrivateKey(key_pair, ctx), ctx);
+        cpp_private_key = EcPrivateKeyJNI::createFromBytes(crypto::ECC_ExportPrivateKey(key_pair));
         if (cpp_private_key == nullptr) {
             break;
         }
-        cpp_public_key = EcPublicKeyJNI::createFromBytes(crypto::ECC_ExportPublicKey(key_pair, ctx), ctx);
+        cpp_public_key = EcPublicKeyJNI::createFromBytes(crypto::ECC_ExportPublicKey(key_pair));
         if (cpp_public_key == nullptr) {
             break;
         }
@@ -73,9 +71,6 @@ CC7_JNI_METHOD(jobject, ecGenerateKeyPair)
 
     } while (false);
 
-    if (key_pair != nullptr) {
-        EC_KEY_free(key_pair);
-    }
     delete cpp_private_key;
     delete cpp_public_key;
     return result;

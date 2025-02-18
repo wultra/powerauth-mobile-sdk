@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #pragma once
 
 #include <cc7/ByteArray.h>
-#include <openssl/ec.h>
+#include "OSSLObjects.h"
 
 /*
  Note that all functionality provided by this header will
@@ -37,45 +37,44 @@ namespace crypto
     // MARK: - ECC key routines -
     //
     
+    enum EllipticCurve {
+        P256,
+        P384
+    };
+
     /**
-     Creates a new EC_KEY structure from given public key.
-     If key parameter is null then creates a new key.
-     If key parameter is not null and import fails then deletes key automatically.
+     Creates a new EVPKeyPair from given public key.
      */
-    EC_KEY *        ECC_ImportPublicKey(EC_KEY * key, const cc7::ByteRange & publicKey, BN_CTX * c = nullptr);
+    EVPKeyPair      ECC_ImportPublicKey(EllipticCurve curve, const cc7::ByteRange & publicKeyData);
     /**
-     Creates a new EC_KEY structure from given key encoded in B64 format.
-     If key parameter is null then creates a new key.
-     If key parameter is not null and import fails then deletes key automatically.
+     Creates a new EVPKeyPair from given key encoded in B64 format.
      */
-    EC_KEY *        ECC_ImportPublicKeyFromB64(EC_KEY * key, const std::string & publicKey, BN_CTX * c = nullptr);
+    EVPKeyPair      ECC_ImportPublicKeyFromB64(EllipticCurve curve, const std::string & publicKeyBase64);
     /**
      Exports public key into compressed format.
      */
-    cc7::ByteArray  ECC_ExportPublicKey(EC_KEY * key, BN_CTX * c = nullptr);
+    cc7::ByteArray  ECC_ExportPublicKey(const EVPKeyPair & key, bool compressed = true);
     /**
      Exports public key into compressed format, encoded into B64 string.
      */
-    std::string     ECC_ExportPublicKeyToB64(EC_KEY * key, BN_CTX * c = nullptr);
+    std::string     ECC_ExportPublicKeyToB64(const EVPKeyPair & key, bool compressed = true);
     /**
      Exports public key into normalized form, suitable for decimalization.
      This is equivalent operation to Java's: eccPublicKey.getW().getAffineX().toByteArray();
      */
-    cc7::ByteArray  ECC_ExportPublicKeyToNormalizedForm(EC_KEY * key, BN_CTX * c = nullptr);
+    cc7::ByteArray  ECC_ExportPublicKeyToNormalizedForm(const EVPKeyPair & key);
     /**
      Imports private key from given data.
-     If key parameter is null then creates a new key.
-     If key parameter is not null and import fails, then deletes provided key automatically.
      */
-    EC_KEY *        ECC_ImportPrivateKey(EC_KEY * key, const cc7::ByteRange & privateKeyData, BN_CTX * c = nullptr);
+    EVPKeyPair      ECC_ImportPrivateKey(EllipticCurve curve, const cc7::ByteRange & privateKeyData);
     /**
      Exports private key into sequence of bytes.
      */
-    cc7::ByteArray  ECC_ExportPrivateKey(EC_KEY * key, BN_CTX * c = nullptr);
+    cc7::ByteArray  ECC_ExportPrivateKey(const EVPKeyPair & key);
     /**
-     Generates a new ECC key pair.
+     Generates a new key pair.
      */
-    EC_KEY *        ECC_GenerateKeyPair();
+    EVPKeyPair      ECC_GenerateKeyPair(EllipticCurve curve);
     
     
     // -------------------------------------------------------------------------------------------
@@ -85,11 +84,11 @@ namespace crypto
     /**
      Validates signature for signedData with given EC publicKey.
      */
-    bool            ECDSA_ValidateSignature(const cc7::ByteRange & signedData, const cc7::ByteRange & signature, EC_KEY * publicKey);
+    bool            ECDSA_ValidateSignature(const cc7::ByteRange & signedData, const cc7::ByteRange & signature, const EVPKeyPair & publicKey);
     /**
      Computes signature for data with given private key.
      */
-    bool            ECDSA_ComputeSignature(const cc7::ByteRange & data, EC_KEY * privateKey, cc7::ByteArray & signature);
+    bool            ECDSA_ComputeSignature(const cc7::ByteRange & data, const EVPKeyPair & privateKey, cc7::ByteArray & signature);
 
     /**
      Convert ECDSA signature from DER format to JOSE. If operation fails, then returned array is empty.
@@ -106,7 +105,7 @@ namespace crypto
     /**
      Calculates shared secret from public key and our private key. If the operation fails, then returns empty data.
      */
-    cc7::ByteArray  ECDH_SharedSecret(EC_KEY * pubKey, EC_KEY * priKey);
+    cc7::ByteArray  ECDH_SharedSecret(const EVPKeyPair & publicKey, const EVPKeyPair & privateKey);
         
     
 } // io::getlime::powerAuth::crypto

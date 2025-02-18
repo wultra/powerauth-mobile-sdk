@@ -24,7 +24,7 @@
  be replaced with a similar cc7 implementation.
  */
 
-#include "BNContext.h"
+#include "OSSLObjects.h"
 #include "AES.h"
 #include "PRNG.h"
 #include "ECC.h"

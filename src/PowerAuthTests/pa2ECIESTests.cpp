@@ -88,11 +88,10 @@ namespace powerAuthTests
                 { nullptr, nullptr }
             };
             
-            EC_KEY * master_keypair = crypto::ECC_GenerateKeyPair();
+            auto master_keypair = crypto::ECC_GenerateKeyPair(crypto::P256);
             cc7::ByteArray master_public_key = crypto::ECC_ExportPublicKey(master_keypair);
             cc7::ByteArray master_private_key = crypto::ECC_ExportPrivateKey(master_keypair);
-            EC_KEY_free(master_keypair);
-            master_keypair = nullptr;
+            master_keypair.destroy();
             // Make the private key compatible with Java. We need to force the big number as always positive,
             // because Java's using signed bytes. So, If the sequence of bytes in big number begins with
             // value greater than 127, then the whole big number is treated as negative.

@@ -16,7 +16,7 @@
 
 #include "AES.h"
 #include "PKCS7Padding.h"
-#include <openssl/aes.h>
+#include "OSSLObjects.h"
 
 
 namespace io
@@ -27,19 +27,41 @@ namespace powerAuth
 {
 namespace crypto
 {
+    const EVP_CIPHER * CipherCBCFromKey(const cc7::ByteRange & key)
+    {
+        switch (key.size()) {
+            case 16:
+                return EVP_aes_128_cbc();
+            case 24:
+                return EVP_aes_192_cbc();
+            case 32:
+                return EVP_aes_256_cbc();
+            default:
+                return nullptr;
+        }
+    }
     
     cc7::ByteArray AES_CBC_Encrypt(const cc7::ByteRange & key, const cc7::ByteRange & iv, const cc7::ByteRange & data)
     {
         cc7::ByteArray out(data.size(), 0);
         cc7::ByteArray ivec = iv;
-        AES_KEY aes_key;
         
-        int res = AES_set_encrypt_key(key.data(), (int)key.size() * 8, &aes_key);
-        if (res == 0) {
-            AES_cbc_encrypt(data.data(), out.data(), data.size(), &aes_key, ivec.data(), AES_ENCRYPT);
-        } else {
+        auto ctx = EVPCipherContext::empty();
+        if (EVP_EncryptInit(ctx, CipherCBCFromKey(key), key.data(), iv.data()) != 1) {
             out.clear();
-            CC7_LOG("AES_set_encrypt_key failed");
+            return out;
+        }
+        if (EVP_CIPHER_CTX_set_padding(ctx, 0) != 1) {
+            out.clear();
+            return out;
+        }
+        int out_length = 0;
+        if (EVP_EncryptUpdate(ctx, out.data(), &out_length, data.data(), (int)data.size()) != 1) {
+            out.clear();
+            return out;
+        }
+        if (out_length != data.length()) {
+            out.clear();
         }
         return out;
     }
@@ -49,15 +71,24 @@ namespace crypto
     {
         cc7::ByteArray out(data.size(), 0);
         cc7::ByteArray ivec(iv);
-        AES_KEY aes_key;
         
-        int res = AES_set_decrypt_key(key.data(), (int)key.size() * 8, &aes_key);
-        if (res == 0) {
-            AES_cbc_encrypt(data.data(), out.data(), data.size(), &aes_key, ivec.data(), AES_DECRYPT);
-        } else {
+        auto ctx = EVPCipherContext::empty();
+        if (EVP_DecryptInit(ctx, CipherCBCFromKey(key), key.data(), iv.data()) != 1) {
             out.clear();
-            CC7_LOG("AES_set_decrypt_key failed");
+            return out;
         }
+        if (EVP_CIPHER_CTX_set_padding(ctx, 0) != 1) {
+            out.clear();
+            return out;
+        }
+        int out_length = 0;
+        if (EVP_DecryptUpdate(ctx, out.data(), &out_length, data.data(), (int)data.size()) != 1) {
+            out.clear();
+            return out;
+        }
+        if (out_length != data.length()) {
+            out.clear();
+        }        
         return out;
     }
     

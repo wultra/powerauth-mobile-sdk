@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#include "Hash.h"
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
 #include "OSSLObjects.h"
 
 namespace io
@@ -28,20 +25,24 @@ namespace powerAuth
 namespace crypto
 {
 
-    // -------------------------------------------------------------------------------------------
-    // MARK: - SHA256 -
-    //
-    
-    cc7::ByteArray SHA256(const cc7::ByteRange & data)
-    {
-        cc7::ByteArray hash(SHA256_DIGEST_LENGTH, 0);
-        auto ctx = EVPMDContext::empty();
-        EVP_DigestInit(ctx, EVP_sha256());
-        EVP_DigestUpdate(ctx, data.data(), data.size());
-        EVP_DigestFinal(ctx, hash.data(), NULL);
-        return hash;
-    }
-    
+cc7::ByteArray BigNum_ToArray(const BigNum & bn)
+{
+    cc7::ByteArray array;
+    array.resize(BN_num_bytes(bn));
+    BN_bn2bin(bn, array.data());
+    return array;
+}
+
+BigNum BigNum_FromArray(const cc7::ByteArray & array)
+{
+    return BigNum::take(BN_bin2bn(array.data(), (int)array.size(), nullptr));
+}
+
+void EVPKeyPairRefUp(EVP_PKEY * pkey)
+{
+    EVP_PKEY_up_ref(pkey);
+}
+
 } // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime

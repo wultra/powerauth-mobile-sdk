@@ -43,7 +43,7 @@ namespace powerAuthTests
         void testEcdsaSignVerify()
         {
             // Generate key-pair
-            auto key_pair = crypto::ECC_GenerateKeyPair();
+            auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
             if (!key_pair) {
                 ccstFailure();
                 return;
@@ -51,10 +51,9 @@ namespace powerAuthTests
             auto public_key_export = crypto::ECC_ExportPublicKeyToB64(key_pair);
             ccstAssertFalse(public_key_export.empty());
             // Import public & private key back to OpenSSL structure.
-            auto public_key = crypto::ECC_ImportPublicKeyFromB64(nullptr, public_key_export);
-            if (!public_key) {
+            auto public_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, public_key_export);
+            if (!public_key.isValid()) {
                 ccstFailure();
-                EC_KEY_free(key_pair);
                 return;
             }
             
@@ -86,9 +85,6 @@ namespace powerAuthTests
             ccstAssertFalse(result);
             result = crypto::ECDSA_ValidateSignature(bad_message, bad_signature, public_key);
             ccstAssertFalse(result);
-            
-            EC_KEY_free(public_key);
-            EC_KEY_free(key_pair);
         }
         
         void ecdsaTestDataGenerator()
@@ -97,12 +93,11 @@ namespace powerAuthTests
             // JNI and ObjC wrappers.
             const bool hex_output = false;
             for (int i = 0; i < 10; i++) {
-                auto key_pair = crypto::ECC_GenerateKeyPair();
+                auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
                 auto key = crypto::ECC_ExportPublicKeyToB64(key_pair);
                 auto data = getRandomData();
                 cc7::ByteArray signature;
                 auto result = crypto::ECDSA_ComputeSignature(data, key_pair, signature);
-                EC_KEY_free(key_pair);
                 if (!result) {
                     ccstFailure("Failed to compute signature");
                     return;

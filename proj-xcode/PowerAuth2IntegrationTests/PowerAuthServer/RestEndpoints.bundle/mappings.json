@@ -10,8 +10,10 @@
         "1.7" : "v15",
         "1.8" : "v15",
         "1.9" : "v19",
+        "1.10": "v19",
+        "2.0" : "v20",
         
-        "*"   : "v19"
+        "*"   : "v20"
     },
     "mappings": {
         "v10": {
@@ -44,6 +46,8 @@
             "CreateApplicationVersion":     "CreateApplicationVersion_v15",
             "TokenValidate":                "TokenValidate_v15",
             "VerifyECDSASignature":         "VerifyECDSASignature_v19"
+        },
+        "v20": { "#base": "v19",
         }
     }
 }

@@ -84,7 +84,7 @@ public class PowerAuthBiometricPrompt {
     /**
      * Create instance of dummy biometric prompt, allowed to be used only for the biometric key setup and if {@link PowerAuthBiometricConfiguration#isAuthenticateOnBiometricKeySetup()}
      * configuration is set to {@code false}. In other words, if biometric key setup doesn't require actual biometric authentication, then you can use this dummy
-     * prompt to indicate that biometric factor should be used.
+     * prompt to indicate that biometric factor should be configured.
      * <p>
      * This can simplify your code in two typical scenarios:
      * <ul>
@@ -134,8 +134,8 @@ public class PowerAuthBiometricPrompt {
      */
     private PowerAuthBiometricPrompt(
             @NonNull CharSequence title,
-            @NonNull CharSequence description,
             @Nullable CharSequence subtitle,
+            @NonNull CharSequence description,
             boolean isDummy,
             @Nullable Fragment fragment,
             @Nullable FragmentActivity fragmentActivity) {
@@ -175,6 +175,7 @@ public class PowerAuthBiometricPrompt {
      * A builder that collects arguments for {@link PowerAuthBiometricPrompt}.
      */
     public static class Builder {
+
         private final Fragment fragment;
         private final FragmentActivity fragmentActivity;
         private CharSequence title;
@@ -231,12 +232,17 @@ public class PowerAuthBiometricPrompt {
         }
 
         /**
+         * Constant used for title and description of dummy biometric prompt.
+         */
+        private static final String DUMMY_TITLE = "dummy";
+
+        /**
          * Set prompt as dummy.
          * @return The same {@link Builder} object instance.
          */
         private Builder setDummy() {
-            this.title = "dummy";
-            this.description = "dummy";
+            this.title = DUMMY_TITLE;
+            this.description = DUMMY_TITLE;
             this.isDummy = true;
             return this;
         }

@@ -16,6 +16,7 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
+import io.getlime.security.powerauth.sdk.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,10 +27,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.RandomGenerator;
-import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -81,6 +78,10 @@ public class EEKTests {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
                         builder.externalEncryptionKey(eek);
+                    }
+
+                    @Override
+                    public void adjustPowerAuthBiometricConfiguration(@NonNull PowerAuthBiometricConfiguration.Builder builder) {
                     }
 
                     @Override

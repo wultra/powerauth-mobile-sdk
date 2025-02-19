@@ -971,7 +971,7 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request If {@code null} is returned, then the
      *         operation failed or completed immediately.
      */
-    public @Nullable ICancelable persisActivationWithPassword(@NonNull Context context, @NonNull Password password, @NonNull IPersistActivationListener listener) {
+    public @Nullable ICancelable persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @NonNull IPersistActivationListener listener) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password), listener);
     }
 
@@ -984,7 +984,7 @@ public class PowerAuthSDK {
      * @return {@link ICancelable} object associated with the running HTTP request If {@code null} is returned, then the
      *         operation failed or completed immediately.
      */
-    public @Nullable ICancelable persisActivationWithPassword(@NonNull Context context, @NonNull String password, @NonNull IPersistActivationListener listener) {
+    public @Nullable ICancelable persistActivationWithPassword(@NonNull Context context, @NonNull String password, @NonNull IPersistActivationListener listener) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password), listener);
     }
 
@@ -1229,7 +1229,6 @@ public class PowerAuthSDK {
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
-     * @noinspection DeprecatedIsStillUsed
      */
     @CheckResult
     @PowerAuthErrorCodes
@@ -1249,7 +1248,6 @@ public class PowerAuthSDK {
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
-     * @noinspection DeprecatedIsStillUsed
      */
     @CheckResult
     @PowerAuthErrorCodes

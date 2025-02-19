@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:usesCleartextTraffic="true" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="io.getlime.security.powerauth.test">
+    <application android:usesCleartextTraffic="true">
+        <activity android:name="io.getlime.security.powerauth.integration.support.TestActivity"
+                  android:exported="false"/>
+    </application>
 </manifest>

@@ -21,6 +21,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.sdk.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,12 +36,6 @@ import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
 import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
-import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.*;
 
@@ -109,6 +104,10 @@ public class SymmetricSignatureTest {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
                         builder.offlineSignatureComponentLength(OFFLINE_SIGNATURE_LENGTH);
+                    }
+
+                    @Override
+                    public void adjustPowerAuthBiometricConfiguration(@NonNull PowerAuthBiometricConfiguration.Builder builder) {
                     }
 
                     @Override

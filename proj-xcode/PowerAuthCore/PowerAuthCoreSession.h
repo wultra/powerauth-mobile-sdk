@@ -427,7 +427,7 @@
  or even to the keychain, then the whole server based protection scheme will have no effect. You can, of
  course, keep the key in the volatile memory, if the application needs use the key for a longer period.
  
- Retuns NSData object with a derived cryptographic key or nil in case of failure. You can determine
+ Retuns PowerAuthCoreData object with a derived cryptographic key or nil in case of failure. You can determine
  the failure reason from DEBUG log:
     PowerAuthCoreErrorCode_Encryption,  if general encryption error occurs
     PowerAuthCoreErrorCode_WrongState,  if the session has no valid activation
@@ -435,9 +435,9 @@
  
  This function access the session's state, so read access must be guaranteed.
  */
-- (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
-                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                               keyIndex:(UInt64)keyIndex;
+- (nullable PowerAuthCoreData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
+                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                                          keyIndex:(UInt64)keyIndex;
 /**
  Computes a ECDSA-SHA256 signature of given |data| with using device's private key. You have to provide
  encrypted |cVaultKey| and |unlockKeys| structure with a valid possessionUnlockKey.

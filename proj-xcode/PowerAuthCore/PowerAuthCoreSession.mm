@@ -359,9 +359,9 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Vault operations
 
-- (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
-                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                               keyIndex:(UInt64)keyIndex
+- (nullable PowerAuthCoreData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
+                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                                          keyIndex:(UInt64)keyIndex
 {
     REQUIRE_READ_ACCESS();
     std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
@@ -371,7 +371,7 @@ using namespace io::getlime::powerAuth;
     cc7::ByteArray cpp_derived_key;
     auto error = _session->deriveCryptographicKeyFromVaultKey(cpp_c_vault_key, cpp_keys, keyIndex, cpp_derived_key);
     if (error == EC_Ok) {
-        return cc7::objc::CopyToNSData(cpp_derived_key);
+        return [[PowerAuthCoreData alloc] initWithByteRange:cpp_derived_key];
     }
     REPORT_ERROR_CODE(@"DeriveCryptographicKeyFromVaultKey", error);
     return nil;

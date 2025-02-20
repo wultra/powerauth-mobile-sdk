@@ -106,6 +106,7 @@ Notable changes on iOS:
 - The following functions or properties now takes `PowerAuthCoreData` instead of `Data` structure:
   - `PowerAuthSDK.setExternalEncryptionKey()`
   - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthSDK.fetchEncryptionKey()`
   - `PowerAuthConfiguration.externalEncryptionKey`
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
   - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`

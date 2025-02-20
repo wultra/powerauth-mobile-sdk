@@ -602,7 +602,7 @@
  */
 - (nullable id<PowerAuthOperationTask>) fetchEncryptionKey:(nonnull PowerAuthAuthentication*)authentication
                                                      index:(UInt64)index
-                                                  callback:(nonnull void(^)(NSData * _Nullable encryptionKey, NSError * _Nullable error))callback;
+                                                  callback:(nonnull void(^)(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error))callback;
 
 /** Sign given data with the original device private key (asymetric signature).
  

@@ -1508,10 +1508,10 @@ static PowerAuthSDK * s_inst;
 
 - (id<PowerAuthOperationTask>) fetchEncryptionKey:(PowerAuthAuthentication*)authentication
                                             index:(UInt64)index
-                                         callback:(void(^)(NSData *encryptionKey, NSError *error))callback
+                                         callback:(void(^)(PowerAuthCoreData *encryptionKey, NSError *error))callback
 {
     return [self fetchEncryptedVaultUnlockKey:authentication reason:PA2VaultUnlockReason_FETCH_ENCRYPTION_KEY callback:^(NSString *encryptedEncryptionKey, NSError *error) {
-        NSData * encryptionKey = nil;
+        PowerAuthCoreData * encryptionKey = nil;
         if (!error) {
             // Let's unlock encryption key
             PowerAuthCoreSignatureUnlockKeys *keys = [[PowerAuthCoreSignatureUnlockKeys alloc] init];

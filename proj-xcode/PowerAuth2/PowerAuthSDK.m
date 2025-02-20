@@ -344,10 +344,10 @@ static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthB
     return _keystoreService;
 }
 
-- (NSData*) deviceRelatedKey
+- (PowerAuthCoreData*) deviceRelatedKey
 {
     // Cache the possession key in the keychain
-    NSData * possessionKey = [_sharedKeychain dataForKey:_keychainConfiguration.keychainKey_Possession status:nil];
+    PowerAuthCoreData * possessionKey = [_sharedKeychain coreDataForKey:_keychainConfiguration.keychainKey_Possession status:NULL authentication:nil];
     if (nil == possessionKey) {
         NSString *uuidString;
 #if TARGET_IPHONE_SIMULATOR
@@ -357,7 +357,7 @@ static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthB
 #endif
         NSData *uuidData = [uuidString dataUsingEncoding:NSUTF8StringEncoding];
         possessionKey = [PowerAuthCoreSession normalizeSignatureUnlockKeyFromData:uuidData];
-        [_sharedKeychain addValue:possessionKey forKey:_keychainConfiguration.keychainKey_Possession];
+        [_sharedKeychain setCoreData:possessionKey forKey:_keychainConfiguration.keychainKey_Possession access:PowerAuthKeychainItemAccess_None];
     }
     return possessionKey;
 }
@@ -367,16 +367,16 @@ static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthB
 ///   - authentication: Keychain authentication object.
 ///   - error: Pointer to error object to fill when operation fails.
 /// - Returns: Biometry related key or nil.
-- (NSData*) biometryRelatedKeyWithAuthentication:(nonnull PowerAuthKeychainAuthentication*)authentication error:(NSError **)error
+- (PowerAuthCoreData*) biometryRelatedKeyWithAuthentication:(nonnull PowerAuthKeychainAuthentication*)authentication error:(NSError **)error
 {
 #if PA2_HAS_LACONTEXT
     //
     // LAContext is available on this platform
     //
-    __block NSData *key = nil;
+    __block PowerAuthCoreData *key = nil;
     __block OSStatus status;
     BOOL executed = [PowerAuthKeychain tryLockBiometryAndExecuteBlock:^{
-        key = [_biometryOnlyKeychain dataForKey:_biometryKeyIdentifier status:&status authentication:authentication];
+        key = [_biometryOnlyKeychain coreDataForKey:_biometryKeyIdentifier status:&status authentication:authentication];
     }];
     if (key) {
         // Key has been successfully retrieved.
@@ -446,19 +446,19 @@ static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthB
     [authentication validateUsage:NO];
     
     // Generate signature key encryption keys
-    NSData *possessionKey = nil;
-    NSData *biometryKey = nil;
+    PowerAuthCoreData *possessionKey = nil;
+    PowerAuthCoreData *biometryKey = nil;
     if (authentication.usePossession) {
-        if (authentication.overridenPossessionKey) {
-            possessionKey = authentication.overridenPossessionKey;
+        if (authentication.customPossessionKey) {
+            possessionKey = authentication.customPossessionKey;
         } else {
             possessionKey = [self deviceRelatedKey];
         }
     }
     if (authentication.useBiometry) {
-        if (authentication.overridenBiometryKey) {
+        if (authentication.customBiometryKey) {
             // application specified a custom biometry key
-            biometryKey = authentication.overridenBiometryKey;
+            biometryKey = authentication.customBiometryKey;
         } else {
             // default biometry key should be fetched
             biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication error:error];
@@ -927,8 +927,8 @@ static PowerAuthSDK * s_inst;
             return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
         }
         // Prepare key encryption keys
-        NSData *possessionKey = nil;
-        NSData *biometryKey = nil;
+        PowerAuthCoreData *possessionKey = nil;
+        PowerAuthCoreData *biometryKey = nil;
         if (authentication.usePossession) {
             possessionKey = [self deviceRelatedKey];
         }
@@ -948,7 +948,7 @@ static PowerAuthSDK * s_inst;
         if (result) {
             [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
             if (biometryKey) {
-                [_biometryOnlyKeychain addValue:biometryKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
+                [_biometryOnlyKeychain setCoreData:biometryKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
             }
             // Clear TokenStore
             [_tokenStore removeAllLocalTokens];
@@ -1285,7 +1285,7 @@ static PowerAuthSDK * s_inst;
                 if ([session addBiometryFactor:encryptedEncryptionKey keys:keys]) {
                     // Update keychain values after each successful calculations
                     [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
-                    [_biometryOnlyKeychain addValue:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
+                    [_biometryOnlyKeychain setCoreData:keys.biometryUnlockKey forKey:_biometryKeyIdentifier access:_biometricConfiguration.biometricItemAccess];
                     return nil;
                 } else {
                     return PA2MakeError(PowerAuthErrorCode_InvalidActivationState, nil);
@@ -1406,7 +1406,7 @@ static PowerAuthSDK * s_inst;
         if (success) {
             // The LAContext should be pre-authorized now, so the operation is no longer blocking.
             // Acquire key to unlock biometric factor
-            NSData * biometryKey = [self biometryRelatedKeyWithAuthentication:keychainAuthentication error:&error];
+            PowerAuthCoreData * biometryKey = [self biometryRelatedKeyWithAuthentication:keychainAuthentication error:&error];
             if (biometryKey) {
                 // The biometry key is available, so create a new PowerAuthAuthentication object preconfigured
                 // with possession+biometry factors.
@@ -1495,7 +1495,7 @@ static PowerAuthSDK * s_inst;
 /// Generate new invalid biometric key. The function is used in situations when biometric authentication failed
 /// and SDK needs to increase fail attempts count on the server. By generating invalid key we pretend that
 /// everything's OK but the final result is that server rejects such signature.
-- (NSData*) generateInvalidBiometricKey
+- (PowerAuthCoreData*) generateInvalidBiometricKey
 {
     PowerAuthLog(@"WARNING: Generating fake biometry key to increase failed attempts counter on the server.");
     return [PowerAuthCoreSession generateSignatureUnlockKey];
@@ -1639,7 +1639,7 @@ static PowerAuthSDK * s_inst;
                 return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_MissingActivation, nil)];
             }
             NSError * error = nil;
-            NSData * deviceKey = [self deviceRelatedKey];
+            PowerAuthCoreData * deviceKey = [self deviceRelatedKey];
             PA2PrivateEncryptorFactory * factory =  [[PA2PrivateEncryptorFactory alloc] initWithSessionProvider:_sessionInterface deviceRelatedKey:deviceKey];
             PowerAuthCoreEciesEncryptor * encryptor = [factory encryptorWithId:PA2EncryptorId_GenericActivationScope error:&error];
             return [PA2Result success:encryptor orFailure:error];
@@ -1702,7 +1702,7 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
-- (BOOL) setExternalEncryptionKey:(NSData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) setExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
 {
     NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
         PowerAuthCoreErrorCode ec = [session setExternalEncryptionKey:externalEncryptionKey];
@@ -1724,7 +1724,7 @@ static PowerAuthSDK * s_inst;
     return !failure;
 }
 
-- (BOOL) addExternalEncryptionKey:(NSData *)externalEncryptionKey error:(NSError **)error
+- (BOOL) addExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey error:(NSError **)error
 {
     NSError * failure = [_sessionInterface writeTaskWithSession:^NSError* (PowerAuthCoreSession * session) {
         PowerAuthCoreErrorCode ec = [session addExternalEncryptionKey:externalEncryptionKey];

@@ -407,18 +407,18 @@ using namespace io::getlime::powerAuth;
     return _session->hasExternalEncryptionKey();
 }
 
-- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
 {
     REQUIRE_READ_ACCESS();
-    auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+    auto error = externalEncryptionKey ? _session->setExternalEncryptionKey(externalEncryptionKey.byteArrayRef) : EC_WrongParam;
     REPORT_ERROR_CODE(@"SetExternalEncryptionKey", error);
     return static_cast<PowerAuthCoreErrorCode>(error);
 }
 
-- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
 {
     REQUIRE_WRITE_ACCESS();
-    auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+    auto error = externalEncryptionKey ? _session->addExternalEncryptionKey(externalEncryptionKey.byteArrayRef) : EC_WrongParam;
     REPORT_ERROR_CODE(@"AddExternalEncryptionKey", error);
     return static_cast<PowerAuthCoreErrorCode>(error);
 }
@@ -486,15 +486,15 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Utilities for generic keys
 
-+ (nonnull NSData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data
++ (nonnull PowerAuthCoreData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data
 {
-    return cc7::objc::CopyToNSData(Session::normalizeSignatureUnlockKeyFromData(cc7::ByteRange(data.bytes, data.length)));
+    return [[PowerAuthCoreData alloc] initWithByteRange:Session::normalizeSignatureUnlockKeyFromData(cc7::ByteRange(data.bytes, data.length))];
 }
 
 
-+ (nonnull NSData*) generateSignatureUnlockKey
++ (nonnull PowerAuthCoreData*) generateSignatureUnlockKey
 {
-    return cc7::objc::CopyToNSData(Session::generateSignatureUnlockKey());
+    return [[PowerAuthCoreData alloc] initWithByteRange:Session::generateSignatureUnlockKey()];
 }
 
 

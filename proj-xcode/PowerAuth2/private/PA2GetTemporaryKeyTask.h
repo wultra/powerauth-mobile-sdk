@@ -41,7 +41,7 @@
                             sessionProvider:(nonnull id<PowerAuthCoreSessionProvider>)sessionProvider
                                  sharedLock:(nonnull id<NSLocking>)sharedLock
                              applicationKey:(nonnull NSString*)applicationKey
-                           deviceRelatedKey:(nullable NSData*)deviceRelatedKey
+                           deviceRelatedKey:(nullable PowerAuthCoreData*)deviceRelatedKey
                              encryptorScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope
                                    delegate:(nonnull id<PA2GetTemporaryKeyTaskDelegate>)delegate;
 

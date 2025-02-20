@@ -4,12 +4,17 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - PowerAuth mobile SDK no longer supports activation by the recovery code.
 - New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
+- PowerAuth mobile SDK no longer leaks sensitive keys in memory.
 
 ### Compatibility with PowerAuth Server
 
 - This release is fully compatible with PowerAuth Server version `1.9.0` and newer.
 
 ## Android
+
+Notable changes on Android:
+
+- New `PowerAuthBiometricPrompt` class simplifies biometric key setup and authentication.
 
 ### API changes
 
@@ -60,6 +65,10 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 ## iOS & tvOS
 
+Notable changes on iOS:
+
+- Added `PowerAuthCoreData` object to `PowerAuthCore` module to prevent sensitive data leaking into memory.
+
 ### API changes
 
 - The following methods in `PowerAuthSDK` class are deprecated:
@@ -93,6 +102,14 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
     - removed class `PowerAuthActivationRecoveryData`
     - removed property `PowerAuthActivationResult.activationRecovery`
     - removed constructor `PowerAuthActivation(recoveryCode:recoveryPuk:name:)`
+
+- The following functions or properties now takes `PowerAuthCoreData` instead of `Data` structure:
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthConfiguration.externalEncryptionKey`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
+  - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

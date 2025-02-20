@@ -25,7 +25,7 @@
 
 - (nonnull instancetype) initWithHttpClient:(nonnull PA2HttpClient*)httpClient
                                 timeService:(nonnull id<PowerAuthCoreTimeService>)timeService
-                           deviceRelatedKey:(nonnull NSData*)deviceRelatedKey
+                           deviceRelatedKey:(nonnull PowerAuthCoreData*)deviceRelatedKey
                                sessionSetup:(nonnull PowerAuthCoreSessionSetup*)sessionSetup
                                  sharedLock:(nonnull id<NSLocking>)sharedLock;
 /**

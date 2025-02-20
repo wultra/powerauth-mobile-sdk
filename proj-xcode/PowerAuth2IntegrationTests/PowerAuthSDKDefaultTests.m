@@ -894,7 +894,7 @@
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
-    NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     
     NSError * error = nil;
     BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];
@@ -920,7 +920,7 @@
     // This validates EEK usage from the beginning.
     //
     
-    NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     PowerAuthConfiguration * newConfig = [_sdk.configuration copy];
     newConfig.externalEncryptionKey = eek;
     _sdk = [_helper reCreateSdkInstanceWithConfiguration:newConfig biometricConfiguration:nil keychainConfiguration:nil clientConfiguration:nil];
@@ -950,7 +950,7 @@
     // This validates when EEK is set before activation is created.
     //
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
-    NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     NSError * error = nil;
     BOOL result = [_sdk setExternalEncryptionKey:eek error:&error];
     XCTAssertTrue(result);
@@ -988,7 +988,7 @@
     XCTAssertFalse(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
     
-    NSData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
+    PowerAuthCoreData * eek = [PowerAuthCoreSession generateSignatureUnlockKey];
     
     NSError * error = nil;
     BOOL result = [_sdk addExternalEncryptionKey:eek error:&error];

@@ -28,6 +28,10 @@
 #include <pthread.h>
 #endif
 
+#if PA2_HAS_CORE_MODULE
+@import PowerAuthCore;
+#endif
+
 @implementation PowerAuthKeychain {
     NSDictionary *_baseQuery;
 }
@@ -527,3 +531,30 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
 }
 
 @end
+
+#if PA2_HAS_CORE_MODULE
+
+@implementation PowerAuthKeychain (CoreData)
+
+- (PowerAuthCoreData*) coreDataForKey:(NSString *)key
+                               status:(OSStatus *)status
+                       authentication:(PowerAuthKeychainAuthentication*)authentication
+{
+    NSData * dataRef = [self dataForKey:key status:status authentication:authentication];
+    return dataRef ? [[PowerAuthCoreData alloc] initWithDataAndClearSource:dataRef] : nil;
+}
+
+- (PowerAuthKeychainStoreItemResult) setCoreData:(nonnull PowerAuthCoreData*)coreData
+                                          forKey:(nonnull NSString*)key
+                                          access:(PowerAuthKeychainItemAccess)access
+{
+    if ([self containsDataForKey:key]) {
+        return [self updateValue:coreData.data forKey:key];
+    } else {
+        return [self addValue:coreData.data forKey:key access:access];
+    }
+}
+
+@end
+
+#endif // PA2_HAS_CORE_MODULE

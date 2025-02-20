@@ -483,7 +483,7 @@
  
  This function access the session's state, so read access must be guaranteed.
  */
-- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
+- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey;
 
 /**
  Adds a new external encryption key permanently to the activated Session and to the internal 
@@ -500,7 +500,7 @@
  
  This function changes the session's state, so write access must be guaranteed.
  */
-- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey;
+- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey;
 
 /**
  Removes existing external encryption key from the activated Session. The method removes EEK permanently
@@ -575,7 +575,7 @@
  but your source data is not normalized. For example, WI-FI or UDID doesn't fit to
  requirements for cryptographic key and this function helps derive the key from an input data.
  */
-+ (nonnull NSData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data;
++ (nonnull PowerAuthCoreData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data;
 
 /**
  Returns new normalized key usable for a signature keys protection.
@@ -590,7 +590,7 @@
  Internally, method only generates 16 bytes long random data and therefore is also suitable
  for all other situations, when the generated random key is required.
  */
-+ (nonnull NSData*) generateSignatureUnlockKey;
++ (nonnull PowerAuthCoreData*) generateSignatureUnlockKey;
 
 /**
  Returns new challenge for getting activation status.

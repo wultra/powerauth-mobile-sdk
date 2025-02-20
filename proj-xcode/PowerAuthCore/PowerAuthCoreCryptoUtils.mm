@@ -16,6 +16,7 @@
 
 #import <cc7/objc/ObjcHelper.h>     // must be first included
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
+#import "PowerAuthCorePrivateImpl.h"
 #include "CryptoUtils.h"            // Accessing private header; will be fixed by moving crypto to cc7
 
 
@@ -109,6 +110,12 @@ using namespace io::getlime::powerAuth;
 + (nullable NSData*) randomBytes:(NSUInteger)count
 {
     return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));
+}
+
++ (nullable PowerAuthCoreData*) randomCoreData:(NSUInteger)count
+{
+    auto randomBytes = crypto::GetRandomData(count, true);
+    return randomBytes.empty() ? nil : [[PowerAuthCoreData alloc] initWithByteRange:randomBytes];
 }
 
 @end

@@ -42,7 +42,7 @@
 /**
  Returns key required for unlok the possesion factor.
  */
-- (NSData*) deviceRelatedKey;
+- (PowerAuthCoreData*) deviceRelatedKey;
 
 /**
  Low level signature calculation. Unlike the high level interface, this method doesn't check

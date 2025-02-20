@@ -778,7 +778,7 @@
  but only for a possession factor, which is by design not protected with EEK.
  @param externalEncryptionKey EEK to be set to the internal configuration.
  */
-- (BOOL) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (BOOL) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
                             error:(NSError * _Nullable * _Nullable)error;
 
 /**
@@ -786,7 +786,7 @@
  is is useful for scenarios, when you need to add the EEK additionally, after the activation.
  @param externalEncryptionKey A new key to add. The data object must contain exactly 16 bytes.
  */
-- (BOOL) addExternalEncryptionKey:(nonnull NSData*)externalEncryptionKey
+- (BOOL) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
                             error:(NSError * _Nullable * _Nullable)error;
 
 /**

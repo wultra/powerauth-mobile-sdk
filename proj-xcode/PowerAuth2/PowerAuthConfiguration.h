@@ -21,6 +21,9 @@
 
 /** Class that represents a PowerAuthSDK instance configuration.
  */
+
+@class PowerAuthCoreData;
+
 @interface PowerAuthConfiguration : NSObject<NSCopying>
 
 /// No longer available. Use `init(instanceId:baseEndpointUrl:configuration:)` instead.
@@ -53,7 +56,7 @@
 
 /** Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
  */
-@property (nonatomic, strong, nullable) NSData  *externalEncryptionKey;
+@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
 
 /**
  If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.

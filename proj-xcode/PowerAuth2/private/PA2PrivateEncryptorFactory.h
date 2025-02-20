@@ -18,6 +18,7 @@
 
 @class PowerAuthCoreSession;
 @class PowerAuthCoreEciesEncryptor;
+@class PowerAuthCoreData;
 
 /**
  The `PA2EncryptorId` enumeration defines various types of
@@ -92,7 +93,7 @@ typedef NS_ENUM(int, PA2EncryptorId) {
  The device related key is required only for activation scoped encryptors.
  */
 - (instancetype) initWithSessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
-                        deviceRelatedKey:(NSData*)deviceRelatedKey;
+                        deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey;
 
 /**
  Constructs a new encryptor depending on encryptor identifier.

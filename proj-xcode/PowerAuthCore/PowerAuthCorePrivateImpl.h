@@ -25,6 +25,7 @@
 #import <PowerAuthCore/PowerAuthCorePassword.h>
 #import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreLog.h>
+#import <PowerAuthCore/PowerAuthCoreData.h>
 
 /*
  This header contains various private interfaces, internally used
@@ -60,6 +61,12 @@
 @interface PowerAuthCoreEciesMetaData (Private)
 - (cc7::ByteArray) associatedData;
 @end
+
+@interface PowerAuthCoreData (Private)
+- (id) initWithByteRange:(const cc7::ByteRange &)byteRange;
+- (const cc7::ByteRange &) byteArrayRef;
+@end
+
 
 @protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
 - (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;

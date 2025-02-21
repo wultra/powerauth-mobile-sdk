@@ -47,8 +47,8 @@
 /**
  Compute ECDH shared secret.
  */
-+ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
-                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
++ (nullable PowerAuthCoreData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                                         withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
 
 /**
  Computes SHA-256 from given data.

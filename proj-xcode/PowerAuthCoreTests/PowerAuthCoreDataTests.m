@@ -35,9 +35,9 @@
     NSData * capturedData = nil;
     @autoreleasepool {
         PowerAuthCoreData * coreData = [[PowerAuthCoreData alloc] initWithData:data16_1];
-        capturedData = coreData.data;
+        capturedData = coreData.sensitiveData;
         XCTAssertNotEqual(data16_1, capturedData);
-        XCTAssertEqualObjects(data16_1, coreData.data);
+        XCTAssertEqualObjects(data16_1, coreData.sensitiveData);
     }
     // Leaving block above, coreData should destroy content of the data.
     XCTAssertNotEqualObjects(data16_1, capturedData);
@@ -58,18 +58,37 @@
     NSData * zero24 = [self zeroBytes:24 mutable:NO];
     
     PowerAuthCoreData * coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:data16_imm];
-    XCTAssertEqualObjects(data16_ref, coreData.data);
+    XCTAssertEqualObjects(data16_ref, coreData.sensitiveData);
     XCTAssertEqualObjects(data16_ref, data16_imm);
     coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:data16_mut];
-    XCTAssertEqualObjects(data16_ref, coreData.data);
+    XCTAssertEqualObjects(data16_ref, coreData.sensitiveData);
     XCTAssertEqualObjects(zero16, data16_mut);
     
     coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:data24_imm];
-    XCTAssertEqualObjects(data24_ref, coreData.data);
+    XCTAssertEqualObjects(data24_ref, coreData.sensitiveData);
     XCTAssertEqualObjects(data24_ref, data24_imm);
     coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:data24_mut];
-    XCTAssertEqualObjects(data24_ref, coreData.data);
+    XCTAssertEqualObjects(data24_ref, coreData.sensitiveData);
     XCTAssertEqualObjects(zero24, data24_mut);
+}
+
+- (void) testCoreDataNilInit
+{
+    PowerAuthCoreData * coreData = [[PowerAuthCoreData alloc] initWithData:nil];
+    XCTAssertNotNil(coreData.sensitiveData);
+    XCTAssertEqual(0, coreData.sensitiveData.length);
+
+    coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:nil];
+    XCTAssertNotNil(coreData.sensitiveData);
+    XCTAssertEqual(0, coreData.sensitiveData.length);
+    
+    coreData = [[PowerAuthCoreData alloc] initWithData:[NSData data]];
+    XCTAssertNotNil(coreData.sensitiveData);
+    XCTAssertEqual(0, coreData.sensitiveData.length);
+
+    coreData = [[PowerAuthCoreData alloc] initWithDataAndClearSource:[NSMutableData data]];
+    XCTAssertNotNil(coreData.sensitiveData);
+    XCTAssertEqual(0, coreData.sensitiveData.length);
 }
 
 - (NSData*) zeroBytes:(NSUInteger)length mutable:(BOOL)mutable

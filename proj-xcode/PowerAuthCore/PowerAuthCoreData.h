@@ -17,9 +17,8 @@
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 
 /**
- The `PowerAuthCoreData` captures sensitive data, such as encryption keys,
- in secure manner. That mneans that the sensitive content is wiped out
- from the memory once the object is destroyed.
+ The `PowerAuthCoreData` class encapsulates a byte array containing cryptographically sensitive data
+ and ensures that the data is securely erased from memory when the object is destroyed.
  */
 @interface PowerAuthCoreData : NSObject<NSCopying>
 
@@ -29,22 +28,27 @@
 - (nonnull instancetype) init NS_UNAVAILABLE;
 
 /**
- Construct an object with the provided data. The constructor internally copies the data.
+ Construct object with bytes copied from the provided data object.
  */
-- (nonnull instancetype) initWithData:(nullable NSData*)data;
+- (nonnull instancetype) initWithData:(nullable NSData*)data
+                            NS_SWIFT_NAME(init(withData:));
 /**
- Constructs an object with the provided data. The constructor internally copies the data.
-If the provided data object is mutable, its content is overwritten with zero bytes.
+ Construct object with bytes copied from the provided data object. If the provided data object is
+ also instance of `NSMutableData` then the content will be also erased.
  */
-- (nonnull instancetype) initWithDataAndClearSource:(nullable NSData*)data;
+- (nonnull instancetype) initWithDataAndClearSource:(nullable NSData*)data
+                            NS_SWIFT_NAME(init(withDataAndClearSource:));
 
 /**
- Contains underlying data object. You suppose to do not keep reference to this `Data`
- object, because it's content is cleared in `PowerAuthCoreData` destructor.
- If you want to keep safely the captured data for longer, then make copy
- of the `PowerAuthCoreData`.
+ Provides access to the underlying data object.
+ 
+ Do not retain a reference to the returned `NSData` object, as its content will be cleared
+ when this object is destroyed.
+
+ If you need to preserve the captured data for longer, make a copy of the returned data
+ and securely erase its content when it is no longer needed.
  */
-@property (readonly, strong, nonnull) NSData * data;
+@property (readonly, strong, nonnull) NSData * sensitiveData;
 
 /**
  Compares two `PowerAuthCoreData` objects.

@@ -1302,7 +1302,7 @@
     }
 
     BOOL result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(NSData * _Nullable encryptionKey, NSError * _Nullable error) {
+        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
     }] boolValue];
@@ -1311,7 +1311,7 @@
     [NSThread sleepForTimeInterval:15.0];
     
     result = [[AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(NSData * _Nullable encryptionKey, NSError * _Nullable error) {
+        [_sdk fetchEncryptionKey:_helper.authPossessionWithKnowledge index:1000 callback:^(PowerAuthCoreData * _Nullable encryptionKey, NSError * _Nullable error) {
             [waiting reportCompletion:@(error == nil)];
         }];
     }] boolValue];

@@ -85,7 +85,7 @@
 }
 
 
-- (NSData*) data
+- (NSData*) sensitiveData
 {
     return _data;
 }

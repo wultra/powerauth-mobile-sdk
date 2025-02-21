@@ -26,6 +26,7 @@
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
+- [Working with sensitive data](#working-with-sensitive-data)
 - [Biometry Setup](#biometry-setup)
 - [Biometry Troubleshooting](#biometry-troubleshooting)
 - [Device Activation Removal](#activation-removal)
@@ -951,6 +952,56 @@ extension PowerAuthCorePassword {
 You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
 <!-- end -->
 
+## Working with sensitive data
+
+The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for managing an [external encryption key](#external-encryption-key). This chapter explains how to use the `PowerAuthCoreData` object properly.
+
+### Create instance of `PowerAuthCoreData`
+
+If you need to provide cryptographically sensitive key material to PowerAuth mobile SDK, then use the following code:
+
+```swift
+let yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
+let secureData = PowerAuthCoreData(withData: yourKey)
+```
+
+The `secureData` object will keep copy of bytes. In case you also wants to destroy the content of source `Data` structure, then you can try an alternative constructor, that try to erase content of the source data in case the source data is instance of `NSMutableData` class:
+
+```swift
+let mutableKey = NSMutableData(data: "nbuSR123nbuSR123".data(using: .ascii)!) as Data
+let secureData = PowerAuthCoreData(withDataAndClearSource: mutableKey)
+```
+
+As you can see, this unlikely happens in typical Swift projects, so you may ensure on your own that data is erased properly:
+
+```swift
+extension Data {
+    mutating func secureErase() {
+        resetBytes(in: 0..<count)   // Fill with zeroes
+        removeAll(keepingCapacity: false) // Release memory
+    }
+}
+
+var yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
+let secureData = PowerAuthCoreData(withData: yourKey)
+yourKey.secureErase()
+```
+
+### Using instance of `PowerAuthCoreData`
+
+To get reference to stored bytes, use the following code:
+
+```swift
+func processSecureData(secureData: PowerAuthCoreData) {
+    doSomethingWitBytes(secureData.sensitiveData)
+}
+```
+
+<!-- begin box warning -->
+Be aware that you should not keep the reference to provided `Data` object. If you need to keep the bytes longer, then keep the reference to `SecureData` instance, or make your own copy of bytes, returned in `data` property.
+<!-- end -->
+
+
 ## Biometry Setup
 
 PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face ID support. While the authentication / data signing itself is nicely and transparently embedded in the `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other biometry-related processes require their own API. This part of the documentation is not relevant to the **tvOS** platform.
@@ -1382,6 +1433,7 @@ let index = UInt64(1000)
 powerAuthSDK.fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
     if error == nil {
         // ... use the encryption key to encrypt or decrypt data
+        let keyData = encryptionKey.sensitiveData
     } else {
         // Report error
     }

@@ -56,14 +56,14 @@ using namespace io::getlime::powerAuth;
     return nil;
 }
 
-+ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
-                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
++ (nullable PowerAuthCoreData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                                         withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
 {
     auto shared_secret = crypto::ECDH_SharedSecret(*publicKey.ecKeyRef, *privateKey.ecKeyRef);
     if (shared_secret.empty()) {
         return nil;
     }
-    return cc7::objc::CopyToNSData(shared_secret);
+    return [[PowerAuthCoreData alloc] initWithByteRange:shared_secret];
 }
 
 + (nullable PowerAuthCoreECKeyPair*) ecGenerateKeyPair

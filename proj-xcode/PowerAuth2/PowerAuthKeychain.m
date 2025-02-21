@@ -540,8 +540,8 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
                                status:(OSStatus *)status
                        authentication:(PowerAuthKeychainAuthentication*)authentication
 {
-    NSData * dataRef = [self dataForKey:key status:status authentication:authentication];
-    return dataRef ? [[PowerAuthCoreData alloc] initWithDataAndClearSource:dataRef] : nil;
+    NSData * data = [self dataForKey:key status:status authentication:authentication];
+    return data ? [[PowerAuthCoreData alloc] initWithDataAndClearSource:data] : nil;
 }
 
 - (PowerAuthKeychainStoreItemResult) setCoreData:(nonnull PowerAuthCoreData*)coreData
@@ -549,9 +549,9 @@ static BOOL _AddAccessControlObject(NSMutableDictionary * dictionary, BOOL isAdd
                                           access:(PowerAuthKeychainItemAccess)access
 {
     if ([self containsDataForKey:key]) {
-        return [self updateValue:coreData.data forKey:key];
+        return [self updateValue:coreData.sensitiveData forKey:key];
     } else {
-        return [self addValue:coreData.data forKey:key access:access];
+        return [self addValue:coreData.sensitiveData forKey:key access:access];
     }
 }
 

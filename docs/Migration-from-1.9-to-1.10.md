@@ -4,7 +4,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - PowerAuth mobile SDK no longer supports activation by the recovery code.
 - New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
-- PowerAuth mobile SDK no longer leaks sensitive keys in the memory.
+- PowerAuth mobile SDK now ensures sensitive keys are not retained in memory.
 
 ### Compatibility with PowerAuth Server
 
@@ -15,7 +15,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 Notable changes on Android:
 
 - New `PowerAuthBiometricPrompt` class simplifies biometric key setup and authentication.
-- Added `SecureData` object to `io.getlime.security.powerauth.core` package to reduce sensitive data leaking into memory.
+- Added the `SecureData` class to `io.getlime.security.powerauth.core` package to enhance in-memory management of sensitive data.
 
 ### API changes
 
@@ -81,7 +81,7 @@ Notable changes on Android:
 
 Notable changes on iOS:
 
-- Added `PowerAuthCoreData` object to `PowerAuthCore` module to reduce sensitive data leaking into memory.
+- Added the `PowerAuthCoreData` object to `PowerAuthCore` module to enhance in-memory management of sensitive data.
 
 ### API changes
 

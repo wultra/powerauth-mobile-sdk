@@ -70,6 +70,8 @@ Notable changes on Android:
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
   - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
   - `CryptoUtils.ecdhComputeSharedSecret()`
+  - `BiometricKeyData.getDerivedData()`
+  - `BiometricKeyData.getDataToSave()`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

@@ -24,6 +24,7 @@ import android.util.Base64;
 
 import java.util.Set;
 
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.keychain.Keychain;
 
 /**
@@ -103,10 +104,21 @@ public class LegacyKeychain implements Keychain {
         return null;
     }
 
+    @Nullable
+    @Override
+    public SecureData getSecureData(@NonNull String key) {
+        return SecureData.capture(getData(key));
+    }
+
     @Override
     public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
         final String serializedData = (data != null && data.length > 0) ? Base64.encodeToString(data, Base64.DEFAULT) : null;
         setStringValue(key, serializedData);
+    }
+
+    @Override
+    public void putSecureData(@Nullable SecureData secureData, @NonNull String key) {
+        putData(secureData != null ? secureData.getSensitiveData() : null, key);
     }
 
     // String accessors

@@ -23,6 +23,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 
 import io.getlime.security.powerauth.core.CryptoUtils;
+import io.getlime.security.powerauth.core.SecureData;
 
 /**
  * The {@code DefaultPossessionEncryptionKeyProvider} class provides default implementation for {@link IPossessionFactorEncryptionKeyProvider}.
@@ -31,7 +32,7 @@ public class DefaultPossessionFactorEncryptionKeyProvider implements IPossession
 
     @NonNull
     @Override
-    public byte[] getPossessionFactorEncryptionKey(@NonNull Context context) {
+    public SecureData getPossessionFactorEncryptionKey(@NonNull Context context) {
         StringBuilder sb = new StringBuilder();
         String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         if (androidId != null) {
@@ -48,7 +49,7 @@ public class DefaultPossessionFactorEncryptionKeyProvider implements IPossession
      * @return Possession encryption key calculated from key data.
      */
     @NonNull
-    private static byte[] normalizeStringToSignatureKek(@NonNull String keyData) {
-        return CryptoUtils.hashSha256(keyData.getBytes(), 16);
+    private static SecureData normalizeStringToSignatureKek(@NonNull String keyData) {
+        return SecureData.capture(CryptoUtils.hashSha256(keyData.getBytes(), 16));
     }
 }

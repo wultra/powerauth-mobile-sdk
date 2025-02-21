@@ -460,9 +460,9 @@ public class Session {
      * @param unlockKeys unlock keys object with required possession factor
      * @param keyIndex parameter to key derivation function
      *
-     * @return byte array with a derived cryptographic key or null in case of failure.
+     * @return Derived cryptographic key or null in case of failure.
      */
-    public native byte[] deriveCryptographicKeyFromVaultKey(String cVaultKey, SignatureUnlockKeys unlockKeys, long keyIndex);
+    public native SecureData deriveCryptographicKeyFromVaultKey(String cVaultKey, SignatureUnlockKeys unlockKeys, long keyIndex);
     
     /**
      * Computes a ECDSA-SHA256 signature of given |data| with using device's private key. You have to provide
@@ -505,7 +505,7 @@ public class Session {
      *         is returned then the operation succeeded.
      */
     @ErrorCode
-    public native int setExternalEncryptionKey(byte[] externalEncryptionKey);
+    public native int setExternalEncryptionKey(SecureData externalEncryptionKey);
     
     /**
      * Adds a new external encryption key permanently to the activated Session and to the internal
@@ -520,7 +520,7 @@ public class Session {
      *         is returned then the operation succeeded.
      */
     @ErrorCode
-    public native int addExternalEncryptionKey(byte[] externalEncryptionKey);
+    public native int addExternalEncryptionKey(SecureData externalEncryptionKey);
     
     /**
      * Removes existing external encryption key from the activated Session. The method removes EEK permanently
@@ -622,7 +622,7 @@ public class Session {
      * @param arbitraryData data to be used for key normalization
      * @return normalized key
      */
-    public native byte[] normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
+    public native SecureData normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
 
     /**
      * Returns bytes with a new normalized key usable for a signature keys protection.
@@ -639,7 +639,7 @@ public class Session {
      *
      * @return new random key
      */
-    public native byte[] generateSignatureUnlockKey();
+    public native SecureData generateSignatureUnlockKey();
 
     /**
      * Returns new challenge for getting activation status.

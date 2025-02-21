@@ -47,7 +47,7 @@ public class SessionSetup {
      * operations. The key is NOT serialized in the session's state and thus it's up to the application,
      * how it manages the chain of multiple PA2 sessions.
      */
-    public final @Nullable byte[] externalEncryptionKey;
+    public final @Nullable SecureData externalEncryptionKey;
 
     /**
      * Construct object with new simplified configuration.
@@ -57,7 +57,7 @@ public class SessionSetup {
      */
     public SessionSetup(
             @NonNull String configuration,
-            @Nullable byte[] externalEncryptionKey) {
+            @Nullable SecureData externalEncryptionKey) {
         this.configuration = configuration;
         this.externalEncryptionKey = externalEncryptionKey;
     }
@@ -68,7 +68,7 @@ public class SessionSetup {
     public boolean isValid() {
         boolean result = validateConfiguration(configuration);
         if (result && externalEncryptionKey != null) {
-            result = externalEncryptionKey.length == 16;
+            result = externalEncryptionKey.length() == 16;
         }
         return result;
     }

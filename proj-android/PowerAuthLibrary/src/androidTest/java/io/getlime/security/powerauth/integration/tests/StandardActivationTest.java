@@ -23,6 +23,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
@@ -590,7 +591,7 @@ public class StandardActivationTest {
         Boolean result = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
                 @Override
-                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                public void onFetchEncryptionKeySucceed(@NonNull SecureData encryptionKey) {
                     resultCatcher.completeWithResult(true);
                 }
 
@@ -606,7 +607,7 @@ public class StandardActivationTest {
         result = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
                 @Override
-                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                public void onFetchEncryptionKeySucceed(@NonNull SecureData encryptionKey) {
                     resultCatcher.completeWithResult(true);
                 }
 

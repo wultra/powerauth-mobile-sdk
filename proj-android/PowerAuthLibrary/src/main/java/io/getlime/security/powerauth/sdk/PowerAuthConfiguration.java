@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.core.SessionSetup;
 
 /**
@@ -70,7 +71,7 @@ public class PowerAuthConfiguration {
     /**
      * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
      */
-    public @Nullable byte[] getExternalEncryptionKey() {
+    public @Nullable SecureData getExternalEncryptionKey() {
         return sessionSetup.externalEncryptionKey;
     }
 
@@ -145,7 +146,7 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private byte[] externalEncryptionKey = null;
+        private SecureData externalEncryptionKey = null;
         private boolean disableAutomaticProtocolUpgrade = false;
         private int offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
 
@@ -182,8 +183,8 @@ public class PowerAuthConfiguration {
          * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
          * @return {@link Builder}
          */
-        public @NonNull Builder externalEncryptionKey(@NonNull byte[] externalEncryptionKey) {
-            this.externalEncryptionKey = externalEncryptionKey;
+        public @NonNull Builder externalEncryptionKey(@NonNull SecureData externalEncryptionKey) {
+            this.externalEncryptionKey = externalEncryptionKey.copy();
             return this;
         }
 
@@ -211,8 +212,7 @@ public class PowerAuthConfiguration {
          * @return New instance of {@link PowerAuthConfiguration}.
          */
         public @NonNull PowerAuthConfiguration build() {
-            final byte[] eek = externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null;
-            final SessionSetup sessionSetup = new SessionSetup(configuration, eek);
+            final SessionSetup sessionSetup = new SessionSetup(configuration, externalEncryptionKey);
             return new PowerAuthConfiguration(
                     instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
                     baseEndpointUrl,

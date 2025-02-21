@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.sdk;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.core.SecureData;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -62,7 +63,7 @@ public class PowerAuthConfigurationBuilderTest {
 
     @Test
     public void testExternalEncryptionKey() throws Exception {
-        final byte[] expectedEEK = "0123456789ABCDEF".getBytes(Charset.defaultCharset());
+        final SecureData expectedEEK = SecureData.copy("0123456789ABCDEF".getBytes(Charset.defaultCharset()));
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
@@ -73,11 +74,11 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals(PowerAuthConfiguration.DEFAULT_INSTANCE_ID, configuration.getInstanceId());
         assertEquals("http://wultra.com", configuration.getBaseEndpointUrl());
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
-        assertArrayEquals(expectedEEK, configuration.getExternalEncryptionKey());
+        assertEquals(expectedEEK, configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
         // Test EEK after modify
-        expectedEEK[0] = 'X';
-        assertEquals('0', Objects.requireNonNull(configuration.getExternalEncryptionKey())[0]);
+        expectedEEK.getSensitiveData()[0] = 'X';
+        assertEquals('0', Objects.requireNonNull(configuration.getExternalEncryptionKey()).getSensitiveData()[0]);
     }
 
     @Test

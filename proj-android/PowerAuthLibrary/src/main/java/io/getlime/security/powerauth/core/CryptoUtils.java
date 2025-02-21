@@ -59,9 +59,9 @@ public class CryptoUtils {
      * Compute shared secret with using ECDH key-agreement.
      * @param publicKey Public key.
      * @param privateKey Private key.
-     * @return Bytes with shared secret or null in case of failure.
+     * @return Derived shared secret or null in case of failure.
      */
-    public static native byte[] ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey);
+    public static native SecureData ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey);
 
     /**
      * Computes SHA-256 from given data.
@@ -110,4 +110,13 @@ public class CryptoUtils {
      */
     public static native byte[] randomBytes(int count);
 
+    /**
+     * Generate secure data initialized with random bytes.
+     * @param count number random bytes to generate.
+     * @return random secure data or {@code null} in case of broken random generator or if provided
+     *         count is negative.
+     */
+    public static SecureData randomSecureData(int count) {
+        return SecureData.capture(randomBytes(count));
+    }
 }

@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import io.getlime.security.powerauth.core.SecureData;
 
 import javax.crypto.Cipher;
 
@@ -60,7 +61,7 @@ public interface IBiometricKeyEncryptor {
      * @return {@link BiometricKeyData} with key derivation and data to store to persistent storage.
      */
     @Nullable
-    BiometricKeyData encryptBiometricKey(@NonNull byte[] key);
+    BiometricKeyData encryptBiometricKey(@NonNull SecureData key);
 
     /**
      * Decrypt biometric key from previously stored value.
@@ -71,5 +72,5 @@ public interface IBiometricKeyEncryptor {
      * @return {@link BiometricKeyData} with restored key derivation.
      */
     @Nullable
-    BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey);
+    BiometricKeyData decryptBiometricKey(@NonNull SecureData encryptedKey);
 }

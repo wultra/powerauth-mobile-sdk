@@ -335,7 +335,7 @@ public class PowerAuthSDK {
             @NonNull
             @Override
             public EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
-                final byte[] deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
+                final SecureData deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
                 EciesEncryptorFactory factory = new EciesEncryptorFactory(mSession, deviceRelatedKey);
                 return factory.getEncryptor(identifier);
             }
@@ -356,7 +356,7 @@ public class PowerAuthSDK {
 
             @Nullable
             @Override
-            public byte[] getDeviceRelatedKey() {
+            public SecureData getDeviceRelatedKey() {
                 return context == null ? null : deviceRelatedKey(context);
             }
 
@@ -407,7 +407,7 @@ public class PowerAuthSDK {
      * @return Default device related key.
      */
     @NonNull
-    private byte[] deviceRelatedKey(@NonNull Context context) {
+    private SecureData deviceRelatedKey(@NonNull Context context) {
         return mPossessionFactorEncryptionKeyProvider.getPossessionFactorEncryptionKey(context);
     }
 
@@ -424,8 +424,8 @@ public class PowerAuthSDK {
         authentication.validateAuthenticationUsage(false);
 
         // Generate signature key encryption keys
-        byte[] possessionKey;
-        byte[] biometryKey = null;
+        SecureData possessionKey;
+        SecureData biometryKey = null;
 
         if (authentication.getOverriddenPossessionKey() != null) {
             possessionKey = authentication.getOverriddenPossessionKey();
@@ -1011,8 +1011,8 @@ public class PowerAuthSDK {
         authentication.validateAuthenticationUsage(true);
 
         // Prepare key encryption keys
-        final byte[] possessionKey = deviceRelatedKey(context);
-        final byte[] biometryKey = authentication.getBiometryFactorRelatedKey();
+        final SecureData possessionKey = deviceRelatedKey(context);
+        final SecureData biometryKey = authentication.getBiometryFactorRelatedKey();
 
         // Prepare signature unlock keys structure
         final SignatureUnlockKeys keys = new SignatureUnlockKeys(possessionKey, biometryKey, authentication.getPassword());
@@ -1233,7 +1233,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     @Deprecated // 1.10.0
-    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable SecureData encryptedBiometryKey) {
         return persistActivationWithPassword(context, new Password(password), encryptedBiometryKey);
     }
 
@@ -1252,7 +1252,7 @@ public class PowerAuthSDK {
     @CheckResult
     @PowerAuthErrorCodes
     @Deprecated // 1.10.0
-    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable SecureData encryptedBiometryKey) {
         return persistActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, null, encryptedBiometryKey, null));
     }
 
@@ -2119,7 +2119,7 @@ public class PowerAuthSDK {
     ICancelable addBiometryFactor(
             final @NonNull Context context,
             @NonNull String password,
-            final @NonNull byte[] encryptedBiometryKey,
+            final @NonNull SecureData encryptedBiometryKey,
             final @NonNull IAddBiometryFactorListener listener) {
         return addBiometryFactor(context, new Password(password), encryptedBiometryKey, listener);
     }
@@ -2139,7 +2139,7 @@ public class PowerAuthSDK {
     ICancelable addBiometryFactor(
             final @NonNull Context context,
             @NonNull Password password,
-            final @NonNull byte[] encryptedBiometryKey,
+            final @NonNull SecureData encryptedBiometryKey,
             final @NonNull IAddBiometryFactorListener listener) {
         final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
 
@@ -2212,7 +2212,7 @@ public class PowerAuthSDK {
 
                 // Let's unlock encryption key
                 final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                final byte[] key = mSession.deriveCryptographicKeyFromVaultKey(encryptedEncryptionKey, keys, index);
+                final SecureData key = mSession.deriveCryptographicKeyFromVaultKey(encryptedEncryptionKey, keys, index);
                 if (key != null) {
                     listener.onFetchEncryptionKeySucceed(key);
                 } else {
@@ -2381,13 +2381,13 @@ public class PowerAuthSDK {
             }
         }
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, forceGenerateNewKey ? BiometricDataMapper.BIO_MAPPING_CREATE_KEY : BiometricDataMapper.BIO_MAPPING_NOOP);
-        final byte[] rawKeyData;
+        final SecureData rawKeyData;
         if (forceGenerateNewKey) {
             // new key has to be generated
             rawKeyData = mSession.generateSignatureUnlockKey();
         } else {
             // old key should be used, if present
-            rawKeyData = mBiometryKeychain.getData(biometricDataMapping.keychainKey);
+            rawKeyData = mBiometryKeychain.getSecureData(biometricDataMapping.keychainKey);
         }
 
         if (rawKeyData == null) {
@@ -2429,9 +2429,9 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 // Store the new key, if a new key was generated
                 if (biometricKeyData.isNewKey()) {
-                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
+                    mBiometryKeychain.putSecureData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
                 }
-                byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData());
+                SecureData normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData().getSensitiveData());
                 callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));
             }
 
@@ -2444,7 +2444,7 @@ public class PowerAuthSDK {
                     // generate a fake signature unlock key and pretend that everything's OK.
                     // That will lead to unsuccessful authentication on the server and increased
                     // counter of failed attempts.
-                    final byte[] randomData =  mSession.generateSignatureUnlockKey();
+                    final SecureData randomData =  mSession.generateSignatureUnlockKey();
                     callback.onBiometricDialogSuccess(new BiometricKeyData(randomData, randomData, false));
                 } else {
                     // Otherwise just report the failure.
@@ -2617,7 +2617,7 @@ public class PowerAuthSDK {
      * @param externalEncryptionKey EEK to be set to the internal configuration.
      * @throws PowerAuthErrorException In case of failure.
      */
-    public void setExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+    public void setExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
         switch (mSession.setExternalEncryptionKey(externalEncryptionKey)) {
             case ErrorCode.OK:
                 break;
@@ -2636,7 +2636,7 @@ public class PowerAuthSDK {
      * @param externalEncryptionKey External Encryption key to add.
      * @throws PowerAuthErrorException In case of failure.
      */
-    public void addExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+    public void addExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
         switch (mSession.addExternalEncryptionKey(externalEncryptionKey)) {
             case ErrorCode.OK:
                 saveSerializedState();

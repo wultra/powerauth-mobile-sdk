@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
@@ -34,6 +35,8 @@ public abstract class BaseKeychainTest {
     public static final byte[] TEST_DATA_EMPTY = new byte[0];
     public static final byte[] TEST_DATA_NOT_EMPTY_1 = new byte[] { 'H', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd' , '!' };
     public static final byte[] TEST_DATA_NOT_EMPTY_2 = new byte[] { 'n', 'b', 'u', 's', 'r', '1', '2', '3' };
+    public static final SecureData TEST_SECURE_DATA_NOT_EMPTY_1 = SecureData.copy(TEST_DATA_NOT_EMPTY_1);
+    public static final SecureData TEST_SECURE_DATA_NOT_EMPTY_2 = SecureData.copy(TEST_DATA_NOT_EMPTY_2);
     public static final String TEST_STRING_EMPTY = "";
     public static final String TEST_STRING_NOT_EMPTY_1 = "Hello world!";
     public static final String TEST_STRING_NOT_EMPTY_2 = "Just hello...";
@@ -83,6 +86,7 @@ public abstract class BaseKeychainTest {
         keychain.putBoolean(false, "test.false");
         keychain.putData(TEST_DATA_EMPTY, "test.data_Empty");
         keychain.putData(TEST_DATA_NOT_EMPTY_1, "test.data_NotEmpty");
+        keychain.putSecureData(TEST_SECURE_DATA_NOT_EMPTY_1, "test.secure_data_Not_Empty");
         keychain.putString(TEST_STRING_EMPTY, "test.string_Empty");
         keychain.putString(TEST_STRING_NOT_EMPTY_1, "test.string_NotEmpty");
         keychain.putString(TEST_STRING_BAD_BASE64, "test.string_BadBase64");
@@ -101,6 +105,9 @@ public abstract class BaseKeychainTest {
         assertFalse(keychain.getBoolean("test.false", true));
         assertNull(keychain.getData("test.data_Empty"));
         assertArrayEquals(TEST_DATA_NOT_EMPTY_1, keychain.getData("test.data_NotEmpty"));
+        assertEquals(TEST_SECURE_DATA_NOT_EMPTY_1, keychain.getSecureData("test.data_NotEmpty"));
+        assertArrayEquals(TEST_DATA_NOT_EMPTY_1, keychain.getData("test.secure_data_Not_Empty"));
+        assertEquals(TEST_SECURE_DATA_NOT_EMPTY_1, keychain.getSecureData("test.secure_data_Not_Empty"));
         if (emptyStringIsNull) {
             assertNull(keychain.getString("test.string_Empty"));
         } else {
@@ -143,6 +150,8 @@ public abstract class BaseKeychainTest {
         assertFalse(keychain.contains("test.string_NotEmpty"));
         keychain.putData(null, "test.data_NotEmpty");
         assertFalse(keychain.contains("test.data_NotEmpty"));
+        keychain.putSecureData(null, "test.secure_data_Not_Empty");
+        assertFalse(keychain.contains("test.secure_data_Not_Empty"));
         keychain.putStringSet(null, "test.set_NotEmpty");
         assertFalse(keychain.contains("test.set_NotEmpty"));
     }
@@ -152,6 +161,7 @@ public abstract class BaseKeychainTest {
 
         keychain.putBoolean(false, "test.true");
         keychain.putData(TEST_DATA_NOT_EMPTY_2, "test.data_NotEmpty");
+        keychain.putSecureData(TEST_SECURE_DATA_NOT_EMPTY_2, "test.secure_data_Not_Empty");
         keychain.putString(TEST_STRING_NOT_EMPTY_2, "test.string_NotEmpty");
         keychain.putStringSet(TEST_SET_NOT_EMPTY_2, "test.set_NotEmpty");
         keychain.putFloat(1.f, "test.zeroFloat");
@@ -159,6 +169,9 @@ public abstract class BaseKeychainTest {
 
         assertFalse(keychain.getBoolean("test.true", true));
         assertArrayEquals(TEST_DATA_NOT_EMPTY_2, keychain.getData("test.data_NotEmpty"));
+        assertEquals(TEST_SECURE_DATA_NOT_EMPTY_2, keychain.getSecureData("test.data_NotEmpty"));
+        assertArrayEquals(TEST_DATA_NOT_EMPTY_2, keychain.getData("test.secure_data_Not_Empty"));
+        assertEquals(TEST_SECURE_DATA_NOT_EMPTY_2, keychain.getSecureData("test.secure_data_Not_Empty"));
         assertEquals(TEST_STRING_NOT_EMPTY_2, keychain.getString("test.string_NotEmpty"));
         assertEquals(1.f, keychain.getFloat("test.zeroFloat", 0.f), 0.0);
         assertEquals(1, keychain.getLong("test.zeroLong", 0));

@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import android.text.TextUtils;
+import io.getlime.security.powerauth.core.SecureData;
 
 import java.util.Arrays;
 import java.util.concurrent.Executor;
@@ -43,7 +44,7 @@ public class BiometricAuthenticationRequest {
     private final boolean invalidateByBiometricEnrollment;
     private final boolean userConfirmationRequired;
     private final boolean useSymmetricCipher;
-    private final @NonNull byte[] rawKeyData;
+    private final @NonNull SecureData rawKeyData;
     private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
     private final @Nullable Executor backgroundTaskExecutor;
 
@@ -58,7 +59,7 @@ public class BiometricAuthenticationRequest {
             boolean invalidateByBiometricEnrollment,
             boolean userConfirmationRequired,
             boolean useSymmetricCipher,
-            @NonNull byte[] rawKeyData,
+            @NonNull SecureData rawKeyData,
             @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
             @Nullable Executor backgroundTaskExecutor) {
         this.title = title;
@@ -71,7 +72,7 @@ public class BiometricAuthenticationRequest {
         this.invalidateByBiometricEnrollment = invalidateByBiometricEnrollment;
         this.userConfirmationRequired = userConfirmationRequired;
         this.useSymmetricCipher = useSymmetricCipher;
-        this.rawKeyData = Arrays.copyOf(rawKeyData, rawKeyData.length);
+        this.rawKeyData = rawKeyData;
         this.biometricKeyEncryptor = biometricKeyEncryptor;
         this.backgroundTaskExecutor = backgroundTaskExecutor;
     }
@@ -152,7 +153,7 @@ public class BiometricAuthenticationRequest {
      * depends on whether the key is being encrypted (for key setup procedure) or decrypted (for
      * a signature calculation).
      */
-    public @NonNull byte[] getRawKeyData() {
+    public @NonNull SecureData getRawKeyData() {
         return rawKeyData;
     }
 
@@ -189,7 +190,7 @@ public class BiometricAuthenticationRequest {
         private boolean invalidateByBiometricEnrollment = true;
         private boolean userConfirmationRequired = false;
         private boolean useSymmetricCipher = true;
-        private byte[] rawKeyData;
+        private SecureData rawKeyData;
         private IBiometricKeyEncryptor biometricKeyEncryptor;
         private Executor backgroundTaskExecutor;
 
@@ -218,7 +219,7 @@ public class BiometricAuthenticationRequest {
             if (rawKeyData == null) {
                 throw new IllegalArgumentException("RawKeyData is required.");
             }
-            if (rawKeyData.length < 16) {
+            if (rawKeyData.length() < 16) {
                 throw new IllegalArgumentException("RawKeyData length is insufficient.");
             }
             if (fragment == null && fragmentActivity == null) {
@@ -380,7 +381,7 @@ public class BiometricAuthenticationRequest {
          * @param keyData Array of bytes containing a key, which will be encrypted by the biometric key.
          * @return This value will never be {@code null}.
          */
-        public Builder setRawKeyData(@NonNull byte[] keyData) {
+        public Builder setRawKeyData(@NonNull SecureData keyData) {
             this.rawKeyData = keyData;
             return this;
         }

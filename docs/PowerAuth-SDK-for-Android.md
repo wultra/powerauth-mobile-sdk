@@ -2074,7 +2074,6 @@ The secure vault mechanism does not support biometry by default. Use PIN code or
 
 To obtain an encryption key with a given index, use the following code:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // 2FA signature. It uses device-related key and user PIN code.
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
@@ -2084,8 +2083,9 @@ val index = 1000L
 
 // Fetch the encryption key with the given index
 powerAuthSDK.fetchEncryptionKey(context, authentication, index, object: IFetchEncryptionKeyListener {
-    override fun onFetchEncryptionKeySucceed(encryptedEncryptionKey: ByteArray) {
+    override fun onFetchEncryptionKeySucceed(encryptionKey: SecureData) {
         // ... use the encryption key to encrypt or decrypt data
+        val keyBytes = encryptionKey.sensitiveData
     }
 
     override fun onFetchEncryptionKeyFailed(t: Throwable) {
@@ -2093,28 +2093,6 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, object: IFetchEn
     }
 })
 ```
-```java
-// 2FA signature. It uses device device-related key and user PIN code.
-PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
-
-// Select custom key index
-long index = 1000L;
-
-// Fetch the encryption key with the given index
-powerAuthSDK.fetchEncryptionKey(context, authentication, index, new IFetchEncryptionKeyListener() {
-    @Override
-    public void onFetchEncryptionKeySucceed(byte[] encryptedEncryptionKey) {
-        // ... use the encryption key to encrypt or decrypt data
-    }
-
-    @Override
-    public void onFetchEncryptionKeyFailed(Throwable t) {
-        // Report error
-    }
-})
-```
-<!-- end -->
-
 
 ## Token-Based Authentication
 

@@ -4,7 +4,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - PowerAuth mobile SDK no longer supports activation by the recovery code.
 - New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
-- PowerAuth mobile SDK no longer leaks sensitive keys in memory.
+- PowerAuth mobile SDK no longer leaks sensitive keys in the memory.
 
 ### Compatibility with PowerAuth Server
 
@@ -15,6 +15,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 Notable changes on Android:
 
 - New `PowerAuthBiometricPrompt` class simplifies biometric key setup and authentication.
+- Added `SecureData` object to `io.getlime.security.powerauth.core` package to reduce sensitive data leaking into memory.
 
 ### API changes
 
@@ -57,6 +58,19 @@ Notable changes on Android:
     - `IConfirmRecoveryCodeListener`
     - `RecoveryData`
 
+- The following functions now takes or returns `SecureData` instead of `byte[]`:
+  - `PowerAuthSDK.persistActivationWithPassword()`
+  - `PowerAuthSDK.addBiometryFactor()`
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthConfiguration.getExternalEncryptionKey()`
+  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
+  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
+  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
+  - `CryptoUtils.ecdhComputeSharedSecret()`
+
 - Removed all interfaces deprecated in release `1.9.x`
 
 ### Other changes
@@ -67,7 +81,7 @@ Notable changes on Android:
 
 Notable changes on iOS:
 
-- Added `PowerAuthCoreData` object to `PowerAuthCore` module to prevent sensitive data leaking into memory.
+- Added `PowerAuthCoreData` object to `PowerAuthCore` module to reduce sensitive data leaking into memory.
 
 ### API changes
 
@@ -103,7 +117,7 @@ Notable changes on iOS:
     - removed property `PowerAuthActivationResult.activationRecovery`
     - removed constructor `PowerAuthActivation(recoveryCode:recoveryPuk:name:)`
 
-- The following functions or properties now takes `PowerAuthCoreData` instead of `Data` structure:
+- The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
   - `PowerAuthSDK.setExternalEncryptionKey()`
   - `PowerAuthSDK.addExternalEncryptionKey()`
   - `PowerAuthSDK.fetchEncryptionKey()`
@@ -111,6 +125,7 @@ Notable changes on iOS:
   - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
   - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
   - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
+  - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.*;

@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.getlime.security.powerauth.core.Password;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class PowerAuthAuthentication {
     /**
      * If set, then the biometry factor will be used.
      */
-    private final @Nullable byte[] useBiometry;
+    private final @Nullable SecureData useBiometry;
     /**
      * If set, then the biometric factor will be used.
      */
@@ -42,7 +43,7 @@ public class PowerAuthAuthentication {
     /**
      * Optional custom possession key.
      */
-    private final @Nullable byte[] overriddenPossessionKey;
+    private final @Nullable SecureData overriddenPossessionKey;
 
     /**
      * Contains {@code true} if authentication object should be used to persist activation, {@code false}
@@ -72,12 +73,12 @@ public class PowerAuthAuthentication {
             Boolean persistActivation,
             @Nullable Password password,
             @Nullable PowerAuthBiometricPrompt biometricPrompt,
-            @Nullable byte[] biometryFactorRelatedKey,
-            @Nullable byte[] overriddenPossessionKey) {
-        this.useBiometry = safeArrayCopy(biometryFactorRelatedKey);
+            @Nullable SecureData biometryFactorRelatedKey,
+            @Nullable SecureData overriddenPossessionKey) {
+        this.useBiometry = biometryFactorRelatedKey;
         this.biometricPrompt = biometricPrompt;
         this.password = password;
-        this.overriddenPossessionKey = safeArrayCopy(overriddenPossessionKey);
+        this.overriddenPossessionKey = overriddenPossessionKey;
         this.persistActivation = persistActivation;
     }
 
@@ -109,10 +110,10 @@ public class PowerAuthAuthentication {
             password.destroy();
         }
         if (useBiometry != null) {
-            Arrays.fill(useBiometry, (byte) 0xCD);  // This may help with the debugging. CD CD CD is more suspicious than 00 00 00
+            useBiometry.destroy();
         }
         if (overriddenPossessionKey != null) {
-            Arrays.fill(overriddenPossessionKey, (byte) 0xCD);
+            overriddenPossessionKey.destroy();
         }
     }
 
@@ -134,7 +135,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
      */
-    public static PowerAuthAuthentication persistWithPassword(@NonNull String password, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication persistWithPassword(@NonNull String password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, new Password(password), null, null, overriddenPossessionKey);
     }
 
@@ -154,7 +155,7 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @return Authentication object constructed to persist activation with password and biometry.
      */
-    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey) {
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull SecureData biometryFactorRelatedKey) {
         return new PowerAuthAuthentication(true, new Password(password), null, biometryFactorRelatedKey, null);
     }
 
@@ -165,7 +166,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
      */
-    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull String password, @NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, new Password(password), null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
 
@@ -186,7 +187,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation and password, with using custom key for the possession factor.
      */
-    public static PowerAuthAuthentication persistWithPassword(@NonNull Password password, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication persistWithPassword(@NonNull Password password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, password, null, null, overriddenPossessionKey);
     }
 
@@ -206,7 +207,7 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry factor related key to set for new activation.
      * @return Authentication object constructed to persist activation with password and biometry.
      */
-    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey) {
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull SecureData biometryFactorRelatedKey) {
         return new PowerAuthAuthentication(true, password, null, biometryFactorRelatedKey, null);
     }
 
@@ -217,7 +218,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to set for new activation.
      * @return Authentication object constructed to persist activation with password, with using custom key for the possession factor.
      */
-    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication persistWithPasswordAndBiometry(@NonNull Password password, @NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(true, password, null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
 
@@ -236,7 +237,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to use for the signature calculation.
      * @return Authentication object constructed to calculate signature with possession factor with custom possession key.
      */
-    public static PowerAuthAuthentication possession(@NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication possession(@NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, null, overriddenPossessionKey);
     }
 
@@ -255,7 +256,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to use for the signature calculation.
      * @return Authentication object constructed to calculate signature with possession and knowledge factors, with using custom possession key.
      */
-    public static PowerAuthAuthentication possessionWithPassword(@NonNull String password, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication possessionWithPassword(@NonNull String password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, new Password(password), null, null, overriddenPossessionKey);
     }
 
@@ -273,7 +274,7 @@ public class PowerAuthAuthentication {
      * @param biometryFactorRelatedKey Biometry key data to use for the signature calculation.
      * @return Authentication object constructed to calculate signature with possession and biometry factors
      */
-    public static PowerAuthAuthentication possessionWithBiometry(@NonNull byte[] biometryFactorRelatedKey) {
+    public static PowerAuthAuthentication possessionWithBiometry(@NonNull SecureData biometryFactorRelatedKey) {
         return new PowerAuthAuthentication(false, null, null, biometryFactorRelatedKey, null);
     }
 
@@ -283,7 +284,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to use for the signature calculation.
      * @return Authentication object constructed to calculate signature with possession and biometry factors, with using custom possession key.
      */
-    public static PowerAuthAuthentication possessionWithBiometry(@NonNull byte[] biometryFactorRelatedKey, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication possessionWithBiometry(@NonNull SecureData biometryFactorRelatedKey, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, null, null, biometryFactorRelatedKey, overriddenPossessionKey);
     }
 
@@ -304,7 +305,7 @@ public class PowerAuthAuthentication {
      * @param overriddenPossessionKey Custom possession key to use for the signature calculation.
      * @return Authentication object constructed to calculate signature with possession and knowledge factors, with using custom possession key.
      */
-    public static PowerAuthAuthentication possessionWithPassword(@NonNull Password password, @NonNull byte[] overriddenPossessionKey) {
+    public static PowerAuthAuthentication possessionWithPassword(@NonNull Password password, @NonNull SecureData overriddenPossessionKey) {
         return new PowerAuthAuthentication(false, password, null, null, overriddenPossessionKey);
     }
 
@@ -331,7 +332,7 @@ public class PowerAuthAuthentication {
      * @return Biometry key data, or nil if biometry factor is not used.
      */
     @Nullable
-    public byte[] getBiometryFactorRelatedKey() {
+    public SecureData getBiometryFactorRelatedKey() {
         return useBiometry;
     }
 
@@ -347,7 +348,7 @@ public class PowerAuthAuthentication {
      * @return If non-null, then custom key is specified for the possession factor.
      */
     @Nullable
-    public byte[] getOverriddenPossessionKey() {
+    public SecureData getOverriddenPossessionKey() {
         return overriddenPossessionKey;
     }
 

@@ -32,14 +32,14 @@ public class SignatureUnlockKeys {
      * You cannot use vector of zeroes as a key. That's a protection against
      * lazy developers.
      */
-    public final byte[] possessionUnlockKey;
+    public final SecureData possessionUnlockKey;
     /**
      * The key required for signatures with "biometry" factor. You should not
      * use this key and factor, if device has no biometric engine available.
      * You cannot use vector of zeroes as a key. That's a protection against
      * lazy developers.
      */
-    public final byte[] biometryUnlockKey;
+    public final SecureData biometryUnlockKey;
     /**
      * The password required for signatures with "knowledge" factor. The complexity
      * of the password depends on the rules, defined by the applicaiton.
@@ -52,7 +52,7 @@ public class SignatureUnlockKeys {
      * @param biometryUnlockKey key for lock or unlock the signature key for biometry factor
      * @param userPassword password for lock or unlock the signature key for knowledge factor
      */
-    public SignatureUnlockKeys(byte[] possessionUnlockKey, byte[] biometryUnlockKey, Password userPassword) {
+    public SignatureUnlockKeys(SecureData possessionUnlockKey, SecureData biometryUnlockKey, Password userPassword) {
         this.possessionUnlockKey = possessionUnlockKey;
         this.biometryUnlockKey = biometryUnlockKey;
         this.userPassword = userPassword;

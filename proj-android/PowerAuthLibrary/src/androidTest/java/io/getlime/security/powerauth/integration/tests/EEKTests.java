@@ -16,9 +16,9 @@
 
 package io.getlime.security.powerauth.integration.tests;
 
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.sdk.*;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -58,7 +58,7 @@ public class EEKTests {
         assertFalse(powerAuthSDK.hasExternalEncryptionKey());
         assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
 
-        final byte[] eek = new RandomGenerator().generateBytes(16);
+        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
         powerAuthSDK.addExternalEncryptionKey(eek);
 
         assertTrue(powerAuthSDK.hasExternalEncryptionKey());
@@ -77,7 +77,7 @@ public class EEKTests {
                 .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
-                        builder.externalEncryptionKey(eek);
+                        builder.externalEncryptionKey(SecureData.copy(eek));
                     }
 
                     @Override
@@ -115,7 +115,7 @@ public class EEKTests {
         activationHelper = new ActivationHelper(testHelper);
 
         // Test
-        final byte[] eek = new RandomGenerator().generateBytes(16);
+        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
 
         // At first, create activation without EEK and add manually
         activationHelper.createStandardActivation(true, null);
@@ -154,7 +154,7 @@ public class EEKTests {
         activationHelper = new ActivationHelper(testHelper);
 
         // Test
-        final byte[] eek = new RandomGenerator().generateBytes(16);
+        final SecureData eek = SecureData.capture(new RandomGenerator().generateBytes(16));
         assertFalse(powerAuthSDK.hasExternalEncryptionKey());
         powerAuthSDK.setExternalEncryptionKey(eek);
         assertTrue(powerAuthSDK.hasExternalEncryptionKey());

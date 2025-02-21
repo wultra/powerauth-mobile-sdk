@@ -151,7 +151,8 @@ LOCAL_SRC_FILES := \
 	PowerAuth/jni/CryptoUtilsJNI.cpp \
 	PowerAuth/jni/ProtocolVersionJNI.cpp \
 	PowerAuth/jni/EcPrivateKeyJNI.cpp \
-	PowerAuth/jni/EcPublicKeyJNI.cpp
+	PowerAuth/jni/EcPublicKeyJNI.cpp \
+	PowerAuth/jni/SecureDataJNI.cpp \
 
 include $(BUILD_SHARED_LIBRARY)
 

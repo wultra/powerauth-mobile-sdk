@@ -236,7 +236,7 @@ Note that if you use `UIDevice.current.name` for a device’s name, your applica
 
 #### Additional Activation OTP
 
-If an [additional activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) is required to complete the activation, then use the following code to configure the `PowerAuthActivation` object:
+If an [additional activation OTP](https://developers.wultra.com/components/powerauth-crypto/develop/documentation/Advanced-Activation-Flows#additional-user-authentication-using-activation-otp) is required to complete the activation, then use the following code to configure the `PowerAuthActivation` object:
 
 ```swift
 let deviceName = "Petr's iPhone 7" // or UIDevice.current.name (see warning below)
@@ -252,7 +252,7 @@ guard let activation = try? PowerAuthActivation(activationCode: activationCode, 
 ```
 
 <!-- begin box warning -->
-Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md#regular-activation-with-otp).
+Be aware that OTP can be used only if the activation is configured for ON_KEY_EXCHANGE validation on the PowerAuth server. See our [crypto documentation for details](https://developers.wultra.com/components/powerauth-crypto/develop/documentation/Advanced-Activation-Flows#regular-activation-with-otp).
 <!-- end -->
 
 ### Activation via OpenID Connect

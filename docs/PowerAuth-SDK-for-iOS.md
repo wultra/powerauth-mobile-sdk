@@ -1079,22 +1079,26 @@ Use the following code to enable biometric authentication:
 
 ```swift
 // Establish biometric data using the provided password
-powerAuthSDK.addBiometryFactor(password: "1234") { (error) in
-    if error == nil {
-        // Everything went OK, Touch ID is ready to be used
-    } else {
+powerAuthSDK.addBiometryFactor(password: "1234") { error in
+    if let error  {
         // Error occurred, report it to the user
+    } else {
+        // Everything went OK, biometry is ready to be used
     }
 }
 ```
 
 ### Disable Biometry
 
-You can remove biometry-related factor data used by Touch or Face ID support by simply removing the related key locally, using this one-liner:
+To remove biometry-related factor data used by Touch or Face ID use the following code:
 
 ```swift
 // Remove biometric data
-powerAuthSDK.removeBiometryFactor()
+powerAuthSDK.removeBiometryFactor { error in
+    if let error {
+        // handle error
+    }
+}
 ```
 
 ### Fetch Biometry Credentials In Advance

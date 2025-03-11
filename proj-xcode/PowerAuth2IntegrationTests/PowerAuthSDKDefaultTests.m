@@ -1134,7 +1134,12 @@
     
     XCTAssertTrue([_sdk hasBiometryFactor]);
     
-    XCTAssertTrue([_sdk removeBiometryFactor]);
+    [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk removeBiometryFactorWithCallback:^(NSError * error) {
+            XCTAssertNil(error);
+            [waiting reportCompletion:nil];
+        }];
+    }];
     
     XCTAssertFalse([_sdk hasBiometryFactor]);
     

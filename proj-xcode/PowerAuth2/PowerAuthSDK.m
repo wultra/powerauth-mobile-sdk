@@ -1312,6 +1312,7 @@ static PowerAuthSDK * s_inst;
     }];
 }
 
+// PA2_DEPRECATED(1.10.0)
 - (BOOL) removeBiometryFactor
 {
     [self checkForValidSetup];
@@ -1323,6 +1324,27 @@ static PowerAuthSDK * s_inst;
         }
         return result;
     }];
+}
+
+- (id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(void (^)(NSError * _Nullable))callback
+{
+    [self checkForValidSetup];
+    NSError * error = [_sessionInterface writeTaskWithSession:^NSError*(PowerAuthCoreSession * session) {
+        if (![session removeBiometryFactor]) {
+            // Current impl. can fail only if there's no valid activation.
+            return PA2MakeError(PowerAuthErrorCode_MissingActivation, nil);
+        }
+        // Delete biometric KEK from the keychain
+        [_biometryOnlyKeychain deleteDataForKey:_biometryKeyIdentifier];
+        return nil;
+    }];
+    PA2CompositeTask * task = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([task setCompleted]) {
+            callback(error);
+        }
+    });
+    return task;
 }
 
 #if PA2_HAS_LACONTEXT

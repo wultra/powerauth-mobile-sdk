@@ -542,8 +542,16 @@
 /** Remove the biometry related factor key.
  
  @return YES if the key was successfully removed, NO otherwise.
+ 
+ @deprecated Use asynchronous method with callback as a replacement.
  */
-- (BOOL) removeBiometryFactor;
+- (BOOL) removeBiometryFactor PA2_DEPRECATED(1.10.0);
+
+/**
+ Remove the biometry related factor key.
+ @return PowerAuthOperationTask associated with the running request.
+ */
+- (nullable id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(nonnull void(^)(NSError * _Nullable error))callback;
 
 /** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
  

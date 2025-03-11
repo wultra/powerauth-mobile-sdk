@@ -91,6 +91,7 @@ Notable changes on iOS:
   - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
   - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
   - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
+  - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
   - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
 
 - All static methods for accessing a various shared instances are now deprecated:

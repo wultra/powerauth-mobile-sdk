@@ -547,31 +547,33 @@
 
 /** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
  
- The method is useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+ The method is also useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
   
  Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
  
  @param prompt A prompt displayed in TouchID or FaceID authentication dialog.
  @param callback A callback with result, always executed on the main thread.
+ @return PowerAuthOperationTask associated with the pending biometric authentication.
  */
-- (void) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
-                                    callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback
-                                NS_SWIFT_NAME(authenticateUsingBiometry(withPrompt:callback:))
-                                API_UNAVAILABLE(tvos);
+- (nonnull id<PowerAuthOperationTask>) authenticateUsingBiometryWithPrompt:(nonnull NSString *)prompt
+                                                                  callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback
+                                                                NS_SWIFT_NAME(authenticateUsingBiometry(withPrompt:callback:))
+                                                                API_UNAVAILABLE(tvos);
 
 /** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
  
- The method is useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+ The method is also useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
   
  Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
  
  @param context A local authentication context that can affect a biometry authentication dialog.
  @param callback A callback with result, always executed on the main thread.
+ @return PowerAuthOperationTask associated with the pending biometric authentication. If you cancel this task, then the provided `LAContext` is invalidated.
  */
-- (void) authenticateUsingBiometryWithContext:(nonnull LAContext *)context
-                                     callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback
-                                NS_SWIFT_NAME(authenticateUsingBiometry(withContext:callback:))
-                                API_UNAVAILABLE(tvos);
+- (nonnull id<PowerAuthOperationTask>) authenticateUsingBiometryWithContext:(nonnull LAContext *)context
+                                                                   callback:(nonnull void(^)(PowerAuthAuthentication * _Nullable authentication, NSError * _Nullable error))callback
+                                                                NS_SWIFT_NAME(authenticateUsingBiometry(withContext:callback:))
+                                                                API_UNAVAILABLE(tvos);
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  

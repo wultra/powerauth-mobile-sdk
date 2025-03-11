@@ -461,6 +461,7 @@ static PowerAuthBiometricConfiguration * _BuildBiometricConfiguration(PowerAuthB
             biometryKey = authentication.customBiometryKey;
         } else {
             // default biometry key should be fetched
+            PowerAuthLog(@"WARNING: Biometric factor key is not fetched in advance and therefore the calling thread may be blocked.");
             biometryKey = [self biometryRelatedKeyWithAuthentication:authentication.keychainAuthentication error:error];
             if (!biometryKey) {
                 return nil;
@@ -1328,10 +1329,10 @@ static PowerAuthSDK * s_inst;
 
 // If LAContext is available then we assume that biometry is also available on the platform.
 
-- (void) authenticateUsingBiometryWithPrompt:(NSString *)prompt
-                                    callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
+- (id<PowerAuthOperationTask>) authenticateUsingBiometryWithPrompt:(NSString *)prompt
+                                                          callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
 {
-    [self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] callback:callback];
+    return [self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] callback:callback];
 }
 
 - (void) unlockBiometryKeysWithPrompt:(NSString*)prompt
@@ -1340,10 +1341,10 @@ static PowerAuthSDK * s_inst;
     [self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithPrompt:prompt] withBlock:block];
 }
 
-- (void) authenticateUsingBiometryWithContext:(LAContext *)context
-                                     callback:(void (^)(PowerAuthAuthentication *, NSError *))callback
+- (id<PowerAuthOperationTask>) authenticateUsingBiometryWithContext:(LAContext *)context
+                                                           callback:(void (^)(PowerAuthAuthentication *, NSError *))callback
 {
-    [self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] callback:callback];
+    return [self authenticateUsingBiometryImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] callback:callback];
 }
 
 - (void) unlockBiometryKeysWithContext:(LAContext *)context
@@ -1352,23 +1353,10 @@ static PowerAuthSDK * s_inst;
     [self unlockBiometryKeysImpl:[[PowerAuthKeychainAuthentication alloc] initWithContext:context] withBlock:block];
 }
 
-- (void) authenticateUsingBiometryImpl:(PowerAuthKeychainAuthentication *)keychainAuthentication
-                              callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
+- (id<PowerAuthOperationTask>) authenticateUsingBiometryImpl:(PowerAuthKeychainAuthentication *)keychainAuthentication
+                                                    callback:(void(^)(PowerAuthAuthentication * authentication, NSError * error))callback
 {
     [self checkForValidSetup];
-    
-    // Check if activation is present
-    if (!_sessionInterface.hasValidActivation) {
-        callback(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
-        return;
-    }
-    
-    // Check biometric status in advance, to do not increase failed attempts counter
-    // in case that biometry is already locked out.
-    if (![PowerAuthKeychain canUseBiometricAuthentication]) {
-        callback(nil, PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
-        return;
-    }
     
     // Use app provided, or create a new LAContext if "prompt" variant is used.
     NSString * prompt = keychainAuthentication.prompt;
@@ -1390,6 +1378,34 @@ static PowerAuthSDK * s_inst;
             prompt = @"< missing prompt >";
         }
     }
+    
+    // Prepare composite task and completion function
+    PA2CompositeTask * task = [[PA2CompositeTask alloc] initWithCancelBlock:^{
+        [context invalidate];
+    }];
+    void (^completionFunction)(PowerAuthAuthentication *, NSError*) = ^(PowerAuthAuthentication * biometricAuthentication, NSError * error) {
+        // Report result back to the main thread
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if ([task setCompleted]) {
+                callback(biometricAuthentication, error);
+            }
+        });
+    };
+    
+    // Check if activation is present
+    if (!_sessionInterface.hasValidActivation) {
+        completionFunction(nil, PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
+        return task;
+    }
+    
+    // Check biometric status in advance, to do not increase failed attempts counter
+    // in case that biometry is already locked out.
+    if (![PowerAuthKeychain canUseBiometricAuthentication]) {
+        completionFunction(nil, PA2MakeError(PowerAuthErrorCode_BiometryNotAvailable, nil));
+        return task;
+    }
+
+    
     // Prepare policy based on keychain configuration.
     LAPolicy policy;
     if (_biometricConfiguration.biometricItemAccess == PowerAuthKeychainItemAccess_AnyBiometricSetOrDevicePasscode) {
@@ -1445,7 +1461,7 @@ static PowerAuthSDK * s_inst;
                         error = PA2MakeErrorInfo(PowerAuthErrorCode_BiometryNotAvailable, @"Biometry not enrolled", errorInfo);
                         break;
                     
-                    case LAErrorSystemCancel:           // Systme cancel (e.g. user pressed power or home button)
+                    case LAErrorSystemCancel:           // System cancel (e.g. user pressed power or home button)
                     case LAErrorAppCancel:              // App cancel, (e.g. application called invalidate on its context)
                     case LAErrorUserCancel:             // User tapped on cancel button
                         // All cancel types leads to our cancel
@@ -1470,12 +1486,9 @@ static PowerAuthSDK * s_inst;
                 error = PA2MakeErrorInfo(PowerAuthErrorCode_BiometryFailed, @"Biometry failed with unknown error", errorInfo);
             }
         }
-        
-        // Report result back to the main thread
-        dispatch_async(dispatch_get_main_queue(), ^{
-            callback(authentication, error);
-        });
+        completionFunction(authentication, error);
     }];
+    return task;
 }
 
 - (void) unlockBiometryKeysImpl:(PowerAuthKeychainAuthentication*)keychainAuthentication

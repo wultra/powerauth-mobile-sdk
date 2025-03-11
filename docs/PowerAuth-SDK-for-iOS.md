@@ -566,10 +566,24 @@ let oneFactor = PowerAuthAuthentication.possession()
 let twoFactorPassword = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // 2FA signature - uses biometry factor-related key as a 2nd. factor.
-let twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry()
-
-// Alternative biometry authentications with prompt
-let twoFactorBiometryPrompt = PowerAuthAuthentication.possessionWithBiometry(prompt: "Please authenticate with biometry to log-in.")
+let task = powerAuthSDK.authenticateUsingBiometry(withPrompt: "Please authenticate with biometry to log-in.") { authentication, error in
+    if let authentication {
+        // the returned authentication object is ready to use for the signature calculation
+    } else {
+        // Failure, cast object to NSError
+        guard let error = error as? NSError else {
+            fatalError() // Should never happen
+        }
+        if error.powerAuthErrorCode == .biometryCancel {
+            // user canceled the operation
+        } else {
+            // other errors...
+        }
+    }
+}
+// In case the biometric authentication is no longer relevant (for example, you have a limited time to complete the operation), 
+// then you can cancel the returned task.
+task.cancel()
 ```
 
 When signing `POST`, `PUT`, or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
@@ -1094,17 +1108,9 @@ To obtain biometry credentials for the future signature calculation, call the fo
 ```swift
 // Authenticate user with biometry and obtain PowerAuthAuthentication credentials for future signature calculation.
 powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
-    if let authentication = authentication {
+    if let authentication {
         // Success, you can use the provided PowerAuthAuthentication object for the signature calculation.
         // The provided authentication object is preconfigured for possession+biometry factors
-    }
-    guard let error = error as NSError?, error.domain == PowerAuthErrorDomain else {
-        return // should never happen
-    }
-    if error.powerAuthErrorCode == .biometryCancel {
-        // User did cancel the operation
-    } else {
-        // Other error
     }
 }
 ```
@@ -1205,12 +1211,24 @@ Note that if the biometric authentication fails with too many attempts in a row 
 
 ### Thread-blocking operation
 
-Be aware that if you try to calculate PowerAuth Symmetric Signature with a biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such an operation on the main thread. For example:
+Be aware that if you try to calculate PowerAuth Symmetric Signature with a biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such an operation on the main or the networking thread. For example:
 
 ```swift
 let authentication = PowerAuthAuthentication.possessionWithBiometry()
 let header = try? sdk.requestSignature(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
 // The thread is blocked while the biometric dialog is displayed.
+```
+
+To avoid thread blocking, acquire the biometric key in advance:
+
+```swift
+powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
+    // callback is always called from the main thread
+    if let authentication {
+        // Success, you can use the provided PowerAuthAuthentication object for the signature calculation.
+        // The provided authentication object is preconfigured for possession+biometry factors
+    }
+}
 ```
 
 ### Parallel biometric authentications
@@ -1246,18 +1264,16 @@ context.localizedReason = "Please authenticate with biometry"
 powerAuthSDK.authenticateUsingBiometry(withContext: context) { authentication, error in
     guard let authentication = authentication else {
         if let nsError = error as? NSError {
-            if nsError.domain == PowerAuthErrorDomain {
-                if nsError.powerAuthErrorCode == .biometryCancel {
-                    // cancel, app cancel, system cancel...
-                } else if nsError.powerAuthErrorCode == .biometryFallback {
-                    // fallback button pressed
-                }
-                // If you're interested in the exact failure reason, then extract
-                // the underlying LAError.
-                if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
-                    // Investigate error codes...
-                }
-            }   
+            if nsError.powerAuthErrorCode == .biometryCancel {
+                // cancel, app cancel, system cancel...
+            } else if nsError.powerAuthErrorCode == .biometryFallback {
+                // fallback button pressed
+            }
+            // If you're interested in the exact failure reason, then extract
+            // the underlying LAError.
+            if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
+                // Investigate error codes...
+            }
         }
         return
     }

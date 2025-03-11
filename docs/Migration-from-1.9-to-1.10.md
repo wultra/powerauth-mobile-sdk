@@ -129,6 +129,10 @@ Notable changes on iOS:
   - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
   - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
 
+- The following methods in `PowerAuthSDK` class now returns cancelable object allowing you to cancel the pending biometric authentication:
+  - `authenticateUsingBiometry(withPrompt:callback:)`
+  - `authenticateUsingBiometry(withContext:callback:)`
+
 - Removed all interfaces deprecated in release `1.9.x`
 
 ### Other changes

@@ -1679,17 +1679,19 @@ Note that the RSA key pair is internally generated for the configuration above. 
 
 ### Disable Biometric Authentication
 
-You can remove biometric-related factor data used by biometric authentication support by simply removing the related key locally, using this one-liner:
+To remove biometry-related factor data used by biometric authentication use the following code:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
-powerAuthSDK.removeBiometryFactor(context)
+powerAuthSDK.removeBiometryFactor(context, object: IRemoveBiometryFactorListener {
+    override fun onRemoveBiometryFactorSucceed() {
+        // Everything went OK, biometric authentication is ready to be used
+    }
+
+    override fun onRemoveBiometryFactorFailed(error: PowerAuthErrorException) {
+        // Error occurred, report it to the user
+    }
+})
 ```
-```java
-// Remove biometric data
-powerAuthSDK.removeBiometryFactor(context);
-```
-<!-- end -->
 
 ### Fetching the Biometry Factor-Related Key for Authentication
 

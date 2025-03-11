@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
+import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
 import io.getlime.security.powerauth.sdk.*;
 import org.junit.After;
@@ -84,12 +86,36 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
         execution.execute();
     }
 
+    private void removeBiometryFactor() throws Exception {
+        AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.removeBiometryFactor(testHelper.getContext(), new IRemoveBiometryFactorListener() {
+                @Override
+                public void onRemoveBiometryFactorSucceed() {
+                    resultCatcher.completeWithSuccess();
+                }
+
+                @Override
+                public void onRemoveBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithError(error);
+                }
+            });
+        });
+        assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+    }
+
+    /** @noinspection deprecation*/
+    private void removeBiometricFactorDeprecated() throws Exception {
+        assertTrue(powerAuthSDK.removeBiometryFactor(testHelper.getContext()));
+        assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+    }
+
     @Test
     public void testPersistWithBiometryFragmentActivity() throws Exception {
         runWithFragmentActivity(() -> {
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometryFactor();
         });
     }
 
@@ -99,6 +125,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometryFactor();
         });
     }
 
@@ -108,6 +135,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometryFactor();
         });
     }
 
@@ -117,6 +145,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometryFactor();
         });
     }
 
@@ -126,6 +155,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometricFactorDeprecated();
         });
     }
 
@@ -135,6 +165,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometricFactorDeprecated();
         });
     }
 
@@ -144,6 +175,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_FRAGMENT | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometricFactorDeprecated();
         });
     }
 
@@ -153,6 +185,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_BIOMETRY_ACTIVITY | ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
+            removeBiometricFactorDeprecated();
         });
     }
 

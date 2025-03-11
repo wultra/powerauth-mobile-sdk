@@ -1927,7 +1927,7 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
@@ -1952,7 +1952,7 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
@@ -1977,7 +1977,7 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
@@ -2002,7 +2002,7 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
@@ -2025,7 +2025,7 @@ public class PowerAuthSDK {
      * @param context  Context.
      * @param prompt Prompt with information required for the dialog presentation.
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
@@ -2112,7 +2112,7 @@ public class PowerAuthSDK {
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
      * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
@@ -2132,7 +2132,7 @@ public class PowerAuthSDK {
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
      * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
@@ -2175,25 +2175,75 @@ public class PowerAuthSDK {
      *
      * @param context Context.
      * @return TRUE if the key was successfully removed, FALSE otherwise.
+     * @deprecated Please use asynchronous variant {@link #removeBiometryFactor(Context, IRemoveBiometryFactorListener)}.
      */
+    @Deprecated // 1.10.0
     public boolean removeBiometryFactor(@NonNull Context context) {
+        try {
+            removeBiometryFactorImpl(context);
+            return true;
+        } catch (PowerAuthErrorException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Remove the biometry related factor key.
+     * @param context Context.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running asynchronous operation.
+     */
+    @Nullable
+    public ICancelable removeBiometryFactor(@NonNull Context context, @NonNull IRemoveBiometryFactorListener listener) {
+        final CancelableTask task = new CancelableTask();
+        mExecutorProvider.getConcurrentExecutor().execute(() -> {
+            PowerAuthErrorException failure;
+            try {
+                removeBiometryFactorImpl(context);
+                failure = null;
+            } catch (PowerAuthErrorException e) {
+                failure = e;
+            }
+            final PowerAuthErrorException exception = failure;
+            mCallbackDispatcher.dispatchCallback(() -> {
+                if (task.setCompleted()) {
+                    if (exception == null) {
+                        listener.onRemoveBiometryFactorSucceed();
+                    } else {
+                        listener.onRemoveBiometryFactorFailed(exception);
+                    }
+                }
+            });
+        });
+
+        return task;
+    }
+
+    /**
+     * Private method to remove the biometry related factor key.
+     * @param context Android context object.
+     * @throws PowerAuthErrorException In case operation fails.
+     */
+    private void removeBiometryFactorImpl(@NonNull Context context) throws PowerAuthErrorException {
 
         checkForValidSetup();
 
         final int result = mSession.removeBiometryFactor();
-        if (result == ErrorCode.OK) {
-            // Update state after each successful calculations
-            final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
-            final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
-            saveSerializedState();
-            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
-            keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
+        if (result != ErrorCode.OK) {
+            // The current core implementation can fail only if there's missing activation.
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION);
         }
-        return result == ErrorCode.OK;
+        // Update state after each successful calculations
+        final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
+        saveSerializedState();
+        mBiometryKeychain.remove(biometricDataMapping.keychainKey);
+        keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
     }
 
+
     /**
-     * Generate an derived encryption key with given index.
+     * Generate a derived encryption key with given index.
      * <p>
      * This method calls PowerAuth Standard REST API endpoint to obtain the vault encryption key used for subsequent key derivation using given index.
      *

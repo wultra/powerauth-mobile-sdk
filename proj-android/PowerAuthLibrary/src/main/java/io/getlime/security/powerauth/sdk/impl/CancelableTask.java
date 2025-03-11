@@ -31,6 +31,10 @@ public class CancelableTask implements ICancelable {
      * Contains true if this task has been canceled.
      */
     private boolean isCancelled;
+    /**
+     * Contains true if this task has been completed.
+     */
+    private boolean isCompleted;
 
     /**
      * Contains an optional listener. If set, then the listener will be informed about the task
@@ -91,6 +95,20 @@ public class CancelableTask implements ICancelable {
         }
     }
 
+    /**
+     * Set this task as completed.
+     * @return true if task was completed, false in case that has been already canceled or completed.
+     */
+    public boolean setCompleted() {
+        synchronized (this) {
+            if (isCancelled || isCompleted) {
+                return false;
+            }
+            isCompleted = true;
+            return true;
+        }
+    }
+
     // ICancelable implementation
 
     @Override
@@ -98,7 +116,7 @@ public class CancelableTask implements ICancelable {
         CancellationSignal signal;
         OnCancelListener listener;
         synchronized (this) {
-            if (isCancelled) {
+            if (isCancelled || isCompleted) {
                 return;
             }
             isCancelled = true;

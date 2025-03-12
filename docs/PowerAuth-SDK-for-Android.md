@@ -1632,10 +1632,14 @@ In case an activation does not yet have biometry-related factor data, and you wo
 
 Use the following code to enable biometric authentication using biometric authentication:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
+// Prepare biometric prompt.
+val biometricPrompt = PowerAuthBiometricPrompt.Builder(parentFragment)  // You can also use fragment activity in the constructor
+                        .setTitle("Enable Biometric Authentication")
+                        .setDescription("To enable biometric authentication, use the biometric sensor on your device.")
+                        .build()
 // Establish biometric data using the provided password
-powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", "1234", object: IAddBiometryFactorListener {
+powerAuthSDK.addBiometryFactor(context, "1234", biometricPrompt, object: IAddBiometryFactorListener {
     override fun onAddBiometryFactorSucceed() {
         // Everything went OK, biometric authentication is ready to be used
     }
@@ -1645,21 +1649,6 @@ powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authenticati
     }
 })
 ```
-```java
-// Establish biometric data using the provided password
-powerAuthSDK.addBiometryFactor(context, fragment, "Enable Biometric Authentication", "To enable biometric authentication, use the biometric sensor on your device.", "1234", new IAddBiometryFactorListener() {
-    @Override
-    public void onAddBiometryFactorSucceed() {
-        // Everything went OK, biometric authentication is ready to be used
-    }
-
-    @Override
-    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
-        // Error occurred, report it to the user
-    }
-});
-```
-<!-- end -->
 
 By default, PowerAuth SDK asks the user to authenticate with the biometric sensor also during the setup procedure (or during the [activation persist](#persisting-activation-data)). To alter this behavior, use the following code to change the `PowerAuthBiometricConfiguration` provided to the `PowerAuthSDK` instance:
 
@@ -1676,6 +1665,17 @@ val powerAuthSDK = PowerAuthSDK.Builder(configuration)
 <!-- begin box info -->
 Note that the RSA key pair is internally generated for the configuration above. That may take more time on older devices than the default configuration. Your application should display a waiting indicator on its own because SDK doesn't display an authentication dialog during the key-pair generation.
 <!-- end -->
+
+If the configuration above is applied, then you can use a "dummy" biometric prompt to simplify your biometric setup code:
+
+```kotlin
+// Prepare biometric prompt.
+val biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(parentFragment)
+// Establish biometric data using the provided password
+powerAuthSDK.addBiometryFactor(context, "1234", biometricPrompt, object: IAddBiometryFactorListener {
+    // listener is the same as in previous example
+})
+```
 
 ### Disable Biometric Authentication
 

@@ -1923,15 +1923,61 @@ public class PowerAuthSDK {
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
+     * @param password Password used for authentication during vault unlocking call.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. You can provide a "dummy" prompt in case that
+     *                        biometric authentication is not required for the biometric factor setup.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     */
+    @UiThread
+    @Nullable
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            @NonNull final Password password,
+            @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, biometricPrompt, password, listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
+     * @param password Password used for authentication during vault unlocking call.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. You can provide a "dummy" prompt in case that
+     *                        biometric authentication is not required for the biometric factor setup.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     */
+    @UiThread
+    @Nullable
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            @NonNull final String password,
+            @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, biometricPrompt, new Password(password), listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
      * @param fragment The fragment of the application that will host the prompt.
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, String, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -1954,9 +2000,11 @@ public class PowerAuthSDK {
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, Password, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -1979,9 +2027,11 @@ public class PowerAuthSDK {
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, String, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2004,9 +2054,11 @@ public class PowerAuthSDK {
      * @param password Password used for authentication during vault unlocking call.
      * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, Password, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -2107,6 +2159,9 @@ public class PowerAuthSDK {
     /**
      * Regenerate a biometry related factor key.
      * <p>
+     * The method is useful in situations where you're manage your own biometry related factor key, or you have obtained
+     * the key in advance.
+     * <p>
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
@@ -2126,6 +2181,9 @@ public class PowerAuthSDK {
 
     /**
      * Regenerate a biometry related factor key.
+     * <p>
+     * The method is useful in situations where you're manage your own biometry related factor key, or you have obtained
+     * the key in advance.
      * <p>
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *

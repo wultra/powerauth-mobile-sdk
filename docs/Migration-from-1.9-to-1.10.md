@@ -24,6 +24,7 @@ Notable changes on Android:
   - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
   - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
   - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.
+  - All variants of `addBiometryFactor()` with "title" and "description" parameters are now replaced with variant using `PowerAuthBiometricPrompt`.
   - `removeBiometryFactor()` - use asynchronous variant with `IRemoveBiometryFactorListener` as a callback parameter.
 
 - The following methods in `PowerAuthKeychainConfiguration` are now deprecated:

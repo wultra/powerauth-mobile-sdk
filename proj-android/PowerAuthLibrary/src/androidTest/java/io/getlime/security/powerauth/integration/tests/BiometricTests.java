@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.integration.tests;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.test.core.app.ActivityScenario;
+import io.getlime.security.powerauth.biometry.IAddBiometryFactorListener;
 import io.getlime.security.powerauth.biometry.IRemoveBiometryFactorListener;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.*;
@@ -186,6 +187,54 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
             assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
             assertTrue(activationHelper.validateUserPassword(activationHelper.getValidPassword()));
             removeBiometricFactorDeprecated();
+        });
+    }
+
+    @Test
+    public void testAddBiometryFactorFragmentActivityCorePass() throws Exception {
+        runWithFragmentActivity(() -> {
+            activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            AsyncHelper.await(resultCatcher -> {
+                PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), biometricPrompt, new IAddBiometryFactorListener() {
+
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                });
+            });
+            assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+        });
+    }
+
+    @Test
+    public void testAddBiometryFactorFragmentCorePass() throws Exception {
+        runWithFragmentActivity(() -> {
+            activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD, null);
+            assertFalse(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
+            AsyncHelper.await(resultCatcher -> {
+                PowerAuthBiometricPrompt biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragment());
+                powerAuthSDK.addBiometryFactor(testHelper.getContext(), activationHelper.getValidPassword(), biometricPrompt, new IAddBiometryFactorListener() {
+
+                    @Override
+                    public void onAddBiometryFactorSucceed() {
+                        resultCatcher.completeWithSuccess();
+                    }
+
+                    @Override
+                    public void onAddBiometryFactorFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                });
+            });
+            assertTrue(powerAuthSDK.hasBiometryFactor(testHelper.getContext()));
         });
     }
 

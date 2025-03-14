@@ -594,7 +594,7 @@ let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 do {
-    let signature = try powerAuthSDK.requestSignature(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
+    let signature = try powerAuthSDK.authorizationHeaderForRequestWithBody(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -615,7 +615,7 @@ let params = [
 ]
 
 do {
-    let signature = try powerAuthSDK.requestGetSignature(with: auth, uriId: "/payment/create", params: params)
+    let signature = try powerAuthSDK.authorizationHeaderForRequestWithParams(with: auth, method: "GET", uriId: "/payment/create", params: params)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -705,18 +705,17 @@ This type of signature is very similar to [Symmetric Multi-Factor Signature](#sy
 // 2FA signature - uses device-related key and user PIN code
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
-do {
-    let signature = try powerAuthSDK.offlineSignature(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce)
-    print("Signature is " + signature)
-} catch _ {
-    // In case of invalid configuration, invalid activation state, or other error
+_ = powerAuthSDK.offlineAuthorizationCode(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce) { authorizationCode, error in 
+    if let authorizationCode {
+        print("Authorization code is " + authorizationCode)
+    }
 }
 ```
 
 The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for verification. 
 
 <!-- begin box info -->
-You can alter the length of the signature components in the `offlineSignatureComponentLength` property of the `PowerAuthConfiguration` object.
+You can alter the length of the signature components in the `offlineAuthorizationCodeComponentLength` property of the `PowerAuthConfiguration` object.
 <!-- end -->
 
 ### Verify Server-Signed Data
@@ -1219,7 +1218,7 @@ Be aware that if you try to calculate PowerAuth Symmetric Signature with a biome
 
 ```swift
 let authentication = PowerAuthAuthentication.possessionWithBiometry()
-let header = try? sdk.requestSignature(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
+let header = try? sdk.authorizationHeaderForRequestWithBody(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
 // The thread is blocked while the biometric dialog is displayed.
 ```
 

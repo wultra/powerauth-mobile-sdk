@@ -582,13 +582,16 @@ static NSString * PA_Ver = @"3.3";
                                  uriId:(NSString*)uriId
                                   auth:(PowerAuthAuthentication*)auth
 {
-    NSError * error = nil;
     NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
-    NSString * signature = [_sdk offlineSignatureWithAuthentication:auth uriId:uriId body:data nonce:nonce error:&error];
-    if (signature && !error) {
-        return @[ signature, nonce ];
-    }
-    return nil;
+    return [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:auth uriId:uriId body:data nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+            if (authorizationCode && !error) {
+                [waiting reportCompletion:@[ authorizationCode, nonce ]];
+            } else {
+                [waiting reportCompletion:nil];
+            }
+        }];
+    }];
 }
 
 
@@ -602,7 +605,7 @@ static NSString * PA_Ver = @"3.3";
                                  auth:(PowerAuthAuthentication*)auth
 {
     NSError * error = nil;
-    PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:method uriId:uriId body:data error:&error];
+    PowerAuthAuthorizationHttpHeader * header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:auth method:method uriId:uriId body:data error:&error];
     if (header && header.value && !error) {
         NSDictionary * parsedHeader = [self parseSignatureHeaderValue:header.value];
         NSString * nonce     = parsedHeader[@"pa_nonce"];

@@ -1071,26 +1071,13 @@ static PowerAuthSDK * s_inst;
     [_lock unlock];
 }
 
-#pragma mark - Computing signatures
+#pragma mark - Authorization codes
 
-- (PowerAuthAuthorizationHttpHeader*) requestGetSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-                                                                      uriId:(NSString*)uriId
-                                                                     params:(NSDictionary<NSString*, NSString*>*)params
-                                                                      error:(NSError**)error
-{
-    NSData *data = [PowerAuthCoreSession prepareKeyValueDictionaryForDataSigning:params];
-    return [self requestSignatureWithAuthentication:authentication
-                                             method:@"GET"
-                                              uriId:uriId
-                                               body:data
-                                              error:error];
-}
-
-- (PowerAuthAuthorizationHttpHeader*) requestSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-                                                                  method:(NSString*)method
-                                                                   uriId:(NSString*)uriId
-                                                                    body:(NSData*)body
-                                                                   error:(NSError**)error
+- (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithBodyWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                                                     method:(NSString*)method
+                                                                                      uriId:(NSString*)uriId
+                                                                                       body:(NSData*)body
+                                                                                      error:(NSError **)error
 {
     return [[_sessionInterface readTaskWithSession:^PA2Result<PowerAuthAuthorizationHttpHeader*>* (PowerAuthCoreSession * session) {
         if (session.hasPendingProtocolUpgrade) {
@@ -1111,11 +1098,84 @@ static PowerAuthSDK * s_inst;
     }] extractResult:error];
 }
 
-- (NSString*) offlineSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
-                                           uriId:(NSString*)uriId
-                                            body:(NSData*)body
-                                           nonce:(NSString*)nonce
-                                           error:(NSError**)error
+- (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithParamsWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                                                       method:(NSString*)method
+                                                                                        uriId:(NSString*)uriId
+                                                                                       params:(NSDictionary<NSString*, NSString*>*)params
+                                                                                        error:(NSError **)error
+{
+    return [self authorizationHeaderForRequestWithBodyWithAuthentication:authentication
+                                                                method:method
+                                                                 uriId:uriId
+                                                                  body:[PowerAuthCoreSession prepareKeyValueDictionaryForDataSigning:params]
+                                                                 error:error];
+}
+
+- (id<PowerAuthOperationTask>) offlineAuthorizationCodeWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                                    uriId:(NSString*)uriId
+                                                                     body:(NSData*)body
+                                                                    nonce:(NSString*)nonce
+                                                                 callback:(void(^)(NSString * authorizationCode, NSError * error))callback
+{
+    // Prepare composite task that will cover the whole operation
+    PA2CompositeTask * task = [[PA2CompositeTask alloc] initWithCancelBlock:nil];
+    
+    // Prepare completion function that dispatch result to the main thread.
+    void (^completionFunc)(NSString*, NSError*) = ^(NSString * authorizationCode, NSError * error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // If task is not canceled yet, then report finally the result.
+            if ([task setCompleted]) {
+                callback(authorizationCode, error);
+            }
+        });
+    };
+    // Prepare execution function that compute signature in the serial queue
+    void (^executionFunc)(PowerAuthAuthentication*) = ^(PowerAuthAuthentication * resolvedAuthentication) {
+        // We should compute the signature on the serial queue we have dedicated for the networking operations.
+        id<PowerAuthOperationTask> computationTask = [self executeBlockOnSerialQueue:^(id<PowerAuthOperationTask> task) {
+            // Finally compute the offline authorization code.
+            NSError * localError = nil;
+            NSString * authorizationCode = [self offlineAuthorizationCodeImpl:resolvedAuthentication
+                                                                        uriId:uriId
+                                                                         body:body
+                                                                        nonce:nonce
+                                                                        error:&localError];
+            // Report result back to the application
+            completionFunc(authorizationCode, localError);
+            // Mark this synchronized task as completed
+            [task cancel];
+        }];
+        // Keep the computation task as a sub-task of composite task.
+        [task replaceOperationTask:computationTask];
+    };
+    if (authentication.useBiometry && authentication.customBiometryKey == nil) {
+        // If biometric authentication is requested and the key is not resolved yet, then authenticate with biometry first.
+        id<PowerAuthOperationTask> biometricAuthTask = [self authenticateUsingBiometryImpl:authentication.keychainAuthentication
+                                                                                  callback:^(PowerAuthAuthentication *resolvedAuthentication, NSError *error) {
+            if (resolvedAuthentication) {
+                // Biometric authentication succeeded, now continue with signature calculation
+                executionFunc(resolvedAuthentication);
+            } else {
+                // Biometric authentication failed
+                completionFunc(nil, error);
+            }
+        }];
+        // Keep the biometric authentication task as a sub-task of composite task.
+        [task replaceOperationTask:biometricAuthTask];
+    } else {
+        // Seems that authentication object is already resolved, no additional tasks are required. So execute the
+        // authorization code computation.
+        executionFunc(authentication);
+    }
+    return task;
+}
+
+
+- (NSString*) offlineAuthorizationCodeImpl:(PowerAuthAuthentication*)authentication
+                                     uriId:(NSString*)uriId
+                                      body:(NSData*)body
+                                     nonce:(NSString*)nonce
+                                     error:(NSError**)error
 {
     return [[_sessionInterface readTaskWithSession:^PA2Result<NSString*>* (PowerAuthCoreSession * session) {
         NSError * localError = nil;
@@ -1132,7 +1192,7 @@ static PowerAuthSDK * s_inst;
         requestData.method = @"POST";
         requestData.uri = uriId;
         requestData.offlineNonce = nonce;
-        requestData.offlineSignatureSize = _configuration.offlineSignatureComponentLength;
+        requestData.offlineSignatureSize = _configuration.offlineAuthorizationCodeComponentLength;
         PowerAuthCoreHTTPRequestDataSignature * signature = [self signHttpRequestData:requestData
                                                                        authentication:authentication
                                                                                 error:&localError];
@@ -1141,6 +1201,50 @@ static PowerAuthSDK * s_inst;
         }
         return [PA2Result failure:localError];
     }] extractResult:error];
+}
+
+
+#pragma mark - Computing signatures (deprecated naming)
+
+// PA2_DEPRECATED(1.10.0)
+- (PowerAuthAuthorizationHttpHeader*) requestGetSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                                      uriId:(NSString*)uriId
+                                                                     params:(NSDictionary<NSString*, NSString*>*)params
+                                                                      error:(NSError**)error
+{
+    return [self authorizationHeaderForRequestWithParamsWithAuthentication:authentication
+                                                                  method:@"GET"
+                                                                   uriId:uriId
+                                                                  params:params
+                                                                   error:error];
+}
+
+// PA2_DEPRECATED(1.10.0)
+- (PowerAuthAuthorizationHttpHeader*) requestSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
+                                                                  method:(NSString*)method
+                                                                   uriId:(NSString*)uriId
+                                                                    body:(NSData*)body
+                                                                   error:(NSError**)error
+{
+    return [self authorizationHeaderForRequestWithBodyWithAuthentication:authentication
+                                                                method:method
+                                                                 uriId:uriId
+                                                                  body:body
+                                                                 error:error];
+}
+
+// PA2_DEPRECATED(1.10.0)
+- (NSString*) offlineSignatureWithAuthentication:(PowerAuthAuthentication*)authentication
+                                           uriId:(NSString*)uriId
+                                            body:(NSData*)body
+                                           nonce:(NSString*)nonce
+                                           error:(NSError**)error
+{
+    return [self offlineAuthorizationCodeImpl:authentication
+                                        uriId:uriId
+                                         body:body
+                                        nonce:nonce
+                                        error:error];
 }
 
 

@@ -41,7 +41,7 @@
             forTestName:(NSString*)testName
 {
     if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
-        (*configuration).offlineSignatureComponentLength = 4;
+        (*configuration).offlineAuthorizationCodeComponentLength = 4;
     }
 }
 
@@ -308,8 +308,11 @@
     }
     
     NSString * nonce = @"QVZlcnlDbGV2ZXJOb25jZQ==";
-    NSError * error = nil;
-    NSString * signature = [_sdk offlineSignatureWithAuthentication:[PowerAuthAuthentication possession] uriId:@"/some/uriId" body:nil nonce:nonce error:&error];
+    NSString * signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:[PowerAuthAuthentication possession] uriId:@"/some/uriId" body:nil nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+            [waiting reportCompletion:authorizationCode];
+        }];
+    }];
     XCTAssertNotNil(signature);
     XCTAssertEqual(4, signature.length);
 }
@@ -360,7 +363,11 @@
     NSString * nonce = payload.nonce;
 
     PowerAuthAuthentication * sign_auth = [auth copy];
-    NSString * local_signature = [_sdk offlineSignatureWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce error:NULL];
+    NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk offlineAuthorizationCodeWithAuthentication:sign_auth uriId:uriId body:body nonce:nonce callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+            [waiting reportCompletion:authorizationCode];
+        }];
+    }];
     XCTAssertNotNil(local_signature);
 
     NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:uriId nonce:nonce data:body];
@@ -629,7 +636,7 @@
     // Positive
     for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
         // Just calculate signature on the client. This step simulates a network connection failure.
-        PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+        PowerAuthAuthorizationHttpHeader * header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil error:NULL];
         XCTAssertNotNil(header);
         if ((i % 4) == 0) {
             // Every 4th signature calculation try to get the status
@@ -647,7 +654,7 @@
     // Now try to calculate too many signatures that server will never catch
     for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
         // Just calculate signature on the client. This step simulates a network connection failure.
-        PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
+        PowerAuthAuthorizationHttpHeader * header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:auth method:@"POST" uriId:@"/some/identifier" body:nil  error:NULL];
         XCTAssertNotNil(header);
     }
     
@@ -682,7 +689,11 @@
     // To trick the system, we need to keep old persistent data and restore it later.
     NSData * previous_state = [_helper sessionCoreSerializedState];
     for (int i = 0; i < CTR_LOOKAHEAD/2; i++) {
-        NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+        NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk offlineAuthorizationCodeWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+                [waiting reportCompletion:authorizationCode];
+            }];
+        }];
         NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
         PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
         XCTAssertNotNil(response, @"Online response must be received");
@@ -701,7 +712,11 @@
     // Now try to calculate too many signatures that client will never catch the server.
     previous_state = [_helper sessionCoreSerializedState];
     for (int i = 0; i < CTR_LOOKAHEAD + 2; i++) {
-        NSString * local_signature = [_sdk offlineSignatureWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" error:NULL];
+        NSString * local_signature = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+            [_sdk offlineAuthorizationCodeWithAuthentication:auth uriId:@"/test/id" body:data_to_sign nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" callback:^(NSString * _Nullable authorizationCode, NSError * _Nullable error) {
+                [waiting reportCompletion:authorizationCode];
+            }];
+        }];
         NSString * normalized_data = [_helper.testServerApi normalizeDataForSignatureWithMethod:@"POST" uriId:@"/test/id" nonce:@"QVZlcnlDbGV2ZXJOb25jZQ==" data:data_to_sign];
         PATSVerifySignatureResponse * response = [_helper.testServerApi verifyOfflineSignature:_sdk.activationIdentifier data:normalized_data signature:local_signature allowBiometry:NO];
         XCTAssertNotNil(response, @"Online response must be received");
@@ -1069,7 +1084,7 @@
     
     NSError * error = nil;
     authentication = [PowerAuthAuthentication possessionWithBiometry];
-    header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     if (supportsBiometry) {
         XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
@@ -1079,7 +1094,7 @@
     
     error = nil;
     authentication = [PowerAuthAuthentication possessionWithBiometryPrompt:@"Authenticate with biometry"];
-    header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     
     if (supportsBiometry) {
@@ -1175,7 +1190,7 @@
 
     PowerAuthAuthentication * authentication = [PowerAuthAuthentication possessionWithBiometryContext:context];
     NSError * error = nil;
-    PowerAuthAuthorizationHttpHeader * header = [_sdk requestSignatureWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
+    PowerAuthAuthorizationHttpHeader * header = [_sdk authorizationHeaderForRequestWithBodyWithAuthentication:authentication method:@"POST" uriId:@"/some/uri/id" body:[NSData data] error:&error];
     XCTAssertNil(header);
     XCTAssertEqual(PowerAuthErrorCode_BiometryFailed, error.powerAuthErrorCode);
 }

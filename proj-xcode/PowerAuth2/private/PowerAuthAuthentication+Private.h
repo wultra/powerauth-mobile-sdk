@@ -16,11 +16,18 @@
 
 #import <PowerAuth2/PowerAuthAuthentication.h>
 
+@class PowerAuthKeychainAuthentication;
+
 @interface PowerAuthAuthentication (Private)
 /**
  Contains numeric value representing a combination of used factors.
  */
 @property (nonatomic, readonly) NSInteger signatureFactorMask;
+/**
+ Contains PowerAuthKeychainAuthentication constructed from prompt or LAContext, or nil if no biometry
+ factor is involved.
+ */
+@property (nonatomic, readonly) PowerAuthKeychainAuthentication * keychainAuthentication;
 
 /// Function validates whether PowerAuthAuthentication was created for the right object usage.
 /// @param forPersist Specifies whether persist or sign operation is required.

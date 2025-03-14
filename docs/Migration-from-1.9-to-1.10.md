@@ -89,12 +89,18 @@ Notable changes on iOS:
 
 ### API changes
 
-- The following methods in `PowerAuthSDK` class are deprecated:
-  - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
-  - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
-  - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
-  - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
-  - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
+- The following methods or properties are now deprecated:
+  - `PowerAuthSDK` class:
+    - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+    - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
+    - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
+    - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
+    - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
+    - `requestSignature(with:method:uriId:body:)` - use `authorizationHeaderForRequestWithBody(with:method:uriId:body:)` method instead.
+    - `requestGetSignature(with:uriId:params:)` - use `authorizationHeaderForRequestWithParams(with:method:uriId:params:)` method with `"GET"` as method parameter.
+    - `offlineSignature(with:uriId:body:nonce:)` - use asynchronous `offlineAuthorizationCode(with:uriId:body:nonce:callback:)` method that handle the biometric authentication properly.
+  - `PowerAuthConfiguration` class:
+    - `offlineSignatureComponentLength` property is now replaced with `offlineAuthorizationCodeComponentLength`
 
 - All static methods for accessing a various shared instances are now deprecated:
   - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.

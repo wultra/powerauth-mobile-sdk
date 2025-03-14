@@ -71,13 +71,13 @@
 
 - (PowerAuthKeychainAuthentication *) keychainAuthentication
 {
+    if (_useBiometry) {
 #if PA2_HAS_LACONTEXT == 1
-    if (_biometryContext) {
-        return [[PowerAuthKeychainAuthentication alloc] initWithContext:_biometryContext];
-    }
+        if (_biometryContext) {
+            return [[PowerAuthKeychainAuthentication alloc] initWithContext:_biometryContext];
+        }
 #endif // PA2_HAS_LACONTEXT
-    if (_biometryPrompt) {
-        return [[PowerAuthKeychainAuthentication alloc] initWithPrompt:_biometryPrompt];
+        return [[PowerAuthKeychainAuthentication alloc] initWithPrompt:_biometryPrompt ? _biometryPrompt : @"< missing prompt >"];
     }
     return nil;
 }

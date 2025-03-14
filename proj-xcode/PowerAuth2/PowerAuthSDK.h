@@ -358,6 +358,74 @@
  */
 - (void) removeActivationLocal;
 
+/// MARK: - Authorization codes
+
+/**
+ Computes the HTTP header containing the authorization code for an HTTP method, URI identifier, and HTTP body using the provided authentication information.
+
+ It is recommended to call this method from the context of the SDK-provided serial queue to avoid counter desynchronization. See the documentation for
+ `executeBlock(onSerialQueue:)` or `executeOperation(onSerialQueue:)` methods.
+
+ Be aware that the calling thread may be blocked during biometric authentication if the biometry factor is requested in `PowerAuthAuthentication`.
+ To avoid this, use the `authenticateUsingBiometry()` method to authenticate with biometry in advance.
+ 
+ @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+ @param method The HTTP method used for the authorization code computation.
+ @param uriId The URI identifier.
+ @param body The HTTP request body.
+ @param error A reference to an error object in case an error occurs.
+ @return The HTTP header containing the PowerAuth authorization code. In case of an error, this method returns `nil`.
+ @exception NSException Thrown if the configuration is not present.
+ */
+- (nullable PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithBodyWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                                                method:(nonnull NSString*)method
+                                                                                                 uriId:(nonnull NSString*)uriId
+                                                                                                  body:(nullable NSData*)body
+                                                                                                 error:(NSError * _Nullable * _Nullable)error;
+/**
+ Compute the HTTP header containing authorization code for HTTP method, URI identifier and HTTP query parameters using provided authentication information.
+ 
+ It is recommended to call this method from the context of the SDK-provided serial queue to avoid counter desynchronization. See the documentation for
+ `executeBlock(onSerialQueue:)` or `executeOperation(onSerialQueue:)` methods.
+
+ Be aware that the calling thread may be blocked during biometric authentication if the biometry factor is requested in `PowerAuthAuthentication`.
+ To avoid this, use the `authenticateUsingBiometry()` method to authenticate with biometry in advance.
+ 
+ @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+ @param method The HTTP method used for the authorization code computation.
+ @param uriId The URI identifier.
+ @param params The HTTP query params.
+ @param error A reference to an error object in case an error occurs.
+ @return The HTTP header containing the PowerAuth authorization code. In case of an error, this method returns `nil`.
+ @exception NSException Thrown if the configuration is not present.
+ */
+- (nullable PowerAuthAuthorizationHttpHeader*) authorizationHeaderForRequestWithParamsWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                                                  method:(nonnull NSString*)method
+                                                                                                   uriId:(nonnull NSString*)uriId
+                                                                                                  params:(nullable NSDictionary<NSString*, NSString*>*)params
+                                                                                                   error:(NSError * _Nullable * _Nullable)error;
+
+/**
+ Computes the offline authorization code for a given HTTP method, URI identifier, and HTTP request body using the provided authentication information.
+
+ Unlike methods for calculating an authorization header for an online HTTP request, you don't need to authenticate with biometry in advance.
+ This method properly handles biometric authentication if the biometric factor is requested.
+
+ @param authentication An authentication instance specifying what factors should be used to sign the request. The possession and knowledge is recommended.
+ @param uriId The URI identifier.
+ @param body The HTTP request body.
+ @param nonce NONCE in Base64 format.
+ @param callback A callback that returns the authentication code result or an error in case of failure. The callback is always called on the main thread.
+ @return A cancelable operation task associated with the pending biometric authentication.
+ */
+- (nullable id<PowerAuthOperationTask>) offlineAuthorizationCodeWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
+                                                                             uriId:(nonnull NSString*)uriId
+                                                                              body:(nullable NSData*)body
+                                                                             nonce:(nonnull NSString*)nonce
+                                                                          callback:(void(^_Nonnull)(NSString * _Nullable authorizationCode, NSError * _Nullable error))callback;
+
+/// MARK: - Deprecated "symmetric signatures"
+
 /** Compute the HTTP signature header for GET HTTP method, URI identifier and HTTP query parameters using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
@@ -368,11 +436,13 @@
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authorization signature. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Use `authorizationHeaderForRequestWithParams(with:method:uriId:params:)` as a replacement.
  */
 - (nullable PowerAuthAuthorizationHttpHeader*) requestGetSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                                uriId:(nonnull NSString*)uriId
                                                                               params:(nullable NSDictionary<NSString*, NSString*>*)params
-                                                                               error:(NSError * _Nullable * _Nullable)error;
+                                                                               error:(NSError * _Nullable * _Nullable)error
+                                                                                PA2_DEPRECATED(1.10.0);
 
 /** Compute the HTTP signature header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
@@ -385,14 +455,16 @@
  @param error Error reference in case some error occurs.
  @return HTTP header with PowerAuth authorization signature. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Use `authorizationHeaderForRequestWithBody(with:method:uriId:body:)` as a replacement.
  */
 - (nullable PowerAuthAuthorizationHttpHeader*) requestSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                                            method:(nonnull NSString*)method
                                                                             uriId:(nonnull NSString*)uriId
                                                                              body:(nullable NSData*)body
-                                                                            error:(NSError * _Nullable * _Nullable)error;
+                                                                            error:(NSError * _Nullable * _Nullable)error
+                                                                                PA2_DEPRECATED(1.10.0);
 
-/** Compute the offline signature for given HTTP method, URI identifier and HTTP request body using provided authentication information.
+/** Compute the offline signature for URI identifier and HTTP request body using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
@@ -403,12 +475,14 @@
  @param error Error reference in case some error occurs.
  @return String representing a calculated signature for all involved factors. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
+ @deprecated Use `offlineAuthorizationCode(with:uriId:body:nonce:callback:)` method as a replacement.
  */
 - (nullable NSString*) offlineSignatureWithAuthentication:(nonnull PowerAuthAuthentication*)authentication
                                                     uriId:(nonnull NSString*)uriId
                                                      body:(nullable NSData*)body
                                                     nonce:(nonnull NSString*)nonce
-                                                    error:(NSError * _Nullable * _Nullable)error;
+                                                    error:(NSError * _Nullable * _Nullable)error
+                                                        PA2_DEPRECATED(1.10.0);
 /**
  Validates whether the data has been signed with master server private key or personalized server's private key.
  @param data An arbitrary data

@@ -1129,7 +1129,7 @@ static PowerAuthSDK * s_inst;
             }
         });
     };
-    // Prepare execution function that compute signature in the serial queue
+    // Prepare execution function that compute authorization code in the serial queue
     void (^executionFunc)(PowerAuthAuthentication*) = ^(PowerAuthAuthentication * resolvedAuthentication) {
         // We should compute the signature on the serial queue we have dedicated for the networking operations.
         id<PowerAuthOperationTask> computationTask = [self executeBlockOnSerialQueue:^(id<PowerAuthOperationTask> task) {

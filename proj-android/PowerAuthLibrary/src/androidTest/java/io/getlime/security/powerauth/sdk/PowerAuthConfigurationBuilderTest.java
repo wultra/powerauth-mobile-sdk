@@ -58,7 +58,7 @@ public class PowerAuthConfigurationBuilderTest {
         assertEquals("ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==", configuration.getConfiguration());
         assertNull(configuration.getExternalEncryptionKey());
         assertTrue(configuration.validateConfiguration());
-        assertEquals(8, configuration.getOfflineSignatureComponentLength());
+        assertEquals(8, configuration.getOfflineAuthorizationCodeComponentLength());
     }
 
     @Test
@@ -87,22 +87,22 @@ public class PowerAuthConfigurationBuilderTest {
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineSignatureComponentLength(4)
+                .offlineAuthorizationCodeComponentLength(4)
                 .build();
-        assertEquals(4, configuration.getOfflineSignatureComponentLength());
+        assertEquals(4, configuration.getOfflineAuthorizationCodeComponentLength());
         // Invalid values
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineSignatureComponentLength(3)
+                .offlineAuthorizationCodeComponentLength(3)
                 .build();
         assertFalse(configuration.validateConfiguration());
         configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",
                 "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==")
-                .offlineSignatureComponentLength(9)
+                .offlineAuthorizationCodeComponentLength(9)
                 .build();
         assertFalse(configuration.validateConfiguration());
     }

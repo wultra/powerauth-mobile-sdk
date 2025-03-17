@@ -145,7 +145,7 @@ PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallback
 
 The `PowerAuthConfiguration.Builder` class provides the following additional methods that can alter the configuration:
 
-- `offlineSignatureComponentLength()` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
+- `offlineAuthorizationCodeComponentLength()` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey()` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `disableAutomaticProtocolUpgrade()` - Disables the automatic protocol upgrade. This option should be used only for debugging purposes.
 
@@ -871,110 +871,55 @@ PowerAuthAuthentication twoFactorBiometry = PowerAuthAuthentication.possessionWi
 
 When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // 2FA signature - uses device related key and user PIN code
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
-// Sign POST call with provided data made to URI with custom identifier "/payment/create"
-val header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes)
-if (header.isValid) {
+// Compute authorization header for POST call with provided data made to URI with custom identifier "/payment/create"
+try {
+    val header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes)
     val httpHeaderKey = header.getKey()
     val httpHeaderValue = header.getValue()
-} else {
+} catch (e: PowerAuthErrorException) {
     // In case of invalid configuration, invalid activation state or corrupted state data
 }
 ```
-```java
-// 2FA signature - uses device-related key and user PIN code
-PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
 
-// Sign POST call with provided data made to URI with custom identifier "/payment/create"
-PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes);
-if (header.isValid()) {
-    String httpHeaderKey = header.getKey();
-    String httpHeaderValue = header.getValue();
-} else {
-    // In case of invalid configuration, invalid activation state or corrupted state data
-}
-```
-<!-- end -->
+When signing `GET` or `DELETE` request with query parameters, use the following code:
 
-When signing `GET` requests, use the same code as above with normalized request data as described in specification, or (preferably) use the following helper method:
-
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // 2FA signature - uses device-related key and user PIN code
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
-// Sign GET call with provided query parameters made to URI with custom identifier "/payment/create"
+// Compute authorization header for GET call with provided query parameters made to URI with custom identifier "/payment/create"
 val params = mapOf("param1" to "value1", "param2" to "value2")
-
-val header = powerAuthSDK.requestGetSignatureWithAuthentication(context, authentication, "/payment/create", params)
-if (header.isValid) {
+try {
+    val header = powerAuthSDK.authorizationHeaderForRequestWithParams(context, authentication, "GET", "/payment/create", params)
     val httpHeaderKey = header.getKey()
     val httpHeaderValue = header.getValue()
-} else {
+} catch (e: PowerAuthErrorException) {
     // In case of invalid configuration, invalid activation state or corrupted state data
 }
 ```
-```java
-// 2FA signature - uses device-related key and user PIN code
-PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
-
-// Sign GET call with provided query parameters made to URI with custom identifier "/payment/create"
-Map<String, String> params = new HashMap<>();
-params.put("param1", "value1");
-params.put("param2", "value2");
-
-PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestGetSignatureWithAuthentication(context, authentication, "/payment/create", params);
-if (header.isValid()) {
-    String httpHeaderKey = header.getKey();
-    String httpHeaderValue = header.getValue();
-} else {
-    // In case of invalid configuration, invalid activation state or corrupted state data
-}
-```
-<!-- end -->
 
 The result of the signature is appropriate HTTP header - you are responsible for hooking up the header value in your request correctly. The process with libraries like `OkHttp` goes like this:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Prepare the request builder
 val builder: Request.Builder = Builder().url(endpoint)
 
-// Compute PA signature header
-val header = powerAuthSDK.requestSignatureWithAuthentication(context, signatureUnlockKeys, "POST", "/session/login", jsonBody)
-if (!header.isValid) {
-    // request signature failed, for example due to incorrect activation status - cancel the process
-    return
+// Compute PowerAuth authorization header
+try {
+    val header = powerAuthSDK.authorizationHeaderForRequestWithBody(context, signatureUnlockKeys, "POST", "/session/login", jsonBody)
+    // Add HTTP header in the request builder
+    builder.header(header.getKey(), header.getValue())
+} catch (e: PowerAuthErrorException) {
+    // Handle error
 }
 
-// Add HTTP header in the request builder
-builder.header(header.getKey(), header.getValue())
-
 // Build the request, send it, and process the response...
 // ...
 ```
-```java
-// Prepare the request builder
-final Request.Builder builder = new Request.Builder().url(endpoint);
-
-// Compute PA signature header
-PowerAuthAuthorizationHttpHeader header = powerAuthSDK.requestSignatureWithAuthentication(context, signatureUnlockKeys, "POST", "/session/login", jsonBody);
-if (!header.isValid()) {
-    // request signature failed, for example due to incorrect activation status - cancel the process
-    return;
- }
-
-// Add HTTP header in the request builder
-builder.header(header.getKey(), header.getValue());
-
-// Build the request, send it, and process the response...
-// ...
-```
-<!-- end -->
 
 #### Request Synchronization
 
@@ -1079,35 +1024,25 @@ powerAuthSDK.signJwtWithDevicePrivateKey(context, authentication, claims, object
 
 This type of signature is very similar to [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) but the result is provided in the form of a simple, human-readable string (unlike the online version, where the result is an HTTP header). To calculate the signature, you need a typical `PowerAuthAuthentication` object to define all required factors, nonce and data to sign. The `nonce` and `data` should also be transmitted to the application over the OOB channel (for example, by scanning a QR code). Then the signature calculation is straightforward:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 // Prepare the authentication object
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
-val signature = powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confirm/offline/operation", data, nonce)
-if (signature != null) {
-    Log.d(TAG, "Offline signature is: $signature")
-} else {
-    // failure: session is probably invalid, or some required data is missing
-}
-```
-```java
-// Prepare the authentication object
-PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword("1234");
+powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confirm/offline/operation", data, nonce, object: IOfflineAuthorizationCodeListener {
+    override fun onOfflineAuthorizationCodeSucceed(authorizationCode: String) {
+        Log.d(TAG, "Offline authorization code is: $authorizationCode")
+    }
 
-final String signature = powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confirm/offline/operation", data, nonce);
-if (signature != null) {
-    android.util.Log.d(TAG, "Offline signature is: " + signature);
-} else {
-    // failure: session is probably invalid, or some required data is missing
-}
+    override fun onOfflineAuthorizationCodeFailed(error: PowerAuthErrorException) {
+        // Handle the error, such as biometric authentication cancel.
+    }
+})
 ```
-<!-- end -->
 
 The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for the verification.
 
 <!-- begin box info -->
-You can alter the lenght of the signature components by using `offlineSignatureComponentLength()` function of `PowerAuthConfiguration.Builder` class.
+You can alter the length of the signature components by using `offlineAuthorizationCodeComponentLength()` function of `PowerAuthConfiguration.Builder` class.
 <!-- end -->
 
 ### Verify Server-Signed Data
@@ -1697,12 +1632,16 @@ powerAuthSDK.removeBiometryFactor(context, object: IRemoveBiometryFactorListener
 
 To obtain an encrypted biometry factor-related key for authentication, call the following code:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
+// Prepare biometric prompt data
+val biometricPrompt = PowerAuthBiometricPrompt.Builder(parentFragment)  // You can also use fragment activity in the constructor
+                        .setTitle("Sign in")
+                        .setDescription("Use the biometric sensor on your device to sign in.")
+                        .build()
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
+powerAuthSDK.authenticateUsingBiometrics(context, biometricPrompt, object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
-        // User canceled the operation
+        // User or system canceled the operation
     }
 
     override fun onBiometricDialogSuccess(authentication: PowerAuthAuthentication) {
@@ -1727,39 +1666,6 @@ powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the 
     }
 })
 ```
-```java
-// Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", new IAuthenticateWithBiometricsListener() {
-    @Override
-    public void onBiometricDialogCancelled(boolean userCancel) {
-        // User canceled the operation
-    }
-
-    @Override
-    public void onBiometricDialogSuccess(PowerAuthAuthentication authentication) {
-        // User authenticated to use the provided authentication object for other tasks.
-    }
-
-    @Override
-    public void onBiometricDialogFailed(PowerAuthErrorException error) {
-        // Biometric authentication failed
-        if (error.getAdditionalInfo() instanceof BiometricErrorInfo) {
-            BiometricErrorInfo biometricErrorInfo = (BiometricErrorInfo) error.getAdditionalInfo();
-            if (biometricErrorInfo.isErrorPresentationRequired()) {
-                // The application should present the reason for the biometric authentication failure to the user.
-                //
-                // If you don't disable the error dialog provided by the PowerAuth mobile SDK, then this may happen
-                // only when you try to use the biometric authentication while the biometric factor is not configured
-                // in the PowerAuthSDK instance.
-                String localizedMessage = biometricErrorInfo.getLocalizedErrorMessage(context, null);
-            }
-        } else {
-            // Other reasons for failure
-        }
-    }
-});
-```
-<!-- end -->
 
 <!-- begin box warning -->
 Note that if the biometric authentication fails with too many attempts in a row (e.g. biometry is temporarily or permanently locked out), then PowerAuth SDK will generate an invalid biometry factor related key, and the success is reported. This is an intended behavior and as a result, it typically leads to unsuccessful authentication on the server and an increased counter of failed attempts. The purpose of this is to limit the number of attempts for attackers to deceive the biometry sensor.
@@ -1852,8 +1758,13 @@ BiometricAuthentication.setBiometricErrorDialogDisabled(true)
 When the error dialog is disabled, your application should inform the user of the reason for the failure. Handling this might be somewhat tricky because there are situations where the biometric authentication dialog is not displayed at all, and the failure is reported directly to the application. To address this, you can use the `BiometricErrorInfo` class, which is associated with the reported `PowerAuthErrorException`. The code snippet below outlines how to determine the situation:
 
 ```kotlin
+// Prepare biometric prompt data
+val biometricPrompt = PowerAuthBiometricPrompt.Builder(parentFragment)  // You can also use fragment activity in the constructor
+                        .setTitle("Sign in")
+                        .setDescription("Use the biometric sensor on your device to sign in.")
+                        .build()
 // Authenticate user with biometry and obtain encrypted biometry factor related key.
-powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the biometric sensor on your device to continue", object: IAuthenticateWithBiometricsListener {
+powerAuthSDK.authenticateUsingBiometrics(context, biometricPrompt, object: IAuthenticateWithBiometricsListener {
     override fun onBiometricDialogCancelled(userCancel: Boolean) {
         // User or system canceled the operation
     }
@@ -2213,28 +2124,15 @@ val task = tokenStore.generateAuthorizationHeader(context, "MyToken", object : I
 
 Once you have a `PowerAuthToken` object, then you can use also a synchronous code to generate an authorization header:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
-val header: PowerAuthAuthorizationHttpHeader = token.generateHeader()
-if (header.isValid) {
-    // Header is valid, you can construct an HTTP header...
+try {
+    val header = token.generateTokenHeader()
     val httpHeaderKey = header.key
     val httpHeaderValue = header.value
-} else {
-    // handle error
+} catch (e: PowerAuthErrorException) {
+    // Handle error
 }
 ```
-```java
-PowerAuthAuthorizationHttpHeader header = token.generateHeader();
-if (header.isValid()) {
-    // Header is valid, you can construct an HTTP header...
-    String httpHeaderKey = header.key;
-    String httpHeaderValue = header.value;
-} else {
-    // handle error
-}
-```
-<!-- end -->
 
 <!-- begin box warning -->
 The synchronous example above is safe to use only if you're sure that the time is already [synchronized with the server](#synchronized-time).

@@ -18,11 +18,7 @@ package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
 import android.util.Base64;
-import androidx.annotation.CheckResult;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
+import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -350,7 +346,7 @@ public class PowerAuthSDK {
                 // Prepare request
                 final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null, 0);
                 // And calculate signature
-                final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, availableInProtocolUpgrade);
+                final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, availableInProtocolUpgrade);
                 return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
             }
 
@@ -1600,6 +1596,156 @@ public class PowerAuthSDK {
         }
     }
 
+    // Authorization codes
+
+    /**
+     * Computes the HTTP header containing the authorization code for an HTTP method, URI identifier, and HTTP body
+     * using the provided authentication information.
+     * <p>
+     * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
+     * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param method         HTTP method used for the authorization code computation.
+     * @param uriId          URI identifier.
+     * @param body           HTTP request body.
+     * @return HTTP header with PowerAuth authorization code.
+     * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
+     *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithBody(@NonNull Context context,
+                                                                                  @NonNull PowerAuthAuthentication authentication,
+                                                                                  @NonNull String method,
+                                                                                  @NonNull String uriId,
+                                                                                  @Nullable byte[] body) throws PowerAuthErrorException {
+        checkForValidSetup();
+        final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
+        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
+        return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
+    }
+
+    /**
+     * Compute the HTTP header containing authorization code for HTTP method, URI identifier and HTTP query parameters
+     * using provided authentication information.
+     * <p>
+     * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
+     * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param method         HTTP method used for the authorization code computation.
+     * @param uriId          URI identifier.
+     * @param params         HTTP request query parameters
+     * @return HTTP header with PowerAuth authorization code.
+     * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
+     *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithParams(@NonNull Context context,
+                                                                                    @NonNull PowerAuthAuthentication authentication,
+                                                                                    @NonNull String method,
+                                                                                    @NonNull String uriId,
+                                                                                    @Nullable Map<String, String> params) throws PowerAuthErrorException {
+        byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
+        return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
+    }
+
+    /**
+     * Computes the offline authorization code for a given HTTP method, URI identifier, and HTTP request body using
+     * the provided authentication information.
+     * <p>
+     * Unlike methods for calculating an authorization header for an online HTTP request, you don't need to authenticate
+     * with biometry in advance. This method properly handles biometric authentication if the biometric factor is requested.
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param uriId          URI identifier.
+     * @param body           HTTP request body.
+     * @param nonce          Nonce in Base64 format.
+     * @param listener       A callback listener.
+     * @return Cancelable object associated with the pending biometric authentication.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public ICancelable offlineAuthorizationCode(@NonNull Context context,
+                                                @NonNull PowerAuthAuthentication authentication,
+                                                @NonNull String uriId,
+                                                @Nullable byte[] body,
+                                                @NonNull String nonce,
+                                                @NonNull IOfflineAuthorizationCodeListener listener) {
+        checkForValidSetup();
+
+        // Prepare composite task that will cover the whole operation
+        final CompositeCancelableTask task = new CompositeCancelableTask(true);
+        // Prepare a completion function that dispatch result to the main thread.
+        final IBiConsumer<PowerAuthErrorException, String> taskCompletion = (PowerAuthErrorException exception, String authorizationCode) -> {
+            dispatchCallback(() -> {
+                if (task.setCompleted()) {
+                    if (authorizationCode != null) {
+                        listener.onOfflineAuthorizationCodeSucceed(authorizationCode);
+                    } else {
+                        listener.onOfflineAuthorizationCodeFailed(exception);
+                    }
+                }
+            });
+        };
+        // Prepare execution function that compute authorization code in the serial queue
+        final IConsumer<PowerAuthAuthentication> taskExecution = (PowerAuthAuthentication auth) -> {
+            try {
+                // Execute calculation in the serial executor.
+                getSerialExecutor().execute(() -> {
+                    try {
+                        if (task.isCancelled()) {
+                            return;
+                        }
+                        final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
+                        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
+                        taskCompletion.accept(null, signatureResult.signatureCode);
+                    } catch (PowerAuthErrorException exception) {
+                        // Authorization code calculation failed.
+                        taskCompletion.accept(exception, null);
+                    }
+                });
+            } catch (PowerAuthErrorException e) {
+                // Failed to acquire executor, due to an invalid activation state.
+                taskCompletion.accept(e, null);
+            }
+        };
+        if (authentication.getBiometryFactorRelatedKey() == null && authentication.getBiometricPrompt() != null) {
+            // If biometric authentication is requested and the key is not resolved yet, then authenticate with biometry first.
+            task.addCancelable(
+                    authenticateUsingBiometrics(context, authentication.getBiometricPrompt(), new IAuthenticateWithBiometricsListener() {
+                        @Override
+                        public void onBiometricDialogCancelled(boolean userCancel) {
+                            if (userCancel) {
+                                taskCompletion.accept(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL), null);
+                            }
+                        }
+
+                        @Override
+                        public void onBiometricDialogSuccess(@NonNull PowerAuthAuthentication authentication) {
+                            taskExecution.accept(authentication);
+                        }
+
+                        @Override
+                        public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                            taskCompletion.accept(error, null);
+                        }
+                    })
+            );
+        } else {
+            // Seems that authentication object is already resolved, no additional tasks are required. So execute the
+            // authorization code computation.
+            taskExecution.accept(authentication);
+        }
+        return task;
+    }
+
+    // Deprecated signatures
+
     /**
      * Compute the HTTP signature header for given GET request, URI identifier and query parameters using provided authentication information.
      *
@@ -1609,10 +1755,15 @@ public class PowerAuthSDK {
      * @param params         GET request query parameters
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #authorizationHeaderForRequestWithParams(Context, PowerAuthAuthentication, String, String, Map)} for replacement.
      */
+    @Deprecated // 1.10.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
-        byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
-        return requestSignatureWithAuthentication(context, authentication, "GET", uriId, body);
+        try {
+            return authorizationHeaderForRequestWithParams(context, authentication, "GET", uriId, params);
+        } catch (PowerAuthErrorException e) {
+            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
+        }
     }
 
     /**
@@ -1625,16 +1776,12 @@ public class PowerAuthSDK {
      * @param body           HTTP request body.
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #authorizationHeaderForRequestWithBody(Context, PowerAuthAuthentication, String, String, byte[])} for replacement.
      */
+    @Deprecated // 1.10.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
-
-        checkForValidSetup();
-
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
-            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
-            return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
-
+            return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
         } catch (PowerAuthErrorException e) {
             return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
         }
@@ -1651,6 +1798,7 @@ public class PowerAuthSDK {
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
      */
+    @Deprecated // 1.10.0
     public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
 
         checkForValidSetup();
@@ -1661,8 +1809,8 @@ public class PowerAuthSDK {
         }
 
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineSignatureComponentLength());
-            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
+            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
+            final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
             // In case of success, just return the signature code.
             return signatureResult.signatureCode;
 
@@ -1673,7 +1821,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Compute PowerAuth signature for given signature request object and authentication.
+     * Compute PowerAuth authorization code for given signature request object and authentication.
      * <p>
      * This private method checks most of the session states (except invalid setup) and then performs
      * the signature calculation. The {@link SignatureRequest} object has to be properly configured,
@@ -1687,7 +1835,7 @@ public class PowerAuthSDK {
      * @return {@link SignatureResult}
      * @throws PowerAuthErrorException if calculation fails.
      */
-    private @NonNull SignatureResult calculatePowerAuthSignature(@NonNull Context context, @NonNull SignatureRequest signatureRequest, @NonNull PowerAuthAuthentication authentication, boolean allowInUpgrade) throws PowerAuthErrorException {
+    private @NonNull SignatureResult calculatePowerAuthAuthorizationCode(@NonNull Context context, @NonNull SignatureRequest signatureRequest, @NonNull PowerAuthAuthentication authentication, boolean allowInUpgrade) throws PowerAuthErrorException {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
@@ -2395,14 +2543,34 @@ public class PowerAuthSDK {
      * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
      *
      * @param context Context.
-     * @param fragment The fragment of the application that will host the prompt.
-     * @param title Dialog title.
-     * @param description Dialog description.
+     * @param biometricPrompt Object containing information for the biometric prompt display.
      * @param listener Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
     @UiThread
     @NonNull
+    public ICancelable authenticateUsingBiometrics(
+            @NonNull Context context,
+            @NonNull PowerAuthBiometricPrompt biometricPrompt,
+            @NonNull IAuthenticateWithBiometricsListener listener) {
+        return authenticateUsingBiometrics(context,biometricPrompt, false, getBiometricCallbackWithListener(listener));
+    }
+
+    /**
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     *
+     * @param context Context.
+     * @param fragment The fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param listener Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, PowerAuthBiometricPrompt, IAuthenticateWithBiometricsListener)} instead.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.10.0
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull Fragment fragment,
@@ -2422,9 +2590,11 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param listener Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, PowerAuthBiometricPrompt, IAuthenticateWithBiometricsListener)} instead.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,

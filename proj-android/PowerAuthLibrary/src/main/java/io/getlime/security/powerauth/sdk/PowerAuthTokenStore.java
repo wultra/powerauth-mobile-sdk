@@ -17,7 +17,6 @@
 package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
-import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
@@ -27,10 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-import androidx.annotation.RequiresApi;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.keychain.Keychain;
@@ -499,7 +495,7 @@ public class PowerAuthTokenStore {
     }
 
     /**
-     * Generate authorization header with token with given name. Unlike {@link PowerAuthToken#generateHeader()}, this
+     * Generate authorization header with token with given name. Unlike {@link PowerAuthToken#generateTokenHeader()}, this
      * asynchronous function guarantees that time used for the token digest calculation is always synchronized
      * with the server.
      *
@@ -508,22 +504,17 @@ public class PowerAuthTokenStore {
      * @param listener Listener with callbacks.
      * @return {@code ICancelable} associated with the time synchronization.
      */
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @NonNull
     public ICancelable generateAuthorizationHeader(@NonNull final Context context, @NonNull String tokenName, @NonNull IGenerateTokenHeaderListener listener) {
         // Prepare cancelable task and completion closure.
         final CompositeCancelableTask cancelableTask = new CompositeCancelableTask(true);
-        final BiConsumer<Throwable, PowerAuthAuthorizationHttpHeader> taskCompletion = (Throwable t, PowerAuthAuthorizationHttpHeader header) -> {
+        final IBiConsumer<Throwable, PowerAuthAuthorizationHttpHeader> taskCompletion = (Throwable t, PowerAuthAuthorizationHttpHeader header) -> {
             sdk.getCallbackDispatcher().dispatchCallback(() -> {
                 if (cancelableTask.setCompleted()) {
                     // Execute only if cancelable task is not canceled
                     if (header != null) {
-                        if (header.isValid()) {
-                            // Token is valid
-                            listener.onGenerateTokenHeaderSucceeded(header);
-                        } else {
-                            listener.onGenerateTokenHeaderFailed(new PowerAuthErrorException(header.getPowerAuthErrorCode(), "Failed to generate token header"));
-                        }
+                        // Token is valid
+                        listener.onGenerateTokenHeaderSucceeded(header);
                     } else {
                         listener.onGenerateTokenHeaderFailed(t);
                     }
@@ -534,14 +525,23 @@ public class PowerAuthTokenStore {
         final PowerAuthToken token = getLocalToken(context, tokenName);
         if (token != null) {
             if (sdk.getTimeSynchronizationService().isTimeSynchronized()) {
-                taskCompletion.accept(null, token.generateHeader());
+                try {
+                    taskCompletion.accept(null, token.generateTokenHeader());
+                } catch (PowerAuthErrorException e) {
+                    taskCompletion.accept(e, null);
+                }
+
             } else {
                 // Time is not synchronized yet
                 final ICancelable timeSynchronization = sdk.getTimeSynchronizationService().synchronizeTime(new ITimeSynchronizationListener() {
                     @Override
                     public void onTimeSynchronizationSucceeded() {
                         // Time is now synchronized, so generate header and report result back to the application.
-                        taskCompletion.accept(null, token.generateHeader());
+                        try {
+                            taskCompletion.accept(null, token.generateTokenHeader());
+                        } catch (PowerAuthErrorException e) {
+                            taskCompletion.accept(e, null);
+                        }
                     }
 
                     @Override

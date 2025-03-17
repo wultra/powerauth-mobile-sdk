@@ -33,7 +33,11 @@ public class PowerAuthAuthorizationHttpHeader {
     public final String value;
     /**
      * Contains an error code from <code>PowerAuthErrorCodes</code> set of codes.
+     * <p>
+     * The property is deprecated and is only effective if header is calculated in deprecated methods from
+     * {@link PowerAuthSDK} or {@link PowerAuthToken}.
      */
+    @Deprecated // 1.10.0
     @PowerAuthErrorCodes
     public final int powerAuthErrorCode;
 
@@ -69,7 +73,10 @@ public class PowerAuthAuthorizationHttpHeader {
 
     /**
      * @return true if object contains a valid HTTP header.
+     * @deprecated The new methods for calculating authorization headers throws an exception in case of failure, and
+     *             therefore the returned header is always valid.
      */
+    @Deprecated // 1.10.0
     public boolean isValid() {
         return powerAuthErrorCode == PowerAuthErrorCodes.SUCCEED &&
                 key != null &&
@@ -91,10 +98,11 @@ public class PowerAuthAuthorizationHttpHeader {
     }
 
     //
-    // Getters for code compatibility compatibility. In newer versions of library, you can use
+    // Getters for code compatibility reasons. In newer versions of library, you can use
     // final public properties to access the elements.
     //
 
+    @Deprecated // 1.10.0
     @PowerAuthErrorCodes
     public int getPowerAuthErrorCode() {
         return powerAuthErrorCode;

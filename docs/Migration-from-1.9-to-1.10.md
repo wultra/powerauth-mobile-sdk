@@ -19,23 +19,41 @@ Notable changes on Android:
 
 ### API changes
 
-- The following methods in `PowerAuthSDK` class are deprecated:
-  - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
-  - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
-  - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
-  - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.
-  - All variants of `addBiometryFactor()` with "title" and "description" parameters are now replaced with variant using `PowerAuthBiometricPrompt`.
-  - `removeBiometryFactor()` - use asynchronous variant with `IRemoveBiometryFactorListener` as a callback parameter.
+- The following methods or properties are now deprecated:
+  - `PowerAuthSDK` class:
+    - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+    - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+    - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+    - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.
+    - All variants of `addBiometryFactor()` with "title" and "description" parameters are now replaced with variant using `PowerAuthBiometricPrompt`.
+    - `removeBiometryFactor()` - use asynchronous variant with `IRemoveBiometryFactorListener` as a callback parameter.
+    - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
+    - `requestGetSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
+    - `requestSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
 
-- The following methods in `PowerAuthKeychainConfiguration` are now deprecated:
-  - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
-  - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `isAuthenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `isFallbackToSharedBiometryKeyEnabled()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `Builder.linkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.Builder.invalidateBiometricFactorAfterChange(boolean)` instead.
-  - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
-  - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
-  - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+  - `PowerAuthConfiguration` class:
+    - `getOfflineSignatureComponentLength()` - use `getOfflineAuthorizationCodeComponentLength()` instead.
+
+  - `PowerAuthConfiguration.Builder` class:
+    - `offlineSignatureComponentLength()` - use `offlineAuthorizationCodeComponentLength()` instead.
+
+  - `PowerAuthKeychainConfiguration` class:
+    - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
+    - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `isAuthenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `isFallbackToSharedBiometryKeyEnabled()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `Builder.linkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.Builder.invalidateBiometricFactorAfterChange(boolean)` instead.
+    - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+    - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+    - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+
+  - `PowerAuthToken` class:
+    - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthorizationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
+
+  - `PowerAuthAuthorizationHttpHeader` class:
+    - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
+    - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
+
 
 - The following classes and interfaces are now deprecated:
   - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.

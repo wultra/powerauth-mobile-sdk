@@ -33,7 +33,7 @@ import javax.crypto.Cipher;
 public interface IBiometricKeyEncryptor {
 
     /**
-     * @return {@code true} if biometric authentication is required in {@link #encryptBiometricKey(byte[])} method.
+     * @return {@code true} if biometric authentication is required in {@link #encryptBiometricKey(SecureData)} method.
      *         If {@code false} is returned, then typically the setup of biometric factor doesn't require
      *         biometric authentication.
      */

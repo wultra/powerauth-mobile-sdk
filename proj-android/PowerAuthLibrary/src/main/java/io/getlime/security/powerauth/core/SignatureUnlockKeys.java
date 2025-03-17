@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+// TODO: Align with "authorization code" naming.
+
 /**
  * The SignatureUnlockKeys class keeps all keys required for data signature
  * computation. Typically, you have to provide all  keys involved into selected
@@ -26,7 +28,7 @@ public class SignatureUnlockKeys {
     /**
      * The key required for signatures with "possession" factor.
      * You have to provide a key based on the unique properties of the device.
-     * For example, WI-FI MAC address or UDID are a good sources for this
+     * For example, WI-FI MAC address or ANDROID_ID are a good sources for this
      * key. You can use Session::normalizeSignatureUnlockKeyFromData method
      * to convert arbitrary data into normalized key.
      * You cannot use vector of zeroes as a key. That's a protection against

@@ -16,6 +16,8 @@
 
 package io.getlime.security.powerauth.core;
 
+// TODO: Align with "authorization code" naming.
+
 /**
  * Parameters for HTTP signature calculation.
  */

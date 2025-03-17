@@ -1148,6 +1148,7 @@ static PowerAuthSDK * s_inst;
         // Keep the computation task as a sub-task of composite task.
         [task replaceOperationTask:computationTask];
     };
+#if PA2_HAS_LACONTEXT
     if (authentication.useBiometry && authentication.customBiometryKey == nil) {
         // If biometric authentication is requested and the key is not resolved yet, then authenticate with biometry first.
         id<PowerAuthOperationTask> biometricAuthTask = [self authenticateUsingBiometryImpl:authentication.keychainAuthentication
@@ -1167,6 +1168,10 @@ static PowerAuthSDK * s_inst;
         // authorization code computation.
         executionFunc(authentication);
     }
+#else
+    // There's no biometric authentication on this platform. So execute the authorization code computation.
+    executionFunc(authentication);
+#endif
     return task;
 }
 

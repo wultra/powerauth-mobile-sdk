@@ -972,7 +972,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Persist activation that was created and store related data using provided password object instance.
+     * Persist activation that was created and store related data using provided password.
      *
      * @param context Android context object.
      * @param password Password to be used for the knowledge related authentication factor.
@@ -1797,6 +1797,7 @@ public class PowerAuthSDK {
      * @param nonce          NONCE in Base64 format
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #offlineAuthorizationCode(Context, PowerAuthAuthentication, String, byte[], String, IOfflineAuthorizationCodeListener)}
      */
     @Deprecated // 1.10.0
     public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {

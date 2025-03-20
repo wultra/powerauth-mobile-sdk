@@ -28,10 +28,11 @@
 #ifdef ENABLE_PA2_LOG
 static BOOL s_log_enabled = NO;
 static BOOL s_log_verbose = NO;
+static BOOL s_log_to_console = YES;
 static id<PowerAuthLogDelegate> s_log_delegate = nil;
 void PowerAuthLogImpl(NSString * format, ...)
 {
-    if (!s_log_enabled) {
+    if (!s_log_enabled || (!s_log_to_console && !s_log_delegate)) {
         return;
     }
     va_list args;
@@ -43,7 +44,9 @@ void PowerAuthLogImpl(NSString * format, ...)
         [s_log_delegate powerAuthLog:message];
     }
     
-    NSLog(@"[PowerAuth] %@", message);
+    if (s_log_to_console) {
+        NSLog(@"[PowerAuth] %@", message);
+    }
 }
 #endif // ENABLE_PA2_LOG
 
@@ -77,6 +80,22 @@ BOOL PowerAuthLogIsVerbose(void)
 {
 #ifdef ENABLE_PA2_LOG
     return s_log_verbose;
+#else
+    return NO;
+#endif
+}
+
+void PowerAuthLogToConsole(BOOL enabled)
+{
+#ifdef ENABLE_PA2_LOG
+    s_log_to_console = enabled;
+#endif
+}
+
+BOOL PowerAuthLogToConsoleEnabled(void)
+{
+#ifdef ENABLE_PA2_LOG
+    return s_log_to_console;
 #else
     return NO;
 #endif

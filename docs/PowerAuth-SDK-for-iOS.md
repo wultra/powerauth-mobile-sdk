@@ -2065,9 +2065,13 @@ let powerAuthSDK = PowerAuthSDK(
 )
 ```
 
-### Debugging
+### Logs
 
-The debug log is by default turned off. To turn it on, use the following code:
+<!-- begin box warning -->
+Note that the functions below are effective only if PowerAuth SDK is compiled in the `DEBUG` build configuration or the `ENABLE_PA2_LOG` compilation flag is set.
+<!-- end -->
+
+Logs are turned off by default. To turn it on, use the following code:
 
 ```swift
 PowerAuthLogSetEnabled(true)
@@ -2078,10 +2082,6 @@ To turn on an even more detailed log, use the following code:
 ```swift
 PowerAuthLogSetVerbose(true)
 ```
-
-<!-- begin box warning -->
-Note that the functions above are effective only if PowerAuth SDK is compiled in the `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
-<!-- end -->
 
 You can intercept the log and log it into your own report system, you can do so with `PowerAuthLogDelegate`.
 
@@ -2105,9 +2105,15 @@ class MyClass: PowerAuthLogDelegate {
     // MARK: - PowerAuthLogDelegate implementation
     
     func powerAuthLog(_ log: String) {
-        // Process the log...
+        // Process the log (write to file for example)
     }
 }
+```
+
+If you're handling logs with the `PowerAuthLogDelegate`, you might want to turn off the default console logs. To do so, use:
+
+```swift
+PowerAuthLogToConsole(false)
 ```
 
 ## Additional Features

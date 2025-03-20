@@ -152,7 +152,7 @@ class InterfaceController: WKInterfaceController {
     private static func setupPowerAuth() -> PowerAuthWatchSDK {
         let config = PowerAuthConfiguration(
             instanceId: Bundle.main.bundleIdentifier!,
-            baseEndpointUrl: "https://localhost:8080/demo-server",
+            baseEndpointUrl: "https://<your-domain>/enrollment-server",
             configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
         return PowerAuthWatchSDK(configuration: config)!

@@ -18,11 +18,7 @@ package io.getlime.security.powerauth.sdk;
 
 import android.content.Context;
 import android.util.Base64;
-import androidx.annotation.CheckResult;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
+import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -335,7 +331,7 @@ public class PowerAuthSDK {
             @NonNull
             @Override
             public EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException {
-                final byte[] deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
+                final SecureData deviceRelatedKey = context == null ? null : deviceRelatedKey(context);
                 EciesEncryptorFactory factory = new EciesEncryptorFactory(mSession, deviceRelatedKey);
                 return factory.getEncryptor(identifier);
             }
@@ -350,13 +346,13 @@ public class PowerAuthSDK {
                 // Prepare request
                 final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriIdentifier, null, 0);
                 // And calculate signature
-                final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, availableInProtocolUpgrade);
+                final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, availableInProtocolUpgrade);
                 return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
             }
 
             @Nullable
             @Override
-            public byte[] getDeviceRelatedKey() {
+            public SecureData getDeviceRelatedKey() {
                 return context == null ? null : deviceRelatedKey(context);
             }
 
@@ -407,7 +403,7 @@ public class PowerAuthSDK {
      * @return Default device related key.
      */
     @NonNull
-    private byte[] deviceRelatedKey(@NonNull Context context) {
+    private SecureData deviceRelatedKey(@NonNull Context context) {
         return mPossessionFactorEncryptionKeyProvider.getPossessionFactorEncryptionKey(context);
     }
 
@@ -424,8 +420,8 @@ public class PowerAuthSDK {
         authentication.validateAuthenticationUsage(false);
 
         // Generate signature key encryption keys
-        byte[] possessionKey;
-        byte[] biometryKey = null;
+        SecureData possessionKey;
+        SecureData biometryKey = null;
 
         if (authentication.getOverriddenPossessionKey() != null) {
             possessionKey = authentication.getOverriddenPossessionKey();
@@ -914,15 +910,144 @@ public class PowerAuthSDK {
     //
 
     /**
+     * Persist activation that was created and store related data using provided authentication object instance.
+     *
+     * @param context android context object
+     * @param authentication An authentication instance specifying what factors should be stored.
+     * @param listener A callback listener called when the process finishes or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request or with the biometric authentication.
+     *         If {@code null} is returned, then the operation failed or completed immediately.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    public @Nullable ICancelable persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, @NonNull IPersistActivationListener listener) {
+        checkForValidSetup();
+        final Password password = authentication.getPassword();
+        final PowerAuthBiometricPrompt biometricPrompt = authentication.getBiometricPrompt();
+        if (biometricPrompt == null || password == null) {
+            // Persist operation doesn't require biometric dialog to display.
+            // If password is null, then "persistActivationImpl()" will fail at input validation
+            try {
+                persistActivationImpl(context, authentication);
+                dispatchCallback(listener::onPersistActivationSucceeded);
+            } catch (PowerAuthErrorException e) {
+                dispatchCallback(() -> listener.onPersistActivationFailed(e));
+            }
+            return new DummyCancelable();
+        }
+        return authenticateUsingBiometrics(context, biometricPrompt, true, new IBiometricAuthenticationCallback() {
+            @Override
+            public void onBiometricDialogCancelled(boolean userCancel) {
+                listener.onPersistActivationCancelled(userCancel);
+            }
+
+            @Override
+            public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
+                try {
+                    final PowerAuthAuthentication resolvedAuthentication = PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricKeyData.getDerivedData());
+                    persistActivationImpl(context, resolvedAuthentication);
+                    listener.onPersistActivationSucceeded();
+                } catch (PowerAuthErrorException e) {
+                    listener.onPersistActivationFailed(e);
+                }
+            }
+
+            @Override
+            public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                listener.onPersistActivationFailed(error);
+            }
+        });
+    }
+
+    /**
+     * Persist activation that was created and store related data using provided password object instance.
+     *
+     * @param context Android context object.
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @param listener A callback listener called when the process finishes or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request If {@code null} is returned, then the
+     *         operation failed or completed immediately.
+     */
+    public @Nullable ICancelable persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @NonNull IPersistActivationListener listener) {
+        return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password), listener);
+    }
+
+    /**
+     * Persist activation that was created and store related data using provided password.
+     *
+     * @param context Android context object.
+     * @param password Password to be used for the knowledge related authentication factor.
+     * @param listener A callback listener called when the process finishes or fails.
+     * @return {@link ICancelable} object associated with the running HTTP request If {@code null} is returned, then the
+     *         operation failed or completed immediately.
+     */
+    public @Nullable ICancelable persistActivationWithPassword(@NonNull Context context, @NonNull String password, @NonNull IPersistActivationListener listener) {
+        return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password), listener);
+    }
+
+    /**
+     * Persist activation in the low level Session object with provided authentication object. Note that the authentication object
+     * must have biometric factor key already resolved.
+     * @param context Android context object.
+     * @param authentication Instance of authentication object with required password and optional key for biometric factor.
+     * @throws PowerAuthErrorException Thrown in case of failure.
+     */
+    private void persistActivationImpl(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) throws PowerAuthErrorException {
+        // Input validations
+        checkForValidSetup();
+        // Check if there is a pending activation present and not an already existing valid activation
+        if (!mSession.hasPendingActivation()) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE);
+        }
+        if (authentication.getPassword() == null) {
+            PowerAuthLog.e("Password is required to persist activation");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER);
+        }
+
+        // Validate authentication usage for persist.
+        authentication.validateAuthenticationUsage(true);
+
+        // Prepare key encryption keys
+        final SecureData possessionKey = deviceRelatedKey(context);
+        final SecureData biometryKey = authentication.getBiometryFactorRelatedKey();
+
+        // Prepare signature unlock keys structure
+        final SignatureUnlockKeys keys = new SignatureUnlockKeys(possessionKey, biometryKey, authentication.getPassword());
+
+        // Complete the activation
+        final int result = mSession.completeActivation(keys);
+        @PowerAuthErrorCodes int errorCode;
+        switch (result) {
+            case ErrorCode.OK:
+                // Save activation state and clear TokenStore
+                saveSerializedState();
+                getTokenStore().removeAllLocalTokens(context);
+                return;
+            case ErrorCode.WrongParam:
+                errorCode = PowerAuthErrorCodes.WRONG_PARAMETER;
+                break;
+            default:
+                // ErrorCode.Encryption
+                // ErrorCode.WrongState
+                errorCode = PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
+                break;
+        }
+        PowerAuthLog.e("Failed to persist activation. Error code " + result);
+        throw new PowerAuthErrorException(errorCode);
+    }
+
+    /**
      * Persist activation that was created and store related data using default authentication instance setup with provided password.
      *
      * @param context Context
      * @param password Password to be used for the knowledge related authentication factor.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
+     * @noinspection DeprecatedIsStillUsed
      */
     @CheckResult
     @PowerAuthErrorCodes
+    @Deprecated // 1.10.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull String password) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
@@ -934,9 +1059,12 @@ public class PowerAuthSDK {
      * @param password Password to be used for the knowledge related authentication factor.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
+     * @noinspection DeprecatedIsStillUsed
      */
     @CheckResult
     @PowerAuthErrorCodes
+    @Deprecated // 1.10.0
     public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password) {
         return persistActivationWithAuthentication(context, PowerAuthAuthentication.persistWithPassword(password));
     }
@@ -951,9 +1079,11 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
@@ -961,7 +1091,7 @@ public class PowerAuthSDK {
             @NonNull String description,
             @NonNull final String password,
             final @NonNull IPersistActivationWithBiometricsListener callback) {
-        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), callback);
+        return persistActivationWithBiometricsImpl(context, PowerAuthBiometricPrompt.prompt(fragmentActivity, title, description), new Password(password), callback);
     }
 
     /**
@@ -974,9 +1104,11 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
@@ -984,7 +1116,7 @@ public class PowerAuthSDK {
             @NonNull String description,
             @NonNull final Password password,
             final @NonNull IPersistActivationWithBiometricsListener callback) {
-        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, callback);
+        return persistActivationWithBiometricsImpl(context, PowerAuthBiometricPrompt.prompt(fragmentActivity, title, description), password, callback);
     }
 
     /**
@@ -997,9 +1129,11 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
@@ -1007,7 +1141,7 @@ public class PowerAuthSDK {
             @NonNull String description,
             @NonNull final String password,
             final @NonNull IPersistActivationWithBiometricsListener callback) {
-        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), callback);
+        return persistActivationWithBiometricsImpl(context, PowerAuthBiometricPrompt.prompt(fragment, title, description), new Password(password), callback);
     }
 
     /**
@@ -1020,9 +1154,11 @@ public class PowerAuthSDK {
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable persistActivation(
             final @NonNull Context context,
             @NonNull Fragment fragment,
@@ -1030,30 +1166,28 @@ public class PowerAuthSDK {
             @NonNull String description,
             @NonNull final Password password,
             final @NonNull IPersistActivationWithBiometricsListener callback) {
-        return persistActivationWithBiometricsImpl(context, FragmentHelper.from(fragment), title, description, password, callback);
+        return persistActivationWithBiometricsImpl(context, PowerAuthBiometricPrompt.prompt(fragment, title, description), password, callback);
     }
 
     /**
      * Persist activation that was created and store related data using default authentication instance setup with provided password and biometry key.
      *
      * @param context Context.
-     * @param fragmentHelper Fragment helper for the dialog.
-     * @param title Dialog title.
-     * @param description Dialog description.
+     * @param prompt Prompt with information required for the dialog presentation.
      * @param password Password used to persist activation.
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @noinspection deprecation
      */
     @UiThread
     @NonNull
+    // @Deprecated // 1.10.0 - remove in 2.0
     private ICancelable persistActivationWithBiometricsImpl(
             final @NonNull Context context,
-            @NonNull FragmentHelper fragmentHelper,
-            @NonNull String title,
-            @NonNull String description,
+            @NonNull PowerAuthBiometricPrompt prompt,
             @NonNull final Password password,
             final @NonNull IPersistActivationWithBiometricsListener callback) {
-        return authenticateUsingBiometrics(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
+        return authenticateUsingBiometrics(context, prompt, true, new IBiometricAuthenticationCallback() {
             @Override
             public void onBiometricDialogCancelled(boolean userCancel) {
                 if (userCancel) {
@@ -1090,10 +1224,12 @@ public class PowerAuthSDK {
      * @param encryptedBiometryKey Optional biometry related factor key.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable byte[] encryptedBiometryKey) {
+    @Deprecated // 1.10.0
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull String password, @Nullable SecureData encryptedBiometryKey) {
         return persistActivationWithPassword(context, new Password(password), encryptedBiometryKey);
     }
 
@@ -1107,11 +1243,13 @@ public class PowerAuthSDK {
      * @param encryptedBiometryKey Optional biometry related factor key.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
      */
     @CheckResult
     @PowerAuthErrorCodes
-    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable byte[] encryptedBiometryKey) {
-        return persistActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, encryptedBiometryKey, null));
+    @Deprecated // 1.10.0
+    public int persistActivationWithPassword(@NonNull Context context, @NonNull Password password, @Nullable SecureData encryptedBiometryKey) {
+        return persistActivationWithAuthentication(context, new PowerAuthAuthentication(true, password, null, encryptedBiometryKey, null));
     }
 
     /**
@@ -1121,42 +1259,18 @@ public class PowerAuthSDK {
      * @param authentication An authentication instance specifying what factors should be stored.
      * @return int {@link PowerAuthErrorCodes} error code.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Replaced with asynchronous methods with {@link IPersistActivationListener} callback parameter.
+     * @noinspection DeprecatedIsStillUsed
      */
     @CheckResult
     @PowerAuthErrorCodes
+    @Deprecated // 1.10.0
     public int persistActivationWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
-        // Input validations
-        checkForValidSetup();
-        // Check if there is a pending activation present and not an already existing valid activation
-        if (!mSession.hasPendingActivation()) {
-            return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
-        }
-        if (authentication.getPassword() == null) {
-            PowerAuthLog.e("Password is required to persist activation");
-            return PowerAuthErrorCodes.WRONG_PARAMETER;
-        }
-
-        // Validate authentication usage for persist.
-        authentication.validateAuthenticationUsage(true);
-
-        // Prepare key encryption keys
-        final byte[] possessionKey = deviceRelatedKey(context);
-        final byte[] biometryKey = authentication.getBiometryFactorRelatedKey();
-
-        // Prepare signature unlock keys structure
-        final SignatureUnlockKeys keys = new SignatureUnlockKeys(possessionKey, biometryKey, authentication.getPassword());
-
-        // Complete the activation
-        final int result = mSession.completeActivation(keys);
-
-        if (result == ErrorCode.OK) {
-            // Save activation state and clear TokenStore
-            saveSerializedState();
-            getTokenStore().removeAllLocalTokens(context);
-
+        try {
+            persistActivationImpl(context, authentication);
             return PowerAuthErrorCodes.SUCCEED;
-        } else {
-            return PowerAuthErrorCodes.INVALID_ACTIVATION_STATE;
+        } catch (PowerAuthErrorException e) {
+            return e.getPowerAuthErrorCode();
         }
     }
 
@@ -1482,6 +1596,156 @@ public class PowerAuthSDK {
         }
     }
 
+    // Authorization codes
+
+    /**
+     * Computes the HTTP header containing the authorization code for an HTTP method, URI identifier, and HTTP body
+     * using the provided authentication information.
+     * <p>
+     * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
+     * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param method         HTTP method used for the authorization code computation.
+     * @param uriId          URI identifier.
+     * @param body           HTTP request body.
+     * @return HTTP header with PowerAuth authorization code.
+     * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
+     *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithBody(@NonNull Context context,
+                                                                                  @NonNull PowerAuthAuthentication authentication,
+                                                                                  @NonNull String method,
+                                                                                  @NonNull String uriId,
+                                                                                  @Nullable byte[] body) throws PowerAuthErrorException {
+        checkForValidSetup();
+        final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
+        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
+        return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
+    }
+
+    /**
+     * Compute the HTTP header containing authorization code for HTTP method, URI identifier and HTTP query parameters
+     * using provided authentication information.
+     * <p>
+     * It is recommended to call this method from the context of the SDK-provided serial executor to avoid counter
+     * de-synchronization. See the documentation for {@link #getSerialExecutor()} for more details.
+     *
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param method         HTTP method used for the authorization code computation.
+     * @param uriId          URI identifier.
+     * @param params         HTTP request query parameters
+     * @return HTTP header with PowerAuth authorization code.
+     * @throws PowerAuthErrorException thrown in case the failure. The reason of failure is indicated in value
+     *                       returned in {@link PowerAuthErrorException#getPowerAuthErrorCode()} method.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public PowerAuthAuthorizationHttpHeader authorizationHeaderForRequestWithParams(@NonNull Context context,
+                                                                                    @NonNull PowerAuthAuthentication authentication,
+                                                                                    @NonNull String method,
+                                                                                    @NonNull String uriId,
+                                                                                    @Nullable Map<String, String> params) throws PowerAuthErrorException {
+        byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
+        return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
+    }
+
+    /**
+     * Computes the offline authorization code for a given HTTP method, URI identifier, and HTTP request body using
+     * the provided authentication information.
+     * <p>
+     * Unlike methods for calculating an authorization header for an online HTTP request, you don't need to authenticate
+     * with biometry in advance. This method properly handles biometric authentication if the biometric factor is requested.
+     * @param context        Context.
+     * @param authentication An authentication instance specifying which factors should be used to authenticate the request.
+     * @param uriId          URI identifier.
+     * @param body           HTTP request body.
+     * @param nonce          Nonce in Base64 format.
+     * @param listener       A callback listener.
+     * @return Cancelable object associated with the pending biometric authentication.
+     * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     */
+    @NonNull
+    public ICancelable offlineAuthorizationCode(@NonNull Context context,
+                                                @NonNull PowerAuthAuthentication authentication,
+                                                @NonNull String uriId,
+                                                @Nullable byte[] body,
+                                                @NonNull String nonce,
+                                                @NonNull IOfflineAuthorizationCodeListener listener) {
+        checkForValidSetup();
+
+        // Prepare composite task that will cover the whole operation
+        final CompositeCancelableTask task = new CompositeCancelableTask(true);
+        // Prepare a completion function that dispatch result to the main thread.
+        final IBiConsumer<PowerAuthErrorException, String> taskCompletion = (PowerAuthErrorException exception, String authorizationCode) -> {
+            dispatchCallback(() -> {
+                if (task.setCompleted()) {
+                    if (authorizationCode != null) {
+                        listener.onOfflineAuthorizationCodeSucceed(authorizationCode);
+                    } else {
+                        listener.onOfflineAuthorizationCodeFailed(exception);
+                    }
+                }
+            });
+        };
+        // Prepare execution function that compute authorization code in the serial queue
+        final IConsumer<PowerAuthAuthentication> taskExecution = (PowerAuthAuthentication auth) -> {
+            try {
+                // Execute calculation in the serial executor.
+                getSerialExecutor().execute(() -> {
+                    try {
+                        if (task.isCancelled()) {
+                            return;
+                        }
+                        final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
+                        final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
+                        taskCompletion.accept(null, signatureResult.signatureCode);
+                    } catch (PowerAuthErrorException exception) {
+                        // Authorization code calculation failed.
+                        taskCompletion.accept(exception, null);
+                    }
+                });
+            } catch (PowerAuthErrorException e) {
+                // Failed to acquire executor, due to an invalid activation state.
+                taskCompletion.accept(e, null);
+            }
+        };
+        if (authentication.getBiometryFactorRelatedKey() == null && authentication.getBiometricPrompt() != null) {
+            // If biometric authentication is requested and the key is not resolved yet, then authenticate with biometry first.
+            task.addCancelable(
+                    authenticateUsingBiometrics(context, authentication.getBiometricPrompt(), new IAuthenticateWithBiometricsListener() {
+                        @Override
+                        public void onBiometricDialogCancelled(boolean userCancel) {
+                            if (userCancel) {
+                                taskCompletion.accept(new PowerAuthErrorException(PowerAuthErrorCodes.BIOMETRY_CANCEL), null);
+                            }
+                        }
+
+                        @Override
+                        public void onBiometricDialogSuccess(@NonNull PowerAuthAuthentication authentication) {
+                            taskExecution.accept(authentication);
+                        }
+
+                        @Override
+                        public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                            taskCompletion.accept(error, null);
+                        }
+                    })
+            );
+        } else {
+            // Seems that authentication object is already resolved, no additional tasks are required. So execute the
+            // authorization code computation.
+            taskExecution.accept(authentication);
+        }
+        return task;
+    }
+
+    // Deprecated signatures
+
     /**
      * Compute the HTTP signature header for given GET request, URI identifier and query parameters using provided authentication information.
      *
@@ -1491,10 +1755,15 @@ public class PowerAuthSDK {
      * @param params         GET request query parameters
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #authorizationHeaderForRequestWithParams(Context, PowerAuthAuthentication, String, String, Map)} for replacement.
      */
+    @Deprecated // 1.10.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestGetSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, Map<String, String> params) {
-        byte[] body = this.mSession.prepareKeyValueDictionaryForDataSigning(params);
-        return requestSignatureWithAuthentication(context, authentication, "GET", uriId, body);
+        try {
+            return authorizationHeaderForRequestWithParams(context, authentication, "GET", uriId, params);
+        } catch (PowerAuthErrorException e) {
+            return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
+        }
     }
 
     /**
@@ -1507,16 +1776,12 @@ public class PowerAuthSDK {
      * @param body           HTTP request body.
      * @return HTTP header with PowerAuth authorization signature when PA2Succeed returned in powerAuthErrorCode. In case of error return null header value.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #authorizationHeaderForRequestWithBody(Context, PowerAuthAuthentication, String, String, byte[])} for replacement.
      */
+    @Deprecated // 1.10.0
     public @NonNull PowerAuthAuthorizationHttpHeader requestSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String method, String uriId, byte[] body) {
-
-        checkForValidSetup();
-
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, method, uriId, null, 0);
-            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
-            return PowerAuthAuthorizationHttpHeader.createAuthorizationHeader(signatureResult.getAuthHeaderValue());
-
+            return authorizationHeaderForRequestWithBody(context, authentication, method, uriId, body);
         } catch (PowerAuthErrorException e) {
             return PowerAuthAuthorizationHttpHeader.createError(e.getPowerAuthErrorCode());
         }
@@ -1532,7 +1797,9 @@ public class PowerAuthSDK {
      * @param nonce          NONCE in Base64 format
      * @return String representing a calculated signature for all involved factors. In case of error, this method returns null.
      * @throws PowerAuthMissingConfigException thrown in case configuration is not present.
+     * @deprecated Use {@link #offlineAuthorizationCode(Context, PowerAuthAuthentication, String, byte[], String, IOfflineAuthorizationCodeListener)}
      */
+    @Deprecated // 1.10.0
     public @Nullable String offlineSignatureWithAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication, String uriId, byte[] body, String nonce) {
 
         checkForValidSetup();
@@ -1543,8 +1810,8 @@ public class PowerAuthSDK {
         }
 
         try {
-            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineSignatureComponentLength());
-            final SignatureResult signatureResult = calculatePowerAuthSignature(context, signatureRequest, authentication, false);
+            final SignatureRequest signatureRequest = new SignatureRequest(body, "POST", uriId, nonce, mConfiguration.getOfflineAuthorizationCodeComponentLength());
+            final SignatureResult signatureResult = calculatePowerAuthAuthorizationCode(context, signatureRequest, authentication, false);
             // In case of success, just return the signature code.
             return signatureResult.signatureCode;
 
@@ -1555,7 +1822,7 @@ public class PowerAuthSDK {
     }
 
     /**
-     * Compute PowerAuth signature for given signature request object and authentication.
+     * Compute PowerAuth authorization code for given signature request object and authentication.
      * <p>
      * This private method checks most of the session states (except invalid setup) and then performs
      * the signature calculation. The {@link SignatureRequest} object has to be properly configured,
@@ -1569,7 +1836,7 @@ public class PowerAuthSDK {
      * @return {@link SignatureResult}
      * @throws PowerAuthErrorException if calculation fails.
      */
-    private @NonNull SignatureResult calculatePowerAuthSignature(@NonNull Context context, @NonNull SignatureRequest signatureRequest, @NonNull PowerAuthAuthentication authentication, boolean allowInUpgrade) throws PowerAuthErrorException {
+    private @NonNull SignatureResult calculatePowerAuthAuthorizationCode(@NonNull Context context, @NonNull SignatureRequest signatureRequest, @NonNull PowerAuthAuthentication authentication, boolean allowInUpgrade) throws PowerAuthErrorException {
 
         // Check if there is an activation present
         if (!mSession.hasValidActivation()) {
@@ -1805,23 +2072,42 @@ public class PowerAuthSDK {
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
-     * @param fragment The fragment of the application that will host the prompt.
-     * @param title Title for the biometry alert
-     * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. You can provide a "dummy" prompt in case that
+     *                        biometric authentication is not required for the biometric factor setup.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
     @Nullable
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
-            final @NonNull Fragment fragment,
-            final @NonNull String title,
-            final @NonNull String description,
-            @NonNull String password,
+            @NonNull final Password password,
+            @NonNull final PowerAuthBiometricPrompt biometricPrompt,
             @NonNull final IAddBiometryFactorListener listener) {
-        return addBiometryFactorImpl(context, FragmentHelper.from(fragment), title, description, new Password(password), listener);
+        return addBiometryFactorImpl(context, biometricPrompt, password, listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
+     * @param password Password used for authentication during vault unlocking call.
+     * @param biometricPrompt Prompt displayed during the biometric authentication. You can provide a "dummy" prompt in case that
+     *                        biometric authentication is not required for the biometric factor setup.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     */
+    @UiThread
+    @Nullable
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            @NonNull final String password,
+            @NonNull final PowerAuthBiometricPrompt biometricPrompt,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, biometricPrompt, new Password(password), listener);
     }
 
     /**
@@ -1834,11 +2120,40 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, String, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
+    public ICancelable addBiometryFactor(
+            @NonNull final Context context,
+            final @NonNull Fragment fragment,
+            final @NonNull String title,
+            final @NonNull String description,
+            @NonNull String password,
+            @NonNull final IAddBiometryFactorListener listener) {
+        return addBiometryFactorImpl(context, PowerAuthBiometricPrompt.prompt(fragment, title, description), new Password(password), listener);
+    }
+
+    /**
+     * Regenerate a biometry related factor key.
+     * <p>
+     * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
+     *
+     * @param context  Context.
+     * @param fragment The fragment of the application that will host the prompt.
+     * @param title Title for the biometry alert
+     * @param description Description displayed in the biometry alert
+     * @param password Password used for authentication during vault unlocking call.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, Password, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
+     */
+    @UiThread
+    @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull Fragment fragment,
@@ -1846,7 +2161,7 @@ public class PowerAuthSDK {
             final @NonNull String description,
             @NonNull Password password,
             @NonNull final IAddBiometryFactorListener listener) {
-        return addBiometryFactorImpl(context, FragmentHelper.from(fragment), title, description, password, listener);
+        return addBiometryFactorImpl(context, PowerAuthBiometricPrompt.prompt(fragment, title, description), password, listener);
     }
 
     /**
@@ -1859,11 +2174,13 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, String, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -1871,7 +2188,7 @@ public class PowerAuthSDK {
             final @NonNull String description,
             @NonNull String password,
             @NonNull final IAddBiometryFactorListener listener) {
-        return addBiometryFactorImpl(context, FragmentHelper.from(fragmentActivity), title, description, new Password(password), listener);
+        return addBiometryFactorImpl(context, PowerAuthBiometricPrompt.prompt(fragmentActivity, title, description), new Password(password), listener);
     }
 
     /**
@@ -1884,11 +2201,13 @@ public class PowerAuthSDK {
      * @param title Title for the biometry alert
      * @param description Description displayed in the biometry alert
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
+     * @deprecated Use {@link #addBiometryFactor(Context, Password, PowerAuthBiometricPrompt, IAddBiometryFactorListener)} as replacement.
      */
     @UiThread
     @Nullable
+    @Deprecated // 1.10.0
     public ICancelable addBiometryFactor(
             @NonNull final Context context,
             final @NonNull FragmentActivity fragmentActivity,
@@ -1896,7 +2215,7 @@ public class PowerAuthSDK {
             final @NonNull String description,
             @NonNull Password password,
             @NonNull final IAddBiometryFactorListener listener) {
-        return addBiometryFactorImpl(context, FragmentHelper.from(fragmentActivity), title, description, password, listener);
+        return addBiometryFactorImpl(context, PowerAuthBiometricPrompt.prompt(fragmentActivity, title, description), password, listener);
     }
 
     /**
@@ -1905,20 +2224,16 @@ public class PowerAuthSDK {
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
-     * @param fragmentHelper Fragment helper for the dialog.
-     * @param title Title for the biometry alert
-     * @param description Description displayed in the biometry alert
+     * @param prompt Prompt with information required for the dialog presentation.
      * @param password Password used for authentication during vault unlocking call.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request and the biometric prompt.
      */
     @UiThread
     @Nullable
     private ICancelable addBiometryFactorImpl(
             @NonNull final Context context,
-            final @NonNull FragmentHelper fragmentHelper,
-            final @NonNull String title,
-            final @NonNull String description,
+            final @NonNull PowerAuthBiometricPrompt prompt,
             @NonNull Password password,
             @NonNull final IAddBiometryFactorListener listener) {
 
@@ -1933,7 +2248,7 @@ public class PowerAuthSDK {
             public void onFetchEncryptedVaultUnlockKeySucceed(final String encryptedEncryptionKey) {
                 if (encryptedEncryptionKey != null) {
                     // Authenticate using biometry to generate a key
-                    final ICancelable biometricAuthentication = authenticateUsingBiometrics(context, fragmentHelper, title, description, true, new IBiometricAuthenticationCallback() {
+                    final ICancelable biometricAuthentication = authenticateUsingBiometrics(context, prompt, true, new IBiometricAuthenticationCallback() {
                         @Override
                         public void onBiometricDialogCancelled(boolean userCancel) {
                             if (userCancel) {
@@ -1993,19 +2308,22 @@ public class PowerAuthSDK {
     /**
      * Regenerate a biometry related factor key.
      * <p>
+     * The method is useful in situations where you're manage your own biometry related factor key, or you have obtained
+     * the key in advance.
+     * <p>
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
      * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
     ICancelable addBiometryFactor(
             final @NonNull Context context,
             @NonNull String password,
-            final @NonNull byte[] encryptedBiometryKey,
+            final @NonNull SecureData encryptedBiometryKey,
             final @NonNull IAddBiometryFactorListener listener) {
         return addBiometryFactor(context, new Password(password), encryptedBiometryKey, listener);
     }
@@ -2013,19 +2331,22 @@ public class PowerAuthSDK {
     /**
      * Regenerate a biometry related factor key.
      * <p>
+     * The method is useful in situations where you're manage your own biometry related factor key, or you have obtained
+     * the key in advance.
+     * <p>
      * This method calls PowerAuth REST API endpoint to obtain the vault encryption key used for original private key encryption.
      *
      * @param context  Context.
      * @param password Password used for authentication during vault unlocking call.
      * @param encryptedBiometryKey Encrypted biometry key used for storing biometry related factor key.
-     * @param listener The callback method with the encrypted key.
+     * @param listener The callback method with the operation result.
      * @return {@link ICancelable} object associated with the running HTTP request.
      */
     public @Nullable
     ICancelable addBiometryFactor(
             final @NonNull Context context,
             @NonNull Password password,
-            final @NonNull byte[] encryptedBiometryKey,
+            final @NonNull SecureData encryptedBiometryKey,
             final @NonNull IAddBiometryFactorListener listener) {
         final PowerAuthAuthentication authAuthentication = PowerAuthAuthentication.possessionWithPassword(password);
 
@@ -2061,25 +2382,75 @@ public class PowerAuthSDK {
      *
      * @param context Context.
      * @return TRUE if the key was successfully removed, FALSE otherwise.
+     * @deprecated Please use asynchronous variant {@link #removeBiometryFactor(Context, IRemoveBiometryFactorListener)}.
      */
+    @Deprecated // 1.10.0
     public boolean removeBiometryFactor(@NonNull Context context) {
+        try {
+            removeBiometryFactorImpl(context);
+            return true;
+        } catch (PowerAuthErrorException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Remove the biometry related factor key.
+     * @param context Context.
+     * @param listener The callback method with the operation result.
+     * @return {@link ICancelable} object associated with the running asynchronous operation.
+     */
+    @Nullable
+    public ICancelable removeBiometryFactor(@NonNull Context context, @NonNull IRemoveBiometryFactorListener listener) {
+        final CancelableTask task = new CancelableTask();
+        mExecutorProvider.getConcurrentExecutor().execute(() -> {
+            PowerAuthErrorException failure;
+            try {
+                removeBiometryFactorImpl(context);
+                failure = null;
+            } catch (PowerAuthErrorException e) {
+                failure = e;
+            }
+            final PowerAuthErrorException exception = failure;
+            mCallbackDispatcher.dispatchCallback(() -> {
+                if (task.setCompleted()) {
+                    if (exception == null) {
+                        listener.onRemoveBiometryFactorSucceed();
+                    } else {
+                        listener.onRemoveBiometryFactorFailed(exception);
+                    }
+                }
+            });
+        });
+
+        return task;
+    }
+
+    /**
+     * Private method to remove the biometry related factor key.
+     * @param context Android context object.
+     * @throws PowerAuthErrorException In case operation fails.
+     */
+    private void removeBiometryFactorImpl(@NonNull Context context) throws PowerAuthErrorException {
 
         checkForValidSetup();
 
         final int result = mSession.removeBiometryFactor();
-        if (result == ErrorCode.OK) {
-            // Update state after each successful calculations
-            final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
-            final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
-            saveSerializedState();
-            mBiometryKeychain.remove(biometricDataMapping.keychainKey);
-            keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
+        if (result != ErrorCode.OK) {
+            // The current core implementation can fail only if there's missing activation.
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.MISSING_ACTIVATION);
         }
-        return result == ErrorCode.OK;
+        // Update state after each successful calculations
+        final IBiometricKeystore keystore = BiometricAuthentication.getBiometricKeystore();
+        final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(keystore, context, BiometricDataMapper.BIO_MAPPING_REMOVE_KEY);
+        saveSerializedState();
+        mBiometryKeychain.remove(biometricDataMapping.keychainKey);
+        keystore.removeBiometricKeyEncryptor(biometricDataMapping.keystoreId);
     }
 
+
     /**
-     * Generate an derived encryption key with given index.
+     * Generate a derived encryption key with given index.
      * <p>
      * This method calls PowerAuth Standard REST API endpoint to obtain the vault encryption key used for subsequent key derivation using given index.
      *
@@ -2098,7 +2469,7 @@ public class PowerAuthSDK {
 
                 // Let's unlock encryption key
                 final SignatureUnlockKeys keys = new SignatureUnlockKeys(deviceRelatedKey(context), null, null);
-                final byte[] key = mSession.deriveCryptographicKeyFromVaultKey(encryptedEncryptionKey, keys, index);
+                final SecureData key = mSession.deriveCryptographicKeyFromVaultKey(encryptedEncryptionKey, keys, index);
                 if (key != null) {
                     listener.onFetchEncryptionKeySucceed(key);
                 } else {
@@ -2173,9 +2544,7 @@ public class PowerAuthSDK {
      * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
      *
      * @param context Context.
-     * @param fragment The fragment of the application that will host the prompt.
-     * @param title Dialog title.
-     * @param description Dialog description.
+     * @param biometricPrompt Object containing information for the biometric prompt display.
      * @param listener Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
      */
@@ -2183,11 +2552,33 @@ public class PowerAuthSDK {
     @NonNull
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
+            @NonNull PowerAuthBiometricPrompt biometricPrompt,
+            @NonNull IAuthenticateWithBiometricsListener listener) {
+        return authenticateUsingBiometrics(context,biometricPrompt, false, getBiometricCallbackWithListener(listener));
+    }
+
+    /**
+     * Authenticate a client using biometric authentication. In case of the authentication is successful and
+     * {@link IAuthenticateWithBiometricsListener#onBiometricDialogSuccess(PowerAuthAuthentication)} callback is called.
+     *
+     * @param context Context.
+     * @param fragment The fragment of the application that will host the prompt.
+     * @param title Dialog title.
+     * @param description Dialog description.
+     * @param listener Callback with the authentication result.
+     * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, PowerAuthBiometricPrompt, IAuthenticateWithBiometricsListener)} instead.
+     */
+    @UiThread
+    @NonNull
+    @Deprecated // 1.10.0
+    public ICancelable authenticateUsingBiometrics(
+            @NonNull Context context,
             @NonNull Fragment fragment,
             @NonNull String title,
             @NonNull String description,
             final @NonNull IAuthenticateWithBiometricsListener listener) {
-        return authenticateUsingBiometrics(context, FragmentHelper.from(fragment), title, description, false, getBiometricCallbackWithListener(listener));
+        return authenticateUsingBiometrics(context, PowerAuthBiometricPrompt.prompt(fragment, title, description), false, getBiometricCallbackWithListener(listener));
     }
 
     /**
@@ -2200,16 +2591,18 @@ public class PowerAuthSDK {
      * @param description Dialog description.
      * @param listener Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
+     * @deprecated Use {@link #authenticateUsingBiometrics(Context, PowerAuthBiometricPrompt, IAuthenticateWithBiometricsListener)} instead.
      */
     @UiThread
     @NonNull
+    @Deprecated // 1.10.0
     public ICancelable authenticateUsingBiometrics(
             @NonNull Context context,
             @NonNull FragmentActivity fragmentActivity,
             @NonNull String title,
             @NonNull String description,
             final @NonNull IAuthenticateWithBiometricsListener listener) {
-        return authenticateUsingBiometrics(context, FragmentHelper.from(fragmentActivity), title, description, false, getBiometricCallbackWithListener(listener));
+        return authenticateUsingBiometrics(context, PowerAuthBiometricPrompt.prompt(fragmentActivity, title, description), false, getBiometricCallbackWithListener(listener));
     }
 
     /**
@@ -2244,9 +2637,7 @@ public class PowerAuthSDK {
      * Authenticate a client using biometric authentication.
      *
      * @param context Context.
-     * @param fragmentHelper Fragment helper for the dialog.
-     * @param title Dialog title.
-     * @param description Dialog description.
+     * @param prompt Prompt with information required for the dialog presentation.
      * @param forceGenerateNewKey Pass true to indicate that a new key should be generated in Keystore
      * @param callback Callback with the authentication result.
      * @return {@link ICancelable} object associated with the biometric prompt.
@@ -2255,20 +2646,27 @@ public class PowerAuthSDK {
     @NonNull
     private ICancelable authenticateUsingBiometrics(
             final @NonNull Context context,
-            final @NonNull FragmentHelper fragmentHelper,
-            final @NonNull String title,
-            final @NonNull String description,
+            final @NonNull PowerAuthBiometricPrompt prompt,
             final boolean forceGenerateNewKey,
             final @NonNull IBiometricAuthenticationCallback callback) {
 
+        if (prompt.isDummy()) {
+            // Validate whether "dummy" prompt can be used
+            if (!forceGenerateNewKey) {
+                throw new IllegalStateException("Dummy biometric prompt is not allowed for authentication");
+            }
+            if (mBiometricConfiguration.isAuthenticateOnBiometricKeySetup()) {
+                throw new IllegalStateException("Dummy biometric prompt is not allowed because key setup require authentication");
+            }
+        }
         final BiometricDataMapper.Mapping biometricDataMapping = mBiometricDataMapper.getMapping(null, context, forceGenerateNewKey ? BiometricDataMapper.BIO_MAPPING_CREATE_KEY : BiometricDataMapper.BIO_MAPPING_NOOP);
-        final byte[] rawKeyData;
+        final SecureData rawKeyData;
         if (forceGenerateNewKey) {
             // new key has to be generated
             rawKeyData = mSession.generateSignatureUnlockKey();
         } else {
             // old key should be used, if present
-            rawKeyData = mBiometryKeychain.getData(biometricDataMapping.keychainKey);
+            rawKeyData = mBiometryKeychain.getSecureData(biometricDataMapping.keychainKey);
         }
 
         if (rawKeyData == null) {
@@ -2283,17 +2681,20 @@ public class PowerAuthSDK {
 
         // Build a new authentication request.
         final BiometricAuthenticationRequest.Builder authenticationRequestBuilder = new BiometricAuthenticationRequest.Builder(context)
-                .setTitle(title)
-                .setDescription(description)
+                .setTitle(prompt.getTitle())
+                .setDescription(prompt.getDescription())
                 .setRawKeyData(rawKeyData)
                 .setKeystoreAlias(biometricDataMapping.keystoreId)
                 .setForceGenerateNewKey(forceGenerateNewKey, mBiometricConfiguration.isInvalidateBiometricFactorAfterChange(), mBiometricConfiguration.isAuthenticateOnBiometricKeySetup())
                 .setUserConfirmationRequired(mBiometricConfiguration.isConfirmBiometricAuthentication())
                 .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
-        if (fragmentHelper.getFragment() != null) {
-            authenticationRequestBuilder.setFragment(fragmentHelper.getFragment());
-        } else if (fragmentHelper.getFragmentActivity() != null) {
-            authenticationRequestBuilder.setFragmentActivity(fragmentHelper.getFragmentActivity());
+        if (prompt.getSubtitle() != null) {
+            authenticationRequestBuilder.setSubtitle(prompt.getSubtitle());
+        }
+        if (prompt.getFragment() != null) {
+            authenticationRequestBuilder.setFragment(prompt.getFragment());
+        } else if (prompt.getFragmentActivity() != null) {
+            authenticationRequestBuilder.setFragmentActivity(prompt.getFragmentActivity());
         }
         final BiometricAuthenticationRequest request = authenticationRequestBuilder.build();
 
@@ -2307,9 +2708,9 @@ public class PowerAuthSDK {
             public void onBiometricDialogSuccess(@NonNull BiometricKeyData biometricKeyData) {
                 // Store the new key, if a new key was generated
                 if (biometricKeyData.isNewKey()) {
-                    mBiometryKeychain.putData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
+                    mBiometryKeychain.putSecureData(biometricKeyData.getDataToSave(), biometricDataMapping.keychainKey);
                 }
-                byte[] normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData());
+                SecureData normalizedEncryptionKey = mSession.normalizeSignatureUnlockKeyFromData(biometricKeyData.getDerivedData().getSensitiveData());
                 callback.onBiometricDialogSuccess(new BiometricKeyData(biometricKeyData.getDataToSave(), normalizedEncryptionKey, biometricKeyData.isNewKey()));
             }
 
@@ -2322,7 +2723,7 @@ public class PowerAuthSDK {
                     // generate a fake signature unlock key and pretend that everything's OK.
                     // That will lead to unsuccessful authentication on the server and increased
                     // counter of failed attempts.
-                    final byte[] randomData =  mSession.generateSignatureUnlockKey();
+                    final SecureData randomData =  mSession.generateSignatureUnlockKey();
                     callback.onBiometricDialogSuccess(new BiometricKeyData(randomData, randomData, false));
                 } else {
                     // Otherwise just report the failure.
@@ -2495,7 +2896,7 @@ public class PowerAuthSDK {
      * @param externalEncryptionKey EEK to be set to the internal configuration.
      * @throws PowerAuthErrorException In case of failure.
      */
-    public void setExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+    public void setExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
         switch (mSession.setExternalEncryptionKey(externalEncryptionKey)) {
             case ErrorCode.OK:
                 break;
@@ -2514,7 +2915,7 @@ public class PowerAuthSDK {
      * @param externalEncryptionKey External Encryption key to add.
      * @throws PowerAuthErrorException In case of failure.
      */
-    public void addExternalEncryptionKey(@NonNull byte[] externalEncryptionKey) throws PowerAuthErrorException {
+    public void addExternalEncryptionKey(@NonNull SecureData externalEncryptionKey) throws PowerAuthErrorException {
         switch (mSession.addExternalEncryptionKey(externalEncryptionKey)) {
             case ErrorCode.OK:
                 saveSerializedState();

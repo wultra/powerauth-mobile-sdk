@@ -19,8 +19,7 @@ package io.getlime.security.powerauth.sdk;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Arrays;
-
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.core.SessionSetup;
 
 /**
@@ -32,7 +31,7 @@ public class PowerAuthConfiguration {
     private final @NonNull String baseEndpointUrl;
     private final @NonNull SessionSetup sessionSetup;
     private final boolean disableAutomaticProtocolUpgrade;
-    private final int offlineSignatureComponentLength;
+    private final int offlineAuthorizationCodeComponentLength;
 
     /**
      * Constant for default PowerAuthSDK instance identifier.
@@ -70,7 +69,7 @@ public class PowerAuthConfiguration {
     /**
      * @return Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
      */
-    public @Nullable byte[] getExternalEncryptionKey() {
+    public @Nullable SecureData getExternalEncryptionKey() {
         return sessionSetup.externalEncryptionKey;
     }
 
@@ -85,21 +84,29 @@ public class PowerAuthConfiguration {
     }
 
     /**
-     * @return Length of offline signature component.
+     * @return Length of offline authorization code component.
      */
-    public int getOfflineSignatureComponentLength() {
-        return offlineSignatureComponentLength;
+    public int getOfflineAuthorizationCodeComponentLength() {
+        return offlineAuthorizationCodeComponentLength;
     }
 
     /**
-     * Minimum allowed length of offline signature component.
+     * @return Length of offline authorization code component.
      */
-    public static final int MIN_OFFLINE_SIGNATURE_COMPONENT_LENGTH = 4;
+    @Deprecated // 1.10.0
+    public int getOfflineSignatureComponentLength() {
+        return offlineAuthorizationCodeComponentLength;
+    }
 
     /**
-     * Maximum allowed length of offline signature component.
+     * Minimum allowed length of offline authorization code component.
      */
-    public static final int MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH = 8;
+    public static final int MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 4;
+
+    /**
+     * Maximum allowed length of offline authorization code component.
+     */
+    public static final int MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH = 8;
 
     /**
      * Validate the configuration. Be aware that the method performs just a formal validation, so it cannot detect if you
@@ -111,8 +118,8 @@ public class PowerAuthConfiguration {
         if (!sessionSetup.isValid()) {
             return false;
         }
-        return offlineSignatureComponentLength >= MIN_OFFLINE_SIGNATURE_COMPONENT_LENGTH &&
-                offlineSignatureComponentLength <= MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
+        return offlineAuthorizationCodeComponentLength >= MIN_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH &&
+                offlineAuthorizationCodeComponentLength <= MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
     }
 
     /**
@@ -133,7 +140,7 @@ public class PowerAuthConfiguration {
         this.baseEndpointUrl = baseEndpointUrl;
         this.sessionSetup = sessionSetup;
         this.disableAutomaticProtocolUpgrade = disableAutomaticProtocolUpgrade;
-        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
+        this.offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
     }
 
     /**
@@ -145,9 +152,9 @@ public class PowerAuthConfiguration {
         private final @NonNull String configuration;
         // optional
         private String instanceId;
-        private byte[] externalEncryptionKey = null;
+        private SecureData externalEncryptionKey = null;
         private boolean disableAutomaticProtocolUpgrade = false;
-        private int offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LENGTH;
+        private int offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTHORIZATION_CODE_COMPONENT_LENGTH;
 
         /**
          * Creates a builder for {@link PowerAuthConfiguration}.
@@ -182,8 +189,8 @@ public class PowerAuthConfiguration {
          * @param externalEncryptionKey Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
          * @return {@link Builder}
          */
-        public @NonNull Builder externalEncryptionKey(@NonNull byte[] externalEncryptionKey) {
-            this.externalEncryptionKey = externalEncryptionKey;
+        public @NonNull Builder externalEncryptionKey(@NonNull SecureData externalEncryptionKey) {
+            this.externalEncryptionKey = externalEncryptionKey.copy();
             return this;
         }
 
@@ -197,12 +204,24 @@ public class PowerAuthConfiguration {
         }
 
         /**
-         * Set the alternative length for offline signature component.
+         * Set the alternative length for offline authorization code component.
          * @param length New value for offline signature component length.
          * @return {@link Builder}
          */
+        public @NonNull Builder offlineAuthorizationCodeComponentLength(int length) {
+            this.offlineAuthorizationCodeComponentLength = length;
+            return this;
+        }
+
+        /**
+         * Set the alternative length for offline authorization code component.
+         * @param length New value for offline signature component length.
+         * @return {@link Builder}
+         * @deprecated Use {@link #offlineAuthorizationCodeComponentLength(int)} as replacement.
+         */
+        @Deprecated // 1.10.0
         public @NonNull Builder offlineSignatureComponentLength(int length) {
-            this.offlineSignatureComponentLength = length;
+            this.offlineAuthorizationCodeComponentLength = length;
             return this;
         }
 
@@ -211,14 +230,13 @@ public class PowerAuthConfiguration {
          * @return New instance of {@link PowerAuthConfiguration}.
          */
         public @NonNull PowerAuthConfiguration build() {
-            final byte[] eek = externalEncryptionKey != null ? Arrays.copyOf(externalEncryptionKey, externalEncryptionKey.length) : null;
-            final SessionSetup sessionSetup = new SessionSetup(configuration, eek);
+            final SessionSetup sessionSetup = new SessionSetup(configuration, externalEncryptionKey);
             return new PowerAuthConfiguration(
                     instanceId != null ? instanceId : DEFAULT_INSTANCE_ID,
                     baseEndpointUrl,
                     sessionSetup,
                     disableAutomaticProtocolUpgrade,
-                    offlineSignatureComponentLength);
+                    offlineAuthorizationCodeComponentLength);
         }
     }
 }

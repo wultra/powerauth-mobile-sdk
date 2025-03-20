@@ -48,7 +48,7 @@
     id<NSLocking> _lock;
     PA2HttpClient * _httpClient;
     NSString * _applicationKey;
-    NSData * _deviceRelatedKey;
+    PowerAuthCoreData * _deviceRelatedKey;
 
     PA2PublicKeyInfo * _pkiAppScope;
     PA2PublicKeyInfo * _pkiActScope;
@@ -56,7 +56,7 @@
 
 - (instancetype) initWithHttpClient:(PA2HttpClient*)httpClient
                         timeService:(id<PowerAuthCoreTimeService>)timeService
-                   deviceRelatedKey:(NSData*)deviceRelatedKey
+                   deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
                        sessionSetup:(PowerAuthCoreSessionSetup*)sessionSetup
                          sharedLock:(id<NSLocking>)sharedLock
 {

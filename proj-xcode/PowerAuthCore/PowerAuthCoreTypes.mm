@@ -66,13 +66,15 @@ using namespace io::getlime::powerAuth;
 }
 
 
-- (void) setExternalEncryptionKey:(NSData *)externalEncryptionKey
+- (void) setExternalEncryptionKey:(PowerAuthCoreData *)externalEncryptionKey
 {
-    _setup.externalEncryptionKey = cc7::objc::CopyFromNSData(externalEncryptionKey);
+    if (externalEncryptionKey) {
+        _setup.externalEncryptionKey = externalEncryptionKey.byteArrayRef;
+    }
 }
-- (NSData*) externalEncryptionKey
+- (PowerAuthCoreData*) externalEncryptionKey
 {
-    return cc7::objc::CopyToNSData(_setup.externalEncryptionKey);
+    return _setup.externalEncryptionKey.empty() ? nil : [[PowerAuthCoreData alloc] initWithByteRange:_setup.externalEncryptionKey];
 }
 @end
 
@@ -332,10 +334,18 @@ using namespace io::getlime::powerAuth;
 
 void PowerAuthCoreSignatureUnlockKeysToStruct(PowerAuthCoreSignatureUnlockKeys * keys, io::getlime::powerAuth::SignatureUnlockKeys & cpp_keys)
 {
-    cpp_keys.possessionUnlockKey    = cc7::objc::CopyFromNSData(keys.possessionUnlockKey);
-    cpp_keys.biometryUnlockKey      = cc7::objc::CopyFromNSData(keys.biometryUnlockKey);
+    if (keys.possessionUnlockKey != nil) {
+        cpp_keys.possessionUnlockKey = keys.possessionUnlockKey.byteArrayRef;
+    } else {
+        cpp_keys.possessionUnlockKey.secureClear();
+    }
+    if (keys.biometryUnlockKey != nil) {
+        cpp_keys.biometryUnlockKey = keys.biometryUnlockKey.byteArrayRef;
+    } else {
+        cpp_keys.biometryUnlockKey.secureClear();
+    }
     if (keys.userPassword != nil) {
-        cpp_keys.userPassword       = [keys.userPassword passObjRef].passwordData();
+        cpp_keys.userPassword = [keys.userPassword passObjRef].passwordData();
     } else {
         cpp_keys.userPassword.clear();
     }

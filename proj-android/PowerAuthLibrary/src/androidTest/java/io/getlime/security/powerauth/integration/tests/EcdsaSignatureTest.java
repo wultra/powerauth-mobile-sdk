@@ -106,7 +106,7 @@ public class EcdsaSignatureTest {
         assertNotNull(payload.getNonce());
 
         List<String> components = Arrays.asList(TextUtils.split(payload.getData(), "\n"));
-        assertTrue(components.size() > 0);
+        assertFalse(components.isEmpty());
         // Extract signature part
         String signatureBase64 = components.get(components.size() - 1).substring(1);  // skip "0" indicating type of signature;
         // Extract signed data part (replaces last component with key type marker)
@@ -139,7 +139,7 @@ public class EcdsaSignatureTest {
         assertNotNull(payload.getNonce());
 
         List<String> components = Arrays.asList(TextUtils.split(payload.getData(), "\n"));
-        assertTrue(components.size() > 0);
+        assertFalse(components.isEmpty());
         // Extract signature part
         String signatureBase64 = components.get(components.size() - 1).substring(1);  // skip "1" indicating type of signature;
         // Extract signed data part (replaces last component with key type marker)

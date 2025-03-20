@@ -21,6 +21,9 @@
 
 /** Class that represents a PowerAuthSDK instance configuration.
  */
+
+@class PowerAuthCoreData;
+
 @interface PowerAuthConfiguration : NSObject<NSCopying>
 
 /// No longer available. Use `init(instanceId:baseEndpointUrl:configuration:)` instead.
@@ -53,7 +56,7 @@
 
 /** Encryption key provided by an external context, used to encrypt possession and biometry related factor keys under the hood.
  */
-@property (nonatomic, strong, nullable) NSData  *externalEncryptionKey;
+@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
 
 /**
  If set to YES, then PowerAuthSDK will not automatically upgrade activation to a newer protocol version.
@@ -64,11 +67,20 @@
 @property (nonatomic, assign) BOOL disableAutomaticProtocolUpgrade;
 
 /**
- Length of offline signature component. The value between 4 and 8 is allowed.
+ Length of offline authorization code component. The value between 4 and 8 is allowed.
+ 
+ Default value is `8`.
+ 
+ Property is deprecated, use `offlineAuthorizationCodeComponentLength` with the same functionality.
+ */
+@property (nonatomic, assign) NSUInteger offlineSignatureComponentLength PA2_DEPRECATED(1.10.0);
+
+/**
+ Length of offline authorization code component. The value between 4 and 8 is allowed.
  
  Default value is `8`.
  */
-@property (nonatomic, assign) NSUInteger offlineSignatureComponentLength;
+@property (nonatomic, assign) NSUInteger offlineAuthorizationCodeComponentLength;
 
 /**
  If set, then this instance of PowerAuthSDK can be shared between multiple vendor applications.

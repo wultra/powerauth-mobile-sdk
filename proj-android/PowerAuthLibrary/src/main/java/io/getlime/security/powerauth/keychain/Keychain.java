@@ -18,6 +18,7 @@ package io.getlime.security.powerauth.keychain;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import io.getlime.security.powerauth.core.SecureData;
 
 import java.util.Set;
 
@@ -86,6 +87,18 @@ public interface Keychain {
     @Nullable byte[] getData(@NonNull String key);
 
     /**
+     * Return {@link SecureData} object for given key.
+     * <p>
+     * Note that this function is binary compatible with data previously stored with {@link #putData(byte[], String)}
+     * method. The only difference between {@link #getData(String)} and this method is that this function takes more
+     * care about data traces leaved in the memory.
+
+     * @param key Key to be used for data retrieval.
+     * @return Stored {@link SecureData} in case there are some data under given key, {@code null} otherwise.
+     */
+    @Nullable SecureData getSecureData(@NonNull String key);
+
+    /**
      * Store array of bytes for given key. If data is {@code null} then it's equal to {@link #remove(String)}.
      *
      * @param data Data to be stored. If value is {@code null} then it's equal to {@link #remove(String)}.
@@ -93,6 +106,18 @@ public interface Keychain {
      */
     void putData(@Nullable byte[] data, @NonNull String key);
 
+    /**
+     * Store array of bytes with cryptographically sensitive content for given key. If data is {@code null}
+     * then it's equal to {@link #remove(String)}.
+     * <p>
+     * Note that data stored in this way is binary compatible with data previously stored with {@link #putData(byte[], String)}
+     * method. The only difference between those two methods is that this function takes more care about data
+     * traces leaved in the memory.
+     *
+     * @param secureData Data to be stored. If value is {@code null} then it's equal to {@link #remove(String)}.
+     * @param key Key to be used for storing data.
+     */
+    void putSecureData(@Nullable SecureData secureData, @NonNull String key);
 
     // String accessors
 

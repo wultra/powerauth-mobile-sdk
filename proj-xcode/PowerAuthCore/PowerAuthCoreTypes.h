@@ -16,6 +16,7 @@
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 #import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 
@@ -67,7 +68,7 @@
  operations. The key is NOT serialized in the session's state and thus it's up to the application,
  how it manages the chain of multiple PowerAuth sessions.
  */
-@property (nonatomic, strong, nullable) NSData * externalEncryptionKey;
+@property (nonatomic, strong, nullable) PowerAuthCoreData * externalEncryptionKey;
 
 @end
 
@@ -197,7 +198,7 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
  
  You cannot use data object filled with zeros as a key.
  */
-@property (nonatomic, strong, nullable) NSData * possessionUnlockKey;
+@property (nonatomic, strong, nullable) PowerAuthCoreData * possessionUnlockKey;
 /**
  The key required for signatures with "biometry" factor. You should not
  use this key and factor, if device has no biometric engine available.
@@ -209,7 +210,7 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
  
  You cannot use data object filled with zeros as a key.
  */
-@property (nonatomic, strong, nullable) NSData * biometryUnlockKey;
+@property (nonatomic, strong, nullable) PowerAuthCoreData * biometryUnlockKey;
 /**
  The password required for signatures with "knowledge" factor. The complexity
  of the password depends on the rules, defined by the application. You should 

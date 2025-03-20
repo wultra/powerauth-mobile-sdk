@@ -108,8 +108,8 @@ struct EcdsaTestData {
     PowerAuthCoreECKeyPair * bob = [PowerAuthCoreCryptoUtils ecGenerateKeyPair];
     XCTAssertNotNil(alice);
     XCTAssertNotNil(bob);
-    NSData * aliceSharedSecret = [PowerAuthCoreCryptoUtils ecdhComputeSharedSecret:bob.publicKey withPrivateKey:alice.privateKey];
-    NSData * bobSharedSecret = [PowerAuthCoreCryptoUtils ecdhComputeSharedSecret:alice.publicKey withPrivateKey:bob.privateKey];
+    PowerAuthCoreData * aliceSharedSecret = [PowerAuthCoreCryptoUtils ecdhComputeSharedSecret:bob.publicKey withPrivateKey:alice.privateKey];
+    PowerAuthCoreData * bobSharedSecret = [PowerAuthCoreCryptoUtils ecdhComputeSharedSecret:alice.publicKey withPrivateKey:bob.privateKey];
     XCTAssertTrue([aliceSharedSecret isEqual:bobSharedSecret]);
 }
 

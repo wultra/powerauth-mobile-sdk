@@ -22,14 +22,14 @@
 
 @implementation PowerAuthConfiguration
 
-#define MIN_OFFLINE_SIGNATURE_COMPONENT_LEN 4
-#define MAX_OFFLINE_SIGNATURE_COMPONENT_LEN 8
+#define MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN 4
+#define MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN 8
 
 - (id) init
 {
     self = [super init];
     if (self) {
-        _offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LEN;
+        _offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
     }
     return self;
 }
@@ -41,7 +41,7 @@
         _instanceId = instanceId;
         _baseEndpointUrl = baseEndpointUrl;
         _configuration = configuration;
-        _offlineSignatureComponentLength = MAX_OFFLINE_SIGNATURE_COMPONENT_LEN;
+        _offlineAuthorizationCodeComponentLength = MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN;
     }
     return self;
 }
@@ -51,8 +51,8 @@
     BOOL result = YES;
     result = result && (_instanceId.length > 0);
     result = result && (_baseEndpointUrl.length > 0);
-    result = result && (_offlineSignatureComponentLength >= MIN_OFFLINE_SIGNATURE_COMPONENT_LEN &&
-                        _offlineSignatureComponentLength <= MAX_OFFLINE_SIGNATURE_COMPONENT_LEN);
+    result = result && (_offlineAuthorizationCodeComponentLength >= MIN_OFFLINE_AUTH_CODE_COMPONENT_LEN &&
+                        _offlineAuthorizationCodeComponentLength <= MAX_OFFLINE_AUTH_CODE_COMPONENT_LEN);
     if (_sharingConfiguration) {
         result = result && [_sharingConfiguration validateConfiguration];
     }
@@ -70,10 +70,21 @@
         c->_keychainKey_Biometry = _keychainKey_Biometry;
         c->_externalEncryptionKey = _externalEncryptionKey;
         c->_disableAutomaticProtocolUpgrade = _disableAutomaticProtocolUpgrade;
-        c->_offlineSignatureComponentLength = _offlineSignatureComponentLength;
+        c->_offlineAuthorizationCodeComponentLength = _offlineAuthorizationCodeComponentLength;
         c->_sharingConfiguration = [_sharingConfiguration copy];
     }
     return c;
+}
+
+// PA2_DEPRECATED(1.10.0)
+- (void) setOfflineSignatureComponentLength:(NSUInteger)offlineSignatureComponentLength
+{
+    _offlineAuthorizationCodeComponentLength = offlineSignatureComponentLength;
+}
+// PA2_DEPRECATED(1.10.0)
+- (NSUInteger) offlineSignatureComponentLength
+{
+    return _offlineAuthorizationCodeComponentLength;
 }
 
 @end

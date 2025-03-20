@@ -23,6 +23,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.google.gson.reflect.TypeToken;
 import io.getlime.security.powerauth.core.EciesEncryptor;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.networking.client.JsonSerialization;
 import io.getlime.security.powerauth.networking.response.*;
 import org.junit.After;
@@ -115,8 +116,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndPersistWithPasswordAlt() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_ALTERNATE_METHOD, null);
+    public void testCreateAndPersistWithPasswordDeprecated() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(ActivationHelper.extractPlaintextPassword(activationHelper.getValidPassword()));
         assertTrue(passwordValid);
@@ -135,8 +136,8 @@ public class StandardActivationTest {
     }
 
     @Test
-    public void testCreateAndPersistWithCorePasswordAlt() throws Exception {
-        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_ALTERNATE_METHOD, null);
+    public void testCreateAndPersistWithCorePasswordDeprecated() throws Exception {
+        activationHelper.createStandardActivation(ActivationHelper.TF_PERSIST_WITH_CORE_PASSWORD | ActivationHelper.TF_PERSIST_WITH_DEPRECATED, null);
         // Validate valid and invalid password
         boolean passwordValid = activationHelper.validateUserPassword(activationHelper.getValidPassword());
         assertTrue(passwordValid);
@@ -214,10 +215,25 @@ public class StandardActivationTest {
         assertFalse(powerAuthSDK.canStartActivation());
 
         // Persist activation locally
-        int resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
-        if (resultCode != PowerAuthErrorCodes.SUCCEED) {
-            throw new Exception("PowerAuthSDK.persist failed with error code " + resultCode);
-        }
+        boolean persistResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), new IPersistActivationListener() {
+                @Override
+                public void onPersistActivationSucceeded() {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithError(error);
+                }
+
+                @Override
+                public void onPersistActivationCancelled(boolean userCancel) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertTrue(persistResult);
 
         assertTrue(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
@@ -396,8 +412,25 @@ public class StandardActivationTest {
     public void testCallToCreateActivationInWrongState() throws Exception {
         activationHelper.createStandardActivation(true, null);
 
-        int result = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), "1234");
-        assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, result);
+        AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), "1234", new IPersistActivationListener() {
+                @Override
+                public void onPersistActivationSucceeded() {
+                    fail("Operation should not succeed");
+                }
+
+                @Override
+                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                    assertEquals(PowerAuthErrorCodes.INVALID_ACTIVATION_STATE, error.getPowerAuthErrorCode());
+                    resultCatcher.completeWithSuccess();
+                }
+
+                @Override
+                public void onPersistActivationCancelled(boolean userCancel) {
+                    fail("Operation should not be canceled");
+                }
+            });
+        });
         assertTrue(powerAuthSDK.hasValidActivation());
 
         AsyncHelper.await((AsyncHelper.Execution<Boolean>) resultCatcher -> {
@@ -490,7 +523,7 @@ public class StandardActivationTest {
         assertEquals("ES256", headerObject.get("alg"));
         // Validate claims
         Map<String, Object> claimsObject = jsonSerialization.deserializeObject(Base64.decode(jwtClaims, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING), new TypeToken<Map<String, Object>>() {});
-        assertEquals(originalClaims.keySet().size(), claimsObject.keySet().size());
+        assertEquals(originalClaims.size(), claimsObject.size());
         claimsObject.forEach((key, value) -> {
             assertEquals(originalClaims.get(key), value);
         });
@@ -558,7 +591,7 @@ public class StandardActivationTest {
         Boolean result = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
                 @Override
-                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                public void onFetchEncryptionKeySucceed(@NonNull SecureData encryptionKey) {
                     resultCatcher.completeWithResult(true);
                 }
 
@@ -574,7 +607,7 @@ public class StandardActivationTest {
         result = AsyncHelper.await(resultCatcher -> {
             powerAuthSDK.fetchEncryptionKey(testHelper.getContext(), activationHelper.getValidAuthentication(), 1000, new IFetchEncryptionKeyListener() {
                 @Override
-                public void onFetchEncryptionKeySucceed(@NonNull byte[] encryptedEncryptionKey) {
+                public void onFetchEncryptionKeySucceed(@NonNull SecureData encryptionKey) {
                     resultCatcher.completeWithResult(true);
                 }
 

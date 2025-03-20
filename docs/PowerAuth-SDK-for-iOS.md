@@ -26,6 +26,7 @@
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
 - [Working with passwords securely](#working-with-passwords-securely)
+- [Working with sensitive data](#working-with-sensitive-data)
 - [Biometry Setup](#biometry-setup)
 - [Biometry Troubleshooting](#biometry-troubleshooting)
 - [Device Activation Removal](#activation-removal)
@@ -354,7 +355,12 @@ After you create an activation using one of the methods mentioned above, you nee
 
 ```swift
 do {
-    try powerAuthSDK.persistActivation(withPassword: "1234")
+    powerAuthSDK.persistActivation(withPassword: "1234") { error in
+        guard let error {
+            // process error
+        }
+        // success
+    }
 } catch _ {
     // happens only in case SDK was not configured or activation is not in a state to be persisted
 }
@@ -365,8 +371,12 @@ This code has created activation with two factors: possession (key stored using 
 ```swift
 do {
     let auth = PowerAuthAuthentication.persistWithPasswordAndBiometry(password: "1234")
-
-    try powerAuthSDK.persistActivation(with: auth)
+    powerAuthSDK.persistActivation(with: auth) { error in
+        guard let error {
+            // process error
+        }
+        // success
+    }
 } catch _ {
     // happens only in case SDK was not configured or activation is not in a state to be persisted
 }
@@ -556,10 +566,24 @@ let oneFactor = PowerAuthAuthentication.possession()
 let twoFactorPassword = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // 2FA signature - uses biometry factor-related key as a 2nd. factor.
-let twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry()
-
-// Alternative biometry authentications with prompt
-let twoFactorBiometryPrompt = PowerAuthAuthentication.possessionWithBiometry(prompt: "Please authenticate with biometry to log-in.")
+let task = powerAuthSDK.authenticateUsingBiometry(withPrompt: "Please authenticate with biometry to log-in.") { authentication, error in
+    if let authentication {
+        // the returned authentication object is ready to use for the signature calculation
+    } else {
+        // Failure, cast object to NSError
+        guard let error = error as? NSError else {
+            fatalError() // Should never happen
+        }
+        if error.powerAuthErrorCode == .biometryCancel {
+            // user canceled the operation
+        } else {
+            // other errors...
+        }
+    }
+}
+// In case the biometric authentication is no longer relevant (for example, you have a limited time to complete the operation), 
+// then you can cancel the returned task.
+task.cancel()
 ```
 
 When signing `POST`, `PUT`, or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
@@ -570,7 +594,7 @@ let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
 // Sign POST call with provided data made to URI with custom identifier "/payment/create"
 do {
-    let signature = try powerAuthSDK.requestSignature(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
+    let signature = try powerAuthSDK.authorizationHeaderForRequestWithBody(with: auth, method: "POST", uriId: "/payment/create", body: requestBodyData)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -591,7 +615,7 @@ let params = [
 ]
 
 do {
-    let signature = try powerAuthSDK.requestGetSignature(with: auth, uriId: "/payment/create", params: params)
+    let signature = try powerAuthSDK.authorizationHeaderForRequestWithParams(with: auth, method: "GET", uriId: "/payment/create", params: params)
     let httpHeaderKey = signature.key
     let httpHeaderValue = signature.value
 } catch _ {
@@ -681,18 +705,17 @@ This type of signature is very similar to [Symmetric Multi-Factor Signature](#sy
 // 2FA signature - uses device-related key and user PIN code
 let auth = PowerAuthAuthentication.possessionWithPassword(password: "1234")
 
-do {
-    let signature = try powerAuthSDK.offlineSignature(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce)
-    print("Signature is " + signature)
-} catch _ {
-    // In case of invalid configuration, invalid activation state, or other error
+_ = powerAuthSDK.offlineAuthorizationCode(with: auth, uriId: "/confirm/offline/operation", body: data, nonce: nonce) { authorizationCode, error in 
+    if let authorizationCode {
+        print("Authorization code is " + authorizationCode)
+    }
 }
 ```
 
 The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for verification. 
 
 <!-- begin box info -->
-You can alter the length of the signature components in the `offlineSignatureComponentLength` property of the `PowerAuthConfiguration` object.
+You can alter the length of the signature components in the `offlineAuthorizationCodeComponentLength` property of the `PowerAuthConfiguration` object.
 <!-- end -->
 
 ### Verify Server-Signed Data
@@ -942,6 +965,56 @@ extension PowerAuthCorePassword {
 You can use our [Passphrase meter](https://github.com/wultra/passphrase-meter) library as a proper password validation solution.
 <!-- end -->
 
+## Working with sensitive data
+
+The PowerAuth mobile SDK is using `PowerAuthCoreData` object for manage the cryptographically sensitive data, such as encryption keys. You can encounter this object in several public API functions, such as functions for managing an [external encryption key](#external-encryption-key). This chapter explains how to use the `PowerAuthCoreData` object properly.
+
+### Create instance of `PowerAuthCoreData`
+
+If you need to provide cryptographically sensitive key material to PowerAuth mobile SDK, then use the following code:
+
+```swift
+let yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
+let secureData = PowerAuthCoreData(withData: yourKey)
+```
+
+The `secureData` object will keep copy of bytes. In case you also wants to destroy the content of source `Data` structure, then you can try an alternative constructor, that try to erase content of the source data in case the source data is instance of `NSMutableData` class:
+
+```swift
+let mutableKey = NSMutableData(data: "nbuSR123nbuSR123".data(using: .ascii)!) as Data
+let secureData = PowerAuthCoreData(withDataAndClearSource: mutableKey)
+```
+
+As you can see, this unlikely happens in typical Swift projects, so you may ensure on your own that data is erased properly:
+
+```swift
+extension Data {
+    mutating func secureErase() {
+        resetBytes(in: 0..<count)   // Fill with zeroes
+        removeAll(keepingCapacity: false) // Release memory
+    }
+}
+
+var yourKey = "nbuSR123nbuSR123".data(using: .ascii)!
+let secureData = PowerAuthCoreData(withData: yourKey)
+yourKey.secureErase()
+```
+
+### Using instance of `PowerAuthCoreData`
+
+To get reference to stored bytes, use the following code:
+
+```swift
+func processSecureData(secureData: PowerAuthCoreData) {
+    doSomethingWitBytes(secureData.sensitiveData)
+}
+```
+
+<!-- begin box warning -->
+Be aware that you should not keep the reference to provided `Data` object. If you need to keep the bytes longer, then keep the reference to `SecureData` instance, or make your own copy of bytes, returned in `data` property.
+<!-- end -->
+
+
 ## Biometry Setup
 
 PowerAuth SDK for iOS provides an abstraction on top of the base Touch and Face ID support. While the authentication / data signing itself is nicely and transparently embedded in the `PowerAuthAuthentication` object used in [regular request signing](#data-signing), other biometry-related processes require their own API. This part of the documentation is not relevant to the **tvOS** platform.
@@ -1005,22 +1078,26 @@ Use the following code to enable biometric authentication:
 
 ```swift
 // Establish biometric data using the provided password
-powerAuthSDK.addBiometryFactor(password: "1234") { (error) in
-    if error == nil {
-        // Everything went OK, Touch ID is ready to be used
-    } else {
+powerAuthSDK.addBiometryFactor(password: "1234") { error in
+    if let error  {
         // Error occurred, report it to the user
+    } else {
+        // Everything went OK, biometry is ready to be used
     }
 }
 ```
 
 ### Disable Biometry
 
-You can remove biometry-related factor data used by Touch or Face ID support by simply removing the related key locally, using this one-liner:
+To remove biometry-related factor data used by Touch or Face ID use the following code:
 
 ```swift
 // Remove biometric data
-powerAuthSDK.removeBiometryFactor()
+powerAuthSDK.removeBiometryFactor { error in
+    if let error {
+        // handle error
+    }
+}
 ```
 
 ### Fetch Biometry Credentials In Advance
@@ -1034,17 +1111,9 @@ To obtain biometry credentials for the future signature calculation, call the fo
 ```swift
 // Authenticate user with biometry and obtain PowerAuthAuthentication credentials for future signature calculation.
 powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
-    if let authentication = authentication {
+    if let authentication {
         // Success, you can use the provided PowerAuthAuthentication object for the signature calculation.
         // The provided authentication object is preconfigured for possession+biometry factors
-    }
-    guard let error = error as NSError?, error.domain == PowerAuthErrorDomain else {
-        return // should never happen
-    }
-    if error.powerAuthErrorCode == .biometryCancel {
-        // User did cancel the operation
-    } else {
-        // Other error
     }
 }
 ```
@@ -1145,12 +1214,24 @@ Note that if the biometric authentication fails with too many attempts in a row 
 
 ### Thread-blocking operation
 
-Be aware that if you try to calculate PowerAuth Symmetric Signature with a biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such an operation on the main thread. For example:
+Be aware that if you try to calculate PowerAuth Symmetric Signature with a biometric factor, then the call to the SDK function will block the calling thread while the biometric authentication dialog is displayed. So, it's not recommended to do such an operation on the main or the networking thread. For example:
 
 ```swift
 let authentication = PowerAuthAuthentication.possessionWithBiometry()
-let header = try? sdk.requestSignature(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
+let header = try? sdk.authorizationHeaderForRequestWithBody(with: authentication, method: "POST", uriId: "/some/uri-id", body: "{}".data(using: .utf8))
 // The thread is blocked while the biometric dialog is displayed.
+```
+
+To avoid thread blocking, acquire the biometric key in advance:
+
+```swift
+powerAuthSDK.authenticateUsingBiometry(withPrompt: "Authenticate to sign in") { authentication, error in
+    // callback is always called from the main thread
+    if let authentication {
+        // Success, you can use the provided PowerAuthAuthentication object for the signature calculation.
+        // The provided authentication object is preconfigured for possession+biometry factors
+    }
+}
 ```
 
 ### Parallel biometric authentications
@@ -1186,18 +1267,16 @@ context.localizedReason = "Please authenticate with biometry"
 powerAuthSDK.authenticateUsingBiometry(withContext: context) { authentication, error in
     guard let authentication = authentication else {
         if let nsError = error as? NSError {
-            if nsError.domain == PowerAuthErrorDomain {
-                if nsError.powerAuthErrorCode == .biometryCancel {
-                    // cancel, app cancel, system cancel...
-                } else if nsError.powerAuthErrorCode == .biometryFallback {
-                    // fallback button pressed
-                }
-                // If you're interested in the exact failure reason, then extract
-                // the underlying LAError.
-                if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
-                    // Investigate error codes...
-                }
-            }   
+            if nsError.powerAuthErrorCode == .biometryCancel {
+                // cancel, app cancel, system cancel...
+            } else if nsError.powerAuthErrorCode == .biometryFallback {
+                // fallback button pressed
+            }
+            // If you're interested in the exact failure reason, then extract
+            // the underlying LAError.
+            if let laError = nsError.userInfo[NSUnderlyingErrorKey] as? LAError {
+                // Investigate error codes...
+            }
         }
         return
     }
@@ -1373,6 +1452,7 @@ let index = UInt64(1000)
 powerAuthSDK.fetchEncryptionKey(auth, index: index) { (encryptionKey, error) in
     if error == nil {
         // ... use the encryption key to encrypt or decrypt data
+        let keyData = encryptionKey.sensitiveData
     } else {
         // Report error
     }
@@ -1867,7 +1947,7 @@ In other cases, you receive an error via an exception, like in this example:
 
 ```swift
 do {
-    try powerAuthSDK.persistActivation(withPassword: "1234")
+    try powerAuthSDK.removeExternalEncryptionKey()
 } catch let error as NSError {
     // Handle 'error' here
 }

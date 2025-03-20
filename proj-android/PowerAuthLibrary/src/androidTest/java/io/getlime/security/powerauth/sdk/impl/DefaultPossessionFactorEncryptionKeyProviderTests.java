@@ -22,6 +22,7 @@ import android.provider.Settings;
 import android.util.Base64;
 
 import io.getlime.security.powerauth.core.CoreTimeTestService;
+import io.getlime.security.powerauth.core.SecureData;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,12 +51,12 @@ public class DefaultPossessionFactorEncryptionKeyProviderTests {
     @Test
     public void testDefaultPossessionFactorEncryptionKeyProvider() {
         final IPossessionFactorEncryptionKeyProvider provider = new DefaultPossessionFactorEncryptionKeyProvider();
-        byte[] possessionKek = provider.getPossessionFactorEncryptionKey(context);
+        SecureData possessionKek = provider.getPossessionFactorEncryptionKey(context);
         assertNotNull(possessionKek);
-        assertEquals(16, possessionKek.length);
+        assertEquals(16, possessionKek.length());
 
-        byte[] oldPossessionKek = session.normalizeSignatureUnlockKeyFromData(getOldPossessionUnlockKeyData().getBytes());
-        assertArrayEquals(oldPossessionKek, possessionKek);
+        SecureData oldPossessionKek = session.normalizeSignatureUnlockKeyFromData(getOldPossessionUnlockKeyData().getBytes());
+        assertEquals(oldPossessionKek, possessionKek);
     }
 
     /**

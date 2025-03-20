@@ -32,7 +32,7 @@
 @implementation PA2GetActivationStatusTask
 {
     PA2HttpClient * _client;
-    NSData * _deviceRelatedKey;
+    PowerAuthCoreData * _deviceRelatedKey;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
     __weak id<PA2GetActivationStatusTaskDelegate> _delegate;
     BOOL _disableUpgrade;
@@ -44,7 +44,7 @@
 }
 
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
-         deviceRelatedKey:(NSData*)deviceRelatedKey
+         deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock

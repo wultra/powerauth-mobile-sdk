@@ -102,11 +102,11 @@ public class CryptoUtilsTest {
         final EcKeyPair bob = CryptoUtils.ecGenerateKeyPair();
         assertNotNull(bob);
 
-        final byte[] aliceSharedSecret = CryptoUtils.ecdhComputeSharedSecret(bob.getPublicKey(), alice.getPrivateKey());
-        final byte[] bobSharedSecret = CryptoUtils.ecdhComputeSharedSecret(alice.getPublicKey(), bob.getPrivateKey());
+        final SecureData aliceSharedSecret = CryptoUtils.ecdhComputeSharedSecret(bob.getPublicKey(), alice.getPrivateKey());
+        final SecureData bobSharedSecret = CryptoUtils.ecdhComputeSharedSecret(alice.getPublicKey(), bob.getPrivateKey());
 
-        assertEquals(32, aliceSharedSecret.length);
-        assertArrayEquals(aliceSharedSecret, bobSharedSecret);
+        assertEquals(32, aliceSharedSecret.length());
+        assertEquals(aliceSharedSecret, bobSharedSecret);
     }
 
     @Test

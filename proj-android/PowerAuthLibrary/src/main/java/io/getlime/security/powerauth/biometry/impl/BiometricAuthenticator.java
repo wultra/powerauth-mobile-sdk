@@ -34,6 +34,7 @@ import android.util.Pair;
 import javax.crypto.Cipher;
 
 import io.getlime.security.powerauth.biometry.*;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.networking.interfaces.ICancelable;
@@ -358,7 +359,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
                 hasAlreadyProcessedBiometricKeyData = true;
                 try {
                     // Let's try to encrypt or decrypt the biometric key
-                    final byte[] rawKeyData = request.getRawKeyData();
+                    final SecureData rawKeyData = request.getRawKeyData();
                     final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
                     if (request.isForceGenerateNewKey()) {
                         processedBiometricKeyData = encryptor.encryptBiometricKey(rawKeyData);

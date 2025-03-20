@@ -19,6 +19,7 @@
 @class PowerAuthCoreECKeyPair;
 @class PowerAuthCoreECPublicKey;
 @class PowerAuthCoreECPrivateKey;
+@class PowerAuthCoreData;
 
 /**
  The `PowerAuthCoreCryptoUtils` class provides a several general cryptographic primitives
@@ -46,8 +47,8 @@
 /**
  Compute ECDH shared secret.
  */
-+ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
-                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
++ (nullable PowerAuthCoreData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                                         withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey;
 
 /**
  Computes SHA-256 from given data.
@@ -74,6 +75,12 @@
  underlying random generator is broken.
  */
 + (nullable NSData*) randomBytes:(NSUInteger)count;
+
+/**
+ Generates a required amount of random bytes. Returns nil in case that
+ underlying random generator is broken.
+ */
++ (nullable PowerAuthCoreData*) randomCoreData:(NSUInteger)count;
 
 @end
 

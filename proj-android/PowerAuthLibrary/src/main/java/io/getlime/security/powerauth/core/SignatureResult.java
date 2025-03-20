@@ -18,6 +18,8 @@ package io.getlime.security.powerauth.core;
 
 import androidx.annotation.NonNull;
 
+// TODO: Align with "authorization code" naming.
+
 /**
  * Result from signature calculation.
  */

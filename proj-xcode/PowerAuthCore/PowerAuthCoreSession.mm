@@ -359,9 +359,9 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Vault operations
 
-- (nullable NSData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
-                                                   keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
-                                               keyIndex:(UInt64)keyIndex
+- (nullable PowerAuthCoreData*) deriveCryptographicKeyFromVaultKey:(nonnull NSString*)cVaultKey
+                                                              keys:(nonnull PowerAuthCoreSignatureUnlockKeys*)unlockKeys
+                                                          keyIndex:(UInt64)keyIndex
 {
     REQUIRE_READ_ACCESS();
     std::string cpp_c_vault_key = cc7::objc::CopyFromNSString(cVaultKey);
@@ -371,7 +371,7 @@ using namespace io::getlime::powerAuth;
     cc7::ByteArray cpp_derived_key;
     auto error = _session->deriveCryptographicKeyFromVaultKey(cpp_c_vault_key, cpp_keys, keyIndex, cpp_derived_key);
     if (error == EC_Ok) {
-        return cc7::objc::CopyToNSData(cpp_derived_key);
+        return [[PowerAuthCoreData alloc] initWithByteRange:cpp_derived_key];
     }
     REPORT_ERROR_CODE(@"DeriveCryptographicKeyFromVaultKey", error);
     return nil;
@@ -407,18 +407,18 @@ using namespace io::getlime::powerAuth;
     return _session->hasExternalEncryptionKey();
 }
 
-- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) setExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
 {
     REQUIRE_READ_ACCESS();
-    auto error = _session->setExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+    auto error = externalEncryptionKey ? _session->setExternalEncryptionKey(externalEncryptionKey.byteArrayRef) : EC_WrongParam;
     REPORT_ERROR_CODE(@"SetExternalEncryptionKey", error);
     return static_cast<PowerAuthCoreErrorCode>(error);
 }
 
-- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull NSData *)externalEncryptionKey
+- (PowerAuthCoreErrorCode) addExternalEncryptionKey:(nonnull PowerAuthCoreData *)externalEncryptionKey
 {
     REQUIRE_WRITE_ACCESS();
-    auto error = _session->addExternalEncryptionKey(cc7::objc::CopyFromNSData(externalEncryptionKey));
+    auto error = externalEncryptionKey ? _session->addExternalEncryptionKey(externalEncryptionKey.byteArrayRef) : EC_WrongParam;
     REPORT_ERROR_CODE(@"AddExternalEncryptionKey", error);
     return static_cast<PowerAuthCoreErrorCode>(error);
 }
@@ -486,15 +486,15 @@ using namespace io::getlime::powerAuth;
 
 #pragma mark - Utilities for generic keys
 
-+ (nonnull NSData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data
++ (nonnull PowerAuthCoreData*) normalizeSignatureUnlockKeyFromData:(nonnull NSData*)data
 {
-    return cc7::objc::CopyToNSData(Session::normalizeSignatureUnlockKeyFromData(cc7::ByteRange(data.bytes, data.length)));
+    return [[PowerAuthCoreData alloc] initWithByteRange:Session::normalizeSignatureUnlockKeyFromData(cc7::ByteRange(data.bytes, data.length))];
 }
 
 
-+ (nonnull NSData*) generateSignatureUnlockKey
++ (nonnull PowerAuthCoreData*) generateSignatureUnlockKey
 {
-    return cc7::objc::CopyToNSData(Session::generateSignatureUnlockKey());
+    return [[PowerAuthCoreData alloc] initWithByteRange:Session::generateSignatureUnlockKey()];
 }
 
 

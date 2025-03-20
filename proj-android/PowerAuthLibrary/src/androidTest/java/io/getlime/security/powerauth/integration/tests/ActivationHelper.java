@@ -21,9 +21,11 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
+import io.getlime.security.powerauth.biometry.IPersistActivationWithBiometricsListener;
 import io.getlime.security.powerauth.core.ActivationStatus;
 import io.getlime.security.powerauth.core.Password;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.integration.support.AsyncHelper;
 import io.getlime.security.powerauth.integration.support.Logger;
 import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
@@ -33,19 +35,10 @@ import io.getlime.security.powerauth.integration.support.model.ActivationOtpVali
 import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ServerConstants;
 import io.getlime.security.powerauth.networking.exceptions.ErrorResponseApiException;
-import io.getlime.security.powerauth.networking.response.CreateActivationResult;
-import io.getlime.security.powerauth.networking.response.IActivationStatusListener;
-import io.getlime.security.powerauth.networking.response.ICreateActivationListener;
-import io.getlime.security.powerauth.networking.response.IValidatePasswordListener;
-import io.getlime.security.powerauth.sdk.PowerAuthActivation;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.networking.response.*;
+import io.getlime.security.powerauth.sdk.*;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * The {@code ActivationHelper} class provides support for activation creation and cleanup.
@@ -75,10 +68,20 @@ public class ActivationHelper {
      */
     public static final int TF_PERSIST_WITH_CORE_PASSWORD       = 0x0004;
     /**
-     * Alternate method that accept biometric key will be used for persist. Must be combined with
-     * TF_COMMIT_WITH_PASSWORD or TF_COMMIT_WITH_CORE_PASSWORD.
+     * Persist method with additional biometry factor. Combine with other flags.
+     * In this case, Fragment is used for biometric prompt.
      */
-    public static final int TF_PERSIST_WITH_ALTERNATE_METHOD    = 0x0008;
+    public static final int TF_PERSIST_WITH_BIOMETRY_FRAGMENT   = 0x0008;
+    /**
+     * Persist method with additional biometry factor. Combine with other flags.
+     * In this case, FragmentActivity is used for biometric prompt.
+     */
+    public static final int TF_PERSIST_WITH_BIOMETRY_ACTIVITY   = 0x0010;
+    /**
+     * Alternate method that persist activation with deprecated functions.
+     */
+    // @Deprecated // 1.10.0
+    public static final int TF_PERSIST_WITH_DEPRECATED          = 0x0100;
 
     /**
      * Helper's state.
@@ -237,7 +240,7 @@ public class ActivationHelper {
 
     /**
      * Prepare valid and invalid authentication objects.
-     * @return Array of passwords used for authentication objects creation. First is valid, second is invalid password.
+     * @return List of passwords used for authentication objects creation. First is valid, second is invalid password.
      * @throws Exception In case that generator failed to generate strings.
      */
     public @NonNull List<String> prepareAuthentications() throws Exception {
@@ -274,7 +277,9 @@ public class ActivationHelper {
         final boolean codeWithSignature = (flags & TF_CREATE_WITH_SIGNATURE) != 0;
         final boolean persistWithPassword = (flags & TF_PERSIST_WITH_PASSWORD) != 0;
         final boolean persistWithCorePassword = (flags & TF_PERSIST_WITH_CORE_PASSWORD) != 0;
-        final boolean persistWithAlternateMethod = (flags & TF_PERSIST_WITH_ALTERNATE_METHOD) != 0;
+        final boolean persistWithDeprecated = (flags & TF_PERSIST_WITH_DEPRECATED) != 0;
+        final boolean persistWithBiometryFrag = (flags & TF_PERSIST_WITH_BIOMETRY_FRAGMENT) != 0;
+        final boolean persistWithBiometryAct = (flags & TF_PERSIST_WITH_BIOMETRY_ACTIVITY) != 0;
 
         // Initial expectations
         assertFalse(powerAuthSDK.hasValidActivation());
@@ -324,25 +329,113 @@ public class ActivationHelper {
         assertNotNull(powerAuthSDK.getActivationFingerprint());
 
         // Persist activation locally
-        int resultCode;
-        if (persistWithPassword) {
-            if (persistWithAlternateMethod) {
-                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
+        boolean persistResult = AsyncHelper.await(resultCatcher -> {
+            final String password = passwords.get(0);
+            final Password corePassword = new Password(password);
+            final IPersistActivationListener persistActivationListener = new IPersistActivationListener() {
+                @Override
+                public void onPersistActivationSucceeded() {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithError(error);
+                }
+
+                @Override
+                public void onPersistActivationCancelled(boolean userCancel) {
+                    resultCatcher.completeWithResult(false);
+                }
+            };
+            if (!persistWithDeprecated) {
+                // New asynchronous persist (1.10.0)
+                // If biometry (in any form) is required, then we have to use auth object.
+                boolean useAuthObject = persistWithBiometryAct || persistWithBiometryFrag;
+                if (!useAuthObject) {
+                    if (persistWithPassword) {
+                        powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), password, persistActivationListener);
+                    } else if (persistWithCorePassword) {
+                        powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), corePassword, persistActivationListener);
+                    } else {
+                        // No explicit request for password or core password means that persist with auth object is requested.
+                        useAuthObject = true;
+                    }
+                }
+                if (useAuthObject) {
+                    final PowerAuthBiometricPrompt biometricPrompt;
+                    if (persistWithBiometryFrag) {
+                        biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragment());
+                    } else if (persistWithBiometryAct) {
+                        biometricPrompt = PowerAuthBiometricPrompt.noPromptForBiometricKeySetup(testHelper.getFragmentActivity());
+                    } else {
+                        biometricPrompt = null;
+                    }
+                    final PowerAuthAuthentication authentication;
+                    if (persistWithCorePassword) {
+                        authentication = biometricPrompt != null
+                            ? PowerAuthAuthentication.persistWithPasswordAndBiometry(corePassword, biometricPrompt)
+                            : PowerAuthAuthentication.persistWithPassword(corePassword);
+                    } else {
+                        authentication = biometricPrompt != null
+                                ? PowerAuthAuthentication.persistWithPasswordAndBiometry(password, biometricPrompt)
+                                : PowerAuthAuthentication.persistWithPassword(password);
+                    }
+                    powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), authentication, persistActivationListener);
+                }
             } else {
-                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0));
+                // @Deprecated // 1.10.0 - Remove in 2.0.0
+                if (persistWithBiometryAct || persistWithBiometryFrag) {
+                    //noinspection deprecation
+                    IPersistActivationWithBiometricsListener deprecatedListener = new IPersistActivationWithBiometricsListener() {
+                        @Override
+                        public void onBiometricDialogCancelled() {
+                            resultCatcher.completeWithResult(false);
+                        }
+
+                        @Override
+                        public void onBiometricDialogSuccess() {
+                            resultCatcher.completeWithResult(true);
+                        }
+
+                        @Override
+                        public void onBiometricDialogFailed(@NonNull PowerAuthErrorException error) {
+                            resultCatcher.completeWithError(error);
+                        }
+                    };
+                    if (persistWithBiometryAct) {
+                        if (persistWithCorePassword) {
+                            //noinspection deprecation
+                            powerAuthSDK.persistActivation(testHelper.getContext(), testHelper.getFragmentActivity(), "test", "test", corePassword, deprecatedListener);
+                        } else {
+                            //noinspection deprecation
+                            powerAuthSDK.persistActivation(testHelper.getContext(), testHelper.getFragmentActivity(), "test", "test", password, deprecatedListener);
+                        }
+                    } else {
+                        if (persistWithCorePassword) {
+                            //noinspection deprecation
+                            powerAuthSDK.persistActivation(testHelper.getContext(), testHelper.getFragment(), "test", "test", corePassword, deprecatedListener);
+                        } else {
+                            //noinspection deprecation
+                            powerAuthSDK.persistActivation(testHelper.getContext(), testHelper.getFragment(), "test", "test", password, deprecatedListener);
+                        }
+                    }
+                } else {
+                    if (persistWithPassword) {
+                        //noinspection deprecation
+                        assertEquals(PowerAuthErrorCodes.SUCCEED, powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), password));
+                    } else if (persistWithCorePassword) {
+                        //noinspection deprecation
+                        assertEquals(PowerAuthErrorCodes.SUCCEED, powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), corePassword));
+                    } else {
+                        //noinspection deprecation
+                        assertEquals(PowerAuthErrorCodes.SUCCEED, powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.persistWithPassword(password)));
+                    }
+                    resultCatcher.completeWithResult(true);
+                }
             }
-        } else if (persistWithCorePassword) {
-            if (persistWithAlternateMethod) {
-                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)), null);
-            } else {
-                resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), new Password(passwords.get(0)));
-            }
-        } else {
-            resultCode = powerAuthSDK.persistActivationWithAuthentication(testHelper.getContext(), PowerAuthAuthentication.persistWithPassword(passwords.get(0)));
-        }
-        if (resultCode != PowerAuthErrorCodes.SUCCEED) {
-            throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
-        }
+        });
+        assertTrue(persistResult);
 
         assertTrue(powerAuthSDK.hasValidActivation());
         assertFalse(powerAuthSDK.hasPendingActivation());
@@ -394,10 +487,25 @@ public class ActivationHelper {
         this.createActivationResult = createActivationResult;
         final List<String> passwords = prepareAuthentications();
         // Commit activation locally
-        int resultCode = powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), null);
-        if (resultCode != PowerAuthErrorCodes.SUCCEED) {
-            throw new Exception("PowerAuthSDK.commit failed with error code " + resultCode);
-        }
+        boolean persistResult = AsyncHelper.await(resultCatcher -> {
+            powerAuthSDK.persistActivationWithPassword(testHelper.getContext(), passwords.get(0), new IPersistActivationListener() {
+                @Override
+                public void onPersistActivationSucceeded() {
+                    resultCatcher.completeWithResult(true);
+                }
+
+                @Override
+                public void onPersistActivationFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithError(error);
+                }
+
+                @Override
+                public void onPersistActivationCancelled(boolean userCancel) {
+                    resultCatcher.completeWithResult(false);
+                }
+            });
+        });
+        assertTrue(persistResult);
         // Now we can get an activation identifier
         String activationId = powerAuthSDK.getActivationIdentifier();
         assertNotNull(activationId);

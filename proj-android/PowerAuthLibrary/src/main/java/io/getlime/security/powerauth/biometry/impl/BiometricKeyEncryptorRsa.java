@@ -46,6 +46,7 @@ import javax.crypto.spec.PSource;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -152,7 +153,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
     @Nullable
     @Override
-    public BiometricKeyData encryptBiometricKey(@NonNull byte[] key) {
+    public BiometricKeyData encryptBiometricKey(@NonNull SecureData key) {
         try {
             // State checks
             if (cipher == null) {
@@ -167,7 +168,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
             encryptorIsUsed = true;
 
             // Encrypt data
-            final byte[] encryptedBiometricKey = cipher.doFinal(key);
+            final SecureData encryptedBiometricKey = SecureData.capture(cipher.doFinal(key.getSensitiveData()));
             // RSA encryptor really encrypts and decrypts data. That means that 'key' on input is
             // already the key, that will protect biometric factor for PowerAuth protocol.
             return new BiometricKeyData(encryptedBiometricKey, key, true);
@@ -180,7 +181,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
 
     @Nullable
     @Override
-    public BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey) {
+    public BiometricKeyData decryptBiometricKey(@NonNull SecureData encryptedKey) {
         try {
             // State checks
             if (cipher == null) {
@@ -195,7 +196,7 @@ public class BiometricKeyEncryptorRsa implements IBiometricKeyEncryptor {
             encryptorIsUsed = true;
 
             // Decrypt data
-            final byte[] decryptedKey = cipher.doFinal(encryptedKey);
+            final SecureData decryptedKey = SecureData.capture(cipher.doFinal(encryptedKey.getSensitiveData()));
             // The decrypted key is the key that was previously used to lock PowerAuth biometric
             // factor. Just for convenience, we'll return the same data as we received on input.
             return new BiometricKeyData(encryptedKey, decryptedKey, false);

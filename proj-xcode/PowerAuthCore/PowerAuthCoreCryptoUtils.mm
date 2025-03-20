@@ -16,6 +16,7 @@
 
 #import <cc7/objc/ObjcHelper.h>     // must be first included
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
+#import "PowerAuthCorePrivateImpl.h"
 #include "CryptoUtils.h"            // Accessing private header; will be fixed by moving crypto to cc7
 
 
@@ -55,14 +56,14 @@ using namespace io::getlime::powerAuth;
     return nil;
 }
 
-+ (nullable NSData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
-                              withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
++ (nullable PowerAuthCoreData*) ecdhComputeSharedSecret:(nonnull PowerAuthCoreECPublicKey*)publicKey
+                                         withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
 {
     auto shared_secret = crypto::ECDH_SharedSecret(*publicKey.ecKeyRef, *privateKey.ecKeyRef);
     if (shared_secret.empty()) {
         return nil;
     }
-    return cc7::objc::CopyToNSData(shared_secret);
+    return [[PowerAuthCoreData alloc] initWithByteRange:shared_secret];
 }
 
 + (nullable PowerAuthCoreECKeyPair*) ecGenerateKeyPair
@@ -109,6 +110,12 @@ using namespace io::getlime::powerAuth;
 + (nullable NSData*) randomBytes:(NSUInteger)count
 {
     return cc7::objc::CopyToNullableNSData(crypto::GetRandomData(count, true));
+}
+
++ (nullable PowerAuthCoreData*) randomCoreData:(NSUInteger)count
+{
+    auto randomBytes = crypto::GetRandomData(count, true);
+    return randomBytes.empty() ? nil : [[PowerAuthCoreData alloc] initWithByteRange:randomBytes];
 }
 
 @end

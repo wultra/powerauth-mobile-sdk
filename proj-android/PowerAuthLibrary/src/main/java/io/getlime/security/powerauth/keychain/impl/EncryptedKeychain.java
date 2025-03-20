@@ -33,6 +33,7 @@ import javax.crypto.SecretKey;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.keychain.IllegalKeychainAccessException;
 import io.getlime.security.powerauth.keychain.Keychain;
 import io.getlime.security.powerauth.keychain.KeychainProtectionSupport;
@@ -222,12 +223,28 @@ public class EncryptedKeychain implements Keychain {
             return null;
         }
         final byte[] decoded = valueEncoder.decodeBytes(encoded);
+        Arrays.fill(encoded, SecureData.CLEAR_BYTE_OTHER);
         return decoded.length > 0 ? decoded : null;
+    }
+
+    @Nullable
+    @Override
+    public SecureData getSecureData(@NonNull String key) {
+        return SecureData.capture(getData(key));
     }
 
     @Override
     public synchronized void putData(@Nullable byte[] data, @NonNull String key) {
-        setRawValue(key, (data != null && data.length > 0) ? valueEncoder.encode(data) : null);
+        final byte[] encoded = (data != null && data.length > 0) ? valueEncoder.encode(data) : null;
+        setRawValue(key, encoded);
+        if (encoded != null) {
+            Arrays.fill(encoded, SecureData.CLEAR_BYTE_OTHER);
+        }
+    }
+
+    @Override
+    public void putSecureData(@Nullable SecureData secureData, @NonNull String key) {
+        putData(secureData != null ? secureData.getSensitiveData() : null, key);
     }
 
     // String accessors

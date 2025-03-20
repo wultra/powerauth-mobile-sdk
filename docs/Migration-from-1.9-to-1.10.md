@@ -4,6 +4,7 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 - PowerAuth mobile SDK no longer supports activation by the recovery code.
 - New `PowerAuthBiometricConfiguration` class that simplifies biometric configuration of `PowerAuthSDK` class.
+- PowerAuth mobile SDK now ensures sensitive keys are not retained in memory.
 
 ### Compatibility with PowerAuth Server
 
@@ -11,20 +12,51 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 ## Android
 
+Notable changes on Android:
+
+- New `PowerAuthBiometricPrompt` class simplifies biometric key setup and authentication.
+- Added the `SecureData` class to `io.getlime.security.powerauth.core` package to enhance in-memory management of sensitive data.
+
 ### API changes
 
-- The following methods in `PowerAuthSDK` class are deprecated:
-  - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+- The following methods or properties are now deprecated:
+  - `PowerAuthSDK` class:
+    - `changePasswordUnsafe()` - use asynchronous `changePassword()` as a replacement.
+    - `persistActivationWithAuthentication()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+    - `persistActivationWithPassword()` - use asynchronous variant with `IPersistActivationListener` as a callback parameter.
+    - `persistActivation(..., IPersistActivationWithBiometricsListener)` - use asynchronous method with `IPersistActivationListener` as a callback parameter.
+    - All variants of `addBiometryFactor()` with "title" and "description" parameters are now replaced with variant using `PowerAuthBiometricPrompt`.
+    - `removeBiometryFactor()` - use asynchronous variant with `IRemoveBiometryFactorListener` as a callback parameter.
+    - `authenticateUsingBiometrics()` - with "title" and "description" parameters, use variant with `PowerAuthBiometricPrompt` parameter instead.
+    - `requestGetSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithParams()` method instead which throws an exception in case of failure.
+    - `requestSignatureWithAuthentication()` - use `authorizationHeaderForRequestWithBody()` method instead which throws an exception in case of failure.
 
-- The following methods in `PowerAuthKeychainConfiguration` are now deprecated:
-  - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
-  - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `isAuthenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `isFallbackToSharedBiometryKeyEnabled()` - use equal method in `PowerAuthBiometricConfiguration` instead.
-  - `Builder.linkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.Builder.invalidateBiometricFactorAfterChange(boolean)` instead.
-  - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
-  - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
-  - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+  - `PowerAuthConfiguration` class:
+    - `getOfflineSignatureComponentLength()` - use `getOfflineAuthorizationCodeComponentLength()` instead.
+
+  - `PowerAuthConfiguration.Builder` class:
+    - `offlineSignatureComponentLength()` - use `offlineAuthorizationCodeComponentLength()` instead.
+
+  - `PowerAuthKeychainConfiguration` class:
+    - `isLinkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.isInvalidateBiometricFactorAfterChange()` instead.
+    - `isConfirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `isAuthenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `isFallbackToSharedBiometryKeyEnabled()` - use equal method in `PowerAuthBiometricConfiguration` instead.
+    - `Builder.linkBiometricItemsToCurrentSet()` - use `PowerAuthBiometricConfiguration.Builder.invalidateBiometricFactorAfterChange(boolean)` instead.
+    - `Builder.confirmBiometricAuthentication()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+    - `Builder.authenticateOnBiometricKeySetup()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+    - `Builder.enableFallbackToSharedBiometryKey()` - use equal method in `PowerAuthBiometricConfiguration.Builder` instead.
+
+  - `PowerAuthToken` class:
+    - `generateHeader()` - use `generateTokenHeader()` as a replacement. Note that you should use `PowerAuthTokenStore.generateAuthorizationHeader()` to make sure the PowerAuth SDK synchronize the time with the server properly.
+
+  - `PowerAuthAuthorizationHttpHeader` class:
+    - The value of `powerAuthErrorCode` property, or value returned in `getPowerAuthErrorCode()` is filled only in deprecated SDK functions, such as `requestSignatureWithAuthentication()`. To fix this, migrate to `authorizationHeaderForRequestWithBody()` that throws an exception in case of failure.
+    - `isValid()` method is also deprecated, because the new methods, such as `authorizationHeaderForRequestWithBody()`, always returns the valid header.
+
+
+- The following classes and interfaces are now deprecated:
+  - `IPersistActivationWithBiometricsListener` - use `IPersistActivationListener` instead.
 
 - Due to removed support of recovery codes, the following classes and methods are no longer available:
   - Methods removed in `PowerAuthSDK`:
@@ -46,6 +78,21 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
     - `IConfirmRecoveryCodeListener`
     - `RecoveryData`
 
+- The following functions now takes or returns `SecureData` instead of `byte[]`:
+  - `PowerAuthSDK.persistActivationWithPassword()`
+  - `PowerAuthSDK.addBiometryFactor()`
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthConfiguration.getExternalEncryptionKey()`
+  - `PowerAuthConfiguration.Builder.externalEncryptionKey()`
+  - `PowerAuthAuthentication.getBiometryFactorRelatedKey()`
+  - `PowerAuthAuthentication.getOverriddenPossessionKey()`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `IFetchEncryptionKeyListener.onFetchEncryptionKeySucceed()`
+  - `CryptoUtils.ecdhComputeSharedSecret()`
+  - `BiometricKeyData.getDerivedData()`
+  - `BiometricKeyData.getDataToSave()`
+
 - Removed all interfaces deprecated in release `1.9.x`
 
 ### Other changes
@@ -54,11 +101,24 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
 
 ## iOS & tvOS
 
+Notable changes on iOS:
+
+- Added the `PowerAuthCoreData` object to `PowerAuthCore` module to enhance in-memory management of sensitive data.
+
 ### API changes
 
-- The following methods in `PowerAuthSDK` class are deprecated:
-  - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
-  - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
+- The following methods or properties are now deprecated:
+  - `PowerAuthSDK` class:
+    - `unsafeChangePassword(from:to:)` - use asynchronous `changePassword(from:to:callback:)` as a replacement.
+    - `persistActivation(with:)` - use asynchronous `persistActivation(with:callback:)` as a replacement.
+    - `persistActivation(withPassword:)` - use asynchronous `persistActivation(withPassword:callback:)` as a replacement.
+    - `removeBiometryFactor()` - use asynchronous `removeBiometryFactor(callback:)` as a replacement.
+    - Constructor `PowerAuthSDK(configuration:keychainConfiguration:clientConfiguration:)` - use methods with `PowerAuthBiometricConfiguration` parameter instead.
+    - `requestSignature(with:method:uriId:body:)` - use `authorizationHeaderForRequestWithBody(with:method:uriId:body:)` method instead.
+    - `requestGetSignature(with:uriId:params:)` - use `authorizationHeaderForRequestWithParams(with:method:uriId:params:)` method with `"GET"` as method parameter.
+    - `offlineSignature(with:uriId:body:nonce:)` - use asynchronous `offlineAuthorizationCode(with:uriId:body:nonce:callback:)` method that handle the biometric authentication properly.
+  - `PowerAuthConfiguration` class:
+    - `offlineSignatureComponentLength` property is now replaced with `offlineAuthorizationCodeComponentLength`
 
 - All static methods for accessing a various shared instances are now deprecated:
   - `PowerAuthSDK.initSharedInstance(...)` and `PowerAuthSDK.sharedInstance()` - To ensure better control and flexibility, manage the global instances within your application code.
@@ -85,6 +145,20 @@ PowerAuth Mobile SDK in version `1.10.0` provides the following improvements:
     - removed class `PowerAuthActivationRecoveryData`
     - removed property `PowerAuthActivationResult.activationRecovery`
     - removed constructor `PowerAuthActivation(recoveryCode:recoveryPuk:name:)`
+
+- The following functions or properties now takes or returns `PowerAuthCoreData` instead of `Data`:
+  - `PowerAuthSDK.setExternalEncryptionKey()`
+  - `PowerAuthSDK.addExternalEncryptionKey()`
+  - `PowerAuthSDK.fetchEncryptionKey()`
+  - `PowerAuthConfiguration.externalEncryptionKey`
+  - All static functions in `PowerAuthAuthentication` that takes custom possession or biometry key in parameter.
+  - `PowerAuthAuthentication.overridenPossessionKey` property is now `customPossessionKey`
+  - `PowerAuthAuthentication.overridenBiometryKey` property is now `customBiometryKey`
+  - `PowerAuthCoreCryptoUtils.ecdhComputeSharedSecret()`
+
+- The following methods in `PowerAuthSDK` class now returns cancelable object allowing you to cancel the pending biometric authentication:
+  - `authenticateUsingBiometry(withPrompt:callback:)`
+  - `authenticateUsingBiometry(withContext:callback:)`
 
 - Removed all interfaces deprecated in release `1.9.x`
 

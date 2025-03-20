@@ -17,6 +17,7 @@
 package io.getlime.security.powerauth.biometry;
 
 import androidx.annotation.NonNull;
+import io.getlime.security.powerauth.core.SecureData;
 
 import java.util.Arrays;
 
@@ -26,8 +27,8 @@ import java.util.Arrays;
  */
 public class BiometricKeyData {
 
-    private final @NonNull byte[] dataToSave;
-    private final @NonNull byte[] derivedData;
+    private final @NonNull SecureData dataToSave;
+    private final @NonNull SecureData derivedData;
     private final boolean newKey;
 
     /**
@@ -37,7 +38,7 @@ public class BiometricKeyData {
      * @param derivedData Data derived from raw key bytes provided in biometric authentication request.
      * @param isNewKey Is {@code true} in case that this is a new key generated.
      */
-    public BiometricKeyData(@NonNull byte[] dataToSave, @NonNull byte[] derivedData, boolean isNewKey) {
+    public BiometricKeyData(@NonNull SecureData dataToSave, @NonNull SecureData derivedData, boolean isNewKey) {
         this.dataToSave = dataToSave;
         this.derivedData = derivedData;
         this.newKey = isNewKey;
@@ -46,14 +47,14 @@ public class BiometricKeyData {
     /**
      * @return Data that should be stored to the persistent storage in case that this is a new key.
      */
-    public @NonNull byte[] getDataToSave() {
+    public @NonNull SecureData getDataToSave() {
         return dataToSave;
     }
 
     /**
      * @return Data derived from raw key bytes provided in biometric authentication request.
      */
-    public @NonNull byte[] getDerivedData() {
+    public @NonNull SecureData getDerivedData() {
         return derivedData;
     }
 
@@ -68,7 +69,7 @@ public class BiometricKeyData {
      * Destroy potential sensitive content stored in this object.
      */
     public void destroy() {
-        Arrays.fill(dataToSave, (byte) 0xCD);
-        Arrays.fill(derivedData, (byte) 0xCD);
+        dataToSave.destroy();
+        derivedData.destroy();
     }
 }

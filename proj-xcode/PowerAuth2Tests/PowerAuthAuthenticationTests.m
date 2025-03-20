@@ -22,8 +22,8 @@
 #import "PowerAuthCorePasswordHelper.h"
 
 @interface PowerAuthAuthenticationTests : XCTestCase
-@property (nonatomic, strong) NSData * customBiometryKey;
-@property (nonatomic, strong) NSData * customPossessionKey;
+@property (nonatomic, strong) PowerAuthCoreData * customBiometryKey;
+@property (nonatomic, strong) PowerAuthCoreData * customPossessionKey;
 @property (nonatomic, strong) NSString * biometryPrompt;
 @property (nonatomic, strong) id biometryContext;
 @end
@@ -32,8 +32,8 @@
 
 - (void) setUp
 {
-    self.customBiometryKey = [@"FakeBiometryKey" dataUsingEncoding:NSUTF8StringEncoding];
-    self.customPossessionKey = [@"FakePossessionKey" dataUsingEncoding:NSUTF8StringEncoding];
+    self.customBiometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
+    self.customPossessionKey = [PowerAuthCoreSession generateSignatureUnlockKey];
     self.biometryPrompt = @"Authenticate with biometry";
     
 #if PA2_HAS_LACONTEXT
@@ -54,8 +54,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
     
     auth = [PowerAuthAuthentication persistWithPassword:@"4321" customPossessionKey:_customPossessionKey];
@@ -64,8 +64,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
     
     // core password variants
@@ -76,8 +76,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
 
     auth = [PowerAuthAuthentication persistWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
@@ -86,8 +86,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
 }
 
@@ -99,8 +99,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
     
     auth = [PowerAuthAuthentication persistWithPasswordAndBiometry:@"4321" customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
@@ -109,8 +109,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertEqualObjects(self.customBiometryKey, auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
     
     // core password variants
@@ -121,8 +121,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
     
     auth = [PowerAuthAuthentication persistWithCorePasswordAndBiometry:[PowerAuthCorePassword passwordWithString:@"4321"] customBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
@@ -131,8 +131,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertEqualObjects(self.customBiometryKey, auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:YES]);
 }
 
@@ -144,8 +144,8 @@
     XCTAssertNil(auth.password);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
 }
 
@@ -157,8 +157,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithPassword:@"4321" customPossessionKey:_customPossessionKey];
@@ -167,8 +167,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     // core password variants
@@ -179,8 +179,8 @@
     XCTAssertEqualObjects(@"1234", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithCorePassword:[PowerAuthCorePassword passwordWithString:@"4321"] customPossessionKey:_customPossessionKey];
@@ -189,8 +189,8 @@
     XCTAssertEqualObjects(@"4321", auth.password.extractedPassword);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
 }
 
@@ -202,8 +202,8 @@
     XCTAssertNil(auth.password);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
 
     auth = [PowerAuthAuthentication possessionWithBiometryWithCustomBiometryKey:_customBiometryKey customPossessionKey:_customPossessionKey];
@@ -212,8 +212,8 @@
     XCTAssertNil(auth.password);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertEqualObjects(self.customBiometryKey, auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertEqualObjects(self.customBiometryKey, auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithBiometryPrompt:_biometryPrompt];
@@ -222,8 +222,8 @@
     XCTAssertNil(auth.password);
     XCTAssertEqualObjects(_biometryPrompt, auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithBiometryPrompt:_biometryPrompt customPossessionKey:_customPossessionKey];
@@ -232,8 +232,8 @@
     XCTAssertNil(auth.password);
     XCTAssertEqualObjects(_biometryPrompt, auth.biometryPrompt);
     XCTAssertContextNil(auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
 #if PA2_HAS_LACONTEXT
@@ -243,8 +243,8 @@
     XCTAssertNil(auth.password);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertEqualObjects(self.biometryContext, auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertNil(auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertNil(auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
     
     auth = [PowerAuthAuthentication possessionWithBiometryContext:_biometryContext customPossessionKey:_customPossessionKey];
@@ -253,8 +253,8 @@
     XCTAssertNil(auth.password);
     XCTAssertNil(auth.biometryPrompt);
     XCTAssertEqualObjects(self.biometryContext, auth.biometryContext);
-    XCTAssertNil(auth.overridenBiometryKey);
-    XCTAssertEqualObjects(self.customPossessionKey, auth.overridenPossessionKey);
+    XCTAssertNil(auth.customBiometryKey);
+    XCTAssertEqualObjects(self.customPossessionKey, auth.customPossessionKey);
     XCTAssertTrue([auth validateUsage:NO]);
 #endif // PA2_HAS_LACONTEXT
 }

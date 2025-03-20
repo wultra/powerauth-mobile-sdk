@@ -18,6 +18,7 @@
 #include "../crypto/CryptoUtils.h"
 #include "EcPublicKeyJNI.h"
 #include "EcPrivateKeyJNI.h"
+#include "SecureDataJNI.h"
 
 // Package: io.getlime.security.powerauth.core
 #define CC7_JNI_CLASS_PATH          "io/getlime/security/powerauth/core"
@@ -127,16 +128,16 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, ecdsaComputeSignature, jbyteArray data, jobjec
 }
 
 //
-// public static native byte[] ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey)
+// public static native SecureData ecdhComputeSharedSecret(EcPublicKey publicKey, EcPrivateKey privateKey)
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, ecdhComputeSharedSecret, jobject publicKey, jobject privateKey)
+CC7_JNI_METHOD_PARAMS(jobject, ecdhComputeSharedSecret, jobject publicKey, jobject privateKey)
 {
     if (privateKey == nullptr || publicKey == nullptr || env == nullptr) {
         CC7_ASSERT(false, "Missing required parameter.");
         return nullptr;
     }
 
-    jbyteArray result = nullptr;
+    jobject result = nullptr;
 
     // Convert data objects
     auto cpp_privateKey = GetEcPrivateKeyFromJavaObject(env, privateKey);
@@ -144,10 +145,8 @@ CC7_JNI_METHOD_PARAMS(jbyteArray, ecdhComputeSharedSecret, jobject publicKey, jo
 
     if (cpp_privateKey != nullptr && cpp_publicKey != nullptr) {
         // Compute shared secret
-        cc7::ByteArray cpp_result = crypto::ECDH_SharedSecret(cpp_publicKey->keyPtr(), cpp_privateKey->keyPtr());
-        if (!cpp_result.empty()) {
-            result = cc7::jni::CopyToJavaByteArray(env, cpp_result);
-        }
+        auto cpp_result = crypto::ECDH_SharedSecret(cpp_publicKey->keyPtr(), cpp_privateKey->keyPtr());
+        result = CopyToNullableSecureData(env, cpp_result);
     }
     return result;
 }

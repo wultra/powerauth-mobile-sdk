@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.sdk.impl;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import io.getlime.security.powerauth.core.SecureData;
 
 /**
  * Interface for getting encryption key that protects possession factor key. The provided key
@@ -30,5 +31,6 @@ public interface IPossessionFactorEncryptionKeyProvider {
      * @param context Android context.
      * @return 16 bytes long encryption key that protects possession factor key.
      */
-    @NonNull byte[] getPossessionFactorEncryptionKey(@NonNull Context context);
+    @NonNull
+    SecureData getPossessionFactorEncryptionKey(@NonNull Context context);
 }

@@ -21,6 +21,10 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
+import io.getlime.security.powerauth.integration.support.AsyncHelper;
+import io.getlime.security.powerauth.networking.response.IOfflineAuthorizationCodeListener;
+import io.getlime.security.powerauth.sdk.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,12 +39,6 @@ import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.model.SignatureData;
 import io.getlime.security.powerauth.integration.support.model.SignatureInfo;
 import io.getlime.security.powerauth.integration.support.model.SignatureType;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthentication;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthorizationHttpHeader;
-import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
 
 import static org.junit.Assert.*;
 
@@ -81,15 +79,27 @@ public class SymmetricSignatureTest {
             final String testString = "OFFLINE signature test\n" + testHelper.getRandomGenerator().generateRandomString(10, 32);
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
             final String nonce = testHelper.getRandomGenerator().generateBase64Bytes(16);
-            final String offlineSignature = powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/offline/test", dataToSign, nonce);
-            assertNotNull(offlineSignature);
+            final String offlineAuthCode = AsyncHelper.await((resultCatcher) -> {
+                powerAuthSDK.offlineAuthorizationCode(context, authentication, "/offline/test", dataToSign, nonce, new IOfflineAuthorizationCodeListener() {
+                    @Override
+                    public void onOfflineAuthorizationCodeSucceed(@NonNull String authorizationCode) {
+                        resultCatcher.completeWithResult(authorizationCode);
+                    }
+
+                    @Override
+                    public void onOfflineAuthorizationCodeFailed(@NonNull PowerAuthErrorException error) {
+                        resultCatcher.completeWithError(error);
+                    }
+                });
+            });
+            assertNotNull(offlineAuthCode);
 
             // Now verify signature on the server
             final String dataToVerifySignature = signatureHelper.normalizeOfflineData(testString, "/offline/test", nonce);
             SignatureData signatureData = new SignatureData();
             signatureData.setActivationId(powerAuthSDK.getActivationIdentifier());
             signatureData.setData(dataToVerifySignature);
-            signatureData.setSignature(offlineSignature);
+            signatureData.setSignature(offlineAuthCode);
             signatureData.setAllowBiometry(false);
 
             // Verify on server
@@ -108,7 +118,11 @@ public class SymmetricSignatureTest {
                 .configurationObserver(new PowerAuthTestHelper.IConfigurationObserver() {
                     @Override
                     public void adjustPowerAuthConfiguration(@NonNull PowerAuthConfiguration.Builder builder) {
-                        builder.offlineSignatureComponentLength(OFFLINE_SIGNATURE_LENGTH);
+                        builder.offlineAuthorizationCodeComponentLength(OFFLINE_SIGNATURE_LENGTH);
+                    }
+
+                    @Override
+                    public void adjustPowerAuthBiometricConfiguration(@NonNull PowerAuthBiometricConfiguration.Builder builder) {
                     }
 
                     @Override
@@ -128,9 +142,22 @@ public class SymmetricSignatureTest {
 
         final PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
         final String nonce = testHelper.getRandomGenerator().generateBase64Bytes(16);
-        final String signature = powerAuthSDK.offlineSignatureWithAuthentication(testHelper.getContext(), authentication, "/some/uri-id", null, nonce);
-        assertNotNull(signature);
-        assertEquals(OFFLINE_SIGNATURE_LENGTH, signature.length());
+        final String authCode = AsyncHelper.await((resultCatcher) -> {
+            powerAuthSDK.offlineAuthorizationCode(testHelper.getContext(), authentication, "/some/uri-id", null, nonce, new IOfflineAuthorizationCodeListener() {
+
+                @Override
+                public void onOfflineAuthorizationCodeSucceed(@NonNull String authorizationCode) {
+                    resultCatcher.completeWithResult(authorizationCode);
+                }
+
+                @Override
+                public void onOfflineAuthorizationCodeFailed(@NonNull PowerAuthErrorException error) {
+                    resultCatcher.completeWithError(error);
+                }
+            });
+        });
+        assertNotNull(authCode);
+        assertEquals(OFFLINE_SIGNATURE_LENGTH, authCode.length());
     }
 
     @Test
@@ -175,9 +202,8 @@ public class SymmetricSignatureTest {
             final String method = (iteration & 1) == 0 ? "POST" : "GET";
 
             final byte[] dataToSign = testString.getBytes(Charset.defaultCharset());
-            final PowerAuthAuthorizationHttpHeader onlineSignature = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, method, uriId, dataToSign);
+            final PowerAuthAuthorizationHttpHeader onlineSignature = powerAuthSDK.authorizationHeaderForRequestWithBody(context, authentication, method, uriId, dataToSign);
             assertNotNull(onlineSignature);
-            assertEquals(PowerAuthErrorCodes.SUCCEED, onlineSignature.powerAuthErrorCode);
             assertEquals("X-PowerAuth-Authorization", onlineSignature.getKey());
 
             // Parse header value

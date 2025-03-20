@@ -21,10 +21,7 @@ import androidx.annotation.Nullable;
 
 import java.nio.charset.Charset;
 
-import io.getlime.security.powerauth.core.EciesEncryptor;
-import io.getlime.security.powerauth.core.EciesEncryptorScope;
-import io.getlime.security.powerauth.core.Session;
-import io.getlime.security.powerauth.core.SignatureUnlockKeys;
+import io.getlime.security.powerauth.core.*;
 import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
 import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 
@@ -35,7 +32,7 @@ import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 public class EciesEncryptorFactory {
 
     private final Session mSession;
-    private final byte[] mPossessionUnlockKey;
+    private final SecureData mPossessionUnlockKey;
 
     /**
      * Initializes object with required session &amp; optional device related key.
@@ -45,7 +42,7 @@ public class EciesEncryptorFactory {
      * @param possessionUnlockKey key for decrypting the possession factor, stored in the {@link Session}.
      *                            If not provided, then activation scoped encryptors cannot be constructed.
      */
-    public EciesEncryptorFactory(@NonNull Session session, @Nullable byte[] possessionUnlockKey) {
+    public EciesEncryptorFactory(@NonNull Session session, @Nullable SecureData possessionUnlockKey) {
         this.mSession = session;
         this.mPossessionUnlockKey = possessionUnlockKey;
     }

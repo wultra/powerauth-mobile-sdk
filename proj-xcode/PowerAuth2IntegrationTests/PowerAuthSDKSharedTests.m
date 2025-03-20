@@ -290,8 +290,13 @@
     XCTAssertEqual(PowerAuthExternalPendingOperationType_Activation, extOp2.externalOperationType);
     XCTAssertTrue([_app1 isEqualToString:extOp2.externalApplicationId]);
     
-    BOOL result = [self.sdk persistActivationWithCorePassword:credentials.password error:nil];
-    XCTAssertTrue(result);
+    
+    NSError * error = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [self.sdk persistActivationWithCorePassword:credentials.password callback:^(NSError * _Nullable error) {
+            [waiting reportCompletion:error];
+        }];
+    }];
+    XCTAssertNil(error);
     
     XCTAssertTrue([self.sdk hasValidActivation]);
     XCTAssertTrue([_altSdk hasValidActivation]);

@@ -22,10 +22,10 @@
 @implementation PA2PrivateEncryptorFactory
 {
     id<PowerAuthCoreSessionProvider> _sessionProvider;
-    NSData * _deviceRelatedKey;
+    PowerAuthCoreData * _deviceRelatedKey;
 }
 - (instancetype) initWithSessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
-                        deviceRelatedKey:(NSData*)deviceRelatedKey
+                        deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
 {
     self = [super init];
     if (self) {

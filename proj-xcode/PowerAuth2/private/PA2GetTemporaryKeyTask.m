@@ -28,7 +28,7 @@
     PA2HttpClient * _client;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
     __weak id<PA2GetTemporaryKeyTaskDelegate> _delegate;
-    NSData * _deviceRelatedKey;
+    PowerAuthCoreData * _deviceRelatedKey;
     BOOL _isApplicationScope;
 }
 
@@ -36,7 +36,7 @@
                     sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                          sharedLock:(id<NSLocking>)sharedLock
                      applicationKey:(NSString*)applicationKey
-                   deviceRelatedKey:(NSData*)deviceRelatedKey
+                   deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
                      encryptorScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope
                            delegate:(id<PA2GetTemporaryKeyTaskDelegate>)delegate
 {

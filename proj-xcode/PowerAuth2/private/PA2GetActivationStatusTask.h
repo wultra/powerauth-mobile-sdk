@@ -21,6 +21,7 @@
 @class PA2HttpClient;
 @class PowerAuthCoreSession;
 @class PA2GetActivationStatusTask;
+@class PowerAuthCoreData;
 
 /**
  The `PA2GetActivationStatusTaskDelegate` protocol allows class that create PA2GetActivationStatusTask object
@@ -54,7 +55,7 @@
  @return initialized object
  */
 - (id) initWithHttpClient:(PA2HttpClient*)httpClient
-         deviceRelatedKey:(NSData*)deviceRelatedKey
+         deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock

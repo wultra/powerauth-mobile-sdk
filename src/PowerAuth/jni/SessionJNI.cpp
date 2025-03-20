@@ -15,6 +15,7 @@
  */
 
 #include "PasswordJNI.h"
+#include "SecureDataJNI.h"
 #include "ECIESEncryptorJNI.h"
 #include "ProtocolVersionJNI.h"
 #include <PowerAuth/Session.h>
@@ -42,10 +43,12 @@ static bool LoadSignatureUnlockKeys(SignatureUnlockKeys & out, JNIEnv * env, job
         CC7_ASSERT(false, "SignatureUnlockKeys java object should not be null.");
         return false;
     }
-    jclass keysClazz  = CC7_JNI_MODULE_FIND_CLASS("SignatureUnlockKeys");
-    out.possessionUnlockKey = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(unlockKeys, keysClazz, "possessionUnlockKey"));
-    out.biometryUnlockKey   = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(unlockKeys, keysClazz, "biometryUnlockKey"));
-    jobject userPasswordObject = CC7_JNI_GET_FIELD_OBJECT(unlockKeys, keysClazz, "userPassword", CC7_JNI_MODULE_CLASS_SIGNATURE("Password"));
+    const auto passwordSignature   = CC7_JNI_MODULE_CLASS_SIGNATURE("Password");
+    const auto secureDataSignature = CC7_JNI_MODULE_CLASS_SIGNATURE("SecureData");
+    auto keysClazz  = CC7_JNI_MODULE_FIND_CLASS("SignatureUnlockKeys");
+    out.possessionUnlockKey = CopyFromSecureData(env, CC7_JNI_GET_FIELD_OBJECT(unlockKeys, keysClazz, "possessionUnlockKey", secureDataSignature));
+    out.biometryUnlockKey   = CopyFromSecureData(env, CC7_JNI_GET_FIELD_OBJECT(unlockKeys, keysClazz, "biometryUnlockKey", secureDataSignature));
+    jobject userPasswordObject = CC7_JNI_GET_FIELD_OBJECT(unlockKeys, keysClazz, "userPassword", passwordSignature);
     if (userPasswordObject != NULL) {
         auto cppPassword = GetCppPasswordFromJavaObject(env, userPasswordObject);
         if (!cppPassword) {
@@ -78,7 +81,8 @@ CC7_JNI_METHOD_PARAMS(jlong, init, jobject setup)
         CC7_ASSERT(false, "Invalid simplified configuration");
         return 0;
     }
-    cppSetup.externalEncryptionKey  = cc7::jni::CopyFromJavaByteArray(env, CC7_JNI_GET_FIELD_BYTEARRAY(setup, setupClazz, "externalEncryptionKey"));
+    const auto secureDataSignature = CC7_JNI_MODULE_CLASS_SIGNATURE("SecureData");
+    cppSetup.externalEncryptionKey = CopyFromSecureData(env, CC7_JNI_GET_FIELD_OBJECT(setup, setupClazz, "externalEncryptionKey", secureDataSignature));
 
     auto session = new Session(cppSetup);
     return (jlong)session;
@@ -581,27 +585,27 @@ CC7_JNI_METHOD(jint, removeBiometryFactor)
 // ----------------------------------------------------------------------------
 
 //
-// public native byte[] deriveCryptographicKeyFromVaultKey(String cVaultKey, SignatureUnlockKeys unlockKeys, long keyIndex);
+// public native SecureData deriveCryptographicKeyFromVaultKey(String cVaultKey, SignatureUnlockKeys unlockKeys, long keyIndex);
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, deriveCryptographicKeyFromVaultKey, jstring cVaultKey, jobject unlockKeys, jlong keyIndex)
+CC7_JNI_METHOD_PARAMS(jobject, deriveCryptographicKeyFromVaultKey, jstring cVaultKey, jobject unlockKeys, jlong keyIndex)
 {
     auto session = CC7_THIS_OBJ();
     if (!session || !cVaultKey || !unlockKeys) {
         CC7_ASSERT(false, "Missing param or internal handle.");
-        return NULL;
+        return nullptr;
     }
     // Load parameters into C++ objects 
     std::string cppCVaultKey = cc7::jni::CopyFromJavaString(env, cVaultKey);
     SignatureUnlockKeys cppUnlockKeys;
     if (false == LoadSignatureUnlockKeys(cppUnlockKeys, env, unlockKeys)) {
-        return NULL;
+        return nullptr;
     }
     cc7::ByteArray derivedKey;
     ErrorCode code = session->deriveCryptographicKeyFromVaultKey(cppCVaultKey, cppUnlockKeys, (cc7::U64)keyIndex, derivedKey);
     if (code != EC_Ok) {
-        return NULL;
+        return nullptr;
     }
-    return cc7::jni::CopyToJavaByteArray(env, derivedKey);
+    return CopyToSecureData(env, derivedKey);
 }
 
 //
@@ -649,32 +653,32 @@ CC7_JNI_METHOD(jboolean, hasExternalEncryptionKey)
 }
 
 //
-// public native int setExternalEncryptionKey(byte[] externalEncryptionKey);
+// public native int setExternalEncryptionKey(SecureData externalEncryptionKey);
 //
-CC7_JNI_METHOD_PARAMS(jint, setExternalEncryptionKey, jbyteArray eek)
+CC7_JNI_METHOD_PARAMS(jint, setExternalEncryptionKey, jobject eek)
 {
     auto session = CC7_THIS_OBJ();
     if (!session) {
         CC7_ASSERT(false, "Missing internal handle.");
         return EC_WrongParam;
     }
-    cc7::ByteArray cppEEK   = cc7::jni::CopyFromJavaByteArray(env, eek);
-    ErrorCode code = session->setExternalEncryptionKey(cppEEK);
+    auto cppEEK = CopyFromSecureData(env, eek);
+    auto code = session->setExternalEncryptionKey(cppEEK);
     return code;
 }
 
 //
-// public native int addExternalEncryptionKey(byte[] externalEncryptionKey);
+// public native int addExternalEncryptionKey(SecureData externalEncryptionKey);
 //
-CC7_JNI_METHOD_PARAMS(jint, addExternalEncryptionKey, jbyteArray eek)
+CC7_JNI_METHOD_PARAMS(jint, addExternalEncryptionKey, jobject eek)
 {
     auto session = CC7_THIS_OBJ();
     if (!session) {
         CC7_ASSERT(false, "Missing internal handle.");
         return EC_WrongParam;
     }
-    cc7::ByteArray cppEEK   = cc7::jni::CopyFromJavaByteArray(env, eek);
-    ErrorCode code = session->addExternalEncryptionKey(cppEEK);
+    auto cppEEK = CopyFromSecureData(env, eek);
+    auto code = session->addExternalEncryptionKey(cppEEK);
     return code;
 }
 
@@ -799,20 +803,20 @@ CC7_JNI_METHOD_PARAMS(jstring, getPublicKeyIdForEciesScope, jint scope)
 // ----------------------------------------------------------------------------
 
 //
-// public native byte[] normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
+// public native SecureData normalizeSignatureUnlockKeyFromData(byte[] arbitraryData);
 //
-CC7_JNI_METHOD_PARAMS(jbyteArray, normalizeSignatureUnlockKeyFromData, jbyteArray arbitraryData)
+CC7_JNI_METHOD_PARAMS(jobject, normalizeSignatureUnlockKeyFromData, jbyteArray arbitraryData)
 {
     cc7::ByteArray cppData = cc7::jni::CopyFromJavaByteArray(env, arbitraryData);
-    return cc7::jni::CopyToJavaByteArray(env, Session::normalizeSignatureUnlockKeyFromData(cppData));
+    return CopyToSecureData(env, Session::normalizeSignatureUnlockKeyFromData(cppData));
 }
 
 //
-// public native byte[] generateSignatureUnlockKey();
+// public native SecureData generateSignatureUnlockKey();
 //
-CC7_JNI_METHOD(jbyteArray, generateSignatureUnlockKey)
+CC7_JNI_METHOD(jobject, generateSignatureUnlockKey)
 {
-    return cc7::jni::CopyToJavaByteArray(env, Session::generateSignatureUnlockKey());
+    return CopyToSecureData(env, Session::generateSignatureUnlockKey());
 }
 
 //

@@ -40,6 +40,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import io.getlime.security.powerauth.biometry.BiometricKeyData;
 import io.getlime.security.powerauth.biometry.IBiometricKeyEncryptor;
+import io.getlime.security.powerauth.core.SecureData;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -119,8 +120,8 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
     @Nullable
     @Override
-    public BiometricKeyData encryptBiometricKey(@NonNull byte[] key) {
-        final byte[] derivedKey = aesKdf(key, true);
+    public BiometricKeyData encryptBiometricKey(@NonNull SecureData key) {
+        final SecureData derivedKey = aesKdf(key, true);
         // We use AES as KDF, so we must return the provided key back to the application
         // to save it to the persistent storage, to be able to perform the same KDF in decryption.
         return derivedKey != null ? new BiometricKeyData(key, derivedKey, true) : null;
@@ -128,10 +129,10 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
 
     @Nullable
     @Override
-    public BiometricKeyData decryptBiometricKey(@NonNull byte[] encryptedKey) {
+    public BiometricKeyData decryptBiometricKey(@NonNull SecureData encryptedKey) {
         // Note that "encryptedKey" is actually the same key as was provided to "encryptBiometricKey"
         // method. This is due to fact, that we use AES as KDF.
-        final byte[] derivedKey = aesKdf(encryptedKey, false);
+        final SecureData derivedKey = aesKdf(encryptedKey, false);
         // It's not required to store "dataToSave" after the decryption. We return the same data
         // just for convenience.
         return derivedKey != null ? new BiometricKeyData(encryptedKey, derivedKey, false) : null;
@@ -145,7 +146,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
      * @return Derived data or {@code null} in case of failure.
      */
     @Nullable
-    private byte[] aesKdf(@NonNull byte[] keyToDerive, boolean encryptMode) {
+    private SecureData aesKdf(@NonNull SecureData keyToDerive, boolean encryptMode) {
         try {
             // State checks
             if (cipher == null) {
@@ -160,7 +161,7 @@ public class BiometricKeyEncryptorAes implements IBiometricKeyEncryptor {
             encryptorIsUsed = true;
 
             // Derive the key
-            return cipher.doFinal(keyToDerive);
+            return SecureData.capture(cipher.doFinal(keyToDerive.getSensitiveData()));
         } catch (ProviderException | BadPaddingException | IllegalBlockSizeException e) {
             PowerAuthLog.e("BiometricKeyEncryptorAes.aesKdf failed: " + e.getMessage());
             return null;

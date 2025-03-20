@@ -136,7 +136,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
     // Prepare the configuration
     let configuration = PowerAuthConfiguration(
         instanceId: Bundle.main.bundleIdentifier!,
-        baseEndpointUrl: "https://localhost:8080/demo-server",
+        baseEndpointUrl: "https://<your-domain>/enrollment-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 
     // Create a PowerAuthSDK instance with the configuration
@@ -1745,7 +1745,7 @@ let appGroup = "group.your.app.group"                       // APP_GROUP_IDENTIF
 // Prepare the configuration
 let configuration = PowerAuthConfiguration(
         instanceId: Bundle.main.bundleIdentifier!,
-        baseEndpointUrl: "https://localhost:8080/demo-server",
+        baseEndpointUrl: "https://<your-domain>/enrollment-server",
         configuration: "ARDDj6EB6iAUtNm...KKEcBxbnH9bMk8Ju3K1wmjbA==")
 // Assign sharing configuration
 configuration.sharingConfiguration = PowerAuthSharingConfiguration(

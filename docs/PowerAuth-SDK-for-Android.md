@@ -96,7 +96,7 @@ To sum it up, in order to configure the `PowerAuthSDK` default instance, add the
 ```kotlin
 val INSTANCE_ID = applicationContext.packageName
 val MOBILE_SDK_CONFIG = "MTIzNDU2Nz...jc4OTAxMg=="
-val API_SERVER = "https://localhost:8080/demo-server"
+val API_SERVER = "https://<your-domain>/enrollment-server"
 
 try {
     val configuration = PowerAuthConfiguration.Builder(
@@ -114,7 +114,7 @@ try {
 ```java
 String INSTANCE_ID = getApplicationContext().getPackageName();
 String MOBILE_SDK_CONFIG = "MTIzNDU2Nz...jc4OTAxMg==";
-String API_SERVER = "https://localhost:8080/demo-server";
+String API_SERVER = "https://<your-domain>/enrollment-server";
 
 try {
     final PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(

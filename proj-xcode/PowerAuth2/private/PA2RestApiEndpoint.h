@@ -32,7 +32,7 @@
 /// Encryptor's identifier, in case that request & response is encrypted.
 @property (nonatomic, assign, readonly) PA2EncryptorId encryptor;
 
-/// uriId for PowerAuth signature calculation, in case that request is signed.
+/// uriId for PowerAuth authorization code calculation, in case that request is signed.
 @property (nonatomic, strong, readonly) NSString * authUriId;
 
 /// Object type expected in request body.
@@ -53,7 +53,7 @@
 @property (nonatomic, assign, readonly) BOOL isEncryptedWithApplicationScope;
 
 
-/// Returns YES, if request needs to be signed with PA signature
+/// Returns YES, if request needs to be signed with PA authorization code
 @property (nonatomic, assign, readonly) BOOL isSigned;
 
 /// Returns YES, if endpoint is available during the protocol upgrade.

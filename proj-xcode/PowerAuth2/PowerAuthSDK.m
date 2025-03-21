@@ -1154,7 +1154,7 @@ static PowerAuthSDK * s_inst;
         id<PowerAuthOperationTask> biometricAuthTask = [self authenticateUsingBiometryImpl:authentication.keychainAuthentication
                                                                                   callback:^(PowerAuthAuthentication *resolvedAuthentication, NSError *error) {
             if (resolvedAuthentication) {
-                // Biometric authentication succeeded, now continue with signature calculation
+                // Biometric authentication succeeded, now continue with authorization code calculation
                 executionFunc(resolvedAuthentication);
             } else {
                 // Biometric authentication failed
@@ -1254,7 +1254,7 @@ static PowerAuthSDK * s_inst;
 
 
 /**
- This private method implements both online & offline signature calculations. Unlike the public interfaces, method accepts
+ This private method implements both online & offline authorization code calculations. Unlike the public interfaces, method accepts
  PA2HTTPRequestData object as a source for data for signing and returns structured PA2HTTPRequestDataSignature object.
  */
 - (PowerAuthCoreHTTPRequestDataSignature*) signHttpRequestData:(PowerAuthCoreHTTPRequestData*)requestData

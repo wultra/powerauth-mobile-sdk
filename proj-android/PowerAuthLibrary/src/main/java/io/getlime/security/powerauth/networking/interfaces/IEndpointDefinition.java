@@ -42,7 +42,7 @@ public interface IEndpointDefinition<TResponse> {
     }
 
     /**
-     * @return String with "URI Identifier", required for PowerAuth signature calculation.
+     * @return String with "URI Identifier", required for PowerAuth authorization code calculation.
      *         If endpoint is not signed, then returns null. By default, returns null.
      */
     @Nullable

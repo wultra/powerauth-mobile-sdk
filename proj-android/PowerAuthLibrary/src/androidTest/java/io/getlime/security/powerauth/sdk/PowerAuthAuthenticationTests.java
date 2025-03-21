@@ -23,9 +23,7 @@ import org.junit.runner.RunWith;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.getlime.security.powerauth.core.Password;
-import io.getlime.security.powerauth.integration.support.PowerAuthTestHelper;
 import io.getlime.security.powerauth.integration.support.RandomGenerator;
-import io.getlime.security.powerauth.integration.tests.ActivationHelper;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 import static org.junit.Assert.*;
@@ -105,12 +103,12 @@ public class PowerAuthAuthenticationTests {
     public void testPossessionOnly() throws Exception {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
         assertTrue(authentication.validateAuthenticationUsage(false));
-        assertEquals(1, authentication.getSignatureFactorsMask());
+        assertEquals(1, authentication.getAuthorizationCodeFactorsMask());
         
         authentication = PowerAuthAuthentication.possession(customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1, authentication.getSignatureFactorsMask());
+        assertEquals(1, authentication.getAuthorizationCodeFactorsMask());
     }
 
     @Test
@@ -118,24 +116,24 @@ public class PowerAuthAuthenticationTests {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithPassword(password);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
-        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(password, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
-        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithPassword(stringPassword, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(password, authentication.getPassword());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 2, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 2, authentication.getAuthorizationCodeFactorsMask());
     }
 
     @Test
@@ -143,12 +141,12 @@ public class PowerAuthAuthenticationTests {
         PowerAuthAuthentication authentication = PowerAuthAuthentication.possessionWithBiometry(biometryKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
-        assertEquals(1 + 4, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 4, authentication.getAuthorizationCodeFactorsMask());
 
         authentication = PowerAuthAuthentication.possessionWithBiometry(biometryKey, customPossessionKey);
         assertTrue(authentication.validateAuthenticationUsage(false));
         assertEquals(biometryKey, authentication.getBiometryFactorRelatedKey());
         assertEquals(customPossessionKey, authentication.getOverriddenPossessionKey());
-        assertEquals(1 + 4, authentication.getSignatureFactorsMask());
+        assertEquals(1 + 4, authentication.getAuthorizationCodeFactorsMask());
     }
 }

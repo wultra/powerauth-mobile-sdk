@@ -59,7 +59,7 @@
  each instnace of PowerAuthSDK has its own queue.
  
  Note that the queue may be blocked for an indefinite amount of time, when the biometry
- signature is requested. The reson for that is that the entry, protected by biometry,
+ authentication is requested. The reson for that is that the entry, protected by biometry,
  needs to be acquired from the underlying keychain.
  */
 @property (nonatomic, strong, nonnull, readonly) NSOperationQueue * serialQueue;

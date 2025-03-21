@@ -416,7 +416,7 @@ public class PowerAuthSDK {
      */
     private @NonNull SignatureUnlockKeys signatureKeysForAuthentication(@NonNull Context context, @NonNull PowerAuthAuthentication authentication) {
 
-        // Validate authentication usage for signature calculation.
+        // Validate authentication usage for authorization code calculation.
         authentication.validateAuthenticationUsage(false);
 
         // Generate signature key encryption keys
@@ -439,7 +439,7 @@ public class PowerAuthSDK {
 
     /**
      * Converts signature factors from {@link PowerAuthAuthentication} into numeric constant
-     * usable in low level signature calculation routines.
+     * usable in low level authorization code calculation routines.
      *
      * @param authentication {@link PowerAuthAuthentication} object with signature factors set.
      * @return Integer with an appropriate bits set. Each bit represents one signature factor.
@@ -1825,14 +1825,14 @@ public class PowerAuthSDK {
      * Compute PowerAuth authorization code for given signature request object and authentication.
      * <p>
      * This private method checks most of the session states (except invalid setup) and then performs
-     * the signature calculation. The {@link SignatureRequest} object has to be properly configured,
+     * the authorization code calculation. The {@link SignatureRequest} object has to be properly configured,
      * before the operation. Method always returns a {@link SignatureResult} object or throws
      * an exception in case of failure.
      *
      * @param context android context object
-     * @param signatureRequest data for signature calculation
+     * @param signatureRequest data for authorization code calculation
      * @param authentication authentication object
-     * @param allowInUpgrade if true, then the signature calculation can be performed during the protocol upgrade.
+     * @param allowInUpgrade if true, then the authorization code calculation can be performed during the protocol upgrade.
      * @return {@link SignatureResult}
      * @throws PowerAuthErrorException if calculation fails.
      */
@@ -1868,7 +1868,7 @@ public class PowerAuthSDK {
 
         // Check the result
         if (signatureResult.errorCode != ErrorCode.OK) {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR, "Signature calculation failed on error " +  signatureResult.errorCode);
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.SIGNATURE_ERROR, "Authorization code calculation failed on error " +  signatureResult.errorCode);
         }
 
         return signatureResult;
@@ -2846,13 +2846,13 @@ public class PowerAuthSDK {
      * <h3>Why this matters</h3>
      *
      * The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
-     * at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+     * at the time. The PowerAuth authorization codes are based on a logical counter, so this technique makes that all requests are delivered
      * to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
      * them with the SDK.
      *
      * <h3>Recommended practices</h3>
      * <ul>
-     *     <li>You should calculate PowerAuth signature from the {@link Runnable#run()} method.
+     *     <li>You should calculate PowerAuth authorization code from the {@link Runnable#run()} method.
      *     <li>{@link Runnable#run()} should return from its execution after the HTTP request is fully processed, or at least after
      *         the response headers are received (e.g. you know that the server already did process the request)
      * </ul>

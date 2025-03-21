@@ -14,9 +14,9 @@
   - [Validating User Inputs](#validating-user-inputs)
 - [Requesting Device Activation Status](#requesting-activation-status)
 - [Data Signing](#data-signing)
-  - [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature)
+  - [Symmetric Multi-Factor Authorization Code](#symmetric-multi-factor-authorization-code)
   - [Asymmetric Private Key Signature](#asymmetric-private-key-signature)
-  - [Symmetric Offline Multi-Factor Signature](#symmetric-offline-multi-factor-signature)
+  - [Symmetric Offline Multi-Factor Authorization Code](#symmetric-offline-multi-factor-authorization-code)
   - [Producing Signed JWT with Provided Claims](#producing-signed-jwt-with-provided-claims)
   - [Verify Server-Signed Data](#verify-server-signed-data)
 - [Password Change](#password-change)
@@ -145,7 +145,7 @@ PowerAuthAppLifecycleListener.getInstance().registerForActivityLifecycleCallback
 
 The `PowerAuthConfiguration.Builder` class provides the following additional methods that can alter the configuration:
 
-- `offlineAuthorizationCodeComponentLength()` - Alters the default component length for the [offline signature](#symmetric-offline-multi-factor-signature). The values between 4 and 8 are allowed. The default value is 8.
+- `offlineAuthorizationCodeComponentLength()` - Alters the default component length for the [offline authorization code](#symmetric-offline-multi-factor-authorization-code). The values between 4 and 8 are allowed. The default value is 8.
 - `externalEncryptionKey()` - See [External Encryption Key](#external-encryption-key) chapter for more details.
 - `disableAutomaticProtocolUpgrade()` - Disables the automatic protocol upgrade. This option should be used only for debugging purposes.
 
@@ -809,75 +809,62 @@ The activation record is created, and the key exchange between the client and se
 
 #### `ActivationStatus.State_Active`
 
-The activation record is created and active. It is ready to be used for typical use-cases, such as generating signatures.
+The activation record is created and active. It is ready to be used for typical use-cases, such as generating authorization codes.
 
 #### `ActivationStatus.State_Blocked`
 
-The activation record is blocked and cannot be used for most use-cases, such as generating signatures. While it can be unblocked and activated again, the unblock process cannot be performed locally on the mobile device and requires intervention through an external system, such as internet banking or a back office platform.
+The activation record is blocked and cannot be used for most use-cases, such as generating authorization codes. While it can be unblocked and activated again, the unblock process cannot be performed locally on the mobile device and requires intervention through an external system, such as internet banking or a back office platform.
 
 #### `ActivationStatus.State_Removed`
 
-The activation record is removed and permanently blocked. It cannot be used for generating signatures or ever unblocked. You can inform user about this situation and remove the activation locally.
+The activation record is removed and permanently blocked. It cannot be used for generating authorization codes or ever unblocked. You can inform user about this situation and remove the activation locally.
 
 #### `ActivationStatus.State_Deadlock`
 
-The local activation is technically blocked and can no longer be used for signature calculations. You can inform the user about this situation and remove the activation locally.
+The local activation is technically blocked and can no longer be used for authorization code calculations. You can inform the user about this situation and remove the activation locally.
 
-The reason why the mobile client is no longer capable of calculating valid signatures is that the logical counter is out of sync between the client and the server. This may happen only if the mobile client calculates too many PowerAuth signatures without subsequent validation on the server. For example:
+The reason why the mobile client is no longer capable of calculating valid authorization codes is that the logical counter is out of sync between the client and the server. This may happen only if the mobile client calculates too many PowerAuth authorization codes without subsequent validation on the server. For example:
 
-- If your application repeatedly constructs HTTP requests with a PowerAuth signature while the network is unreachable.
+- If your application repeatedly constructs HTTP requests with a PowerAuth authorization header while the network is unreachable.
 - If your application repeatedly creates authentication tokens while the network is unreachable. For example, when trying to register for push notifications in the background, without user interaction.
-- If you calculate too many offline signatures without subsequent validation.
+- If you calculate too many offline authorization codes without subsequent validation.
 
 In rare situations, this may also happen in development or testing environments, where you’re able to restore the state of the activation on the server from a snapshot.
 
 ## Data Signing
 
-The main feature of the PowerAuth protocol is data signing. PowerAuth has two types of signatures:
+The main feature of the PowerAuth protocol is data signing. PowerAuth has various types of signatures:
 
-- **Symmetric Multi-Factor Signature**: Suitable for most operations, such as login, new payment, or confirming changes in settings.
+- **Symmetric Multi-Factor Authorization Code**: Suitable for most operations, such as login, new payment, or confirming changes in settings.
 - **Asymmetric Private Key Signature**: Suitable for documents where a strong one-sided signature is desired.
-- **Symmetric Offline Multi-Factor Signature**: Suitable for very secure operations, where the signature is validated over the out-of-band channel.
+- **Symmetric Offline Multi-Factor Authorization Code**: Suitable for very secure operations, where the signature is validated over the out-of-band channel.
 - **Verify server signed data**: Suitable for receiving arbitrary data from the server.
 
-### Symmetric Multi-Factor Signature
+### Symmetric Multi-Factor Authorization Code
 
-To sign request data, you need to first obtain user credentials (password, PIN code, biometric image) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication` that holds information about the used authentication factors:
+To authenticate the request data, you need to first obtain user credentials (password, PIN code, biometric image) from the user. The task of obtaining the user credentials is used in more use-cases covered by the SDK. The core class is `PowerAuthAuthentication` that holds information about the used authentication factors:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
-// 1FA signature, uses device related key only.
+// 1FA authorization code, uses device related key only.
 val oneFactor = PowerAuthAuthentication.possession()
 
-// 2FA signature - uses device related key and user PIN code.
+// 2FA authorization code - uses device related key and user PIN code.
 val twoFactorPassword = PowerAuthAuthentication.possessionWithPassword("1234")
 
-// 2FA signature, uses biometry factor-related key as a 2nd. factor.
+// 2FA authorization code, uses biometry factor-related key as a 2nd. factor.
 // To obtain biometryFactorRelatedKey see "Fetching the Biometry Factor-Related Key for Authentication" chapter.
 val twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey)
 ```
-```java
-// 1FA signature, uses device related key only.
-PowerAuthAuthentication oneFactor = PowerAuthAuthentication.possession();
-
-// 2FA signature - uses device related key and user PIN code.
-PowerAuthAuthentication twoFactorPassword = PowerAuthAuthentication.possessionWithPassword("1234");
-
-// 2FA signature, uses biometry factor-related key as a 2nd. factor.
-// To obtain biometryFactorRelatedKey see "Fetching the Biometry Factor-Related Key for Authentication" chapter.
-PowerAuthAuthentication twoFactorBiometry = PowerAuthAuthentication.possessionWithBiometry(biometryFactorRelatedKey);
-```
-<!-- end -->
 
 When signing `POST`, `PUT` or `DELETE` requests, use request body bytes (UTF-8) as request data and the following code:
 
 ```kotlin
-// 2FA signature - uses device related key and user PIN code
+// 2FA authorization code - uses device related key and user PIN code
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
 // Compute authorization header for POST call with provided data made to URI with custom identifier "/payment/create"
 try {
-    val header = powerAuthSDK.requestSignatureWithAuthentication(context, authentication, "POST", "/payment/create", requestBodyBytes)
+    val header = powerAuthSDK.authorizationHeaderForRequestWithBody(context, authentication, "POST", "/payment/create", requestBodyBytes)
     val httpHeaderKey = header.getKey()
     val httpHeaderValue = header.getValue()
 } catch (e: PowerAuthErrorException) {
@@ -888,7 +875,7 @@ try {
 When signing `GET` or `DELETE` request with query parameters, use the following code:
 
 ```kotlin
-// 2FA signature - uses device-related key and user PIN code
+// 2FA authorization code - uses device-related key and user PIN code
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
 // Compute authorization header for GET call with provided query parameters made to URI with custom identifier "/payment/create"
@@ -902,7 +889,7 @@ try {
 }
 ```
 
-The result of the signature is appropriate HTTP header - you are responsible for hooking up the header value in your request correctly. The process with libraries like `OkHttp` goes like this:
+The result of the operation is appropriate HTTP header - you are responsible for hooking up the header value in your request correctly. The process with libraries like `OkHttp` goes like this:
 
 ```kotlin
 // Prepare the request builder
@@ -910,7 +897,7 @@ val builder: Request.Builder = Builder().url(endpoint)
 
 // Compute PowerAuth authorization header
 try {
-    val header = powerAuthSDK.authorizationHeaderForRequestWithBody(context, signatureUnlockKeys, "POST", "/session/login", jsonBody)
+    val header = powerAuthSDK.authorizationHeaderForRequestWithBody(context, authentication, "POST", "/session/login", jsonBody)
     // Add HTTP header in the request builder
     builder.header(header.getKey(), header.getValue())
 } catch (e: PowerAuthErrorException) {
@@ -923,34 +910,20 @@ try {
 
 #### Request Synchronization
 
-It is recommended that your application executes only one signed request at the time. The reason for that is that our signature scheme is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more than one signed request at the same time, then the order is not guaranteed, and therefore one of the requests may fail. On top of that, Mobile SDK itself is using this type of signatures for its own purposes. For example, if you ask for token, then the SDK is using signed request to obtain the token's data. To deal with this problem, Mobile SDK is providing a custom serial `Executor`, which can be used for signed requests execution:
+It is recommended that your application executes only one signed request at the time. The reason for that is that our scheme for authorization codes is using a counter as a representation of logical time. In other words, the order of request validation on the server is very important. If you issue more than one signed request at the same time, then the order is not guaranteed, and therefore one of the requests may fail. On top of that, Mobile SDK itself is using this type of authentication for its own purposes. For example, if you ask for token, then the SDK is using authenticated request to obtain the token's data. To deal with this problem, Mobile SDK is providing a custom serial `Executor`, which can be used for signed requests execution:
 
-<!-- begin codetabs Kotlin Java -->
 ```kotlin
 powerAuthSDK.serialExecutor.execute {
     // Recommended practice:
-    // 1. You have to calculate the PowerAuth signature here.
+    // 1. You have to calculate the PowerAuth authorization header here.
     // 2. In case that you start yet another asynchronous operation from run(),
     //    then you have to wait for that operation's execution.
 }
 ```
-```java
-final Executor serialExecutor = powerAuthSDK.getSerialExecutor();
-serialExecutor.execute(new Runnable() {
-    @Override
-    public void run() {
-        // Recommended practice:
-        // 1. You have to calculate the PowerAuth signature here.
-        // 2. In case that you start yet another asynchronous operation from run(),
-        //    then you have to wait for that operation's execution.
-    }
-});
-```
-<!-- end -->
 
 ### Asymmetric Private Key Signature
 
-Asymmetric Private Key Signature uses a private key stored in the PowerAuth secure vault. In order to unlock the secure vault and retrieve the private key, the user has to first authenticate using the symmetric multi-factor signature with at least two factors. This mechanism protects the private key on the device - the server plays a role of a "doorkeeper" and holds the vault unlock key.
+Asymmetric Private Key Signature uses a private key stored in the PowerAuth secure vault. In order to unlock the secure vault and retrieve the private key, the user has to first authenticate using the symmetric multi-factor authorization code with at least two factors. This mechanism protects the private key on the device - the server plays a role of a "doorkeeper" and holds the vault unlock key.
 
 This process is completely transparent on the SDK level. To compute an asymmetric private key signature, request user credentials (password, PIN, biometric image) and use the following code:
 
@@ -1005,7 +978,7 @@ val claims = mapOf(
     "last_name" to "Appleseed"
 )
 
-// 2FA signature - uses device related key and user PIN code
+// 2FA - uses device related key and user PIN code
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
 // Unlock the secure vault, fetch the private key and perform data signing
@@ -1020,15 +993,15 @@ powerAuthSDK.signJwtWithDevicePrivateKey(context, authentication, claims, object
 })
 ```
 
-### Symmetric Offline Multi-Factor Signature
+### Symmetric Offline Multi-Factor Authorization Code
 
-This type of signature is very similar to [Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) but the result is provided in the form of a simple, human-readable string (unlike the online version, where the result is an HTTP header). To calculate the signature, you need a typical `PowerAuthAuthentication` object to define all required factors, nonce and data to sign. The `nonce` and `data` should also be transmitted to the application over the OOB channel (for example, by scanning a QR code). Then the signature calculation is straightforward:
+This type of authentication is very similar to [Symmetric Multi-Factor Authorization Code](#symmetric-multi-factor-authorization-code) but the result is provided in the form of a simple, human-readable string (unlike the online version, where the result is an HTTP header). To calculate the code, you need a typical `PowerAuthAuthentication` object to define all required factors, nonce and data to sign. The `nonce` and `data` should also be transmitted to the application over the OOB channel (for example, by scanning a QR code). Then the authorization code calculation is straightforward:
 
 ```kotlin
 // Prepare the authentication object
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
-powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confirm/offline/operation", data, nonce, object: IOfflineAuthorizationCodeListener {
+powerAuthSDK.offlineAuthorizationCode(context, authentication, "/confirm/offline/operation", data, nonce, object: IOfflineAuthorizationCodeListener {
     override fun onOfflineAuthorizationCodeSucceed(authorizationCode: String) {
         Log.d(TAG, "Offline authorization code is: $authorizationCode")
     }
@@ -1039,10 +1012,10 @@ powerAuthSDK.offlineSignatureWithAuthentication(context, authentication, "/confi
 })
 ```
 
-The application has to show that calculated signature to the user now, and the user has to re-type that code into the web application for the verification.
+The application has to show that calculated code to the user now, and the user has to re-type that code into the web application for the verification.
 
 <!-- begin box info -->
-You can alter the length of the signature components by using `offlineAuthorizationCodeComponentLength()` function of `PowerAuthConfiguration.Builder` class.
+You can alter the length of the code components by using `offlineAuthorizationCodeComponentLength()` function of `PowerAuthConfiguration.Builder` class.
 <!-- end -->
 
 ### Verify Server-Signed Data
@@ -1074,7 +1047,7 @@ if (powerAuthSDK.verifyServerSignedData(data, signature, false)) {
 
 ## Password Change
 
-Since the device does not know the password and is unable to verify the password without the help of the server-side, you need to first call an endpoint that verifies a signature computed with the password. SDK offers two ways to do that.
+Since the device does not know the password and is unable to verify the password without the help of the server-side, you need to first call an endpoint that verifies an authorization code computed with the password. SDK offers two ways to do that.
 
 The safe but typically slower way is to use the following code:
 
@@ -1107,7 +1080,7 @@ powerAuthSDK.changePassword(context, "oldPassword", "newPassword", new IChangePa
 ```
 <!-- end -->
 
-This method calls `/pa/v3/signature/validate` under the hood with a 2FA signature with provided original password to verify the password correctness.
+This method calls `/pa/v3/signature/validate` under the hood with a 2FA authorization code with provided original password to verify the password correctness.
 
 However, using this method does not usually fit the typical UI workflow of a password change. The method may be used in cases where an old password and a new password are on a single screen, and therefore are both available at the same time. In most mobile apps, however, the user first visits a screen to enter an old password, and then (if the password is OK), the user proceeds to the two-screen flow of a new password setup (select password, confirm password). In other words, the workflow works like this:
 
@@ -1878,7 +1851,7 @@ this.httpClient.post(null, "/custom/activation/remove", new ICustomListener() {
 
 ### Removal via Signed Request
 
-PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a signature verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for Android and PowerAuth Standard RESTful API - nothing has to be programmed. Also, the user does not have to be logged in to use it. However, the user has to authenticate using 2FA with either password or biometric authentication.
+PowerAuth Standard RESTful API has a default endpoint `/pa/v3/activation/remove` for an activation removal. This endpoint uses a authorization code verification for looking up the activation to be removed. The benefit of this method is that it is already present in both PowerAuth SDK for Android and PowerAuth Standard RESTful API - nothing has to be programmed. Also, the user does not have to be logged in to use it. However, the user has to authenticate using 2FA with either password or biometric authentication.
 
 Use the following code for an activation removal using a signed request:
 
@@ -1920,7 +1893,7 @@ powerAuthSDK.removeActivationWithAuthentication(context, authentication, new IAc
 Currently, PowerAuth SDK supports two basic modes of end-to-end encryption, based on the ECIES scheme:
 
 - In an "application" scope, the encryptor can be acquired and used during the whole lifetime of the application.
-- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Signature](#symmetric-multi-factor-signature) in "encrypt-then-sign" mode.
+- In an "activation" scope, the encryptor can be acquired only if `PowerAuthSDK` has a valid activation. The encryptor created for this mode is cryptographically bound to the parameters agreed during the activation process. You can combine this encryption with [PowerAuth Symmetric Multi-Factor Authorization Code](#symmetric-multi-factor-authorization-code) in "encrypt-then-sign" mode.
 
 
 For both scenarios, you need to acquire an `EciesEncryptor` object, which will then provide an interface for the request encryption and the response decryption. The object currently provides only low-level encryption and decryption methods, so you need to implement your own JSON (de)serialization and request and response processing.
@@ -1985,7 +1958,7 @@ The following steps are typically required for a full E2EE request and response 
    val httpHeaderName = metadata.httpHeaderKey
    val httpHeaderValue = metadata.httpHeaderValue
    ```
-   Note, that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor signature, then this step is not required. The signature's header already contains all the information required for proper request decryption on the server.
+   Note, that if an "activation" scoped encryptor is combined with PowerAuth Symmetric Multi-Factor Authorization Code, then this step is not required. The authorization header already contains all the information required for proper request decryption on the server.
 
 1. Fire your HTTP request and wait for a response
    - In case that non-200 HTTP status code is received, then the error processing is identical to a standard RESTful response defined in our protocol. So, you can expect a JSON object with `"error"` and `"message"` properties in the response.
@@ -2032,7 +2005,7 @@ The secure vault mechanism does not support biometry by default. Use PIN code or
 To obtain an encryption key with a given index, use the following code:
 
 ```kotlin
-// 2FA signature. It uses device-related key and user PIN code.
+// 2FA authentication. It uses device-related key and user PIN code.
 val authentication = PowerAuthAuthentication.possessionWithPassword("1234")
 
 // Select custom key index
@@ -2057,9 +2030,9 @@ powerAuthSDK.fetchEncryptionKey(context, authentication, index, object: IFetchEn
 **WARNING:** Before you start using access tokens, please visit our [wiki page for powerauth-crypto](https://github.com/wultra/powerauth-crypto/blob/develop/docs/MAC-Token-Based-Authentication.md) for more information about this feature.
 <!-- end -->
 
-The tokens are simple, locally cached objects, producing timestamp-based authorization headers. Be aware that tokens are NOT a replacement for general PowerAuth signatures. They are helpful in situations when the signatures are too heavy or too complicated for implementation. Each token has the following properties:
+The tokens are simple, locally cached objects, producing timestamp-based authorization headers. Be aware that tokens are NOT a replacement for general PowerAuth Authorization Codes. They are helpful in situations when the codes are too heavy or too complicated for implementation. Each token has the following properties:
 
-- It needs a PowerAuth signature for its creation (e.g., you need to provide a `PowerAuthAuthentication` object)
+- It needs a PowerAuth Authorization Code for its creation (e.g., you need to provide a `PowerAuthAuthentication` object)
 - It has a unique identifier on the server. This identifier is not exposed to the public API, but you can reveal that value in the debugger.
 - It has a symbolic name (e.g., "MyToken") defined by the application programmer to identify already created tokens.
 - It can generate timestamp-based authorization HTTP headers.
@@ -2074,7 +2047,7 @@ To get an access token, you can use the following code:
 
 <!-- begin codetabs Kotlin Java -->
 ```kotlin
-// 1FA signature - uses device-related key
+// 1FA authorization - uses device-related key
 val authentication = PowerAuthAuthentication.possession()
 val cancelableTask = powerAuthSDK.tokenStore.requestAccessToken(context, "MyToken", authentication, object: IGetTokenListener {
     override fun onGetTokenSucceeded(powerAuthToken: PowerAuthToken) {
@@ -2087,7 +2060,7 @@ val cancelableTask = powerAuthSDK.tokenStore.requestAccessToken(context, "MyToke
 })
 ```
 ```java
-// 1FA signature - uses device-related key
+// 1FA authorization - uses device-related key
 final PowerAuthAuthentication authentication = PowerAuthAuthentication.possession();
 final PowerAuthTokenStore tokenStore = powerAuthSDK.getTokenStore();
 final ICancelable task = tokenStore.requestAccessToken(context, "MyToken", authentication, new IGetTokenListener() {
@@ -2194,7 +2167,7 @@ Note that by removing tokens locally, you will lose control of the tokens stored
 
 The `PowerAuthSDK` allows you to specify an external encryption key (called EEK in our terminology) that can additionally protect the knowledge and the biometry factor keys. This feature is typically used to create a chain of activations where one instance of `PowerAuthSDK` is primary and unlocks access to all secondary activations.
 
-The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains information that the factor keys are protected with EEK, so EEK must be known at the time of PowerAuth signature is calculated. You have three options on how to configure the key:
+The external encryption key has to be set before the activation is created, or can be added later. The internal state of `PowerAuthSDK` contains information that the factor keys are protected with EEK, so EEK must be known at the time of PowerAuth authorization code is calculated. You have three options on how to configure the key:
 
 1. Assign EEK into `PowerAuthConfiguration.Builder` at the time of `PowerAuthSDK` object creation.
    - This is the most convenient way of using EEK, but the key must be known at the time of the `PowerAuthSDK` instantiation.
@@ -2415,7 +2388,7 @@ Here's the list of important error codes, which the application should properly 
 
 - `BIOMETRY_CANCEL` is reported when the user cancels the biometric authentication dialog
 - `PROTOCOL_UPGRADE` is reported when SDK fails to upgrade itself to a newer protocol version. The code may be reported from `PowerAuthSDK.fetchActivationStatusWithCallback()`. This is an unrecoverable error resulting in the broken activation on the device, so the best situation is to inform the user about the situation and remove the activation locally.
-- `PENDING_PROTOCOL_UPGRADE` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in situations when SDK is performing protocol upgrade in the background (as a part of activation status fetch), and the application wants to calculate the PowerAuth signature in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
+- `PENDING_PROTOCOL_UPGRADE` is reported when the requested SDK operation cannot be completed due to a pending PowerAuth protocol upgrade. You can retry the operation later. The code is typically reported in situations when SDK is performing protocol upgrade in the background (as a part of activation status fetch), and the application wants to calculate the PowerAuth authorization code in parallel operation. Such kind of concurrency is forbidden since SDK version `1.0.0`
 
 
 ### Working with Invalid SSL Certificates

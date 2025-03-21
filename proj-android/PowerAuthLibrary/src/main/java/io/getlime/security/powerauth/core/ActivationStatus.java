@@ -50,7 +50,7 @@ public class ActivationStatus {
      */
     public static final int State_Removed  = 5;
     /**
-     * The activation is technically blocked. You cannot use it anymore for the signature calculations.
+     * The activation is technically blocked. You cannot use it anymore for the authorization code calculations.
      */
     public static final int State_Deadlock = 128;
 
@@ -107,7 +107,7 @@ public class ActivationStatus {
     // Other status flags
 
     /**
-     * Contains true if dummy signature calculation is recommended to prevent
+     * Contains true if dummy authorization code calculation is recommended to prevent
      * the counter's de-synchronization.
      */
     public final boolean isSignatureCalculationRecommended;

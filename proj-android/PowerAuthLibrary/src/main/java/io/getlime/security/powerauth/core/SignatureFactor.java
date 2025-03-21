@@ -25,6 +25,8 @@ import static io.getlime.security.powerauth.core.SignatureFactor.Biometry;
 import static io.getlime.security.powerauth.core.SignatureFactor.Knowledge;
 import static io.getlime.security.powerauth.core.SignatureFactor.Possession;
 
+// TODO: Align with "authorization code" naming.
+
 /**
  * The SignatureFactor constants defines factors involved in the signature
  * computation. The factor types are tightly coupled with SignatureUnlockKeys

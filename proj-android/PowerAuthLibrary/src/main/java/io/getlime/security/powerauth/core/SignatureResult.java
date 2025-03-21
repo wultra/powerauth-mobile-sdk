@@ -21,7 +21,7 @@ import androidx.annotation.NonNull;
 // TODO: Align with "authorization code" naming.
 
 /**
- * Result from signature calculation.
+ * Result from authorization code calculation.
  */
 public class SignatureResult {
 

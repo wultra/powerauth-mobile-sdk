@@ -45,7 +45,7 @@
 - (PowerAuthCoreData*) deviceRelatedKey;
 
 /**
- Low level signature calculation. Unlike the high level interface, this method doesn't check
+ Low level authorization code calculation. Unlike the high level interface, this method doesn't check
  the protocol upgrade flag. This is useful for situations, where the flag is validated elsewhere, or
  when the request can be signed during the pending protocol upgrade.
  */

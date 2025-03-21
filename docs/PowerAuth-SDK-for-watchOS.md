@@ -66,7 +66,7 @@ Check [troubleshooting section](#cocoapods-integration-fails) of this document w
 
 ## Configuration
 
-The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth signature from a watch application) and to do that it requires that your application's code will participate in data synchronization.
+The Watch SDK shares several source codes and configuration principles with the main iOS SDK. So, you can prepare the same set of constants as you're already using in your IOS application. The SDK provides just a limited functionality for the watch app (for example, you cannot create an activation or calculate a full PowerAuth authorization code from a watch application) and to do that it requires that your application's code will participate in data synchronization.
 
 ### Prepare Watch Connectivity
 

@@ -426,7 +426,7 @@
 
 /// MARK: - Deprecated "symmetric signatures"
 
-/** Compute the HTTP signature header for GET HTTP method, URI identifier and HTTP query parameters using provided authentication information.
+/** Compute the HTTP authorization header for GET HTTP method, URI identifier and HTTP query parameters using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
@@ -434,7 +434,7 @@
  @param uriId URI identifier.
  @param params HTTP query params.
  @param error Error reference in case some error occurs.
- @return HTTP header with PowerAuth authorization signature. In case of error, this method return 'nil'.
+ @return HTTP header with PowerAuth authorization code. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
  @deprecated Use `authorizationHeaderForRequestWithParams(with:method:uriId:params:)` as a replacement.
  */
@@ -444,16 +444,16 @@
                                                                                error:(NSError * _Nullable * _Nullable)error
                                                                                 PA2_DEPRECATED(1.10.0);
 
-/** Compute the HTTP signature header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
+/** Compute the HTTP authorization code header for given HTTP method, URI identifier and HTTP request body using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
  @param authentication An authentication instance specifying what factors should be used to sign the request.
- @param method HTTP method used for the signature computation.
+ @param method HTTP method used for the authorization code computation.
  @param uriId URI identifier.
  @param body HTTP request body.
  @param error Error reference in case some error occurs.
- @return HTTP header with PowerAuth authorization signature. In case of error, this method return 'nil'.
+ @return HTTP header with PowerAuth authorization code. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
  @deprecated Use `authorizationHeaderForRequestWithBody(with:method:uriId:body:)` as a replacement.
  */
@@ -464,7 +464,7 @@
                                                                             error:(NSError * _Nullable * _Nullable)error
                                                                                 PA2_DEPRECATED(1.10.0);
 
-/** Compute the offline signature for URI identifier and HTTP request body using provided authentication information.
+/** Compute the offline authorization code for URI identifier and HTTP request body using provided authentication information.
  
  This method may block a main thread - make sure to dispatch it asynchronously.
  
@@ -473,7 +473,7 @@
  @param body HTTP request body.
  @param nonce NONCE in Base64 format.
  @param error Error reference in case some error occurs.
- @return String representing a calculated signature for all involved factors. In case of error, this method return 'nil'.
+ @return String representing a calculated authorization code for all involved factors. In case of error, this method return 'nil'.
  @exception NSException thrown in case configuration is not present.
  @deprecated Use `offlineAuthorizationCode(with:uriId:body:nonce:callback:)` method as a replacement.
  */
@@ -557,7 +557,7 @@
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the authorization code value.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.
@@ -569,7 +569,7 @@
 
 /** Validate a user password.
  
- This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the signature value.
+ This method calls PowerAuth Standard RESTful API endpoint '/pa/signature/validate' to validate the authorization code value.
  
  @param password Password to be verified.
  @param callback The callback method with error associated with the password validation.
@@ -627,9 +627,9 @@
  */
 - (nullable id<PowerAuthOperationTask>) removeBiometryFactorWithCallback:(nonnull void(^)(NSError * _Nullable error))callback;
 
-/** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
+/** Prepare PowerAuthAuthentication object for future PowerAuth authorization code calculation with a biometry and possession factors involved.
  
- The method is also useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+ The method is also useful for situations where business processes require compute two or more different PowerAuth biometry authorization codes in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required authorization code calculations. It's recommended to keep this instance referenced only for a limited time, required for all future authorization code calculations.
   
  Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
  
@@ -642,9 +642,9 @@
                                                                 NS_SWIFT_NAME(authenticateUsingBiometry(withPrompt:callback:))
                                                                 API_UNAVAILABLE(tvos);
 
-/** Prepare PowerAuthAuthentication object for future PowerAuth signature calculation with a biometry and possession factors involved.
+/** Prepare PowerAuthAuthentication object for future PowerAuth authorization code calculation with a biometry and possession factors involved.
  
- The method is also useful for situations where business processes require compute two or more different PowerAuth biometry signatures in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required signature calculations. It's recommended to keep this instance referenced only for a limited time, required for all future signature calculations.
+ The method is also useful for situations where business processes require compute two or more different PowerAuth biometry authorization codes in one interaction with the user. To achieve this, the application must acquire the custom-created PowerAuthAuthentication object first and then use it for the required authorization code calculations. It's recommended to keep this instance referenced only for a limited time, required for all future authorization code calculations.
   
  Be aware, that you must not execute the next HTTP request signed with the same credentials when the previous one fails with the 401 HTTP status code. If you do, then you risk blocking the user's activation on the server.
  
@@ -659,7 +659,7 @@
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
- There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
+ There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing authorization code in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the authorization code. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
 - (void) unlockBiometryKeysWithPrompt:(nonnull NSString*)prompt
                             withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block
@@ -668,7 +668,7 @@
 
 /** Unlock all keys stored in a biometry related keychain and keeps them cached for the scope of the block.
  
- There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing signature in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the signature. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
+ There are situations where biometry related keys from different PowerAuthSDK instances are needed in a single business process. For example, when having a master-child activation pair, computing authorization code in the child activation requires master activation to use vault unlock first and then, after the request is completed, child activation can compute the authorization code. This would normally trigger biometry dialog twice. To avoid that, all biometry related keys are fetched at once and cached for a limited amount of time.
  */
 - (void) unlockBiometryKeysWithContext:(nonnull LAContext*)context
                              withBlock:(nonnull void(^)(NSDictionary<NSString*, NSData*> * _Nullable keys, BOOL userCanceled))block
@@ -790,13 +790,13 @@
  @b Why this matters
  
  The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
- at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+ at the time. The PowerAuth authorization codes are based on a logical counter, so this technique makes that all requests are delivered
  to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
  them with the SDK.
  
  @b Recommended practices
  
- 1)  You should calculate PowerAuth signature from the execute block method.
+ 1)  You should calculate PowerAuth authorization code from the execute block method.
  
  2)  You have to always call `task.cancel()` on provided `PowerAuthOperationTask` object once the operation is finished,
      otherwise the seriali queue will be blocked indefinitely.
@@ -813,13 +813,13 @@
  @b Why this matters
  
  The PowerAuth SDK is using that executor for serialization of signed HTTP requests, to guarantee, that only one request is processed
- at the time. The PowerAuth signatures are based on a logical counter, so this technique makes that all requests are delivered
+ at the time. The PowerAuth authorization codes are based on a logical counter, so this technique makes that all requests are delivered
  to the server in the right order. So, if the application is creating its own signed requests, then it's recommended to synchronize
  them with the SDK.
  
  @b Recommended practices
  
- You should calculate PowerAuth signature after the operation is started. If you calculate the signature before and after that you add
+ You should calculate PowerAuth authorization code after the operation is started. If you calculate the authorization code before and after that you add
  that operation to the queue, the logical counter may not be synchronized properly.
  
  

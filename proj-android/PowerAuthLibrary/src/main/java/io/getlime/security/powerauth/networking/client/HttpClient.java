@@ -160,7 +160,7 @@ public class HttpClient {
      * @param object object to be serialized into POST request
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
-     * @param authentication optional authentication object, if request has to be signed with PowerAuth signature.
+     * @param authentication optional authentication object, if request payload has to be authenticated with PowerAuth authorization code.
      * @param listener response listener
      * @param <TRequest> type of request object
      * @param <TResponse> type of response object
@@ -244,7 +244,7 @@ public class HttpClient {
      * @param object object to be serialized into POST request
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
-     * @param authentication optional authentication object, if request has to be signed with PowerAuth signature
+     * @param authentication optional authentication object, if request payload has to be authenticated with PowerAuth authorization code
      * @param compositeTask composite task reported back to the application
      * @param listener response listener
      * @param <TRequest> type of request object
@@ -287,7 +287,7 @@ public class HttpClient {
      * @param object object to be serialized into POST request
      * @param endpoint object defining the endpoint
      * @param helper cryptographic helper
-     * @param authentication optional authentication object, if request has to be signed with PowerAuth signature.
+     * @param authentication optional authentication object, if request payload has to be authenticated with PowerAuth authorization code
      * @param listener response listener
      * @param <TRequest> type of request object
      * @param <TResponse> type of response object

@@ -34,7 +34,7 @@
 
 + (BOOL) isInDebug {
     BOOL result = _CoreModuleIsDebug();
-#if defined(ENABLE_PA2_LOG) || defined(DEBUG)
+#if defined(DEBUG)
     result |= YES;
 #endif
     return result;

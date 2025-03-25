@@ -154,7 +154,7 @@ public class PowerAuthTokenStore {
     }
 
     /**
-     * Create a new access token with given name for requested signature factors.
+     * Create a new access token with given name for requested authenticating factors.
      * <p>
      * Note that the method is thread safe, but it's not recommended to request for the same token
      * name in parallel when the token is not created yet. If the method returns an asynchronous task,
@@ -230,14 +230,14 @@ public class PowerAuthTokenStore {
     private @Nullable PowerAuthToken createAccessToken(@NonNull Context context, @NonNull PowerAuthPrivateTokenData tokenData, @NonNull PowerAuthAuthentication authentication) {
         if (tokenData.authenticationFactors != 0) {
             // Token data contains information about factors.
-            if (tokenData.authenticationFactors != authentication.getSignatureFactorsMask()) {
+            if (tokenData.authenticationFactors != authentication.getAuthorizationCodeFactorsMask()) {
                 PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenData.name + "' creation is not allowed.");
                 return null;
             }
         } else {
             // Token was created in OLD SDK, so we should upgrade data and assign a currently requested authentication factors.
             PowerAuthLog.d("PowerAuthTokenStore: Upgrading authentication data for token '" + tokenData.name + "'");
-            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getSignatureFactorsMask());
+            tokenData = new PowerAuthPrivateTokenData(tokenData.name, tokenData.identifier, tokenData.secret, tokenData.activationId, authentication.getAuthorizationCodeFactorsMask());
             storeTokenData(context, tokenData, true);
         }
         return new PowerAuthToken(this, sdk.getTimeSynchronizationService(), tokenData);
@@ -271,7 +271,7 @@ public class PowerAuthTokenStore {
         // Try to find grouped task in task map.
         GetAccessTokenTask groupedTask = createTokenRequests.get(tokenName);
         if (groupedTask != null) {
-            if (groupedTask.authenticationFactors != authentication.getSignatureFactorsMask()) {
+            if (groupedTask.authenticationFactors != authentication.getAuthorizationCodeFactorsMask()) {
                 PowerAuthLog.e("Using different PowerAuthAuthentication for token '" + tokenName + "' creation is not allowed.");
                 return null;
             }
@@ -282,10 +282,10 @@ public class PowerAuthTokenStore {
             // Prepare activationID in advance, to do not store null when activation is suddenly
             // removed during the operation.
             final String activationIdentifier = sdk.getActivationIdentifier();
-            final int authenticationFactors = authentication.getSignatureFactorsMask();
+            final int authenticationFactors = authentication.getAuthorizationCodeFactorsMask();
 
             // Create new grouped task
-            groupedTask = new GetAccessTokenTask(authentication.getSignatureFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
+            groupedTask = new GetAccessTokenTask(authentication.getAuthorizationCodeFactorsMask(), lock, sdk.getCallbackDispatcher(), new GetAccessTokenTask.Listener() {
 
                 @Override
                 public void onTaskStart(@NonNull final GetAccessTokenTask groupedTask) {

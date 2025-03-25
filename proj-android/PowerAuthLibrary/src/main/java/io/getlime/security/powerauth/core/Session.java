@@ -245,7 +245,7 @@ public class Session {
      * <p>
      * <b>WARNING:</b> You have to save Session's state when the activation is completed.
      *
-     * @param lockKeys encryption keys to protect signature factors created during the activation.
+     * @param lockKeys encryption keys to protect authorization code factors created during the activation.
      * @return integer comparable to constants from {@link ErrorCode} class. If {@link ErrorCode#OK}
      *         is returned then the operation succeeded.
      */
@@ -311,7 +311,7 @@ public class Session {
     private native byte[] prepareKeyValueDictionaryForDataSigning(String[] keys, String[] values);
 
     /**
-     * Calculates signature from given data. You have to provide all involved |unlockKeys| required for
+     * Calculates authorization code from given data. You have to provide all involved |unlockKeys| required for
      * the |signatureFactor|. For |request.body| you can provide whole POST body or prepare data with
      * using 'prepareKeyValueDictionaryForDataSigning' method. The |request.method| parameter is the HTML
      * method of signed request. The |request.uri| parameter should be relative URI. Check the original PA2
@@ -332,8 +332,8 @@ public class Session {
      * guard this method with locking. There's possible race condition when the internal signing counter
      * is raised in persistent data structure. The Session doesn't provide locking internally.
      *
-     * @param request {@link SignatureRequest} object with data for signature calculation
-     * @param unlockKeys object with keys to unlock signature factors.
+     * @param request {@link SignatureRequest} object with data for authorization code calculation
+     * @param unlockKeys object with keys to unlock authorization code factor keys.
      * @param signatureFactor integer with bitwise mask of factors. See {@link SignatureFactor} class for details.
      *
      * @return {@link SignatureResult} with signature calculation result. You need to check {@link SignatureResult#errorCode}

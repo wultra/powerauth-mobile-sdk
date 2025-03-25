@@ -63,7 +63,7 @@ class HttpRequestHelper<TRequest, TResponse> {
 
     /**
      * Authentication object. The property may be null for requests which doesn't need to be
-     * signed with PowerAuth signature.
+     * authenticated with PowerAuth authorization code.
      */
     private final PowerAuthAuthentication authentication;
 
@@ -150,7 +150,7 @@ class HttpRequestHelper<TRequest, TResponse> {
      * @param baseUrl String with base URL
      * @param helper Private cryptographic helper
      * @return {@link RequestData} object with all information needed for request execution
-     * @throws PowerAuthErrorException if encryption or signature calculation fails.
+     * @throws PowerAuthErrorException if encryption or authorization code calculation fails.
      * @throws MalformedURLException if cannot construct full request URL
      */
     @NonNull

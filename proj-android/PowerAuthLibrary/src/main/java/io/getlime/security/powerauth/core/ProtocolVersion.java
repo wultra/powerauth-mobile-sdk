@@ -22,7 +22,7 @@ package io.getlime.security.powerauth.core;
  * and all E2EE tasks are now implemented by ECIES.
  *
  * This version of SDK is supporting V2 protocol in very limited scope, where only
- * the V2 signature calculations are supported. Basically, you cannot connect
+ * the V2 authorization code calculations are supported. Basically, you cannot connect
  * to V2 servers with V3 SDK.
  */
 public enum ProtocolVersion {

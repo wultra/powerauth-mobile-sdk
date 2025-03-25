@@ -47,7 +47,7 @@ public class PowerAuthPrivateTokenData {
      */
     public final String activationId;
     /**
-     * Integer represents PowerAuth Symmetric Signature factors used for the token creation.
+     * Integer represents PowerAuth Symmetric Authorization Code factors used for the token creation.
      * If value is equal to 0, then the token was created in older SDKs than 1.7.0.
      */
     public final int authenticationFactors;

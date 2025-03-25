@@ -88,7 +88,7 @@
 - (BOOL) canRequestForAccessToken;
 
 /**
- Create a new access token with given name for requested signature factors. The created token objects
+ Create a new access token with given name for requested authentication factors. The created token objects
  always contains valid token data.
  
  Discussion

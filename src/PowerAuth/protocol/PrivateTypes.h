@@ -122,11 +122,11 @@ namespace protocol
     struct PersistentData
     {
         /**
-         V2: Counter for signature calculations
+         V2: Counter for authorization code calculations
          */
         cc7::U64        signatureCounter;
         /**
-         V3: Data for hash-based counter for signature calculations
+         V3: Data for hash-based counter for authorization code calculations
          */
         cc7::ByteArray  signatureCounterData;
         /**

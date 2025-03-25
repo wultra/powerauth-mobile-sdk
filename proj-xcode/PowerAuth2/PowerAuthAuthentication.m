@@ -383,7 +383,7 @@
         if (forPersist) {
             PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for activation persist is expected.");
         } else {
-            PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for signature calculation is expected.");
+            PowerAuthLog(@"WARNING: Using PowerAuthAuthentication object for a different purpose. The object for authorization code calculation is expected.");
         }
         return NO;
     }

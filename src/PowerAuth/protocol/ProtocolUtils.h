@@ -109,7 +109,7 @@ namespace protocol
                                    size_t offline_size);
     
     /**
-     Prepares exact data for signature calculation:
+     Prepares exact data for authorization code calculation:
      REQ = ${method}&${B64(uri)}&${nonceB64}&${B64(body)}&${secret}
      */
     cc7::ByteArray NormalizeDataForSignature(const std::string & method,

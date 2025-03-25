@@ -513,7 +513,7 @@ namespace powerAuth
                 return ActivationStatus::Counter_Updated;
             }
             // Otherwise it's not possible to determine whether the counter's OK. We have to wait to sync counters
-            // in the next regular signature calculation. In this case, we must pretend that everything's OK.
+            // in the next regular authorization code calculation. In this case, we must pretend that everything's OK.
             return ActivationStatus::Counter_OK;
         }
         
@@ -640,7 +640,7 @@ namespace powerAuth
         const bool base64_sig_format = !request.isOfflineRequest() && _pd->isV3();
         out.signature = protocol::CalculateSignature(plain_keys, signature_factor, ctr_data, data, base64_sig_format, request.offlineSignatureLength);
         if (out.signature.empty()) {
-            CC7_LOG("Session %p: Sign: Signature calculation failed.", this);
+            CC7_LOG("Session %p: Sign: Authorization code calculation failed.", this);
             return EC_Encryption;
         }
         

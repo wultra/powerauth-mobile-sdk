@@ -44,15 +44,15 @@ public interface IPrivateCryptoHelper {
     @NonNull EciesEncryptor getEciesEncryptor(@NonNull EciesEncryptorId identifier) throws PowerAuthErrorException;
 
     /**
-     * Calculates PowerAuth signature for given data.
+     * Calculates PowerAuth authorization code for given data.
      *
      * @param availableInProtocolUpgrade true, if request is available during the protocol upgrade
      * @param body data to be authorized
      * @param method http method (typically POST)
-     * @param uriIdentifier URI identifier, required for PowerAuth signature
+     * @param uriIdentifier URI identifier, required for PowerAuth authorization code
      * @param authentication object with credentials
      * @return Authorization header object or null, in case of error.
-     * @throws PowerAuthErrorException is signature cannot be calculated
+     * @throws PowerAuthErrorException if authorization code cannot be calculated
      */
     @NonNull PowerAuthAuthorizationHttpHeader getAuthorizationHeader(
             boolean availableInProtocolUpgrade,

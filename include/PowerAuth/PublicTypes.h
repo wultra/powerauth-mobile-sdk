@@ -138,7 +138,7 @@ namespace powerAuth
      and all E2EE tasks are now implemented by ECIES.
      
      This version of SDK is supporting V2 protol in very limited scope, where only
-     the V2 signature calculations are supported.
+     the V2 authorization code calculations are supported.
      */
     enum Version
     {
@@ -318,8 +318,8 @@ namespace powerAuth
         bool hasValidData() const;
         
         /**
-         Returns true when this signature calculation request is for offline
-         signatuere. This is exclusively affected by the offlineNonce property.
+         Returns true when this authorization code calculation request is for offline
+         code. This is exclusively affected by the offlineNonce property.
          */
         bool isOfflineRequest() const;
     };
@@ -343,7 +343,7 @@ namespace powerAuth
          */
         std::string applicationKey;
         /**
-         NONCE used for the signature calculation.
+         NONCE used for the offline authorization code calculation.
          */
         std::string nonce;
         /**
@@ -661,7 +661,7 @@ namespace powerAuth
          */
         bool isProtocolUpgradeAvailable() const;
         /**
-         Returns true if dummy signature calculation is recommended to prevent
+         Returns true if dummy authorization code calculation is recommended to prevent
          the counter's de-synchronization.
          */
         bool isSignatureCalculationRecommended() const;

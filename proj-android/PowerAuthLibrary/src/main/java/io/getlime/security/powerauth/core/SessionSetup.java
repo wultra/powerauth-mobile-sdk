@@ -38,9 +38,9 @@ public class SessionSetup {
      * Optional external encryption key. If the byte array's size is equal to 16 bytes,
      * then the key is considered as valid and will be used during the cryptographic operations.
      * <p>
-     * The additional encryption key is useful in  multibanking applications, where it allows the
-     * application to create chain of trusted PA2 activations. If the key is set, then the session will
-     * perform additional encryption / decryption operations when the signature keys are being used.
+     * The additional encryption key is useful in  multi-banking applications, where it allows the
+     * application to create chain of trusted PowerAuth activations. If the key is set, then the session will
+     * perform additional encryption / decryption operations when the factor keys are being used.
      * <p>
      * The session implements a couple of simple protections against misuse of this feature and therefore
      * once the session is activated with the EEK, then you have to use that EEK for all future cryptographic

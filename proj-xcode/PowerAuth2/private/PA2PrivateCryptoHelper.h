@@ -36,7 +36,7 @@
                                            error:(NSError**)error;
 
 /**
- Calculates PowerAuth signature for data & endpoint.
+ Calculates PowerAuth authorization code for data & endpoint.
  */
 - (PowerAuthAuthorizationHttpHeader*) authorizationHeaderForData:(NSData*)data
                                                   endpoint:(PA2RestApiEndpoint*)endpoint

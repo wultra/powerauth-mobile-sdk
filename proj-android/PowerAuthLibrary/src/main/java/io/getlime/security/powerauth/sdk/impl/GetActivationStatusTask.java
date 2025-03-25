@@ -219,7 +219,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
     //
 
     /**
-     * Continue task with signature counter synchronization. In this case, just {@code /pa/signature/validate}
+     * Continue task with authorization code counter synchronization. In this case, just {@code /pa/signature/validate}
      * endpoint is called, with simple possession-only signature. That will force server to catch up
      * with the local counter.
      *
@@ -414,7 +414,7 @@ public class GetActivationStatusTask extends GroupedTask<ActivationStatus> {
                         final ProtocolUpgradeData upgradeData = ProtocolUpgradeData.version3(response.getCtrData());
                         if (session.applyProtocolUpgradeData(upgradeData) == ErrorCode.OK) {
                             // Everything looks fine, we can continue with commit on server.
-                            // Since this change, we can sign requests with V3 signatures
+                            // Since this change, we can sign requests with V3 authorization codes
                             // and local protocol version is bumped to V3.
                             serializeSessionState();
                             commitUpgradeToV3();

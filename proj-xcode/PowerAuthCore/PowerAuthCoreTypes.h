@@ -126,7 +126,7 @@ typedef NS_ENUM(int, PowerAuthCoreErrorCode) {
  and all E2EE tasks are now implemented by ECIES.
  
  This version of SDK is supporting V2 protol in very limited scope, where only
- the V2 signature calculations are supported. Basically, you cannot connect
+ the V2 authorization code calculations are supported. Basically, you cannot connect
  to V2 servers with V3 SDK.
  */
 typedef NS_ENUM(int, PowerAuthCoreProtocolVersion) {
@@ -279,7 +279,7 @@ typedef NS_ENUM(int, PowerAuthCoreSignatureFactor) {
  */
 @property (nonatomic, strong, nonnull, readonly) NSString * applicationKey;
 /**
- NONCE used for the signature calculation.
+ NONCE used for the offline authorization code calculation.
  */
 @property (nonatomic, strong, nonnull, readonly) NSString * nonce;
 /**
@@ -478,7 +478,7 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
     PowerAuthCoreActivationState_Removed  = 5,
     /**
      The activation is technically blocked. You cannot use it anymore
-     for the signature calculations.
+     for the authorization code calculations.
      */
     PowerAuthCoreActivationState_Deadlock   = 128,
 };
@@ -544,7 +544,7 @@ typedef NS_ENUM(int, PowerAuthCoreActivationState) {
  */
 @property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
 /**
- Returns true if dummy signature calculation is recommended to prevent
+ Returns true if dummy authorization code calculation is recommended to prevent
  the counter's de-synchronization.
  */
 @property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;

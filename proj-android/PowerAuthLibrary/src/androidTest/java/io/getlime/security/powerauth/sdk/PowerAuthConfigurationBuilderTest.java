@@ -82,7 +82,7 @@ public class PowerAuthConfigurationBuilderTest {
     }
 
     @Test
-    public void testOfflineSignatureComponentLength() throws Exception {
+    public void testOfflineAuthorizationCodeComponentLength() throws Exception {
         PowerAuthConfiguration configuration = new PowerAuthConfiguration.Builder(
                 null,
                 "http://wultra.com",

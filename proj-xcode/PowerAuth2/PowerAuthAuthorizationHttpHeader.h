@@ -21,7 +21,7 @@
 
 /**
  Class representing authorization HTTP header with the PowerAuth-Authorization
- or PowerAuth-Token signature.
+ or PowerAuth-Token authorization.
  */
 @interface PowerAuthAuthorizationHttpHeader : NSObject
 

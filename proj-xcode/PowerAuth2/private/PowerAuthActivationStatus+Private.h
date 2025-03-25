@@ -39,7 +39,7 @@
  */
 @property (nonatomic, assign, readonly) BOOL isProtocolUpgradeAvailable;
 /**
- Returns true if dummy signature calculation is recommended to prevent
+ Returns true if dummy authorization code calculation is recommended to prevent
  the counter's de-synchronization.
  */
 @property (nonatomic, assign, readonly) BOOL isSignatureCalculationRecommended;

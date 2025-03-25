@@ -44,7 +44,7 @@ typedef NS_ENUM(NSInteger, PowerAuthActivationState) {
     PowerAuthActivationState_Removed  = 5,
     /**
      The activation is technically blocked. You cannot use it anymore
-     for the signature calculations.
+     for the authorization code calculations.
      */
     PowerAuthActivationState_Deadlock   = 128,
 };

@@ -2113,7 +2113,7 @@ class MyClass: PowerAuthLogDelegate {
 If you're handling logs with the `PowerAuthLogDelegate`, you might want to turn off the default console logs. To do so, use:
 
 ```swift
-PowerAuthLogToConsole(false)
+PowerAuthLogToConsoleSetEnabled(false)
 ```
 
 ## Additional Features

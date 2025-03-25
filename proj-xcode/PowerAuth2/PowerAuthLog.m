@@ -85,14 +85,14 @@ BOOL PowerAuthLogIsVerbose(void)
 #endif
 }
 
-void PowerAuthLogToConsole(BOOL enabled)
+void PowerAuthLogToConsoleSetEnabled(BOOL enabled)
 {
 #ifdef ENABLE_PA2_LOG
     s_log_to_console = enabled;
 #endif
 }
 
-BOOL PowerAuthLogToConsoleEnabled(void)
+BOOL PowerAuthLogToConsoleIsEnabled(void)
 {
 #ifdef ENABLE_PA2_LOG
     return s_log_to_console;

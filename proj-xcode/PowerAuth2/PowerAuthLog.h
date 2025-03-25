@@ -79,13 +79,13 @@ PA2_EXTERN_C BOOL PowerAuthLogIsVerbose(void);
  When turned off, you can leverage the `PowerAuthLogSetDelegate` to implement your own logic.
  Note that it's effective only when library is compiled in `DEBUG` build configuration or `ENABLE_PA2_LOG` compilation flag is set.
  */
-PA2_EXTERN_C void PowerAuthLogToConsole(BOOL enabled);
+PA2_EXTERN_C void PowerAuthLogToConsoleSetEnabled(BOOL enabled);
 
 /**
  Function returns YES if internal logging to system console with NSLog is enabled.
  Note that when library is compiled in `RELEASE` configuration and when `ENABLE_PA2_LOG` compilation flag is missing, then always returns NO.
  */
-PA2_EXTERN_C BOOL PowerAuthLogToConsoleEnabled(void);
+PA2_EXTERN_C BOOL PowerAuthLogToConsoleIsEnabled(void);
 
 /**
  PA2CriticalWarning(...) function prints a critical warning information into the debug console and
@@ -101,7 +101,7 @@ PA2_EXTERN_C void PowerAuthCriticalWarning(NSString * _Nonnull format, ...);
  Delegate will be called only when `ENABLE_PA2_LOG` copilation flag is set or the library is compiled
  in the `DEBUG` mode (can be verified with `PowerAuthLogIsEnabled()`.
  
- By default, all logs are also logged via NSLog (can be turned off with the `PowerAuthLogToConsole`).
+ By default, all logs are also logged via NSLog (can be turned off with the `PowerAuthLogToConsoleSetEnabled`).
  */
 @protocol PowerAuthLogDelegate
 /**

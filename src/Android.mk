@@ -27,7 +27,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= libPowerAuth2
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS)
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++11
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17
 LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES	:= cc7
 
@@ -74,7 +74,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= libPowerAuth2Tests
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS)
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++11
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17
 LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES	:= cc7tests
 
@@ -124,7 +124,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= PowerAuth2Module
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic -std=c++11
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic -std=c++17
 LOCAL_CPP_FEATURES		+= exceptions
 
 LOCAL_STATIC_LIBRARIES 	:= PowerAuth2

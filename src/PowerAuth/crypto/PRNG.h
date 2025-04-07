@@ -44,7 +44,7 @@ namespace crypto
      sequence is not equal to any byte sequence, provided in the |reject_byte_sequences|
      vector.
      */
-    cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<const cc7::ByteRange> & reject_byte_sequences);
+    cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<cc7::ByteRange> & reject_byte_sequences);
     
     /**
      The method res-seeds OpenSSL's pseudo random number generator with another

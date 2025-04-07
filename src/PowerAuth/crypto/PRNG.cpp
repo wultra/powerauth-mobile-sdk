@@ -61,7 +61,7 @@ namespace crypto
     }
     
     
-    cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<const cc7::ByteRange> & reject_byte_sequences)
+    cc7::ByteArray GetUniqueRandomData(size_t size, const std::vector<cc7::ByteRange> & reject_byte_sequences)
     {
         cc7::ByteArray data(size, 0);
         size_t attempts = 16;

@@ -66,7 +66,7 @@
         _data = [NSMutableData dataWithCapacity:newSize];
     } else {
         // There's already mutable object. Clear the content first.
-        memset_s(_data.mutableBytes, _data.length, 0, _data.length);
+        CC7_SecureClean(_data.mutableBytes, _data.length);
     }
     // Resize the mutable data object
     _data.length = newSize;

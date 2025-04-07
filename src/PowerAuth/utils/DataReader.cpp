@@ -209,11 +209,11 @@ namespace utils
     
     bool DataReader::readCount(size_t & out_value)
     {
-        byte tmp[4];
+        cc7::byte tmp[4];
         if (!readByte(tmp[0])) {
             return false;
         }
-        const byte marker = tmp[0] & 0xC0;
+        const cc7::byte marker = tmp[0] & 0xC0;
         if (marker == 0x00 || marker == 0x40) {
             // just one byte
             out_value = tmp[0];

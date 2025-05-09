@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/PublicTypes.h>
+#include <cc7/crypto/KeyPair.h>
 
 /*
  The ECIES.h header file contains a set of interfaces prepared for ECIES data
@@ -207,11 +208,11 @@ namespace powerAuth
         /// Creates a new instance of ECIESEnvelopeKey from EC |publiKey| and optional |shared_info1|.
         /// For optional |shared_info1| you can provide an empty range, if you have no such information available.
         /// The method also stores a newly created ephemeral public key to the |out_ephemeralKey| reference.
-        static ECIESEnvelopeKey fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key);
+        static ECIESEnvelopeKey fromPublicKey(const cc7::crypto::PublicKeyPtr & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key);
         
         /// Creates a new instance of ECIESEnvelopeKey from EC |privateKey|, |ephemeralKey| key-pair and optional |shared_info1|.
         /// For optional |shared_info1| you can provide an empty range, if you have no such information available.
-        static ECIESEnvelopeKey fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1);
+        static ECIESEnvelopeKey fromPrivateKey(const cc7::crypto::PrivateKeyPtr & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1);
         
     public:
 
@@ -247,7 +248,7 @@ namespace powerAuth
         /// Constructs an ecnryptor with server's |public_key| and optional |shared_info1| and |shared_info2|.
         /// For both optional parameters you can provide an empty range, if you have no such information available.
         /// The constructed instance can be used for both encryption and decryption tasks.
-        ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
+        ECIESEncryptor(const cc7::crypto::PublicKeyPtr & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
         
         /// Constructs an encryptor with previously calculated |envelope_key| and optional |shared_info2|.
         /// For optional |shared_info2| you can provide an empty range, if you have no such information available.
@@ -256,7 +257,7 @@ namespace powerAuth
 
         
         /// Returns a reference to public key.
-        const cc7::ByteArray & publicKey() const;
+        const cc7::crypto::PublicKeyPtr & publicKey() const;
 
         /// Returns a reference to envelope key.
         const ECIESEnvelopeKey & envelopeKey() const;
@@ -305,7 +306,7 @@ namespace powerAuth
     private:
         
         /// A data for public key.
-        cc7::ByteArray _public_key;
+        cc7::crypto::PublicKeyPtr _public_key;
         /// Content of shared info1 optional parameter.
         cc7::ByteArray _shared_info1;
         /// Content of shared info2 optional parameter.
@@ -326,14 +327,14 @@ namespace powerAuth
         
         /// Constructs a decryptor with a server's |private_key| and optional |shared_info1| and |shared_info2|.
         /// The constructed instance can be used for both decryption & encryption tasks.
-        ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
+        ECIESDecryptor(const cc7::crypto::PrivateKeyPtr & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2);
     
         /// Constructs a decryptor with previously calculated |envelope_key| and optional |shared_info2|.
         /// The constructed instance can be used only for encryption taks.
         ECIESDecryptor(const ECIESEnvelopeKey & envelope_key, const cc7::ByteRange & shared_info2);
         
         /// Returns a reference to internal public key.
-        const cc7::ByteArray & privateKey() const;
+        const cc7::crypto::PrivateKeyPtr & privateKey() const;
         
         /// Returns a reference to internal envelope key.
         const ECIESEnvelopeKey & envelopeKey() const;
@@ -381,7 +382,7 @@ namespace powerAuth
         
     private:
         /// A data for private key.
-        cc7::ByteArray   _private_key;
+        cc7::crypto::PrivateKeyPtr _private_key;
         /// Content of shared info1 optional parameter.
         cc7::ByteArray   _shared_info1;
         /// Content of shared info2 optional parameter.

@@ -51,8 +51,7 @@ namespace powerAuthTests
                 
                 protocol::SignatureKeys keys;
                 ByteArray vault_key;
-                bool result = protocol::DeriveAllSecretKeys(keys, vault_key, masterSecret);
-                ccstAssertTrue(result);
+                protocol::DeriveAllSecretKeys(keys, vault_key, masterSecret);
                 
                 ccstAssertEqual(keys.possessionKey, outPosssession);
                 ccstAssertEqual(keys.knowledgeKey, outKnowledge);

@@ -17,7 +17,7 @@
 #pragma once
 
 #include <PowerAuth/PublicTypes.h>
-#include "../crypto/OSSLObjects.h"
+#include <cc7/crypto/Crypto.h>
 
 // Forward declarations
 
@@ -69,9 +69,8 @@ namespace protocol
     {
         // OpenSSL EC keys, used during the activation
         
-        crypto::EVPKeyPair        masterServerPublicKey;
-        crypto::EVPKeyPair        devicePrivateKey;
-        crypto::EVPKeyPair        serverPublicKey;
+        cc7::crypto::KeyPairPtr    deviceKeyPair;
+        cc7::crypto::PublicKeyPtr  serverPublicKey;
         
         // Information gathered during the activation
         
@@ -92,6 +91,8 @@ namespace protocol
         {
         }        
     };
+
+    typedef std::shared_ptr<ActivationData> ActivationDataPtr;
     
     
     /**
@@ -212,6 +213,8 @@ namespace protocol
             return protocolVersion() == Version_V3;
         }
     };
+
+    typedef std::shared_ptr<PersistentData> PersistentDataPtr;
     
     
     /**
@@ -320,7 +323,7 @@ namespace protocol
             /**
              Contains EC public key data for ECIES encryption scheme.
              */
-            cc7::ByteArray key_data;
+            cc7::crypto::PublicKeyPtr public_key;
             /**
              Contains identifier of this key.
              */
@@ -331,14 +334,14 @@ namespace protocol
              members are not empty.
              */
             inline bool isValid() const {
-                return !key_data.empty() && !identifier.empty();
+                return public_key != nullptr && !identifier.empty();
             }
             
             /**
              Clear key data and the identifier.
              */
             inline void clear() {
-                key_data.clear();
+                public_key = nullptr;
                 identifier.clear();
             }
             
@@ -357,10 +360,24 @@ namespace protocol
         PublicKeyWithId ecies_activation_public_key;
         
         /**
+         Cached device public key.
+         */
+        cc7::crypto::PublicKeyPtr device_public_key;
+        /**
+         Cached server public key.
+         */
+        cc7::crypto::PublicKeyPtr server_public_key;
+        /**
+         Cached master server public key.
+         */
+        cc7::crypto::PublicKeyPtr master_server_public_key;
+        
+        /**
          Resets the content of session data structure.
          */
         inline void reset() {
             ecies_application_public_key.clear();
+            master_server_public_key = nullptr;
             resetActivationData();
         }
         
@@ -369,8 +386,12 @@ namespace protocol
          */
         inline void resetActivationData() {
             ecies_activation_public_key.clear();
+            device_public_key = nullptr;
+            server_public_key = nullptr;
         }
     };
+
+    typedef std::shared_ptr<SessionData> SessionDataPtr;
 
 } // io::getlime::powerAuth::detail
 } // io::getlime::powerAuth

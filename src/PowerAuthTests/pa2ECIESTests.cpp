@@ -18,7 +18,7 @@
 #include <cc7tests/detail/StringUtils.h>
 #include <PowerAuth/ECIES.h>
 #include <cc7/HexString.h>
-#include "../PowerAuth/crypto/CryptoUtils.h"
+#include <cc7/crypto/Crypto.h>
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -88,10 +88,10 @@ namespace powerAuthTests
                 { nullptr, nullptr }
             };
             
-            auto master_keypair = crypto::ECC_GenerateKeyPair(crypto::P256);
-            cc7::ByteArray master_public_key = crypto::ECC_ExportPublicKey(master_keypair);
-            cc7::ByteArray master_private_key = crypto::ECC_ExportPrivateKey(master_keypair);
-            master_keypair.destroy();
+            auto master_keypair = cc7::crypto::KeyPair::generateKeyPair("P-256");
+            cc7::ByteArray master_public_key = master_keypair->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
+            cc7::ByteArray master_private_key = master_keypair->getPrivateKey().exportKey(cc7::crypto::KEY_FORMAT_RAW);
+            
             // Make the private key compatible with Java. We need to force the big number as always positive,
             // because Java's using signed bytes. So, If the sequence of bytes in big number begins with
             // value greater than 127, then the whole big number is treated as negative.
@@ -107,8 +107,8 @@ namespace powerAuthTests
             TLOG("   },");
             TLOG("   \"data\": [");
             
-            auto client_encryptor = ECIESEncryptor(master_public_key, cc7::ByteRange(), cc7::ByteRange());
-            auto server_decryptor = ECIESDecryptor(master_private_key, cc7::ByteRange(), cc7::ByteRange());
+            auto client_encryptor = ECIESEncryptor(master_keypair->getPublicKeyPtr(), cc7::ByteRange(), cc7::ByteRange());
+            auto server_decryptor = ECIESDecryptor(master_keypair->getPrivateKeyPtr(), cc7::ByteRange(), cc7::ByteRange());
             
             const Data * p_data = s_test_data;
             while (p_data->requestData != nullptr) {
@@ -206,11 +206,16 @@ namespace powerAuthTests
         
         void testInvalidCurve()
         {
-            auto invalid_public_key = cc7::FromHexString("02B70BF043C144935756F8F4578C369CF960EE510A5A0F90E93A373A21F0D1397F");
-            auto encryptor = ECIESEncryptor(invalid_public_key, cc7::ByteRange(), cc7::ByteRange());        
-            ECIESCryptogram cryptogram;
-            auto code = encryptor.encryptRequest(cc7::MakeRange("should not be encrypted"), ECIESParameters(), cryptogram);
-            ccstAssertTrue(code == EC_Encryption);
+            try {
+                auto invalid_public_key = cc7::FromHexString("02B70BF043C144935756F8F4578C369CF960EE510A5A0F90E93A373A21F0D1397F");
+                auto invalid_pk = cc7::crypto::KeyPairFactory::getInstance("P-256")->newPublicKey(invalid_public_key, cc7::crypto::KEY_FORMAT_X963);
+                auto encryptor = ECIESEncryptor(invalid_pk, cc7::ByteRange(), cc7::ByteRange());
+                ECIESCryptogram cryptogram;
+                auto code = encryptor.encryptRequest(cc7::MakeRange("should not be encrypted"), ECIESParameters(), cryptogram);
+                ccstAssertTrue(code == EC_Encryption);
+            } catch (std::exception & e) {
+                // Success
+            }
         }
     };
     

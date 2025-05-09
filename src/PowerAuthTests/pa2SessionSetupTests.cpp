@@ -21,7 +21,6 @@
 #include <cc7/CC7.h>
 
 #include "../PowerAuth/utils/DataWriter.h"
-#include "../PowerAuth/crypto/PRNG.h"
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -171,17 +170,17 @@ namespace powerAuthTests
             cc7::byte version = 0x01;
             size_t app_key_len = 16;
             size_t app_sec_len = 16;
-            cc7::ByteArray app_key = crypto::GetRandomData(app_key_len);
-            cc7::ByteArray app_sec = crypto::GetRandomData(app_sec_len);
+            cc7::ByteArray app_key = cc7::crypto::GetRandomData(app_key_len);
+            cc7::ByteArray app_sec = cc7::crypto::GetRandomData(app_sec_len);
             
             size_t include_p256_key = 1;
             size_t include_next_key = 0;
             
             cc7::byte p256_key_id    = 0x01;
             size_t p256_key_len = 65;
-            cc7::ByteArray p256_key  = crypto::GetRandomData(p256_key_len);
+            cc7::ByteArray p256_key  = cc7::crypto::GetRandomData(p256_key_len);
             cc7::byte next_key_id   = 0x20;
-            cc7::ByteArray next_key = crypto::GetRandomData(65);
+            cc7::ByteArray next_key = cc7::crypto::GetRandomData(65);
             
             cc7::ByteArray additional_data;
             

@@ -17,7 +17,7 @@
 #include <cc7tests/CC7Tests.h>
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
-#include "crypto/CryptoUtils.h"
+#include <cc7/crypto/Crypto.h>
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -164,25 +164,25 @@ namespace powerAuthTests
                 lockKeys.possessionUnlockKey = possessionKey;
                 lockKeys.userPassword = knowledgePass;
                 protocol::SignatureUnlockKeysReq lockRequest(factor, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret_no_eek, plain, lockRequest));
+                protocol::LockSignatureKeys(secret_no_eek, plain, lockRequest);
                 
                 // Try to lock possession & transport with using EEK, even if plain has flag that we're not using EEK.
                 // Possession
                 protocol::SignatureKeys secret;
                 protocol::SignatureUnlockKeysReq lockRequest2(SF_Possession, &lockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest2));
+                protocol::LockSignatureKeys(secret, plain, lockRequest2);
                 ccstAssertEqual(secret_no_eek.possessionKey, secret.possessionKey);
                 ccstAssertFalse(secret.usesExternalKey);
                 // Transport
                 clearSignatureKeysStruct(secret);
                 protocol::SignatureUnlockKeysReq lockRequest3(protocol::SF_Transport, &lockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest3));
+                protocol::LockSignatureKeys(secret, plain, lockRequest3);
                 ccstAssertEqual(secret_no_eek.transportKey, secret.transportKey);
                 ccstAssertFalse(secret.usesExternalKey);
                 // Transport + Possession
                 clearSignatureKeysStruct(secret);
                 protocol::SignatureUnlockKeysReq lockRequest4(protocol::SF_Transport|SF_Possession, &lockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest4));
+                protocol::LockSignatureKeys(secret, plain, lockRequest4);
                 ccstAssertEqual(secret_no_eek.transportKey, secret.transportKey);
                 ccstAssertEqual(secret_no_eek.possessionKey, secret.possessionKey);
                 ccstAssertFalse(secret.usesExternalKey);
@@ -190,16 +190,27 @@ namespace powerAuthTests
                 // EEK misuse.
                 // Biometry + Knowledge should not be locked with EEK, in case that plain struct has EEK flag equal to false.
                 protocol::SignatureUnlockKeysReq lockRequest5(SF_Biometry, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest5));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest5);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq lockRequest6(SF_Knowledge, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest6));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest6);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq lockRequest7(SF_Knowledge|SF_Biometry, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest7));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest7);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 
                 // Knowledge + Biometry - is not allowed
                 protocol::SignatureUnlockKeysReq lockRequest8(SF_Knowledge|SF_Biometry, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest8));
-                
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest8);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
             }
             // Lock with EEK
             {
@@ -214,7 +225,7 @@ namespace powerAuthTests
                 lockKeys.possessionUnlockKey = possessionKey;
                 lockKeys.userPassword = knowledgePass;
                 protocol::SignatureUnlockKeysReq lockRequest(factor, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret_with_eek, plain, lockRequest));
+                protocol::LockSignatureKeys(secret_with_eek, plain, lockRequest);
                 // Possession & Transport should be the same for EEK & non-EEK protected keys
                 ccstAssertEqual(secret_no_eek.transportKey, secret_with_eek.transportKey);
                 ccstAssertEqual(secret_no_eek.possessionKey, secret_with_eek.possessionKey);
@@ -229,19 +240,19 @@ namespace powerAuthTests
                 // Possession
                 protocol::SignatureKeys secret;
                 protocol::SignatureUnlockKeysReq lockRequest2(SF_Possession, &lockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest2));
+                protocol::LockSignatureKeys(secret, plain, lockRequest2);
                 ccstAssertEqual(secret_no_eek.possessionKey, secret.possessionKey);
                 ccstAssertTrue(secret.usesExternalKey);
                 // Transport
                 clearSignatureKeysStruct(secret);
                 protocol::SignatureUnlockKeysReq lockRequest3(protocol::SF_Transport, &lockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest3));
+                protocol::LockSignatureKeys(secret, plain, lockRequest3);
                 ccstAssertEqual(secret_no_eek.transportKey, secret.transportKey);
                 ccstAssertTrue(secret.usesExternalKey);
                 // Possession + Transport
                 clearSignatureKeysStruct(secret);
                 protocol::SignatureUnlockKeysReq lockRequest4(protocol::SF_Transport|SF_Possession, &lockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::LockSignatureKeys(secret, plain, lockRequest4));
+                protocol::LockSignatureKeys(secret, plain, lockRequest4);
                 ccstAssertEqual(secret_no_eek.possessionKey, secret.possessionKey);
                 ccstAssertEqual(secret_no_eek.transportKey, secret.transportKey);
                 ccstAssertTrue(secret.usesExternalKey);
@@ -250,14 +261,25 @@ namespace powerAuthTests
                 // For Biometry & Knowledge, EEK must be consistent between request and plain structure.
                 clearSignatureKeysStruct(secret);
                 protocol::SignatureUnlockKeysReq lockRequest5(SF_Biometry, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest5));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest5);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq lockRequest6(SF_Knowledge, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest6));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest6);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq lockRequest7(SF_Biometry|SF_Knowledge, &lockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest7));
-                
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest7);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq lockRequest8(SF_Biometry|SF_Knowledge, &lockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(secret, plain, lockRequest8));
+                try {
+                    protocol::LockSignatureKeys(secret, plain, lockRequest8);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
             }
             // Unlock without EEK
             {
@@ -268,7 +290,7 @@ namespace powerAuthTests
                 unlockKeys.userPassword = knowledgePass;
                 protocol::SignatureUnlockKeysReq unlockRequest(factor, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
                 protocol::SignatureKeys plain;
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest));
+                protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest);
                 ccstAssertEqual(biometryKey, plain.biometryKey);
                 ccstAssertEqual(knowledgeKey, plain.knowledgeKey);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
@@ -278,19 +300,19 @@ namespace powerAuthTests
                 // Possession
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest2(SF_Possession, &unlockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest2));
+                protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest2);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
                 ccstAssertFalse(plain.usesExternalKey);
                 // Transport
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest3(protocol::SF_Transport, &unlockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest3));
+                protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest3);
                 ccstAssertEqual(transportKey, plain.transportKey);
                 ccstAssertFalse(plain.usesExternalKey);
                 // Possession + Transport
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest4(protocol::SF_Transport|SF_Possession, &unlockKeys, &EEK, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest4));
+                protocol::UnlockSignatureKeys(plain, secret_no_eek, unlockRequest4);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
                 ccstAssertEqual(transportKey, plain.transportKey);
                 ccstAssertFalse(plain.usesExternalKey);
@@ -299,15 +321,27 @@ namespace powerAuthTests
                 // Knowledge & Biometry should not be unlocked when EEK is present but secret structure says it was created without EEK.
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest5(SF_Knowledge, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest5));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest5);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq unlockRequest6(SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest6));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest6);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq unlockRequest7(SF_Knowledge|SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest7));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest7);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 
                 // Knowledge + Biometry is not allowed
                 protocol::SignatureUnlockKeysReq unlockRequest8(SF_Knowledge|SF_Biometry, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest8));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_no_eek, unlockRequest8);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
             }
             // Unlock with EEK
             {
@@ -318,7 +352,7 @@ namespace powerAuthTests
                 unlockKeys.userPassword = knowledgePass;
                 protocol::SignatureUnlockKeysReq unlockRequest(factor, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
                 protocol::SignatureKeys plain;
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest));
+                protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest);
                 ccstAssertEqual(biometryKey, plain.biometryKey);
                 ccstAssertEqual(knowledgeKey, plain.knowledgeKey);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
@@ -328,32 +362,45 @@ namespace powerAuthTests
                 // Possession
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest2(SF_Possession, &unlockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest2));
+                protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest2);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
                 // Transport
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest3(protocol::SF_Transport, &unlockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest3));
+                protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest3);
                 ccstAssertEqual(transportKey, plain.transportKey);
                 // Possession + Transport
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest4(protocol::SF_Transport|SF_Possession, &unlockKeys, nullptr, nullptr, 0);
-                ccstAssertTrue(protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest4));
+                protocol::UnlockSignatureKeys(plain, secret_with_eek, unlockRequest4);
                 ccstAssertEqual(transportKey, plain.transportKey);
                 ccstAssertEqual(possessionKey, plain.possessionKey);
                 
                 // EEK misuse.
                 clearSignatureKeysStruct(plain);
                 protocol::SignatureUnlockKeysReq unlockRequest5(SF_Knowledge, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest5));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest5);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq unlockRequest6(SF_Biometry, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest6));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest6);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 protocol::SignatureUnlockKeysReq unlockRequest7(SF_Knowledge|SF_Biometry, &unlockKeys, nullptr, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest7));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest7);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
                 
                 // Knowledge + Biometry is not allowed
                 protocol::SignatureUnlockKeysReq unlockRequest8(SF_Knowledge|SF_Biometry, &unlockKeys, &EEK, &knowledgeSalt, knowledgeIterations);
-                ccstAssertFalse(protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest8));
+                try {
+                    protocol::LockSignatureKeys(plain, secret_with_eek, unlockRequest8);
+                    ccstFailure("Should fail");
+                } catch (std::exception & e) {}
+
             }
         }
         

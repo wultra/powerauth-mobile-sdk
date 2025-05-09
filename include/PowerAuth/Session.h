@@ -17,6 +17,8 @@
 #pragma once
 
 #include <PowerAuth/PublicTypes.h>
+#include <cc7/crypto/KeyPair.h>
+#include <cc7/crypto/SymmetricKey.h>
 #include <map>
 #include <mutex>
 
@@ -682,25 +684,50 @@ namespace powerAuth
          Pointer to private persistent data structure. The pointer is valid only
          after the correctly finished activation of the session.
          */
-        protocol::PersistentData * _pd;
+        std::shared_ptr<protocol::PersistentData> _pd;
         
         /**
          Pointer to private activation data structure. The pointer is valid only
          during the activation process.
          */
-        protocol::ActivationData * _ad;
+        std::shared_ptr<protocol::ActivationData> _ad;
         
         /**
          Pointer to private session data structure. The pointer is valid during the whole
          Session object lifetime.
          */
-        protocol::SessionData * _sd;
+        std::shared_ptr<protocol::SessionData> _sd;
+        
+        /**
+         Return reference to device public key. Throws exception when no such key is availabe
+         in session's state.
+         */
+        const cc7::crypto::PublicKey & getDevicePublicKey() const;
+        /**
+         Return reference to server public key. Throws exception when no such key is availabe
+         in session's state.
+         */
+        const cc7::crypto::PublicKey & getServerPublicKey() const;
+        /**
+         Return reference to master server public key.
+         */
+        const cc7::crypto::PublicKey & getMasterServerPublicKey() const;
+        
+        /**
+         Calculate activation's shared secret. The server's public key must be available.
+         */
+        cc7::ByteArray calculateSharedSecret(const cc7::crypto::PrivateKey & device_private_key) const;
+        
+        /**
+         Retrieve device's private key with vault unlock key.
+         */
+        cc7::crypto::PrivateKeyPtr getDevicePrivateKey(const cc7::ByteRange & vault_unlock_key) const;
         
         /**
          Commits a |new_pd| and |new_state| as a new valid session state.
          Check documentation in method's implementation for details.
          */
-        void commitNewPersistentState(protocol::PersistentData * new_pd, State new_state);
+        void commitNewPersistentState(std::shared_ptr<protocol::PersistentData> new_pd, State new_state);
         
         /**
          Changes internal state to a new one. If code is compiled with DEBUG build flags

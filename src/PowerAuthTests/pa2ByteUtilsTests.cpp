@@ -16,7 +16,7 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <PowerAuth/ByteUtils.h>
-#include "crypto/PRNG.h"
+#include <cc7/CC7.h>
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -81,8 +81,8 @@ namespace powerAuthTests
             };
             ccstAssertEqual(cc7::MakeRange(expected), data);
             
-            auto r1 = crypto::GetRandomData(0x00102);
-            auto r2 = crypto::GetRandomData(0x10002);
+            auto r1 = cc7::crypto::GetRandomData(0x00102);
+            auto r2 = cc7::crypto::GetRandomData(0x10002);
             data = utils::ByteUtils_Join({r1, r2});
             auto expected_bytes = cc7::ByteArray();
             expected_bytes.append({ 0, 0, 1, 2});

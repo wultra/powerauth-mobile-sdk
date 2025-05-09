@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-#include "Hash.h"
-#include <openssl/sha.h>
-#include <openssl/hmac.h>
-#include "OSSLObjects.h"
+#pragma once
+
+#include <cc7/ByteArray.h>
 
 namespace io
 {
@@ -27,22 +26,19 @@ namespace powerAuth
 {
 namespace crypto
 {
+/**
+ Convert ECDSA signature from DER format to JOSE. If operation fails, then returned array is empty.
+ */
+cc7::ByteArray  ECDSA_DERtoJOSE(const cc7::ByteRange & der_signature);
 
-    // -------------------------------------------------------------------------------------------
-    // MARK: - SHA256 -
-    //
-    
-    cc7::ByteArray SHA256(const cc7::ByteRange & data)
-    {
-        cc7::ByteArray hash(SHA256_DIGEST_LENGTH, 0);
-        auto ctx = EVPMDContext::empty();
-        EVP_DigestInit(ctx, EVP_sha256());
-        EVP_DigestUpdate(ctx, data.data(), data.size());
-        EVP_DigestFinal(ctx, hash.data(), NULL);
-        return hash;
-    }
-    
-} // io::getlime::powerAuth::crypto
+/**
+ Convert ECDSA signature from JOSE to DER format. If operation fails, then returned array is empty.
+ */
+cc7::ByteArray  ECDSA_JOSEtoDER(const cc7::ByteRange & jose_signature);
+
+
+} // io::getlime::powerAuth::protocol
 } // io::getlime::powerAuth
 } // io::getlime
 } // io
+

@@ -15,8 +15,8 @@
  */
 
 #include <PowerAuth/Password.h>
+#include <cc7/crypto/Crypto.h>
 #include <iterator>
-#include "crypto/PRNG.h"
 
 namespace io
 {
@@ -77,7 +77,7 @@ namespace powerAuth
         // We're very paranoid here, Let's clear previous content
         // and assign new one
         _pass.secureClear();
-        _pass.assign(crypto::GetRandomData(randomKeySize * 2));
+        _pass.assign(cc7::crypto::GetRandomData(randomKeySize * 2));
         _pass.resize(randomKeySize);
         // Now append the plaintext data
         _pass.append(data);
@@ -94,7 +94,7 @@ namespace powerAuth
         }
         _pass.secureClear();
         // Generate twice as required random bytes
-        _pass.assign(crypto::GetRandomData(randomKeySize * 2));
+        _pass.assign(cc7::crypto::GetRandomData(randomKeySize * 2));
         // Resize buffer to randomKeySize, so the mutable
         // password will be empty.
         _pass.resize(randomKeySize);

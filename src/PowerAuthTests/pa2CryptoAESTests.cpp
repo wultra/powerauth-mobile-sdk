@@ -16,8 +16,7 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7/HexString.h>
-#include "crypto/CryptoUtils.h"
-#include "crypto/PKCS7Padding.h"
+#include "../PowerAuth/crypto/Algorithms.h"
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -146,8 +145,8 @@ namespace powerAuthTests
                 cc7::ByteArray iv    = cc7::FromHexString(td->iv);
                 cc7::ByteArray enc   = cc7::FromHexString(td->enc);
                 
-                cc7::ByteArray ourENC = crypto::AES_CBC_Encrypt_Padding(key, iv, plain);
-                cc7::ByteArray ourDEC = crypto::AES_CBC_Decrypt_Padding(key, iv, enc);
+                cc7::ByteArray ourENC = algorithms().aes128cbc().encrypt(key, iv, plain);
+                cc7::ByteArray ourDEC = algorithms().aes128cbc().decrypt(key, iv, enc);
                 
                 bool encrypted_eqal = ourENC == enc;
                 bool decrypted_eqal = ourDEC == plain;
@@ -196,8 +195,8 @@ namespace powerAuthTests
                 cc7::ByteArray iv    = cc7::FromHexString(td->iv);
                 cc7::ByteArray enc   = cc7::FromHexString(td->enc);
                 
-                cc7::ByteArray ourENC = crypto::AES_CBC_Encrypt(key, iv, plain);
-                cc7::ByteArray ourDEC = crypto::AES_CBC_Decrypt(key, iv, enc);
+                cc7::ByteArray ourENC = algorithms().aes128cbcNoPad().encrypt(key, iv, plain);
+                cc7::ByteArray ourDEC = algorithms().aes128cbcNoPad().decrypt(key, iv, enc);
                 
                 bool encrypted_eqal = ourENC == enc;
                 bool decrypted_eqal = ourDEC == plain;

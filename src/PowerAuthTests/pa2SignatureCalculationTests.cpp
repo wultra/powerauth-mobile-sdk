@@ -16,7 +16,6 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7tests/detail/StringUtils.h>
-#include "../PowerAuth/crypto/CryptoUtils.h"
 #include "../PowerAuth/protocol/ProtocolUtils.h"
 
 using namespace cc7;

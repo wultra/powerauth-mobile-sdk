@@ -33,13 +33,13 @@ namespace protocol
     /**
      Validates "shortId-OTP" sequence with provided master key and signature
      */
-    bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, const crypto::EVPKeyPair & mk);
+    bool ValidateShortIdAndOtpSignature(const std::string & sid, const std::string & otp, const std::string & sig, const cc7::crypto::PublicKey & mk);
     
     /**
      Validates "activationCode" sequence with provided master key and signature.
      The code & signature may be empty for custom activation.
      */
-    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, const crypto::EVPKeyPair & mk);
+    bool ValidateActivationCodeSignature(const std::string & code, const std::string & sig, const cc7::crypto::PublicKey & mk);
     
     /**
      Reduces size of shared secret produced in ECDH.
@@ -54,7 +54,7 @@ namespace protocol
     /**
      Calculates all secret keys and vaultKey, all based on master secret.
      */
-    bool DeriveAllSecretKeys(SignatureKeys & keys, cc7::ByteArray & vaultKey, const cc7::ByteRange & masterSecret);
+    void DeriveAllSecretKeys(SignatureKeys & keys, cc7::ByteArray & vaultKey, const cc7::ByteRange & masterSecret);
     
     /**
      Derives unlock key from password. The PBKDF2 derivation function is used.
@@ -74,18 +74,18 @@ namespace protocol
     /**
      Encrypts |plain| signature keys with using information from |request| and stores encrypted keys into |secret| structure.
      */
-    bool LockSignatureKeys(SignatureKeys & secret, const SignatureKeys & plain, const SignatureUnlockKeysReq & request);
+    void LockSignatureKeys(SignatureKeys & secret, const SignatureKeys & plain, const SignatureUnlockKeysReq & request);
     
     /**
      Decrypts |secret| signature keys with using unlock information from |request| and stores plain keys into |plain| structure.
      */
-    bool UnlockSignatureKeys(SignatureKeys & plain, const SignatureKeys & secret, const SignatureUnlockKeysReq & request);
+    void UnlockSignatureKeys(SignatureKeys & plain, const SignatureKeys & secret, const SignatureUnlockKeysReq & request);
     
     /**
      Adds or removes additional EEK protection to SignatureKeys structure. If |protect| is true, then the protection
      is added and vice versa.
      */
-    bool ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & eek, bool protect);
+    void ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & eek, bool protect);
     
     /**
      Converts V2 signature sequential |counter| byte array. The result can be then passed to `CalculateSignature`
@@ -135,8 +135,8 @@ namespace protocol
      on the activation version. For V2, only "device_pub_key" is used. For V3 and
      later, all parameters are involved into the fingerprint calculation.
      */
-    std::string CalculateActivationFingerprint(const cc7::ByteRange & device_pub_key,
-                                               const cc7::ByteRange & server_pub_key,
+    std::string CalculateActivationFingerprint(const cc7::crypto::PublicKey & device_pub_key,
+                                               const cc7::crypto::PublicKey & server_pub_key,
                                                const std::string activation_id,
                                                Version v);
     
@@ -147,11 +147,11 @@ namespace protocol
     /**
      Decrypts received encrypted status blob into provided ActivationStatus structure.
      */
-    ErrorCode DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
-                                         const cc7::ByteRange & challenge,
-                                         const cc7::ByteRange & nonce,
-                                         const cc7::ByteRange & transport_key,
-                                         ActivationStatus & out_status);
+    void DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
+                                    const cc7::ByteRange & challenge,
+                                    const cc7::ByteRange & nonce,
+                                    const cc7::ByteRange & transport_key,
+                                    ActivationStatus & out_status);
 
     /**
      Derives IV (initialization vector) used for encrypted status blob decryption.

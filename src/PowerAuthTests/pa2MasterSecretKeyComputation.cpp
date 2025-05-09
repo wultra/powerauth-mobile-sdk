@@ -15,7 +15,7 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include "../PowerAuth/crypto/CryptoUtils.h"
+#include <cc7/crypto/Crypto.h>
 #include "../PowerAuth/protocol/ProtocolUtils.h"
 
 using namespace cc7;
@@ -40,21 +40,19 @@ namespace powerAuthTests
         
         void testMasterSecretKeyComputation()
         {
+            auto p256 = cc7::crypto::KeyPairFactory::getInstance("P-256");
+            auto ecdh = cc7::crypto::KeyAgreement::getInstance("ECDH");
             JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/compute-master-secret-key.json");
             auto&& data = root.arrayAtPath("data");
             for (const JSONValue & item : data) {
-                ByteArray   devicePrivateKey = item.dataFromBase64StringAtPath("input.devicePrivateKey");
-                ByteArray   devicePublicKey  = item.dataFromBase64StringAtPath("input.devicePublicKey");
-                ByteArray   serverPrivateKey = item.dataFromBase64StringAtPath("input.serverPrivateKey");
-                ByteArray   serverPublicKey  = item.dataFromBase64StringAtPath("input.serverPublicKey");
-                ByteArray   masterSecretKey  = item.dataFromBase64StringAtPath("output.masterSecretKey");
+                auto devicePrivateKey = p256->newPrivateKey(item.dataFromBase64StringAtPath("input.devicePrivateKey"), cc7::crypto::KEY_FORMAT_RAW);
+                auto devicePublicKey  = p256->newPublicKey(item.dataFromBase64StringAtPath("input.devicePublicKey"), cc7::crypto::KEY_FORMAT_X963);
+                auto serverPrivateKey = p256->newPrivateKey(item.dataFromBase64StringAtPath("input.serverPrivateKey"), cc7::crypto::KEY_FORMAT_RAW);
+                auto serverPublicKey  = p256->newPublicKey(item.dataFromBase64StringAtPath("input.serverPublicKey"), cc7::crypto::KEY_FORMAT_X963);
+                auto masterSecretKey  = item.dataFromBase64StringAtPath("output.masterSecretKey");
                 
-                protocol::ActivationData ad;
-                ad.devicePrivateKey = crypto::ECC_ImportPrivateKey(crypto::P256, devicePrivateKey);
-                ccstAssertTrue(ad.devicePrivateKey.isValid());
-                ad.serverPublicKey  = crypto::ECC_ImportPublicKey(crypto::P256, serverPublicKey);
-                ByteArray ourMasterSecretKey = crypto::ECDH_SharedSecret(ad.serverPublicKey, ad.devicePrivateKey);
-                ByteArray reducedMasterSecretKey = protocol::ReduceSharedSecret(ourMasterSecretKey);
+                auto ourMasterSecretKey = ecdh->phase(*devicePrivateKey, *serverPublicKey)->getKeyData();
+                auto reducedMasterSecretKey = protocol::ReduceSharedSecret(ourMasterSecretKey);
                 ccstAssertEqual(reducedMasterSecretKey, masterSecretKey);
             }
         }

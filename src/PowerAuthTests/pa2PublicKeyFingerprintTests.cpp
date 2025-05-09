@@ -16,7 +16,6 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7tests/detail/StringUtils.h>
-#include "../PowerAuth/crypto/CryptoUtils.h"
 #include "../PowerAuth/protocol/ProtocolUtils.h"
 
 using namespace cc7;
@@ -41,15 +40,16 @@ namespace powerAuthTests
         
         void testPublicKeyFingerprint()
         {
+            auto p256 = cc7::crypto::KeyPairFactory::getInstance("P-256");
             JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/public-key-fingerprint.json");
             auto&& data = root.arrayAtPath("data");
             for (const JSONValue & item : data) {
                 // Load data
-                cc7::ByteArray devicePublicKeyData  = item.dataFromBase64StringAtPath("input.devicePublicKey");
-                cc7::ByteArray serverPublicKeyData  = item.dataFromBase64StringAtPath("input.serverPublicKey");
+                auto devicePublicKey = p256->newPublicKey(item.dataFromBase64StringAtPath("input.devicePublicKey"), cc7::crypto::KEY_FORMAT_X963);
+                auto serverPublicKey = p256->newPublicKey(item.dataFromBase64StringAtPath("input.serverPublicKey"), cc7::crypto::KEY_FORMAT_X963);
                 std::string activationId = item.stringAtPath("output.activationId");
                 std::string expectedFingerprint = item.stringAtPath("output.fingerprint");
-                std::string fingerprint = protocol::CalculateActivationFingerprint(devicePublicKeyData, serverPublicKeyData, activationId, Version_V3);
+                std::string fingerprint = protocol::CalculateActivationFingerprint(*devicePublicKey, *serverPublicKey, activationId, Version_V3);
                 if (fingerprint != expectedFingerprint) {
                     ccstFailure("Doesn't match: Expected %s vs %s", expectedFingerprint.c_str(), fingerprint.c_str());
                 }

@@ -18,6 +18,7 @@
 #include <PowerAuth/Password.h>
 #include <PowerAuth/ECIES.h>
 
+#include <cc7/crypto/Crypto.h>
 #include <cc7/objc/ObjcHelper.h>
 
 #import <PowerAuthCore/PowerAuthCoreTypes.h>

@@ -16,12 +16,10 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7/HexString.h>
-#include "crypto/CryptoUtils.h"
-#include "crypto/PKCS7Padding.h"
+#include <cc7/crypto/Crypto.h>
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
 
 namespace io
 {
@@ -45,8 +43,8 @@ namespace powerAuthTests
         {
             const char * password;
             const char * salt;
-            int          iterations;
-            int          dklen;
+            size_t       iterations;
+            size_t       dklen;
             uint8_t      expected[25];
             size_t       password_len;
             size_t       salt_len;
@@ -54,6 +52,7 @@ namespace powerAuthTests
 
         void testPBKDF2_HMAC_SHA1()
         {
+            auto kdf = cc7::crypto::KeyDerivation::getInstance("PBKDF2-HMAC-SHA-1");
             static const TestData1 vectors[] =
             {
                 {
@@ -109,7 +108,11 @@ namespace powerAuthTests
                 cc7::ByteArray salt     (td->salt,     td->salt     + salt_len);
                 cc7::ByteArray expected (exp_ptr,      exp_ptr      + td->dklen);
                 
-                cc7::ByteArray calculated = crypto::PBKDF2_HMAC_SHA1(pass, salt, td->iterations, td->dklen);
+                cc7::ByteArray calculated = kdf->deriveKeyBytes(pass, {
+                    { cc7::crypto::KDF_PARAM_SALT,       cc7::crypto::Parameter::ref(salt) },
+                    { cc7::crypto::KDF_PARAM_ITERATIONS, cc7::crypto::Parameter::take(td->iterations) },
+                    { cc7::crypto::PARAM_OUT_KEY_SIZE,   cc7::crypto::Parameter::take(td->dklen) }
+                });
                 ccstAssertTrue(calculated.size() == td->dklen);
                 ccstAssertTrue(expected == calculated, "Failed at iteration %d", iteration);
                 
@@ -127,6 +130,7 @@ namespace powerAuthTests
         
         void testHMAC_SHA256()
         {
+            auto mac = cc7::crypto::MAC::getInstance("HMAC-SHA-256");
             static const TestData2 vectors[] =
             {
                 {
@@ -185,7 +189,9 @@ namespace powerAuthTests
                 cc7::ByteArray key  = cc7::FromHexString(td->key);
                 cc7::ByteArray data = cc7::FromHexString(td->data);
                 cc7::ByteArray exp  = cc7::FromHexString(td->hmac);
-                cc7::ByteArray hmac = crypto::HMAC_SHA256(data, key, exp.size());
+                cc7::ByteArray hmac = mac->token(key, data, {
+                    { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take(exp.size()) }
+                });
                 bool equal = hmac == exp;
                 ccstAssertTrue(equal);
                 if (!equal) {

@@ -16,9 +16,9 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7tests/detail/StringUtils.h>
+#include <cc7/CC7.h>
 #include "../PowerAuth/utils/CRC16.h"
 #include "../PowerAuth/utils/DataWriter.h"
-#include "../PowerAuth/crypto/CryptoUtils.h"
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -65,7 +65,7 @@ namespace powerAuthTests
             for (int i = 0; i < 1000; i++) {
                 size_t random_count = arc4random_uniform(128);
                 utils::DataWriter writer;
-                writer.writeMemory(crypto::GetRandomData(random_count));
+                writer.writeMemory(cc7::crypto::GetRandomData(random_count));
                 auto crc = utils::CRC16_Calculate(writer.serializedData());
                 writer.writeU16(crc);
                 // Now validate the checksum

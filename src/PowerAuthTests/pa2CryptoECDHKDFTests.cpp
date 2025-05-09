@@ -16,12 +16,10 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7/HexString.h>
-#include "crypto/CryptoUtils.h"
-#include "crypto/KDF.h"
+#include <cc7/CC7.h>
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
 
 namespace io
 {
@@ -166,14 +164,17 @@ namespace powerAuthTests
                 // End of table
                 { NULL, NULL, NULL}
             };
-            
+            auto kdf = cc7::crypto::KeyDerivation::getInstance("X963KDF-SHA-256");
             const TestData * td = s_tests;
             while (td->secret != NULL) {
                 auto secret = cc7::FromHexString(td->secret);
                 auto sinfo  = cc7::FromHexString(td->sinfo);
                 auto key_expected = cc7::FromHexString(td->expected);
                 auto key_length = key_expected.size();
-                auto key = crypto::ECDH_KDF_X9_63_SHA256(secret, sinfo, key_length);
+                auto key = kdf->deriveKeyBytes(secret, {
+                    { cc7::crypto::KDF_PARAM_INFO, cc7::crypto::Parameter::ref(sinfo) },
+                    { cc7::crypto::PARAM_OUT_KEY_SIZE, cc7::crypto::Parameter::take(key_length) }
+                });
                 bool equal = key == key_expected;
                 if (!equal) {
                     auto key_string = key.hexString();

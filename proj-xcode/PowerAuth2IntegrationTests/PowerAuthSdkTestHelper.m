@@ -81,7 +81,7 @@ static NSString * PA_Ver = @"3.3";
 {
     if (!PowerAuthLogIsEnabled()) {
         PowerAuthLogSetEnabled(YES);
-        PowerAuthLogSetVerbose(YES);
+        PowerAuthLogSetVerbose(NO);
     }
 }
 

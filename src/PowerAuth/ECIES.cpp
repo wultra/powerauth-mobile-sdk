@@ -16,10 +16,11 @@
 
 #include <PowerAuth/ECIES.h>
 #include <PowerAuth/ByteUtils.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/Endian.h>
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
-#include "crypto/Algorithms.h"
+
 
 namespace io
 {

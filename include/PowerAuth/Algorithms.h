@@ -24,8 +24,6 @@ namespace getlime
 {
 namespace powerAuth
 {
-namespace crypto
-{
 
 class Algorithms
 {
@@ -109,11 +107,9 @@ private:
     const cc7::crypto::KeyDerivationPtr _pbkdf2_sha1;
 };
 
-} // io::getlime::powerAuth::crypto
-
-static inline const crypto::Algorithms & algorithms()
+static inline const Algorithms & algorithms()
 {
-    return crypto::Algorithms::shared();
+    return Algorithms::shared();
 }
 
 } // io::getlime::powerAuth

@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-#include "Algorithms.h"
-#include <openssl/evp.h>
-#include <openssl/ecdh.h>
-#include <openssl/kdf.h>
+#include <PowerAuth/Algorithms.h>
 
 namespace io
 {
@@ -25,9 +22,6 @@ namespace getlime
 {
 namespace powerAuth
 {
-namespace crypto
-{
-
 
 Algorithms::Algorithms() :
     _aes128_cbc(cc7::crypto::Cipher::getInstance("AES-128-CBC")),
@@ -45,7 +39,6 @@ Algorithms::Algorithms() :
     _p256->setParameter(cc7::crypto::KEY_PARAM_EC_POINT_CONVERSION, cc7::crypto::Parameter::ref(cc7::crypto::EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
 }
 
-} // io::getlime::powerAuth::crypto
 } // io::getlime::powerAuth
 } // io::getlime
 } // io

@@ -18,9 +18,9 @@
 #include "Constants.h"
 #include "../utils/DataReader.h"
 #include "../utils/DataWriter.h"
-#include "../crypto/Algorithms.h"
 
 #include <PowerAuth/OtpUtil.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/Base64.h>
 
 using namespace cc7;

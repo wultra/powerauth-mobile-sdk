@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.core;
 import android.util.Pair;
 
 import io.getlime.security.powerauth.ecies.EciesMetadata;
+import io.getlime.security.powerauth.exception.PowerAuthErrorCodes;
+import io.getlime.security.powerauth.exception.PowerAuthErrorException;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 
 /**
@@ -52,8 +54,11 @@ public class EciesEncryptor {
      * @param sharedInfo2 An optional shared info 2 data
      * @param timeService Time providing service.
      */
-    public EciesEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2, ICoreTimeService timeService) {
+    public EciesEncryptor(String publicKey, byte[] sharedInfo1, byte[] sharedInfo2, ICoreTimeService timeService) throws PowerAuthErrorException {
         this.handle = init(publicKey, sharedInfo1, sharedInfo2);
+        if (this.handle == 0) {
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Invalid public key");
+        }
         this.timeService = timeService;
     }
 

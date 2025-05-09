@@ -16,9 +16,9 @@
 
 #include "ProtocolUtils.h"
 #include "Constants.h"
-#include "../crypto/Algorithms.h"
 #include "../utils/DataReader.h"
 #include <PowerAuth/ByteUtils.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/Base64.h>
 #include <cc7/Endian.h>
 

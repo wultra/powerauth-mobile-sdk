@@ -17,9 +17,9 @@
 #include <PowerAuth/Session.h>
 #include <PowerAuth/ECIES.h>
 #include <PowerAuth/OtpUtil.h>
+#include <PowerAuth/Algorithms.h>
 
 #include <cc7/Base64.h>
-#include "crypto/Algorithms.h"
 #include "crypto/JOSE.h"
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"

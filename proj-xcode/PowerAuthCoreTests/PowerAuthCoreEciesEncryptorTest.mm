@@ -66,6 +66,7 @@ static void _TestGen(NSString * format, ...)
     NSString * _tempKeyIdActivation;
     NSString * _tempKeyIdApplication;
     
+    cc7::crypto::KeyPairFactoryPtr _p256;
     io::getlime::powerAuth::ECIESDecryptor _decryptor;
     
     id<PowerAuthCoreTimeService> _timeService;
@@ -93,6 +94,7 @@ static void _TestGen(NSString * format, ...)
     _timeService = [[TestTimeService alloc] init];
     _tempKeyIdActivation = [NSUUID UUID].UUIDString;
     _tempKeyIdApplication = [NSUUID UUID].UUIDString;
+    _p256 = cc7::crypto::KeyPairFactory::getInstance("P-256");
 }
 
 - (void) testGenerateEciesTestVectors
@@ -306,7 +308,7 @@ static void _TestGen(NSString * format, ...)
 {
     // Initialize decryptor
     NSData * privateKeyBytes = appScope ? _masterKeyPair.privateKey.privateKeyBytes : _serverKeyPair.privateKey.privateKeyBytes;
-    auto privateKey = cc7::objc::CopyFromNSData(privateKeyBytes);
+    auto privateKey = _p256->newPrivateKey(cc7::objc::CopyFromNSData(privateKeyBytes), cc7::crypto::KEY_FORMAT_RAW);
     auto sharedInfo1 = cc7::objc::CopyFromNSStringToByteArray(sh1);
     auto sharedInfo2 = cc7::objc::CopyFromNSData([self sh2ForScope:appScope]);
     _decryptor = io::getlime::powerAuth::ECIESDecryptor(privateKey, sharedInfo1, sharedInfo2);

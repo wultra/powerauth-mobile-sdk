@@ -15,8 +15,8 @@
  */
 
 #include <PowerAuth/PublicTypes.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/jni/JniHelper.h>
-#include "../crypto/CryptoUtils.h"
 #include "../protocol/Constants.h"
 #include <sys/time.h>
 
@@ -54,7 +54,7 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong t
 
     // Get nonce & timestamp
     std::string timestamp_string = std::to_string(timestamp);
-    cc7::ByteArray nonce = crypto::GetRandomData(16);
+    cc7::ByteArray nonce = cc7::crypto::GetRandomData(16);
 
     // Construct data for HMAC and calculate that digest.
     auto protocol_version = Version_GetMaxSupportedHttpProtocolVersion(Version_Latest);
@@ -66,12 +66,12 @@ CC7_JNI_METHOD_PARAMS(jstring, calculateTokenValue, jobject privateData, jlong t
     data.append(cc7::MakeRange(timestamp_string));
     data.append(cc7::MakeRange(protocol::AMP));
     data.append(cc7::MakeRange(protocol_version));
-    auto digest = crypto::HMAC_SHA256(data, cppTokenSecret, 0);
-    if (digest.size() == 0) {
-        CC7_ASSERT(false, "Unable to calculate HMAC for data.");
-        return NULL;
+    cc7::ByteArray digest;
+    try {
+        digest = algorithms().hmacWithSha256().token(cppTokenSecret, data);
+    } catch (std::exception & e) {
+        return nullptr;
     }
-
     // Construct header
     auto digestBase64 = digest.base64String();
     auto nonceBase64 = nonce.base64String();

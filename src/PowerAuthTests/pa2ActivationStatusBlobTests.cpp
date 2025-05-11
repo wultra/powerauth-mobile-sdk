@@ -16,7 +16,6 @@
 
 #include <cc7tests/CC7Tests.h>
 #include <cc7tests/detail/StringUtils.h>
-#include "../PowerAuth/crypto/CryptoUtils.h"
 #include "../PowerAuth/protocol/ProtocolUtils.h"
 
 using namespace cc7;
@@ -85,8 +84,7 @@ namespace powerAuthTests
                 
                 // Try to decrypt status
                 ActivationStatus status;
-                auto result = protocol::DecryptEncryptedStatusBlob(cStatusBlob, challenge, nonce, transportKey, status);
-                ccstAssertEqual(EC_Ok, result);
+                protocol::DecryptEncryptedStatusBlob(cStatusBlob, challenge, nonce, transportKey, status);
                 
                 // Validate expected values
                 ccstAssertEqual(expActivationStatus, std::to_string((int)status.state));

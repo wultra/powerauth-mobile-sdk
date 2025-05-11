@@ -16,10 +16,11 @@
 
 #include <PowerAuth/ECIES.h>
 #include <PowerAuth/ByteUtils.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/Endian.h>
-#include "crypto/CryptoUtils.h"
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
+
 
 namespace io
 {
@@ -85,63 +86,34 @@ namespace powerAuth
         return protocol::DeriveSecretKeyFromIndex(ivKey(), nonce);
     }
     
-    ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key)
+    ECIESEnvelopeKey ECIESEnvelopeKey::fromPublicKey(const cc7::crypto::PublicKeyPtr & public_key, const cc7::ByteRange & shared_info1, cc7::ByteArray & out_ephemeral_key)
     {
-        auto pubk = crypto::EVPKeyPair::invalid();
-        auto ephemeral = crypto::EVPKeyPair::invalid();
         ECIESEnvelopeKey ek;
-        do {
-            pubk = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, public_key);
-            if (!pubk.isValid()) {
-                break;
-            }
-            ephemeral = crypto::ECC_GenerateKeyPair(crypto::EllipticCurve::P256);
-            if (!ephemeral.isValid()) {
-                break;
-            }
-            auto sharedSecret = crypto::ECDH_SharedSecret(pubk, ephemeral);
-            if (sharedSecret.empty()) {
-                break;
-            }
-            out_ephemeral_key = crypto::ECC_ExportPublicKey(ephemeral);
-            if (out_ephemeral_key.empty()) {
-                break;
-            }
-            // Concat shared_info1 + ephemeral key.
-            cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, out_ephemeral_key});
-            // Derive shared secret
-            ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
-            
-        } while (false);
+        // Generate ephemeral key pair
+        auto ephemeral = algorithms().p256().generateKeyPair();
+        // Compute shared secret
+        auto shared_secret = algorithms().ecdhWithNullKdf().phase(ephemeral->getPrivateKey(), *public_key);
+        out_ephemeral_key = ephemeral->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
+        // Concat shared_info1 + ephemeral key.
+        cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, out_ephemeral_key});
+        ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
+            { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
+        });
         return ek;
     }
     
-    ECIESEnvelopeKey ECIESEnvelopeKey::fromPrivateKey(const cc7::ByteArray & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1)
+    ECIESEnvelopeKey ECIESEnvelopeKey::fromPrivateKey(const cc7::crypto::PrivateKeyPtr & private_key, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & shared_info1)
     {
-        auto privk = crypto::EVPKeyPair::invalid();
-        auto ephemeral = crypto::EVPKeyPair::invalid();
-
         ECIESEnvelopeKey ek;
-        
-        do {
-            privk = crypto::ECC_ImportPrivateKey(crypto::EllipticCurve::P256, private_key);
-            if (!privk.isValid()) {
-                break;
-            }
-            ephemeral = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, ephemeral_key);
-            if (!ephemeral.isValid()) {
-                break;
-            }
-            auto sharedSecret = crypto::ECDH_SharedSecret(ephemeral, privk);
-            if (sharedSecret.empty()) {
-                break;
-            }
-            // Concat shared_info1 + ephemeral key.
-            cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, ephemeral_key });
-            // Derive shared secret
-            ek._key = crypto::ECDH_KDF_X9_63_SHA256(sharedSecret, info1_data, EnvelopeKeySize);
-            
-        } while (false);        
+        // Import ephemeral public key
+        auto ephemeral = algorithms().p256().newPublicKey(ephemeral_key, cc7::crypto::KEY_FORMAT_RAW);
+        // Compute shared secret
+        auto shared_secret = algorithms().ecdhWithNullKdf().phase(*private_key, *ephemeral);
+        // Concat shared_info1 + ephemeral key.
+        cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, ephemeral_key});
+        ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
+            { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
+        });
         return ek;
     }
 
@@ -149,45 +121,36 @@ namespace powerAuth
     // MARK: - Private encryption / decryption -
     //
     
-    static ErrorCode _Encrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const cc7::ByteRange & data, const cc7::ByteRange & iv, ECIESCryptogram & out_cryptogram)
+    static void _Encrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const cc7::ByteRange & data, const cc7::ByteRange & iv, ECIESCryptogram & out_cryptogram)
     {
         if (iv.size() != ECIESEnvelopeKey::IvSize) {
-            return EC_Encryption;
+            throw std::logic_error("Wrong IV size");
         }
-        out_cryptogram.body = crypto::AES_CBC_Encrypt_Padding(ek.encKey(), iv, data);
-        if (out_cryptogram.body.empty()) {
-            return EC_Encryption;
-        }
+        out_cryptogram.body = algorithms().aes128cbc().encrypt(ek.encKey(), iv, data);
         // Keep size of encrypted data
-        const size_t encryptedDataSize = out_cryptogram.body.size();
+        auto encryptedDataSize = out_cryptogram.body.size();
         // mac = MAC(body || S2)
         out_cryptogram.body.append(info2);
-        out_cryptogram.mac = crypto::HMAC_SHA256(out_cryptogram.body, ek.macKey());
-        if (out_cryptogram.mac.empty()) {
-            return EC_Encryption;
-        }
+        out_cryptogram.mac = algorithms().hmacWithSha256().token(ek.macKey(), out_cryptogram.body);
         // set encrypted data size back to original value
         out_cryptogram.body.resize(encryptedDataSize);
-        return EC_Ok;
     }
     
-    static ErrorCode _Decrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const ECIESCryptogram & cryptogram, const cc7::ByteRange & iv, cc7::ByteArray & out_data)
+    static void _Decrypt(const ECIESEnvelopeKey & ek, const cc7::ByteRange & info2, const ECIESCryptogram & cryptogram, const cc7::ByteRange & iv, cc7::ByteArray & out_data)
     {
         if (iv.size() != ECIESEnvelopeKey::IvSize) {
-            return EC_Encryption;
+            throw std::logic_error("Wrong IV size");
         }
         // Prepare data for HMAC calculation
         auto data_for_mac = cryptogram.body;
         data_for_mac.append(info2);
-        auto mac = crypto::HMAC_SHA256(data_for_mac, ek.macKey());
+        auto mac = algorithms().hmacWithSha256().token(ek.macKey(), data_for_mac);
         // Verify calculated mac
-        if (mac.empty() || !cc7::ConstTimeEqual(mac, cryptogram.mac)) {
-            return EC_Encryption;
+        if (!cc7::ConstTimeEqual(mac, cryptogram.mac)) {
+            throw std::domain_error("MAC doesn't match");
         }
         // Decrypt data
-        bool error = true;
-        out_data = crypto::AES_CBC_Decrypt_Padding(ek.encKey(), iv, cryptogram.body, &error);
-        return error ? EC_Encryption : EC_Ok;
+        out_data = algorithms().aes128cbc().decrypt(ek.encKey(), iv, cryptogram.body);
     }
 
     static cc7::ByteArray _BuildSharedInfo2(const cc7::ByteRange & sh2, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & nonce, const ECIESParameters & params)
@@ -200,7 +163,7 @@ namespace powerAuth
     // MARK: - Encryptor class -
     //
     
-    ECIESEncryptor::ECIESEncryptor(const cc7::ByteRange & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
+    ECIESEncryptor::ECIESEncryptor(const cc7::crypto::PublicKeyPtr & public_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
         _public_key(public_key),
         _shared_info1(shared_info1),
         _shared_info2(shared_info2)
@@ -215,7 +178,7 @@ namespace powerAuth
     
     // Getters & Setters
     
-    const cc7::ByteArray & ECIESEncryptor::publicKey() const
+    const cc7::crypto::PublicKeyPtr & ECIESEncryptor::publicKey() const
     {
         return _public_key;
     }
@@ -247,7 +210,7 @@ namespace powerAuth
     
     bool ECIESEncryptor::canEncryptRequest() const
     {
-        return !_public_key.empty();
+        return _public_key != nullptr;
     }
     
     bool ECIESEncryptor::canDecryptResponse() const
@@ -261,16 +224,18 @@ namespace powerAuth
     ErrorCode ECIESEncryptor::encryptRequest(const cc7::ByteRange & data, const ECIESParameters & parameters, ECIESCryptogram & out_cryptogram)
     {
         if (canEncryptRequest()) {
-            _envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, out_cryptogram.key);
-            if (_envelope_key.isValid()) {
-                out_cryptogram.nonce = crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
-                auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
-                auto info2 = _BuildSharedInfo2(_shared_info2, out_cryptogram.key, out_cryptogram.nonce, parameters);
-                auto result = _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
-                if (result != EC_Ok) {
-                    _envelope_key.invalidate();
+            try {
+                _envelope_key = ECIESEnvelopeKey::fromPublicKey(_public_key, _shared_info1, out_cryptogram.key);
+                if (_envelope_key.isValid()) {
+                    out_cryptogram.nonce = cc7::crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
+                    auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
+                    auto info2 = _BuildSharedInfo2(_shared_info2, out_cryptogram.key, out_cryptogram.nonce, parameters);
+                    _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
+                    return EC_Ok;
                 }
-                return result;
+            } catch (std::exception & e) {
+                CC7_LOG("ECIESEncryptor::encryptRequest fail %s", e.what());
+                _envelope_key.invalidate();
             }
             return EC_Encryption;
         }
@@ -280,9 +245,15 @@ namespace powerAuth
     ErrorCode ECIESEncryptor::decryptResponse(const ECIESCryptogram & cryptogram, const ECIESParameters & parameters, cc7::ByteArray & out_data)
     {
         if (canDecryptResponse()) {
-            auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
-            auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), cryptogram.nonce, parameters);
-            auto result = _Decrypt(_envelope_key, info2, cryptogram, iv, out_data);
+            auto result = EC_Encryption;
+            try {
+                auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
+                auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), cryptogram.nonce, parameters);
+                _Decrypt(_envelope_key, info2, cryptogram, iv, out_data);
+                result = EC_Ok;
+            } catch (std::exception & e) {
+                CC7_LOG("ECIESEncryptor::decryptResponse fail %s", e.what());
+            }
             _envelope_key.invalidate();
             return result;
         }
@@ -294,7 +265,7 @@ namespace powerAuth
     // MARK: - Decryptor class -
     //
     
-    ECIESDecryptor::ECIESDecryptor(const cc7::ByteArray & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
+    ECIESDecryptor::ECIESDecryptor(const cc7::crypto::PrivateKeyPtr & private_key, const cc7::ByteRange & shared_info1, const cc7::ByteRange & shared_info2) :
         _private_key(private_key),
         _shared_info1(shared_info1),
         _shared_info2(shared_info2)
@@ -309,7 +280,7 @@ namespace powerAuth
     
     // Setters & Getters
     
-    const cc7::ByteArray & ECIESDecryptor::privateKey() const
+    const cc7::crypto::PrivateKeyPtr & ECIESDecryptor::privateKey() const
     {
         return _private_key;
     }
@@ -346,7 +317,7 @@ namespace powerAuth
     
     bool ECIESDecryptor::canDecryptRequest() const
     {
-        return !_private_key.empty();
+        return _private_key != nullptr;
     }
     
     
@@ -355,15 +326,17 @@ namespace powerAuth
     ErrorCode ECIESDecryptor::decryptRequest(const ECIESCryptogram & cryptogram, const ECIESParameters & parameters, cc7::ByteArray & out_data)
     {
         if (canDecryptRequest()) {
-            _envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key, _shared_info1);
-            if (_envelope_key.isValid()) {
-                auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
-                auto info2 = _BuildSharedInfo2(_shared_info2, cryptogram.key, cryptogram.nonce, parameters);
-                auto result = _Decrypt(_envelope_key, info2, cryptogram, iv, out_data);
-                if (result != EC_Ok) {
-                    _envelope_key.invalidate();
+            try {
+                _envelope_key = ECIESEnvelopeKey::fromPrivateKey(_private_key, cryptogram.key, _shared_info1);
+                if (_envelope_key.isValid()) {
+                    auto iv = _envelope_key.deriveIvForNonce(cryptogram.nonce);
+                    auto info2 = _BuildSharedInfo2(_shared_info2, cryptogram.key, cryptogram.nonce, parameters);
+                    _Decrypt(_envelope_key, info2, cryptogram, iv, out_data);
+                    return EC_Ok;
                 }
-                return result;
+            } catch (std::exception & e) {
+                CC7_LOG("ECIESDecryptor::decryptRequest fail %s", e.what());
+                _envelope_key.invalidate();
             }
             return EC_Encryption;
         }
@@ -373,10 +346,16 @@ namespace powerAuth
     ErrorCode ECIESDecryptor::encryptResponse(const cc7::ByteRange & data, const ECIESParameters & parameters, ECIESCryptogram & out_cryptogram)
     {
         if (canEncryptResponse()) {
-            out_cryptogram.nonce = crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
-            auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
-            auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), out_cryptogram.nonce, parameters);
-            auto result = _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
+            auto result = EC_Encryption;
+            try {
+                out_cryptogram.nonce = cc7::crypto::GetRandomData(ECIESEnvelopeKey::NonceSize);
+                auto iv = _envelope_key.deriveIvForNonce(out_cryptogram.nonce);
+                auto info2 = _BuildSharedInfo2(_shared_info2, cc7::ByteRange(), out_cryptogram.nonce, parameters);
+                _Encrypt(_envelope_key, info2, data, iv, out_cryptogram);
+                result = EC_Ok;
+            } catch (std::exception & e) {
+                CC7_LOG("ECIESDecryptor::encryptResponse fail %s", e.what());
+            }
             _envelope_key.invalidate();
             return result;
         }

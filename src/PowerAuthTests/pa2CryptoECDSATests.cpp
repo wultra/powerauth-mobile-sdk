@@ -15,10 +15,8 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include <cc7/HexString.h>
-#include <cc7/Base64.h>
-#include "crypto/CryptoUtils.h"
-#include <openssl/err.h>
+#include <cc7/CC7.h>
+#include "../PowerAuth/crypto/JOSE.h"
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -42,66 +40,54 @@ namespace powerAuthTests
         
         void testEcdsaSignVerify()
         {
+            auto ecdsa = cc7::crypto::Signature::getInstance("ECDSA-SHA-256");
+            auto curve = cc7::crypto::KeyPairFactory::getInstance("P-256");
             // Generate key-pair
-            auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
-            if (!key_pair) {
-                ccstFailure();
-                return;
-            }
-            auto public_key_export = crypto::ECC_ExportPublicKeyToB64(key_pair);
-            ccstAssertFalse(public_key_export.empty());
+            auto key_pair = curve->generateKeyPair();
+            auto public_key_export = key_pair->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
             // Import public & private key back to OpenSSL structure.
-            auto public_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, public_key_export);
-            if (!public_key.isValid()) {
-                ccstFailure();
-                return;
-            }
+            auto public_key = curve->newPublicKey(public_key_export, cc7::crypto::KEY_FORMAT_RAW);
             
             // Compute signature
             auto message = getRandomData();
-            cc7::ByteArray signature;
-            auto success = crypto::ECDSA_ComputeSignature(message, key_pair, signature);
-            ccstAssertTrue(success);
-            ccstAssertFalse(signature.empty());
+            auto signature = ecdsa->sign(key_pair->getPrivateKey(), message);
             
             // convert to JOSE and back to DER
-            auto jose_signature = crypto::ECDSA_DERtoJOSE(signature);
-            ccstAssertFalse(signature.empty());
-            auto der_signature = crypto::ECDSA_JOSEtoDER(jose_signature);
+            auto jose_signature = powerAuth::crypto::ECDSA_DERtoJOSE(signature);
+            ccstAssertFalse(jose_signature.empty());
+            auto der_signature = powerAuth::crypto::ECDSA_JOSEtoDER(jose_signature);
             ccstAssertEqual(signature, der_signature);
             
             // Validate signature
-            auto result = crypto::ECDSA_ValidateSignature(message, signature, public_key);
+            auto result = ecdsa->verify(*public_key, signature, message);
             ccstAssertTrue(result);
             
             // Validate corrupted data
             auto bad_message = message;
             bad_message[12]++;
-            result = crypto::ECDSA_ValidateSignature(bad_message, signature, public_key);
+            result = ecdsa->verify(*public_key, signature, bad_message);
             ccstAssertFalse(result);
             auto bad_signature = signature;
             bad_signature[12]++;
-            result = crypto::ECDSA_ValidateSignature(message, bad_signature, public_key);
+            result = ecdsa->verify(*public_key, bad_signature, message);
             ccstAssertFalse(result);
-            result = crypto::ECDSA_ValidateSignature(bad_message, bad_signature, public_key);
+            result = ecdsa->verify(*public_key, bad_signature, bad_message);
             ccstAssertFalse(result);
         }
         
         void ecdsaTestDataGenerator()
         {
+            auto ecdsa = cc7::crypto::Signature::getInstance("ECDSA-SHA-256");
+            auto curve = cc7::crypto::KeyPairFactory::getInstance("P-256");
+
             // This function generates a test data for high level functions to test
             // JNI and ObjC wrappers.
             const bool hex_output = false;
             for (int i = 0; i < 10; i++) {
-                auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
-                auto key = crypto::ECC_ExportPublicKeyToB64(key_pair);
+                auto key_pair = curve->generateKeyPair();
+                auto key = key_pair->getPublicKey().exportKeyToBase64(cc7::crypto::KEY_FORMAT_X963);
                 auto data = getRandomData();
-                cc7::ByteArray signature;
-                auto result = crypto::ECDSA_ComputeSignature(data, key_pair, signature);
-                if (!result) {
-                    ccstFailure("Failed to compute signature");
-                    return;
-                }
+                auto signature = ecdsa->sign(key_pair->getPrivateKey(), data);
                 printf("Iteration %d\n", i);
                 if (hex_output) {
                     auto key_hex = FromBase64String(key).hexString();
@@ -119,8 +105,8 @@ namespace powerAuthTests
     private:
         cc7::ByteArray getRandomData()
         {
-            size_t count = (crypto::GetRandomData(1)[0] & 63) + 13;
-            return crypto::GetRandomData(count);
+            size_t count = (cc7::crypto::GetRandomData(1)[0] & 63) + 13;
+            return cc7::crypto::GetRandomData(count);
         }
     };
     

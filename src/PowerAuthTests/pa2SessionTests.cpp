@@ -19,7 +19,6 @@
 
 #include <cc7/CC7.h>
 
-#include "crypto/CryptoUtils.h"
 #include "protocol/ProtocolUtils.h"
 #include "protocol/Constants.h"
 #include "utils/DataReader.h"
@@ -44,17 +43,16 @@ namespace powerAuthTests
     {
     public:
         
-        struct ECKeyPair
+        struct GlobalKeyPair
         {
-            crypto::EVPKeyPair private_key;
+            cc7::crypto::KeyPairPtr private_key;
             std::string public_key_str;
             
-            ECKeyPair() {
-                private_key = crypto::ECC_GenerateKeyPair(crypto::EllipticCurve::P256);
-                public_key_str = crypto::ECC_ExportPublicKeyToB64(private_key);
-            }
-            
-            ~ECKeyPair() {
+            GlobalKeyPair() {
+                auto factory = cc7::crypto::KeyPairFactory::getInstance("P-256");
+                factory->setParameter(cc7::crypto::KEY_PARAM_EC_POINT_CONVERSION, cc7::crypto::Parameter::ref(cc7::crypto::EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
+                private_key = factory->generateKeyPair();
+                public_key_str = private_key->getPublicKey().exportKeyToBase64(cc7::crypto::KEY_FORMAT_X963);
             }
         };
         
@@ -73,9 +71,16 @@ namespace powerAuthTests
             CC7_REGISTER_TEST_METHOD(testSkipRecoveryDataInV5)
         }
         
-        ECKeyPair   _masterServerPrivateKey;
-        ECKeyPair   _eciesApplicationScopedPrivateKey;
-        ECKeyPair   _eciesActivationScopedPrivateKey;
+        cc7::crypto::KeyPairFactoryPtr _keyPairFactory;
+        cc7::crypto::KeyAgreementPtr _ecdh;
+        cc7::crypto::SignaturePtr _ecdsa;
+        cc7::crypto::MessageDigestPtr _sha256;
+        cc7::crypto::MACPtr _hmacSha256;
+        cc7::crypto::CipherPtr _aes128cbc;
+        
+        GlobalKeyPair   _masterServerPrivateKey;
+        GlobalKeyPair   _eciesApplicationScopedPrivateKey;
+        GlobalKeyPair   _eciesActivationScopedPrivateKey;
         
         SessionSetup _setup;
         
@@ -89,6 +94,14 @@ namespace powerAuthTests
         
         void setUp() override
         {
+            _keyPairFactory = cc7::crypto::KeyPairFactory::getInstance("P-256");
+            _keyPairFactory->setParameter(cc7::crypto::KEY_PARAM_EC_POINT_CONVERSION, cc7::crypto::Parameter::ref(cc7::crypto::EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
+            _ecdh = cc7::crypto::KeyAgreement::getInstance("ECDH");
+            _ecdsa = cc7::crypto::Signature::getInstance("ECDSA-SHA-256");
+            _sha256 = cc7::crypto::MessageDigest::getInstance("SHA-256");
+            _hmacSha256 = cc7::crypto::MAC::getInstance("HMAC-SHA-256");
+            _aes128cbc = cc7::crypto::Cipher::getInstance("AES-128-CBC");
+            
             _setup.applicationKey           = "MDEyMzQ1Njc4OUFCQ0RFRg==";
             _setup.applicationSecret        = "QUJDREVGMDEyMzQ1Njc4OQ==";
             _setup.masterServerPublicKey    = _masterServerPrivateKey.public_key_str;
@@ -247,8 +260,8 @@ namespace powerAuthTests
                 
                 const bool TEST_ECIES_RESET = break_in_step == 4;
             
-                auto serverPrivateKey = crypto::EVPKeyPair::invalid();
-                auto devicePublicKey  = crypto::EVPKeyPair::invalid();
+                cc7::crypto::KeyPairPtr serverPrivateKey;
+                cc7::crypto::PublicKeyPtr devicePublicKey;
 
                 s1.resetSession();
                 
@@ -303,18 +316,17 @@ namespace powerAuthTests
                 cc7::ByteArray CTR_DATA;
                 {
                     // Let's make response for client
-                    serverPrivateKey = crypto::ECC_GenerateKeyPair(crypto::P256);
+                    serverPrivateKey = _keyPairFactory->generateKeyPair();
                     
                     cc7::ByteArray KEY_DEVICE_PUBLIC    = cc7::FromBase64String(result1.devicePublicKey);
                     ccstAssertTrue(KEY_DEVICE_PUBLIC.size() > 0);
-                    devicePublicKey                     = crypto::ECC_ImportPublicKey(crypto::P256, KEY_DEVICE_PUBLIC);
-                    ccstAssertTrue(devicePublicKey.isValid());
+                    devicePublicKey                     = _keyPairFactory->newPublicKey(KEY_DEVICE_PUBLIC, cc7::crypto::KEY_FORMAT_X963);
                     
                     // Prepare the response data
-                    cc7::ByteArray serverPublicKey      = crypto::ECC_ExportPublicKey(serverPrivateKey);
+                    cc7::ByteArray serverPublicKey      = serverPrivateKey->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
                     CTR_DATA                            = crypto::GetRandomData(16);
 
-                    MASTER_SHARED_SECRET                = protocol::ReduceSharedSecret(crypto::ECDH_SharedSecret(devicePublicKey, serverPrivateKey));
+                    MASTER_SHARED_SECRET                = protocol::ReduceSharedSecret(_ecdh->phase(serverPrivateKey->getPrivateKey(), *devicePublicKey)->getKeyData());
                     ccstAssertTrue(MASTER_SHARED_SECRET.size() == 16);
                     
                     param2.activationId             = _activation_id;
@@ -322,10 +334,10 @@ namespace powerAuthTests
                     param2.serverPublicKey          = serverPublicKey.base64String();
                     
                     // calculate hkKEY_DEVICE_PUBLIC on dummy server's side
-                    auto fingerprint_data = crypto::ECC_ExportPublicKeyToNormalizedForm(devicePublicKey);
+                    cc7::ByteArray fingerprint_data = devicePublicKey->getKeyParameter(cc7::crypto::KEY_PARAM_EC_PUB_X).asByteRange();
                     fingerprint_data.append(cc7::MakeRange(_activation_id));
-                    fingerprint_data.append(crypto::ECC_ExportPublicKeyToNormalizedForm(crypto::ECC_ImportPublicKey(crypto::P256, serverPublicKey)));
-                    cc7::ByteArray hash = crypto::SHA256(fingerprint_data);
+                    fingerprint_data.append(serverPrivateKey->getPublicKey().getKeyParameter(cc7::crypto::KEY_PARAM_EC_PUB_X).asByteRange());
+                    cc7::ByteArray hash = _sha256->digest(fingerprint_data);
                     size_t off    = hash.size() - 4;
                     uint32_t v = ((hash[off] & 0x7f) << 24) | (hash[off+1] << 16) | (hash[off+2] << 8) | hash[off+3];
                     v = v % 100000000;
@@ -830,7 +842,7 @@ namespace powerAuthTests
                     ccstAssertTrue(!signature.empty());
                     // Validate signature...
                     
-                    bool bResult = crypto::ECDSA_ValidateSignature(cc7::MakeRange("Hello World!"), signature, devicePublicKey);
+                    bool bResult = _ecdsa->verify(*devicePublicKey, signature, cc7::MakeRange("Hello World!"));
                     ccstAssertTrue(bResult);
                 }
                 // Vault test #3-A, get vault key
@@ -867,7 +879,7 @@ namespace powerAuthTests
                     SignedData signedData;
                     signedData.signingKey = SignedData::ECDSA_PersonalizedKey;
                     signedData.data = cc7::MakeRange("This piece of text needs to be signed.");
-                    signedData.signature = T_calculateServerSignature(signedData.data, &serverPrivateKey);
+                    signedData.signature = T_calculateServerSignature(signedData.data, serverPrivateKey);
                     // Verify...
                     ec = s1.verifyServerSignedData(signedData);
                     ccstAssertTrue(ec == EC_Ok);
@@ -895,8 +907,8 @@ namespace powerAuthTests
                     ec = s1.getEciesEncryptor(ECIES_ApplicationScope, foo, cc7::MakeRange("/pa/test"), encryptor);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/test"));
-                    ccstAssertEqual(encryptor.sharedInfo2(), crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
-                    ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_eciesApplicationScopedPrivateKey.public_key_str));
+                    ccstAssertEqual(encryptor.sharedInfo2(), _sha256->digest(cc7::MakeRange(_setup.applicationSecret)));
+                    ccstAssertEqual(encryptor.publicKey()->exportKeyToBase64(cc7::crypto::KEY_FORMAT_X963), _eciesApplicationScopedPrivateKey.public_key_str);
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
@@ -905,9 +917,9 @@ namespace powerAuthTests
                     
                     // ...and decrypt on "server" side
                     ECIESCryptogram request_dec;
-                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_eciesApplicationScopedPrivateKey.private_key),
+                    ECIESDecryptor decryptor(_eciesApplicationScopedPrivateKey.private_key->getPrivateKeyPtr(),
                                              cc7::MakeRange("/pa/test"),
-                                             crypto::SHA256(cc7::MakeRange(_setup.applicationSecret)));
+                                             _sha256->digest(cc7::MakeRange(_setup.applicationSecret)));
                     cc7::ByteArray request_data;
                     ec = decryptor.decryptRequest(request_enc, ECIESParameters(), request_data);
                     ccstAssertEqual(ec, EC_Ok);
@@ -929,8 +941,8 @@ namespace powerAuthTests
                     ec = s1.getEciesEncryptor(ECIES_ActivationScope, keys, cc7::MakeRange("/pa/activation/test"), encryptor);
                     ccstAssertEqual(ec, EC_Ok);
                     ccstAssertEqual(encryptor.sharedInfo1(), cc7::MakeRange("/pa/activation/test"));
-                    ccstAssertEqual(encryptor.sharedInfo2(), crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
-                    ccstAssertEqual(encryptor.publicKey(), cc7::FromBase64String(_eciesActivationScopedPrivateKey.public_key_str));
+                    ccstAssertEqual(encryptor.sharedInfo2(), _hmacSha256->token(protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000), cc7::MakeRange(_setup.applicationSecret)));
+                    ccstAssertEqual(encryptor.publicKey()->exportKeyToBase64(cc7::crypto::KEY_FORMAT_X963), _eciesActivationScopedPrivateKey.public_key_str);
                     
                     // Now try to encrypt data
                     ECIESCryptogram request_enc;
@@ -939,9 +951,9 @@ namespace powerAuthTests
                     
                     // ...and decrypt on "server" side
                     ECIESCryptogram request_dec;
-                    ECIESDecryptor decryptor(crypto::ECC_ExportPrivateKey(_eciesActivationScopedPrivateKey.private_key),
+                    ECIESDecryptor decryptor(_eciesActivationScopedPrivateKey.private_key->getPrivateKeyPtr(),
                                              cc7::MakeRange("/pa/activation/test"),
-                                             crypto::HMAC_SHA256(cc7::MakeRange(_setup.applicationSecret), protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000)));
+                                             _hmacSha256->token(protocol::DeriveSecretKey(MASTER_SHARED_SECRET, 1000), cc7::MakeRange(_setup.applicationSecret)));
                     cc7::ByteArray request_data;
                     ec = decryptor.decryptRequest(request_enc, ECIESParameters(), request_data);
                     ccstAssertEqual(ec, EC_Ok);
@@ -1281,27 +1293,17 @@ namespace powerAuthTests
         
         std::string T_calculateActivationSignature(const std::string & code)
         {
-            cc7::ByteArray signature;
-            bool result = crypto::ECDSA_ComputeSignature(cc7::MakeRange(code), _masterServerPrivateKey.private_key, signature);
-            if (!result) {
-                ccstFailure("Activation signature calculation failed");
-                return std::string();
-            }
+            auto signature = _ecdsa->sign(_masterServerPrivateKey.private_key->getPrivateKey(), cc7::MakeRange(code));
             return signature.base64String();
         }
         
-        cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, crypto::EVPKeyPair * private_key = nullptr)
+        cc7::ByteArray T_calculateServerSignature(const cc7::ByteRange & data, cc7::crypto::KeyPairPtr private_key = nullptr)
         {
             cc7::ByteArray signature;
             if (private_key == nullptr) {
-                private_key = &_masterServerPrivateKey.private_key;
+                private_key = _masterServerPrivateKey.private_key;
             }
-            bool result = crypto::ECDSA_ComputeSignature(data, *private_key, signature);
-            if (!result) {
-                ccstFailure("Server signature calculation failed");
-                return cc7::ByteArray();
-            }
-            return signature;
+            return _ecdsa->sign(private_key->getPrivateKey(), data);
         }
         
         cc7::ByteArray prepareCounterData(const cc7::ByteRange & base_ctr_data, cc7::U64 counter)
@@ -1315,7 +1317,7 @@ namespace powerAuthTests
             }
             cc7::ByteArray ctr = base_ctr_data;
             while (counter > 0) {
-                ctr = protocol::ReduceSharedSecret(crypto::SHA256(ctr));
+                ctr = protocol::ReduceSharedSecret(_sha256->digest(ctr));
                 --counter;
             }
             return ctr;
@@ -1352,10 +1354,7 @@ namespace powerAuthTests
             // Derive keys
             protocol::SignatureKeys plain;
             cc7::ByteArray vaultKey_foo;
-            if (false == protocol::DeriveAllSecretKeys(plain, vaultKey_foo, secret)) {
-                ccstFailure("Unable to derive keys");
-                return std::string();
-            }
+            protocol::DeriveAllSecretKeys(plain, vaultKey_foo, secret);
             
             // Prepare vector of keys
             std::vector<cc7::ByteArray> sigKeys;
@@ -1376,13 +1375,13 @@ namespace powerAuthTests
             cc7::ByteArray result_bytes;
             for (size_t i = 0; i < sigKeys.size(); i++) {
                 cc7::ByteArray signatureKey = sigKeys.at(i);
-                cc7::ByteArray derivedKey   = crypto::HMAC_SHA256(counterData, signatureKey);
+                cc7::ByteArray derivedKey   = _hmacSha256->token(signatureKey, counterData);
                 for (size_t j = 0; j < i; j++) {
                     cc7::ByteArray signatureKeyInnter = sigKeys.at(j + 1);
-                    cc7::ByteArray derivedKeyInner    = crypto::HMAC_SHA256(counterData, signatureKeyInnter);
-                    derivedKey                        = crypto::HMAC_SHA256(derivedKey,  derivedKeyInner);
+                    cc7::ByteArray derivedKeyInner    = _hmacSha256->token(signatureKeyInnter, counterData);
+                    derivedKey                        = _hmacSha256->token(derivedKeyInner, derivedKey);
                 }
-                cc7::ByteArray signatureLong = crypto::HMAC_SHA256(cc7::MakeRange(sigData),  derivedKey);
+                cc7::ByteArray signatureLong = _hmacSha256->token(derivedKey, cc7::MakeRange(sigData));
                 ccstAssertTrue(signatureLong.size() >= 4);
                 if (is_decimal_format) {
                     // Old V2 & V3 signature version (now used only for offline signatures)
@@ -1417,7 +1416,7 @@ namespace powerAuthTests
         {
             cc7::ByteArray transport_key = protocol::DeriveSecretKey(master_shared_secret, 1000);
             cc7::ByteArray vault_key = protocol::DeriveSecretKey(master_shared_secret, 2000);
-            cc7::ByteArray c_vault_key = crypto::AES_CBC_Encrypt_Padding(transport_key, protocol::ZERO_IV, vault_key);
+            cc7::ByteArray c_vault_key = _aes128cbc->encrypt(transport_key, protocol::ZERO_IV, vault_key);
             return c_vault_key.base64String();
         }
 

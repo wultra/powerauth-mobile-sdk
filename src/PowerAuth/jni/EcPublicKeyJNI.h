@@ -17,7 +17,7 @@
 #pragma once
 
 #include <cc7/jni/JniHelper.h>
-#include <PowerAuth/crypto/ECC.h>
+#include <PowerAuth/Algorithms.h>
 
 namespace io
 {
@@ -37,8 +37,12 @@ namespace jni
          * nullptr if provided data doesn't represent private key.
          */
         static EcPublicKeyJNI * createFromBytes(const cc7::ByteRange & public_key_data) {
-            auto ec_key = crypto::ECC_ImportPublicKey(crypto::P256, public_key_data);
-            return ec_key.isValid() ? new EcPublicKeyJNI(ec_key) : nullptr;
+            try {
+                auto ec_key = algorithms().p256().newPublicKey(public_key_data, cc7::crypto::KEY_FORMAT_X963);
+                return new EcPublicKeyJNI(ec_key);
+            } catch (std::exception & e) {
+                return nullptr;
+            }
         }
 
         /**
@@ -46,21 +50,21 @@ namespace jni
          * have valid public key.
          */
         cc7::ByteArray publicKeyBytes() const {
-            return crypto::ECC_ExportPublicKey(_ec_key);
+            return _ec_key->exportKey(cc7::crypto::KEY_FORMAT_X963);
         }
 
         /**
          * Return pointer to public key implementation.
          */
-        crypto::EVPKeyPair & keyPtr() {
-            return _ec_key;
+         cc7::crypto::PublicKey & keyPtr() {
+            return *_ec_key;
         }
+        
+        EcPublicKeyJNI(const cc7::crypto::PublicKeyPtr & ec_key) : _ec_key(ec_key) {}
 
     private:
 
-        EcPublicKeyJNI(crypto::EVPKeyPair & ec_key) : _ec_key(ec_key) {}
-
-        crypto::EVPKeyPair _ec_key;
+        cc7::crypto::PublicKeyPtr _ec_key;
     };
     
 } // io::getlime::powerAuth::jni

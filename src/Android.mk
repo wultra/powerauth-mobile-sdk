@@ -27,7 +27,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= libPowerAuth2
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS)
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17 -frtti
 LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES	:= cc7
 
@@ -45,14 +45,8 @@ LOCAL_SRC_FILES := \
 	PowerAuth/OtpUtil.cpp \
 	PowerAuth/ECIES.cpp \
 	PowerAuth/ByteUtils.cpp \
-	PowerAuth/crypto/AES.cpp \
-	PowerAuth/crypto/Hash.cpp \
-	PowerAuth/crypto/KDF.cpp \
-	PowerAuth/crypto/MAC.cpp \
-	PowerAuth/crypto/ECC.cpp \
-	PowerAuth/crypto/OSSLObjects.cpp \
-	PowerAuth/crypto/PKCS7Padding.cpp \
-	PowerAuth/crypto/PRNG.cpp \
+	PowerAuth/Algorithms.cpp \
+	PowerAuth/crypto/JOSE.cpp \
 	PowerAuth/protocol/Constants.cpp \
 	PowerAuth/protocol/PrivateTypes.cpp \
 	PowerAuth/protocol/ProtocolUtils.cpp \
@@ -75,7 +69,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= libPowerAuth2Tests
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS)
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -std=c++17 -frtti
 LOCAL_CPP_FEATURES		+= exceptions
 LOCAL_STATIC_LIBRARIES	:= cc7tests
 
@@ -90,7 +84,6 @@ LOCAL_SRC_FILES := \
 	PowerAuthTests/PowerAuthTestsList.cpp \
 	PowerAuthTests/pa2CryptoAESTests.cpp \
 	PowerAuthTests/pa2CryptoHMACTests.cpp \
-	PowerAuthTests/pa2CryptoPKCS7PaddingTests.cpp \
 	PowerAuthTests/pa2CryptoECCTests.cpp \
 	PowerAuthTests/pa2CryptoECDSATests.cpp \
 	PowerAuthTests/pa2CryptoECDHKDFTests.cpp \
@@ -124,7 +117,7 @@ NDK_TOOLCHAIN_VERSION := clang
 # Library name
 LOCAL_MODULE			:= PowerAuth2Module
 LOCAL_CFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic
-LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic -std=c++17
+LOCAL_CPPFLAGS			:= $(EXTERN_CFLAGS) -fvisibility=hidden -fpic -std=c++17 -frtti
 LOCAL_CPP_FEATURES		+= exceptions
 
 LOCAL_STATIC_LIBRARIES 	:= PowerAuth2

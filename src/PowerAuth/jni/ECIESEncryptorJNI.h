@@ -18,6 +18,7 @@
 
 #include <cc7/jni/JniHelper.h>
 #include <PowerAuth/ECIES.h>
+#include <PowerAuth/Algorithms.h>
 
 /**
  Creates a new ECIESCryptogram java object from given C++ cryptogram structure.

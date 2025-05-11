@@ -36,7 +36,6 @@ namespace powerAuthTests
         CC7_ADD_UNIT_TEST(pa2ECIESTests, list);
         
         // Crypto tests
-        CC7_ADD_UNIT_TEST(pa2CryptoPKCS7PaddingTests, list);
         CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
         CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
         CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);

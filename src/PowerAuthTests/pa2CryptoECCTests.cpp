@@ -15,14 +15,10 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include <cc7/HexString.h>
-#include <cc7/Base64.h>
-#include "crypto/CryptoUtils.h"
-#include <openssl/err.h>
+#include <cc7/CC7.h>
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
 
 namespace io
 {
@@ -36,9 +32,7 @@ namespace powerAuthTests
         
         pa2CryptoECCTests()
         {
-            CC7_REGISTER_TEST_METHOD(testKeyImportExport)
             CC7_REGISTER_TEST_METHOD(testPubKeyImport)
-            CC7_REGISTER_TEST_METHOD(testImportPerformance)
         }
 
         struct test_data {
@@ -46,38 +40,11 @@ namespace powerAuthTests
             bool import_result;
         };
         
-        void testKeyImportExport()
-        {
-            // Generate key-pair
-            auto key_pair = crypto::ECC_GenerateKeyPair(crypto::P256);
-            if (!key_pair) {
-                ccstFailure();
-                return;
-            }
-            // Export private and public key
-            auto private_key_export = crypto::ECC_ExportPrivateKey(key_pair);
-            ccstAssertFalse(private_key_export.empty());
-            auto public_key_export = crypto::ECC_ExportPublicKeyToB64(key_pair);
-            ccstAssertFalse(public_key_export.empty());
-            // Import public & private key back to OpenSSL structure.
-            auto public_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, public_key_export);
-            if (!public_key.isValid()) {
-                ccstFailure();
-                return;
-            }
-            ccstAssertEqual(public_key_export, crypto::ECC_ExportPublicKeyToB64(public_key));
-            
-            auto private_key = crypto::ECC_ImportPrivateKey(crypto::P256, private_key_export);
-            if (!private_key.isValid()) {
-                ccstFailure();
-                return;
-            }
-            ccstAssertEqual(private_key_export, crypto::ECC_ExportPrivateKey(private_key));
-            ccstAssertEqual(1, EVP_PKEY_can_sign(private_key));
-        }
                 
         void testPubKeyImport()
         {
+            auto p256 = cc7::crypto::KeyPairFactory::getInstance("P-256");
+            
             const test_data test_vectors[] = {
                 // Valid points
                 { "ApwBezqIdwCdmcjfysfrCaWZ5h9LttqP2RvCjapdKrLd", true },
@@ -108,56 +75,25 @@ namespace powerAuthTests
                 if (!test_key) {
                     break;
                 }
-                auto pub_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, test_key);
-                bool imported = pub_key.isValid();
+                bool imported = false;
+                std::string error;
+                cc7::crypto::PublicKeyPtr pub_key;
+                try {
+                    pub_key = p256->newPublicKey();
+                    pub_key->importKeyFromBase64(test_key, cc7::crypto::KEY_FORMAT_X963);
+                    imported = true;
+                } catch (std::exception & e) {
+                    error = e.what();
+                }
                 if (imported != td.import_result) {
                     if (imported) {
                         ccstFailure("Public key '%s' should not be imported.", test_key);
                     } else {
-                        ccstFailure("Public key '%s' should be imported.", test_key);
-                        // Print error in case you're curious about an actual failure.
-                        char buffer[256];
-                        ERR_error_string_n(ERR_get_error(), buffer, sizeof(buffer));
-                        ccstMessage("OpenSSL failure: %s", buffer);
+                        ccstMessage("Public key '%s' should be imported: %s", test_key, error.c_str());
+                        ccstFailure("Import routine is broken");
                     }
                 }
             }
-        }
-        
-        void testImportPerformance()
-        {
-            const test_data test_vectors[] = {
-                { "ApwBezqIdwCdmcjfysfrCaWZ5h9LttqP2RvCjapdKrLd", true },
-                { "A/CR2dXXwpj+Y2Kb3eytxmbBEv4/mqQxYW7N5oNg+iea", true },
-                { "Ag0TRAqRbD/KVDVeFDhhZX49Wk2X+NitEx7Au7KWMTWi", true },
-                { "A5kU3PmJii+kdPVoqtufs9apFbeum43Pz2WnqMyrb2Hp", true },
-                { "AxAR3xlwvz9BiFEtRkXx7unhQ5/BmEfrtkM+Z0zzpe8U", true },
-                { "AlasqZKRDyk+VUtdrQzSGbF1ATHZ3PYvyUdx3X+rdQsB", true },
-                { "A+zDDUcBMErVtKLGT3wrqssQPWgBIlfqZ8cOsU2LARRo", true },
-                { "AwOmvwWIIsvPTDcRzz9ZCEOd/CorfSE0AWIJlacCl/NO", true },
-                { "Ah6xT4mYIAa5eRRThVFwu5DH5PfWHApOUV/O46EfqKfU", true },
-                { "A83L0L6idMpdFbPsB6Btolaa33y1SztWLeE/LoYbI8Ih", true },
-            };
-            printf("EC import testPerformance start\n");
-            auto timer = PerformanceTimer();
-            for (int test_run = 1; test_run <= 5; test_run++) {
-                int iterations = 0;
-                timer.start();
-                for (int iter = 0; iter < 1000; iter++) {
-                    for (int index = 0; index < 10; index++) {
-                        const char * test_key = test_vectors[index].point;
-                        auto imported_key = crypto::ECC_ImportPublicKeyFromB64(crypto::P256, test_key);
-                        ccstAssertTrue(imported_key.isValid());
-                        iterations++;
-                    }
-                }
-                auto elapsed = timer.elapsedTime();
-                auto elapsed_per_import = elapsed / (double)iterations;
-                auto elapsed_str = PerformanceTimer::humanReadableTime(elapsed);
-                auto elapsed_per_import_str = PerformanceTimer::humanReadableTime(elapsed_per_import);
-                printf("- %d: elapsed time: %s (%s per import)\n", test_run, elapsed_str.c_str(), elapsed_per_import_str.c_str());
-            }
-            printf("EC import testPerformance end\n");
         }
     };
     

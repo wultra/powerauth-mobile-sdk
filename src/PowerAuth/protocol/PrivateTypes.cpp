@@ -16,12 +16,11 @@
 
 #include "PrivateTypes.h"
 #include "Constants.h"
-#include "../crypto/ECC.h"
-#include "../crypto/AES.h"
 #include "../utils/DataReader.h"
 #include "../utils/DataWriter.h"
 
 #include <PowerAuth/OtpUtil.h>
+#include <PowerAuth/Algorithms.h>
 #include <cc7/Base64.h>
 
 using namespace cc7;
@@ -61,8 +60,10 @@ namespace protocol
             
             // optional master key validation
             if (result && also_validate_key) {
-                auto foo_key = crypto::ECC_ImportPublicKey(crypto::EllipticCurve::P256, foo_data);
-                if (!foo_key.isValid()) {
+                try {
+                    algorithms().p256().newPublicKey()->importKey(foo_data, cc7::crypto::KEY_FORMAT_X963);
+                    result = true;
+                } catch (std::exception & e) {
                     CC7_LOG("ValidateSessionSetup: Provided masterServerPublicKey is invalid.");
                     result = false;
                 }
@@ -262,23 +263,28 @@ namespace protocol
     //
 
     bool SessionData::PublicKeyWithId::setKey(const std::string &key_data_base64, const std::string &key_id)
-    {
-        if (key_data_base64.empty()) {
-            CC7_LOG("Empty key data provided for ECIES public key.");
+{
+        try {
+            if (key_data_base64.empty()) {
+                CC7_LOG("Empty key data provided for ECIES public key.");
+                return false;
+            }
+            if (key_id.empty()) {
+                CC7_LOG("Empty identifier provided for ECIES public key.");
+                return false;
+            }
+            cc7::ByteArray data;
+            if (!data.readFromBase64String(key_data_base64) || data.empty()) {
+                CC7_LOG("Invalid key data provided for ECIES public key.");
+                return false;
+            }
+            public_key = algorithms().p256().newPublicKey(data, cc7::crypto::KEY_FORMAT_X963);
+            identifier = key_id;
+            return true;
+        } catch (std::exception & e) {
+            CC7_LOG("SessionData::PublicKeyWithId::setKey fail: %s", e.what());
             return false;
         }
-        if (key_id.empty()) {
-            CC7_LOG("Empty identifier provided for ECIES public key.");
-            return false;
-        }
-        cc7::ByteArray data;
-        if (!data.readFromBase64String(key_data_base64) || data.empty()) {
-            CC7_LOG("Invalid key data provided for ECIES public key.");
-            return false;
-        }
-        key_data = data;
-        identifier = key_id;
-        return true;
     }
 
 } // io::getlime::powerAuth::detail

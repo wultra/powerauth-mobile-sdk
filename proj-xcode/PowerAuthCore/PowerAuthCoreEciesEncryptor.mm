@@ -53,8 +53,14 @@ using namespace io::getlime::powerAuth;
                sharedInfo1:(NSData *)sharedInfo1
                sharedInfo2:(NSData *)sharedInfo2
 {
-    auto encryptor = ECIESEncryptor(cc7::objc::CopyFromNSData(publicKey), cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
-    return [self initWithObject:encryptor timeService:timeService];
+    try {
+        auto key = cc7::crypto::KeyPairFactory::getInstance("P-256")->newPublicKey(cc7::objc::CopyFromNSData(publicKey), cc7::crypto::KEY_FORMAT_X963);
+        auto encryptor = ECIESEncryptor(key, cc7::objc::CopyFromNSData(sharedInfo1), cc7::objc::CopyFromNSData(sharedInfo2));
+        return [self initWithObject:encryptor timeService:timeService];
+
+    } catch (std::exception & e) {
+        return nil;
+    }
 }
 
 - (nullable PowerAuthCoreEciesEncryptor*) copyForDecryption
@@ -80,7 +86,7 @@ using namespace io::getlime::powerAuth;
 
 - (NSData*) publicKey
 {
-    return cc7::objc::CopyToNullableNSData(_encryptor.publicKey());
+    return cc7::objc::CopyToNullableNSData(_encryptor.publicKey()->exportKey(cc7::crypto::KEY_FORMAT_X963));
 }
 
 - (void) setSharedInfo2:(NSData *)sharedInfo2

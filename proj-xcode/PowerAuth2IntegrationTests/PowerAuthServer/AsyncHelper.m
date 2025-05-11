@@ -57,7 +57,7 @@
 
 + (id) synchronizeAsynchronousBlock:(void(^)(AsyncHelper * waiting))block
 {
-    return [self synchronizeAsynchronousBlock:block wait:100.0];
+    return [self synchronizeAsynchronousBlock:block wait:10.0];
 }
 
 - (void) reportCompletion:(id)resultObject

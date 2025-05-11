@@ -104,7 +104,6 @@ void DeriveAllSecretKeys(SignatureKeys & keys, cc7::ByteArray & vaultKey, const 
 cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, const cc7::ByteRange & salt, cc7::U32 iterations)
 {
     const auto params = cc7::crypto::ParameterList {
-        { cc7::crypto::PARAM_OUT_KEY_SIZE,      cc7::crypto::Parameter::take(SIGNATURE_KEY_SIZE) },
         { cc7::crypto::KDF_PARAM_ITERATIONS,    cc7::crypto::Parameter::take(static_cast<size_t>(iterations)) },
         { cc7::crypto::KDF_PARAM_SALT,          cc7::crypto::Parameter::ref(salt) },
     };

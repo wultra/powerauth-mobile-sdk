@@ -97,7 +97,6 @@ namespace powerAuth
         // Concat shared_info1 + ephemeral key.
         cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, out_ephemeral_key});
         ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
-            { cc7::crypto::PARAM_OUT_KEY_SIZE, cc7::crypto::Parameter::take(EnvelopeKeySize) },
             { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
         });
         return ek;
@@ -113,7 +112,6 @@ namespace powerAuth
         // Concat shared_info1 + ephemeral key.
         cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, ephemeral_key});
         ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
-            { cc7::crypto::PARAM_OUT_KEY_SIZE, cc7::crypto::Parameter::take(EnvelopeKeySize) },
             { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
         });
         return ek;

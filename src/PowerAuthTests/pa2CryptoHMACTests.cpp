@@ -111,7 +111,7 @@ namespace powerAuthTests
                 cc7::ByteArray calculated = kdf->deriveKeyBytes(pass, {
                     { cc7::crypto::KDF_PARAM_SALT,       cc7::crypto::Parameter::ref(salt) },
                     { cc7::crypto::KDF_PARAM_ITERATIONS, cc7::crypto::Parameter::take(td->iterations) },
-                    { cc7::crypto::PARAM_OUT_KEY_SIZE,   cc7::crypto::Parameter::take(td->dklen) }
+                    { cc7::crypto::KDF_PARAM_KEY_SIZE,   cc7::crypto::Parameter::take(td->dklen) }
                 });
                 ccstAssertTrue(calculated.size() == td->dklen);
                 ccstAssertTrue(expected == calculated, "Failed at iteration %d", iteration);

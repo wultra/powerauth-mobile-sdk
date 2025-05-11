@@ -172,8 +172,8 @@ namespace powerAuthTests
                 auto key_expected = cc7::FromHexString(td->expected);
                 auto key_length = key_expected.size();
                 auto key = kdf->deriveKeyBytes(secret, {
-                    { cc7::crypto::KDF_PARAM_INFO, cc7::crypto::Parameter::ref(sinfo) },
-                    { cc7::crypto::PARAM_OUT_KEY_SIZE, cc7::crypto::Parameter::take(key_length) }
+                    { cc7::crypto::KDF_PARAM_INFO,      cc7::crypto::Parameter::ref(sinfo) },
+                    { cc7::crypto::KDF_PARAM_KEY_SIZE,  cc7::crypto::Parameter::take(key_length) }
                 });
                 bool equal = key == key_expected;
                 if (!equal) {

@@ -17,7 +17,7 @@
 #import <cc7/objc/ObjcHelper.h>     // must be first included
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
 #import "PowerAuthCorePrivateImpl.h"
-
+#include <PowerAuth/Algorithms.h>
 
 using namespace io::getlime::powerAuth;
 
@@ -44,7 +44,7 @@ using namespace io::getlime::powerAuth;
     try {
         auto cpp_data = cc7::objc::CopyFromNSData(data);
         auto cpp_signature = cc7::objc::CopyFromNSData(signature);
-        return (BOOL) cc7::crypto::Signature::getInstance("ECDSA-SHA-256")->verify(*publicKey.ecKeyRef, cpp_signature, cpp_data);
+        return (BOOL) algorithms().ecdsaWithSha256().verify(*publicKey.ecKeyRef, cpp_signature, cpp_data);
     } catch (std::exception & e) {
         return NO;
     }
@@ -55,7 +55,7 @@ using namespace io::getlime::powerAuth;
 {
     try {
         auto cpp_data = cc7::objc::CopyFromNSData(data);
-        auto cpp_signature = cc7::crypto::Signature::getInstance("ECDSA-SHA-256")->sign(*privateKey.ecKeyRef, cpp_data);
+        auto cpp_signature = algorithms().ecdsaWithSha256().sign(*privateKey.ecKeyRef, cpp_data);
         return cc7::objc::CopyToNSData(cpp_signature);
     } catch (std::exception & e) {
         return nil;
@@ -66,7 +66,7 @@ using namespace io::getlime::powerAuth;
                                          withPrivateKey:(nonnull PowerAuthCoreECPrivateKey*)privateKey
 {
     try {
-        auto secret = cc7::crypto::KeyAgreement::getInstance("ECDH")->phase(*privateKey.ecKeyRef, *publicKey.ecKeyRef);
+        auto secret = algorithms().ecdhWithNullKdf().phase(*privateKey.ecKeyRef, *publicKey.ecKeyRef);
         return [[PowerAuthCoreData alloc] initWithByteRange:secret->getKeyData()];
     } catch (std::exception & e) {
         return nil;
@@ -76,7 +76,7 @@ using namespace io::getlime::powerAuth;
 + (nullable PowerAuthCoreECKeyPair*) ecGenerateKeyPair
 {
     try {
-        auto key_pair = cc7::crypto::KeyPair::generateKeyPair("P-256");
+        auto key_pair = algorithms().p256().generateKeyPair();
         PowerAuthCoreECPublicKey * public_key = [[PowerAuthCoreECPublicKey alloc] initWithEcKey:key_pair->getPublicKeyPtr()];
         PowerAuthCoreECPrivateKey * private_key = [[PowerAuthCoreECPrivateKey alloc] initWithEcKey:key_pair->getPrivateKeyPtr()];
         return [[PowerAuthCoreECKeyPair alloc] initWithPrivateKey:private_key withPublicKey:public_key];
@@ -89,7 +89,7 @@ using namespace io::getlime::powerAuth;
 {
     try {
         auto cpp_data = cc7::objc::CopyFromNSData(data);
-        auto cpp_hash = cc7::crypto::MessageDigest::getInstance("SHA-256")->digest(cpp_data);
+        auto cpp_hash = algorithms().sha256().digest(cpp_data);
         return cc7::objc::CopyToNSData(cpp_hash);
     } catch (std::exception & e) {
         return nil;
@@ -103,7 +103,7 @@ using namespace io::getlime::powerAuth;
     try {
         auto cpp_data = cc7::objc::CopyFromNSData(data);
         auto cpp_key = cc7::objc::CopyFromNSData(key);
-        auto result = cc7::crypto::MAC::getInstance("HMAC-SHA-256")->token(cpp_key, cpp_data);
+        auto result = algorithms().hmacWithSha256().token(cpp_key, cpp_data);
         return cc7::objc::CopyToNullableNSData(result);
     } catch (std::exception & e) {
         return nil;
@@ -118,7 +118,7 @@ using namespace io::getlime::powerAuth;
     try {
         auto cpp_data = cc7::objc::CopyFromNSData(data);
         auto cpp_key = cc7::objc::CopyFromNSData(key);
-        auto result = cc7::crypto::MAC::getInstance("HMAC-SHA-256")->token(cpp_key, cpp_data, {
+        auto result = algorithms().hmacWithSha256().token(cpp_key, cpp_data, {
             { cc7::crypto::MAC_PARAM_DIGEST_LENGTH, cc7::crypto::Parameter::take((size_t)length) }
         });
         return cc7::objc::CopyToNullableNSData(result);
@@ -172,7 +172,7 @@ using namespace io::getlime::powerAuth;
     self = [super init];
     if (self) {
         try {
-            _key = cc7::crypto::KeyPairFactory::getInstance("P-256")->newPublicKey(cc7::objc::CopyFromNSData(publicKeyData), cc7::crypto::KEY_FORMAT_X963);
+            _key = algorithms().p256().newPublicKey(cc7::objc::CopyFromNSData(publicKeyData), cc7::crypto::KEY_FORMAT_X963);
         } catch (std::exception & e) {
             return nil;
         }
@@ -188,10 +188,13 @@ using namespace io::getlime::powerAuth;
 - (NSData*) publicKeyBytes
 {
     try {
-        return cc7::objc::CopyToNSData(_key->exportKey(cc7::crypto::KEY_FORMAT_X963));
+        if (_key != nullptr) {
+            return cc7::objc::CopyToNSData(_key->exportKey(cc7::crypto::KEY_FORMAT_X963));
+        }
     } catch (std::exception & e) {
-        return nil;
+        // nothing
     }
+    return nil;
 }
 
 @end
@@ -219,7 +222,7 @@ using namespace io::getlime::powerAuth;
     self = [super init];
     if (self) {
         try {
-            _key = cc7::crypto::KeyPairFactory::getInstance("P-256")->newPrivateKey(cc7::objc::CopyFromNSData(privateKeyData), cc7::crypto::KEY_FORMAT_RAW);
+            _key = algorithms().p256().newPrivateKey(cc7::objc::CopyFromNSData(privateKeyData), cc7::crypto::KEY_FORMAT_RAW);
         } catch (std::exception & e) {
             return nil;
         }
@@ -235,10 +238,13 @@ using namespace io::getlime::powerAuth;
 - (NSData*) privateKeyBytes
 {
     try {
-        return cc7::objc::CopyToNSData(_key->exportKey(cc7::crypto::KEY_FORMAT_RAW));
+        if (_key != nullptr) {
+            return cc7::objc::CopyToNSData(_key->exportKey(cc7::crypto::KEY_FORMAT_RAW));
+        }
     } catch (std::exception & e) {
-        return nil;
+        // nothing
     }
+    return nil;
 }
 
 @end

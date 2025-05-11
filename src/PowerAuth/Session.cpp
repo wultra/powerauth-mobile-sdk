@@ -823,18 +823,19 @@ namespace powerAuth
     
     ErrorCode Session::deriveCryptographicKeyFromVaultKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
                                                           cc7::U64 key_index, cc7::ByteArray & out_key)
-    {
+{
         LOCK_GUARD();
-        cc7::ByteArray vault_key;
-        ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
-        if (code != EC_Ok) {
-            return code;
+        try {
+            cc7::ByteArray vault_key;
+            ErrorCode code = decryptVaultKey(c_vault_key, keys, vault_key);
+            if (code != EC_Ok) {
+                return code;
+            }
+            out_key = protocol::DeriveSecretKey(vault_key, key_index);
+            return EC_Ok;
+        } catch (std::exception & e) {
+            return EC_Encryption;;
         }
-        out_key = protocol::DeriveSecretKey(vault_key, key_index);
-        if (out_key.empty()) {
-            return EC_Encryption;
-        }
-        return EC_Ok;
     }
     
     ErrorCode Session::signDataWithDevicePrivateKey(const std::string & c_vault_key, const SignatureUnlockKeys & keys,
@@ -909,14 +910,22 @@ namespace powerAuth
     
     cc7::ByteArray Session::normalizeSignatureUnlockKeyFromData(const cc7::ByteRange & any_data)
     {
-        auto key = algorithms().sha256().digest(any_data);
-        key.resize(protocol::SIGNATURE_KEY_SIZE);
-        return key;
+        try {
+            auto key = algorithms().sha256().digest(any_data);
+            key.resize(protocol::SIGNATURE_KEY_SIZE);
+            return key;
+        } catch (std::exception & e) {
+            return cc7::ByteArray();
+        }
     }
     
     cc7::ByteArray Session::generateSignatureUnlockKey()
     {
-        return cc7::crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true);
+        try {
+            return cc7::crypto::GetRandomData(protocol::SIGNATURE_KEY_SIZE, true);
+        } catch (std::exception & e) {
+            return cc7::ByteArray();
+        }
     }
     
     

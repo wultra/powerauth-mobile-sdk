@@ -54,8 +54,6 @@
             return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/vault/unlock" error:error];
         case PA2EncryptorId_TokenCreate:
             return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/token/create" error:error];
-        case PA2EncryptorId_ConfirmRecoveryCode:
-            return [self encryptorForScope:PowerAuthCoreEciesEncryptorScope_Activation sh1:@"/pa/recovery/confirm" error:error];
         default:
             if (error) {
                 *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Unsupported encryptor");

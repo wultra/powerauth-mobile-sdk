@@ -36,6 +36,11 @@ namespace powerAuthTests
         CC7_ADD_UNIT_TEST(pa2ECIESTests, list);
         
         // Crypto tests
+        // v4
+        CC7_ADD_UNIT_TEST(PowerAuthKDFTests, list);
+        CC7_ADD_UNIT_TEST(PowerAuthAEADTests, list);
+        CC7_ADD_UNIT_TEST(SharedSecretTests, list);
+        // legacy
         CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
         CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);
         CC7_ADD_UNIT_TEST(pa2CryptoECDHKDFTests, list);

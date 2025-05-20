@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 #pragma once
 
-/**
- This is a top level header. You can include this file from your project,
- whenever you need include everything from PA2 library at once.
- */
+#include <PowerAuth/PublicTypes.h>
 
-#include <PowerAuth/Session.h>
-#include <PowerAuth/ECIES.h>
-#include <PowerAuth/E2EE.h>
-#include <PowerAuth/ByteUtils.h>
-#include <PowerAuth/Debug.h>
-#include <PowerAuth/Algorithms.h>
+namespace io {
+namespace getlime {
+namespace powerAuth {
+
+
+
+} // namespace powerAuth
+} // namespace getlime
+} // namespace io

@@ -145,8 +145,8 @@ namespace powerAuthTests
                 cc7::ByteArray iv    = cc7::FromHexString(td->iv);
                 cc7::ByteArray enc   = cc7::FromHexString(td->enc);
                 
-                cc7::ByteArray ourENC = algorithms().aes128cbc().encrypt(key, iv, plain);
-                cc7::ByteArray ourDEC = algorithms().aes128cbc().decrypt(key, iv, enc);
+                cc7::ByteArray ourENC = algorithms().v3.aes128cbc().encrypt(key, iv, plain);
+                cc7::ByteArray ourDEC = algorithms().v3.aes128cbc().decrypt(key, iv, enc);
                 
                 bool encrypted_eqal = ourENC == enc;
                 bool decrypted_eqal = ourDEC == plain;
@@ -195,8 +195,8 @@ namespace powerAuthTests
                 cc7::ByteArray iv    = cc7::FromHexString(td->iv);
                 cc7::ByteArray enc   = cc7::FromHexString(td->enc);
                 
-                cc7::ByteArray ourENC = algorithms().aes128cbcNoPad().encrypt(key, iv, plain);
-                cc7::ByteArray ourDEC = algorithms().aes128cbcNoPad().decrypt(key, iv, enc);
+                cc7::ByteArray ourENC = algorithms().v3.aes128cbcNoPad().encrypt(key, iv, plain);
+                cc7::ByteArray ourDEC = algorithms().v3.aes128cbcNoPad().decrypt(key, iv, enc);
                 
                 bool encrypted_eqal = ourENC == enc;
                 bool decrypted_eqal = ourDEC == plain;

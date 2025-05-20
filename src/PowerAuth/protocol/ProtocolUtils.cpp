@@ -49,7 +49,7 @@ bool ValidateActivationCodeSignature(const std::string & code, const std::string
     if (!result || signature.empty()) {
         return false;
     }
-    return algorithms().ecdsaWithSha256().verify(mk, signature, cc7::MakeRange(code));
+    return algorithms().v3.ecdsaWithSha256().verify(mk, signature, cc7::MakeRange(code));
 }
 
 
@@ -87,7 +87,7 @@ cc7::ByteArray DeriveSecretKey(const cc7::ByteRange & secret, cc7::U64 index)
     }
 #endif
     cc7::ByteArray key = _U64ToData(index);
-    return algorithms().aes128cbcNoPad().encrypt(secret, ZERO_IV, key);
+    return algorithms().v3.aes128cbcNoPad().encrypt(secret, ZERO_IV, key);
 }
 
 
@@ -107,7 +107,7 @@ cc7::ByteArray DeriveSecretKeyFromPassword(const cc7::ByteRange & password, cons
         { cc7::crypto::KDF_PARAM_ITERATIONS,    cc7::crypto::Parameter::take(static_cast<size_t>(iterations)) },
         { cc7::crypto::KDF_PARAM_SALT,          cc7::crypto::Parameter::ref(salt) },
     };
-    return algorithms().pbkdf2WithSha1().deriveKeyBytes(password, params);
+    return algorithms().v3.pbkdf2WithSha1().deriveKeyBytes(password, params);
 }
 
 
@@ -115,7 +115,7 @@ cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const 
 {
     if (masterKey.size() == SIGNATURE_KEY_SIZE && index.size() >= SIGNATURE_KEY_SIZE) {
         // Calculate HMAC SHA256 without cropping the result
-        auto result = algorithms().hmacWithSha256().token(masterKey, index);
+        auto result = algorithms().v3.hmacWithSha256().token(masterKey, index);
         if (result.size() != 32) {
             throw std::domain_error("Wrong HMAC-SHA256 result size");
         }
@@ -135,7 +135,7 @@ cc7::ByteArray DeriveSecretKeyFromIndex(const cc7::ByteRange & masterKey, const 
 
 static cc7::ByteArray _EncryptSignatureKey(const cc7::ByteRange & protection_key, const cc7::ByteArray * ext_key, const cc7::ByteRange & signature_key)
 {
-    const auto & aes = algorithms().aes128cbcNoPad();
+    const auto & aes = algorithms().v3.aes128cbcNoPad();
     if (ext_key == nullptr) {
         return aes.encrypt(protection_key, ZERO_IV, signature_key);
     } else {
@@ -146,7 +146,7 @@ static cc7::ByteArray _EncryptSignatureKey(const cc7::ByteRange & protection_key
 
 static cc7::ByteArray _DecryptSignatureKey(const cc7::ByteRange & protection_key, const cc7::ByteArray * ext_key, const cc7::ByteRange & c_signature_key)
 {
-    const auto & aes = algorithms().aes128cbcNoPad();
+    const auto & aes = algorithms().v3.aes128cbcNoPad();
     if (ext_key == nullptr) {
         return aes.decrypt(protection_key, ZERO_IV, c_signature_key);
     } else {
@@ -309,7 +309,7 @@ void ProtectSignatureKeysWithEEK(SignatureKeys & secret, const cc7::ByteRange & 
     cc7::ByteArray c_knowledge_key;
     cc7::ByteArray c_biometry_key;
     
-    const auto & aes = algorithms().aes128cbcNoPad();
+    const auto & aes = algorithms().v3.aes128cbcNoPad();
     if (protect) {
         c_knowledge_key = aes.encrypt(eek, ZERO_IV, secret.knowledgeKey);
     } else {
@@ -338,7 +338,7 @@ cc7::ByteArray SignatureCounterToData(cc7::U64 counter)
  */
 inline cc7::ByteArray _NextCounterValue(const cc7::ByteRange & prev)
 {
-    return ReduceSharedSecret(algorithms().sha256().digest(prev));
+    return ReduceSharedSecret(algorithms().v3.sha256().digest(prev));
 }
 
 void CalculateNextCounterValue(PersistentData & pd)
@@ -386,7 +386,7 @@ std::string CalculateSignature(const SignatureKeys & sk,
         signature_string.reserve(keys.size() * 8 + keys.size() - 1);
     }
     // Now calculate signature for all involved factors.
-    const auto& mac = algorithms().hmacWithSha256();
+    const auto& mac = algorithms().v3.hmacWithSha256();
     for (size_t i = 0; i < keys.size(); i++) {
         // Outer loop, for over key in the vector.
         const cc7::ByteArray & signature_key = *keys[i];
@@ -515,7 +515,7 @@ std::string CalculateActivationFingerprint(const cc7::crypto::PublicKey & device
         });
     }
     // Now calculate decimalized signature
-    return protocol::CalculateDecimalizedSignature(algorithms().sha256().digest(data), protocol::DECIMAL_SIGNATURE_MAX_LENGTH);
+    return protocol::CalculateDecimalizedSignature(algorithms().v3.sha256().digest(data), protocol::DECIMAL_SIGNATURE_MAX_LENGTH);
 }
 
 //
@@ -588,7 +588,7 @@ void DecryptEncryptedStatusBlob(const cc7::ByteRange & encrypted_status_blob,
     // Prepare IV for status blob decryption
     auto status_iv = protocol::DeriveIVForStatusBlobDecryption(challenge, nonce, transport_key);
     // Decrypt blob and initialize reader for data parsing.
-    auto status_data = algorithms().aes128cbcNoPad().decrypt(transport_key, status_iv, encrypted_status_blob);
+    auto status_data = algorithms().v3.aes128cbcNoPad().decrypt(transport_key, status_iv, encrypted_status_blob);
     if (!ParseStatusBlob(status_data, out_status)) {
         throw std::domain_error("Invalid status blob data");
     }

@@ -267,7 +267,7 @@ namespace powerAuth
             cc7::crypto::ReseedRandomGenerator();
             
             // Generate device's private & public key pair
-            ad->deviceKeyPair = algorithms().p256().generateKeyPair();
+            ad->deviceKeyPair = algorithms().v3.p256().generateKeyPair();
             ad->devicePublicKeyData = ad->deviceKeyPair->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
             
             // V3 activation is much simpler than V2. We need to just store device's public key
@@ -314,7 +314,7 @@ namespace powerAuth
             }
             // Now try to import server's public key
             _ad->serverPublicKeyData.readFromBase64String(param.serverPublicKey);
-            _ad->serverPublicKey = algorithms().p256().newPublicKey(_ad->serverPublicKeyData, cc7::crypto::KEY_FORMAT_X963);
+            _ad->serverPublicKey = algorithms().v3.p256().newPublicKey(_ad->serverPublicKeyData, cc7::crypto::KEY_FORMAT_X963);
 
             // Now we have all required information and can calculate ECDH shared secret
             _ad->masterSharedSecret = calculateSharedSecret(_ad->deviceKeyPair->getPrivateKey());
@@ -380,7 +380,7 @@ namespace powerAuth
             protocol::LockSignatureKeys(pd->sk, plain_keys, lock_request);
             
             auto device_private_key_data = _ad->deviceKeyPair->getPrivateKey().exportKey(cc7::crypto::KEY_FORMAT_RAW);
-            pd->cDevicePrivateKey = algorithms().aes128cbc().encrypt(vault_key, protocol::ZERO_IV, device_private_key_data);
+            pd->cDevicePrivateKey = algorithms().v3.aes128cbc().encrypt(vault_key, protocol::ZERO_IV, device_private_key_data);
             // Final step is PD validation. If this step fails, then there's an internal problem.
             if (!protocol::ValidatePersistentData(*pd)) {
                 throw std::domain_error("Step 3: Persistent data is invalid.");
@@ -642,7 +642,7 @@ namespace powerAuth
         // Import public key
         bool success = false;
         try {
-            auto ec_public_key = algorithms().p256().newPublicKey();
+            auto ec_public_key = algorithms().v3.p256().newPublicKey();
             if (use_master_server_key) {
                 // Import master server public key
                 ec_public_key->importKeyFromBase64(_setup.masterServerPublicKey, cc7::crypto::KEY_FORMAT_X963);
@@ -653,10 +653,10 @@ namespace powerAuth
             // validate signature
             if (data.signatureFormat == SignedData::ECDSA_JOSE) {
                 // Convert signature from JOSE to DER first.
-                success = algorithms().ecdsaWithSha256().verify(*ec_public_key, crypto::ECDSA_JOSEtoDER(data.signature), data.data);
+                success = algorithms().v3.ecdsaWithSha256().verify(*ec_public_key, crypto::ECDSA_JOSEtoDER(data.signature), data.data);
             } else {
                 // No signature conversion required.
-                success = algorithms().ecdsaWithSha256().verify(*ec_public_key, data.signature, data.data);
+                success = algorithms().v3.ecdsaWithSha256().verify(*ec_public_key, data.signature, data.data);
                 //
             }
         } catch (std::exception & e) {
@@ -693,7 +693,7 @@ namespace powerAuth
                 
                 signing_key = protocol::DeriveSecretKeyFromIndex(plain.transportKey, cc7::FromBase64String(_setup.applicationSecret));
             }
-            data.signature = algorithms().hmacWithSha256().token(signing_key, data.data);
+            data.signature = algorithms().v3.hmacWithSha256().token(signing_key, data.data);
             return EC_Ok;
 
         } catch (std::exception & e) {
@@ -850,7 +850,7 @@ namespace powerAuth
                 return code;
             }
             auto device_private_key = getDevicePrivateKey(vault_key);
-            out_signature = algorithms().ecdsaWithSha256().sign(*device_private_key, in_data);
+            out_signature = algorithms().v3.ecdsaWithSha256().sign(*device_private_key, in_data);
             
             if (out_format == SignedData::ECDSA_JOSE) {
                 out_signature = crypto::ECDSA_DERtoJOSE(out_signature);
@@ -897,7 +897,7 @@ namespace powerAuth
         
         // V3: Vault key is now simply encrypted with KEY_TRANSPORT
         try {
-            out_key = algorithms().aes128cbc().decrypt(plain.transportKey, protocol::ZERO_IV, encrypted_vault_key);
+            out_key = algorithms().v3.aes128cbc().decrypt(plain.transportKey, protocol::ZERO_IV, encrypted_vault_key);
             return EC_Ok;
         } catch (std::exception & e) {
             return EC_Encryption;
@@ -911,7 +911,7 @@ namespace powerAuth
     cc7::ByteArray Session::normalizeSignatureUnlockKeyFromData(const cc7::ByteRange & any_data)
     {
         try {
-            auto key = algorithms().sha256().digest(any_data);
+            auto key = algorithms().v3.sha256().digest(any_data);
             key.resize(protocol::SIGNATURE_KEY_SIZE);
             return key;
         } catch (std::exception & e) {
@@ -1053,7 +1053,7 @@ namespace powerAuth
                 // For "application" scope, the setup is quite simple.
                 // We have to just compute hash from APP_SECRET (as is) and use
                 // the master server public key.
-                sharedInfo2 = algorithms().sha256().digest(cc7::MakeRange(_setup.applicationSecret));
+                sharedInfo2 = algorithms().v3.sha256().digest(cc7::MakeRange(_setup.applicationSecret));
                 ecPublicKey = _sd->ecies_application_public_key.public_key;
                 //
             } else if (scope == ECIES_ActivationScope) {
@@ -1070,7 +1070,7 @@ namespace powerAuth
                 
                 // The sharedInfo2 is defined as HMAC_SHA256(key: KEY_TRANSPORT, data: APP_SECRET)
                 // We need to also use the server's public key as EC public key.
-                sharedInfo2 = algorithms().hmacWithSha256().token(plain_keys.transportKey, cc7::MakeRange(_setup.applicationSecret));
+                sharedInfo2 = algorithms().v3.hmacWithSha256().token(plain_keys.transportKey, cc7::MakeRange(_setup.applicationSecret));
                 ecPublicKey = _sd->ecies_activation_public_key.public_key;
                 //
             } else {
@@ -1255,7 +1255,7 @@ namespace powerAuth
         } else if (_pd != nullptr) {
             // Session has persistent data, then extract public key from PD and keep it in SessionData structure.
             if (_sd->device_public_key == nullptr) {
-                _sd->device_public_key = algorithms().p256().newPublicKey(_pd->devicePublicKey, cc7::crypto::KEY_FORMAT_X963);
+                _sd->device_public_key = algorithms().v3.p256().newPublicKey(_pd->devicePublicKey, cc7::crypto::KEY_FORMAT_X963);
             }
             return *_sd->device_public_key;
         }
@@ -1270,7 +1270,7 @@ namespace powerAuth
             }
         } else if (_pd != nullptr) {
             if (_sd->server_public_key == nullptr) {
-                _sd->server_public_key = algorithms().p256().newPublicKey(_pd->serverPublicKey, cc7::crypto::KEY_FORMAT_X963);
+                _sd->server_public_key = algorithms().v3.p256().newPublicKey(_pd->serverPublicKey, cc7::crypto::KEY_FORMAT_X963);
             }
             return *_sd->server_public_key;
         }
@@ -1280,7 +1280,7 @@ namespace powerAuth
     const cc7::crypto::PublicKey & Session::getMasterServerPublicKey() const
     {
         if (_sd->master_server_public_key == nullptr) {
-            _sd->master_server_public_key = algorithms().p256().newPublicKey();
+            _sd->master_server_public_key = algorithms().v3.p256().newPublicKey();
             _sd->master_server_public_key->importKeyFromBase64(_setup.masterServerPublicKey, cc7::crypto::KEY_FORMAT_X963);
         }
         return *_sd->master_server_public_key;
@@ -1289,14 +1289,14 @@ namespace powerAuth
     cc7::crypto::PrivateKeyPtr Session::getDevicePrivateKey(const cc7::ByteRange & vault_unlock_key) const
     {
         // Decrypt device's private key
-        auto private_key_data = algorithms().aes128cbc().decrypt(vault_unlock_key, protocol::ZERO_IV, _pd->cDevicePrivateKey);
-        return algorithms().p256().newPrivateKey(private_key_data, cc7::crypto::KEY_FORMAT_RAW);
+        auto private_key_data = algorithms().v3.aes128cbc().decrypt(vault_unlock_key, protocol::ZERO_IV, _pd->cDevicePrivateKey);
+        return algorithms().v3.p256().newPrivateKey(private_key_data, cc7::crypto::KEY_FORMAT_RAW);
     }
 
 
     cc7::ByteArray Session::calculateSharedSecret(const cc7::crypto::PrivateKey & device_private_key) const
     {
-        auto secret = algorithms().ecdhWithNullKdf().phase(device_private_key, getServerPublicKey());
+        auto secret = algorithms().v3.ecdhWithNullKdf().phase(device_private_key, getServerPublicKey());
         return protocol::ReduceSharedSecret(secret->getKeyData());
     }
 

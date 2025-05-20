@@ -18,6 +18,12 @@
 #include <PowerAuth/ECIES.h>
 #include "protocol/Constants.h"
 
+#include "crypto/PowerAuthKDF.h"
+#include "crypto/PowerAuthAEAD.h"
+
+using namespace cc7;
+using namespace cc7::crypto;
+
 namespace io
 {
 namespace getlime
@@ -25,26 +31,98 @@ namespace getlime
 namespace powerAuth
 {
 
-Algorithms::Algorithms() :
-    _aes128_cbc(cc7::crypto::Cipher::getInstance("AES-128-CBC")),
-    _aes128_cbc_no_pad(cc7::crypto::Cipher::getInstance("AES-128-CBC")),
-    _aes128_ecb(cc7::crypto::Cipher::getInstance("AES-128-ECB")),
-    _ecdsaWithSha256(cc7::crypto::Signature::getInstance("ECDSA-SHA-256")),
-    _ecdhWithNullKdf(cc7::crypto::KeyAgreement::getInstance("ECDH")),
-    _p256(cc7::crypto::KeyPairFactory::getInstance("P-256")),
-    _sha256(cc7::crypto::MessageDigest::getInstance("SHA-256")),
-    _hmacWithSha256(cc7::crypto::MAC::getInstance("HMAC-SHA-256")),
-    _kdf_x963(cc7::crypto::KeyDerivation::getInstance("X963KDF-SHA-256")),
-    _pbkdf2_sha1(cc7::crypto::KeyDerivation::getInstance("PBKDF2-HMAC-SHA-256"))
+Algorithms::V4::Pointers Algorithms::V4::build()
 {
-    _aes128_cbc_no_pad->setParameter(cc7::crypto::CIPHER_PARAM_USE_PADDING, cc7::crypto::Parameter::take(false));
-    // set P-256 public key encoding to compressed
-    _p256->setParameter(cc7::crypto::KEY_PARAM_EC_POINT_CONVERSION, cc7::crypto::Parameter::ref(cc7::crypto::EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
-    // Alter X9.63 KDF's output size to 48 bytes
-    _kdf_x963->setParameter(cc7::crypto::KDF_PARAM_KEY_SIZE, cc7::crypto::Parameter::take(ECIESEnvelopeKey::EnvelopeKeySize));
-    // Alter PBKDF2-SHA1 KDF's output size to 16 bytes (signature key size)
-    _pbkdf2_sha1->setParameter(cc7::crypto::KDF_PARAM_KEY_SIZE, cc7::crypto::Parameter::take(protocol::SIGNATURE_KEY_SIZE));
+    // Cipher
+    auto cipher_AES_256_CTR  = Cipher::getInstance("AES-256-CTR");
+    auto aead_AES_256_GCM    = AEAD::getInstance("AES-256-GCM#I12T16D");
+    // KeyFactory
+    auto key_P384            = KeyPairFactory::getInstance("P-384");
+    auto key_MLKEM_768       = KeyPairFactory::getInstance("ML-KEM-768");
+    auto key_MLDSA_65        = KeyPairFactory::getInstance("ML-DSA-65");
+    // Signature
+    auto sign_ECDSA_SHA2_256 = Signature::getInstance("ECDSA-SHA-256");
+    auto sign_ECDSA_SHA2_384 = Signature::getInstance("ECDSA-SHA-384");
+    auto sign_ECDSA_SHA3_256 = Signature::getInstance("ECDSA-SHA3-256");
+    auto sign_MLDSA_65       = Signature::getInstance("ML-DSA-65");
+    // KeyEncapsulation
+    auto kencap_MLKEM_768    = KeyEncapsulation::getInstance("ML-KEM-768");
+    // KeyAgreement
+    auto kagree_ECDH_NULLKDF = KeyAgreement::getInstance("ECDH");
+    // MessageDigest
+    auto hash_SHA3_256       = MessageDigest::getInstance("SHA3-256");
+    // MAC
+    auto mac_KMAC_256        = MAC::getInstance("KMAC-256");
+    // Custom
+    auto powerAuth_KDF       = std::make_shared<crypto::PowerAuthKDF>(mac_KMAC_256);
+    auto powerAuth_PBKDF     = std::make_shared<crypto::PowerAuthPassKDF>(mac_KMAC_256);
+    auto powerAuth_AEAD      = std::make_shared<crypto::PowerAuthAEAD>(powerAuth_KDF, cipher_AES_256_CTR, mac_KMAC_256);
+
+    // Configure
+    // Set P-384 public key encoding to compressed
+    key_P384->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
+    // Seal
+    return {
+        // Ciphers
+        cipher_AES_256_CTR,
+        aead_AES_256_GCM,
+        // KeyFactory
+        key_P384,
+        key_MLKEM_768,
+        key_MLDSA_65,
+        // Signature
+        sign_ECDSA_SHA2_256,
+        sign_ECDSA_SHA2_384,
+        sign_ECDSA_SHA3_256,
+        sign_MLDSA_65,
+        // KeyEncapsulation
+        kencap_MLKEM_768,
+        // KeyAgreement
+        kagree_ECDH_NULLKDF,
+        // MessageDigest
+        hash_SHA3_256,
+        // MAC
+        mac_KMAC_256,
+        // Custom
+        powerAuth_KDF,
+        powerAuth_PBKDF,
+        powerAuth_AEAD
+    };
+
 }
+
+Algorithms::V3::V3() :
+    _aes128_cbc(Cipher::getInstance("AES-128-CBC")),
+    _aes128_cbc_no_pad(Cipher::getInstance("AES-128-CBC")),
+    _aes128_ecb(Cipher::getInstance("AES-128-ECB")),
+    _ecdsaWithSha256(Signature::getInstance("ECDSA-SHA-256")),
+    _ecdhWithNullKdf(KeyAgreement::getInstance("ECDH")),
+    _p256(KeyPairFactory::getInstance("P-256")),
+    _sha256(MessageDigest::getInstance("SHA-256")),
+    _hmacWithSha256(MAC::getInstance("HMAC-SHA-256")),
+    _kdf_x963(KeyDerivation::getInstance("X963KDF-SHA-256")),
+    _pbkdf2_sha1(KeyDerivation::getInstance("PBKDF2-HMAC-SHA-256"))
+{
+    _aes128_cbc_no_pad->setParameter(CIPHER_PARAM_USE_PADDING, Parameter::take(false));
+    // set P-256 public key encoding to compressed
+    _p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
+    // Alter X9.63 KDF's output size to 48 bytes
+    _kdf_x963->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take(ECIESEnvelopeKey::EnvelopeKeySize));
+    // Alter PBKDF2-SHA1 KDF's output size to 16 bytes (signature key size)
+    _pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take(protocol::SIGNATURE_KEY_SIZE));
+}
+
+Algorithms::Algorithms() : v3(), v4()
+{
+}
+
+const Algorithms& Algorithms::shared()
+{
+    // Thread safe since C++11
+    static Algorithms shared;
+    return shared;
+}
+
 
 } // io::getlime::powerAuth
 } // io::getlime

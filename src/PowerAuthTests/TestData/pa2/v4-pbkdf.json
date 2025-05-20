@@ -1,0 +1,904 @@
+{
+  "description" : "Test vectors for password based KDF function used in protocol V4",
+  "data" : [ {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "JYMjNZPOa2RJjFgjqp+5VxFYhs9SllN9HHys0w1DNSBp/WVN/vqjHiA=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "oYVIU19d+Ev3xSbT92mz2pUV7TNQYG6RTu8/pKRlV94="
+    }
+  }, {
+    "input" : {
+      "password" : " i-+796.tdN&jq",
+      "salt" : "m9gDU0Mjh0MNg9k4lRbOj4w3/lqX/gp5v1ukXMgjO4xl4HHWYBhGXd0=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "gADtgweW+NbYYJIeyUdhzQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "xRFhiy4uPb1zzL+s9paxh7WMOg1JathT5VIZDg9DbGqpa/x6TaTC",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "q1mz9i7LWaKTPtKJh93DrbdnMgVPqB/SrYhPhO0RJDw="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "ZGhw8/poHWZYt4udC5v/db+0W209GxWPT917zUwz5+e+J8NO1E/RACXI9QY=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "eHBvsJfKNEsmtM0Z4lYQJQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "/a9UXlBZmsDPqxMH3KQkZ4OcbqcWQHTmcXirvwsw4IwyUYsMH0/5TT3e5Nk+2zY0",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "kVQZzmvKHVCrd370Px14EYKmAYmQa59JtICUGP3xBvo="
+    }
+  }, {
+    "input" : {
+      "password" : "&uerpLVecaTrF/9u",
+      "salt" : "Fj9nTxfjXIZz4fdCRHMa76TLM0ByJyY1lFB8o04mIG/r",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "C/47iG3WSPUvsEKEQnOvBRbijRrckrDCQjNeAOABZiY="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "BSrqMNLjyOEU/p7sCX/ZHas3qGmo8nV+FYZR8NM/bEpQanZgLwN7L6bD",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "AhtzFh6i/ZtHXdJGVLIkNw=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "xaJQQojYaO+MZ7REPHnsh9+wHFCcNA+gc4PRPCv20vplPfAS4B8m/r0=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "CnIa2uUP6VjuVqNgb0gNZthMo+oCrd0PGpP7YHmr4oQ="
+    }
+  }, {
+    "input" : {
+      "password" : "&PSi+wnkawVx'ww",
+      "salt" : "dy2BhcFmd5LobdkjwCDNY9gkI9KR46Gvqx93uG48WfIhId0=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "5eyvppSt8HBOFTP5eJTsLm5GJiEXE7sCp6tVY0rcKvQ="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "TIIyKv3p61MxuFjN46D9RtKI3Z/ZZn0J6Np/OE/n+pQu2Z5X",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "tBDLwSvszPnxVyjAsQRI0gMr8zxfnN5a7GwU9l/Mh9k="
+    }
+  }, {
+    "input" : {
+      "password" : "P-+DN-q7sBt88",
+      "salt" : "ADYdpN+zxDWP52gAQvc0/j6UFqCXGGUcDyAco8qkPlsb1QPI/uQ=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "j4/yrMQAfUa/J7XI8mXyOaIdA8WwVGDxoxdziyX2AE4="
+    }
+  }, {
+    "input" : {
+      "password" : "U ljBEORPP we",
+      "salt" : "HmuOA9l6jQ5EYDUD9/G73LO1rphiXYnQVRuMEFctN/tI",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "KUaln0hCzd9Xf4dkGdjFag=="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "nU6Gm9erMhQcC54knNyzr142lr2ePQ2Uig+XyLMHIDxK3EKyP2jogxoC9Qw=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "sPzI8YFvIsi3ltrzMHhcEA=="
+    }
+  }, {
+    "input" : {
+      "password" : "Q!qRhk0C7&u3oPBc",
+      "salt" : "drcN86utU4j7Wq205xOh0u0kLSILo1grDe465pWYUorXdw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "elDT+x0ppLK/kJCvLwQYfy08P5Stk4DsLPQFl9sDMc8="
+    }
+  }, {
+    "input" : {
+      "password" : "P4NNK+ Zq+7fN",
+      "salt" : "gGUi3wCrcvfVMllmt+4jFO2Ey/QUeapToyQMC5ZABMG3ag==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "4nucEO67PvLRuL9nyfkUU2pyde/gPM6+HL9wKFQ//og="
+    }
+  }, {
+    "input" : {
+      "password" : "x'VmXu.-/67p)",
+      "salt" : "HgTFenFN4hwHtxwSUE7JVNLO5lxBnIZb0m9RufLLr5NBBaGaCUr9W6qDCvY=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "0xp1fOXQQkMUa3FwrbIYpg=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "N4gnJr8d5RP6MAjWAsotivE80X0tKQEWEK/tAiwtVymp6W9mTWIzwVVOceo=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "XTFQ9yIp853qeiw5f63koq2xPjYIzCQLgx2aDuAWKo8="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "K/eeFvXOXD4LGB1wUR8mz0JwzJtkgKJ0cc2sjbtE2NGVu5k=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "yUzEhxGyPfKUiYkCOMsy6+rD2yyZLYeZN135aFtcMVc="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "IxxKdi0IRVmSfXpMIBL3QM5+tvh/u82SA2US4l3ajd/BfkXyIBSS",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "0Ims18KeUc8w1a9DZanx/A=="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "tAuFcdOKbnwXHpLAykH5wmkBeUDeb+IUHKfkI1uPQXL/KTcUuS2FXA==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "oMU/a6nhaEyFAbKKaSU24BUh4WlBd6tBQh8lFVNrsoY="
+    }
+  }, {
+    "input" : {
+      "password" : "Ajmo/&M'NND",
+      "salt" : "BaYk8vfJbMDGETY3w7E5v9wPomlsjToZjCpabS0PHlqieYyKboBsO/2I",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "bmJlNWaEFYuLF39MB96h5tZVUBl1V+1zRczLy4iDTy8="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "eb0PL4RbZApvUH/l5XBj98A6HWugV4uOh9U2VVdoY0My18IKZ5n5tqA=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "Vum5tB+071sMVkbUHNgksFdGs77mFx9KnwRLXH3Gbdc="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "OPW91zkvgBCp6OPNhnjpmyjoN+WbO96EPy7z6kTBe2DUulA=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "reHyRZn4jkpFbheQzNl5WaM7ztbKOazG8YeYiynDh1k="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "tWQvWs+ugyRKMQt/N6LfnL9mfxevI5gHI5mXmrF1orL0ukjJMsw=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "buaizvc+/EMNd2caBbTuTQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "'AxZ/M!Ni9jc",
+      "salt" : "4O8lvahYg9CyB947PHMasJuDvq97LJC5u85SUhcuJPpaQRoqxCS7srct6AdP",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "cwpAWth42sRxLXts7gul+A=="
+    }
+  }, {
+    "input" : {
+      "password" : "aXb(L8zym!wB",
+      "salt" : "i0hdpq70nZOdrj4WM/ZUAd3SmpxvAffQPiMOd8/kROUeV/xpGEMMQglxZBM9",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "pUlwpQDJbmDhaldSEridmg=="
+    }
+  }, {
+    "input" : {
+      "password" : "yJVhcWG(jp)fFK",
+      "salt" : "Vl+5Kz7pWDwJzVXhxP6P4vXRE1Wcfz+ivWiNe+bzFCMr99DGYnBonZag",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "+XnH5MG7FXEjvQvLmKUeqOBFRLGq9RJwQNtD3VSsphg="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "0V0ejdaJnzDJP3dhD0VEahCRPrGcOMKZ9XI3P2Swq1cjS7J6Xcv4/8U=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "2FWy/Y8jdsitrLMia/pATg=="
+    }
+  }, {
+    "input" : {
+      "password" : "nQ5Fej1.iDvcu",
+      "salt" : "3IWid+H7kY7u88pVsyi+GRy6VrTvt/GmqN68iW3eez7IOw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "oMWSrrjXLfuMY5EDlqFaQs1ETP/+ORoSCmjyuV9lyW0="
+    }
+  }, {
+    "input" : {
+      "password" : "cJ2A!RSMF9#J-",
+      "salt" : "MLrOIk2vB7Ccgfiji5SRZ80nXbIP+5Au0UWi7kBzoPHMpumtvqejB/N5LHtJang=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "YlfSitIEFLwQNzHxaq3c8W2TueSciEEG5zdqBO4l3Tw="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "HuN/9mDn2t8zZ+Zjpp7c4FlDKJcO0sVfveqEn1Tilff37z6pb4a4jFSw",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "ncpkRk8riDYCrxCIRwuC2M6kf/KdxbBVbHe+VMtXsi0="
+    }
+  }, {
+    "input" : {
+      "password" : "w#Bvmx..1R+(zw7I",
+      "salt" : "GfgW7QNz1Oo1CPqI5RfbxbABhd+edflfMH8HTrVQcib/CA4KXuxN9YMG3VMX",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "7dQNezy1PhnnztKnO5hQ6Q=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "g5XBsP8Vu/OwzW23c+3fRVqUHoKBwynIMLP5vtKcwGyDWg==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "9EWewUH3/uZr43Jf8vc3p1HGbCC0uVG8zxxrSQyajNo="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "DnsoF58pOWrFneWRXv+e6E75Zr3rENXH8f4/nxywuqI6oKaN18y+eg==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "r/fG3LuYYQNGFIc2bQ44Qg=="
+    }
+  }, {
+    "input" : {
+      "password" : "0K!mmKLtbPvmf1S",
+      "salt" : "9yguvjhwv188/cwV6emnv/rlBClqoopr1G5NB4h+ey+HOcWL9ywU",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "gxluXU5Il5HJenl7qCilgHwoBC74Qx0qAnKw/BvoA6M="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "JgG0vkpS/XN4jv/DTyzKpk6ZS8Ro/f5Lp55os8bR4+S2xhY=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "LPK/3u2J1wLWtZ3z1eSmMg=="
+    }
+  }, {
+    "input" : {
+      "password" : "ke))W+tB&BSE/q(",
+      "salt" : "s13Ys8WsUshGfOFmgC7MyLEezeZg3a3L5zYa936uqVx+DdYApg==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "Accesnlxoq2FJd41z2mweg=="
+    }
+  }, {
+    "input" : {
+      "password" : "wHJ#Uyg3NS7v6ch",
+      "salt" : "GIP2Op/ZdKBHTbeK0hTkCJ2KwCktuW2nGtvM9vUhW1eNfI2IqNaWKSbx7jwy+qU=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "IaUZgCGzDPRAuYcSunmCng=="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "D25OLYZHodB6T/BvtcMhI8mfRIMj8qKR9Anpd7TvrNk7/nhCXH7jEFM=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "VU/3nfOYsYnzAOdFPOavKBVsd2l0C8dAvm9BX3Qqj4o="
+    }
+  }, {
+    "input" : {
+      "password" : "1zL4ZLieZ&..ku",
+      "salt" : "4g7G69Afpfrp7JeNzHaojSxsag9VoYd+D7rnrJ9UhS358l4wOQ6W/HcgZDU=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "J94s7XY+68jYnlE2z/EN/XDNsEwYwJ8bJ+8RqFQELUE="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "N8BrNyGrWPVg5OBYDBD7Mlm2UBm+1+9HYV9B1LlyKjEmRANjdZS+fjVV",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "1qDHcYDU7oD1ZKeiVA3Rng=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "Xoyg5RFnfctESN8Wxu2ni/wblld0L7ufVzopihdaXA1OjDukKdCd0kSUOs56",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "h5L4bnl1HYgHxUcvFxZYd61Nqbm4+pFMFLp2MkTgeOI="
+    }
+  }, {
+    "input" : {
+      "password" : "U2c.f!96fC8z6M",
+      "salt" : "3rV2rBvrnJyau0h02zL83grFqxmceSme5PlPKUDvKfqI",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "7Lx3I+KWT+CONAX8YARt/w=="
+    }
+  }, {
+    "input" : {
+      "password" : "jG#oT4g1pQv!CsX",
+      "salt" : "1w8xys6QwzrA/fQHIu8XbRZB/YNeqnuf9M0Bk7P5vJ0oIfQRqcpMqZNdJG5i",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "CMzbG0EncmBpWaEKgzFOpw=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "VObn3LIS1oGcWxIiVzFFxEVyyPlSvXdM7OTWIcuS5KnBMEg5Gw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "DiVHgdim8040t/g/Umfbf+NeAfOjtDHnly5aLwo59co="
+    }
+  }, {
+    "input" : {
+      "password" : "lkVD085LUe2",
+      "salt" : "VaONsG5+rm6pEreknA5BSudhwzov0YDU48L7qpT5aQzefl1OVaU9ecAOroUV",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "SfWztve/qMIBcfFYeQUYYUInlbh+B7QWV3BMGC3NAmM="
+    }
+  }, {
+    "input" : {
+      "password" : "IbD-.LEenQfOjwj",
+      "salt" : "H3Un2CxPTF5SpuPuZKW+sHeDRAC1cN++HkS48/5uF2D+VW+gzNfpAIfrQrs=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "v1F+5HLSTQgJoK5KlTfTZw=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "srdQOjP05WyWtu15Fu0S8bkWaJYEvXuY7uTzk24FoKHpYrl4KxLp/Di/okaJ",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "Nrle2ATmb5NDh5Airo0UMg=="
+    }
+  }, {
+    "input" : {
+      "password" : "xyzck0aft-!iAW1",
+      "salt" : "sVWLNL3C6gW1vgRw3cJcuw4OuF8vCA7y20JG2XPgWz06+acM+JRoA00cpewIMWI=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "d7gEm2Q5TG033X3/HUH+zirHhhG6xlltkcA8G63mb/M="
+    }
+  }, {
+    "input" : {
+      "password" : "2Wyg!B- E'HKeqy",
+      "salt" : "vzT+Vxyg4dwuCZ4TpHqeiHe+bA4wRXApL6hs0wJe/QYy2xdDEoGM2OIt",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "tS9Qv/m2qGlifySRmPUuy8VRv0JZJ7mSboVV+tTTDoE="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "VHmtldR1ruZ1MvMavCocsOBjsMgaXjST2udLQkih4N0dW4sqI28DZg==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "AK+fTiPTPSqAHlmzclBrzA=="
+    }
+  }, {
+    "input" : {
+      "password" : "qu+CU7Y0-fQK)RFl",
+      "salt" : "8b09kgKGvBrC07Sl+sabACS+Qa7IZraRKjooZT/KyVA9kaebzrD8hpmWrx5QgQ==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "ktyHKaiJNWXqIHdKLtoJeSGepVyX/Q1OajqtaMRKvaw="
+    }
+  }, {
+    "input" : {
+      "password" : "+mgGZ.!9F79+sOm",
+      "salt" : "jz7nO5P/gDHd3Az5JZkEF/jWbjX12ZXjgrmEK3vz3jFl",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "sYx/NZpEwJdbtL9y9xRrCg=="
+    }
+  }, {
+    "input" : {
+      "password" : "&a)#MKKpU8R1X",
+      "salt" : "0Atmlm0Kxx7T6Ky9tyAKARJtUZQOqxDNR1obfHPRHMYCtbCIpVyuyb2SfQ==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "wrLjfKkypCtu7AYiTwuQDA=="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "Ard43yafalUZwDXFCMbfFMVFWGFGaWjY7ghrDacEKFv5fbNEKbCQdgO/WkBI",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "FDhaNTwtn23HSmR2WP1+2A=="
+    }
+  }, {
+    "input" : {
+      "password" : "fEcs6u0WgTnIf'+A",
+      "salt" : "zN2clVYLqpfY2GY3s69HW5dQQFeKrQYVwgT2i8cmI8EiLRadRStiEzz8",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "02D/r9M6chH52VTZzZ6N/qgGbUK8JITQQqmWxCsgGag="
+    }
+  }, {
+    "input" : {
+      "password" : "njg1huSTtBe3Je",
+      "salt" : "f4eBnlMsSgevmJjuW6eJ7/R3tm1S+axUIUhVdRBibndY6WYsFHfn",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "mjuhX5EYEotmo3OB/nAH4w=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "Jjw2ZmqC4DAYtF+fw1Tltnp2ACOz2RmpeUkFB6/9TzGqbfhQ67s2yJS89GrjhbI=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "LLJMlxzQT9zs8XLikOT0pg=="
+    }
+  }, {
+    "input" : {
+      "password" : "KCaa)6ovJcwFd(",
+      "salt" : "dPWWxYuOJqXTNSQITY/k8QPlT1PDKUiqC5n+u0pFeu/tVtFgWSs=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "9oXjSUFS7ZPS36hRbhNWYxzhFAZbiyLh6RzEcrIJj1Y="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "y55D0ZCJqNdZXpxdMqyyP3joBZ0rJ57PbFRnZ6bJuH4GkQ==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "sP55z5PEpOGFl4YlB0+POg=="
+    }
+  }, {
+    "input" : {
+      "password" : "aVXZTiW6!eJ/aD",
+      "salt" : "S5UEdKXCSXMJUBK/+eX7IAJQPFPQbOAq6VAqt4NbgNTLlQ5yVjGfVzg=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "az+GXuJ6mPHOlR21rYyRdg=="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "IL0C6yDR9k3RiH30fkN8V1F3H54W+kC/aRZ+o1zZZp+qHLwZhVBvYVjVr8o=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "DgTBmJ7SB48tKiozXqKB+A=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "MiMI7lAHHZFarmzs6aDA9m+UUW7IemDj6wtx1Cd9hSvUTF8xb4M7",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "TRUng9C3vcH5JhI+j2lMMf4mCvPHrOfcqWM8AdfPcao="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "T6FmlBQaQmM1N4N5ZiX/ICu8Tiqxk+BQDMvuYWyEDNfvtA==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "4ZxG3vWRQzd06u7RdClPbkuiHBVln5SGTRTc+/6kKUs="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "3s50lx1eWoVrMEpveFpxjZKyD86ENf6LcUWDXoXYq4t58Ffwzw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "r062k3EXz6joImKhcAWkyicSj1pJKcjLtMMfFc04x8Y="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "IU4ychcfsPn3hP23mNCLUcREHmte0oArItFvoG84sILWxA==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "QCAbn1u/ifUbDSRpY9SOtgwQ9ghqA07p/vWjqKvJ7Hw="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "gVu/ZIGEGqHAToRJ8k1mvk2eb6Zt8E6WRtg1QmMrIqmpFw==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "gho7TqWXBhYsvEc0bN9X3A=="
+    }
+  }, {
+    "input" : {
+      "password" : "1xh0HzpfhSUfi",
+      "salt" : "83a0ZHb+JzEx/F+12vcg56d92Y9il4h9UkVNUY8DADSlEpY=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "l0X7OBNerzdiLRzvSI2bEu2iV720AkFdjXC0Yp+V5Gg="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "qj3ZMi0kEgQRXeGYvjTv9eP/AH64lf8JfZuGI5DR8Kh65O9Ei0ebY6Vu76s=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "CzHMK4efZ3gUOgmv7ZvcTZ4fArgfpkWJk84zAGo0Je0="
+    }
+  }, {
+    "input" : {
+      "password" : "xCHX.DNSDX!RC i",
+      "salt" : "Q6qsGOElv5l7hn4ACv6SYfdhBuP+XX1NBvNUGX9JoSB/kEXkLYKRAhFDfg==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "u0I/vrsm2geMAr1jrE2txA=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "IovLaJnRodXv8egyc+498HbXcG0tq237ezEubvjPnk1UGYBvTv/usopaNesB1LSw",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "x+wrxLp5kYvKFJU9h7QIQQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "+3)jctvOtKb",
+      "salt" : "Fd+R4NtFrzClW70IbE/ySDCsshknBYP6XMKBSYadsoLIinOdfJkERRc1FYTEols=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "BG41a8NJWZb9BIGz5eq36g=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "A1+ngNAli1kIyCCQHevf0vp0ZfHEYKIZf0Z4LJ+kag8KDCrCscoruA==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "mlKiVqDZjKuPrTcdz6FtSg=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "VLo435Nzz7+TFUSqBUi9UOdaF86twD9aDOdva+PgWrus9/8rw40+ng==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "8WDHNfzMHYkNi5kNf2uLKA=="
+    }
+  }, {
+    "input" : {
+      "password" : "querty123",
+      "salt" : "BOLS5aolqqPyrb8JRsruKZbpzGWp3zlCbS2bXFU6Q+2A6Cj14LxKgnk8Mzai",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "LaVX87KxQ2jlAiyaCVUmrw=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "xrBEM4txWiu9ev7UK+/hDnHJUoMkU6cPGkIEYkB3LPyiWnCvf99c12COCMCq9Q==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "ARxMGyznHl3LM7ynwZhG1w=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "D5JCEjiCU0k0IOjeYwADgNPYW9ilP1rYdGE4eXkO7S+WIw==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "c4wcCbtIBj4ttMFGmtuUJA=="
+    }
+  }, {
+    "input" : {
+      "password" : "ee#MvEk#Kat4h8",
+      "salt" : "WRFx6bYTvvsl9VqMdTY3xXJkMTuDULKWN5iQpwdWCtgs/cQKt61kJJje0HNO",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "9Eb6ttpF+n+9WNTtC9krgcXyBV7oI5V1ygWK5jeXdCA="
+    }
+  }, {
+    "input" : {
+      "password" : "123456",
+      "salt" : "cWUThEoIsEPnEU5+uzEA1nYM2BANuYYFjuN26EaTzJ5wRFwMnl18EMHLZPxcgLfa",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "iQzNQEQ0BAXxzZ/PNdnanw=="
+    }
+  }, {
+    "input" : {
+      "password" : "password1",
+      "salt" : "OswoZChR+EGwDNS/jJmXMgoo0dWU2GywOeM2p+5Vxb4TzRfrB9wwqLXTcnA=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "S+CGFz6niG4k743TZKrkpyRdM/7Z/orAk3oiwQTS6dY="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "UkjwRrV3akT97+LTUTlB5OPbPog/b0MlfEouIY+CLaB90yP9X5ivAw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "Ilyd7ckM1t9uqWPQwS0bzKQv9pabgcsEkol1KhyL5JQ="
+    }
+  }, {
+    "input" : {
+      "password" : "wFOva)9lcqh",
+      "salt" : "bVvZzbnoipX/x4VkE0G+LRO1tXbNN7YbQ0mP2yZOe0RukGxwyQ==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "GyRv5qSa9IWGmTP6tuWxRY7cvhShIs+LnjZOO90FPd8="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "NUHswo/gtUiDJ429Uugh7NYJviADmJaCOUqLb70AMEoE4hB3nr1idIdDxw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "FtQ3xwM8FHerC6gs2qrhzTJr0ia8Ci9T59C7NzTcmhk="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "Kz8C8Tm32MGuKlhoQYbq5Tt79S3WDI+Pq4xdB2gnn6ZYvAglFtGSSjgn7T7nOQ==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "E/IFPkElYGLp8KCfwaJDww=="
+    }
+  }, {
+    "input" : {
+      "password" : "6M1 hZp+VahOrFS",
+      "salt" : "34pd7zwdC2kD9/EUHQLEQj1n4nTGh0e43+EZdOFuBIJLc9GaAEye1FI=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "fjzgmd/lliBQCKzK/5LYIthOmzezW+LRIM6PBr8823g="
+    }
+  }, {
+    "input" : {
+      "password" : "GaM2/Aj)XcFg2",
+      "salt" : "4fQwO3Q22lX82sKf8NGXrrhM7GwZAYwwYLmfSECKRomF",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "erx5jUzTM1BHy/UJFw32Lg=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "egx1ECZxcIR5tIIa6gV8rZ6n4119rBVyFXKIRE6LKdBOychv",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "3tE+qPZuiSWUerr8MyBGYw=="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "ZYBcrSUiOHMWkhaPmB1ev9OH3pH49PHMBrsQCZIju5KRR0DMrRZsew==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "IWl6o3mAf/VpglyP59JHBw=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "7fhopYPeC2kf6q1/w30qHK3PmxjFEwJ0ujlgq9KOKQHC/szg",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "YchSNgmF40BRFtevXzI803AXgWa5/yQ+3v+ond8Ivs4="
+    }
+  }, {
+    "input" : {
+      "password" : "!0Yjf3kdEKnR",
+      "salt" : "5Wv+omG6Re3rDRjuOpYZAAGqu4QYjGRsc7eZfF3OgRO+",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "6mx8GfH7KtIfqzU6slR31A=="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "gn/U+WXvg3SaZxuvtu7axICESyWx7AivmIeNCagodxVUzfQ=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "abrAEAzsTsSIIA/Qo/bU49QKh1Rmb3VT7PM0gpRg91g="
+    }
+  }, {
+    "input" : {
+      "password" : "+xl!&) YIAtmy'5",
+      "salt" : "Wkkq9zrJodzTGdMjwjmueZO7FxydxC/JSHsGyZGfz1MKzyRHVt1LfXd6gURk",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "ZeNbhIwWblVa3IX4bRGbmluWfxARo9IXfg7tmyW0R4k="
+    }
+  }, {
+    "input" : {
+      "password" : "iloveyou",
+      "salt" : "tMPJfw/pZl1LhvHi9f6AOLCapYuC8+XKheSUcySzpJuFT0k=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "TtCt1tYFFhHA6Cv21p4Rgm+KWJmUEHHo80filw6IOCc="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "XAsl9fGY3cPxoyJiZYk2nSvQMkpB9xTtUpRfBI+j+RzpU0c=",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "cjNoEA1aB+zuz6pMdPCArA=="
+    }
+  }, {
+    "input" : {
+      "password" : "nbusr123",
+      "salt" : "2EzAPc6uH2lBDCbVSR5r8nZXE04Ic/pxXe5X9xnY0BDhyP2fxPvSAw==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "6UpkY4ur6JceP70dBV+cA/hHz/ebApJUFiJpQaGL3Fc="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "X//UIUMbaQG6wr2OywtEeHjn0Evh5982uRNlE975TAGbFCX9UICOJHhWkQ==",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "8qxWEQn1G2Zy4I3ru0z+ZwTnCeorLKG6l1TNtTLAIiI="
+    }
+  }, {
+    "input" : {
+      "password" : "abc123",
+      "salt" : "4syLXo1c3khst9POjB7UgHz2QOj5bbKfprLitQLMUf3ZG9L0gaFL8WE0Eg==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "MBOCwbR4hKHVhIb1hj4YXQ=="
+    }
+  }, {
+    "input" : {
+      "password" : ")D9E963sGSKj1",
+      "salt" : "JmBBBXQbYenh/+0uYBW0slnphC+tf+i6QBfqTiKKN+yPTIYqlICSqQ==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "rftm957AXddYQZKU3dgqGQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "dMS&&ddoy0/uW",
+      "salt" : "10z3juEP9BG2gZikzX74IMEbfVWwESL4eiz+VHrDFyciPrBuae0IDA==",
+      "outSize" : "16"
+    },
+    "output" : {
+      "derivedKey" : "ejxqoN2uN5FsLVZvZ9IAiQ=="
+    }
+  }, {
+    "input" : {
+      "password" : "br4#UXK-mF PyE.",
+      "salt" : "3W5RLjeP3+hXD0pT+oSuJDaNiLb7a7zzJQgMQGbgsWntlAxD8saB+fT0oRN/lRs=",
+      "outSize" : "32"
+    },
+    "output" : {
+      "derivedKey" : "OYGxMAOqwMGUJJNjT6heCSWj4W0QkInBcEnXdD91XtU="
+    }
+  } ]
+}

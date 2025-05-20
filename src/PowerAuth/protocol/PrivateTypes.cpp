@@ -61,7 +61,7 @@ namespace protocol
             // optional master key validation
             if (result && also_validate_key) {
                 try {
-                    algorithms().p256().newPublicKey()->importKey(foo_data, cc7::crypto::KEY_FORMAT_X963);
+                    algorithms().v3.p256().newPublicKey()->importKey(foo_data, cc7::crypto::KEY_FORMAT_X963);
                     result = true;
                 } catch (std::exception & e) {
                     CC7_LOG("ValidateSessionSetup: Provided masterServerPublicKey is invalid.");
@@ -278,7 +278,7 @@ namespace protocol
                 CC7_LOG("Invalid key data provided for ECIES public key.");
                 return false;
             }
-            public_key = algorithms().p256().newPublicKey(data, cc7::crypto::KEY_FORMAT_X963);
+            public_key = algorithms().v3.p256().newPublicKey(data, cc7::crypto::KEY_FORMAT_X963);
             identifier = key_id;
             return true;
         } catch (std::exception & e) {

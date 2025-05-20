@@ -124,13 +124,13 @@ namespace powerAuthTests
             }
             {
                 SignatureUnlockKeys unlock;
-                unlock.possessionUnlockKey = cc7::ByteArray(16, 0); // zero
+                unlock.possessionUnlockKey = cc7::ByteRange::zero(16); // zero
                 ccstAssertFalse(protocol::ValidateUnlockKeys(unlock, nullptr, SF_Knowledge));
                 ccstAssertFalse(protocol::ValidateUnlockKeys(unlock, nullptr, protocol::SF_Transport));
             }
             {
                 SignatureUnlockKeys unlock;
-                unlock.biometryUnlockKey = cc7::ByteArray(16, 0);   // zero
+                unlock.biometryUnlockKey = cc7::ByteRange::zero(16);   // zero
                 ccstAssertFalse(protocol::ValidateUnlockKeys(unlock, nullptr, SF_Biometry));
             }
         }

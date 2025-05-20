@@ -90,13 +90,13 @@ namespace powerAuth
     {
         ECIESEnvelopeKey ek;
         // Generate ephemeral key pair
-        auto ephemeral = algorithms().p256().generateKeyPair();
+        auto ephemeral = algorithms().v3.p256().generateKeyPair();
         // Compute shared secret
-        auto shared_secret = algorithms().ecdhWithNullKdf().phase(ephemeral->getPrivateKey(), *public_key);
+        auto shared_secret = algorithms().v3.ecdhWithNullKdf().phase(ephemeral->getPrivateKey(), *public_key);
         out_ephemeral_key = ephemeral->getPublicKey().exportKey(cc7::crypto::KEY_FORMAT_X963);
         // Concat shared_info1 + ephemeral key.
         cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, out_ephemeral_key});
-        ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
+        ek._key = algorithms().v3.kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
             { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
         });
         return ek;
@@ -106,12 +106,12 @@ namespace powerAuth
     {
         ECIESEnvelopeKey ek;
         // Import ephemeral public key
-        auto ephemeral = algorithms().p256().newPublicKey(ephemeral_key, cc7::crypto::KEY_FORMAT_RAW);
+        auto ephemeral = algorithms().v3.p256().newPublicKey(ephemeral_key, cc7::crypto::KEY_FORMAT_RAW);
         // Compute shared secret
-        auto shared_secret = algorithms().ecdhWithNullKdf().phase(*private_key, *ephemeral);
+        auto shared_secret = algorithms().v3.ecdhWithNullKdf().phase(*private_key, *ephemeral);
         // Concat shared_info1 + ephemeral key.
         cc7::ByteArray info1_data = utils::ByteUtils_Concat({ cc7::MakeRange(protocol::PA_VERSION_V3), shared_info1, ephemeral_key});
-        ek._key = algorithms().kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
+        ek._key = algorithms().v3.kdfX963().deriveKeyBytes(shared_secret->getKeyData(), {
             { cc7::crypto::KDF_PARAM_INFO,     cc7::crypto::Parameter::ref(info1_data) }
         });
         return ek;
@@ -126,12 +126,12 @@ namespace powerAuth
         if (iv.size() != ECIESEnvelopeKey::IvSize) {
             throw std::logic_error("Wrong IV size");
         }
-        out_cryptogram.body = algorithms().aes128cbc().encrypt(ek.encKey(), iv, data);
+        out_cryptogram.body = algorithms().v3.aes128cbc().encrypt(ek.encKey(), iv, data);
         // Keep size of encrypted data
         auto encryptedDataSize = out_cryptogram.body.size();
         // mac = MAC(body || S2)
         out_cryptogram.body.append(info2);
-        out_cryptogram.mac = algorithms().hmacWithSha256().token(ek.macKey(), out_cryptogram.body);
+        out_cryptogram.mac = algorithms().v3.hmacWithSha256().token(ek.macKey(), out_cryptogram.body);
         // set encrypted data size back to original value
         out_cryptogram.body.resize(encryptedDataSize);
     }
@@ -144,13 +144,13 @@ namespace powerAuth
         // Prepare data for HMAC calculation
         auto data_for_mac = cryptogram.body;
         data_for_mac.append(info2);
-        auto mac = algorithms().hmacWithSha256().token(ek.macKey(), data_for_mac);
+        auto mac = algorithms().v3.hmacWithSha256().token(ek.macKey(), data_for_mac);
         // Verify calculated mac
         if (!cc7::ConstTimeEqual(mac, cryptogram.mac)) {
             throw std::domain_error("MAC doesn't match");
         }
         // Decrypt data
-        out_data = algorithms().aes128cbc().decrypt(ek.encKey(), iv, cryptogram.body);
+        out_data = algorithms().v3.aes128cbc().decrypt(ek.encKey(), iv, cryptogram.body);
     }
 
     static cc7::ByteArray _BuildSharedInfo2(const cc7::ByteRange & sh2, const cc7::ByteRange & ephemeral_key, const cc7::ByteRange & nonce, const ECIESParameters & params)

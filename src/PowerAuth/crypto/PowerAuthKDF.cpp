@@ -19,14 +19,8 @@
 using namespace cc7;
 using namespace cc7::crypto;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace crypto
-{
+namespace powerAuth {
+namespace crypto {
 
 // MARK: - PowerAuthKDF
 
@@ -160,8 +154,5 @@ Parameter PowerAuthPassKDF::getParameter(int param_id) const
     throw std::invalid_argument("Unsupported parameter");
 }
 
-
-} // io::getlime::powerAuth::crypto
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace crypto
+} // namespace powerAuth

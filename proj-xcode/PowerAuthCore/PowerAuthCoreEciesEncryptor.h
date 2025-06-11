@@ -17,6 +17,8 @@
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 
+// legacy
+
 @class PowerAuthCoreEciesCryptogram;
 @class PowerAuthCoreEciesMetaData;
 

@@ -19,7 +19,7 @@
 
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 @implementation PowerAuthCoreOtp
 {

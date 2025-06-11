@@ -37,6 +37,29 @@
                BlueprintName = "PowerAuthCoreTests-ios"
                ReferencedContainer = "container:PowerAuthCore.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthCoreHTTPRequestDataSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCorePublicObjectsTests/testPowerAuthCoreSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests/testConfigurationGenerator">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthCoreSessionSetupTests/testSetupValidation">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

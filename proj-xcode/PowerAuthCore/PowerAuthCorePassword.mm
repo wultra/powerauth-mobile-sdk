@@ -23,7 +23,7 @@
 @implementation PowerAuthCorePassword
 {
 @protected
-    io::getlime::powerAuth::Password _password;
+    powerAuth::Password _password;
 }
 
 - (instancetype) initWithString:(NSString *)string
@@ -127,7 +127,7 @@
 
 @implementation PowerAuthCorePassword (Private)
 
-- (io::getlime::powerAuth::Password &) passObjRef
+- (powerAuth::Password &) passObjRef
 {
     return _password;
 }

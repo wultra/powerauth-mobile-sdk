@@ -21,61 +21,55 @@
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuthTests
-{
-    extern TestDirectory g_pa2Files;
+namespace powerAuthTests {
 
-    class PowerAuthKDFTests : public UnitTest
+extern TestDirectory g_pa2Files;
+
+class PowerAuthKDFTests : public UnitTest
+{
+public:
+    
+    PowerAuthKDFTests()
     {
-    public:
-        
-        PowerAuthKDFTests()
-        {
-            CC7_REGISTER_TEST_METHOD(testKDF)
-            CC7_REGISTER_TEST_METHOD(testPBKDF)
-        }
-        
-        void testKDF()
-        {
-            const auto& kdf = algorithms().v4.kdf();
-            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/v4-kdf.json");
-            auto&& data = root.arrayAtPath("data");
-            for (const JSONValue & item : data) {
-                auto key        = item.dataFromBase64StringAtPath("input.key");
-                auto custom     = item.dataFromBase64StringAtPath("input.custom");
-                auto label      = item.stringAtPath("input.label");
-                auto out_size   = static_cast<size_t>(std::atoi(item.stringAtPath("input.outSize").c_str()));
-                auto expected_derived = item.dataFromBase64StringAtPath("output.derivedKey");
-                auto derived = kdf.derive(key, label, custom, out_size);
-                ccstAssertEqual(expected_derived, derived);
-            }
-        }
-        
-        void testPBKDF()
-        {
-            const auto& kdf = algorithms().v4.pbkdf();
-            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/v4-pbkdf.json");
-            auto&& data = root.arrayAtPath("data");
-            for (const JSONValue & item : data) {
-                auto key        = item.stringAtPath("input.password");
-                auto salt       = item.dataFromBase64StringAtPath("input.salt");
-                auto out_size   = static_cast<size_t>(std::atoi(item.stringAtPath("input.outSize").c_str()));
-                auto expected_derived = item.dataFromBase64StringAtPath("output.derivedKey");
-                auto derived = kdf.derive(MakeRange(key), salt, out_size);
-                ccstAssertEqual(expected_derived, derived);
-            }
-        }
-        
-    };
+        CC7_REGISTER_TEST_METHOD(testKDF)
+        CC7_REGISTER_TEST_METHOD(testPBKDF)
+    }
     
-    CC7_CREATE_UNIT_TEST(PowerAuthKDFTests, "pa2")
+    void testKDF()
+    {
+        const auto& kdf = algorithms().v4.kdf();
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-kdf.json");
+        auto&& data = root.arrayAtPath("data");
+        for (const auto & item : data) {
+            auto key        = item.dataFromBase64StringAtPath("input.key");
+            auto custom     = item.dataFromBase64StringAtPath("input.custom");
+            auto label      = item.stringAtPath("input.label");
+            auto out_size   = static_cast<size_t>(std::atoi(item.stringAtPath("input.outSize").c_str()));
+            auto expected_derived = item.dataFromBase64StringAtPath("output.derivedKey");
+            auto derived = kdf.derive(key, label, custom, out_size);
+            ccstAssertEqual(expected_derived, derived);
+        }
+    }
     
-} // io::getlime::powerAuthTests
-} // io::getlime
-} // io
+    void testPBKDF()
+    {
+        const auto& kdf = algorithms().v4.pbkdf();
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-pbkdf.json");
+        auto&& data = root.arrayAtPath("data");
+        for (const auto & item : data) {
+            auto key        = item.stringAtPath("input.password");
+            auto salt       = item.dataFromBase64StringAtPath("input.salt");
+            auto out_size   = static_cast<size_t>(std::atoi(item.stringAtPath("input.outSize").c_str()));
+            auto expected_derived = item.dataFromBase64StringAtPath("output.derivedKey");
+            auto derived = kdf.derive(MakeRange(key), salt, out_size);
+            ccstAssertEqual(expected_derived, derived);
+        }
+    }
+    
+};
+
+CC7_CREATE_UNIT_TEST(PowerAuthKDFTests, "pa2")
+    
+} // namespace powerAuthTests

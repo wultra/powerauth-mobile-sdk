@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/Session.h>
 #include <PowerAuth/Debug.h>
+
+// legacy
 
 #import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 #import "PowerAuthCorePrivateImpl.h"
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 #if defined(DEBUG)
 #define REQUIRE_WRITE_ACCESS()          [_debugMonitor requireWriteAccess]
@@ -81,7 +82,7 @@ using namespace io::getlime::powerAuth;
 
 + (BOOL) hasDebugFeatures
 {
-    BOOL debug_features = io::getlime::powerAuth::HasDebugFeaturesTurnedOn();
+    BOOL debug_features = powerAuth::HasDebugFeaturesTurnedOn();
 #if defined(ENABLE_POWERAUTH_CORE_LOG) || defined(DEBUG)
     debug_features |= YES;
 #endif

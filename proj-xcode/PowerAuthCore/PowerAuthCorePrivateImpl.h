@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/PublicTypes.h>
 #include <PowerAuth/Password.h>
-#include <PowerAuth/ECIES.h>
 
 #include <cc7/crypto/Crypto.h>
 #include <cc7/objc/ObjcHelper.h>
@@ -24,7 +22,6 @@
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 #import <PowerAuthCore/PowerAuthCorePassword.h>
-#import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreLog.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 
@@ -34,34 +31,21 @@
  so it's not available for Objective-C or Swift codes.
  */
 
-@interface PowerAuthCoreSessionSetup (Private)
-- (io::getlime::powerAuth::SessionSetup&) sessionSetupRef;
-@end
+//@interface PowerAuthCoreSessionSetup (Private)
+//- (powerAuth::SessionSetup&) sessionSetupRef;
+//@end
 
 @interface PowerAuthCorePassword (Private)
-- (io::getlime::powerAuth::Password &) passObjRef;
+- (powerAuth::Password &) passObjRef;
 @end
 
-@interface PowerAuthCoreHTTPRequestDataSignature (Private)
-- (io::getlime::powerAuth::HTTPRequestDataSignature&) signatureStructRef;
-@end
+//@interface PowerAuthCoreHTTPRequestDataSignature (Private)
+//- (powerAuth::HTTPRequestDataSignature&) signatureStructRef;
+//@end
 
-@interface PowerAuthCoreSignedData (Private)
-- (io::getlime::powerAuth::SignedData&) signedDataRef;
-@end
-
-@interface PowerAuthCoreEciesCryptogram (Private)
-- (io::getlime::powerAuth::ECIESCryptogram &) cryptogramRef;
-@end
-
-@interface PowerAuthCoreEciesEncryptor (Private)
-- (id) initWithObject:(const io::getlime::powerAuth::ECIESEncryptor &)objectRef timeService:(id<PowerAuthCoreTimeService>)timeService;
-- (io::getlime::powerAuth::ECIESEncryptor &) encryptorRef;
-@end
-
-@interface PowerAuthCoreEciesMetaData (Private)
-- (cc7::ByteArray) associatedData;
-@end
+//@interface PowerAuthCoreSignedData (Private)
+//- (powerAuth::SignedData&) signedDataRef;
+//@end
 
 @interface PowerAuthCoreData (Private)
 - (id) initWithByteRange:(const cc7::ByteRange &)byteRange;
@@ -69,54 +53,43 @@
 @end
 
 
-@protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
-- (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref;
-@end
+//@protocol PowerAuthCoreProtocolUpgradeDataPrivate <PowerAuthCoreProtocolUpgradeData>
+//- (void) setupStructure:(powerAuth::ProtocolUpgradeData &)ref;
+//@end
 
-/**
- Converts PowerAuthCoreSignatureUnlockKeys object into SignatureUnlockKeys C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreSignatureUnlockKeysToStruct(PowerAuthCoreSignatureUnlockKeys * keys, io::getlime::powerAuth::SignatureUnlockKeys & cpp_keys);
-/**
-Converts PowerAuthCoreEncryptedActivationStatus object into EncryptedActivationStatus C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreEncryptedActivationStatusToStruct(PowerAuthCoreEncryptedActivationStatus * status, io::getlime::powerAuth::EncryptedActivationStatus& cpp_status);
-/**
- Returns new instance of PowerAuthCoreActivationStatus object, with content copied from ActivationStatus C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStatus * PowerAuthCoreActivationStatusToObject(const io::getlime::powerAuth::ActivationStatus& cpp_status);
-
-/**
- Converts PowerAuthCoreHTTPRequestData object into HTTPRequestData C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreHTTPRequestDataToStruct(PowerAuthCoreHTTPRequestData * req, io::getlime::powerAuth::HTTPRequestData & cpp_req);
-
-/**
- Converts PowerAuthCoreActivationStep1Param object into ActivationStep1Param C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreActivationStep1ParamToStruct(PowerAuthCoreActivationStep1Param * p1, io::getlime::powerAuth::ActivationStep1Param & cpp_p1);
-/**
- Returns new instance of PowerAuthCoreActivationStep1Result object, with content copied from ActivationStep1Result C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStep1Result * PowerAuthCoreActivationStep1ResultToObject(const io::getlime::powerAuth::ActivationStep1Result& cpp_r1);
-
-/**
- Converts PowerAuthCoreActivationStep2Param object into ActivationStep2Param C++ structure.
- */
-CC7_EXTERN_C void PowerAuthCoreActivationStep2ParamToStruct(PowerAuthCoreActivationStep2Param * p2, io::getlime::powerAuth::ActivationStep2Param & cpp_p2);
-/**
- Returns new instance of PowerAuthCoreActivationStep2Result object, with content copied from ActivationStep2Result C++ structure.
- */
-CC7_EXTERN_C PowerAuthCoreActivationStep2Result * PowerAuthCoreActivationStep2ResultToObject(const io::getlime::powerAuth::ActivationStep2Result& cpp_r2);
-
-#pragma mark - Debug functions
-
-#if defined(DEBUG)
-    CC7_EXTERN_C void PowerAuthCoreObjc_DebugDumpErrorImpl(id instance, NSString * message, io::getlime::powerAuth::ErrorCode code);
-    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code) PowerAuthCoreObjc_DebugDumpErrorImpl(instance, message, error_code)
-#else
-    #define PowerAuthCoreObjc_DebugDumpError(instance, message, error_code)
-#endif
-
-
+///**
+// Converts PowerAuthCoreSignatureUnlockKeys object into SignatureUnlockKeys C++ structure.
+// */
+//CC7_EXTERN_C void PowerAuthCoreSignatureUnlockKeysToStruct(PowerAuthCoreSignatureUnlockKeys * keys, powerAuth::SignatureUnlockKeys & cpp_keys);
+///**
+//Converts PowerAuthCoreEncryptedActivationStatus object into EncryptedActivationStatus C++ structure.
+// */
+//CC7_EXTERN_C void PowerAuthCoreEncryptedActivationStatusToStruct(PowerAuthCoreEncryptedActivationStatus * status, powerAuth::EncryptedActivationStatus& cpp_status);
+///**
+// Returns new instance of PowerAuthCoreActivationStatus object, with content copied from ActivationStatus C++ structure.
+// */
+//CC7_EXTERN_C PowerAuthCoreActivationStatus * PowerAuthCoreActivationStatusToObject(const powerAuth::ActivationStatus& cpp_status);
+//
+///**
+// Converts PowerAuthCoreHTTPRequestData object into HTTPRequestData C++ structure.
+// */
+//CC7_EXTERN_C void PowerAuthCoreHTTPRequestDataToStruct(PowerAuthCoreHTTPRequestData * req, powerAuth::HTTPRequestData & cpp_req);
+//
+///**
+// Converts PowerAuthCoreActivationStep1Param object into ActivationStep1Param C++ structure.
+// */
+//CC7_EXTERN_C void PowerAuthCoreActivationStep1ParamToStruct(PowerAuthCoreActivationStep1Param * p1, powerAuth::ActivationStep1Param & cpp_p1);
+///**
+// Returns new instance of PowerAuthCoreActivationStep1Result object, with content copied from ActivationStep1Result C++ structure.
+// */
+//CC7_EXTERN_C PowerAuthCoreActivationStep1Result * PowerAuthCoreActivationStep1ResultToObject(const powerAuth::ActivationStep1Result& cpp_r1);
+//
+///**
+// Converts PowerAuthCoreActivationStep2Param object into ActivationStep2Param C++ structure.
+// */
+//CC7_EXTERN_C void PowerAuthCoreActivationStep2ParamToStruct(PowerAuthCoreActivationStep2Param * p2, powerAuth::ActivationStep2Param & cpp_p2);
+///**
+// Returns new instance of PowerAuthCoreActivationStep2Result object, with content copied from ActivationStep2Result C++ structure.
+// */
+//CC7_EXTERN_C PowerAuthCoreActivationStep2Result * PowerAuthCoreActivationStep2ResultToObject(const powerAuth::ActivationStep2Result& cpp_r2);
 

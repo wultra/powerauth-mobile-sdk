@@ -18,31 +18,8 @@
 #include <cc7/Endian.h>
 #include <cstdarg>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace utils
-{
-cc7::ByteArray ByteUtils_Concat(std::initializer_list<cc7::ByteRange> components)
-{
-    auto it = components.begin();
-    size_t reserved_bytes = 0;
-    while (it != components.end()) {
-        reserved_bytes += it->size();
-        ++it;
-    }
-    cc7::ByteArray result;
-    result.reserve(reserved_bytes);
-    it = components.begin();
-    while (it != components.end()) {
-        result.append(*it);
-        ++it;
-    }
-    return result;
-}
+namespace powerAuth {
+namespace utils {
 
 cc7::ByteArray ByteUtils_Join(std::initializer_list<cc7::ByteRange> components)
 {
@@ -64,7 +41,5 @@ cc7::ByteArray ByteUtils_Join(std::initializer_list<cc7::ByteRange> components)
     return result;
 }
 
-} // io::getlime::powerAuth::utils
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace utils
+} // namespace powerAuth

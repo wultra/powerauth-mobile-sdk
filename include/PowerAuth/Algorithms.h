@@ -18,12 +18,7 @@
 
 #include <cc7/CC7.h>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
+namespace powerAuth {
 
 // Forward declaration of private types
 namespace crypto
@@ -31,6 +26,8 @@ namespace crypto
     class PowerAuthKDF;
     class PowerAuthPassKDF;
     class PowerAuthAEAD;
+    class HybridKeyPairFactory;
+    class HybridSignature;
 }
 
 class Algorithms
@@ -79,6 +76,16 @@ public:
         const cc7::crypto::KeyEncapsulation& mlkem768() const
         {
             return *pointers.kencap_MLKEM_768;
+        }
+        
+        const cc7::crypto::KeyPairFactory& mldsa65key() const
+        {
+            return *pointers.key_MLDSA_65;
+        }
+        
+        const cc7::crypto::KeyPairFactory& mlkem768key() const
+        {
+            return *pointers.key_MLKEM_768;
         }
         
         const cc7::crypto::KeyAgreement& ecdhWithNullKdf() const
@@ -239,6 +246,4 @@ static inline const Algorithms & algorithms()
     return Algorithms::shared();
 }
 
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace powerAuth

@@ -21,87 +21,81 @@
 
 using namespace cc7;
 using namespace cc7::tests;
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuthTests
-{
-    extern TestDirectory g_pa2Files;
+namespace powerAuthTests {
 
-    class PowerAuthAEADTests : public UnitTest
+extern TestDirectory g_pa2Files;
+
+class PowerAuthAEADTests : public UnitTest
+{
+public:
+    
+    PowerAuthAEADTests()
     {
-    public:
-        
-        PowerAuthAEADTests()
-        {
-            CC7_REGISTER_TEST_METHOD(testSealOpen)
-            CC7_REGISTER_TEST_METHOD(testVectors)
+        CC7_REGISTER_TEST_METHOD(testSealOpen)
+        CC7_REGISTER_TEST_METHOD(testVectors)
+    }
+    
+    ByteArray getRandomData(size_t min, size_t max)
+    {
+        size_t size = min == max ? max : min + (size_t)arc4random_uniform((uint32_t)(max - min));
+        return cc7::crypto::GetRandomData(size);
+    }
+    
+    void testSealOpen()
+    {
+        const auto& aead = algorithms().v4.aead();
+        auto key = cc7::crypto::SymmetricKey::getInstance("AES-256");
+        for (int i = 0; i < 100; i++) {
+            key->setKeyData(getRandomData(32, 32));
+            key->setKeyContext(getRandomData(1, 48));
+            auto nonce = getRandomData(12, 12);
+            auto aad = getRandomData(0, 64);
+            auto plaintext = getRandomData(0, 256);
+            auto ciphertext = aead.seal(*key, nonce, aad, plaintext);
+            auto opened = aead.open(*key, aad, ciphertext);
+            ccstAssertEqual(plaintext, opened);
         }
-        
-        ByteArray getRandomData(size_t min, size_t max)
-        {
-            size_t size = min == max ? max : min + (size_t)arc4random_uniform((uint32_t)(max - min));
-            return cc7::crypto::GetRandomData(size);
-        }
-        
-        void testSealOpen()
-        {
-            const auto& aead = algorithms().v4.aead();
-            auto key = cc7::crypto::SymmetricKey::getInstance("AES-256");
-            for (int i = 0; i < 100; i++) {
-                key->setKeyData(getRandomData(32, 32));
-                key->setKeyContext(getRandomData(1, 48));
-                auto nonce = getRandomData(12, 12);
-                auto aad = getRandomData(0, 64);
-                auto plaintext = getRandomData(0, 256);
-                auto ciphertext = aead.seal(*key, nonce, aad, plaintext);
-                auto opened = aead.open(*key, aad, ciphertext);
-                ccstAssertEqual(plaintext, opened);
+    }
+    
+    void testVectors()
+    {
+        const auto& aead = algorithms().v4.aead();
+        auto key = cc7::crypto::SymmetricKey::getInstance("AES-256");
+        auto root = JSON_ParseFile(g_pa2Files, "pa2/v4-aead.json");
+        auto&& data = root.arrayAtPath("data");
+        for (const auto & item : data) {
+            auto key_data       = item.dataFromBase64StringAtPath("input.key");
+            auto key_ctx        = item.dataFromBase64StringAtPath("input.keyContext");
+            auto nonce          = item.dataFromBase64StringAtPath("input.nonce");
+            auto aad            = item.dataFromBase64StringAtPath("input.associatedData");
+            auto expected_pt    = item.dataFromBase64StringAtPath("input.plaintext");
+            auto expected_ct    = item.dataFromBase64StringAtPath("output.ciphertext");
+            key->setKeyData(key_data);
+            key->setKeyContext(key_ctx);
+            
+            auto ct = aead.seal(*key, nonce, aad, expected_pt);
+            if (expected_ct != ct) {
+                ccstFailure("PowerAuthAEAD encryption is broken");
+                ccstMessage("Key  : %s", key_data.base64String().c_str());
+                ccstMessage(" exp : %s", expected_ct.hexString().c_str());
+                ccstMessage(" act : %s", ct.hexString().c_str());
+                return;
+            }
+            auto pt = aead.open(*key, aad, expected_ct);
+            if (expected_pt != pt) {
+                ccstFailure("PowerAuthAEAD decryption is broken");
+                ccstMessage("Key  : %s", key_data.base64String().c_str());
+                ccstMessage(" exp : %s", expected_pt.hexString().c_str());
+                ccstMessage(" act : %s", pt.hexString().c_str());
+                return;
             }
         }
-        
-        void testVectors()
-        {
-            const auto& aead = algorithms().v4.aead();
-            auto key = cc7::crypto::SymmetricKey::getInstance("AES-256");
-            JSONValue root = JSON_ParseFile(g_pa2Files, "pa2/v4-aead.json");
-            auto&& data = root.arrayAtPath("data");
-            for (const JSONValue & item : data) {
-                auto key_data       = item.dataFromBase64StringAtPath("input.key");
-                auto key_ctx        = item.dataFromBase64StringAtPath("input.keyContext");
-                auto nonce          = item.dataFromBase64StringAtPath("input.nonce");
-                auto aad            = item.dataFromBase64StringAtPath("input.associatedData");
-                auto expected_pt    = item.dataFromBase64StringAtPath("input.plaintext");
-                auto expected_ct    = item.dataFromBase64StringAtPath("output.ciphertext");
-                key->setKeyData(key_data);
-                key->setKeyContext(key_ctx);
-                
-                auto ct = aead.seal(*key, nonce, aad, expected_pt);
-                if (expected_ct != ct) {
-                    ccstFailure("PowerAuthAEAD encryption is broken");
-                    ccstMessage("Key  : %s", key_data.base64String().c_str());
-                    ccstMessage(" exp : %s", expected_ct.hexString().c_str());
-                    ccstMessage(" act : %s", ct.hexString().c_str());
-                    return;
-                }
-                auto pt = aead.open(*key, aad, expected_ct);
-                if (expected_pt != pt) {
-                    ccstFailure("PowerAuthAEAD decryption is broken");
-                    ccstMessage("Key  : %s", key_data.base64String().c_str());
-                    ccstMessage(" exp : %s", expected_pt.hexString().c_str());
-                    ccstMessage(" act : %s", pt.hexString().c_str());
-                    return;
-                }
-            }
-        }
-        
-    };
+    }
     
-    CC7_CREATE_UNIT_TEST(PowerAuthAEADTests, "pa2")
+};
+
+CC7_CREATE_UNIT_TEST(PowerAuthAEADTests, "pa2")
     
-} // io::getlime::powerAuthTests
-} // io::getlime
-} // io
+} // namespace powerAuthTests

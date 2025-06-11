@@ -18,14 +18,8 @@
 
 #include <cc7/crypto/Crypto.h>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace crypto
-{
+namespace powerAuth {
+namespace crypto {
 
 class PowerAuthKDF;
 
@@ -35,31 +29,31 @@ public:
     // AEAD
     cc7::ByteArray seal(const cc7::ByteRange &key, const cc7::ByteRange &nonce, const cc7::ByteRange &associated_data, const cc7::ByteRange &plaintext, const cc7::crypto::ParameterList &params) const override;
     cc7::ByteArray open(const cc7::ByteRange &key, const cc7::ByteRange &associated_data, const cc7::ByteRange &ciphertext, const cc7::crypto::ParameterList &params) const override;
-
+    cc7::ByteArray extractNonce(const cc7::ByteRange &ciphertext) const override;
+    
     // Algorithm
     const std::string & getAlgorithmName() const override;
     void setParameter(int param_id, const cc7::crypto::Parameter & value) override;
     cc7::crypto::Parameter getParameter(int param_id) const  override;
     
     PowerAuthAEAD(const std::shared_ptr<PowerAuthKDF> & kdf, const cc7::crypto::CipherPtr & cipher, const cc7::crypto::MACPtr & mac);
-        
+
+    static const size_t NONCE_SIZE;
+    static const size_t TAG_SIZE;
+
 private:
     
     static const std::string ALG_NAME;
     
-    static const size_t NONCE_SIZE;
-    static const size_t TAG_SIZE;
     static const std::string MAC_CUSTOM;
     static const std::string KEY_ENC_LABEL;
     static const std::string KEY_MAC_LABEL;
     static const cc7::crypto::ParameterList MAC_PARAMS;
-
+    
     std::shared_ptr<PowerAuthKDF> _kdf;
     cc7::crypto::CipherPtr  _cipher;
     cc7::crypto::MACPtr     _mac;
 };
 
-} // io::getlime::powerAuth::protocol
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace crypto
+} // namespace powerAuth

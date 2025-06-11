@@ -17,19 +17,19 @@
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 #import "PowerAuthCorePrivateImpl.h"
 
-#pragma mark - V3 data -
-
-@implementation PowerAuthCoreProtocolUpgradeDataV3
-@end
-
-@interface PowerAuthCoreProtocolUpgradeDataV3 (Private) <PowerAuthCoreProtocolUpgradeDataPrivate>
-@end
-
-@implementation PowerAuthCoreProtocolUpgradeDataV3 (Private)
-
-- (void) setupStructure:(io::getlime::powerAuth::ProtocolUpgradeData &)ref
-{
-    ref.toV3.ctrData = cc7::objc::CopyFromNSString(_ctrData);
-}
-
-@end
+//#pragma mark - V3 data -
+//
+//@implementation PowerAuthCoreProtocolUpgradeDataV3
+//@end
+//
+//@interface PowerAuthCoreProtocolUpgradeDataV3 (Private) <PowerAuthCoreProtocolUpgradeDataPrivate>
+//@end
+//
+//@implementation PowerAuthCoreProtocolUpgradeDataV3 (Private)
+//
+//- (void) setupStructure:(powerAuth::ProtocolUpgradeData &)ref
+//{
+//    ref.toV3.ctrData = cc7::objc::CopyFromNSString(_ctrData);
+//}
+//
+//@end

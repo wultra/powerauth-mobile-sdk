@@ -25,12 +25,11 @@ FOUNDATION_EXPORT const unsigned char PowerAuthCoreVersionString[];
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
 #import <PowerAuthCore/PowerAuthCoreLog.h>
 #import <PowerAuthCore/PowerAuthCoreTypes.h>
-#import <PowerAuthCore/PowerAuthCoreSession.h>
 #import <PowerAuthCore/PowerAuthCoreOtpUtil.h>
 #import <PowerAuthCore/PowerAuthCorePassword.h>
 #import <PowerAuthCore/PowerAuthCoreData.h>
 #import <PowerAuthCore/PowerAuthCoreCryptoUtils.h>
-#import <PowerAuthCore/PowerAuthCoreEciesEncryptor.h>
 #import <PowerAuthCore/PowerAuthCoreProtocolUpgradeData.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 #import <PowerAuthCore/PowerAuthCoreDeprecated.h>
+#import <PowerAuthCore/PowerAuthCoreDebugMonitor.h>

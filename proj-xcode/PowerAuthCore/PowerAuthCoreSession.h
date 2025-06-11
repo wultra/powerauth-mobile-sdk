@@ -19,6 +19,8 @@
 #import <PowerAuthCore/PowerAuthCoreDebugMonitor.h>
 #import <PowerAuthCore/PowerAuthCoreTimeService.h>
 
+// legacy
+
 /**
  The `PowerAuthCoreSession` provides Objective-C interface to the low-level
  C++ Session implementation.

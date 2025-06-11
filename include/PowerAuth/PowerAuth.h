@@ -21,9 +21,15 @@
  whenever you need include everything from PA2 library at once.
  */
 
-#include <PowerAuth/Session.h>
-#include <PowerAuth/ECIES.h>
-#include <PowerAuth/E2EE.h>
+#include <PowerAuth/TimeService.h>
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
+
+#include <PowerAuth/Authentication.h>
+#include <PowerAuth/Password.h>
+#include <PowerAuth/Configuration.h>
+#include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ActivationStatus.h>
+
+#include <PowerAuth/PowerAuthSpec.h>
 #include <PowerAuth/Algorithms.h>

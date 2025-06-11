@@ -19,7 +19,7 @@
 #import "PowerAuthCorePrivateImpl.h"
 #include <PowerAuth/Algorithms.h>
 
-using namespace io::getlime::powerAuth;
+using namespace powerAuth;
 
 #pragma mark - Private interfaces -
 

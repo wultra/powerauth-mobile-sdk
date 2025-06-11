@@ -22,14 +22,8 @@
 using namespace cc7;
 using namespace cc7::crypto;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace crypto
-{
+namespace powerAuth {
+namespace crypto {
 
 const std::string PowerAuthAEAD::ALG_NAME      = "PA4AEAD";
 const std::string PowerAuthAEAD::MAC_CUSTOM    = "PA4MAC-AEAD";
@@ -53,28 +47,33 @@ PowerAuthAEAD::PowerAuthAEAD(const std::shared_ptr<PowerAuthKDF> & kdf, const cc
 
 // AEAD
 
-cc7::ByteArray PowerAuthAEAD::seal(const cc7::ByteRange &key, const cc7::ByteRange &nonce, const cc7::ByteRange &associated_data, const cc7::ByteRange &plaintext, const cc7::crypto::ParameterList &params) const
+cc7::ByteArray PowerAuthAEAD::seal(const cc7::ByteRange &key, const cc7::ByteRange &input_nonce, const cc7::ByteRange &associated_data, const cc7::ByteRange &plaintext, const cc7::crypto::ParameterList &params) const
 {
+    ByteArray nonce = input_nonce;
+    ByteRange key_context;
+    NonceGeneratorPtr nonce_generator;
+    auto param_ctx = params.beginParameterProcessing();
+    if (!params.getBytes(PARAM_KEY_CONTEXT, param_ctx, key_context)) {
+        throw std::invalid_argument("PARAM_KEY_CONTEXT is missing");
+    }
+    if (params.getTypedObject<NonceGenerator>(AEAD_NONCE_GENERATOR, param_ctx, nonce_generator)) {
+        nonce = nonce_generator->getNonce();
+    }
+    params.endParameterProcessing(param_ctx);
+    
     if (nonce.size() != NONCE_SIZE) {
         throw std::invalid_argument("Wrong nonce size");
     }
     
-    ByteRange key_context;
-    auto ctx = params.beginParameterProcessing();
-    if (!params.getBytes(PARAM_KEY_CONTEXT, ctx, key_context)) {
-        throw std::invalid_argument("PARAM_KEY_CONTEXT is missing");
-    }
-    params.endParameterProcessing(ctx);
-    
     auto key_enc = _kdf->derive(key, KEY_ENC_LABEL, key_context);
     auto key_mac = _kdf->derive(key, KEY_MAC_LABEL, key_context);
     
-    auto iv = utils::ByteUtils_Concat({ nonce, ByteRange::zero(4) });
+    auto iv = ConcatByteRanges({ nonce, ByteRange::zero(4) });
     auto encrypted = _cipher->encrypt(key_enc, iv, plaintext);
-    auto auth_data = utils::ByteUtils_Concat({ nonce, associated_data, encrypted });
+    auto auth_data = ConcatByteRanges({ nonce, associated_data, encrypted });
     auto tag = _mac->token(key_mac, auth_data, MAC_PARAMS);
     
-    return utils::ByteUtils_Concat({ nonce, tag, encrypted });
+    return ConcatByteRanges({ nonce, tag, encrypted });
 }
 
 cc7::ByteArray PowerAuthAEAD::open(const cc7::ByteRange &key, const cc7::ByteRange &associated_data, const cc7::ByteRange &ciphertext, const cc7::crypto::ParameterList &params) const
@@ -92,18 +91,26 @@ cc7::ByteArray PowerAuthAEAD::open(const cc7::ByteRange &key, const cc7::ByteRan
     auto nonce     = ciphertext.subRangeTo(NONCE_SIZE);
     auto tag       = ciphertext.subRange(NONCE_SIZE, TAG_SIZE);
     auto encrypted = ciphertext.subRangeFrom(NONCE_SIZE + TAG_SIZE);
-    auto auth_data = utils::ByteUtils_Concat({ nonce, associated_data, encrypted });
+    auto auth_data = ConcatByteRanges({ nonce, associated_data, encrypted });
     
     auto key_mac = _kdf->derive(key, KEY_MAC_LABEL, key_context);
     
     if (!_mac->verifyToken(key_mac, auth_data, tag, MAC_PARAMS)) {
-        throw std::domain_error("MAC is wrong");
+        throw cc7::crypto::CryptoException("MAC is wrong");
     }
     
     auto key_enc = _kdf->derive(key, KEY_ENC_LABEL, key_context);
-    auto iv = utils::ByteUtils_Concat({ nonce, ByteRange::zero(4) });
+    auto iv = ConcatByteRanges({ nonce, ByteRange::zero(4) });
     
     return _cipher->decrypt(key_enc, iv, encrypted);
+}
+
+cc7::ByteArray PowerAuthAEAD::extractNonce(const ByteRange &ciphertext) const
+{
+    if (ciphertext.size() < NONCE_SIZE + TAG_SIZE) {
+        throw std::invalid_argument("ciphertext is too short");
+    }
+    return ciphertext.subRangeTo(NONCE_SIZE);
 }
 
 // Algorithm
@@ -123,7 +130,5 @@ cc7::crypto::Parameter PowerAuthAEAD::getParameter(int param_id) const
 }
 
 
-} // io::getlime::powerAuth::crypto
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace crypto
+} // namespace powerAuth

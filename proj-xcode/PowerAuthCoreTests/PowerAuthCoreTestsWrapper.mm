@@ -43,7 +43,7 @@ using namespace cc7;
 - (void) setUp
 {
     _manager = tests::TestManager::createDefaultManager();
-    _manager->addUnitTestList(io::getlime::powerAuthTests::GetPowerAuthTestCreationInfoList());
+    _manager->addUnitTestList(powerAuthTests::GetPowerAuthTestCreationInfoList());
     _manager->tl().setDumpToSystemLogEnabled(true);
     _manager->setLogCapturingEnabled(true);
 }

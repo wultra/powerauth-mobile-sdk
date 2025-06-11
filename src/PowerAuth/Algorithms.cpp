@@ -15,8 +15,6 @@
  */
 
 #include <PowerAuth/Algorithms.h>
-#include <PowerAuth/ECIES.h>
-#include "protocol/Constants.h"
 
 #include "crypto/PowerAuthKDF.h"
 #include "crypto/PowerAuthAEAD.h"
@@ -24,12 +22,7 @@
 using namespace cc7;
 using namespace cc7::crypto;
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
+namespace powerAuth {
 
 Algorithms::V4::Pointers Algorithms::V4::build()
 {
@@ -59,6 +52,10 @@ Algorithms::V4::Pointers Algorithms::V4::build()
     auto powerAuth_AEAD      = std::make_shared<crypto::PowerAuthAEAD>(powerAuth_KDF, cipher_AES_256_CTR, mac_KMAC_256);
 
     // Configure
+    
+    // Set default KMAC_256 output size to 32 bytes
+    mac_KMAC_256->setParameter(MAC_PARAM_DIGEST_LENGTH, Parameter::take((size_t)32));
+                               
     // Set P-384 public key encoding to compressed
     key_P384->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
     // Seal
@@ -107,9 +104,9 @@ Algorithms::V3::V3() :
     // set P-256 public key encoding to compressed
     _p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
     // Alter X9.63 KDF's output size to 48 bytes
-    _kdf_x963->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take(ECIESEnvelopeKey::EnvelopeKeySize));
+    _kdf_x963->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)48));   // TODO: legacy - remove
     // Alter PBKDF2-SHA1 KDF's output size to 16 bytes (signature key size)
-    _pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take(protocol::SIGNATURE_KEY_SIZE));
+    _pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)16));
 }
 
 Algorithms::Algorithms() : v3(), v4()
@@ -123,7 +120,4 @@ const Algorithms& Algorithms::shared()
     return shared;
 }
 
-
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+} // namespace powerAuth

@@ -13,9 +13,6 @@
 		BF14D4622DD33B6200BA7F51 /* PowerAuthAEAD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF14D4602DD33B6200BA7F51 /* PowerAuthAEAD.cpp */; };
 		BF14D4652DD33CDB00BA7F51 /* PowerAuthKDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF14D4642DD33CDB00BA7F51 /* PowerAuthKDF.cpp */; };
 		BF14D4662DD33CDB00BA7F51 /* PowerAuthKDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF14D4642DD33CDB00BA7F51 /* PowerAuthKDF.cpp */; };
-		BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
-		BF2040C42A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */; };
-		BF2040C52A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */; };
 		BF28A1D82A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF28A1D92A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF28AA3C27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -30,49 +27,83 @@
 		BF3DADFA2D660EB00096ED4F /* PowerAuthCoreDataTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF3DADF22D660EA40096ED4F /* PowerAuthCoreDataTests.m */; };
 		BF44F35E26400E6100F3D498 /* PowerAuthCoreDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BF44F35F26400E6100F3D498 /* PowerAuthCoreDeprecated.h in Headers */ = {isa = PBXBuildFile; fileRef = BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BF5A8C972DCA147300B3FB01 /* JOSE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF5A8C962DCA147300B3FB01 /* JOSE.cpp */; };
-		BF5A8C982DCA147300B3FB01 /* JOSE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF5A8C962DCA147300B3FB01 /* JOSE.cpp */; };
+		BF4D851C2DDDE5C600D32F55 /* Exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D851B2DDDE5C600D32F55 /* Exception.cpp */; };
+		BF4D851D2DDDE5C600D32F55 /* Exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D851B2DDDE5C600D32F55 /* Exception.cpp */; };
+		BF4D852D2DDF08E300D32F55 /* TimeService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D852C2DDF08E300D32F55 /* TimeService.cpp */; };
+		BF4D852E2DDF08E300D32F55 /* TimeService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D852C2DDF08E300D32F55 /* TimeService.cpp */; };
+		BF4D85372DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85362DDF22CF00D32F55 /* TimeServiceTests.cpp */; };
+		BF4D85382DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85362DDF22CF00D32F55 /* TimeServiceTests.cpp */; };
+		BF4D853F2DDF407F00D32F55 /* HybridKeyPair.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D853E2DDF407F00D32F55 /* HybridKeyPair.cpp */; };
+		BF4D85402DDF407F00D32F55 /* HybridKeyPair.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D853E2DDF407F00D32F55 /* HybridKeyPair.cpp */; };
+		BF4D85452DE456F600D32F55 /* HttpHeaderBuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85442DE456F600D32F55 /* HttpHeaderBuilder.cpp */; };
+		BF4D85462DE456F600D32F55 /* HttpHeaderBuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85442DE456F600D32F55 /* HttpHeaderBuilder.cpp */; };
+		BF4D854D2DE476CD00D32F55 /* CoreObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D854C2DE476CD00D32F55 /* CoreObjects.cpp */; };
+		BF4D854E2DE476CD00D32F55 /* CoreObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D854C2DE476CD00D32F55 /* CoreObjects.cpp */; };
+		BF4D85512DE483DB00D32F55 /* AuthHeaderCalculator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85502DE483DB00D32F55 /* AuthHeaderCalculator.cpp */; };
+		BF4D85522DE483DB00D32F55 /* AuthHeaderCalculator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85502DE483DB00D32F55 /* AuthHeaderCalculator.cpp */; };
+		BF4D855A2DE48AA900D32F55 /* TokenHeaderCalculator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85592DE48AA900D32F55 /* TokenHeaderCalculator.cpp */; };
+		BF4D855B2DE48AA900D32F55 /* Authentication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85582DE48AA900D32F55 /* Authentication.cpp */; };
+		BF4D855C2DE48AA900D32F55 /* TokenHeaderCalculator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85592DE48AA900D32F55 /* TokenHeaderCalculator.cpp */; };
+		BF4D855D2DE48AA900D32F55 /* Authentication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85582DE48AA900D32F55 /* Authentication.cpp */; };
+		BF4D85F42DED99DC00D32F55 /* KeyProvider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85F32DED99DC00D32F55 /* KeyProvider.cpp */; };
+		BF4D85F52DED99DC00D32F55 /* KeyProvider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D85F32DED99DC00D32F55 /* KeyProvider.cpp */; };
+		BF4D86132DEE1E8D00D32F55 /* AuthenticationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86122DEE1E8D00D32F55 /* AuthenticationTests.cpp */; };
+		BF4D86142DEE1E8D00D32F55 /* AuthenticationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86122DEE1E8D00D32F55 /* AuthenticationTests.cpp */; };
+		BF4D86172DEEFBD200D32F55 /* SecretKeysV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86162DEEFBD200D32F55 /* SecretKeysV4.cpp */; };
+		BF4D86182DEEFBD200D32F55 /* SecretKeysV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86162DEEFBD200D32F55 /* SecretKeysV4.cpp */; };
+		BF4D86242DEF10D800D32F55 /* PersistentData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86232DEF10D800D32F55 /* PersistentData.cpp */; };
+		BF4D86252DEF10D800D32F55 /* PersistentData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86232DEF10D800D32F55 /* PersistentData.cpp */; };
+		BF4D862A2DF0481B00D32F55 /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86292DF0481B00D32F55 /* Constants.cpp */; };
+		BF4D862B2DF0481B00D32F55 /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86292DF0481B00D32F55 /* Constants.cpp */; };
+		BF4D862E2DF0621B00D32F55 /* SessionData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D862D2DF0621B00D32F55 /* SessionData.cpp */; };
+		BF4D862F2DF0621B00D32F55 /* SessionData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D862D2DF0621B00D32F55 /* SessionData.cpp */; };
+		BF4D86322DF0629300D32F55 /* RegistrationData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86312DF0629300D32F55 /* RegistrationData.cpp */; };
+		BF4D86332DF0629300D32F55 /* RegistrationData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86312DF0629300D32F55 /* RegistrationData.cpp */; };
+		BF4D86362DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86352DF1A96900D32F55 /* PowerAuthSpec.cpp */; };
+		BF4D86372DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86352DF1A96900D32F55 /* PowerAuthSpec.cpp */; };
+		BF4D863A2DF1B7C400D32F55 /* HybridSignature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86392DF1B7C400D32F55 /* HybridSignature.cpp */; };
+		BF4D863B2DF1B7C400D32F55 /* HybridSignature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86392DF1B7C400D32F55 /* HybridSignature.cpp */; };
+		BF4D863E2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */; };
+		BF4D863F2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */; };
+		BF4D86422DF2DF3400D32F55 /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86412DF2DF3400D32F55 /* Configuration.cpp */; };
+		BF4D86432DF2DF3400D32F55 /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86412DF2DF3400D32F55 /* Configuration.cpp */; };
+		BF4D86462DF2ECA300D32F55 /* Types.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86452DF2ECA300D32F55 /* Types.cpp */; };
+		BF4D86472DF2ECA300D32F55 /* Types.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86452DF2ECA300D32F55 /* Types.cpp */; };
+		BF4D86502DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D864F2DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp */; };
+		BF4D86512DF366E600D32F55 /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D864D2DF366E600D32F55 /* CRC16.cpp */; };
+		BF4D86522DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D864F2DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp */; };
+		BF4D86532DF366E600D32F55 /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D864D2DF366E600D32F55 /* CRC16.cpp */; };
+		BF4D86582DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86572DF4F37D00D32F55 /* RequestBuilder.cpp */; };
+		BF4D86592DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86572DF4F37D00D32F55 /* RequestBuilder.cpp */; };
+		BF4D865C2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D865B2DF4F46600D32F55 /* EndpointSpec.cpp */; };
+		BF4D865D2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D865B2DF4F46600D32F55 /* EndpointSpec.cpp */; };
+		BF4D86672DF7077800D32F55 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86662DF7077800D32F55 /* Encryptor.cpp */; };
+		BF4D86682DF7077800D32F55 /* Encryptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86662DF7077800D32F55 /* Encryptor.cpp */; };
+		BF4D866B2DF70F2500D32F55 /* EncryptorV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D866A2DF70F2500D32F55 /* EncryptorV4.cpp */; };
+		BF4D866C2DF70F2500D32F55 /* EncryptorV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D866A2DF70F2500D32F55 /* EncryptorV4.cpp */; };
+		BF4D86702DF8307800D32F55 /* E2EEUtilsV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D866F2DF8307800D32F55 /* E2EEUtilsV4.cpp */; };
+		BF4D86712DF8307800D32F55 /* E2EEUtilsV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D866F2DF8307800D32F55 /* E2EEUtilsV4.cpp */; };
+		BF4D86732DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86722DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp */; };
+		BF4D86742DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF4D86722DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp */; };
 		BF5A8CAD2DCDF8DA00B3FB01 /* Algorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF5A8CAC2DCDF8DA00B3FB01 /* Algorithms.cpp */; };
 		BF5A8CAE2DCDF8DA00B3FB01 /* Algorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF5A8CAC2DCDF8DA00B3FB01 /* Algorithms.cpp */; };
-		BF60E8DA2A1B6CA900994592 /* pa2SessionSetupTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF60E8D92A1B6CA900994592 /* pa2SessionSetupTests.cpp */; };
-		BF60E8DB2A1B6CA900994592 /* pa2SessionSetupTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF60E8D92A1B6CA900994592 /* pa2SessionSetupTests.cpp */; };
-		BF61A9492A24C1A7002BCC45 /* PowerAuthCoreSessionSetupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF61A9402A24C0CE002BCC45 /* PowerAuthCoreSessionSetupTests.m */; };
-		BF61A94A2A24C1A8002BCC45 /* PowerAuthCoreSessionSetupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF61A9402A24C0CE002BCC45 /* PowerAuthCoreSessionSetupTests.m */; };
+		BF60E8DA2A1B6CA900994592 /* ConfigurationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF60E8D92A1B6CA900994592 /* ConfigurationTests.cpp */; };
+		BF60E8DB2A1B6CA900994592 /* ConfigurationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF60E8D92A1B6CA900994592 /* ConfigurationTests.cpp */; };
 		BF6ADD6424C84BC5001B3E5E /* libPowerAuthCoreLib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib-ios.a */; };
 		BF6ADD6524C84BDC001B3E5E /* libcc7-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4520753444008A6A52 /* libcc7-ios.a */; };
 		BF6ADD6624C84BE9001B3E5E /* libcc7tests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFB47D4720753444008A6A52 /* libcc7tests-ios.a */; };
 		BF6ADD6D24C84C0C001B3E5E /* OtpUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */; };
 		BF6ADD6E24C84C0C001B3E5E /* Password.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E22073E00D00735ED2 /* Password.cpp */; };
-		BF6ADD6F24C84C0C001B3E5E /* DataWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E92073E00D00735ED2 /* DataWriter.cpp */; };
-		BF6ADD7224C84C0C001B3E5E /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EC2073E00D00735ED2 /* Constants.cpp */; };
-		BF6ADD7324C84C0C001B3E5E /* PrivateTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EB2073E00D00735ED2 /* PrivateTypes.cpp */; };
-		BF6ADD7424C84C0C001B3E5E /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
-		BF6ADD7524C84C0C001B3E5E /* pa2ActivationStatusBlobTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */; };
-		BF6ADD7824C84C0C001B3E5E /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8FF2073E00D00735ED2 /* ECIES.cpp */; };
-		BF6ADD7924C84C0C001B3E5E /* URLEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */; };
-		BF6ADD7A24C84C0C001B3E5E /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
-		BF6ADD7B24C84C0C001B3E5E /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD66214ABE2500A9221F /* CRC16.cpp */; };
 		BF6ADD7D24C84C0C001B3E5E /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
-		BF6ADD7E24C84C0C001B3E5E /* DataReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E72073E00D00735ED2 /* DataReader.cpp */; };
-		BF6ADD7F24C84C0C001B3E5E /* ProtocolUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */; };
 		BF6ADD8724C84C28001B3E5E /* libPowerAuthCoreLib-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */; };
 		BF6ADD9524C84FE0001B3E5E /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
 		BF6ADD9624C84FE0001B3E5E /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
 		BF6ADD9724C84FE0001B3E5E /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
 		BF6ADD9824C84FE0001B3E5E /* pa2OtpUtilTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */; };
-		BF6ADD9924C84FE0001B3E5E /* pa2SignatureCalculationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */; };
-		BF6ADD9A24C84FE0001B3E5E /* pa2MasterSecretKeyComputation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */; };
 		BF6ADD9B24C84FE0001B3E5E /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */; };
 		BF6ADD9C24C84FE0001B3E5E /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
-		BF6ADD9D24C84FE0001B3E5E /* pa2PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */; };
-		BF6ADD9E24C84FE0001B3E5E /* pa2ECIESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */; };
-		BF6ADD9F24C84FE0001B3E5E /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */; };
-		BF6ADDA024C84FE0001B3E5E /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */; };
-		BF6ADDA124C84FE0001B3E5E /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */; };
-		BF6ADDA324C84FE0001B3E5E /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */; };
-		BF6ADDA424C84FE0001B3E5E /* pa2SignatureKeysDerivationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */; };
+		BF6ADD9D24C84FE0001B3E5E /* PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CE2073E00D00735ED2 /* PasswordTests.cpp */; };
 		BF6ADDA524C84FE0001B3E5E /* pa2CryptoHMACTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */; };
-		BF6ADDA624C84FE0001B3E5E /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */; };
 		BF6ADDAF24C84FF5001B3E5E /* libPowerAuthCoreLib-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD8624C84C0C001B3E5E /* libPowerAuthCoreLib-tvos.a */; };
 		BF6ADDB024C85005001B3E5E /* libcc7tests-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A892485250D001F46BA /* libcc7tests-tvos.a */; };
 		BF6ADDB124C85014001B3E5E /* libcc7-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF734A852485250D001F46BA /* libcc7-tvos.a */; };
@@ -80,50 +111,34 @@
 		BF720DD02642A5EA00D5932A /* PowerAuthCoreDeprecated.m in Sources */ = {isa = PBXBuildFile; fileRef = BF720DCE2642A5EA00D5932A /* PowerAuthCoreDeprecated.m */; };
 		BF86E65E26395AD3004C8AE5 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD1524C8486D001B3E5E /* PowerAuthCore.framework */; };
 		BF86E6B626395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */; };
-		BF86E6B726395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */; };
 		BF86E6D426395F12004C8AE5 /* libPowerAuthCoreLibTests-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF99D9152073E17000735ED2 /* libPowerAuthCoreLibTests-ios.a */; };
 		BF86E6E226395F2C004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B426395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm */; };
-		BF86E6E326395F2C004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = BF86E6B526395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm */; };
 		BF86E75A26395FF4004C8AE5 /* libPowerAuthCoreLibTests-tvos.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADDAE24C84FE0001B3E5E /* libPowerAuthCoreLibTests-tvos.a */; };
 		BF86E75B26395FF9004C8AE5 /* PowerAuthCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF6ADD6024C84A3D001B3E5E /* PowerAuthCore.framework */; };
 		BF97A71128A2714F002F3ACE /* PowerAuthCorePasswordTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A71028A2714F002F3ACE /* PowerAuthCorePasswordTests.m */; };
 		BF97A71228A2714F002F3ACE /* PowerAuthCorePasswordTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BF97A71028A2714F002F3ACE /* PowerAuthCorePasswordTests.m */; };
-		BF99D9002073E14100735ED2 /* Session.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F12073E00D00735ED2 /* Session.cpp */; };
-		BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */; };
 		BF99D9022073E14100735ED2 /* Debug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F32073E00D00735ED2 /* Debug.cpp */; };
 		BF99D9032073E14100735ED2 /* Password.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E22073E00D00735ED2 /* Password.cpp */; };
 		BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */; };
-		BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8FF2073E00D00735ED2 /* ECIES.cpp */; };
-		BF99D9072073E14700735ED2 /* Constants.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EC2073E00D00735ED2 /* Constants.cpp */; };
-		BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EB2073E00D00735ED2 /* PrivateTypes.cpp */; };
-		BF99D9092073E14700735ED2 /* ProtocolUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */; };
 		BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */; };
 		BFA98090253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */; };
 		BFA98091253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */; };
 		BFA98092253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807C253DA559004D2CF9 /* PowerAuthCoreMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA98093253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807C253DA559004D2CF9 /* PowerAuthCoreMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA98094253DA559004D2CF9 /* PowerAuthCoreSession.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807D253DA559004D2CF9 /* PowerAuthCoreSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA98095253DA559004D2CF9 /* PowerAuthCoreSession.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807D253DA559004D2CF9 /* PowerAuthCoreSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA98096253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807E253DA559004D2CF9 /* PowerAuthCoreOtpUtil.mm */; };
 		BFA98097253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9807E253DA559004D2CF9 /* PowerAuthCoreOtpUtil.mm */; };
 		BFA98098253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807F253DA559004D2CF9 /* PowerAuthCoreOtpUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA98099253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9807F253DA559004D2CF9 /* PowerAuthCoreOtpUtil.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA9809A253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98080253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.mm */; };
-		BFA9809B253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98080253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.mm */; };
 		BFA9809C253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98081253DA559004D2CF9 /* PowerAuthCoreTypes.mm */; };
 		BFA9809D253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98081253DA559004D2CF9 /* PowerAuthCoreTypes.mm */; };
 		BFA9809E253DA55A004D2CF9 /* PowerAuthCoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA98082253DA559004D2CF9 /* PowerAuthCoreLog.m */; };
 		BFA9809F253DA55A004D2CF9 /* PowerAuthCoreLog.m in Sources */ = {isa = PBXBuildFile; fileRef = BFA98082253DA559004D2CF9 /* PowerAuthCoreLog.m */; };
-		BFA980A0253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98083253DA559004D2CF9 /* PowerAuthCorePrivateImpl.mm */; };
-		BFA980A1253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98083253DA559004D2CF9 /* PowerAuthCorePrivateImpl.mm */; };
 		BFA980A2253DA55A004D2CF9 /* PowerAuthCore.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98084253DA559004D2CF9 /* PowerAuthCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A3253DA55A004D2CF9 /* PowerAuthCore.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98084253DA559004D2CF9 /* PowerAuthCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A4253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98085253DA559004D2CF9 /* PowerAuthCoreTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A5253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98085253DA559004D2CF9 /* PowerAuthCoreTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A6253DA55A004D2CF9 /* PowerAuthCorePassword.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980A7253DA55A004D2CF9 /* PowerAuthCorePassword.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA980A8253DA55A004D2CF9 /* PowerAuthCoreSession.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98087253DA559004D2CF9 /* PowerAuthCoreSession.mm */; };
-		BFA980A9253DA55A004D2CF9 /* PowerAuthCoreSession.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98087253DA559004D2CF9 /* PowerAuthCoreSession.mm */; };
 		BFA980AA253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */; };
 		BFA980AB253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA98088253DA559004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm */; };
 		BFA980AC253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA98089253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -134,34 +149,17 @@
 		BFA980B1253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = BFA9808B253DA559004D2CF9 /* PowerAuthCoreCryptoUtils.mm */; };
 		BFA980B2253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808C253DA559004D2CF9 /* PowerAuthCorePrivateImpl.h */; };
 		BFA980B3253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808C253DA559004D2CF9 /* PowerAuthCorePrivateImpl.h */; };
-		BFA980B6253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808E253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFA980B7253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808E253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980B8253DA55A004D2CF9 /* PowerAuthCoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808F253DA559004D2CF9 /* PowerAuthCoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BFA980B9253DA55A004D2CF9 /* PowerAuthCoreLog.h in Headers */ = {isa = PBXBuildFile; fileRef = BFA9808F253DA559004D2CF9 /* PowerAuthCoreLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD66214ABE2500A9221F /* CRC16.cpp */; };
 		BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */; };
 		BFB47D06207532BE008A6A52 /* PowerAuthTestsList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */; };
-		BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */; };
-		BFB47D08207532C5008A6A52 /* pa2SessionTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */; };
-		BFB47D09207532C5008A6A52 /* pa2PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */; };
+		BFB47D09207532C5008A6A52 /* PasswordTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CE2073E00D00735ED2 /* PasswordTests.cpp */; };
 		BFB47D0A207532C5008A6A52 /* pa2OtpUtilTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */; };
-		BFB47D0B207532C5008A6A52 /* pa2ECIESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */; };
-		BFB47D0C207532CB008A6A52 /* pa2ProtocolUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */; };
-		BFB47D0D207532CB008A6A52 /* pa2URLEncodingTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */; };
-		BFB47D0E207532CB008A6A52 /* pa2SignatureKeysDerivationTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */; };
-		BFB47D13207532CB008A6A52 /* pa2MasterSecretKeyComputation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */; };
-		BFB47D14207532CB008A6A52 /* pa2SignatureCalculationTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */; };
-		BFB47D15207532CB008A6A52 /* pa2PublicKeyFingerprintTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */; };
-		BFB47D1620753324008A6A52 /* DataReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E72073E00D00735ED2 /* DataReader.cpp */; };
-		BFB47D1720753324008A6A52 /* DataWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E92073E00D00735ED2 /* DataWriter.cpp */; };
-		BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */; };
 		BFB47D5420753491008A6A52 /* libPowerAuthCoreLib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib-ios.a */; };
 		BFB6E7652DD5CAC600F18982 /* PowerAuthKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7642DD5CAC600F18982 /* PowerAuthKDFTests.cpp */; };
 		BFB6E7662DD5CAC600F18982 /* PowerAuthKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7642DD5CAC600F18982 /* PowerAuthKDFTests.cpp */; };
 		BFB6E76F2DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E76E2DD5ECF800F18982 /* PowerAuthAEADTests.cpp */; };
 		BFB6E7702DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E76E2DD5ECF800F18982 /* PowerAuthAEADTests.cpp */; };
-		BFB6E7732DD603AC00F18982 /* E2EE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7722DD603AC00F18982 /* E2EE.cpp */; };
-		BFB6E7742DD603AC00F18982 /* E2EE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7722DD603AC00F18982 /* E2EE.cpp */; };
 		BFB6E7792DD7574600F18982 /* SharedSecretTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */; };
 		BFB6E77A2DD7574600F18982 /* SharedSecretTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */; };
 		BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */; };
@@ -173,8 +171,6 @@
 		BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
 		BFEEEBEC2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
-		BFFE1D56264D688F00D5B985 /* pa2CryptoECDSATests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */; };
-		BFFE1D57264D688F00D5B985 /* pa2CryptoECDSATests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */; };
 		BFFE1D58264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
 		BFFE1D59264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
 /* End PBXBuildFile section */
@@ -375,29 +371,103 @@
 		BF14D4642DD33CDB00BA7F51 /* PowerAuthKDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthKDF.cpp; sourceTree = "<group>"; };
 		BF1B33F02334C042009BA222 /* signatures-v31.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v31.json"; sourceTree = "<group>"; };
 		BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "activation-status-blob-iv.json"; sourceTree = "<group>"; };
-		BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationStatusBlobTests.cpp; sourceTree = "<group>"; };
-		BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreEciesEncryptorTest.mm; sourceTree = "<group>"; };
 		BF28A1D62A6AC56600E50F76 /* PowerAuthCoreTimeService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreTimeService.h; sourceTree = "<group>"; };
 		BF28AA3A27EDE7DF00FBFCEB /* PowerAuthCoreDebugMonitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreDebugMonitor.h; sourceTree = "<group>"; };
 		BF31606327E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreCryptoUtilsTests.mm; sourceTree = "<group>"; };
 		BF3ACC852073DBA500B8107E /* libPowerAuthCoreLib-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLib-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF3ACC962073DF5F00B8107E /* PowerAuthTestsList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthTestsList.h; sourceTree = "<group>"; };
 		BF3ACC992073DF5F00B8107E /* Debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Debug.h; sourceTree = "<group>"; };
-		BF3ACC9A2073DF5F00B8107E /* PublicTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicTypes.h; sourceTree = "<group>"; };
-		BF3ACC9B2073DF5F00B8107E /* Session.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Session.h; sourceTree = "<group>"; };
 		BF3ACC9C2073DF5F00B8107E /* Password.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Password.h; sourceTree = "<group>"; };
 		BF3ACC9D2073DF5F00B8107E /* PowerAuth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuth.h; sourceTree = "<group>"; };
 		BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OtpUtil.h; sourceTree = "<group>"; };
-		BF3ACC9F2073DF5F00B8107E /* ECIES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
 		BF3DADE52D65EDD90096ED4F /* PowerAuthCoreData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreData.h; sourceTree = "<group>"; };
 		BF3DADE62D65EDD90096ED4F /* PowerAuthCoreData.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreData.mm; sourceTree = "<group>"; };
 		BF3DADF22D660EA40096ED4F /* PowerAuthCoreDataTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCoreDataTests.m; sourceTree = "<group>"; };
 		BF44F35D26400E6100F3D498 /* PowerAuthCoreDeprecated.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreDeprecated.h; sourceTree = "<group>"; };
-		BF5A8C952DCA147300B3FB01 /* JOSE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JOSE.h; sourceTree = "<group>"; };
-		BF5A8C962DCA147300B3FB01 /* JOSE.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JOSE.cpp; sourceTree = "<group>"; };
+		BF4D851B2DDDE5C600D32F55 /* Exception.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Exception.cpp; sourceTree = "<group>"; };
+		BF4D85242DDDE6B100D32F55 /* Exception.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Exception.h; sourceTree = "<group>"; };
+		BF4D852B2DDF084800D32F55 /* TimeService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeService.h; sourceTree = "<group>"; };
+		BF4D852C2DDF08E300D32F55 /* TimeService.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TimeService.cpp; sourceTree = "<group>"; };
+		BF4D85362DDF22CF00D32F55 /* TimeServiceTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TimeServiceTests.cpp; sourceTree = "<group>"; };
+		BF4D853D2DDF407F00D32F55 /* HybridKeyPair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HybridKeyPair.h; sourceTree = "<group>"; };
+		BF4D853E2DDF407F00D32F55 /* HybridKeyPair.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HybridKeyPair.cpp; sourceTree = "<group>"; };
+		BF4D85432DE455FB00D32F55 /* HttpHeaderBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpHeaderBuilder.h; sourceTree = "<group>"; };
+		BF4D85442DE456F600D32F55 /* HttpHeaderBuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HttpHeaderBuilder.cpp; sourceTree = "<group>"; };
+		BF4D854C2DE476CD00D32F55 /* CoreObjects.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CoreObjects.cpp; sourceTree = "<group>"; };
+		BF4D854F2DE482EA00D32F55 /* AuthHeaderCalculator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AuthHeaderCalculator.h; sourceTree = "<group>"; };
+		BF4D85502DE483DB00D32F55 /* AuthHeaderCalculator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthHeaderCalculator.cpp; sourceTree = "<group>"; };
+		BF4D85562DE4898800D32F55 /* Authentication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Authentication.h; sourceTree = "<group>"; };
+		BF4D85572DE489B200D32F55 /* TokenHeaderCalculator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TokenHeaderCalculator.h; sourceTree = "<group>"; };
+		BF4D85582DE48AA900D32F55 /* Authentication.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Authentication.cpp; sourceTree = "<group>"; };
+		BF4D85592DE48AA900D32F55 /* TokenHeaderCalculator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TokenHeaderCalculator.cpp; sourceTree = "<group>"; };
+		BF4D855E2DE4C51E00D32F55 /* KeyProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyProvider.h; sourceTree = "<group>"; };
+		BF4D85F32DED99DC00D32F55 /* KeyProvider.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProvider.cpp; sourceTree = "<group>"; };
+		BF4D86012DEDB5CB00D32F55 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		BF4D86022DEDB5CB00D32F55 /* Constants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Constants.cpp; sourceTree = "<group>"; };
+		BF4D86092DEDB72B00D32F55 /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
+		BF4D860A2DEDB72B00D32F55 /* pa2MasterSecretKeyComputation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2MasterSecretKeyComputation.cpp; sourceTree = "<group>"; };
+		BF4D860B2DEDB72B00D32F55 /* pa2ProtocolUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ProtocolUtilsTests.cpp; sourceTree = "<group>"; };
+		BF4D860C2DEDB72B00D32F55 /* pa2PublicKeyFingerprintTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PublicKeyFingerprintTests.cpp; sourceTree = "<group>"; };
+		BF4D860D2DEDB72B00D32F55 /* pa2SessionTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
+		BF4D860E2DEDB72B00D32F55 /* pa2SignatureCalculationTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureCalculationTests.cpp; sourceTree = "<group>"; };
+		BF4D860F2DEDB72B00D32F55 /* pa2SignatureKeysDerivationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureKeysDerivationTest.cpp; sourceTree = "<group>"; };
+		BF4D86102DEDB78B00D32F55 /* pa2ActivationStatusBlobTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ActivationStatusBlobTests.cpp; sourceTree = "<group>"; };
+		BF4D86112DEDCAD100D32F55 /* session-setup-v4.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "session-setup-v4.json"; sourceTree = "<group>"; };
+		BF4D86122DEE1E8D00D32F55 /* AuthenticationTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AuthenticationTests.cpp; sourceTree = "<group>"; };
+		BF4D86152DEEFBD200D32F55 /* SecretKeysV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecretKeysV4.h; sourceTree = "<group>"; };
+		BF4D86162DEEFBD200D32F55 /* SecretKeysV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SecretKeysV4.cpp; sourceTree = "<group>"; };
+		BF4D861A2DEF10A000D32F55 /* ECIES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ECIES.h; sourceTree = "<group>"; };
+		BF4D861B2DEF10A000D32F55 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
+		BF4D861C2DEF10A000D32F55 /* PrivateTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrivateTypes.h; sourceTree = "<group>"; };
+		BF4D861D2DEF10A000D32F55 /* PrivateTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PrivateTypes.cpp; sourceTree = "<group>"; };
+		BF4D861E2DEF10A000D32F55 /* ProtocolUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProtocolUtils.h; sourceTree = "<group>"; };
+		BF4D861F2DEF10A000D32F55 /* ProtocolUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProtocolUtils.cpp; sourceTree = "<group>"; };
+		BF4D86202DEF10A000D32F55 /* Session.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Session.h; sourceTree = "<group>"; };
+		BF4D86212DEF10A000D32F55 /* Session.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Session.cpp; sourceTree = "<group>"; };
+		BF4D86222DEF10D800D32F55 /* PersistentData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PersistentData.h; sourceTree = "<group>"; };
+		BF4D86232DEF10D800D32F55 /* PersistentData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PersistentData.cpp; sourceTree = "<group>"; };
+		BF4D86282DF0481B00D32F55 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		BF4D86292DF0481B00D32F55 /* Constants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Constants.cpp; sourceTree = "<group>"; };
+		BF4D862C2DF0621B00D32F55 /* SessionData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SessionData.h; sourceTree = "<group>"; };
+		BF4D862D2DF0621B00D32F55 /* SessionData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SessionData.cpp; sourceTree = "<group>"; };
+		BF4D86302DF0629300D32F55 /* RegistrationData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RegistrationData.h; sourceTree = "<group>"; };
+		BF4D86312DF0629300D32F55 /* RegistrationData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RegistrationData.cpp; sourceTree = "<group>"; };
+		BF4D86342DF1A8BC00D32F55 /* PowerAuthSpec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthSpec.h; sourceTree = "<group>"; };
+		BF4D86352DF1A96900D32F55 /* PowerAuthSpec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthSpec.cpp; sourceTree = "<group>"; };
+		BF4D86382DF1B7C400D32F55 /* HybridSignature.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HybridSignature.h; sourceTree = "<group>"; };
+		BF4D86392DF1B7C400D32F55 /* HybridSignature.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HybridSignature.cpp; sourceTree = "<group>"; };
+		BF4D863C2DF2D8AA00D32F55 /* ActivationStatus.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationStatus.h; sourceTree = "<group>"; };
+		BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationStatus.cpp; sourceTree = "<group>"; };
+		BF4D86402DF2DEA600D32F55 /* Configuration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
+		BF4D86412DF2DF3400D32F55 /* Configuration.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
+		BF4D86442DF2EBE900D32F55 /* Types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Types.h; sourceTree = "<group>"; };
+		BF4D86452DF2ECA300D32F55 /* Types.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Types.cpp; sourceTree = "<group>"; };
+		BF4D86482DF2EEAB00D32F55 /* PublicTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PublicTypes.h; sourceTree = "<group>"; };
+		BF4D86492DF2EEAB00D32F55 /* PublicTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PublicTypes.cpp; sourceTree = "<group>"; };
+		BF4D864A2DF2F1EF00D32F55 /* pa2CryptoECDSATests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDSATests.cpp; sourceTree = "<group>"; };
+		BF4D864B2DF31B4500D32F55 /* CoreObjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreObjects.h; sourceTree = "<group>"; };
+		BF4D864C2DF366E600D32F55 /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
+		BF4D864D2DF366E600D32F55 /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
+		BF4D864E2DF366E600D32F55 /* ThreadSafeNonceGenerator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ThreadSafeNonceGenerator.h; sourceTree = "<group>"; };
+		BF4D864F2DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadSafeNonceGenerator.cpp; sourceTree = "<group>"; };
+		BF4D86542DF3747600D32F55 /* Request.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Request.h; sourceTree = "<group>"; };
+		BF4D86562DF4F37D00D32F55 /* RequestBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RequestBuilder.h; sourceTree = "<group>"; };
+		BF4D86572DF4F37D00D32F55 /* RequestBuilder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RequestBuilder.cpp; sourceTree = "<group>"; };
+		BF4D865A2DF4F46600D32F55 /* EndpointSpec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EndpointSpec.h; sourceTree = "<group>"; };
+		BF4D865B2DF4F46600D32F55 /* EndpointSpec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EndpointSpec.cpp; sourceTree = "<group>"; };
+		BF4D86662DF7077800D32F55 /* Encryptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Encryptor.cpp; sourceTree = "<group>"; };
+		BF4D86692DF70F2500D32F55 /* EncryptorV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EncryptorV4.h; sourceTree = "<group>"; };
+		BF4D866A2DF70F2500D32F55 /* EncryptorV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = EncryptorV4.cpp; sourceTree = "<group>"; };
+		BF4D866D2DF8270F00D32F55 /* Encryptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Encryptor.h; sourceTree = "<group>"; };
+		BF4D866E2DF8307800D32F55 /* E2EEUtilsV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = E2EEUtilsV4.h; sourceTree = "<group>"; };
+		BF4D866F2DF8307800D32F55 /* E2EEUtilsV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = E2EEUtilsV4.cpp; sourceTree = "<group>"; };
+		BF4D86722DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ClientEncryptorV4Tests.cpp; sourceTree = "<group>"; };
+		BF4D86752DF8530D00D32F55 /* TestTimeProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestTimeProvider.h; sourceTree = "<group>"; };
+		BF4D86762DF85FA600D32F55 /* E2ee_Activation_Scope_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = E2ee_Activation_Scope_Test_Vectors.json; sourceTree = "<group>"; };
+		BF4D86772DF85FA600D32F55 /* E2ee_Application_Scope_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = E2ee_Application_Scope_Test_Vectors.json; sourceTree = "<group>"; };
 		BF5A8CAB2DCDF8C900B3FB01 /* Algorithms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Algorithms.h; sourceTree = "<group>"; };
 		BF5A8CAC2DCDF8DA00B3FB01 /* Algorithms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Algorithms.cpp; sourceTree = "<group>"; };
-		BF60E8D92A1B6CA900994592 /* pa2SessionSetupTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionSetupTests.cpp; sourceTree = "<group>"; };
+		BF60E8D92A1B6CA900994592 /* ConfigurationTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigurationTests.cpp; sourceTree = "<group>"; };
 		BF61A9402A24C0CE002BCC45 /* PowerAuthCoreSessionSetupTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCoreSessionSetupTests.m; sourceTree = "<group>"; };
 		BF6ADD1524C8486D001B3E5E /* PowerAuthCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuthCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF6ADD6024C84A3D001B3E5E /* PowerAuthCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PowerAuthCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -412,7 +482,6 @@
 		BF86E6EC26395F2C004C8AE5 /* PowerAuthCoreTests-tvos.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "PowerAuthCoreTests-tvos.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF8BFBD5215A8EB6001D6852 /* signatures-v3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-v3.json"; sourceTree = "<group>"; };
 		BF97A71028A2714F002F3ACE /* PowerAuthCorePasswordTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCorePasswordTests.m; sourceTree = "<group>"; };
-		BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2DataWriterReaderTests.cpp; sourceTree = "<group>"; };
 		BF99D8B02073E00D00735ED2 /* verify-encrypted-server-public-key-signature.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "verify-encrypted-server-public-key-signature.json"; sourceTree = "<group>"; };
 		BF99D8B12073E00D00735ED2 /* compute-master-secret-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "compute-master-secret-key.json"; sourceTree = "<group>"; };
 		BF99D8B22073E00D00735ED2 /* encrypt-device-public-key.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "encrypt-device-public-key.json"; sourceTree = "<group>"; };
@@ -426,36 +495,13 @@
 		BF99D8BB2073E00D00735ED2 /* g_pa2Files.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = g_pa2Files.cpp; sourceTree = "<group>"; };
 		BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthTestsList.cpp; sourceTree = "<group>"; };
 		BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoHMACTests.cpp; sourceTree = "<group>"; };
-		BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureCalculationTests.cpp; sourceTree = "<group>"; };
-		BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PublicKeyFingerprintTests.cpp; sourceTree = "<group>"; };
-		BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2MasterSecretKeyComputation.cpp; sourceTree = "<group>"; };
 		BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoAESTests.cpp; sourceTree = "<group>"; };
-		BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SignatureKeysDerivationTest.cpp; sourceTree = "<group>"; };
 		BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2OtpUtilTests.cpp; sourceTree = "<group>"; };
 		BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDHKDFTests.cpp; sourceTree = "<group>"; };
-		BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2SessionTests.cpp; sourceTree = "<group>"; };
-		BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2URLEncodingTests.cpp; sourceTree = "<group>"; };
-		BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ProtocolUtilsTests.cpp; sourceTree = "<group>"; };
-		BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ECIESTests.cpp; sourceTree = "<group>"; };
-		BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2PasswordTests.cpp; sourceTree = "<group>"; };
+		BF99D8CE2073E00D00735ED2 /* PasswordTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PasswordTests.cpp; sourceTree = "<group>"; };
 		BF99D8E22073E00D00735ED2 /* Password.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Password.cpp; sourceTree = "<group>"; };
-		BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = URLEncoding.cpp; sourceTree = "<group>"; };
-		BF99D8E52073E00D00735ED2 /* DataWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataWriter.h; sourceTree = "<group>"; };
-		BF99D8E62073E00D00735ED2 /* URLEncoding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLEncoding.h; sourceTree = "<group>"; };
-		BF99D8E72073E00D00735ED2 /* DataReader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DataReader.cpp; sourceTree = "<group>"; };
-		BF99D8E82073E00D00735ED2 /* DataReader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DataReader.h; sourceTree = "<group>"; };
-		BF99D8E92073E00D00735ED2 /* DataWriter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = DataWriter.cpp; sourceTree = "<group>"; };
-		BF99D8EB2073E00D00735ED2 /* PrivateTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PrivateTypes.cpp; sourceTree = "<group>"; };
-		BF99D8EC2073E00D00735ED2 /* Constants.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Constants.cpp; sourceTree = "<group>"; };
-		BF99D8ED2073E00D00735ED2 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
-		BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ProtocolUtils.cpp; sourceTree = "<group>"; };
-		BF99D8EF2073E00D00735ED2 /* ProtocolUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ProtocolUtils.h; sourceTree = "<group>"; };
-		BF99D8F02073E00D00735ED2 /* PrivateTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PrivateTypes.h; sourceTree = "<group>"; };
-		BF99D8F12073E00D00735ED2 /* Session.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Session.cpp; sourceTree = "<group>"; };
-		BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PublicTypes.cpp; sourceTree = "<group>"; };
 		BF99D8F32073E00D00735ED2 /* Debug.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Debug.cpp; sourceTree = "<group>"; };
 		BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = OtpUtil.cpp; sourceTree = "<group>"; };
-		BF99D8FF2073E00D00735ED2 /* ECIES.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ECIES.cpp; sourceTree = "<group>"; };
 		BF99D9152073E17000735ED2 /* libPowerAuthCoreLibTests-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPowerAuthCoreLibTests-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF9AFF062992707900400D5B /* signatures-offline.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "signatures-offline.json"; sourceTree = "<group>"; };
 		BFA9807A253DA559004D2CF9 /* PowerAuthCorePassword.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCorePassword.mm; sourceTree = "<group>"; };
@@ -467,7 +513,6 @@
 		BFA98080253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreEciesEncryptor.mm; sourceTree = "<group>"; };
 		BFA98081253DA559004D2CF9 /* PowerAuthCoreTypes.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCoreTypes.mm; sourceTree = "<group>"; };
 		BFA98082253DA559004D2CF9 /* PowerAuthCoreLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PowerAuthCoreLog.m; sourceTree = "<group>"; };
-		BFA98083253DA559004D2CF9 /* PowerAuthCorePrivateImpl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PowerAuthCorePrivateImpl.mm; sourceTree = "<group>"; };
 		BFA98084253DA559004D2CF9 /* PowerAuthCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCore.h; sourceTree = "<group>"; };
 		BFA98085253DA559004D2CF9 /* PowerAuthCoreTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreTypes.h; sourceTree = "<group>"; };
 		BFA98086253DA559004D2CF9 /* PowerAuthCorePassword.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCorePassword.h; sourceTree = "<group>"; };
@@ -480,8 +525,6 @@
 		BFA9808D253DA559004D2CF9 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BFA9808E253DA559004D2CF9 /* PowerAuthCoreEciesEncryptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreEciesEncryptor.h; sourceTree = "<group>"; };
 		BFA9808F253DA559004D2CF9 /* PowerAuthCoreLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PowerAuthCoreLog.h; sourceTree = "<group>"; };
-		BFABCD63214ABDCB00A9221F /* CRC16.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CRC16.h; sourceTree = "<group>"; };
-		BFABCD66214ABE2500A9221F /* CRC16.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = CRC16.cpp; sourceTree = "<group>"; };
 		BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CRC16Tests.cpp; sourceTree = "<group>"; };
 		BFB47D3E20753444008A6A52 /* cc7.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cc7.xcodeproj; path = "../cc7/proj-xcode/cc7.xcodeproj"; sourceTree = "<group>"; };
 		BFB6E75E2DD4A7AA00F18982 /* PowerAuthAEAD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerAuthAEAD.h; sourceTree = "<group>"; };
@@ -491,8 +534,6 @@
 		BFB6E7632DD5C81800F18982 /* v4-pbkdf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "v4-pbkdf.json"; sourceTree = "<group>"; };
 		BFB6E7642DD5CAC600F18982 /* PowerAuthKDFTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthKDFTests.cpp; sourceTree = "<group>"; };
 		BFB6E76E2DD5ECF800F18982 /* PowerAuthAEADTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = PowerAuthAEADTests.cpp; sourceTree = "<group>"; };
-		BFB6E7722DD603AC00F18982 /* E2EE.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = E2EE.cpp; sourceTree = "<group>"; };
-		BFB6E7752DD6043D00F18982 /* E2EE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = E2EE.h; sourceTree = "<group>"; };
 		BFB6E7762DD7565F00F18982 /* ECDHE_P384_MLKEM_768_Client_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ECDHE_P384_MLKEM_768_Client_Vectors.json; sourceTree = "<group>"; };
 		BFB6E7772DD7565F00F18982 /* ECDHE_P384_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ECDHE_P384_Test_Vectors.json; sourceTree = "<group>"; };
 		BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SharedSecretTests.cpp; sourceTree = "<group>"; };
@@ -502,7 +543,6 @@
 		BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ByteUtils.cpp; sourceTree = "<group>"; };
 		BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ByteUtils.h; sourceTree = "<group>"; };
 		BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ByteUtilsTests.cpp; sourceTree = "<group>"; };
-		BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECDSATests.cpp; sourceTree = "<group>"; };
 		BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECCTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -634,46 +674,128 @@
 		BF3ACC972073DF5F00B8107E /* PowerAuth */ = {
 			isa = PBXGroup;
 			children = (
-				BF5A8CAB2DCDF8C900B3FB01 /* Algorithms.h */,
 				BF3ACC9D2073DF5F00B8107E /* PowerAuth.h */,
-				BF3ACC9A2073DF5F00B8107E /* PublicTypes.h */,
-				BF3ACC9B2073DF5F00B8107E /* Session.h */,
+				BF4D85242DDDE6B100D32F55 /* Exception.h */,
+				BF4D86342DF1A8BC00D32F55 /* PowerAuthSpec.h */,
+				BF5A8CAB2DCDF8C900B3FB01 /* Algorithms.h */,
+				BF4D86442DF2EBE900D32F55 /* Types.h */,
+				BF4D86402DF2DEA600D32F55 /* Configuration.h */,
+				BF4D85562DE4898800D32F55 /* Authentication.h */,
+				BF4D863C2DF2D8AA00D32F55 /* ActivationStatus.h */,
+				BF4D855E2DE4C51E00D32F55 /* KeyProvider.h */,
+				BF4D866D2DF8270F00D32F55 /* Encryptor.h */,
+				BF4D854F2DE482EA00D32F55 /* AuthHeaderCalculator.h */,
+				BF4D85572DE489B200D32F55 /* TokenHeaderCalculator.h */,
+				BF4D85432DE455FB00D32F55 /* HttpHeaderBuilder.h */,
+				BF4D852B2DDF084800D32F55 /* TimeService.h */,
 				BF3ACC9C2073DF5F00B8107E /* Password.h */,
 				BF3ACC992073DF5F00B8107E /* Debug.h */,
 				BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */,
 				BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */,
-				BFB6E7752DD6043D00F18982 /* E2EE.h */,
-				BF3ACC9F2073DF5F00B8107E /* ECIES.h */,
 				BF14D4552DD1C99000BA7F51 /* SharedSecret.h */,
+				BF4D86542DF3747600D32F55 /* Request.h */,
 			);
 			path = PowerAuth;
+			sourceTree = "<group>";
+		};
+		BF4D86002DEDB3C400D32F55 /* legacy */ = {
+			isa = PBXGroup;
+			children = (
+				BF4D86482DF2EEAB00D32F55 /* PublicTypes.h */,
+				BF4D86492DF2EEAB00D32F55 /* PublicTypes.cpp */,
+				BF4D861A2DEF10A000D32F55 /* ECIES.h */,
+				BF4D861B2DEF10A000D32F55 /* ECIES.cpp */,
+				BF4D861C2DEF10A000D32F55 /* PrivateTypes.h */,
+				BF4D861D2DEF10A000D32F55 /* PrivateTypes.cpp */,
+				BF4D861E2DEF10A000D32F55 /* ProtocolUtils.h */,
+				BF4D861F2DEF10A000D32F55 /* ProtocolUtils.cpp */,
+				BF4D86202DEF10A000D32F55 /* Session.h */,
+				BF4D86212DEF10A000D32F55 /* Session.cpp */,
+				BF4D86012DEDB5CB00D32F55 /* Constants.h */,
+				BF4D86022DEDB5CB00D32F55 /* Constants.cpp */,
+			);
+			path = legacy;
+			sourceTree = "<group>";
+		};
+		BF4D86052DEDB5D800D32F55 /* v3 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = v3;
+			sourceTree = "<group>";
+		};
+		BF4D86062DEDB5DF00D32F55 /* v4 */ = {
+			isa = PBXGroup;
+			children = (
+				BF4D86152DEEFBD200D32F55 /* SecretKeysV4.h */,
+				BF4D86162DEEFBD200D32F55 /* SecretKeysV4.cpp */,
+				BF4D86692DF70F2500D32F55 /* EncryptorV4.h */,
+				BF4D866A2DF70F2500D32F55 /* EncryptorV4.cpp */,
+				BF4D866E2DF8307800D32F55 /* E2EEUtilsV4.h */,
+				BF4D866F2DF8307800D32F55 /* E2EEUtilsV4.cpp */,
+			);
+			path = v4;
+			sourceTree = "<group>";
+		};
+		BF4D86082DEDB71400D32F55 /* legacy */ = {
+			isa = PBXGroup;
+			children = (
+				BF4D864A2DF2F1EF00D32F55 /* pa2CryptoECDSATests.cpp */,
+				BF4D86092DEDB72B00D32F55 /* pa2ECIESTests.cpp */,
+				BF4D860A2DEDB72B00D32F55 /* pa2MasterSecretKeyComputation.cpp */,
+				BF4D860B2DEDB72B00D32F55 /* pa2ProtocolUtilsTests.cpp */,
+				BF4D860C2DEDB72B00D32F55 /* pa2PublicKeyFingerprintTests.cpp */,
+				BF4D860D2DEDB72B00D32F55 /* pa2SessionTests.cpp */,
+				BF4D860E2DEDB72B00D32F55 /* pa2SignatureCalculationTests.cpp */,
+				BF4D860F2DEDB72B00D32F55 /* pa2SignatureKeysDerivationTest.cpp */,
+				BF4D86102DEDB78B00D32F55 /* pa2ActivationStatusBlobTests.cpp */,
+			);
+			path = legacy;
+			sourceTree = "<group>";
+		};
+		BF4D86192DEF104000D32F55 /* model */ = {
+			isa = PBXGroup;
+			children = (
+				BF4D86282DF0481B00D32F55 /* Constants.h */,
+				BF4D86292DF0481B00D32F55 /* Constants.cpp */,
+				BF4D862C2DF0621B00D32F55 /* SessionData.h */,
+				BF4D862D2DF0621B00D32F55 /* SessionData.cpp */,
+				BF4D86222DEF10D800D32F55 /* PersistentData.h */,
+				BF4D86232DEF10D800D32F55 /* PersistentData.cpp */,
+				BF4D86302DF0629300D32F55 /* RegistrationData.h */,
+				BF4D86312DF0629300D32F55 /* RegistrationData.cpp */,
+			);
+			path = model;
+			sourceTree = "<group>";
+		};
+		BF4D86552DF4F36200D32F55 /* request */ = {
+			isa = PBXGroup;
+			children = (
+				BF4D865A2DF4F46600D32F55 /* EndpointSpec.h */,
+				BF4D865B2DF4F46600D32F55 /* EndpointSpec.cpp */,
+				BF4D86562DF4F37D00D32F55 /* RequestBuilder.h */,
+				BF4D86572DF4F37D00D32F55 /* RequestBuilder.cpp */,
+			);
+			path = request;
 			sourceTree = "<group>";
 		};
 		BF5A8C872DC4EE2A00B3FB01 /* crypto */ = {
 			isa = PBXGroup;
 			children = (
-				BF5A8C952DCA147300B3FB01 /* JOSE.h */,
-				BF5A8C962DCA147300B3FB01 /* JOSE.cpp */,
+				BF4D864C2DF366E600D32F55 /* CRC16.h */,
+				BF4D864D2DF366E600D32F55 /* CRC16.cpp */,
+				BF4D864E2DF366E600D32F55 /* ThreadSafeNonceGenerator.h */,
+				BF4D864F2DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp */,
 				BFB6E75E2DD4A7AA00F18982 /* PowerAuthAEAD.h */,
 				BF14D4602DD33B6200BA7F51 /* PowerAuthAEAD.cpp */,
 				BFB6E75F2DD4A7AA00F18982 /* PowerAuthKDF.h */,
 				BF14D4642DD33CDB00BA7F51 /* PowerAuthKDF.cpp */,
+				BF4D853D2DDF407F00D32F55 /* HybridKeyPair.h */,
+				BF4D853E2DDF407F00D32F55 /* HybridKeyPair.cpp */,
+				BF4D86382DF1B7C400D32F55 /* HybridSignature.h */,
+				BF4D86392DF1B7C400D32F55 /* HybridSignature.cpp */,
 			);
 			path = crypto;
-			sourceTree = "<group>";
-		};
-		BF6AFD6D2073E4F600CE7DDE /* Protocol */ = {
-			isa = PBXGroup;
-			children = (
-				BF1B33F42334C062009BA222 /* pa2ActivationStatusBlobTests.cpp */,
-				BF99D8CC2073E00D00735ED2 /* pa2ProtocolUtilsTests.cpp */,
-				BF99D8CB2073E00D00735ED2 /* pa2URLEncodingTests.cpp */,
-				BF99D8C52073E00D00735ED2 /* pa2SignatureKeysDerivationTest.cpp */,
-				BF99D8C12073E00D00735ED2 /* pa2MasterSecretKeyComputation.cpp */,
-				BF99D8BE2073E00D00735ED2 /* pa2SignatureCalculationTests.cpp */,
-				BF99D8BF2073E00D00735ED2 /* pa2PublicKeyFingerprintTests.cpp */,
-			);
-			name = Protocol;
 			sourceTree = "<group>";
 		};
 		BF86E67526395B78004C8AE5 /* PowerAuthCoreTests */ = {
@@ -685,7 +807,6 @@
 				BF97A71028A2714F002F3ACE /* PowerAuthCorePasswordTests.m */,
 				BF3DADF22D660EA40096ED4F /* PowerAuthCoreDataTests.m */,
 				BF61A9402A24C0CE002BCC45 /* PowerAuthCoreSessionSetupTests.m */,
-				BF2040C32A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm */,
 				BFDA50472A98B0040091A2E2 /* TestTimeService.h */,
 				BFDA50482A98B0040091A2E2 /* TestTimeService.m */,
 				BF86E67626395B78004C8AE5 /* Info.plist */,
@@ -706,10 +827,10 @@
 		BF99D8AC2073E00D00735ED2 /* PowerAuthTests */ = {
 			isa = PBXGroup;
 			children = (
+				BF4D86082DEDB71400D32F55 /* legacy */,
 				BF99D8AE2073E00D00735ED2 /* TestData */,
 				BFEEEBE92A3B0659007C6737 /* Utils */,
 				BF99D91F2073E2C000735ED2 /* Crypto */,
-				BF6AFD6D2073E4F600CE7DDE /* Protocol */,
 				BFB47D0520753211008A6A52 /* Objects */,
 				BF99D8BC2073E00D00735ED2 /* PowerAuthTestsList.cpp */,
 			);
@@ -730,12 +851,15 @@
 		BF99D8AF2073E00D00735ED2 /* pa2 */ = {
 			isa = PBXGroup;
 			children = (
+				BF4D86762DF85FA600D32F55 /* E2ee_Activation_Scope_Test_Vectors.json */,
+				BF4D86772DF85FA600D32F55 /* E2ee_Application_Scope_Test_Vectors.json */,
 				BFB6E7762DD7565F00F18982 /* ECDHE_P384_MLKEM_768_Client_Vectors.json */,
 				BFE5C9192DDCABA8008CC73A /* ECDHE_P384_MLKEM_768_Test_Vectors.json */,
 				BFB6E7772DD7565F00F18982 /* ECDHE_P384_Test_Vectors.json */,
 				BFB6E7622DD5C81800F18982 /* v4-kdf.json */,
 				BFB6E7632DD5C81800F18982 /* v4-pbkdf.json */,
 				BFB6E7612DD5C81800F18982 /* v4-aead.json */,
+				BF4D86112DEDCAD100D32F55 /* session-setup-v4.json */,
 				BF1B33F32334C042009BA222 /* activation-status-blob-iv.json */,
 				BF99D8B62073E00D00735ED2 /* compute-derived-keys.json */,
 				BF99D8B12073E00D00735ED2 /* compute-master-secret-key.json */,
@@ -763,49 +887,34 @@
 		BF99D8CF2073E00D00735ED2 /* PowerAuth */ = {
 			isa = PBXGroup;
 			children = (
+				BF4D86552DF4F36200D32F55 /* request */,
+				BF4D86192DEF104000D32F55 /* model */,
+				BF4D86052DEDB5D800D32F55 /* v3 */,
+				BF4D86062DEDB5DF00D32F55 /* v4 */,
+				BF4D86002DEDB3C400D32F55 /* legacy */,
 				BF5A8C872DC4EE2A00B3FB01 /* crypto */,
-				BF99D8EA2073E00D00735ED2 /* protocol */,
-				BF99D8E32073E00D00735ED2 /* utils */,
+				BF4D864B2DF31B4500D32F55 /* CoreObjects.h */,
+				BF4D854C2DE476CD00D32F55 /* CoreObjects.cpp */,
 				BF5A8CAC2DCDF8DA00B3FB01 /* Algorithms.cpp */,
-				BF99D8F12073E00D00735ED2 /* Session.cpp */,
+				BF4D86352DF1A96900D32F55 /* PowerAuthSpec.cpp */,
+				BF4D851B2DDDE5C600D32F55 /* Exception.cpp */,
+				BF4D86412DF2DF3400D32F55 /* Configuration.cpp */,
+				BF4D86452DF2ECA300D32F55 /* Types.cpp */,
+				BF4D85582DE48AA900D32F55 /* Authentication.cpp */,
+				BF4D863D2DF2D91900D32F55 /* ActivationStatus.cpp */,
+				BF4D86662DF7077800D32F55 /* Encryptor.cpp */,
+				BF4D85502DE483DB00D32F55 /* AuthHeaderCalculator.cpp */,
+				BF4D85592DE48AA900D32F55 /* TokenHeaderCalculator.cpp */,
+				BF4D85442DE456F600D32F55 /* HttpHeaderBuilder.cpp */,
+				BF4D852C2DDF08E300D32F55 /* TimeService.cpp */,
 				BF99D8F32073E00D00735ED2 /* Debug.cpp */,
-				BF99D8F22073E00D00735ED2 /* PublicTypes.cpp */,
 				BF99D8E22073E00D00735ED2 /* Password.cpp */,
 				BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */,
+				BF4D85F32DED99DC00D32F55 /* KeyProvider.cpp */,
 				BF99D8F42073E00D00735ED2 /* OtpUtil.cpp */,
-				BFB6E7722DD603AC00F18982 /* E2EE.cpp */,
-				BF99D8FF2073E00D00735ED2 /* ECIES.cpp */,
 				BF14D4562DD1C9A400BA7F51 /* SharedSecret.cpp */,
 			);
 			path = PowerAuth;
-			sourceTree = "<group>";
-		};
-		BF99D8E32073E00D00735ED2 /* utils */ = {
-			isa = PBXGroup;
-			children = (
-				BF99D8E82073E00D00735ED2 /* DataReader.h */,
-				BF99D8E72073E00D00735ED2 /* DataReader.cpp */,
-				BF99D8E52073E00D00735ED2 /* DataWriter.h */,
-				BF99D8E92073E00D00735ED2 /* DataWriter.cpp */,
-				BF99D8E62073E00D00735ED2 /* URLEncoding.h */,
-				BF99D8E42073E00D00735ED2 /* URLEncoding.cpp */,
-				BFABCD63214ABDCB00A9221F /* CRC16.h */,
-				BFABCD66214ABE2500A9221F /* CRC16.cpp */,
-			);
-			path = utils;
-			sourceTree = "<group>";
-		};
-		BF99D8EA2073E00D00735ED2 /* protocol */ = {
-			isa = PBXGroup;
-			children = (
-				BF99D8ED2073E00D00735ED2 /* Constants.h */,
-				BF99D8EC2073E00D00735ED2 /* Constants.cpp */,
-				BF99D8F02073E00D00735ED2 /* PrivateTypes.h */,
-				BF99D8EB2073E00D00735ED2 /* PrivateTypes.cpp */,
-				BF99D8EF2073E00D00735ED2 /* ProtocolUtils.h */,
-				BF99D8EE2073E00D00735ED2 /* ProtocolUtils.cpp */,
-			);
-			path = protocol;
 			sourceTree = "<group>";
 		};
 		BF99D91F2073E2C000735ED2 /* Crypto */ = {
@@ -817,7 +926,6 @@
 				BF99D8C22073E00D00735ED2 /* pa2CryptoAESTests.cpp */,
 				BF99D8BD2073E00D00735ED2 /* pa2CryptoHMACTests.cpp */,
 				BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */,
-				BFFE1D51264D688F00D5B985 /* pa2CryptoECDSATests.cpp */,
 				BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */,
 			);
 			name = Crypto;
@@ -869,7 +977,6 @@
 			isa = PBXGroup;
 			children = (
 				BFA9808C253DA559004D2CF9 /* PowerAuthCorePrivateImpl.h */,
-				BFA98083253DA559004D2CF9 /* PowerAuthCorePrivateImpl.mm */,
 			);
 			name = Private;
 			sourceTree = "<group>";
@@ -877,11 +984,13 @@
 		BFB47D0520753211008A6A52 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
-				BF99D8C92073E00D00735ED2 /* pa2SessionTests.cpp */,
-				BF60E8D92A1B6CA900994592 /* pa2SessionSetupTests.cpp */,
-				BF99D8CE2073E00D00735ED2 /* pa2PasswordTests.cpp */,
+				BF4D86752DF8530D00D32F55 /* TestTimeProvider.h */,
+				BF4D86122DEE1E8D00D32F55 /* AuthenticationTests.cpp */,
+				BF4D85362DDF22CF00D32F55 /* TimeServiceTests.cpp */,
+				BF60E8D92A1B6CA900994592 /* ConfigurationTests.cpp */,
+				BF99D8CE2073E00D00735ED2 /* PasswordTests.cpp */,
+				BF4D86722DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp */,
 				BF99D8C62073E00D00735ED2 /* pa2OtpUtilTests.cpp */,
-				BF99D8CD2073E00D00735ED2 /* pa2ECIESTests.cpp */,
 				BFABCD68214AC31B00A9221F /* pa2CRC16Tests.cpp */,
 			);
 			name = Objects;
@@ -923,7 +1032,6 @@
 		BFEEEBE92A3B0659007C6737 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				BF99D8AD2073E00D00735ED2 /* pa2DataWriterReaderTests.cpp */,
 				BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */,
 			);
 			name = Utils;
@@ -946,9 +1054,7 @@
 				BFA980A2253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFA980AE253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
 				BF28A1D82A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */,
-				BFA98094253DA559004D2CF9 /* PowerAuthCoreSession.h in Headers */,
 				BFA980A4253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
-				BFA980B6253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */,
 				BFA98092253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */,
 				BF28AA3C27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */,
 			);
@@ -968,9 +1074,7 @@
 				BFA980A3253DA55A004D2CF9 /* PowerAuthCore.h in Headers */,
 				BFA980AF253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.h in Headers */,
 				BF28A1D92A6AC56600E50F76 /* PowerAuthCoreTimeService.h in Headers */,
-				BFA98095253DA559004D2CF9 /* PowerAuthCoreSession.h in Headers */,
 				BFA980A5253DA55A004D2CF9 /* PowerAuthCoreTypes.h in Headers */,
-				BFA980B7253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.h in Headers */,
 				BFA98093253DA559004D2CF9 /* PowerAuthCoreMacros.h in Headers */,
 				BF28AA3D27EDE7E000FBFCEB /* PowerAuthCoreDebugMonitor.h in Headers */,
 			);
@@ -1286,27 +1390,40 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFB6E7732DD603AC00F18982 /* E2EE.cpp in Sources */,
+				BF4D86582DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
+				BF4D862A2DF0481B00D32F55 /* Constants.cpp in Sources */,
 				BF14D4582DD1C9A400BA7F51 /* SharedSecret.cpp in Sources */,
+				BF4D86502DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp in Sources */,
+				BF4D86512DF366E600D32F55 /* CRC16.cpp in Sources */,
 				BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */,
+				BF4D85512DE483DB00D32F55 /* AuthHeaderCalculator.cpp in Sources */,
 				BF99D9032073E14100735ED2 /* Password.cpp in Sources */,
-				BFB47D1720753324008A6A52 /* DataWriter.cpp in Sources */,
-				BF5A8C972DCA147300B3FB01 /* JOSE.cpp in Sources */,
-				BF99D9072073E14700735ED2 /* Constants.cpp in Sources */,
-				BF99D9082073E14700735ED2 /* PrivateTypes.cpp in Sources */,
-				BF99D9012073E14100735ED2 /* PublicTypes.cpp in Sources */,
+				BF4D855C2DE48AA900D32F55 /* TokenHeaderCalculator.cpp in Sources */,
+				BF4D863A2DF1B7C400D32F55 /* HybridSignature.cpp in Sources */,
+				BF4D86702DF8307800D32F55 /* E2EEUtilsV4.cpp in Sources */,
+				BF4D85F42DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
+				BF4D855D2DE48AA900D32F55 /* Authentication.cpp in Sources */,
+				BF4D865D2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF14D4612DD33B6200BA7F51 /* PowerAuthAEAD.cpp in Sources */,
 				BF14D4662DD33CDB00BA7F51 /* PowerAuthKDF.cpp in Sources */,
-				BF1B33F52334C062009BA222 /* pa2ActivationStatusBlobTests.cpp in Sources */,
+				BF4D86672DF7077800D32F55 /* Encryptor.cpp in Sources */,
+				BF4D85402DDF407F00D32F55 /* HybridKeyPair.cpp in Sources */,
+				BF4D863E2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */,
+				BF4D86472DF2ECA300D32F55 /* Types.cpp in Sources */,
 				BF5A8CAD2DCDF8DA00B3FB01 /* Algorithms.cpp in Sources */,
-				BF99D9062073E14100735ED2 /* ECIES.cpp in Sources */,
-				BFB47D1820753324008A6A52 /* URLEncoding.cpp in Sources */,
-				BF99D9002073E14100735ED2 /* Session.cpp in Sources */,
-				BFABCD67214ABE2500A9221F /* CRC16.cpp in Sources */,
+				BF4D862F2DF0621B00D32F55 /* SessionData.cpp in Sources */,
+				BF4D85452DE456F600D32F55 /* HttpHeaderBuilder.cpp in Sources */,
+				BF4D852E2DDF08E300D32F55 /* TimeService.cpp in Sources */,
+				BF4D86362DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
+				BF4D86432DF2DF3400D32F55 /* Configuration.cpp in Sources */,
+				BF4D866C2DF70F2500D32F55 /* EncryptorV4.cpp in Sources */,
+				BF4D86242DEF10D800D32F55 /* PersistentData.cpp in Sources */,
 				BF99D9022073E14100735ED2 /* Debug.cpp in Sources */,
 				BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
-				BFB47D1620753324008A6A52 /* DataReader.cpp in Sources */,
-				BF99D9092073E14700735ED2 /* ProtocolUtils.cpp in Sources */,
+				BF4D86172DEEFBD200D32F55 /* SecretKeysV4.cpp in Sources */,
+				BF4D851D2DDDE5C600D32F55 /* Exception.cpp in Sources */,
+				BF4D854E2DE476CD00D32F55 /* CoreObjects.cpp in Sources */,
+				BF4D86332DF0629300D32F55 /* RegistrationData.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1317,10 +1434,7 @@
 				BF720DCF2642A5EA00D5932A /* PowerAuthCoreDeprecated.m in Sources */,
 				BFA9809E253DA55A004D2CF9 /* PowerAuthCoreLog.m in Sources */,
 				BFA98096253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.mm in Sources */,
-				BFA980A0253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.mm in Sources */,
 				BFA980B0253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */,
-				BFA980A8253DA55A004D2CF9 /* PowerAuthCoreSession.mm in Sources */,
-				BFA9809A253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.mm in Sources */,
 				BFA9809C253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */,
 				BFA98090253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */,
 				BFA980AA253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
@@ -1335,10 +1449,7 @@
 				BF720DD02642A5EA00D5932A /* PowerAuthCoreDeprecated.m in Sources */,
 				BFA9809F253DA55A004D2CF9 /* PowerAuthCoreLog.m in Sources */,
 				BFA98097253DA55A004D2CF9 /* PowerAuthCoreOtpUtil.mm in Sources */,
-				BFA980A1253DA55A004D2CF9 /* PowerAuthCorePrivateImpl.mm in Sources */,
 				BFA980B1253DA55A004D2CF9 /* PowerAuthCoreCryptoUtils.mm in Sources */,
-				BFA980A9253DA55A004D2CF9 /* PowerAuthCoreSession.mm in Sources */,
-				BFA9809B253DA55A004D2CF9 /* PowerAuthCoreEciesEncryptor.mm in Sources */,
 				BFA9809D253DA55A004D2CF9 /* PowerAuthCoreTypes.mm in Sources */,
 				BFA98091253DA559004D2CF9 /* PowerAuthCorePassword.mm in Sources */,
 				BFA980AB253DA55A004D2CF9 /* PowerAuthCoreProtocolUpgradeData.mm in Sources */,
@@ -1350,27 +1461,40 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BFB6E7742DD603AC00F18982 /* E2EE.cpp in Sources */,
+				BF4D86592DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
+				BF4D862B2DF0481B00D32F55 /* Constants.cpp in Sources */,
 				BF14D4572DD1C9A400BA7F51 /* SharedSecret.cpp in Sources */,
+				BF4D86522DF366E600D32F55 /* ThreadSafeNonceGenerator.cpp in Sources */,
+				BF4D86532DF366E600D32F55 /* CRC16.cpp in Sources */,
 				BF6ADD6D24C84C0C001B3E5E /* OtpUtil.cpp in Sources */,
+				BF4D85522DE483DB00D32F55 /* AuthHeaderCalculator.cpp in Sources */,
 				BF6ADD6E24C84C0C001B3E5E /* Password.cpp in Sources */,
-				BF6ADD6F24C84C0C001B3E5E /* DataWriter.cpp in Sources */,
-				BF5A8C982DCA147300B3FB01 /* JOSE.cpp in Sources */,
-				BF6ADD7224C84C0C001B3E5E /* Constants.cpp in Sources */,
-				BF6ADD7324C84C0C001B3E5E /* PrivateTypes.cpp in Sources */,
-				BF6ADD7424C84C0C001B3E5E /* PublicTypes.cpp in Sources */,
+				BF4D855A2DE48AA900D32F55 /* TokenHeaderCalculator.cpp in Sources */,
+				BF4D863B2DF1B7C400D32F55 /* HybridSignature.cpp in Sources */,
+				BF4D86712DF8307800D32F55 /* E2EEUtilsV4.cpp in Sources */,
+				BF4D85F52DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
+				BF4D855B2DE48AA900D32F55 /* Authentication.cpp in Sources */,
+				BF4D865C2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF14D4622DD33B6200BA7F51 /* PowerAuthAEAD.cpp in Sources */,
 				BF14D4652DD33CDB00BA7F51 /* PowerAuthKDF.cpp in Sources */,
-				BF6ADD7524C84C0C001B3E5E /* pa2ActivationStatusBlobTests.cpp in Sources */,
+				BF4D86682DF7077800D32F55 /* Encryptor.cpp in Sources */,
+				BF4D853F2DDF407F00D32F55 /* HybridKeyPair.cpp in Sources */,
+				BF4D863F2DF2D91900D32F55 /* ActivationStatus.cpp in Sources */,
+				BF4D86462DF2ECA300D32F55 /* Types.cpp in Sources */,
 				BF5A8CAE2DCDF8DA00B3FB01 /* Algorithms.cpp in Sources */,
-				BF6ADD7824C84C0C001B3E5E /* ECIES.cpp in Sources */,
-				BF6ADD7924C84C0C001B3E5E /* URLEncoding.cpp in Sources */,
-				BF6ADD7A24C84C0C001B3E5E /* Session.cpp in Sources */,
-				BF6ADD7B24C84C0C001B3E5E /* CRC16.cpp in Sources */,
+				BF4D862E2DF0621B00D32F55 /* SessionData.cpp in Sources */,
+				BF4D85462DE456F600D32F55 /* HttpHeaderBuilder.cpp in Sources */,
+				BF4D852D2DDF08E300D32F55 /* TimeService.cpp in Sources */,
+				BF4D86372DF1A96900D32F55 /* PowerAuthSpec.cpp in Sources */,
+				BF4D86422DF2DF3400D32F55 /* Configuration.cpp in Sources */,
+				BF4D866B2DF70F2500D32F55 /* EncryptorV4.cpp in Sources */,
+				BF4D86252DEF10D800D32F55 /* PersistentData.cpp in Sources */,
 				BF6ADD7D24C84C0C001B3E5E /* Debug.cpp in Sources */,
 				BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
-				BF6ADD7E24C84C0C001B3E5E /* DataReader.cpp in Sources */,
-				BF6ADD7F24C84C0C001B3E5E /* ProtocolUtils.cpp in Sources */,
+				BF4D86182DEEFBD200D32F55 /* SecretKeysV4.cpp in Sources */,
+				BF4D851C2DDDE5C600D32F55 /* Exception.cpp in Sources */,
+				BF4D854D2DE476CD00D32F55 /* CoreObjects.cpp in Sources */,
+				BF4D86322DF0629300D32F55 /* RegistrationData.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1381,26 +1505,19 @@
 				BFEEEBEC2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */,
 				BF6ADD9524C84FE0001B3E5E /* pa2CryptoAESTests.cpp in Sources */,
 				BF6ADD9624C84FE0001B3E5E /* g_pa2Files.cpp in Sources */,
-				BFFE1D57264D688F00D5B985 /* pa2CryptoECDSATests.cpp in Sources */,
 				BF6ADD9724C84FE0001B3E5E /* pa2CryptoECDHKDFTests.cpp in Sources */,
 				BF6ADD9824C84FE0001B3E5E /* pa2OtpUtilTests.cpp in Sources */,
 				BFB6E7662DD5CAC600F18982 /* PowerAuthKDFTests.cpp in Sources */,
-				BF6ADD9924C84FE0001B3E5E /* pa2SignatureCalculationTests.cpp in Sources */,
-				BF6ADD9A24C84FE0001B3E5E /* pa2MasterSecretKeyComputation.cpp in Sources */,
 				BF6ADD9B24C84FE0001B3E5E /* PowerAuthTestsList.cpp in Sources */,
 				BF6ADD9C24C84FE0001B3E5E /* pa2CRC16Tests.cpp in Sources */,
 				BFB6E7792DD7574600F18982 /* SharedSecretTests.cpp in Sources */,
-				BF6ADD9D24C84FE0001B3E5E /* pa2PasswordTests.cpp in Sources */,
-				BF6ADD9E24C84FE0001B3E5E /* pa2ECIESTests.cpp in Sources */,
-				BF6ADD9F24C84FE0001B3E5E /* pa2DataWriterReaderTests.cpp in Sources */,
+				BF6ADD9D24C84FE0001B3E5E /* PasswordTests.cpp in Sources */,
+				BF4D86132DEE1E8D00D32F55 /* AuthenticationTests.cpp in Sources */,
 				BFB6E76F2DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */,
-				BF6ADDA024C84FE0001B3E5E /* pa2PublicKeyFingerprintTests.cpp in Sources */,
+				BF4D85382DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */,
+				BF4D86742DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp in Sources */,
 				BFFE1D59264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */,
-				BF6ADDA124C84FE0001B3E5E /* pa2URLEncodingTests.cpp in Sources */,
-				BF6ADDA324C84FE0001B3E5E /* pa2SessionTests.cpp in Sources */,
-				BF6ADDA424C84FE0001B3E5E /* pa2SignatureKeysDerivationTest.cpp in Sources */,
 				BF6ADDA524C84FE0001B3E5E /* pa2CryptoHMACTests.cpp in Sources */,
-				BF6ADDA624C84FE0001B3E5E /* pa2ProtocolUtilsTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1408,15 +1525,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF61A9492A24C1A7002BCC45 /* PowerAuthCoreSessionSetupTests.m in Sources */,
-				BF60E8DA2A1B6CA900994592 /* pa2SessionSetupTests.cpp in Sources */,
+				BF60E8DA2A1B6CA900994592 /* ConfigurationTests.cpp in Sources */,
 				BF86E6B626395D44004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */,
-				BF2040C42A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */,
 				BFDA50492A98B0040091A2E2 /* TestTimeService.m in Sources */,
 				BF3DADF92D660EB00096ED4F /* PowerAuthCoreDataTests.m in Sources */,
 				BF97A71128A2714F002F3ACE /* PowerAuthCorePasswordTests.m in Sources */,
 				BF31606427E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm in Sources */,
-				BF86E6B726395D44004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1424,15 +1538,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BF61A94A2A24C1A8002BCC45 /* PowerAuthCoreSessionSetupTests.m in Sources */,
-				BF60E8DB2A1B6CA900994592 /* pa2SessionSetupTests.cpp in Sources */,
+				BF60E8DB2A1B6CA900994592 /* ConfigurationTests.cpp in Sources */,
 				BF86E6E226395F2C004C8AE5 /* PowerAuthCoreTestsWrapper.mm in Sources */,
-				BF2040C52A6FF0D700EEA36E /* PowerAuthCoreEciesEncryptorTest.mm in Sources */,
 				BFDA504A2A98B0040091A2E2 /* TestTimeService.m in Sources */,
 				BF3DADFA2D660EB00096ED4F /* PowerAuthCoreDataTests.m in Sources */,
 				BF97A71228A2714F002F3ACE /* PowerAuthCorePasswordTests.m in Sources */,
 				BF31606527E88D7300EDA287 /* PowerAuthCoreCryptoUtilsTests.mm in Sources */,
-				BF86E6E326395F2C004C8AE5 /* PowerAuthCorePublicObjectsTests.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1443,26 +1554,19 @@
 				BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */,
 				BFC92DF02073E3860087851C /* pa2CryptoAESTests.cpp in Sources */,
 				BF99D91E2073E28900735ED2 /* g_pa2Files.cpp in Sources */,
-				BFFE1D56264D688F00D5B985 /* pa2CryptoECDSATests.cpp in Sources */,
 				BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */,
 				BFB47D0A207532C5008A6A52 /* pa2OtpUtilTests.cpp in Sources */,
 				BFB6E7652DD5CAC600F18982 /* PowerAuthKDFTests.cpp in Sources */,
-				BFB47D14207532CB008A6A52 /* pa2SignatureCalculationTests.cpp in Sources */,
-				BFB47D13207532CB008A6A52 /* pa2MasterSecretKeyComputation.cpp in Sources */,
 				BFB47D06207532BE008A6A52 /* PowerAuthTestsList.cpp in Sources */,
 				BFABCD6A214AC31F00A9221F /* pa2CRC16Tests.cpp in Sources */,
 				BFB6E77A2DD7574600F18982 /* SharedSecretTests.cpp in Sources */,
-				BFB47D09207532C5008A6A52 /* pa2PasswordTests.cpp in Sources */,
-				BFB47D0B207532C5008A6A52 /* pa2ECIESTests.cpp in Sources */,
-				BFB47D07207532C5008A6A52 /* pa2DataWriterReaderTests.cpp in Sources */,
+				BFB47D09207532C5008A6A52 /* PasswordTests.cpp in Sources */,
+				BF4D86142DEE1E8D00D32F55 /* AuthenticationTests.cpp in Sources */,
 				BFB6E7702DD5ECF800F18982 /* PowerAuthAEADTests.cpp in Sources */,
-				BFB47D15207532CB008A6A52 /* pa2PublicKeyFingerprintTests.cpp in Sources */,
+				BF4D85372DDF22CF00D32F55 /* TimeServiceTests.cpp in Sources */,
+				BF4D86732DF852DC00D32F55 /* ClientEncryptorV4Tests.cpp in Sources */,
 				BFFE1D58264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */,
-				BFB47D0D207532CB008A6A52 /* pa2URLEncodingTests.cpp in Sources */,
-				BFB47D08207532C5008A6A52 /* pa2SessionTests.cpp in Sources */,
-				BFB47D0E207532CB008A6A52 /* pa2SignatureKeysDerivationTest.cpp in Sources */,
 				BFC92DF12073E3860087851C /* pa2CryptoHMACTests.cpp in Sources */,
-				BFB47D0C207532CB008A6A52 /* pa2ProtocolUtilsTests.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

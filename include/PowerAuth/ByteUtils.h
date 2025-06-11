@@ -18,19 +18,8 @@
 
 #include <cc7/ByteArray.h>
 
-namespace io
-{
-namespace getlime
-{
-namespace powerAuth
-{
-namespace utils
-{
-
-/**
- Concat multiple components. Each component is pointer to cc7::ByteRange object.
- */
-cc7::ByteArray ByteUtils_Concat(std::initializer_list<cc7::ByteRange> components);
+namespace powerAuth {
+namespace utils {
 
 /**
  Join multiple components. Each component is pointer to cc7::ByteRange object.
@@ -38,8 +27,6 @@ cc7::ByteArray ByteUtils_Concat(std::initializer_list<cc7::ByteRange> components
  The length is 32-bit integer with big endian byte order.
  */
 cc7::ByteArray ByteUtils_Join(std::initializer_list<cc7::ByteRange> components);
-    
-} // io::getlime::powerAuth::utils
-} // io::getlime::powerAuth
-} // io::getlime
-} // io
+
+} // namespace utils
+} // namespace powerAuth

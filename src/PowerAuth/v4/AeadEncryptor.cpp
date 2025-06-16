@@ -86,10 +86,10 @@ EncryptedRequest AeadClientEncryptor::encryptRequest(const ByteRange &data)
     
     // Prepare request object
     auto object = json::JsonValue::object();
-    object["temporaryKeyId"] = json::JsonValue(_parameters->temporaryKeyId);
-    object["nonce"] = json::JsonValue(_nonce.base64());
-    object["timestamp"] = json::JsonValue(timestamp);
-    object["encryptedData"] = json::JsonValue(ciphertext.base64());
+    object["temporaryKeyId"] = json::JsonValue::string(_parameters->temporaryKeyId);
+    object["encryptedData"] = json::JsonValue::base64(ciphertext);
+    object["nonce"] = json::JsonValue::base64(_nonce);
+    object["timestamp"] = json::JsonValue::integer(timestamp);
     
     // Prepare request header
     auto header = HttpHeaderHelper::buildEncryptionRequestHeader(*_parameters);
@@ -208,8 +208,8 @@ ByteArray AeadServerEncryptor::decryptRequest(const EncryptedRequest &request)
     Timestamp timestamp;
     try {
         temporary_key_id = request.requestPayload["temporaryKeyId"].asString();
-        nonce = Base64::decode(request.requestPayload["nonce"].asString());
-        ciphertext = Base64::decode(request.requestPayload["encryptedData"].asString());
+        nonce = request.requestPayload["nonce"].asBase64();
+        ciphertext = request.requestPayload["encryptedData"].asBase64();
         timestamp = request.requestPayload["timestamp"].asInteger();
     } catch (...) {
         Exception::reThrowWrapped(EC_InvalidData, "Wrong encrypted request data");
@@ -251,8 +251,8 @@ EncryptedResponse AeadServerEncryptor::encryptResponse(const ByteRange &data)
     
     // Prepare request object
     auto object = json::JsonValue::object();
-    object["timestamp"] = json::JsonValue(timestamp);
-    object["encryptedData"] = json::JsonValue(ciphertext.base64());
+    object["timestamp"] = json::JsonValue::integer(timestamp);
+    object["encryptedData"] = json::JsonValue::base64(ciphertext);
     
     return { object };
 }

@@ -109,8 +109,8 @@ static json::JsonValue _Encrypt(const EciesEnvelopeKey & ek,
     body.resize(body_size);
     
     auto cryptogram = json::JsonValue::object();
-    cryptogram["encryptedData"] = json::JsonValue(body.base64());
-    cryptogram["mac"] = json::JsonValue(mac.base64());
+    cryptogram["encryptedData"] = json::JsonValue::base64(body);
+    cryptogram["mac"] = json::JsonValue::base64(mac);
     return cryptogram;
 }
 
@@ -185,10 +185,10 @@ EncryptedRequest EciesClientEncryptor::encryptRequest(const ByteRange &data)
     // Encrypt request
     auto cryptogram = _Encrypt(key, aad, data, iv);
     
-    cryptogram["nonce"] = json::JsonValue(_request_nonce.base64());
-    cryptogram["timestamp"] = json::JsonValue((int64_t)timestamp);
-    cryptogram["temporaryKeyId"] = json::JsonValue(_parameters->temporaryKeyId);
-    cryptogram["ephemeralPublicKey"] = json::JsonValue(_secrets->ephemeralKey.base64());
+    cryptogram["nonce"] = json::JsonValue::base64(_request_nonce);
+    cryptogram["timestamp"] = json::JsonValue::integer(timestamp);
+    cryptogram["temporaryKeyId"] = json::JsonValue::string(_parameters->temporaryKeyId);
+    cryptogram["ephemeralPublicKey"] = json::JsonValue::base64(_secrets->ephemeralKey);
     
     // Prepare request header
     auto header = HttpHeaderHelper::buildEncryptionRequestHeader(*_parameters);
@@ -209,9 +209,9 @@ ByteArray EciesClientEncryptor::decryptResponse(const EncryptedResponse &respons
     ByteArray ciphertext, nonce, mac;
     Timestamp timestamp;
     try {
-        ciphertext = Base64::decode(response.responsePayload["encryptedData"].asString());
-        nonce = Base64::decode(response.responsePayload["nonce"].asString());
-        mac = Base64::decode(response.responsePayload["mac"].asString());
+        ciphertext = response.responsePayload["encryptedData"].asBase64();
+        nonce = response.responsePayload["nonce"].asBase64();
+        mac = response.responsePayload["mac"].asBase64();
         timestamp = response.responsePayload["timestamp"].asInteger();
     } catch (...) {
         Exception::reThrowWrapped(EC_InvalidData, "Invalid encrypted response");

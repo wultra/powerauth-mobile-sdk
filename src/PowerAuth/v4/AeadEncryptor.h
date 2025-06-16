@@ -19,16 +19,18 @@
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/TimeService.h>
 
+#include "AeadUtils.h"
+
 namespace powerAuth {
 namespace v4 {
 
-class ClientEncryptor : public IClientEncryptor
+class AeadClientEncryptor : public IClientEncryptor
 {
 public:
-    ClientEncryptor(EncryptorParametersPtr& parameters,
-                    EncryptorSecretsPtr& secrets,
-                    const cc7::ByteRange& nonce,
-                    const TimeServicePtr& time_service);
+    AeadClientEncryptor(EncryptorParametersPtr& parameters,
+                        EncryptorSecretsPtr& secrets,
+                        const cc7::ByteRange& nonce,
+                        const TimeServicePtr& time_service);
 
     bool canEncryptRequest() const noexcept override;
     bool canDecryptResponse() const noexcept override;
@@ -50,12 +52,12 @@ private:
     cc7::ByteArray getAAD(Timestamp timestamp) const;
 };
 
-class ServerEncryptor : public IServerEncryptor
+class AeadServerEncryptor : public IServerEncryptor
 {
 public:
-    ServerEncryptor(EncryptorParametersPtr& parameters,
-                    EncryptorSecretsPtr& secrets,
-                    const ITimeProviderPtr& time_provider);
+    AeadServerEncryptor(EncryptorParametersPtr& parameters,
+                        EncryptorSecretsPtr& secrets,
+                        const ITimeProviderPtr& time_provider);
     
     bool canDecryptRequest() const noexcept override;
     bool canEncryptResponse() const noexcept override;

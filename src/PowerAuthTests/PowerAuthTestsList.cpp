@@ -43,7 +43,7 @@ cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
     CC7_ADD_UNIT_TEST(pa2CryptoECCTests, list);
     
     // Protocol tests
-    CC7_ADD_UNIT_TEST(ClientEncryptorV4Tests, list);
+    CC7_ADD_UNIT_TEST(ClientEncryptorTests, list);
     
     // Utils
     CC7_ADD_UNIT_TEST(pa2ByteUtilsTests, list);

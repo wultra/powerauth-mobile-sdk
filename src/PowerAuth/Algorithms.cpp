@@ -103,8 +103,6 @@ Algorithms::V3::V3() :
     _aes128_cbc_no_pad->setParameter(CIPHER_PARAM_USE_PADDING, Parameter::take(false));
     // set P-256 public key encoding to compressed
     _p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
-    // Alter X9.63 KDF's output size to 48 bytes
-    _kdf_x963->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)48));   // TODO: legacy - remove
     // Alter PBKDF2-SHA1 KDF's output size to 16 bytes (signature key size)
     _pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)16));
 }

@@ -22,7 +22,8 @@
 
 namespace powerAuth {
 
-class Configuration {
+class Configuration
+{
 public:
     
     PowerAuthSpec::Algorithm algorithm() const noexcept;

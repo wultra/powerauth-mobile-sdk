@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-#include <PowerAuth/HttpHeaderBuilder.h>
+#pragma once
+
+#include <PowerAuth/Encryptor.h>
 
 namespace powerAuth {
+namespace v4 {
 
+extern EncryptorSecretsPtr AEAD_BuildSecrets(const EncryptorParameters& parameters,
+                                             const cc7::ByteRange& shared_secret,
+                                             const cc7::ByteRange& e2ee_shared_info2_key);
 
-
+} // namespace v4
 } // namespace powerAuth

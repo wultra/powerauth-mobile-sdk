@@ -40,11 +40,6 @@ ISharedSecret& CoreObjects::sharedSecret()
     return *_shared_secret;
 }
 
-IHttpHeaderBuilder& CoreObjects::headerBuilder()
-{
-    return *_header_builder;
-}
-
 const SharedMutexPtr CoreObjects::getSharedMutexPtr() const noexcept
 {
     return _shared_mutex;
@@ -68,11 +63,6 @@ const IEncryptorFactoryPtr& CoreObjects::getEncryptorFactoryPtr() const noexcept
 const ISharedSecretPtr& CoreObjects::getSharedSecretPtr() const noexcept
 {
     return _shared_secret;
-}
-
-const IHttpHeaderBuilderPtr& CoreObjects::getHeaderBuilderPtr() const noexcept
-{
-    return _header_builder;
 }
 
 

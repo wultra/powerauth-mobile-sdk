@@ -16,19 +16,16 @@
 
 #pragma once
 
-#include <PowerAuth/Types.h>
+#include <PowerAuth/Encryptor.h>
 
 namespace powerAuth {
 
-class IHttpHeaderBuilder {
+class HttpHeaderHelper {
 public:
     
-    virtual HttpHeader buildAuthenticationHeader(const AuthenticationHeaderData& data) const = 0;
-    virtual HttpHeader buildEncryptionHeader(const EncryptionHeaderData& data) const = 0;
-    virtual HttpHeader buildTokenHeader(const TokenHeaderData& data) const = 0;
+    HttpHeaderHelper() = delete;
+    
+    static HttpHeader buildEncryptionRequestHeader(const EncryptorParameters& parameters) noexcept;
 };
-
-typedef std::shared_ptr<IHttpHeaderBuilder> IHttpHeaderBuilderPtr;
-
 
 } // namespace powerAuth

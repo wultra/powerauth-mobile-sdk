@@ -15,10 +15,12 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include "../PowerAuth/v4/EncryptorV4.h"
-#include "../PowerAuth/v4/E2EEUtilsV4.h"
+#include "../PowerAuth/v4/AeadEncryptor.h"
+#include "../PowerAuth/v3/EciesEncryptor.h"
+#include "../PowerAuth/v3/ProtocolFunctions.h"
 #include "TestTimeProvider.h"
 #include <cc7/HexString.h>
+#include <PowerAuth/Algorithms.h>
 
 using namespace cc7;
 using namespace cc7::tests;
@@ -29,14 +31,15 @@ namespace powerAuthTests {
 extern TestDirectory g_pa2Files;
 // Unit test
 
-class ClientEncryptorV4Tests : public UnitTest
+class ClientEncryptorTests : public UnitTest
 {
 public:
     
-    ClientEncryptorV4Tests()
+    ClientEncryptorTests()
     {
-        CC7_REGISTER_TEST_METHOD(testEncryptDecrypt)
-        CC7_REGISTER_TEST_METHOD(testVectors)
+        CC7_REGISTER_TEST_METHOD(testEncryptDecryptV4)
+        CC7_REGISTER_TEST_METHOD(testVectorsV4)
+        CC7_REGISTER_TEST_METHOD(testVectorsV33)
     }
     
     std::shared_ptr<TestTimeProvider> timeProvider;
@@ -66,7 +69,7 @@ public:
     }
 
     
-    void testEncryptDecrypt()
+    void testEncryptDecryptV4()
     {
         for (int i = 0; i < 100; i++) {
             auto app_scope = (i & 1) == 0;
@@ -75,19 +78,20 @@ public:
             auto server_plaintext = getRandomData();
             
             auto appKey    = cc7::crypto::GetRandomData(16).base64();
-            auto appSecret = cc7::crypto::GetRandomData(16);
+            auto appSecret = cc7::crypto::GetRandomData(16).base64();
             auto actId = app_scope ? std::string() : getRandomString(36);
-            auto sharedInfo1 = getRandomSharedInfo1();
+            auto encSpec = getRandomEncryptor(app_scope);
+            auto sharedInfo1 = encSpec->sharedInfo;
             auto envelope_key = cc7::crypto::GetRandomData(32);
             auto e2ee_key = cc7::crypto::GetRandomData(32);
             auto nonce = getNewNonce();
             
             auto keyId = getRandomString(36);
             
-            auto client_enc_params = EncryptorParameters::makeParameters("4.0", appKey, keyId, sharedInfo1, actId);
-            auto client_enc_secrets = app_scope ? v4::E2EE_ApplicationScopeSecrets(envelope_key, appSecret) : v4::E2EE_ActivationScopeSecrets(envelope_key, appSecret, e2ee_key);
+            auto client_enc_params = EncryptorParameters::makeParameters(Version_V4, encSpec->identifier, appKey, appSecret, keyId, actId);
+            auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelope_key, e2ee_key);
             
-            auto client_encryptor = v4::ClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
+            auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
             ccstAssertTrue(client_encryptor.canEncryptRequest());
             ccstAssertFalse(client_encryptor.canDecryptResponse());
             
@@ -97,10 +101,10 @@ public:
 
             SleepThread(0.1);
             
-            auto server_enc_params = EncryptorParameters::makeParameters("4.0", appKey, keyId, sharedInfo1, actId);
-            auto server_enc_secrets = app_scope ? v4::E2EE_ApplicationScopeSecrets(envelope_key, appSecret) : v4::E2EE_ActivationScopeSecrets(envelope_key, appSecret, e2ee_key);
+            auto server_enc_params = EncryptorParameters::makeParameters(Version_V4, encSpec->identifier, appKey, appSecret, keyId, actId);
+            auto server_enc_secrets = v4::AEAD_BuildSecrets(*server_enc_params, envelope_key, e2ee_key);
             
-            auto server_encryptor = v4::ServerEncryptor(server_enc_params, server_enc_secrets, timeProvider);
+            auto server_encryptor = v4::AeadServerEncryptor(server_enc_params, server_enc_secrets, timeProvider);
             ccstAssertTrue(server_encryptor.canDecryptRequest());
             ccstAssertFalse(server_encryptor.canEncryptResponse());
             
@@ -124,15 +128,15 @@ public:
         }
     }
 
-    void testVectors()
+    void testVectorsV4()
     {
         ccstMessage("Application scope");
-        runBatch( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Application_Scope_Test_Vectors.json").valueAtPath("e2ee_test_vectors_application_scope"), false);
+        runBatchV4( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Application_Scope_Test_Vectors_40.json").valueAtPath("e2ee_test_vectors_application_scope"), false);
         ccstMessage("Activation scope");
-        runBatch( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Activation_Scope_Test_Vectors.json").valueAtPath("e2ee_test_vectors_activation_scope"), true);
+        runBatchV4( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Activation_Scope_Test_Vectors_40.json").valueAtPath("e2ee_test_vectors_activation_scope"), true);
     }
     
-    void runBatch(const cc7::json::JsonValue& data, bool activation_scope)
+    void runBatchV4(const cc7::json::JsonValue& data, bool activation_scope)
     {
         for (const auto& item : data.asArray()) {
             const auto encryptorId = item["encryptorId"].asString();
@@ -153,10 +157,10 @@ public:
             
             auto enc_spec = EncryptorSpec::specForName(encryptorId);
             
-            auto client_enc_params = EncryptorParameters::makeParameters("4.0", applicationKey, temporaryKeyId, enc_spec->sharedInfo, activationId);
-            auto client_enc_secrets = activation_scope ? v4::E2EE_ActivationScopeSecrets(envelopeKey, appSecretBytes, sharedInfo2Key) : v4::E2EE_ApplicationScopeSecrets(envelopeKey, appSecretBytes);
+            auto client_enc_params = EncryptorParameters::makeParameters(Version_V4, enc_spec->identifier, applicationKey, applicationSecret, temporaryKeyId, activationId);
+            auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelopeKey, sharedInfo2Key);
             
-            auto client_encryptor = v4::ClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
+            auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
             
             // Enforce time in testing time provider
             timeProvider->setTimestamp(timestampRequest);
@@ -186,9 +190,81 @@ public:
         }
     }
     
+    void testVectorsV33()
+    {
+        ccstMessage("Application scope");
+        runBatchV33( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Application_Scope_Test_Vectors_33.json").valueAtPath("e2ee_test_vectors_application_scope"), false);
+        ccstMessage("Activation scope");
+        runBatchV33( JSON_ParseFile(g_pa2Files, "pa2/E2ee_Activation_Scope_Test_Vectors_33.json").valueAtPath("e2ee_test_vectors_activation_scope"), true);
+    }
+
+    void runBatchV33(const cc7::json::JsonValue& data, bool activation_scope)
+    {
+        for (const auto& item : data.asArray()) {
+            const auto encryptorId = item["encryptorId"].asString();
+            const auto activationId = activation_scope ? item["activationId"].asString() : std::string();
+            const auto applicationKey = item["applicationKey"].asString();
+            const auto applicationSecret = item["applicationSecret"].asString();
+            const auto appSecretBytes = item.dataFromBase64StringAtPath("applicationSecret");
+            const auto temporaryKeyId = item["temporaryKeyId"].asString();
+            const auto envelopeKey = item.dataFromBase64StringAtPath("envelopeKey");
+            const auto transportKey = activation_scope ? item.dataFromBase64StringAtPath("transportKey") : ByteArray();
+            const auto requestEphemeralPublicKey = item.dataFromBase64StringAtPath("requestEphemeralPublicKey");
+            const auto serverPublicKey = item.dataFromBase64StringAtPath("serverPublicKey");
+            const auto requestNonce = item.dataFromBase64StringAtPath("requestNonce");
+            const auto requestData = ByteArray(MakeRange(item["requestData"].asString()));
+            const auto requestMac = item.dataFromBase64StringAtPath("requestMac");
+            const auto responseNonce = item.dataFromBase64StringAtPath("responseNonce");
+            const auto responseData = ByteArray(MakeRange(item["responseData"].asString()));
+            const auto responseMac = item.dataFromBase64StringAtPath("responseMac");
+            const auto timestampRequest = std::stoll(item["timestampRequest"].asString());
+            const auto timestampResponse = std::stoll(item["timestampResponse"].asString());
+
+            const auto encryptedDataRequest = item.dataFromBase64StringAtPath("encryptedDataRequest");
+            const auto encryptedDataResponse = item.dataFromBase64StringAtPath("encryptedDataResponse");
+            
+            auto enc_spec = EncryptorSpec::specForName(encryptorId);
+            
+            auto client_enc_params = EncryptorParameters::makeParameters(Version_V3, enc_spec->identifier, applicationKey, applicationSecret, temporaryKeyId, activationId);
+            auto client_enc_secrets = v3::ECIES_TestClientSecrets(*client_enc_params, requestEphemeralPublicKey, envelopeKey, transportKey);
+            
+            auto client_encryptor = v3::EciesClientEncryptor(client_enc_params, client_enc_secrets, requestNonce, timeService);
+            
+            // Enforce time in testing time provider
+            timeProvider->setTimestamp(timestampRequest);
+            timeService->resetTimeSynchronization();
+            // Encrypt request
+            auto request = client_encryptor.encryptRequest(requestData);
+            // Validate request
+            auto request_ciphertext = request.requestPayload.dataFromBase64StringAtPath("encryptedData");
+            if (request_ciphertext != encryptedDataRequest) {
+                ccstMessage("Ciphertext doesn't match");
+                ccstMessage(" - expected: %s", encryptedDataRequest.hexString().c_str());
+                ccstMessage(" - ours    : %s", request_ciphertext.hexString().c_str());
+                ccstAssertEqual(encryptedDataRequest, request_ciphertext);
+            }
+            ccstAssertEqual(timestampRequest, request.requestPayload["timestamp"].asInteger());
+            ccstAssertEqual(requestNonce.base64(), request.requestPayload["nonce"].asString());
+            ccstAssertEqual(requestMac.base64(), request.requestPayload["mac"].asString());
+            ccstAssertEqual(temporaryKeyId, request.requestPayload["temporaryKeyId"].asString());
+            
+            // Prepare response
+            auto response_object = json::JsonValue::object();
+            response_object["encryptedData"] = json::JsonValue(encryptedDataResponse.base64());
+            response_object["mac"] = json::JsonValue(responseMac.base64());
+            response_object["nonce"] = json::JsonValue(responseNonce.base64());
+            response_object["timestamp"] = json::JsonValue(timestampResponse);
+            auto response = EncryptedResponse { response_object };
+            
+            auto response_data = client_encryptor.decryptResponse(response);
+            ccstAssertEqual(responseData, response_data);
+        }
+    }
+
+    
     static ByteArray getRandomData()
     {
-        return crypto::GetRandomData(arc4random_uniform(257));
+        return cc7::crypto::GetRandomData(arc4random_uniform(257));
     }
     
     static std::string getRandomString(size_t size)
@@ -197,7 +273,7 @@ public:
         return cc7::ToHexString(cc7::crypto::GetRandomData(size/2));
     }
     
-    static std::string getRandomSharedInfo1()
+    static EncryptorSpecPtr getRandomEncryptor(bool app_scope)
     {
         static const EncryptorId ids[] = {
             EncryptorId::ACTIVATION_SCOPE_GENERIC,
@@ -207,10 +283,14 @@ public:
             EncryptorId::CREATE_TOKEN,
             EncryptorId::VAULT_UNLOCK,
         };
-        auto enc_id = ids[arc4random_uniform(sizeof(ids)/sizeof(ids[0]))];
-        auto spec = EncryptorSpec::specForId(enc_id);
-        assert(spec);
-        return spec->sharedInfo;
+        auto scope = app_scope ? EncryptorScope::APPLICATION : EncryptorScope::ACTIVATION;
+        while (true) {
+            auto enc_id = ids[arc4random_uniform(sizeof(ids)/sizeof(ids[0]))];
+            auto spec = EncryptorSpec::specForId(enc_id);
+            if (spec->scope == scope) {
+                return spec;
+            }
+        }
     }
     
     cc7::ByteArray getNewNonce()
@@ -221,6 +301,6 @@ public:
     }
 };
 
-CC7_CREATE_UNIT_TEST(ClientEncryptorV4Tests, "pa2")
+CC7_CREATE_UNIT_TEST(ClientEncryptorTests, "pa2")
     
 } // namespace powerAuthTests

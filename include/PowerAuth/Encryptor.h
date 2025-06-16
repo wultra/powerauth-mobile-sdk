@@ -127,7 +127,6 @@ public:
     virtual bool hasPendingTemporaryKeyRequest(EncryptorScope scope) const = 0;
     
     virtual IClientEncryptorPtr getClientEncryptor(EncryptorId encryptor_id) = 0;
-    virtual IServerEncryptorPtr getServerEncryptor(EncryptorId encryptor_id) = 0;
 };
 
 typedef std::shared_ptr<IEncryptorFactory> IEncryptorFactoryPtr;
@@ -140,9 +139,11 @@ class EncryptorSecrets
 public:
     const cc7::ByteArray envelopeKey;
     const cc7::ByteArray sharedInfo2;
+    const cc7::ByteArray ephemeralKey;
     
     static std::unique_ptr<EncryptorSecrets> makeSecrets(const cc7::ByteRange& envelope_key,
-                                                         const cc7::ByteRange& shared_info_2);
+                                                         const cc7::ByteRange& shared_info_2,
+                                                         const cc7::ByteRange& ephemeral_key);
 };
 
 typedef std::unique_ptr<EncryptorSecrets> EncryptorSecretsPtr;
@@ -151,20 +152,34 @@ typedef std::unique_ptr<EncryptorSecrets> EncryptorSecretsPtr;
 class EncryptorParameters
 {
 public:
+    const ProtocolVersion version;
+    const EncryptorSpecPtr encryptorSpec;
     const std::string protocolVersion;
     const std::string applicationKey;
+    const std::string applicationSecret;
     const std::string temporaryKeyId;
-    const std::string sharedInfo1;
     const std::string activationIdentifier;
     
-    static std::unique_ptr<EncryptorParameters> makeParameters(const std::string& protocolVersion,
+    inline EncryptorId encryptorId() const noexcept
+    {
+        return encryptorSpec->identifier;
+    }
+    
+    inline const std::string& sharedInfo1() const noexcept
+    {
+        return encryptorSpec->sharedInfo;
+    }
+    
+    cc7::ByteArray buildAssociatedData() const noexcept;
+    
+    static std::unique_ptr<EncryptorParameters> makeParameters(ProtocolVersion version,
+                                                               EncryptorId encryptorId,
                                                                const std::string& applicationKey,
+                                                               const std::string& applicationSecret,
                                                                const std::string& temporaryKeyId,
-                                                               const std::string& sharedInfo1,
                                                                const std::string& activationIdentifier);
 };
 
 typedef std::unique_ptr<EncryptorParameters> EncryptorParametersPtr;
-
 
 } // namespace powerAuth

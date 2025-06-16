@@ -22,7 +22,6 @@
 #include <PowerAuth/Encryptor.h>
 #include <PowerAuth/KeyProvider.h>
 #include <PowerAuth/SharedSecret.h>
-#include <PowerAuth/HttpHeaderBuilder.h>
 #include <PowerAuth/PowerAuthSpec.h>
 
 namespace powerAuth {
@@ -35,7 +34,6 @@ public:
     TimeService& timeService();
     IEncryptorFactory& encryptorFactory();
     ISharedSecret& sharedSecret();
-    IHttpHeaderBuilder& headerBuilder();
 
     
     const SharedMutexPtr getSharedMutexPtr() const noexcept;
@@ -43,7 +41,6 @@ public:
     const TimeServicePtr& getTimeServicePtr() const noexcept;
     const IEncryptorFactoryPtr& getEncryptorFactoryPtr() const noexcept;
     const ISharedSecretPtr& getSharedSecretPtr() const noexcept;
-    const IHttpHeaderBuilderPtr& getHeaderBuilderPtr() const noexcept;
     
     static std::shared_ptr<CoreObjects> getInstance(ConfigurationPtr configuration, ProtocolVersion version);
     
@@ -54,7 +51,6 @@ private:
     TimeServicePtr _time_service;
     IEncryptorFactoryPtr _encryptor_factory;
     ISharedSecretPtr _shared_secret;
-    IHttpHeaderBuilderPtr _header_builder;
 };
 
 typedef std::shared_ptr<CoreObjects> CoreObjectsPtr;

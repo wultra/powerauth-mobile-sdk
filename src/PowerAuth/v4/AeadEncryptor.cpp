@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "EncryptorV4.h"
+#include "AeadEncryptor.h"
 
 #include <PowerAuth/Algorithms.h>
 #include <PowerAuth/ByteUtils.h>
 
+#include "../HttpHeaderHelper.h"
 #include "../crypto/PowerAuthAEAD.h"
-#include "E2EEUtilsV4.h"
 
 using namespace cc7;
 using namespace cc7::crypto;
@@ -33,12 +33,12 @@ static inline const cc7::crypto::AEAD& aeadAlg()
     return algorithms().v4.aead();
 }
 
-// MARK: - ClientEncryptor
+// MARK: - AeadClientEncryptor
 
-ClientEncryptor::ClientEncryptor(EncryptorParametersPtr& parameters,
-                                 EncryptorSecretsPtr& secrets,
-                                 const ByteRange& nonce,
-                                 const TimeServicePtr& time_service) :
+AeadClientEncryptor::AeadClientEncryptor(EncryptorParametersPtr& parameters,
+                                         EncryptorSecretsPtr& secrets,
+                                         const ByteRange& nonce,
+                                         const TimeServicePtr& time_service) :
     _parameters(std::move(parameters)),
     _secrets(std::move(secrets)),
     _nonce(nonce),
@@ -48,28 +48,28 @@ ClientEncryptor::ClientEncryptor(EncryptorParametersPtr& parameters,
 #if DEBUG
     // The following validations are enabled only for DEBUG build.
     if (!_parameters || !_secrets || !_time_service) {
-        throw Exception(EC_InternalError, "ClientEncryptor V4: Missing required parameter");
+        throw Exception(EC_InternalError, "AeadClientEncryptor: Missing required parameter");
     }
     if (_nonce.size() != crypto::PowerAuthAEAD::NONCE_SIZE*2) {
-        throw Exception(EC_InternalError, "ClientEncryptor V4: Wrong request nonce size");
+        throw Exception(EC_InternalError, "AeadClientEncryptor: Wrong request nonce size");
     }
     if (requestNonce() == responseNonce()) {
-        throw Exception(EC_InternalError, "ClientEncryptor V4: Nonces must be different");
+        throw Exception(EC_InternalError, "AeadClientEncryptor: Nonces must be different");
     }
 #endif
 }
 
-bool ClientEncryptor::canEncryptRequest() const noexcept
+bool AeadClientEncryptor::canEncryptRequest() const noexcept
 {
     return _time_sync_task < 0;
 }
 
-bool ClientEncryptor::canDecryptResponse() const noexcept
+bool AeadClientEncryptor::canDecryptResponse() const noexcept
 {
     return _time_sync_task > 0;
 }
 
-EncryptedRequest ClientEncryptor::encryptRequest(const ByteRange &data)
+EncryptedRequest AeadClientEncryptor::encryptRequest(const ByteRange &data)
 {
     if (!canEncryptRequest()) {
         throw Exception(EC_NotAllowed, "Cannot encrypt request");
@@ -92,7 +92,7 @@ EncryptedRequest ClientEncryptor::encryptRequest(const ByteRange &data)
     object["encryptedData"] = json::JsonValue(ciphertext.base64());
     
     // Prepare request header
-    auto header = E2EE_BuildRequestHeader(*_parameters);
+    auto header = HttpHeaderHelper::buildEncryptionRequestHeader(*_parameters);
     
     // Start time synchronization, and flip encryptor to "decryptRequest" mode.
     _time_sync_task = _time_service->startTimeSynchronizationTask();
@@ -101,7 +101,7 @@ EncryptedRequest ClientEncryptor::encryptRequest(const ByteRange &data)
     return { object, { header }};
 }
 
-ByteArray ClientEncryptor::decryptResponse(const EncryptedResponse &response)
+ByteArray AeadClientEncryptor::decryptResponse(const EncryptedResponse &response)
 {
     if (!canDecryptResponse()) {
         throw Exception(EC_NotAllowed, "Cannot decrypt response");
@@ -119,30 +119,33 @@ ByteArray ClientEncryptor::decryptResponse(const EncryptedResponse &response)
     } catch (...) {
         Exception::reThrowWrapped(EC_InvalidData, "Invalid encrypted response");
     }
+    
+    auto key = getKey();
+    auto aad = getAAD(timestamp);
+    auto plaintext = aead.open(*key, aad, ciphertext);
+    
     // Complete time synchronization task
     _time_service->completeTimeSynchronizationTask(_time_sync_task, timestamp);
     // Flip decryptor to complete,
     _time_sync_task = 0.0;
-    
-    auto key = getKey();
-    auto aad = getAAD(timestamp);
-    return aead.open(*key, aad, ciphertext);
+
+    return plaintext;
 }
 
-SymmetricKeyPtr ClientEncryptor::getKey() const
+SymmetricKeyPtr AeadClientEncryptor::getKey() const
 {
     auto key = SymmetricKey::getInstance("AES-256", _secrets->envelopeKey);
     key->setKeyContext(ConcatByteRanges({
         MakeRange(_parameters->protocolVersion),        // VERSION
-        MakeRange(_parameters->sharedInfo1),            // SHARED_INFO_1
+        MakeRange(_parameters->sharedInfo1()),          // SHARED_INFO_1
         _nonce                                          // NONCE
     }));
     return key;
 }
 
-ByteArray ClientEncryptor::getAAD(Timestamp timestamp) const
+ByteArray AeadClientEncryptor::getAAD(Timestamp timestamp) const
 {
-    auto associated_data = E2EE_BuildAssociatedData(*_parameters);
+    auto associated_data = _parameters->buildAssociatedData();
     return ConcatByteRanges({
         associated_data,                                // ASSOCIATED_DATA
         utils::ByteUtils_Join({
@@ -153,22 +156,22 @@ ByteArray ClientEncryptor::getAAD(Timestamp timestamp) const
     });
 }
 
-ByteRange ClientEncryptor::requestNonce() const
+ByteRange AeadClientEncryptor::requestNonce() const
 {
     return _nonce.byteRange().subRangeTo(crypto::PowerAuthAEAD::NONCE_SIZE);
 }
 
-ByteRange ClientEncryptor::responseNonce() const
+ByteRange AeadClientEncryptor::responseNonce() const
 {
     return _nonce.byteRange().subRangeFrom(crypto::PowerAuthAEAD::NONCE_SIZE);
 }
 
 
-// MARK: - ServerEncryptor
+// MARK: - AeadServerEncryptor
 
-ServerEncryptor::ServerEncryptor(EncryptorParametersPtr& parameters,
-                                 EncryptorSecretsPtr& secrets,
-                                 const ITimeProviderPtr& time_provider) :
+AeadServerEncryptor::AeadServerEncryptor(EncryptorParametersPtr& parameters,
+                                         EncryptorSecretsPtr& secrets,
+                                         const ITimeProviderPtr& time_provider) :
     _parameters(std::move(parameters)),
     _secrets(std::move(secrets)),
     _time_provider(time_provider)
@@ -181,17 +184,17 @@ ServerEncryptor::ServerEncryptor(EncryptorParametersPtr& parameters,
 #endif
 }
 
-bool ServerEncryptor::canDecryptRequest() const noexcept
+bool AeadServerEncryptor::canDecryptRequest() const noexcept
 {
     return _nonce.empty() && !_response_processed;
 }
 
-bool ServerEncryptor::canEncryptResponse() const noexcept
+bool AeadServerEncryptor::canEncryptResponse() const noexcept
 {
     return !_nonce.empty() && !_response_processed;
 }
 
-ByteArray ServerEncryptor::decryptRequest(const EncryptedRequest &request)
+ByteArray AeadServerEncryptor::decryptRequest(const EncryptedRequest &request)
 {
     if (!canDecryptRequest()) {
         throw Exception(EC_NotAllowed, "Cannot decrypt request");
@@ -230,7 +233,7 @@ ByteArray ServerEncryptor::decryptRequest(const EncryptedRequest &request)
     return aead.open(*key, aad, ciphertext);
 }
 
-EncryptedResponse ServerEncryptor::encryptResponse(const ByteRange &data)
+EncryptedResponse AeadServerEncryptor::encryptResponse(const ByteRange &data)
 {
     if (!canEncryptResponse()) {
         throw Exception(EC_NotAllowed, "Cannot encrypt response");
@@ -254,20 +257,20 @@ EncryptedResponse ServerEncryptor::encryptResponse(const ByteRange &data)
     return { object };
 }
 
-SymmetricKeyPtr ServerEncryptor::getKey() const
+SymmetricKeyPtr AeadServerEncryptor::getKey() const
 {
     auto key = SymmetricKey::getInstance("AES-256", _secrets->envelopeKey);
     key->setKeyContext(ConcatByteRanges({
         MakeRange(_parameters->protocolVersion),        // VERSION
-        MakeRange(_parameters->sharedInfo1),            // SHARED_INFO_1
+        MakeRange(_parameters->sharedInfo1()),          // SHARED_INFO_1
         _nonce                                          // NONCE
     }));
     return key;
 }
 
-ByteArray ServerEncryptor::getAAD(Timestamp timestamp) const
+ByteArray AeadServerEncryptor::getAAD(Timestamp timestamp) const
 {
-    auto associated_data = E2EE_BuildAssociatedData(*_parameters);
+    auto associated_data = _parameters->buildAssociatedData();
     return ConcatByteRanges({
         associated_data,                                // ASSOCIATED_DATA
         utils::ByteUtils_Join({
@@ -278,12 +281,12 @@ ByteArray ServerEncryptor::getAAD(Timestamp timestamp) const
     });
 }
 
-ByteRange ServerEncryptor::requestNonce() const
+ByteRange AeadServerEncryptor::requestNonce() const
 {
     return _nonce.byteRange().subRangeTo(crypto::PowerAuthAEAD::NONCE_SIZE);
 }
 
-ByteRange ServerEncryptor::responseNonce() const
+ByteRange AeadServerEncryptor::responseNonce() const
 {
     return _nonce.byteRange().subRangeFrom(crypto::PowerAuthAEAD::NONCE_SIZE);
 }

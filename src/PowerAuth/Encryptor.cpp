@@ -15,6 +15,7 @@
  */
 
 #include <PowerAuth/Encryptor.h>
+#include <PowerAuth/ByteUtils.h>
 
 using namespace cc7;
 
@@ -194,24 +195,52 @@ EncryptedResponse IServerEncryptor::encryptJsonResponse(const cc7::json::JsonVal
 // MARK: - Secrets & Parameters
 
 EncryptorSecretsPtr EncryptorSecrets::makeSecrets(const cc7::ByteRange& envelope_key,
-                                                  const cc7::ByteRange& shared_info_2)
+                                                  const cc7::ByteRange& shared_info_2,
+                                                  const cc7::ByteRange& ephemeral_key)
 {
-    return std::unique_ptr<EncryptorSecrets>(new EncryptorSecrets { envelope_key, shared_info_2 });
+    return std::unique_ptr<EncryptorSecrets>(new EncryptorSecrets { envelope_key, shared_info_2, ephemeral_key });
 }
 
-EncryptorParametersPtr EncryptorParameters::makeParameters(const std::string& protocolVersion,
+EncryptorParametersPtr EncryptorParameters::makeParameters(ProtocolVersion protocolVersion,
+                                                           EncryptorId encryptorId,
                                                            const std::string& applicationKey,
+                                                           const std::string& applicationSecret,
                                                            const std::string& temporaryKeyId,
-                                                           const std::string& sharedInfo1,
                                                            const std::string& activationIdentifier)
 {
+    auto spec = EncryptorSpec::specForId(encryptorId);
+    if (spec->isActivationScoped() && activationIdentifier.empty()) {
+        throw Exception(EC_InternalError, "Activation ID is required for activation scoped parameters");
+    }
     return std::unique_ptr<EncryptorParameters>(new EncryptorParameters {
         protocolVersion,
+        spec,
+        ProtocolVersion_GetHttpHeaderVersion(protocolVersion),
         applicationKey,
+        applicationSecret,
         temporaryKeyId,
-        sharedInfo1,
         activationIdentifier
     });
+}
+
+cc7::ByteArray EncryptorParameters::buildAssociatedData() const noexcept
+{
+    if (encryptorSpec->isApplicationScoped()) {
+        // Application scope
+        return utils::ByteUtils_Join({
+            cc7::MakeRange(protocolVersion),          // VERSION
+            cc7::MakeRange(applicationKey),           // APPLICATION_KEY
+            cc7::MakeRange(temporaryKeyId)            // TEMPORARY_KEY_ID
+        });
+    } else {
+        // Activation scope
+        return utils::ByteUtils_Join({
+            cc7::MakeRange(protocolVersion),          // VERSION
+            cc7::MakeRange(applicationKey),           // APPLICATION_KEY
+            cc7::MakeRange(activationIdentifier),     // ACTIVATION_ID
+            cc7::MakeRange(temporaryKeyId)            // TEMPORARY_KEY_ID
+        });
+    }
 }
 
 } // namespace powerAuth

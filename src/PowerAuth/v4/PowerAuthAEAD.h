@@ -19,7 +19,7 @@
 #include <cc7/crypto/Crypto.h>
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 class PowerAuthKDF;
 
@@ -38,8 +38,8 @@ public:
     
     PowerAuthAEAD(const std::shared_ptr<PowerAuthKDF> & kdf, const cc7::crypto::CipherPtr & cipher, const cc7::crypto::MACPtr & mac);
 
-    static const size_t NONCE_SIZE;
-    static const size_t TAG_SIZE;
+    static constexpr size_t NONCE_SIZE = 12;
+    static constexpr size_t TAG_SIZE = 32;
 
 private:
     

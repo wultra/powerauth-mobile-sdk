@@ -22,7 +22,7 @@ using namespace cc7;
 using namespace cc7::crypto;
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 // MARK: - Low level data serialization
 
@@ -245,7 +245,7 @@ private:
 // MARK: - HybridKeyPairFactory
 
 
-KeyPairFactoryPtr HybridKeyPairFactory::getInstance(const std::string & key1_type, const std::string & key2_type)
+std::shared_ptr<HybridKeyPairFactory> HybridKeyPairFactory::getInstance(const std::string & key1_type, const std::string & key2_type)
 {
     return std::make_shared<HybridKeyPairFactory>(HybridKeySpec {key1_type, key2_type});
 }
@@ -276,18 +276,34 @@ KeyPairPtr HybridKeyPairFactory::generateKeyPair() const
     return std::make_shared<KeyPair>(pubKey, privKey);
 }
 
-PublicKeyPtr HybridKeyPairFactory::newPublicKeyFromData(const cc7::ByteRange & key1Data, const cc7::ByteRange& key2Data) const
+PublicKeyPtr HybridKeyPairFactory::newPublicKeyFromData(const cc7::ByteRange& key1_data,
+                                                        cc7::crypto::KeyFormat key1_format,
+                                                        const cc7::ByteRange& key2_data,
+                                                        cc7::crypto::KeyFormat key2_format) const
 {
     auto key1 = newPublicKey1();
     auto key2 = newPublicKey2();
-    key1->importKey(key1Data);
+    key1->importKey(key1_data, key1_format);
     if (key2 != nullptr) {
-        key2->importKey(key2Data);
-    } else if (!key2Data.empty()) {
-        throw Exception(EC_WrongParameter, "Second key is not supported in this configuration");
+        key2->importKey(key2_data, key2_format);
     }
     return std::make_shared<HybridPublicKey>(key1, key2);
 }
 
-} // namespace crypto
+const std::string & HybridKeyPairFactory::getAlgorithmName() const
+{
+    return _alg_name;
+}
+
+void HybridKeyPairFactory::setParameter(int param_id, const cc7::crypto::Parameter & value)
+{
+    throw std::invalid_argument("Unsupported parameter ID=" + std::to_string(param_id));
+}
+
+cc7::crypto::Parameter HybridKeyPairFactory::getParameter(int param_id) const
+{
+    throw std::invalid_argument("Unsupported parameter ID=" + std::to_string(param_id));
+}
+
+} // namespace v4
 } // namespace powerAuth

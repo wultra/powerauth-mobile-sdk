@@ -35,9 +35,9 @@ public:
     struct V3
     {
         /// V3: Data for hash-based counter for authorization code calculations
-        cc7::ByteArray  signatureCounterData;
+        cc7::ByteArray  authCodeCounterData;
         /// V3.1: Least significant byte from the signature counter
-        cc7::byte       signatureCounterByte;
+        cc7::byte       authCodeCounterByte;
         /// ActivationId, that's our identity known on the server
         std::string     activationId;
         /// Number of iterations for PBKDF2
@@ -68,7 +68,7 @@ public:
              /// Bits reserved for current pending protocol upgrade
             cc7::U32    pendingUpgradeVersion   : 8;
             /// True if `signatureCounterByte` is valid and can be used for calculations.
-            cc7::U32    hasSignatureCounterByte : 1;
+            cc7::U32    hasAuthCodeCounterByte : 1;
         };
         union {
             _Flags      flags;
@@ -84,9 +84,9 @@ public:
         std::string     activationId;
 
         /// V4: Least significant byte from the signature counter
-        cc7::byte       signatureCounterByte;
+        cc7::byte       authCodeCounterByte;
         /// V4: Data for hash-based counter for authorization code calculations
-        cc7::ByteArray  signatureCounterData;
+        cc7::ByteArray  authCodeCounterData;
         /// Salt value for PowerAuthPassKDF
         cc7::ByteArray  passwordSalt;
 
@@ -102,10 +102,10 @@ public:
         /// Encrypted `KDK_ENCRYPTION`
         cc7::ByteArray  cKdkEncryption;
                 
-        /// Encrypted device's public key
-        cc7::ByteArray  cDevicePublicKey;
+        /// Device's public key
+        cc7::ByteArray  devicePublicKey;
         /// Server's public key
-        cc7::ByteArray  cServerPublicKey;
+        cc7::ByteArray  serverPublicKey;
         /// Encrypted device's private key.
         cc7::ByteArray  cDevicePrivateKey;
     };

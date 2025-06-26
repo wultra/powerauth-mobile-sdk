@@ -53,7 +53,8 @@ public:
     void testBuilderWithConfig(int step)
     {
         auto data = buildConfig("success", 0, true);
-        auto builder = Configuration::Builder(data["config"].asString());
+        auto builder = Configuration::Builder(data["config"].asString())
+            .withDeviceSpecificData(MakeRange("specific-data"));
         auto config = builder.build();
         ccstAssertEqual("default", config->instanceId());
         ccstAssertEqual(PowerAuthSpec::EC_P384_ML_L3, config->algorithm());
@@ -68,22 +69,32 @@ public:
         // Other builder params
         config = Configuration::Builder(data["config"].asString())
             .withInstanceId("instance-id")
+            .withDeviceSpecificData(MakeRange("device-specific"))
             .build();
         ccstAssertEqual("instance-id", config->instanceId());
+        ccstAssertEqual(MakeRange("device-specific"), config->deviceSpecificData());
         
         config = Configuration::Builder(data["config"].asString())
             .withInstanceId("instance4")
             .withAlgorithm(PowerAuthSpec::EC_P384)
+            .withDeviceSpecificData(MakeRange("device-specific-data"))
             .build();
         ccstAssertEqual("instance4", config->instanceId());
+        ccstAssertEqual(MakeRange("device-specific-data"), config->deviceSpecificData());
         ccstAssertEqual(PowerAuthSpec::EC_P384, config->algorithm());
         
         // Wrong params
         ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
             .withInstanceId("")
+            .withDeviceSpecificData(MakeRange("device-specific-data"))
             .build());
         ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
             .withAlgorithm(PowerAuthSpec::LEGACY_P256)
+            .withDeviceSpecificData(MakeRange("device-specific-data"))
+            .build());
+        ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
+            .withAlgorithm(PowerAuthSpec::EC_P384)
+            .withDeviceSpecificData(ByteRange())
             .build());
     }
             
@@ -97,9 +108,13 @@ public:
             auto comment = item.stringAtPath("info");
             
             if (success) {
-                Configuration::Builder(sdk_config).build();
+                Configuration::Builder(sdk_config)
+                    .withDeviceSpecificData(MakeRange("data"))
+                    .build();
             } else {
-                ccstMustThrow(Exception, Configuration::Builder(sdk_config).build());
+                ccstMustThrow(Exception, Configuration::Builder(sdk_config)
+                              .withDeviceSpecificData(MakeRange("data"))
+                              .build());
             }
         }
     }

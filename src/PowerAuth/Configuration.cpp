@@ -28,6 +28,7 @@ namespace powerAuth {
 
 Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
                              const std::string& instance_id,
+                             const cc7::ByteArray& device_specific_data,
                              const cc7::ByteArray& application_key,
                              const cc7::ByteArray& application_secret,
                              const cc7::ByteArray& ecdsa_master_server_public_key,
@@ -35,6 +36,7 @@ Configuration::Configuration(PowerAuthSpec::Algorithm algorithm,
                              const cc7::ByteArray& legacy_master_server_public_key) :
     _algorithm(algorithm),
     _instance_id(instance_id),
+    _device_specific_data(device_specific_data),
     _application_key(application_key),
     _application_secret(application_secret),
     _application_key_string(application_key.base64()),
@@ -68,6 +70,11 @@ const std::string& Configuration::applicationSecret() const noexcept
 const cc7::ByteArray& Configuration::applicationKeyBytes() const noexcept
 {
     return _application_key;
+}
+
+const cc7::ByteArray& Configuration::deviceSpecificData() const noexcept
+{
+    return _device_specific_data;
 }
 
 const cc7::ByteArray& Configuration::applicationSecretBytes() const noexcept
@@ -108,7 +115,7 @@ Configuration::Builder::Builder(const std::string &sdk_config) :
     }
 }
 
-Configuration::Builder& Configuration::Builder::withInstanceId(const std::string &instance_id)
+Configuration::Builder& Configuration::Builder::withInstanceId(const std::string& instance_id)
 {
     _instance_id = instance_id;
     return *this;
@@ -120,16 +127,26 @@ Configuration::Builder& Configuration::Builder::withAlgorithm(PowerAuthSpec::Alg
     return *this;
 }
 
+Configuration::Builder& Configuration::Builder::withDeviceSpecificData(const cc7::ByteRange& data)
+{
+    _device_specific_data = data;
+    return *this;
+}
+
 ConfigurationPtr Configuration::Builder::build() const
 {
     if (_instance_id.empty()) {
         throw Exception(EC_WrongParameter, "InstanceID is empty");
+    }
+    if (_device_specific_data.empty()) {
+        throw Exception(EC_WrongParameter, "Device specific data not provided");
     }
     if (!PowerAuthSpec::specForAlgorithm(_algorithm)->isActivationSupported()) {
         throw Exception(EC_WrongParameter, "Selected algorithm doesn't support activation process");
     }
     auto instance = new Configuration(_algorithm,
                                       _instance_id,
+                                      _device_specific_data,
                                       _application_key,
                                       _application_secret,
                                       _ecdsa_master_server_public_key,

@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Types.h>
 #include <cc7/crypto/Crypto.h>
+#include <cc7/json/Json.h>
 
 namespace powerAuth {
 
@@ -35,6 +36,15 @@ struct SharedSecretRequest
     /// ML-KEM encapsulation key in SPKI format, encoded as Base64 string. The string is empty if
     /// the selected algorithm doesn't use ML-KEM.
     std::string mlkem;
+    
+    /// Make JSON representation from the content of this structure.
+    /// - Returns: JSON representation created from this structure.
+    cc7::json::JsonValue toJson() const;
+    
+    /// Create structure from JSON representation.
+    /// - Parameter value: Source JSON representation.
+    /// - Returns: Structure created from JSON representation.
+    static SharedSecretRequest fromJson(const cc7::json::JsonValue& value);
 };
 
 /// The `SharedSecretResponse` structure contains response data generated on the server side.
@@ -45,6 +55,15 @@ struct SharedSecretResponse
     /// ML-KEM wrapped key data, encoded as Base64 string. The string is empty if
     /// the selected algorithm doesn't use ML-KEM.
     std::string mlkem;
+    
+    /// Make JSON representation from the content of this structure.
+    /// - Returns: JSON representation created from this structure.
+    cc7::json::JsonValue toJson() const;
+    
+    /// Create structure from JSON representation.
+    /// - Parameter value: Source JSON representation.
+    /// - Returns: Structure created from JSON representation.
+    static SharedSecretResponse fromJson(const cc7::json::JsonValue& value);
 };
 
 /// The `ISharedSecret` abstract class defines interface for deducing the shared secret key

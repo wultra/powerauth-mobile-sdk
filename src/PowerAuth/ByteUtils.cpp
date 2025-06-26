@@ -21,7 +21,7 @@
 namespace powerAuth {
 namespace utils {
 
-cc7::ByteArray ByteUtils_Join(std::initializer_list<cc7::ByteRange> components)
+cc7::ByteArray ByteUtils_ConcatWithSizes(std::initializer_list<cc7::ByteRange> components)
 {
     auto it = components.begin();
     size_t reserved_bytes = 4 * components.size();
@@ -36,6 +36,26 @@ cc7::ByteArray ByteUtils_Join(std::initializer_list<cc7::ByteRange> components)
         auto size = cc7::ToBigEndian(cc7::U32(it->size()));
         result.append(cc7::MakeRange(size));
         result.append(*it);
+        ++it;
+    }
+    return result;
+}
+
+cc7::ByteArray ByteUtils_ConcatWithSizes(std::initializer_list<std::string_view> components)
+{
+    auto it = components.begin();
+    size_t reserved_bytes = 4 * components.size();
+    while (it != components.end()) {
+        reserved_bytes += it->size();
+        ++it;
+    }
+    cc7::ByteArray result;
+    result.reserve(reserved_bytes);
+    it = components.begin();
+    while (it != components.end()) {
+        auto size = cc7::ToBigEndian(cc7::U32(it->size()));
+        result.append(cc7::MakeRange(size));
+        result.append(cc7::MakeRange(*it));
         ++it;
     }
     return result;

@@ -16,8 +16,9 @@
 
 #include <PowerAuth/Algorithms.h>
 
-#include "crypto/PowerAuthKDF.h"
-#include "crypto/PowerAuthAEAD.h"
+#include "v4/PowerAuthKDF.h"
+#include "v4/PowerAuthAEAD.h"
+#include "v4/PowerAuthUKE.h"
 
 using namespace cc7;
 using namespace cc7::crypto;
@@ -47,9 +48,10 @@ Algorithms::V4::Pointers Algorithms::V4::build()
     // MAC
     auto mac_KMAC_256        = MAC::getInstance("KMAC-256");
     // Custom
-    auto powerAuth_KDF       = std::make_shared<crypto::PowerAuthKDF>(mac_KMAC_256);
-    auto powerAuth_PBKDF     = std::make_shared<crypto::PowerAuthPassKDF>(mac_KMAC_256);
-    auto powerAuth_AEAD      = std::make_shared<crypto::PowerAuthAEAD>(powerAuth_KDF, cipher_AES_256_CTR, mac_KMAC_256);
+    auto powerAuth_KDF       = std::make_shared<v4::PowerAuthKDF>(mac_KMAC_256);
+    auto powerAuth_PBKDF     = std::make_shared<v4::PowerAuthPassKDF>(mac_KMAC_256);
+    auto powerAuth_UKE       = std::make_shared<v4::PowerAuthUKE>(cipher_AES_256_CTR);
+    auto powerAuth_AEAD      = std::make_shared<v4::PowerAuthAEAD>(powerAuth_KDF, cipher_AES_256_CTR, mac_KMAC_256);
 
     // Configure
     
@@ -83,6 +85,7 @@ Algorithms::V4::Pointers Algorithms::V4::build()
         // Custom
         powerAuth_KDF,
         powerAuth_PBKDF,
+        powerAuth_UKE,
         powerAuth_AEAD
     };
 

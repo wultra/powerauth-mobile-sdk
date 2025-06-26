@@ -19,7 +19,7 @@
 #include <cc7/crypto/NonceGenerator.h>
 
 namespace powerAuth {
-namespace crypto {
+namespace common {
 
 class ThreadSafeNonceGenerator : public cc7::crypto::NonceGenerator
 {

@@ -20,7 +20,7 @@ using namespace cc7;
 using namespace cc7::crypto;
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 // MARK: - PowerAuthKDF
 
@@ -154,5 +154,5 @@ Parameter PowerAuthPassKDF::getParameter(int param_id) const
     throw std::invalid_argument("Unsupported parameter");
 }
 
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth

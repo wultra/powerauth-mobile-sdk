@@ -20,7 +20,7 @@
 #include <cc7/crypto/KeyPair.h>
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 enum CustomKeyParamIdentifier
 {
@@ -41,7 +41,7 @@ struct HybridKeySpec
 class HybridKeyPairFactory : public cc7::crypto::KeyPairFactory
 {
 public:
-    static cc7::crypto::KeyPairFactoryPtr getInstance(const std::string & key1_type, const std::string & key2_type);
+    static std::shared_ptr<HybridKeyPairFactory> getInstance(const std::string & key1_type, const std::string & key2_type);
     
     cc7::crypto::PublicKeyPtr newPublicKey() const override;
     cc7::crypto::PrivateKeyPtr newPrivateKey() const override;
@@ -55,7 +55,10 @@ public:
     
     // Custom interface
     
-    cc7::crypto::PublicKeyPtr newPublicKeyFromData(const cc7::ByteRange & key1Data, const cc7::ByteRange& key2Data) const;
+    cc7::crypto::PublicKeyPtr newPublicKeyFromData(const cc7::ByteRange& key1_data,
+                                                   cc7::crypto::KeyFormat key1_format,
+                                                   const cc7::ByteRange& key2_data,
+                                                   cc7::crypto::KeyFormat key2_format) const;
     
 private:
     
@@ -86,7 +89,7 @@ private:
     
     cc7::crypto::KeyPairPtr newKeyPair2() const
     {
-        return _key2Factory->generateKeyPair();
+        return _key2Factory != nullptr ? _key2Factory->generateKeyPair() : nullptr;
     }
 
     const std::string _alg_name;
@@ -94,5 +97,5 @@ private:
     cc7::crypto::KeyPairFactoryPtr _key2Factory;
 };
 
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth

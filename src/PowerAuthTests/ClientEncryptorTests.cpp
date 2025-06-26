@@ -17,7 +17,6 @@
 #include <cc7tests/CC7Tests.h>
 #include "../PowerAuth/v4/AeadEncryptor.h"
 #include "../PowerAuth/v3/EciesEncryptor.h"
-#include "../PowerAuth/v3/ProtocolFunctions.h"
 #include "TestTimeProvider.h"
 #include <cc7/HexString.h>
 #include <PowerAuth/Algorithms.h>

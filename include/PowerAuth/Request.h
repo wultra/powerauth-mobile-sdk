@@ -24,39 +24,104 @@
 
 namespace powerAuth {
 
-using ResponseCallback = std::function<void(const cc7::json::JsonValue&)>;
+class Request;
+
+class ResponseObject
+{
+public:
+    virtual ~ResponseObject();
+};
+
+typedef std::shared_ptr<ResponseObject> ResponseObjectPtr;
+
+using ResponseCallback = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
 using CancelCallback   = std::function<void()>;
+
+
+struct EndpointSpec;
+class IClientEncryptor;
+class IAuthHeaderCalculator;
+class Credentials;
 
 class Request
 {
 public:
+    
+    ~Request();
+    
     void cancel();
     
-    virtual ~Request();
-    virtual void prepareRequest();
-    virtual void processResponse(const cc7::ByteRange& response_data);
+    void prepareRequest();
+    void processResponse(const cc7::ByteRange& response_data);
     
-    const std::string& getLocalPath() const;
-    const std::string& getMethod() const;
-    const cc7::ByteArray& getBody() const;
-    const std::vector<HttpHeader>& getHeaders() const;
+    bool isCompleted() const noexcept;
+    bool isCanceled() const noexcept;
+    bool isFailed() const noexcept;
+    bool isDone() const noexcept;
     
-    bool isSynchronized() const noexcept;
+    const std::string& getLocalPath() const noexcept;
+    const std::string& getHttpMethod() const noexcept;
+        
+    bool requireSynchronizedTime() const noexcept;
+    bool requireSerialQueue() const noexcept;
+    bool isAllowedInUpgrade() const noexcept;
+    bool isEncrypted() const noexcept;
+    bool isAuthenticated() const noexcept;
+
+    const cc7::ByteArray& getRequestBody() const;
+    const std::vector<HttpHeader>& getRequestHeaders() const;
+
+    const cc7::ByteArray& getResponseBody() const;
     
+    const ResponseObjectPtr& getResponseObject() const;
     
+    template <typename T> std::shared_ptr<T> getTypedResponseObject() const
+    {
+        return std::dynamic_pointer_cast<T>(_response_object);
+    }
+    
+private:
+    
+    enum State
+    {
+        WAITING,
+        PENDING,
+        PROCESSED,
+        FAILED,
+        CANCELED,
+    };
+    
+    friend class RequestBuilder;
+    
+    Request(const SharedMutexPtr& mutex, const EndpointSpec& endpoint);
+
+    void doPrepareRequest();
+    void doProcessResponse(const cc7::ByteRange& response_data);
+
+    void cleanup();
+    void prepareRequestBody();
+    void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
+    
+    const EndpointSpec & _endpoint;
+    ResponseCallback _on_response;
+    CancelCallback _on_cancel;
+    
+    std::shared_ptr<IClientEncryptor> _encryptor;
+    std::shared_ptr<IAuthHeaderCalculator> _authenticator;
+    std::shared_ptr<Credentials> _authentication;
+    
+    SharedMutexPtr _mutex;
+    State _state;
+    std::vector<HttpHeader> _request_headers;
+
+    cc7::ByteArray _request_body;
+    cc7::json::JsonValue _request_json;
+
+    cc7::ByteArray _response_body;
+    cc7::json::JsonValue _response_json;
+    ResponseObjectPtr _response_object;
 };
 
 typedef std::unique_ptr<Request> RequestPtr;
-
-template <typename Response>
-class TypedRequest : public Request {
-public:
-    
-    const Response& getTypedResponse();
-    void setTypedResponse(const std::shared_ptr<Response>& response);
-    
-private:
-    std::shared_ptr<Response> _typed_response;
-};
 
 } // namespace powerAuth

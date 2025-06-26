@@ -38,6 +38,8 @@ public:
     const cc7::ByteArray& mldsaMasterServerPublicKey() const noexcept;
     const cc7::ByteArray& legacyMasterServerPublicKey() const noexcept;
     
+    const cc7::ByteArray& deviceSpecificData() const noexcept;
+    
     void validatePublicKeys() const;
     
     class Builder {
@@ -46,6 +48,7 @@ public:
         
         Builder& withInstanceId(const std::string& instance_id);
         Builder& withAlgorithm(PowerAuthSpec::Algorithm algorithm);
+        Builder& withDeviceSpecificData(const cc7::ByteRange& data);
         
         std::shared_ptr<Configuration> build() const;
         
@@ -55,6 +58,7 @@ public:
         
         PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
+        cc7::ByteArray _device_specific_data;
         cc7::ByteArray _application_key;
         cc7::ByteArray _application_secret;
         cc7::ByteArray _ecdsa_master_server_public_key;
@@ -66,6 +70,7 @@ private:
     
     Configuration(PowerAuthSpec::Algorithm algorithm,
                   const std::string& instance_id,
+                  const cc7::ByteArray& device_specific_data,
                   const cc7::ByteArray& application_key,
                   const cc7::ByteArray& application_secret,
                   const cc7::ByteArray& ecdsa_master_server_public_key,
@@ -74,6 +79,7 @@ private:
     
     const PowerAuthSpec::Algorithm _algorithm;
     const std::string _instance_id;
+    const cc7::ByteArray _device_specific_data;
     const cc7::ByteArray _application_key;
     const cc7::ByteArray _application_secret;
     const std::string _application_key_string;

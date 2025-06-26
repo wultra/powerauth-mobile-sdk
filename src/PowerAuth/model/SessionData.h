@@ -40,7 +40,9 @@ public:
     void setRegistrationData(RegistrationDataPtr& ptr);
     void setPersistentData(PersistentDataPtr& ptr);
     void setActivationStatus(const ActivationStatusPtr& ptr);
+    void setDeviceKey(const cc7::ByteRange& device_key);
     
+    void clearRuntimeData();
     void resetSessionData();
     
     const RegistrationData& registrationData() const;
@@ -48,6 +50,8 @@ public:
     
     const PersistentData& persistentData() const;
     PersistentData& persistentData();
+    
+    const cc7::ByteArray& deviceKey() const;
     
     const ActivationStatusPtr lastKnownActivationStatus() const;
     
@@ -57,7 +61,6 @@ public:
     
     
 private:
-
     RegistrationDataPtr _rd;
     PersistentDataPtr _pd;
 };

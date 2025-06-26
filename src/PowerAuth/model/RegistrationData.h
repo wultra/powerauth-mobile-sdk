@@ -17,16 +17,52 @@
 #pragma once
 
 #include <PowerAuth/Types.h>
+#include "../v4/HybridKeyPair.h"
 
 namespace powerAuth {
 
 class RegistrationData
 {
 public:
+    struct V4
+    {
+        std::string activationId;
+        cc7::ByteArray authCodeCounterData;
+        cc7::ByteArray ecdsaServerPublicKey;
+        cc7::ByteArray mldsaServerPublicKey;
+        
+        cc7::crypto::KeyPairPtr deviceKeyPair;
+        cc7::crypto::PublicKeyPtr serverPublicKey;
+        
+        ISharedSecretPtr sharedSecretAlgorithm;
+        SharedSecretContextPtr sharedSecretContext;
+        cc7::ByteArray calculatedSharedSecret;
+    };
     
+    struct V3
+    {
+        cc7::crypto::KeyPairPtr deviceKeyPair;
+        cc7::crypto::PublicKeyPtr serverPublicKey;
+    };
+    
+    V4& v4();
+    const V4& v4() const;
+    
+    V3& v3();
+    const V3& v3() const;
+    
+    static std::unique_ptr<RegistrationData> create(ProtocolVersion version);
     
 private:
     
+    RegistrationData(ProtocolVersion version);
+    
+    /// Data version
+    const ProtocolVersion _version;
+    /// Pointer to V3 data
+    const std::unique_ptr<V3> _v3;
+    /// Pointer to V4 data
+    const std::unique_ptr<V4> _v4;
 };
 
 typedef std::unique_ptr<RegistrationData> RegistrationDataPtr;

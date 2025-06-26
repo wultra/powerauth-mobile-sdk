@@ -16,6 +16,7 @@
 
 #include <PowerAuth/Exception.h>
 #include <cc7/crypto/CryptoException.h>
+#include <cc7/json/JsonException.h>
 
 namespace powerAuth {
 
@@ -34,6 +35,8 @@ std::string Exception::defaultMessage(ErrorCode error) noexcept
             return "Cryptographic operation failed";
         case EC_InvalidData:
             return "Invalid input data";
+        case EC_BiometryNotAllowed:
+            return "Biometry not configured";
         case EC_NotAllowed:
             return "Operation is not allowed in object's state";
         case EC_InternalError:
@@ -53,6 +56,8 @@ static ErrorCode inspectErrorCode(std::exception_ptr e, bool& no_wrap_needed)
     } catch (Exception & e) {
         no_wrap_needed = true;
         return e.error();
+    } catch (cc7::json::JsonException & e) {
+        return EC_InvalidData;
     } catch (cc7::crypto::UnsupportedAlgorithm & e) {
         return EC_InternalError;
     } catch (cc7::crypto::InternalError & e) {

@@ -83,6 +83,10 @@ public:
      */
     bool isEqualToPassword(const Password & p) const;
     
+    /**
+     Convert this object into ByteArray with plaintext password.
+     */
+    operator cc7::ByteArray () const;
     
     // MARK: - Mutable operations -
     
@@ -171,5 +175,7 @@ private:
      */
     void inplaceXor(size_t begin);
 };
+
+typedef std::shared_ptr<Password> PasswordPtr;
 
 } // namespace powerAuth

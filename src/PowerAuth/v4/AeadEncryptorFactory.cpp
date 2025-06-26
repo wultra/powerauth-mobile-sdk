@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-#include "HybridSignature.h"
+
+#include "AeadEncryptorFactory.h"
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
-// TODO: ...
-
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth
 

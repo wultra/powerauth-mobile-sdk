@@ -17,27 +17,33 @@
 #pragma once
 
 #include <PowerAuth/Request.h>
-#include <PowerAuth/Authentication.h>
+#include <PowerAuth/Credentials.h>
 #include "EndpointSpec.h"
 
 namespace powerAuth {
 
-class CoreObjects;
-class Authentication;
+class Context;
+class Credentials;
 
 class RequestBuilder
 {
 public:
-    RequestBuilder(const EndpointSpec& endpoint);
+    RequestBuilder(Context& context, const EndpointSpec& endpoint);
     
-    RequestBuilder& withMethod(const std::string& method);
-    RequestBuilder& withPayload(const cc7::json::JsonValue& json_payload);
-    RequestBuilder& withAuthentication();
+    RequestBuilder& withJson(const cc7::json::JsonValue& json_payload);
+    RequestBuilder& withBody(const cc7::ByteRange& body);
+    RequestBuilder& withHeaders(const std::vector<HttpHeader>& headers);
+    RequestBuilder& withAuthentication(const CredentialsPtr& authentication);
     
     RequestBuilder& withResponseCallback(ResponseCallback callback);
     RequestBuilder& withCancelCallback(CancelCallback callback);
     
+    RequestPtr build();
     
+private:
+    Context& _context;
+    RequestPtr _request;
+    bool _has_body;
 };
 
 } // namespace powerAuth

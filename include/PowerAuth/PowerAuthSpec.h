@@ -18,6 +18,7 @@
 
 #include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/Algorithms.h>
+#include <cc7/jwt/JwtKey.h>
 
 namespace powerAuth {
 
@@ -40,8 +41,11 @@ public:
         /// - SharedSecret: ECDHE with P384 + ML-KEM-768
         EC_P384_ML_L3
     };
-        
+    
+    typedef std::pair<std::string, std::string> AlgorithmPair;
+    
     bool isLegacy() const noexcept;
+    bool isHybrid() const noexcept;
     bool isActivationSupported() const noexcept;
 
     ProtocolVersion protocolVersion() const noexcept;
@@ -50,6 +54,11 @@ public:
     const std::string& algorithmName() const noexcept;
 
     SharedSecret::Algorithm sharedSecret() const;
+    
+    const AlgorithmPair& getSignatureAlgorithms() const noexcept;
+    const AlgorithmPair& getSigningKeyPairAlgorithms() const noexcept;
+    
+    const cc7::crypto::KeyPairFactoryPtr getSigningKeyPairFactory() const;
         
     static PowerAuthSpec const * const specForAlgorithm(Algorithm algorithm);
     static PowerAuthSpec const * const specForAlgorithmId(cc7::byte algorithm);
@@ -59,12 +68,16 @@ private:
     PowerAuthSpec(Algorithm algorithm,
                   ProtocolVersion version,
                   const std::string& name,
-                  SharedSecretSpecPtr sharedSecret);
+                  SharedSecretSpecPtr sharedSecret,
+                  AlgorithmPair signature_algorithms,
+                  AlgorithmPair signing_key_pair_algorithms);
     
     Algorithm _algorithm;
     ProtocolVersion _protocol_version;
     std::string _name;
     SharedSecretSpecPtr _shared_secret;
+    AlgorithmPair _signature_algorithms;
+    AlgorithmPair _signing_key_pair_algorithms;
     
     static const PowerAuthSpec spec_LEGACY_P256;
     static const PowerAuthSpec spec_EC_P384;

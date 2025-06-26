@@ -18,6 +18,48 @@
 
 namespace powerAuth {
 
+RegistrationDataPtr RegistrationData::create(ProtocolVersion version)
+{
+    return std::unique_ptr<RegistrationData>(new RegistrationData(version));
+}
 
+RegistrationData::RegistrationData(ProtocolVersion version) :
+    _version(version),
+    _v3(std::unique_ptr<V3>(version == Version_V3 ? new V3() : nullptr)),
+    _v4(std::unique_ptr<V4>(version == Version_V4 ? new V4() : nullptr))
+{
+}
+
+RegistrationData::V4& RegistrationData::v4()
+{
+    if (_v4) {
+        return *_v4;
+    }
+    throw Exception(EC_NotAllowed, "V4 data not available");
+}
+
+const RegistrationData::V4& RegistrationData::v4() const
+{
+    if (_v4) {
+        return *_v4;
+    }
+    throw Exception(EC_NotAllowed, "V4 data not available");
+}
+
+RegistrationData::V3& RegistrationData::v3()
+{
+    if (_v3) {
+        return *_v3;
+    }
+    throw Exception(EC_NotAllowed, "V3 data not available");
+}
+
+const RegistrationData::V3& RegistrationData::v3() const
+{
+    if (_v3) {
+        return *_v3;
+    }
+    throw Exception(EC_NotAllowed, "V3 data not available");
+}
 
 } // namespace powerAuth

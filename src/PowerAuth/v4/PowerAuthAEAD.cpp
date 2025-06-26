@@ -23,15 +23,12 @@ using namespace cc7;
 using namespace cc7::crypto;
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 const std::string PowerAuthAEAD::ALG_NAME      = "PA4AEAD";
 const std::string PowerAuthAEAD::MAC_CUSTOM    = "PA4MAC-AEAD";
 const std::string PowerAuthAEAD::KEY_ENC_LABEL = "aead/enc";
 const std::string PowerAuthAEAD::KEY_MAC_LABEL = "aead/mac";
-
-const size_t PowerAuthAEAD::NONCE_SIZE = 12;
-const size_t PowerAuthAEAD::TAG_SIZE   = 32;
 
 const ParameterList PowerAuthAEAD::MAC_PARAMS {
     { MAC_PARAM_CUSTOM_STRING, Parameter::ref(MAC_CUSTOM) },
@@ -130,5 +127,5 @@ cc7::crypto::Parameter PowerAuthAEAD::getParameter(int param_id) const
 }
 
 
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth

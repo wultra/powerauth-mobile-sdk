@@ -135,6 +135,10 @@ bool Password::isEqualToPassword(const Password & p) const
     return passwordData() == p.passwordData();
 }
 
+Password::operator cc7::ByteArray() const
+{
+    return passwordData();
+}
 
 // MARK: - Mutable operations -
 

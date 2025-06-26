@@ -21,11 +21,12 @@
 namespace powerAuth {
 
 // Forward declaration of private types
-namespace crypto
+namespace v4
 {
     class PowerAuthKDF;
     class PowerAuthPassKDF;
     class PowerAuthAEAD;
+    class PowerAuthUKE;
     class HybridKeyPairFactory;
     class HybridSignature;
 }
@@ -106,14 +107,19 @@ public:
         
         // Protocol specific
         
-        const crypto::PowerAuthKDF & kdf() const
+        const v4::PowerAuthKDF & kdf() const
         {
             return *pointers.powerAuth_KDF;
         }
         
-        const crypto::PowerAuthPassKDF & pbkdf() const
+        const v4::PowerAuthPassKDF & pbkdf() const
         {
             return *pointers.powerAuth_PBKDF;
+        }
+        
+        const v4::PowerAuthUKE & uke() const
+        {
+            return *pointers.powerAuth_UKE;
         }
         
         const cc7::crypto::AEAD & aead() const
@@ -142,8 +148,9 @@ public:
             cc7::crypto::MessageDigestPtr hash_SHA3_256;
             cc7::crypto::MACPtr mac_KMAC_256;
             
-            std::shared_ptr<crypto::PowerAuthKDF> powerAuth_KDF;
-            std::shared_ptr<crypto::PowerAuthPassKDF> powerAuth_PBKDF;
+            std::shared_ptr<v4::PowerAuthKDF> powerAuth_KDF;
+            std::shared_ptr<v4::PowerAuthPassKDF> powerAuth_PBKDF;
+            std::shared_ptr<v4::PowerAuthUKE> powerAuth_UKE;
             cc7::crypto::AEADPtr powerAuth_AEAD;
         };
         

@@ -32,6 +32,7 @@ using namespace cc7;
 @implementation PowerAuthCoreTestsWrapper
 {
     tests::TestManager * _manager;
+    BOOL _dump_immediately;
 }
 
 - (void) dealloc
@@ -42,9 +43,11 @@ using namespace cc7;
 
 - (void) setUp
 {
+    _dump_immediately = YES;
     _manager = tests::TestManager::createDefaultManager();
     _manager->addUnitTestList(powerAuthTests::GetPowerAuthTestCreationInfoList());
-    _manager->tl().setDumpToSystemLogEnabled(true);
+    _manager->tl().setDumpToSystemLogEnabled(_dump_immediately);
+    _manager->tl().setDumpIncidentToSystemLogEnabled(!_dump_immediately);
     _manager->setLogCapturingEnabled(true);
 }
 
@@ -70,9 +73,10 @@ using namespace cc7;
     if (!result) {
         NSLog(@"Incidents:\n%@", [NSString stringWithUTF8String:log_data.incidents.c_str()]);
     }
-    NSLog(@"Full test log\n");
-    _manager->tl().printLog();
-
+    if (!_dump_immediately) {
+        NSLog(@"Full test log\n");
+        _manager->tl().printLog();
+    }
     return result;
 }
 

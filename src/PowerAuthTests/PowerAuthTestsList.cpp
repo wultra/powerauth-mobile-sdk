@@ -27,15 +27,20 @@ cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
     // High level objects
     CC7_ADD_UNIT_TEST(ConfigurationTests, list);
     CC7_ADD_UNIT_TEST(PasswordTests, list);
-    CC7_ADD_UNIT_TEST(AuthenticationTests, list);
+    CC7_ADD_UNIT_TEST(CredentialsTests, list);
     CC7_ADD_UNIT_TEST(TimeServiceTests, list);
     CC7_ADD_UNIT_TEST(pa2OtpUtilTests, list);
+    
+    // Internal objets
+    CC7_ADD_UNIT_TEST(RequestBuilderTests, list);
     
     // Crypto tests
     // v4
     CC7_ADD_UNIT_TEST(PowerAuthKDFTests, list);
     CC7_ADD_UNIT_TEST(PowerAuthAEADTests, list);
     CC7_ADD_UNIT_TEST(SharedSecretTests, list);
+    CC7_ADD_UNIT_TEST(HybridKeyPairTests, list);
+    CC7_ADD_UNIT_TEST(KeyProviderTests, list);
     // legacy
     CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
     CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);

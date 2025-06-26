@@ -18,6 +18,10 @@
 
 namespace powerAuth {
 
+SessionData::SessionData()
+{
+}
+
 ProtocolVersion SessionData::getProtocolVersion() const noexcept
 {
     if (_pd) {
@@ -38,10 +42,20 @@ void SessionData::setRegistrationData(RegistrationDataPtr &ptr)
     _pd = nullptr;
 }
 
+bool SessionData::hasRegistrationData() const noexcept
+{
+    return _rd != nullptr;
+}
+
 void SessionData::setPersistentData(PersistentDataPtr &ptr)
 {
     _rd = nullptr;
     _pd = std::move(ptr);
+}
+
+bool SessionData::hasPersistentData() const noexcept
+{
+    return _pd != nullptr;
 }
 
 void SessionData::resetSessionData()

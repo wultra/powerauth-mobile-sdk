@@ -18,7 +18,7 @@
 #include <PowerAuth/OtpUtil.h>
 #include <cc7/Base64.h>
 #include <cc7/Base32.h>
-#include "crypto/CRC16.h"
+#include "common/CRC16.h"
 
 namespace powerAuth {
     
@@ -107,7 +107,7 @@ bool OtpUtil::validateActivationCode(const std::string &code)
         return false;
     }
     // Finally, validate CRC-16 checksum
-    return crypto::CRC16_Validate(code_bytes);
+    return common::CRC16_Validate(code_bytes);
 }
 
 

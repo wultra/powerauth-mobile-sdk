@@ -51,7 +51,7 @@ public:
             ccstAssertEqual("EC_P384", client_request.algorithm);
             ccstAssertFalse(client_request.ecdhe.empty());
             ccstAssertTrue(client_request.mlkem.empty());
-    
+                
             auto resp = algorithm->generateResponseCryptogram(client_request);
             auto server_response = resp.first;
             auto server_ss = resp.second;
@@ -67,6 +67,24 @@ public:
             auto deserialized_ctx = algorithm->deserializeContext(serialized_ctx);
             auto client_ss_2 = algorithm->computeSharedSecret(deserialized_ctx, server_response);
             ccstAssertEqual(client_ss, client_ss_2);
+            
+            // JSON convertors
+            // request
+            auto client_req_json = client_request.toJson();
+            ccstAssertEqual(client_req_json["algorithm"].asString(), "EC_P384");
+            ccstAssertEqual(client_req_json["ecdhe"].asString(), client_request.ecdhe);
+            ccstAssertEqual(2, client_req_json.asObject().size());
+            auto server_req_json = SharedSecretRequest::fromJson(client_req_json);
+            ccstAssertEqual(client_request.algorithm, server_req_json.algorithm);
+            ccstAssertEqual(client_request.ecdhe, server_req_json.ecdhe);
+            ccstAssertEqual(client_request.mlkem, server_req_json.mlkem);
+            // response
+            auto server_res_json = server_response.toJson();
+            ccstAssertEqual(server_res_json["ecdhe"].asString(), server_response.ecdhe);
+            ccstAssertEqual(1, server_res_json.asObject().size());
+            auto client_res_json = SharedSecretResponse::fromJson(server_res_json);
+            ccstAssertEqual(server_response.ecdhe, client_res_json.ecdhe);
+            ccstAssertEqual(server_response.mlkem, client_res_json.mlkem);
         }
     }
             
@@ -96,6 +114,26 @@ public:
             auto deserialized_ctx = algorithm->deserializeContext(serialized_ctx);
             auto client_ss_2 = algorithm->computeSharedSecret(deserialized_ctx, server_response);
             ccstAssertEqual(client_ss, client_ss_2);
+            
+            // JSON convertors
+            // request
+            auto client_req_json = client_request.toJson();
+            ccstAssertEqual(client_req_json["algorithm"].asString(), "EC_P384_ML_L3");
+            ccstAssertEqual(client_req_json["ecdhe"].asString(), client_request.ecdhe);
+            ccstAssertEqual(client_req_json["mlkem"].asString(), client_request.mlkem);
+            ccstAssertEqual(3, client_req_json.asObject().size());
+            auto server_req_json = SharedSecretRequest::fromJson(client_req_json);
+            ccstAssertEqual(client_request.algorithm, server_req_json.algorithm);
+            ccstAssertEqual(client_request.ecdhe, server_req_json.ecdhe);
+            ccstAssertEqual(client_request.mlkem, server_req_json.mlkem);
+            // response
+            auto server_res_json = server_response.toJson();
+            ccstAssertEqual(server_res_json["ecdhe"].asString(), server_response.ecdhe);
+            ccstAssertEqual(server_res_json["mlkem"].asString(), server_response.mlkem);
+            ccstAssertEqual(2, server_res_json.asObject().size());
+            auto client_res_json = SharedSecretResponse::fromJson(server_res_json);
+            ccstAssertEqual(server_response.ecdhe, client_res_json.ecdhe);
+            ccstAssertEqual(server_response.mlkem, client_res_json.mlkem);
         }
     }
     

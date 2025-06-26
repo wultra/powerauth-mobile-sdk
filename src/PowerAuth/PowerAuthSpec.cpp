@@ -16,8 +16,8 @@
 
 #include <PowerAuth/PowerAuthSpec.h>
 
-#include "crypto/HybridKeyPair.h"
-#include "crypto/HybridSignature.h"
+#include "v4/HybridKeyPair.h"
+#include "v4/HybridSignature.h"
 
 namespace powerAuth {
 
@@ -25,21 +25,27 @@ const PowerAuthSpec PowerAuthSpec::spec_LEGACY_P256 {
     PowerAuthSpec::LEGACY_P256,
     Version_V3,
     "LEGACY",
-    nullptr
+    nullptr,
+    { "ECDSA-SHA-256", "" },
+    { "P-256", "" }
 };
 
 const PowerAuthSpec PowerAuthSpec::spec_EC_P384 {
     PowerAuthSpec::EC_P384,
     Version_V4,
     "EC_P384",
-    SharedSecret::specForAlgorithm(SharedSecret::EC_P384)
+    SharedSecret::specForAlgorithm(SharedSecret::EC_P384),
+    { "ECDSA-SHA3-384", "" },
+    { "P-384", "" }
 };
 
 const PowerAuthSpec PowerAuthSpec::spec_EC_P384_ML_L3 {
     PowerAuthSpec::EC_P384_ML_L3,
     Version_V4,
     "EC_P384_ML_L3",
-    SharedSecret::specForAlgorithm(SharedSecret::EC_P384_ML_L3)
+    SharedSecret::specForAlgorithm(SharedSecret::EC_P384_ML_L3),
+    { "ECDSA-SHA3-384", "ML-DSA-65" },
+    { "P-384", "ML-DSA-65" }
 };
 
 PowerAuthSpecPtr PowerAuthSpec::specForAlgorithm(Algorithm algorithm)
@@ -48,7 +54,7 @@ PowerAuthSpecPtr PowerAuthSpec::specForAlgorithm(Algorithm algorithm)
         case EC_P384:       return &spec_EC_P384;
         case EC_P384_ML_L3: return &spec_EC_P384_ML_L3;
         case LEGACY_P256:   return &spec_LEGACY_P256;
-        default:            return nullptr;
+        default: return nullptr;
     }
 }
 
@@ -60,17 +66,29 @@ PowerAuthSpecPtr PowerAuthSpec::specForAlgorithmId(cc7::byte algorithm)
 PowerAuthSpec::PowerAuthSpec(Algorithm algorithm,
                              ProtocolVersion version,
                              const std::string& name,
-                             SharedSecretSpecPtr sharedSecret) :
+                             SharedSecretSpecPtr sharedSecret,
+                             AlgorithmPair signature_algorithms,
+                             AlgorithmPair signing_key_pair_algorithms) :
     _algorithm(algorithm),
     _protocol_version(version),
     _name(name),
-    _shared_secret(sharedSecret)
+    _shared_secret(sharedSecret),
+    _signature_algorithms(signature_algorithms),
+    _signing_key_pair_algorithms(signing_key_pair_algorithms)
 {
 }
 
 bool PowerAuthSpec::isLegacy() const noexcept
 {
     return _protocol_version < Version_V4;
+}
+
+bool PowerAuthSpec::isHybrid() const noexcept
+{
+    if (isLegacy()) {
+        return false;
+    }
+    return !_signature_algorithms.second.empty();;
 }
 
 bool PowerAuthSpec::isActivationSupported() const noexcept
@@ -106,6 +124,25 @@ SharedSecret::Algorithm PowerAuthSpec::sharedSecret() const
         throw Exception(EC_InternalError, "SharedSecret is not available");
     }
     return _shared_secret->identifier;
+}
+
+const PowerAuthSpec::AlgorithmPair& PowerAuthSpec::getSignatureAlgorithms() const noexcept
+{
+    return _signature_algorithms;
+}
+
+const PowerAuthSpec::AlgorithmPair& PowerAuthSpec::getSigningKeyPairAlgorithms() const noexcept
+{
+    return _signing_key_pair_algorithms;
+}
+
+const cc7::crypto::KeyPairFactoryPtr PowerAuthSpec::getSigningKeyPairFactory() const
+{
+    if (_protocol_version == Version_V4) {
+        return v4::HybridKeyPairFactory::getInstance(_signing_key_pair_algorithms.first,
+                                                     _signing_key_pair_algorithms.second);
+    }
+    return cc7::crypto::KeyPairFactory::getInstance(_signing_key_pair_algorithms.first);
 }
 
 } // namespace powerAuth

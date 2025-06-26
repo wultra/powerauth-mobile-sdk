@@ -17,30 +17,34 @@
 #pragma once
 
 #include <PowerAuth/Types.h>
-#include <PowerAuth/Authentication.h>
+#include <PowerAuth/Credentials.h>
 
 namespace powerAuth {
 
 struct AuthHeaderRequestData
 {
-    std::string httpMethod;
-    std::string uriIdentifier;
-    cc7::ByteArray body;
+    std::string_view httpMethod;
+    std::string_view uriIdentifier;
+    cc7::ByteRange body;
 };
 
 struct OfflineCodeRequestData
 {
-    std::string uriIdentifier;
-    cc7::ByteArray body;
-    std::string offlineNonce;
+    std::string_view uriIdentifier;
+    cc7::ByteRange body;
+    std::string_view offlineNonce;
     size_t offlineSignatureLength = 8;
 };
 
-class AuthHeaderCalculator
+class IAuthHeaderCalculator
 {
 public:
-    virtual AuthenticationHeaderData calculateOnlineAuthenticationHeader(const Authentication& auth, const AuthHeaderRequestData& request) = 0;
-    virtual std::string calculateOfflineAuthenticationCode(const Authentication& auth, const OfflineCodeRequestData& request) = 0;
+    virtual ~IAuthHeaderCalculator() = default;
+    
+    virtual HttpHeader calculateOnlineAuthenticationHeader(const Credentials& auth, const AuthHeaderRequestData& request) = 0;
+    virtual std::string calculateOfflineAuthenticationCode(const Credentials& auth, const OfflineCodeRequestData& request) = 0;
 };
+
+typedef std::shared_ptr<IAuthHeaderCalculator> IAuthHeaderCalculatorPtr;
 
 } // namespace powerAuth

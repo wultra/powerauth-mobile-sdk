@@ -20,11 +20,12 @@
 // Required by "nice code generator"
 #include <cc7/Base32.h>
 #include <cc7/Endian.h>
-#include "../PowerAuth/crypto/CRC16.h"
+#include "../PowerAuth/common/CRC16.h"
 
 using namespace cc7;
 using namespace cc7::tests;
 using namespace powerAuth;
+using namespace powerAuth::common;
 
 namespace powerAuthTests {
 
@@ -211,7 +212,7 @@ public:
         for (char c: chars) {
             std::string nice_base(16, c);
             ByteArray nice_bytes = cc7::FromBase32String(nice_base, false);
-            auto check_sum = cc7::ToBigEndian(crypto::CRC16_Calculate(nice_bytes));
+            auto check_sum = cc7::ToBigEndian(CRC16_Calculate(nice_bytes));
             nice_bytes.append(cc7::MakeRange(check_sum));
             auto nice_code = cc7::ToBase32String(nice_bytes, false);
             auto nice_final_code = nice_code.substr(0, 5) + "-" + nice_code.substr(5, 5) + "-" +

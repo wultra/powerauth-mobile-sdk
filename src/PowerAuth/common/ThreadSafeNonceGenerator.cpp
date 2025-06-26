@@ -20,7 +20,7 @@ using namespace cc7;
 using namespace cc7::crypto;
 
 namespace powerAuth {
-namespace crypto {
+namespace common {
 
 // MARK: - ThreadSafeNonceGenerator
 
@@ -81,5 +81,5 @@ void ThreadSafeNonceGenerator::resetSavedState()
     _generator->resetSavedState();
 }
 
-} // namespace crypto
+} // namespace common
 } // namespace powerAuth

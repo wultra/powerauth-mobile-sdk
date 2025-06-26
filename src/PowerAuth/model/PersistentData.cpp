@@ -96,6 +96,11 @@ const PersistentData::V4& PersistentData::v4() const
     return *_v4;
 }
 
+bool PersistentData::isModified() const noexcept
+{
+    return _modified;
+}
+
 // Serialization
 
 static const cc7::byte PD_TAG        = 'P';
@@ -169,8 +174,8 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeString  (v4.activationId);
     
     // Hash counter
-    writer.writeByte    (v4.signatureCounterByte);
-    writer.writeData    (v4.signatureCounterData);
+    writer.writeByte    (v4.authCodeCounterByte);
+    writer.writeData    (v4.authCodeCounterData);
 
     // Fctor keys
     writer.writeData    (v4.cPossessionKey);
@@ -184,8 +189,8 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.writeData    (v4.cKdkEncryption);
     
     // public and private keys
-    writer.writeData    (v4.cDevicePublicKey);
-    writer.writeData    (v4.cServerPublicKey);
+    writer.writeData    (v4.devicePublicKey);
+    writer.writeData    (v4.serverPublicKey);
     writer.writeData    (v4.cDevicePrivateKey);
     
     writer.closeVersion();
@@ -199,8 +204,8 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     result = result && reader.readString    (v4.activationId);
 
     // Serialize hash counter
-    result = result && reader.readByte      (v4.signatureCounterByte);
-    result = result && reader.readData      (v4.signatureCounterData);
+    result = result && reader.readByte      (v4.authCodeCounterByte);
+    result = result && reader.readData      (v4.authCodeCounterData);
     // Factor keys
     result = result && reader.readData      (v4.cPossessionKey);
     result = result && reader.readData      (v4.cKnowledgeKey);
@@ -213,8 +218,8 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
     result = result && reader.readData      (v4.cKdkEncryption);
     
     // public and private keys
-    result = result && reader.readData      (v4.cDevicePublicKey);
-    result = result && reader.readData      (v4.cServerPublicKey);
+    result = result && reader.readData      (v4.devicePublicKey);
+    result = result && reader.readData      (v4.serverPublicKey);
     result = result && reader.readData      (v4.cDevicePrivateKey);
 
     return result &&
@@ -242,18 +247,18 @@ bool PersistentData::validateV4(const V4 &v4)
         // selected algorithm
         spec && !spec->isLegacy() &&
         _IsSet(v4.activationId) &&
-        _IsSet(v4.signatureCounterData, v4::HASH_COUNTER_SIZE) &&
+        _IsSet(v4.authCodeCounterData, v4::HASH_COUNTER_SIZE) &&
         // factor keys
-        _IsSet(v4.cPossessionKey, v4::FACTOR_KEY_SIZE) &&
-        _IsSet(v4.cKnowledgeKey, v4::FACTOR_KEY_SIZE) &&
-        _IsEmptyOrSet(v4.cBiometryKey, v4::FACTOR_KEY_SIZE) &&
+        _IsSet(v4.cPossessionKey, v4::UKE_PROTECTED_KEY_SIZE) &&
+        _IsSet(v4.cKnowledgeKey, v4::UKE_PROTECTED_KEY_SIZE) &&
+        _IsEmptyOrSet(v4.cBiometryKey, v4::UKE_PROTECTED_KEY_SIZE) &&
         _IsSet(v4.passwordSalt, v4::PASSKDF_SALT_SIZE) &&
         // auxiliary keys
-        _IsSet(v4.cKdkUtility, v4::FACTOR_KEY_SIZE) &&
-        _IsSet(v4.cKdkEncryption, v4::FACTOR_KEY_SIZE) &&
+        _IsSet(v4.cKdkUtility, v4::AEAD_PROTECTED_KEY_SIZE) &&
+        _IsSet(v4.cKdkEncryption, v4::AEAD_PROTECTED_KEY_SIZE) &&
         // public & private keys
-        _IsSet(v4.cDevicePublicKey) &&
-        _IsSet(v4.cServerPublicKey) &&
+        _IsSet(v4.devicePublicKey) &&
+        _IsSet(v4.serverPublicKey) &&
         _IsSet(v4.cDevicePrivateKey);
 }
 
@@ -264,7 +269,7 @@ void PersistentData::serializeV3(cc7::utils::DataWriter& writer, const V3& v3) c
     writer.openVersion(PD_TAG, PD_VERSION_V5);
     
     // Serialize hash data or counter, depending on data version
-    writer.writeData    (v3.signatureCounterData);
+    writer.writeData    (v3.authCodeCounterData);
     writer.writeString  (v3.activationId);
     writer.writeU32     (v3.passwordIterations);
     writer.writeData    (v3.passwordSalt);
@@ -286,7 +291,7 @@ void PersistentData::serializeV3(cc7::utils::DataWriter& writer, const V3& v3) c
     writer.writeCount(0);
     
     // Counter byte (PD v5)
-    writer.writeByte    (v3.signatureCounterByte);
+    writer.writeByte    (v3.authCodeCounterByte);
     
     writer.closeVersion();
 }
@@ -295,7 +300,7 @@ bool PersistentData::deserializeV3(cc7::utils::DataReader &reader, V3 &v3)
 {
     bool result;
     // Deserialize hash data or counter, depending on version stored in the header.
-    result =           reader.readData      (v3.signatureCounterData, v3::FACTOR_KEY_SIZE);
+    result =           reader.readData      (v3.authCodeCounterData, v3::FACTOR_KEY_SIZE);
     
     result = result && reader.readString    (v3.activationId);
     result = result && reader.readU32       (v3.passwordIterations);
@@ -319,7 +324,7 @@ bool PersistentData::deserializeV3(cc7::utils::DataReader &reader, V3 &v3)
     }
     
     // signature counter byte (PD v5)
-    result = result && reader.readByte(v3.signatureCounterByte);
+    result = result && reader.readByte(v3.authCodeCounterByte);
     
     // close versioned section & validate data
     return result &&

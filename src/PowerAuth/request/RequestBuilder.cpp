@@ -15,8 +15,79 @@
  */
 
 #include "RequestBuilder.h"
+#include "../Context.h"
 
 namespace powerAuth {
 
+RequestBuilder::RequestBuilder(Context& context, const EndpointSpec& endpoint) :
+    _context(context),
+    _request(std::unique_ptr<Request>(new Request(context.getSharedMutexPtr(), endpoint))),
+    _has_body(false)
+{
+}
+
+RequestBuilder& RequestBuilder::withJson(const cc7::json::JsonValue& json_payload)
+{
+    if (_has_body) {
+        throw Exception(EC_WrongParameter, "Body is already set");
+    }
+    _request->_request_json = json_payload;
+    _has_body = true;
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withBody(const cc7::ByteRange& body)
+{
+    if (_has_body) {
+        throw Exception(EC_WrongParameter, "Body is already set");
+    }
+    _request->_request_body = body;
+    _has_body = true;
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withHeaders(const std::vector<HttpHeader> &headers)
+{
+    _request->_request_headers.insert(_request->_request_headers.end(), headers.begin(), headers.end());
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withAuthentication(const CredentialsPtr &authentication)
+{
+    if (!_request->_endpoint.isAuthenticated()) {
+        throw Exception(EC_WrongParameter, "Endpoint is not authenticated");
+    }
+    _request->_authentication = authentication;
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withResponseCallback(ResponseCallback callback)
+{
+    _request->_on_response = callback;
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withCancelCallback(CancelCallback callback)
+{
+    _request->_on_cancel = callback;
+    return *this;
+}
+
+RequestPtr RequestBuilder::build()
+{
+    if (!_has_body) {
+        _request->_request_json = cc7::json::JsonValue::object();
+    }
+    if (_request->isAuthenticated()) {
+        if (_request->_authentication == nullptr) {
+            throw Exception(EC_InternalError, "Authentication object is missing");
+        }
+        _request->_authenticator = _context.getAuthHeaderCalculatorPtr();
+    }
+    if (_request->_endpoint.isEncrypted()) {
+        _request->_encryptor = _context.encryptorFactory().getClientEncryptor(_request->_endpoint.encryptorId);
+    }
+    return std::move(_request);
+}
 
 } // namespace powerAuth

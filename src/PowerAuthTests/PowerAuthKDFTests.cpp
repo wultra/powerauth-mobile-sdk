@@ -17,7 +17,7 @@
 #include <cc7tests/CC7Tests.h>
 #include <cc7/HexString.h>
 #include <PowerAuth/Algorithms.h>
-#include "../PowerAuth/crypto/PowerAuthKDF.h"
+#include "../PowerAuth/v4/PowerAuthKDF.h"
 
 using namespace cc7;
 using namespace cc7::tests;

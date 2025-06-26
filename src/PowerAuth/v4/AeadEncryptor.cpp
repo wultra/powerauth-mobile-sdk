@@ -20,7 +20,7 @@
 #include <PowerAuth/ByteUtils.h>
 
 #include "../HttpHeaderHelper.h"
-#include "../crypto/PowerAuthAEAD.h"
+#include "../v4/PowerAuthAEAD.h"
 
 using namespace cc7;
 using namespace cc7::crypto;
@@ -50,7 +50,7 @@ AeadClientEncryptor::AeadClientEncryptor(EncryptorParametersPtr& parameters,
     if (!_parameters || !_secrets || !_time_service) {
         throw Exception(EC_InternalError, "AeadClientEncryptor: Missing required parameter");
     }
-    if (_nonce.size() != crypto::PowerAuthAEAD::NONCE_SIZE*2) {
+    if (_nonce.size() != PowerAuthAEAD::NONCE_SIZE*2) {
         throw Exception(EC_InternalError, "AeadClientEncryptor: Wrong request nonce size");
     }
     if (requestNonce() == responseNonce()) {
@@ -148,7 +148,7 @@ ByteArray AeadClientEncryptor::getAAD(Timestamp timestamp) const
     auto associated_data = _parameters->buildAssociatedData();
     return ConcatByteRanges({
         associated_data,                                // ASSOCIATED_DATA
-        utils::ByteUtils_Join({
+        utils::ByteUtils_ConcatWithSizes({
             MakeRange(ToBigEndian((U64)timestamp)),     // TIMESTAMP_BYTES
             _nonce,                                     // NONCE
             _secrets->sharedInfo2                       // SHARED_INFO_2
@@ -158,12 +158,12 @@ ByteArray AeadClientEncryptor::getAAD(Timestamp timestamp) const
 
 ByteRange AeadClientEncryptor::requestNonce() const
 {
-    return _nonce.byteRange().subRangeTo(crypto::PowerAuthAEAD::NONCE_SIZE);
+    return _nonce.byteRange().subRangeTo(PowerAuthAEAD::NONCE_SIZE);
 }
 
 ByteRange AeadClientEncryptor::responseNonce() const
 {
-    return _nonce.byteRange().subRangeFrom(crypto::PowerAuthAEAD::NONCE_SIZE);
+    return _nonce.byteRange().subRangeFrom(PowerAuthAEAD::NONCE_SIZE);
 }
 
 
@@ -217,7 +217,7 @@ ByteArray AeadServerEncryptor::decryptRequest(const EncryptedRequest &request)
     if (temporary_key_id != _parameters->temporaryKeyId) {
         throw Exception(EC_WrongParameter, "Wrong temporary key ID");
     }
-    if (nonce.size() != 2 * crypto::PowerAuthAEAD::NONCE_SIZE) {
+    if (nonce.size() != 2 * PowerAuthAEAD::NONCE_SIZE) {
         throw Exception(EC_InvalidData, "Wrong nonce size");
     }
     _nonce = nonce;
@@ -273,7 +273,7 @@ ByteArray AeadServerEncryptor::getAAD(Timestamp timestamp) const
     auto associated_data = _parameters->buildAssociatedData();
     return ConcatByteRanges({
         associated_data,                                // ASSOCIATED_DATA
-        utils::ByteUtils_Join({
+        utils::ByteUtils_ConcatWithSizes({
             MakeRange(ToBigEndian((U64)timestamp)),     // TIMESTAMP_BYTES
             _nonce,                                     // NONCE
             _secrets->sharedInfo2                       // SHARED_INFO_2
@@ -283,12 +283,12 @@ ByteArray AeadServerEncryptor::getAAD(Timestamp timestamp) const
 
 ByteRange AeadServerEncryptor::requestNonce() const
 {
-    return _nonce.byteRange().subRangeTo(crypto::PowerAuthAEAD::NONCE_SIZE);
+    return _nonce.byteRange().subRangeTo(PowerAuthAEAD::NONCE_SIZE);
 }
 
 ByteRange AeadServerEncryptor::responseNonce() const
 {
-    return _nonce.byteRange().subRangeFrom(crypto::PowerAuthAEAD::NONCE_SIZE);
+    return _nonce.byteRange().subRangeFrom(PowerAuthAEAD::NONCE_SIZE);
 }
 
 } // namespace v4

@@ -26,7 +26,8 @@ struct EndpointSpec
     {
         FL_SERIALIZED           = 1 << 0,
         FL_ALLOWED_IN_UPGRADE   = 1 << 1,
-        FL_SYNCHRONIZE_TIME     = 1 << 2
+        FL_SYNCHRONIZE_TIME     = 1 << 2,
+        FL_NOT_WRAPPED          = 1 << 3,
     };
     ProtocolVersion version;
     std::string localPath;
@@ -34,6 +35,36 @@ struct EndpointSpec
     std::string uriId;
     EncryptorId encryptorId;
     cc7::U32 flags;
+    
+    bool isEncrypted() const noexcept
+    {
+        return encryptorId != EncryptorId::NONE;
+    }
+    
+    bool isAuthenticated() const noexcept
+    {
+        return !uriId.empty();
+    }
+    
+    bool requireSerialQueue() const noexcept
+    {
+        return (flags & FL_SERIALIZED) == FL_SERIALIZED;
+    }
+    
+    bool isAllowedInUpgrade() const noexcept
+    {
+        return (flags & FL_ALLOWED_IN_UPGRADE) == FL_ALLOWED_IN_UPGRADE;
+    }
+    
+    bool requireSynchronizedTime() const noexcept
+    {
+        return (flags & FL_SYNCHRONIZE_TIME) == FL_SYNCHRONIZE_TIME;
+    }
+    
+    bool requireWrappedRequestResponse() const noexcept
+    {
+        return !isEncrypted() && (flags & FL_NOT_WRAPPED) == 0;
+    }
 };
 
 namespace v4 {

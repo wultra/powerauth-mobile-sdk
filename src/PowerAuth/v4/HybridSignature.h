@@ -19,7 +19,7 @@
 #include "HybridKeyPair.h"
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 class HybridSignature : public cc7::crypto::Signature
 {
@@ -36,5 +36,5 @@ public:
     bool verify(const cc7::crypto::PublicKey &public_key, const cc7::ByteRange &signature, const cc7::ByteRange &data, const cc7::crypto::ParameterList &parameters = {}) const override;
 };
 
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth

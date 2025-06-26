@@ -26,6 +26,7 @@ enum ErrorCode
     EC_MissingActivation,
     EC_WrongActivationState,
     EC_WrongParameter,
+    EC_BiometryNotAllowed,
     EC_NotAllowed,
     EC_InvalidData,
     EC_InternalError,

@@ -237,7 +237,7 @@ ByteArray EciesClientEncryptor::decryptResponse(const EncryptedResponse &respons
 ByteArray EciesClientEncryptor::getAAD(Timestamp timestamp, const ByteRange & nonce, const ByteRange& ephemeral_key) const
 {
     auto timestamp_be = ToBigEndian((U64)timestamp);
-    return utils::ByteUtils_Join({
+    return utils::ByteUtils_ConcatWithSizes({
         _secrets->sharedInfo2,
         nonce,
         MakeRange(timestamp_be),

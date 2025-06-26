@@ -21,7 +21,7 @@
 #include <cc7/utils/DataReader.h>
 #include <cc7/utils/DataWriter.h>
 
-#include "crypto/PowerAuthKDF.h"
+#include "v4/PowerAuthKDF.h"
 
 using namespace cc7;
 using namespace cc7::crypto;
@@ -392,6 +392,48 @@ ISharedSecretPtr SharedSecret::getInstance(Algorithm algorithm)
         }
     }
     throw std::logic_error("Unsupported algorithm");
+}
+
+// MARK: - SharedSecretRequest
+
+cc7::json::JsonValue SharedSecretRequest::toJson() const
+{
+    auto object = json::JsonValue::object();
+    object.insert("algorithm", json::JsonValue(algorithm));
+    object.insert("ecdhe", json::JsonValue(ecdhe));
+    if (!mlkem.empty()) {
+        object.insert("mlkem", json::JsonValue(mlkem));
+    }
+    return object;
+}
+
+SharedSecretRequest SharedSecretRequest::fromJson(const cc7::json::JsonValue& value)
+{
+    return {
+        value["algorithm"].asString(),
+        value["ecdhe"].asString(),
+        value.containsValueAtPath("mlkem") ? value["mlkem"].asString() : std::string()
+    };
+}
+
+// MARK: - SharedSecretResponse
+
+cc7::json::JsonValue SharedSecretResponse::toJson() const
+{
+    auto object = json::JsonValue::object();
+    object.insert("ecdhe", json::JsonValue(ecdhe));
+    if (!mlkem.empty()) {
+        object.insert("mlkem", json::JsonValue(mlkem));
+    }
+    return object;
+}
+
+SharedSecretResponse SharedSecretResponse::fromJson(const cc7::json::JsonValue& value)
+{
+    return {
+        value["ecdhe"].asString(),
+        value.containsValueAtPath("mlkem") ? value["mlkem"].asString() : std::string()
+    };
 }
 
 } // powerAuth

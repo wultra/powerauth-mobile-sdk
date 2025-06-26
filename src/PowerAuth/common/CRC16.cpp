@@ -17,7 +17,7 @@
 #include "CRC16.h"
 
 namespace powerAuth {
-namespace crypto {
+namespace common {
 
 static const cc7::U16 s_crc_table[256] =
 {
@@ -75,5 +75,5 @@ bool CRC16_Validate(const cc7::ByteRange & bytes)
     return calculated_value == expected_value;
 }
     
-} // namespace crypto
+} // namespace common
 } // namespace powerAuth

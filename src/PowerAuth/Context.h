@@ -23,37 +23,60 @@
 #include <PowerAuth/KeyProvider.h>
 #include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/PowerAuthSpec.h>
+#include <PowerAuth/AuthHeaderCalculator.h>
+
+#include "model/SessionData.h"
 
 namespace powerAuth {
 
-class CoreObjects {
+class Context {
 public:
     
-    const Configuration& configuration() const;
+    ProtocolVersion protocolVersion() const noexcept;
+    const Configuration& configuration() const noexcept;
+    PowerAuthSpecPtr specification() const noexcept;
 
     TimeService& timeService();
     IEncryptorFactory& encryptorFactory();
     ISharedSecret& sharedSecret();
-
+    IKeyProvider& keyProvider();
+    SessionData& sessionData();
+    cc7::crypto::KeyPairFactory& signingKeyPairFactory();
     
     const SharedMutexPtr getSharedMutexPtr() const noexcept;
     const ConfigurationPtr& getConfigurationPtr() const noexcept;
+    const SessionDataPtr& getSessionDataPtr() const noexcept;
+    
     const TimeServicePtr& getTimeServicePtr() const noexcept;
     const IEncryptorFactoryPtr& getEncryptorFactoryPtr() const noexcept;
     const ISharedSecretPtr& getSharedSecretPtr() const noexcept;
+    const IKeyProviderPtr& getKeyProviderPtr() const noexcept;
     
-    static std::shared_ptr<CoreObjects> getInstance(ConfigurationPtr configuration, ProtocolVersion version);
+    const IAuthHeaderCalculatorPtr& getAuthHeaderCalculatorPtr() const noexcept;
+    const cc7::crypto::KeyPairFactoryPtr& getSigningKeyPairFactoryPtr() const noexcept;
+    
+    static std::shared_ptr<Context> getInstance(PowerAuthSpec::Algorithm algorithm,
+                                                ConfigurationPtr configuration);
     
 private:
-    const ConfigurationPtr _configuration;
     
-    SharedMutexPtr _shared_mutex;
+    Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
+    
+    void createBasicServices(bool initial_setup);
+    
+    mutable SharedMutexPtr _shared_mutex;
+    const ConfigurationPtr _configuration;
+    PowerAuthSpecPtr _specification;
+    SessionDataPtr _session_data;
+    cc7::crypto::KeyPairFactoryPtr _signing_keys_factory;
+    
     TimeServicePtr _time_service;
     IEncryptorFactoryPtr _encryptor_factory;
     ISharedSecretPtr _shared_secret;
+    IKeyProviderPtr _key_provider;
 };
 
-typedef std::shared_ptr<CoreObjects> CoreObjectsPtr;
+typedef std::shared_ptr<Context> ContextPtr;
 
 } // namespace powerAuth
 

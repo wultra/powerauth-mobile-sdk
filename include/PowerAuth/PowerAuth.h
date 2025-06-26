@@ -25,7 +25,7 @@
 #include <PowerAuth/ByteUtils.h>
 #include <PowerAuth/Debug.h>
 
-#include <PowerAuth/Authentication.h>
+#include <PowerAuth/Credentials.h>
 #include <PowerAuth/Password.h>
 #include <PowerAuth/Configuration.h>
 #include <PowerAuth/Encryptor.h>

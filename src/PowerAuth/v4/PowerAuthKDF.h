@@ -19,7 +19,7 @@
 #include <cc7/crypto/Crypto.h>
 
 namespace powerAuth {
-namespace crypto {
+namespace v4 {
 
 class PowerAuthKDF : public cc7::crypto::KeyDerivation
 {
@@ -69,5 +69,5 @@ private:
 typedef std::shared_ptr<PowerAuthKDF> PowerAuthKdfPtr;
 typedef std::shared_ptr<PowerAuthPassKDF> PowerAuthPassKdfPtr;
 
-} // namespace crypto
+} // namespace v4
 } // namespace powerAuth

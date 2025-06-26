@@ -227,18 +227,18 @@ cc7::ByteArray EncryptorParameters::buildAssociatedData() const noexcept
 {
     if (encryptorSpec->isApplicationScoped()) {
         // Application scope
-        return utils::ByteUtils_Join({
-            cc7::MakeRange(protocolVersion),          // VERSION
-            cc7::MakeRange(applicationKey),           // APPLICATION_KEY
-            cc7::MakeRange(temporaryKeyId)            // TEMPORARY_KEY_ID
+        return utils::ByteUtils_ConcatWithSizes({
+            protocolVersion,          // VERSION
+            applicationKey,           // APPLICATION_KEY
+            temporaryKeyId            // TEMPORARY_KEY_ID
         });
     } else {
         // Activation scope
-        return utils::ByteUtils_Join({
-            cc7::MakeRange(protocolVersion),          // VERSION
-            cc7::MakeRange(applicationKey),           // APPLICATION_KEY
-            cc7::MakeRange(activationIdentifier),     // ACTIVATION_ID
-            cc7::MakeRange(temporaryKeyId)            // TEMPORARY_KEY_ID
+        return utils::ByteUtils_ConcatWithSizes({
+            protocolVersion,          // VERSION
+            applicationKey,           // APPLICATION_KEY
+            activationIdentifier,     // ACTIVATION_ID
+            temporaryKeyId            // TEMPORARY_KEY_ID
         });
     }
 }

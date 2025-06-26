@@ -19,7 +19,7 @@
 #include <cc7/ByteRange.h>
 
 namespace powerAuth {
-namespace crypto {
+namespace common {
 /**
  Calculates CRC-16/ARC checksum from given |bytes|
  */
@@ -32,5 +32,5 @@ cc7::U16 CRC16_Calculate(const cc7::ByteRange & bytes);
  */
 bool CRC16_Validate(const cc7::ByteRange & data);
 
-} // namespace crypto
+} // namespace common
 } // namespace powerAuth

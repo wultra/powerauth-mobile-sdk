@@ -103,9 +103,9 @@ public:
         cc7::ByteArray  cKdkEncryption;
                 
         /// Device's public key
-        cc7::ByteArray  devicePublicKey;
+        cc7::ByteArray  cDevicePublicKey;
         /// Server's public key
-        cc7::ByteArray  serverPublicKey;
+        cc7::ByteArray  cServerPublicKey;
         /// Encrypted device's private key.
         cc7::ByteArray  cDevicePrivateKey;
     };

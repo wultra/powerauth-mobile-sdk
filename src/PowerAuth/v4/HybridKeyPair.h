@@ -41,6 +41,10 @@ struct HybridKeySpec
 class HybridKeyPairFactory : public cc7::crypto::KeyPairFactory
 {
 public:
+    
+    using cc7::crypto::KeyPairFactory::newPublicKey;
+    using cc7::crypto::KeyPairFactory::newPrivateKey;
+    
     static std::shared_ptr<HybridKeyPairFactory> getInstance(const std::string & key1_type, const std::string & key2_type);
     
     cc7::crypto::PublicKeyPtr newPublicKey() const override;

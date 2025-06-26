@@ -596,6 +596,7 @@
 		BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ByteUtils.h; sourceTree = "<group>"; };
 		BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ByteUtilsTests.cpp; sourceTree = "<group>"; };
 		BFF21B6D2E0C29BF000BF450 /* ReleasableResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReleasableResource.h; sourceTree = "<group>"; };
+		BFF21B6E2E0D78CC000BF450 /* MemoryCleanupListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MemoryCleanupListener.h; sourceTree = "<group>"; };
 		BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECCTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -761,6 +762,7 @@
 				BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */,
 				BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */,
 				BF14D4552DD1C99000BA7F51 /* SharedSecret.h */,
+				BFF21B6E2E0D78CC000BF450 /* MemoryCleanupListener.h */,
 				BF4D86542DF3747600D32F55 /* Request.h */,
 			);
 			path = PowerAuth;

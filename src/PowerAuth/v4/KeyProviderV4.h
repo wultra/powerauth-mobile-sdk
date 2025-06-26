@@ -27,7 +27,7 @@ class KeyProviderV4 : public IKeyProvider, public std::enable_shared_from_this<K
 {
 public:
     KeyProviderV4(Context& context);
-    
+        
     // IKeyProvider
     
     ProtocolVersion protocolVersion() const noexcept override;
@@ -45,6 +45,13 @@ public:
                                             const cc7::ByteRange &vault_key) override;
     
     void lockSecretKeys(ISecretKeysPtr &secret_keys) override;
+    
+    // MemoryCleanupListener
+    
+    void clearSensitiveData() override;
+    void restoreSensitiveData() override;
+    
+    // Custom methods
 
     void safeReleaseSecretKeys(const SecretKeysV4& secret_keys, cc7::U64 instance_token);
     
@@ -62,6 +69,7 @@ private:
     bool     _sec_key_created;
     cc7::U64 _sec_key_token;
     
+    cc7::ByteArray _local_data_key;
     cc7::crypto::PublicKeyPtr _master_server_public_key;
     cc7::crypto::PublicKeyPtr _device_public_key;
     cc7::crypto::PublicKeyPtr _server_public_key;
@@ -73,6 +81,12 @@ private:
     std::unique_ptr<SecretKeysV4> createSecretKeys();
     std::unique_ptr<PersistentData> createPDFromSecretKeys(SecretKeysV4& secret_keys);
     void updateSessionData(SecretKeysV4& secret_keys);
+    
+    cc7::crypto::PublicKeyPtr decryptPublicKey(const cc7::ByteRange& key_data, const std::string& aead_kc);
+    cc7::ByteArray encryptPublicKey(const cc7::crypto::PublicKey& public_key, const std::string& aead_kc, const std::string& activation_id);
+    void updateKeyLocalData(SecretKeysV4 * secret_keys);
+    
+    cc7::crypto::SymmetricKeyPtr getKekForPublicKey(const std::string& key_context);
 };
 
 } // namespace v4

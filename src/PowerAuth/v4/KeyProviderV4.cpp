@@ -22,6 +22,9 @@ using namespace cc7::crypto;
 namespace powerAuth {
 namespace v4 {
 
+static const std::string KC_DEVICE_PUBLIC_KEY("enc/device-public-key");
+static const std::string KC_SERVER_PUBLIC_KEY("enc/server-public-key");
+
 KeyProviderV4::KeyProviderV4(Context& context) :
     _configuration(context.getConfigurationPtr()),
     _session_data(context.getSessionDataPtr()),
@@ -30,6 +33,21 @@ KeyProviderV4::KeyProviderV4(Context& context) :
     _sec_key_created(false),
     _sec_key_token(1)
 {
+    restoreSensitiveData();
+}
+
+void KeyProviderV4::clearSensitiveData()
+{
+    _device_public_key = nullptr;
+    _server_public_key = nullptr;
+    _local_data_key.secureClear();
+}
+
+void KeyProviderV4::restoreSensitiveData()
+{
+    if (_session_data->hasPersistentData()) {
+        updateKeyLocalData(nullptr);
+    }
 }
 
 ProtocolVersion KeyProviderV4::protocolVersion() const noexcept
@@ -52,9 +70,7 @@ const cc7::crypto::PublicKey& KeyProviderV4::devicePublicKey()
 {
     if (!_device_public_key) {
         if (_session_data->hasPersistentData()) {
-            _device_public_key = getKeyPairFactory()
-                .cc7::crypto::KeyPairFactory::newPublicKey(_session_data->persistentData().v4().devicePublicKey,
-                                                           cc7::crypto::KEY_FORMAT_DEFAULT);
+            _device_public_key = decryptPublicKey(_session_data->persistentData().v4().cDevicePublicKey, KC_DEVICE_PUBLIC_KEY);
         } else if (_session_data->hasRegistrationData()) {
             _device_public_key = _session_data->registrationData().v4().deviceKeyPair->getPublicKeyPtr();
         } else {
@@ -68,9 +84,7 @@ const cc7::crypto::PublicKey& KeyProviderV4::serverPublicKey()
 {
     if (!_server_public_key) {
         if (_session_data->hasPersistentData()) {
-            _server_public_key = getKeyPairFactory()
-                .cc7::crypto::KeyPairFactory::newPublicKey(_session_data->persistentData().v4().serverPublicKey,
-                                                           cc7::crypto::KEY_FORMAT_DEFAULT);
+            _server_public_key = decryptPublicKey(_session_data->persistentData().v4().cServerPublicKey, KC_SERVER_PUBLIC_KEY);
         } else if (_session_data->hasRegistrationData()) {
             _server_public_key = _session_data->registrationData().v4().serverPublicKey;
         } else {
@@ -82,8 +96,7 @@ const cc7::crypto::PublicKey& KeyProviderV4::serverPublicKey()
 
 void KeyProviderV4::clearActivationKeys() noexcept
 {
-    _device_public_key = nullptr;
-    _server_public_key = nullptr;
+    clearSensitiveData();
 }
 
 // MARK: - Secret Keys
@@ -214,8 +227,9 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
     pd->cKdkEncryption = secret_keys.ckdkEncryption();
 
     // public and private keys
-    pd->devicePublicKey = rd.deviceKeyPair->getPublicKey().exportKey();
-    pd->serverPublicKey = rd.serverPublicKey->exportKey();
+    updateKeyLocalData(&secret_keys);
+    pd->cDevicePublicKey = encryptPublicKey(*rd.serverPublicKey, KC_SERVER_PUBLIC_KEY, rd.activationId);
+    pd->cServerPublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_SERVER_PUBLIC_KEY, rd.activationId);
     pd->cDevicePrivateKey = secret_keys.ckeyDevicePrivate();
     
     return PersistentData::create(pd);
@@ -232,6 +246,46 @@ void KeyProviderV4::updateSessionData(SecretKeysV4 &secret_keys)
         pd.cBiometryKey = secret_keys.ckeyAuthenticationCodeBiometry();
     }
 }
+
+cc7::crypto::PublicKeyPtr KeyProviderV4::decryptPublicKey(const cc7::ByteRange& key_data, const std::string& aead_kc)
+{
+    auto decrypted_key = algorithms().v4.aead().open(*getKekForPublicKey(aead_kc),
+                                                     MakeRange(_session_data->persistentData().v4().activationId),
+                                                     key_data);
+    return getKeyPairFactory().newPublicKey(decrypted_key);
+}
+
+cc7::ByteArray KeyProviderV4::encryptPublicKey(const cc7::crypto::PublicKey& public_key, const std::string& aead_kc, const std::string& activation_id)
+{
+    return algorithms().v4.aead().seal(*getKekForPublicKey(aead_kc),
+                                       cc7::crypto::GetRandomData(12),
+                                       MakeRange(activation_id),
+                                       public_key.exportKey());
+}
+
+cc7::crypto::SymmetricKeyPtr KeyProviderV4::getKekForPublicKey(const std::string& key_context)
+{
+    auto key = cc7::crypto::SymmetricKey::getInstance("AES-256", _local_data_key);
+    key->setKeyContext(MakeRange(key_context));
+    return key;
+}
+
+void KeyProviderV4::updateKeyLocalData(SecretKeysV4 * secret_keys)
+{
+    if (_local_data_key.empty()) {
+        if (secret_keys) {
+            _local_data_key = secret_keys->keyLocalData();
+        } else {
+            if (_sec_key_created) {
+                throw Exception(EC_NotAllowed, "Not allowed while secret keys are created");
+            }
+            auto secrets = unlockSecretKeys();
+            _local_data_key = secrets->keyLocalData();
+            lockSecretKeys(secrets);
+        }
+    }
+}
+
 
 } // namespace v4
 } // powerAuth

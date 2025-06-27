@@ -66,8 +66,8 @@ private:
     cc7::crypto::MACPtr _kmac;
 };
 
-typedef std::shared_ptr<PowerAuthKDF> PowerAuthKdfPtr;
-typedef std::shared_ptr<PowerAuthPassKDF> PowerAuthPassKdfPtr;
+CC7_SHARED_PTR(PowerAuthKDF)
+CC7_SHARED_PTR(PowerAuthPassKDF)
 
 } // namespace v4
 } // namespace powerAuth

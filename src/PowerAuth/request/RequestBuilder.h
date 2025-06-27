@@ -22,7 +22,6 @@
 
 namespace powerAuth {
 
-class Context;
 class Credentials;
 
 class RequestBuilder

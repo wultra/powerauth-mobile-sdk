@@ -36,7 +36,7 @@ public:
     virtual Timestamp getCurrentTimeMillis() const = 0;
 };
 
-typedef std::shared_ptr<ITimeProvider> ITimeProviderPtr;
+CC7_SHARED_PTR(ITimeProvider)
 
 /// The `TimeService` class provides time synchronized with the server.
 class TimeService
@@ -117,6 +117,6 @@ private:
     TimeInterval _local_time_adjustment_precision;
 };
 
-typedef std::shared_ptr<TimeService> TimeServicePtr;
+CC7_SHARED_PTR(TimeService)
 
 } // namespace powerAuth

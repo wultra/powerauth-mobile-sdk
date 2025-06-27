@@ -29,6 +29,7 @@ enum ErrorCode
     EC_BiometryNotAllowed,
     EC_NotAllowed,
     EC_InvalidData,
+    EC_InvalidResponse,
     EC_InternalError,
     EC_Cryptography,
     EC_Other

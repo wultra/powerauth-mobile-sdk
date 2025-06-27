@@ -18,7 +18,20 @@
 
 namespace powerAuth {
 
+const cc7::crypto::PublicKey& IKeyProvider::masterServerPublicKey()
+{
+    return *getMasterServerPublicKeyPtr();
+}
 
+const cc7::crypto::PublicKey& IKeyProvider::devicePublicKey()
+{
+    return *getDevicePublicKeyPtr();
+}
+
+const cc7::crypto::PublicKey& IKeyProvider::serverPublicKey()
+{
+    return *getServerPublicKeyPtr();
+}
 
 } // namespace powerAuth
 

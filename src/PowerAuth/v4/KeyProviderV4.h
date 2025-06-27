@@ -32,9 +32,9 @@ public:
     
     ProtocolVersion protocolVersion() const noexcept override;
     
-    const cc7::crypto::PublicKey & masterServerPublicKey() override;
-    const cc7::crypto::PublicKey & devicePublicKey() override;
-    const cc7::crypto::PublicKey & serverPublicKey() override;
+    cc7::crypto::ConstPublicKeyPtr getMasterServerPublicKeyPtr() override;
+    cc7::crypto::ConstPublicKeyPtr getDevicePublicKeyPtr() override;
+    cc7::crypto::ConstPublicKeyPtr getServerPublicKeyPtr() override;
     void clearActivationKeys() noexcept override;
     
     ISecretKeysPtr unlockInitialSecretKeys(const InitialCredentials &credentials, const cc7::ByteArray &shared_secret) override;

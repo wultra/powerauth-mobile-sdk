@@ -89,6 +89,6 @@ private:
     const cc7::ByteArray _legacy_master_server_public_key;
 };
 
-typedef std::shared_ptr<Configuration> ConfigurationPtr;
+CC7_SHARED_PTR(Configuration)
 
 } // namespace powerAuth

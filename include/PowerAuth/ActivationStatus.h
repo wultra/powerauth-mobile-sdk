@@ -81,6 +81,6 @@ public:
 private:
 };
 
-typedef std::shared_ptr<ActivationStatus> ActivationStatusPtr;
+CC7_SHARED_PTR(ActivationStatus)
 
 } // namespace powerAuth

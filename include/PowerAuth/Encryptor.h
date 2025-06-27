@@ -91,7 +91,7 @@ public:
     cc7::json::JsonValue decryptJsonResponse(const EncryptedResponse& response);
 };
 
-typedef std::shared_ptr<IClientEncryptor> IClientEncryptorPtr;
+CC7_SHARED_PTR(IClientEncryptor)
 
 class IServerEncryptor
 {
@@ -108,7 +108,7 @@ public:
     EncryptedResponse encryptJsonResponse(const cc7::json::JsonValue& json, int options = cc7::json::JsonWriter::Default);
 };
 
-typedef std::shared_ptr<IServerEncryptor> IServerEncryptorPtr;
+CC7_SHARED_PTR(IServerEncryptor)
 
 // MARK: - EncryptorFactory
 
@@ -120,17 +120,16 @@ public:
     virtual void resetAllData() = 0;
     virtual void resetActivationData() = 0;
 
-    virtual bool hasTemporaryKey(EncryptorScope scope) const noexcept = 0;
+    virtual bool hasTemporaryKey(EncryptorScope scope) noexcept = 0;
     virtual void deleteTemporaryKey(EncryptorScope scope) = 0;
     
-    virtual RequestPtr getTemporaryKeyRequest(EncryptorScope scope) = 0;
-    virtual bool hasPendingTemporaryKeyRequest(EncryptorScope scope) const = 0;
+    virtual RequestPtr getTemporaryKeyRequest(Context& context, EncryptorScope scope) = 0;
+    virtual bool hasPendingTemporaryKeyRequest(EncryptorScope scope) noexcept = 0;
     
     virtual IClientEncryptorPtr getClientEncryptor(EncryptorId encryptor_id) = 0;
 };
 
-typedef std::shared_ptr<IEncryptorFactory> IEncryptorFactoryPtr;
-
+CC7_SHARED_PTR(IEncryptorFactory)
 
 // Common structures
 

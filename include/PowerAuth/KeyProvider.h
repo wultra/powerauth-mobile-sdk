@@ -77,34 +77,74 @@ public:
 
 typedef std::unique_ptr<ISecretKeys> ISecretKeysPtr;
 
+/// The `VaultKeyType` enumeration defines types of vault keys available.
 enum class VaultKeyType
 {
+    /// Key encryption key for accessing device private key.
+    /// This key is defined in protocol version 4.0.
     KEK_DEVICE_PRIVATE,
+    /// Application specific key derivation key, available after user authenticate
+    /// on the server with possession and knowledge factors.
+    /// /// This key is defined in protocol version 4.0.
     KDK_APP_VAULT_KNOWLEDGE,
+    /// Application specific key derivation key, available after user authenticate
+    /// on the server with with possession and knowledge, or possession and biometry
+    /// factors.
+    /// /// This key is defined in protocol version 4.0.
     KDK_APP_VAULT_2FA,
+    /// Legacy vault key for accessing device private key and factor keys in protocol
+    /// version 3.0.
+    ///
+    /// The legacy vault key was replaced with other vault key types in protocol 4.0.
     LEGACY,
 };
 
 /// The `IKeyProvider` abstract class defines interface for retrieving keys for various
-/// cryptographic operations
+/// cryptographic operations.
 class IKeyProvider : public MemoryCleanupListener
 {
 public:
+    
+    using MemoryCleanupListener::clearSensitiveData;
+    using MemoryCleanupListener::restoreSensitiveData;
     
     /// Return protocol version supported by the instance of the object.
     virtual ProtocolVersion protocolVersion() const noexcept = 0;
     
     /// Return master server public key.
+    /// - Returns: Smart pointer with master server public key.
     /// - Throws: `PowerAuthException` in case the key cannot be constructed.
-    virtual const cc7::crypto::PublicKey& masterServerPublicKey() = 0;
+    virtual cc7::crypto::ConstPublicKeyPtr getMasterServerPublicKeyPtr() = 0;
     
     /// Return device's public key.
+    /// - Returns: Smart pointer with device public key.
+    /// - Note: Be aware that method may fail also when the secret keys are unlocked.
     /// - Throws: `PowerAuthException` in case the key is not available or cannot be constructed.
-    virtual const cc7::crypto::PublicKey& devicePublicKey() = 0;
+    virtual cc7::crypto::ConstPublicKeyPtr getDevicePublicKeyPtr() = 0;
     
     /// Return server public key.
+    /// - Returns: Smart pointer with server public key.
+    /// - Note: Be aware that method may fail also when the secret keys are unlocked.
     /// - Throws: `PowerAuthException` in case the key is not available or cannot be constructed.
-    virtual const cc7::crypto::PublicKey& serverPublicKey() = 0;
+    virtual cc7::crypto::ConstPublicKeyPtr getServerPublicKeyPtr() = 0;
+    
+    /// Return master server public key.
+    /// - Returns: Reference to master server public key.
+    /// - Throws: `PowerAuthException` in case the key cannot be constructed.
+    const cc7::crypto::PublicKey& masterServerPublicKey();
+    
+    /// Return device's public key.
+    /// - Returns: Reference to device public key.
+    /// - Note: Be aware that method may fail also when the secret keys are unlocked.
+    /// - Throws: `PowerAuthException` in case the key is not available or cannot be constructed.
+    const cc7::crypto::PublicKey& devicePublicKey();
+    
+    /// Return server public key.
+    /// - Returns: Reference to server public key.
+    /// - Note: Be aware that method may fail also when the secret keys are unlocked.
+    /// - Throws: `PowerAuthException` in case the key is not available or cannot be constructed.
+    const cc7::crypto::PublicKey& serverPublicKey();
+    
     
     /// Clears activation related keys.
     virtual void clearActivationKeys() noexcept = 0;
@@ -165,6 +205,6 @@ public:
     virtual void lockSecretKeys(ISecretKeysPtr & secret_keys) = 0;
 };
 
-typedef std::shared_ptr<IKeyProvider> IKeyProviderPtr;
+CC7_SHARED_PTR(IKeyProvider)
 
 } // namespace powerAuth

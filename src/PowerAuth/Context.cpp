@@ -16,6 +16,7 @@
 
 #include "Context.h"
 #include "v4/KeyProviderV4.h"
+#include "v4/AeadEncryptorFactory.h"
 
 namespace powerAuth {
 
@@ -143,13 +144,13 @@ void Context::createBasicServices(bool initial_setup)
     }
     _session_data = std::make_shared<SessionData>();
     
-    
     if (protocolVersion() == Version_V4) {
         // V4
         _key_provider = std::make_shared<v4::KeyProviderV4>(*this);
+        _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(*this);
     } else {
         // V3
-        throw Exception(EC_InternalError, "Not implemented yet");
+        throw Exception(EC_InternalError, "V3 is not implemented yet");
     }
 }
 

@@ -81,7 +81,7 @@ private:
     const cc7::ByteArray _biometry;
 };
 
-typedef std::shared_ptr<Credentials> CredentialsPtr;
+CC7_SHARED_PTR(Credentials)
 
 /// The `InitialCredentials` class contains initial key encryption keys (KEKs) for all used factors for future authentication.
 class InitialCredentials
@@ -122,6 +122,6 @@ private:
     const cc7::ByteArray _biometry;
 };
 
-typedef std::shared_ptr<InitialCredentials> InitialCredentialsPtr;
+CC7_SHARED_PTR(InitialCredentials)
 
 } // namespace powerAuth

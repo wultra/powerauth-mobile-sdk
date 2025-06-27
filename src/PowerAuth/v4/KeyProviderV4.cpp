@@ -55,7 +55,7 @@ ProtocolVersion KeyProviderV4::protocolVersion() const noexcept
     return Version_V4;
 }
 
-const cc7::crypto::PublicKey& KeyProviderV4::masterServerPublicKey()
+cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getMasterServerPublicKeyPtr()
 {
     if (!_master_server_public_key) {
         _master_server_public_key = getKeyPairFactory().newPublicKeyFromData(_configuration->ecdsaMasterServerPublicKey(),
@@ -63,10 +63,10 @@ const cc7::crypto::PublicKey& KeyProviderV4::masterServerPublicKey()
                                                                              _configuration->mldsaMasterServerPublicKey(),
                                                                              cc7::crypto::KEY_FORMAT_SPKI);
     }
-    return *_master_server_public_key;
+    return _master_server_public_key;
 }
 
-const cc7::crypto::PublicKey& KeyProviderV4::devicePublicKey()
+cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getDevicePublicKeyPtr()
 {
     if (!_device_public_key) {
         if (_session_data->hasPersistentData()) {
@@ -77,10 +77,10 @@ const cc7::crypto::PublicKey& KeyProviderV4::devicePublicKey()
             throw Exception(EC_NotAllowed, "Device public key is not available");
         }
     }
-    return *_device_public_key;
+    return _device_public_key;
 }
 
-const cc7::crypto::PublicKey& KeyProviderV4::serverPublicKey()
+cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getServerPublicKeyPtr()
 {
     if (!_server_public_key) {
         if (_session_data->hasPersistentData()) {
@@ -91,7 +91,7 @@ const cc7::crypto::PublicKey& KeyProviderV4::serverPublicKey()
             throw Exception(EC_NotAllowed, "Server public key is not available");
         }
     }
-    return *_server_public_key;
+    return _server_public_key;
 }
 
 void KeyProviderV4::clearActivationKeys() noexcept
@@ -166,9 +166,12 @@ void KeyProviderV4::safeReleaseSecretKeys(const SecretKeysV4 &secret_keys, cc7::
     CC7_ASSERT(known_keys, "Unknown SecretKeysV4 instance released");
     if (_sec_key_created) {
         if (known_keys) {
-            _sec_key_created = false;
             // This is in general safe, but not recommended way how to dispose secret keys
-            CC7_LOG("WARNING: Abandoned SecretKeysV4 instance released");
+            _sec_key_created = false;
+            if (secret_keys.isAuthenticationCodeBiometryUpdated() || secret_keys.isAuthenticationCodeKnowledgeUpdated()) {
+                // Print warning, only if the secrets has been modified
+                CC7_LOG("WARNING: Abandoned SecretKeysV4 instance released");
+            }
         }
     }
 }

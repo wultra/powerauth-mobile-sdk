@@ -105,7 +105,7 @@ bool PersistentData::isModified() const noexcept
 
 static const cc7::byte PD_TAG        = 'P';
 static const cc7::byte PD_VERSION_V2 = '3';    // SDK 0.x.x:  protocol V2
-//static const cc7::byte PD_VERSION_V3 = '4';    // SDK 1.0.x:  protocol V3
+static const cc7::byte PD_VERSION_V3 = '4';    // SDK 1.0.x:  protocol V3
 static const cc7::byte PD_VERSION_V4 = '5';    // SDK 1.1.x:  + recovery codes
 static const cc7::byte PD_VERSION_V5 = '6';    // SDK 1.3.x:  + signature counter byte
 static const cc7::byte PD_VERSION_V6 = '7';    // SDK 2.0.x:  protocol V4
@@ -167,7 +167,7 @@ void PersistentData::serialize(cc7::utils::DataWriter &writer)
 
 void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) const noexcept
 {
-    writer.openVersion(PD_TAG, PD_VERSION_V5);
+    writer.openVersion(PD_TAG, PD_VERSION_V6);
     
     // Main activation data, such as algorithm type and activation ID
     writer.writeByte    (v4.sharedSecretAlgorithm);

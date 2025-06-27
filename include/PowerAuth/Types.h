@@ -101,4 +101,7 @@ enum class AuthFactors
     POSSESSION_BIOMETRY
 };
 
+// Context's forward declaration
+class Context;
+
 } // namespace powerAuth

@@ -186,6 +186,13 @@ public:
         testCredentialsV4();
         testChangeCredentialsV4();
         testCredentialsV4();
+        
+        // serialize and deserialize state
+        auto serialized = context->sessionData().serialize();
+        context->sessionData().resetSessionData();
+        context->sessionData().deserialize(serialized);
+        
+        testCredentialsV4();
     }
     
     void testPublicKeysV4()
@@ -200,14 +207,14 @@ public:
             testSigning(*signer2, *key2, configGenerator->mldsaMasterKeyPair->getPrivateKey());
         }
         if (!hasActivation() && !hasPendingActivation()) {
-            ccstMustThrow(powerAuth::Exception, keyProvider().devicePublicKey());
-            ccstMustThrow(powerAuth::Exception, keyProvider().serverPublicKey());
+            ccstMustThrow(powerAuth::Exception, keyProvider().getDevicePublicKeyPtr());
+            ccstMustThrow(powerAuth::Exception, keyProvider().getServerPublicKeyPtr());
         }
         if (hasActivation() || hasPendingActivation()) {
-            const auto& device_pk = keyProvider().devicePublicKey();
-            testHybridSigning(device_pk, device_key_pair->getPrivateKey());
-            const auto& server_pk = keyProvider().serverPublicKey();
-            testHybridSigning(server_pk, server_key_pair->getPrivateKey());
+            const auto& device_pubk = keyProvider().devicePublicKey();
+            testHybridSigning(device_pubk, device_key_pair->getPrivateKey());
+            const auto& server_pubk = keyProvider().serverPublicKey();
+            testHybridSigning(server_pubk, server_key_pair->getPrivateKey());
         }
     }
     

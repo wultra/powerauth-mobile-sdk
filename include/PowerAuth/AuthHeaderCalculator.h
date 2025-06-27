@@ -45,6 +45,6 @@ public:
     virtual std::string calculateOfflineAuthenticationCode(const Credentials& auth, const OfflineCodeRequestData& request) = 0;
 };
 
-typedef std::shared_ptr<IAuthHeaderCalculator> IAuthHeaderCalculatorPtr;
+CC7_SHARED_PTR(IAuthHeaderCalculator)
 
 } // namespace powerAuth

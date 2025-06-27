@@ -176,6 +176,6 @@ private:
     void inplaceXor(size_t begin);
 };
 
-typedef std::shared_ptr<Password> PasswordPtr;
+CC7_SHARED_PTR(Password)
 
 } // namespace powerAuth

@@ -152,7 +152,7 @@ public:
     virtual SharedSecretContextPtr importContextForTest(const std::map<std::string, std::string> & test_data) const = 0;
 };
 
-typedef std::shared_ptr<ISharedSecret> ISharedSecretPtr;
+CC7_SHARED_PTR(ISharedSecret)
 
 class SharedSecret
 {

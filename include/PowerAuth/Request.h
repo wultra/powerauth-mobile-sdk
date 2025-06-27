@@ -32,7 +32,7 @@ public:
     virtual ~ResponseObject();
 };
 
-typedef std::shared_ptr<ResponseObject> ResponseObjectPtr;
+CC7_SHARED_PTR(ResponseObject)
 
 using ResponseCallback = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
 using CancelCallback   = std::function<void()>;

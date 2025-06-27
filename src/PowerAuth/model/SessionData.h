@@ -42,7 +42,6 @@ public:
     void setActivationStatus(const ActivationStatusPtr& ptr);
     void setDeviceKey(const cc7::ByteRange& device_key);
     
-    void clearRuntimeData();
     void resetSessionData();
     
     const RegistrationData& registrationData() const;
@@ -65,6 +64,6 @@ private:
     PersistentDataPtr _pd;
 };
 
-typedef std::shared_ptr<SessionData> SessionDataPtr;
+CC7_SHARED_PTR(SessionData)
 
 } // namespace powerAuth

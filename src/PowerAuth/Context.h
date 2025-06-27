@@ -76,7 +76,7 @@ private:
     IKeyProviderPtr _key_provider;
 };
 
-typedef std::shared_ptr<Context> ContextPtr;
+CC7_SHARED_PTR(Context)
 
 } // namespace powerAuth
 

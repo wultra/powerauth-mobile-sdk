@@ -103,7 +103,7 @@ private:
     
     TemporaryKeyData& validKeyInfo(EncryptorScope scope);
     
-    void clearDataForScope(EncryptorScope scope, bool key_data_only);
+    void clearDataForScope(EncryptorScope scope);
     
     cc7::json::JsonValue createTemporaryKeyRequest(EncryptorScope scope);
     void completeTemporaryKeyRequest(EncryptorScope scope, const cc7::json::JsonValue & response);

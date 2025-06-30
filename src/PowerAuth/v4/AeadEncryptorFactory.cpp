@@ -55,13 +55,13 @@ AeadEncryptorFactory::AeadEncryptorFactory(Context& context) :
 void AeadEncryptorFactory::resetAllData()
 {
     LOCK_GUARD();
-    clearDataForScope(EncryptorScope::APPLICATION, false);
+    clearDataForScope(EncryptorScope::APPLICATION);
 }
 
 void AeadEncryptorFactory::resetActivationData()
 {
     LOCK_GUARD();
-    clearDataForScope(EncryptorScope::ACTIVATION, false);
+    clearDataForScope(EncryptorScope::ACTIVATION);
 }
 
 bool AeadEncryptorFactory::hasTemporaryKey(EncryptorScope scope) noexcept
@@ -332,9 +332,8 @@ AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::validKeyInfo(Encry
     return ki;
 }
 
-void AeadEncryptorFactory::clearDataForScope(EncryptorScope scope, bool key_data_only)
+void AeadEncryptorFactory::clearDataForScope(EncryptorScope scope)
 {
-    // TODO: key_data_only param?
     if (scope == EncryptorScope::APPLICATION) {
         _application_key_info.clear();
     }

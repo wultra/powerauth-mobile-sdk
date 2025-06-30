@@ -30,6 +30,12 @@ namespace v4
     class HybridKeyPairFactory;
     class HybridSignature;
 }
+namespace v3
+{
+    class LegacyKDF;
+    class LegacyKDFInternal;
+    class LegacyUKE;
+}
 
 class Algorithms
 {
@@ -167,73 +173,100 @@ public:
     public:
         const cc7::crypto::Cipher & aes128cbc() const
         {
-            return *_aes128_cbc;
+            return *pointers.aes128_cbc;
         }
         
         const cc7::crypto::Cipher & aes128cbcNoPad() const
         {
-            return *_aes128_cbc_no_pad;
+            return *pointers.aes128_cbc_no_pad;
         }
         
         /// ECB mode is used only as simple KDF function.
         const cc7::crypto::Cipher & aes128ecb() const
         {
-            return *_aes128_ecb;
+            return *pointers.aes128_ecb;
         }
         
         const cc7::crypto::Signature & ecdsaWithSha256() const
         {
-            return *_ecdsaWithSha256;
+            return *pointers.ecdsaWithSha256;
         }
         
         const cc7::crypto::MAC & hmacWithSha256() const
         {
-            return *_hmacWithSha256;
+            return *pointers.hmacWithSha256;
         }
         
         const cc7::crypto::MessageDigest & sha256() const
         {
-            return *_sha256;
+            return *pointers.sha256;
         }
         
         const cc7::crypto::KeyPairFactory & p256() const
         {
-            return *_p256;
+            return *pointers.p256;
         }
         
         const cc7::crypto::KeyDerivation & kdfX963() const
         {
-            return *_kdf_x963;
+            return *pointers.kdf_x963;
         }
         
         const cc7::crypto::KeyDerivation & pbkdf2WithSha1() const
         {
-            return *_pbkdf2_sha1;
+            return *pointers.pbkdf2_sha1;
         }
         
         const cc7::crypto::KeyAgreement & ecdhWithNullKdf() const
         {
-            return *_ecdhWithNullKdf;
+            return *pointers.ecdhWithNullKdf;
         }
+        
+        const v3::LegacyUKE& uke() const
+        {
+            return *pointers.powerAuth_UKE;
+        }
+        
+        const v3::LegacyKDF& kdf() const
+        {
+            return *pointers.powerAuth_KDF;
+        }
+        
+        const v3::LegacyKDFInternal& kdfInternal() const
+        {
+            return *pointers.powerAuth_KDF_Internal;
+        }
+        
+        struct Pointers
+        {
+            const cc7::crypto::CipherPtr aes128_cbc;
+            const cc7::crypto::CipherPtr aes128_cbc_no_pad;
+            const cc7::crypto::CipherPtr aes128_ecb;
+            
+            const cc7::crypto::SignaturePtr ecdsaWithSha256;
+            const cc7::crypto::KeyAgreementPtr ecdhWithNullKdf;
+            const cc7::crypto::KeyPairFactoryPtr p256;
+            
+            const cc7::crypto::MessageDigestPtr sha256;
+            
+            const cc7::crypto::MACPtr hmacWithSha256;
+            
+            const cc7::crypto::KeyDerivationPtr kdf_x963;
+            const cc7::crypto::KeyDerivationPtr pbkdf2_sha1;
+            
+            const std::shared_ptr<v3::LegacyKDF> powerAuth_KDF;
+            const std::shared_ptr<v3::LegacyKDFInternal> powerAuth_KDF_Internal;
+            const std::shared_ptr<v3::LegacyUKE> powerAuth_UKE;
+            
+        };
+
+        const Pointers pointers;
         
     private:
         friend class Algorithms;
-        V3();
-        
-        const cc7::crypto::CipherPtr _aes128_cbc;
-        const cc7::crypto::CipherPtr _aes128_cbc_no_pad;
-        const cc7::crypto::CipherPtr _aes128_ecb;
-        
-        const cc7::crypto::SignaturePtr _ecdsaWithSha256;
-        const cc7::crypto::KeyAgreementPtr _ecdhWithNullKdf;
-        const cc7::crypto::KeyPairFactoryPtr _p256;
-        
-        const cc7::crypto::MessageDigestPtr _sha256;
-        
-        const cc7::crypto::MACPtr _hmacWithSha256;
-        
-        const cc7::crypto::KeyDerivationPtr _kdf_x963;
-        const cc7::crypto::KeyDerivationPtr _pbkdf2_sha1;
+        friend class Algorithms;
+        V3() : pointers(build()) {}
+        static Pointers build();
     };
     
 public:

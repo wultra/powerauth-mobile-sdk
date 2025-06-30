@@ -20,6 +20,8 @@
 #include "v4/PowerAuthAEAD.h"
 #include "v4/PowerAuthUKE.h"
 
+#include "v3/LegacyKDF.h"
+
 using namespace cc7;
 using namespace cc7::crypto;
 
@@ -91,23 +93,50 @@ Algorithms::V4::Pointers Algorithms::V4::build()
 
 }
 
-Algorithms::V3::V3() :
-    _aes128_cbc(Cipher::getInstance("AES-128-CBC")),
-    _aes128_cbc_no_pad(Cipher::getInstance("AES-128-CBC")),
-    _aes128_ecb(Cipher::getInstance("AES-128-ECB")),
-    _ecdsaWithSha256(Signature::getInstance("ECDSA-SHA-256")),
-    _ecdhWithNullKdf(KeyAgreement::getInstance("ECDH")),
-    _p256(KeyPairFactory::getInstance("P-256")),
-    _sha256(MessageDigest::getInstance("SHA-256")),
-    _hmacWithSha256(MAC::getInstance("HMAC-SHA-256")),
-    _kdf_x963(KeyDerivation::getInstance("X963KDF-SHA-256")),
-    _pbkdf2_sha1(KeyDerivation::getInstance("PBKDF2-HMAC-SHA-256"))
+Algorithms::V3::Pointers Algorithms::V3::build()
 {
-    _aes128_cbc_no_pad->setParameter(CIPHER_PARAM_USE_PADDING, Parameter::take(false));
+    // Basic algorithms
+    
+    auto aes128_cbc         = Cipher::getInstance("AES-128-CBC");
+    auto aes128_cbc_no_pad  = Cipher::getInstance("AES-128-CBC");
+    auto aes128_ecb         = Cipher::getInstance("AES-128-ECB");
+    auto ecdsaWithSha256    = Signature::getInstance("ECDSA-SHA-256");
+    auto ecdhWithNullKdf    = KeyAgreement::getInstance("ECDH");
+    auto p256               = KeyPairFactory::getInstance("P-256");
+    auto sha256             = MessageDigest::getInstance("SHA-256");
+    auto hmacWithSha256     = MAC::getInstance("HMAC-SHA-256");
+    auto kdf_x963           = KeyDerivation::getInstance("X963KDF-SHA-256");
+    auto pbkdf2_sha1        = KeyDerivation::getInstance("PBKDF2-HMAC-SHA-1");
+    
+    // Configure
+    
+    aes128_cbc_no_pad->setParameter(CIPHER_PARAM_USE_PADDING, Parameter::take(false));
     // set P-256 public key encoding to compressed
-    _p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
+    p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));
     // Alter PBKDF2-SHA1 KDF's output size to 16 bytes (signature key size)
-    _pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)16));
+    pbkdf2_sha1->setParameter(KDF_PARAM_KEY_SIZE, Parameter::take((size_t)16));
+
+    // Build additional algorithms
+    
+    auto kdf                = std::make_shared<v3::LegacyKDF>(aes128_cbc_no_pad);
+    auto kdf_internal       = std::make_shared<v3::LegacyKDFInternal>(hmacWithSha256);
+    auto uke                = std::make_shared<v3::LegacyUKE>(aes128_cbc_no_pad);
+
+    return {
+        aes128_cbc,
+        aes128_cbc_no_pad,
+        aes128_ecb,
+        ecdsaWithSha256,
+        ecdhWithNullKdf,
+        p256,
+        sha256,
+        hmacWithSha256,
+        kdf_x963,
+        pbkdf2_sha1,
+        kdf,
+        kdf_internal,
+        uke
+    };
 }
 
 Algorithms::Algorithms() : v3(), v4()

@@ -199,6 +199,10 @@
 		BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
 		BFEEEBEC2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
+		BFF21B772E12C3A7000BF450 /* LegacyKDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFF21B762E12C3A7000BF450 /* LegacyKDF.cpp */; };
+		BFF21B782E12C3A7000BF450 /* LegacyKDF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFF21B762E12C3A7000BF450 /* LegacyKDF.cpp */; };
+		BFF21B7B2E12CBCA000BF450 /* LegacyUKE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFF21B7A2E12CBCA000BF450 /* LegacyUKE.cpp */; };
+		BFF21B7C2E12CBCA000BF450 /* LegacyUKE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFF21B7A2E12CBCA000BF450 /* LegacyUKE.cpp */; };
 		BFFE1D58264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
 		BFFE1D59264D688F00D5B985 /* pa2CryptoECCTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */; };
 /* End PBXBuildFile section */
@@ -597,6 +601,10 @@
 		BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pa2ByteUtilsTests.cpp; sourceTree = "<group>"; };
 		BFF21B6D2E0C29BF000BF450 /* ReleasableResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReleasableResource.h; sourceTree = "<group>"; };
 		BFF21B6E2E0D78CC000BF450 /* MemoryCleanupListener.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MemoryCleanupListener.h; sourceTree = "<group>"; };
+		BFF21B752E12C3A7000BF450 /* LegacyKDF.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyKDF.h; sourceTree = "<group>"; };
+		BFF21B762E12C3A7000BF450 /* LegacyKDF.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyKDF.cpp; sourceTree = "<group>"; };
+		BFF21B792E12CBCA000BF450 /* LegacyUKE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LegacyUKE.h; sourceTree = "<group>"; };
+		BFF21B7A2E12CBCA000BF450 /* LegacyUKE.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LegacyUKE.cpp; sourceTree = "<group>"; };
 		BFFE1D55264D688F00D5B985 /* pa2CryptoECCTests.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa2CryptoECCTests.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -798,6 +806,10 @@
 				BF4D86812DFACDFE00D32F55 /* EciesUtils.cpp */,
 				BF4D868B2DFBEFD600D32F55 /* ProtocolFunctions.h */,
 				BF4D868C2DFBEFD600D32F55 /* ProtocolFunctions.cpp */,
+				BFF21B752E12C3A7000BF450 /* LegacyKDF.h */,
+				BFF21B762E12C3A7000BF450 /* LegacyKDF.cpp */,
+				BFF21B792E12CBCA000BF450 /* LegacyUKE.h */,
+				BFF21B7A2E12CBCA000BF450 /* LegacyUKE.cpp */,
 			);
 			path = v3;
 			sourceTree = "<group>";
@@ -1484,7 +1496,9 @@
 				BF4D869C2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86702DF8307800D32F55 /* AeadUtils.cpp in Sources */,
 				BF4D85F42DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
+				BFF21B772E12C3A7000BF450 /* LegacyKDF.cpp in Sources */,
 				BF4D855D2DE48AA900D32F55 /* Credentials.cpp in Sources */,
+				BFF21B7B2E12CBCA000BF450 /* LegacyUKE.cpp in Sources */,
 				BF4D867A2DFACA6600D32F55 /* EciesEncryptor.cpp in Sources */,
 				BF4D865D2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF4D86822DFACDFE00D32F55 /* EciesUtils.cpp in Sources */,
@@ -1564,7 +1578,9 @@
 				BF4D869B2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86712DF8307800D32F55 /* AeadUtils.cpp in Sources */,
 				BF4D85F52DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
+				BFF21B782E12C3A7000BF450 /* LegacyKDF.cpp in Sources */,
 				BF4D855B2DE48AA900D32F55 /* Credentials.cpp in Sources */,
+				BFF21B7C2E12CBCA000BF450 /* LegacyUKE.cpp in Sources */,
 				BF4D867B2DFACA6600D32F55 /* EciesEncryptor.cpp in Sources */,
 				BF4D865C2DF4F46600D32F55 /* EndpointSpec.cpp in Sources */,
 				BF4D86832DFACDFE00D32F55 /* EciesUtils.cpp in Sources */,

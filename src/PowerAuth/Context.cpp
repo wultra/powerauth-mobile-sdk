@@ -110,6 +110,11 @@ const IKeyProviderPtr& Context::getKeyProviderPtr() const noexcept
     return _key_provider;
 }
 
+const IAuthHeaderCalculatorPtr& Context::getAuthHeaderCalculatorPtr() const noexcept
+{
+    return _auth_header_calculator;
+}
+
 const cc7::crypto::KeyPairFactoryPtr& Context::getSigningKeyPairFactoryPtr() const noexcept
 {
     return _signing_keys_factory;

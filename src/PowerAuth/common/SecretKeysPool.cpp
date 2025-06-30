@@ -246,7 +246,9 @@ const ByteRange& SecretKeysPool::allocateKey(int key_id, const cc7::ByteRange &k
         auto new_blob = std::make_unique<ByteArray>();
         new_blob->reserve(key_size);
         blob = &(*new_blob);
-        _heap.push_back(std::move(new_blob));
+        // Put array to a separate list of allocated buffers. We don't want to
+        // mix this with regular allocation pool
+        _to_destroy.push_back(std::move(new_blob));
     }
     auto offset = blob->size();
     blob->append(key_material);

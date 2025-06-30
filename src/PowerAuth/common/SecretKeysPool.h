@@ -145,6 +145,7 @@ private:
     
     const Config _conf;
     std::vector<std::unique_ptr<cc7::ByteArray>> _heap;
+    std::vector<std::unique_ptr<cc7::ByteArray>> _to_destroy;
     std::unique_ptr<cc7::ByteRange[]> _keys;
 
     void validateKeyId(int key_id, bool for_write) const;

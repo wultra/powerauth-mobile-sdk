@@ -74,6 +74,7 @@ private:
     IEncryptorFactoryPtr _encryptor_factory;
     ISharedSecretPtr _shared_secret;
     IKeyProviderPtr _key_provider;
+    IAuthHeaderCalculatorPtr _auth_header_calculator;
 };
 
 CC7_SHARED_PTR(Context)

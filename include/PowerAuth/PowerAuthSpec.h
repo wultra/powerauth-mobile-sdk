@@ -84,6 +84,6 @@ private:
     static const PowerAuthSpec spec_EC_P384_ML_L3;
 };
 
-typedef PowerAuthSpec const * const PowerAuthSpecPtr;
-
+typedef PowerAuthSpec const * PowerAuthSpecPtr;
+typedef PowerAuthSpec const * const ConstPowerAuthSpecPtr;
 } // namespace powerAuth

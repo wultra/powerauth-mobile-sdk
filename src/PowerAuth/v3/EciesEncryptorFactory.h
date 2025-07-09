@@ -22,11 +22,14 @@
 namespace powerAuth {
 namespace v3 {
 
-class EciesEncryptorFactory : public IEncryptorFactory
+class EciesEncryptorFactory :
+    public Service,
+    public IClientEncryptorFactory,
+    public std::enable_shared_from_this<EciesEncryptorFactory>
 {
 public:
     
-    EciesEncryptorFactory(const Context & context);
+    EciesEncryptorFactory(const ContextPtr & context);
     
 private:
     

@@ -30,8 +30,13 @@ public:
     
     SessionData();
     
-    /// Return 
+    /// Return protocol version currently used for this instance of session data.
     ProtocolVersion getProtocolVersion() const noexcept;
+    /// Return PowerAuth specification currently used for this instance of session data
+    /// or `nullptr` if specification is not known. This is regular state of session data
+    /// if there's no persistent data structure available.
+    ConstPowerAuthSpecPtr getSpecification() const noexcept;
+    
     bool hasPersistentData() const noexcept;
     bool hasRegistrationData() const noexcept;
     

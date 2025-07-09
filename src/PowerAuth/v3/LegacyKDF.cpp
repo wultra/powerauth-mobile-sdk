@@ -45,7 +45,7 @@ LegacyKDFInternal::LegacyKDFInternal(const cc7::crypto::MACPtr& hmacSha256) :
 {
 #ifdef DEBUG
     if (_mac->getAlgorithmName() != "HMAC-SHA-256" ||
-        _mac->getParameter(cc7::crypto::MAC_PARAM_DIGEST_LENGTH).asInt() != 32) {
+        _mac->getParameter(cc7::crypto::MAC_PARAM_DIGEST_LENGTH).asSize() != 32) {
         throw Exception(EC_InternalError, "Invalid LegacyKDFInternal setup");
     }
 #endif

@@ -79,7 +79,7 @@ public:
     struct V4
     {
         /// SharedSecret::Algorithm used for shared secret calculation.
-        cc7::byte       sharedSecretAlgorithm;
+        cc7::byte       algorithmId;
         /// ActivationId, that's our identity known on the server
         std::string     activationId;
 

@@ -17,6 +17,9 @@
 #include <PowerAuth/TimeService.h>
 #include <cc7/Time.h>
 
+#include "request/RequestBuilder.h"
+#include "Context.h"
+
 namespace powerAuth {
 
 // MARK: - Default time provider
@@ -44,12 +47,24 @@ const double TimeService::MIN_ACCEPTED_TIME_DIFFERENCE = 2.0;
 const double TimeService::MIN_TIME_DIFFERENCE_DELTA = 10.0;
 const double TimeService::MAX_ACCEPTED_ELAPSED_TIME = 16.0;
 
+TimeService::TimeService(const ContextPtr& context) :
+    _weak_context(context),
+    _time_provider(std::make_shared<DefaultTimeProvider>()),
+    _lock(context->getSharedMutexPtr()),
+    _is_synchronized(false),
+    _local_time_adjustment(0.0),
+    _local_time_adjustment_precision(0.0),
+    _current_sync_task(-1)
+{
+}
+
 TimeService::TimeService(ITimeProviderPtr time_provider, SharedMutexPtr shared_lock) :
     _time_provider(time_provider != nullptr ? time_provider : std::make_shared<DefaultTimeProvider>()),
     _lock(shared_lock != nullptr ? shared_lock : std::make_shared<SharedMutex>()),
     _is_synchronized(false),
     _local_time_adjustment(0.0),
-    _local_time_adjustment_precision(0.0)
+    _local_time_adjustment_precision(0.0),
+    _current_sync_task(-1)
 {
 }
 
@@ -135,7 +150,65 @@ void TimeService::resetTimeSynchronization()
     _is_synchronized = false;
     _local_time_adjustment = 0.0;
     _local_time_adjustment_precision = 0.0;
+    _current_sync_task = -1;
+    
     CC7_LOG("TimeService: Time is no longer synchronized");
+}
+
+
+RequestPtr TimeService::createTimeSynchronizationRequest()
+{
+    LOCK_GUARD();
+    if (_current_sync_task > 0) {
+        throw Exception(EC_NotAllowed, "Time synchronization is already in progress");
+    }
+    if (auto context = _weak_context.lock()) {
+        CC7_LOG("TimeService: Time synchronization request created");
+        _current_sync_task = startTimeSynchronizationTask();
+        auto self = shared_from_this();
+        return RequestBuilder(*context, v4::Endpoint_SystemStatus)
+            .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& response) -> ResponseObjectPtr {
+                return self->processTimeSynchronization(response);
+            })
+            .withCancelCallback([self]() {
+                self->cancelTimeSynchronization();
+            })
+            .build();
+    }
+    // No context means Session is already dead.
+    throw Exception(EC_NotAllowed, "Session object is destroyed");
+}
+
+ResponseObjectPtr TimeService::processTimeSynchronization(const cc7::json::JsonValue& response)
+{
+    LOCK_GUARD();
+    CC7_LOG("TimeService: Time synchronization response received");
+    if (_current_sync_task < 0) {
+        throw Exception(EC_NotAllowed, "No time synchronization in progress");
+    }
+    
+    auto task = _current_sync_task;
+    _current_sync_task = -1;
+    auto time = response["serverTime"].asInteger();
+
+    completeTimeSynchronizationTask(task, 0.001 * time);
+    
+    return nullptr;
+}
+
+void TimeService::cancelTimeSynchronization()
+{
+    LOCK_GUARD();
+    if (_current_sync_task < 0) {
+        CC7_LOG("TimeService: Time synchronization request canceled");
+        _current_sync_task = -1;
+    }
+}
+
+bool TimeService::hasPendingSynchronizationRequest() const noexcept
+{
+    LOCK_GUARD();
+    return _current_sync_task > 0.0;
 }
 
 } // namespace powerAuth

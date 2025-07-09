@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Exception.h>
+#include <PowerAuth/Request.h>
 #include <cc7/BaseObject.h>
 #include <cc7/Time.h>
 
@@ -39,7 +40,7 @@ public:
 CC7_SHARED_PTR(ITimeProvider)
 
 /// The `TimeService` class provides time synchronized with the server.
-class TimeService
+class TimeService : public std::enable_shared_from_this<TimeService>
 {
 public:
     /// The `TaskId` is value type representing a time synchronization task.
@@ -81,12 +82,32 @@ public:
     bool completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time);
     
     /// Reset the time synchronization. The time must be synchronized again after this call.
+    /// The method also resets any pending time synchronization request.
     void resetTimeSynchronization();
-
+    
+    
+    // Synchronize time with server
+    
+    /// Creates request that synchronize time with the server.
+    /// - Returns: Request object configured for time synchronization.
+    /// - Note: The time service must be created with constructor taking `Context` pointer,
+    ///         otherwise the method throws exception.
+    RequestPtr createTimeSynchronizationRequest();
+    
+    /// Get information whether the service has pending request for time synchronization.
+    /// - Returns: `true` if there's pending request for time synchronization.
+    bool hasPendingSynchronizationRequest() const noexcept;
+    
     
     // Construction & Constants
     
-    /// Construct service with optional TimeProvider and SharedMutex objects.
+    /// Construct service with the context object.
+    /// - Parameters:
+    ///   - context: Pointer to context object.
+    TimeService(const std::shared_ptr<Context>& context);
+    
+    /// Construct service with optional TimeProvider and SharedMutex objects. This constructor
+    /// is typically useful for the testing purposes.
     /// - Parameters:
     ///   - time_provider: Pointer to `TimeProvider` implementation. If `nullptr` is used, then the default implementation will be set.
     ///   - shared_lock: Pointer to `SharedMutex` object. If `nullptr` is used, then the service will create its own private mutex to achieve the thread safety.
@@ -111,10 +132,21 @@ private:
     
     const SharedMutexPtr _lock;
     const ITimeProviderPtr _time_provider;
+    const std::weak_ptr<Context> _weak_context;
     
     bool _is_synchronized;
     TimeInterval _local_time_adjustment;
     TimeInterval _local_time_adjustment_precision;
+    
+    TaskId _current_sync_task;
+    
+    /// Process response from the server and finish the time synchronization.
+    /// - Parameter response: JSON response.
+    /// - Returns: Always returns `nullptr`.
+    ResponseObjectPtr processTimeSynchronization(const cc7::json::JsonValue& response);
+    
+    /// Cancels pending time synchronization.
+    void cancelTimeSynchronization();
 };
 
 CC7_SHARED_PTR(TimeService)

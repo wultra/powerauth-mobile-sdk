@@ -18,18 +18,20 @@
 #include "HybridKeyPair.h"
 #include "SecretKeysV4.h"
 #include "../Context.h"
-#include "../common/ReleasableResource.h"
 
 namespace powerAuth {
 namespace v4 {
 
-class KeyProviderV4 : public IKeyProvider, public std::enable_shared_from_this<KeyProviderV4>
+class KeyProviderV4 :
+    public Service,
+    public IKeyProvider,
+    public std::enable_shared_from_this<KeyProviderV4>
 {
 public:
-    KeyProviderV4(Context& context);
-        
-    // IKeyProvider
+    KeyProviderV4(const ContextPtr& context);
     
+    // IKeyProvider
+    IServicePtr asService() override;
     ProtocolVersion protocolVersion() const noexcept override;
     
     cc7::crypto::ConstPublicKeyPtr getMasterServerPublicKeyPtr() override;
@@ -45,9 +47,8 @@ public:
                                             const cc7::ByteRange &vault_key) override;
     
     void lockSecretKeys(ISecretKeysPtr &secret_keys) override;
-    
-    // MemoryCleanupListener
-    
+
+    // IService
     void clearSensitiveData() override;
     void restoreSensitiveData() override;
     
@@ -58,13 +59,16 @@ public:
     const Configuration& configuration() const;
     const cc7::crypto::KeyPairFactory& signingKeyFactory();
     
+protected:
+    void doServiceDestroy() override;
+    
 private:
 
     const ConfigurationPtr _configuration;
     const SessionDataPtr _session_data;
     const cc7::crypto::KeyPairFactoryPtr _signing_key_factory;
     
-    PowerAuthSpecPtr _specification;
+    ConstPowerAuthSpecPtr _specification;
     
     bool     _sec_key_created;
     cc7::U64 _sec_key_token;

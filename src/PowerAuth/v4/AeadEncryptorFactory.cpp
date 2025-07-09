@@ -35,13 +35,14 @@ namespace v4 {
 const Timestamp AeadEncryptorFactory::KEY_EXPIRATION_THRESHOLD = 10000;
 const size_t AeadEncryptorFactory::GET_TEMP_KEY_CHALLENGE_SIZE = 32;
 
-AeadEncryptorFactory::AeadEncryptorFactory(Context& context) :
-    _lock(context.getSharedMutexPtr()),
-    _configuration(context.getConfigurationPtr()),
-    _session_data(context.getSessionDataPtr()),
-    _key_provider(context.getKeyProviderPtr()),
-    _time_service(context.getTimeServicePtr()),
-    _shared_secret_algorithm(context.getSharedSecretPtr()),
+AeadEncryptorFactory::AeadEncryptorFactory(const ContextPtr& context) :
+    Service("AeadEncryptorFactory", context->getSharedMutexPtr()),
+    _context(context),
+    _configuration(context->getConfigurationPtr()),
+    _session_data(context->getSessionDataPtr()),
+    _key_provider(context->getKeyProviderPtr()),
+    _time_service(context->getTimeServicePtr()),
+    _shared_secret_algorithm(context->getSharedSecretPtr()),
     _application_key_info({EncryptorScope::APPLICATION}),
     _activation_key_info({EncryptorScope::ACTIVATION})
 {
@@ -50,23 +51,39 @@ AeadEncryptorFactory::AeadEncryptorFactory(Context& context) :
     }
 }
 
+// MARK: - Service
+
+void AeadEncryptorFactory::doServiceDestroy()
+{
+    resetAllData();
+}
+
+
 // MARK: - Public functions
+
+IServicePtr AeadEncryptorFactory::asService()
+{
+    return shared_from_this();
+}
 
 void AeadEncryptorFactory::resetAllData()
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     clearDataForScope(EncryptorScope::APPLICATION);
 }
 
 void AeadEncryptorFactory::resetActivationData()
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     clearDataForScope(EncryptorScope::ACTIVATION);
 }
 
-bool AeadEncryptorFactory::hasTemporaryKey(EncryptorScope scope) noexcept
+bool AeadEncryptorFactory::hasTemporaryKey(EncryptorScope scope)
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     auto& ki = keyInfo(scope);
     if (ki.isValid()) {
         if (!ki.isExpired(_time_service->currentTimeMillis())) {
@@ -80,6 +97,7 @@ bool AeadEncryptorFactory::hasTemporaryKey(EncryptorScope scope) noexcept
 void AeadEncryptorFactory::deleteTemporaryKey(EncryptorScope scope)
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     auto& ki = keyInfo(scope);
     if (ki.isValid()) {
         ki.clear();
@@ -89,6 +107,7 @@ void AeadEncryptorFactory::deleteTemporaryKey(EncryptorScope scope)
 IClientEncryptorPtr AeadEncryptorFactory::getClientEncryptor(EncryptorId encryptor_id)
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     auto spec = EncryptorSpec::specForId(encryptor_id);
     auto& ki = validKeyInfo(spec->scope);
     auto request_response_nonce = ConcatByteRanges({
@@ -112,28 +131,34 @@ IClientEncryptorPtr AeadEncryptorFactory::getClientEncryptor(EncryptorId encrypt
                                                  _time_service);
 }
 
-RequestPtr AeadEncryptorFactory::getTemporaryKeyRequest(Context& context, EncryptorScope scope)
+RequestPtr AeadEncryptorFactory::getTemporaryKeyRequest(EncryptorScope scope)
 {
     LOCK_GUARD();
-    auto self = shared_from_this();
-    return RequestBuilder(context, v4::Endpoint_TemporaryKey)
-        .withJson(createTemporaryKeyRequest(scope))
-        .withResponseCallback([self, scope](const Request& req, const cc7::json::JsonValue& resp) -> ResponseObjectPtr {
-            self->completeTemporaryKeyRequest(scope, resp);
-            // There's no external object created as a result of the response processing. Everything is encryptor's
-            // internal data.
-            return nullptr;
-        })
-        .withCancelCallback([self, scope]() {
-            // the request has been canceled
-            self->cancelPendingTemporaryKeyRequest(scope);
-        })
-        .build();
+    checkNotDestroyed();
+    if (auto context = _context.lock()) {
+        auto self = shared_from_this();
+        return RequestBuilder(*context, v4::Endpoint_TemporaryKey)
+            .withJson(self->createTemporaryKeyRequest(scope))
+            .withResponseCallback([self, scope](const Request& req, const cc7::json::JsonValue& resp) -> ResponseObjectPtr {
+                self->completeTemporaryKeyRequest(scope, resp);
+                // There's no external object created as a result of the response processing. Everything is encryptor's
+                // internal data.
+                return nullptr;
+            })
+            .withCancelCallback([self, scope]() {
+                // the request has been canceled
+                self->cancelPendingTemporaryKeyRequest(scope);
+            })
+            .build();
+    } else {
+        throw Exception(EC_NotAllowed, "Session object is destroyed");
+    }
 }
 
-bool AeadEncryptorFactory::hasPendingTemporaryKeyRequest(EncryptorScope scope) noexcept
+bool AeadEncryptorFactory::hasPendingTemporaryKeyRequest(EncryptorScope scope)
 {
     LOCK_GUARD();
+    checkNotDestroyed();
     return keyInfo(scope).hasPendingRequest();
 }
 
@@ -164,7 +189,7 @@ cc7::json::JsonValue AeadEncryptorFactory::createTemporaryKeyRequest(EncryptorSc
             secret_data.first
         };
         // At first, clear possible existing and valid key.
-        clearDataForScope(scope, true);
+        clearDataForScope(scope);
         
         // Now store the creation data.
         ki.creationData = std::unique_ptr<GetKeyData>(new GetKeyData {
@@ -253,7 +278,7 @@ void AeadEncryptorFactory::completeTemporaryKeyRequest(EncryptorScope scope, con
         // Success
     } catch (...) {
         // Clear key info in case of failure
-        clearDataForScope(scope, true);
+        clearDataForScope(scope);
         std::rethrow_exception(std::current_exception());
     }
 }
@@ -263,7 +288,7 @@ void AeadEncryptorFactory::cancelPendingTemporaryKeyRequest(EncryptorScope scope
     LOCK_GUARD();
     auto& ki = keyInfo(scope);
     if (ki.hasPendingRequest()) {
-        clearDataForScope(scope, true);
+        clearDataForScope(scope);
     }
 }
 
@@ -334,6 +359,7 @@ AeadEncryptorFactory::TemporaryKeyData& AeadEncryptorFactory::validKeyInfo(Encry
 
 void AeadEncryptorFactory::clearDataForScope(EncryptorScope scope)
 {
+    checkNotDestroyed();
     if (scope == EncryptorScope::APPLICATION) {
         _application_key_info.clear();
     }

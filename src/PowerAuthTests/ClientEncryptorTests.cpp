@@ -49,6 +49,9 @@ public:
     {
         timeProvider = std::make_shared<TestTimeProvider>();
         timeService = std::make_shared<TimeService>(timeProvider);
+        // make service synchronized
+        auto task = timeService->startTimeSynchronizationTask();
+        timeService->completeTimeSynchronizationTask(task, timeProvider->getCurrentTime());
         nonceGenerator = cc7::crypto::DefaultNonceGenerator::getInstance(12);
     }
     
@@ -80,7 +83,7 @@ public:
             auto appSecret = cc7::crypto::GetRandomData(16).base64();
             auto actId = app_scope ? std::string() : getRandomString(36);
             auto encSpec = getRandomEncryptor(app_scope);
-            auto sharedInfo1 = encSpec->sharedInfo;
+            auto sharedInfo1 = encSpec->sharedInfo1;
             auto envelope_key = cc7::crypto::GetRandomData(32);
             auto e2ee_key = cc7::crypto::GetRandomData(32);
             auto nonce = getNewNonce();
@@ -91,6 +94,7 @@ public:
             auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelope_key, e2ee_key);
             
             auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
+            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             ccstAssertTrue(client_encryptor.canEncryptRequest());
             ccstAssertFalse(client_encryptor.canDecryptResponse());
             
@@ -160,6 +164,7 @@ public:
             auto client_enc_secrets = v4::AEAD_BuildSecrets(*client_enc_params, envelopeKey, sharedInfo2Key);
             
             auto client_encryptor = v4::AeadClientEncryptor(client_enc_params, client_enc_secrets, nonce, timeService);
+            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             
             // Enforce time in testing time provider
             timeProvider->setTimestamp(timestampRequest);
@@ -228,6 +233,7 @@ public:
             auto client_enc_secrets = v3::ECIES_TestClientSecrets(*client_enc_params, requestEphemeralPublicKey, envelopeKey, transportKey);
             
             auto client_encryptor = v3::EciesClientEncryptor(client_enc_params, client_enc_secrets, requestNonce, timeService);
+            client_encryptor.disableFailWhenTimeIsNotSynchronized();
             
             // Enforce time in testing time provider
             timeProvider->setTimestamp(timestampRequest);
@@ -278,7 +284,7 @@ public:
             EncryptorId::ACTIVATION_SCOPE_GENERIC,
             EncryptorId::APPLICATION_SCOPE_GENERIC,
             EncryptorId::ACTIVATION_LAYER_2,
-            EncryptorId::UPGRADE,
+            EncryptorId::UPGRADE_START,
             EncryptorId::CREATE_TOKEN,
             EncryptorId::VAULT_UNLOCK,
         };

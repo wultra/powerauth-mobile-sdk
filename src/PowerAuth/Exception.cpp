@@ -25,6 +25,8 @@ const std::string Exception::CLASS_NAME("powerAuth::PowerAuthException");
 std::string Exception::defaultMessage(ErrorCode error) noexcept
 {
     switch (error) {
+        case EC_Canceled:
+            return "Operation canceled from elsewhere";
         case EC_MissingActivation:
             return "Activation is missing";
         case EC_WrongActivationState:
@@ -35,10 +37,14 @@ std::string Exception::defaultMessage(ErrorCode error) noexcept
             return "Cryptographic operation failed";
         case EC_InvalidData:
             return "Invalid input data";
+        case EC_InvalidResponse:
+            return "Invalid response received";
         case EC_BiometryNotAllowed:
             return "Biometry not configured";
         case EC_NotAllowed:
             return "Operation is not allowed in object's state";
+        case EC_TimeNotSynchronized:
+            return "Operation require time synchronized with server";
         case EC_InternalError:
             return "Internal library error";
         case EC_Other:

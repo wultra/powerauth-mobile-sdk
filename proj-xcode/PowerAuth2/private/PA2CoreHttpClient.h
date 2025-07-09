@@ -1,0 +1,58 @@
+/*
+ * Copyright 2025 Wultra s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#import <PowerAuth2/PowerAuthClientConfiguration.h>
+#import <PowerAuth2/PowerAuthRestApiErrorResponse.h>
+#import <PowerAuth2/PowerAuthOperationTask.h>
+
+#import "PA2SessionInterface.h"
+
+@class PowerAuthCoreRequest;
+
+/// Initializes client for given PowerAuthClientConfiguration configuration, completion queue,
+/// base url and the session interface.
+@interface PA2CoreHttpClient : NSObject<NSURLSessionDelegate>
+
+- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
+                          coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
+                               completionQueue:(nonnull dispatch_queue_t)queue
+                                       baseUrl:(nonnull NSString*)baseUrl;
+
+/// Contains NSURLSession object created during the client initialization.
+@property (nonatomic, strong, nonnull, readonly) NSURLSession * session;
+
+/// Contains serialization queue. The queue is unique per PA2HttpClient instance, so basically
+/// each instnace of PowerAuthSDK has its own queue.
+///
+/// Note that the queue may be blocked for an indefinite amount of time, when the biometry
+/// authentication is requested. The reson for that is that the entry, protected by biometry,
+/// needs to be acquired from the underlying keychain.
+@property (nonatomic, strong, nonnull, readonly) NSOperationQueue * serialQueue;
+
+/// Contains concurrent queue. Note that this queue is shared between multiple PA2HttpClient
+/// instances.
+@property (nonatomic, strong, nonnull, readonly) NSOperationQueue * concurrentQueue;
+
+
+/// Add core HTTP request for execution.
+/// - Parameters:
+///   - request: Request to execute.
+///   - completion: Completion callback.
+/// - Returns: Operation task representing asynchronous operation.
+- (nonnull id<PowerAuthOperationTask>) postCoreRequest:(nonnull PowerAuthCoreRequest*)request
+                                            completion:(void(^)(PowerAuthRestApiResponseStatus status, id response, NSError * error))completion;
+
+@end

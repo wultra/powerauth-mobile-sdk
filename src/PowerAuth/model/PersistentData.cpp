@@ -105,7 +105,7 @@ bool PersistentData::isModified() const noexcept
 
 static const cc7::byte PD_TAG        = 'P';
 static const cc7::byte PD_VERSION_V2 = '3';    // SDK 0.x.x:  protocol V2
-static const cc7::byte PD_VERSION_V3 = '4';    // SDK 1.0.x:  protocol V3
+//static const cc7::byte PD_VERSION_V3 = '4';    // SDK 1.0.x:  protocol V3
 static const cc7::byte PD_VERSION_V4 = '5';    // SDK 1.1.x:  + recovery codes
 static const cc7::byte PD_VERSION_V5 = '6';    // SDK 1.3.x:  + signature counter byte
 static const cc7::byte PD_VERSION_V6 = '7';    // SDK 2.0.x:  protocol V4
@@ -170,7 +170,7 @@ void PersistentData::serializeV4(cc7::utils::DataWriter& writer, const V4& v4) c
     writer.openVersion(PD_TAG, PD_VERSION_V6);
     
     // Main activation data, such as algorithm type and activation ID
-    writer.writeByte    (v4.sharedSecretAlgorithm);
+    writer.writeByte    (v4.algorithmId);
     writer.writeString  (v4.activationId);
     
     // Hash counter
@@ -200,7 +200,7 @@ bool PersistentData::deserializeV4(cc7::utils::DataReader &reader, V4 &v4)
 {
     bool result;
     // Main activation data, such as algorithm type and activation ID
-    result =           reader.readByte      (v4.sharedSecretAlgorithm);
+    result =           reader.readByte      (v4.algorithmId);
     result = result && reader.readString    (v4.activationId);
 
     // Serialize hash counter
@@ -242,7 +242,7 @@ static bool _IsEmptyOrSet(const cc7::ByteArray & a, size_t size) {
 
 bool PersistentData::validateV4(const V4 &v4)
 {
-    auto spec = PowerAuthSpec::specForAlgorithmId(v4.sharedSecretAlgorithm);
+    auto spec = PowerAuthSpec::specForAlgorithmId(v4.algorithmId);
     return
         // selected algorithm
         spec && !spec->isLegacy() &&

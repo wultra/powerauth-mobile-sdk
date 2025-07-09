@@ -45,7 +45,7 @@ TimeService& Context::timeService()
     return *_time_service;
 }
 
-IEncryptorFactory& Context::encryptorFactory()
+IClientEncryptorFactory& Context::encryptorFactory()
 {
     return *_encryptor_factory;
 }
@@ -95,7 +95,7 @@ const TimeServicePtr& Context::getTimeServicePtr() const noexcept
     return _time_service;
 }
 
-const IEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexcept
+const IClientEncryptorFactoryPtr& Context::getEncryptorFactoryPtr() const noexcept
 {
     return _encryptor_factory;
 }
@@ -128,7 +128,6 @@ Context::Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration)
     _configuration(configuration),
     _specification(specification)
 {
-    createBasicServices(true);
 }
 
 ContextPtr Context::getInstance(PowerAuthSpec::Algorithm algorithm, ConfigurationPtr configuration)
@@ -137,26 +136,69 @@ ContextPtr Context::getInstance(PowerAuthSpec::Algorithm algorithm, Configuratio
     if (!spec) {
         throw Exception(EC_InternalError, "Unknown PowerAuth algorithm");
     }
-    return std::shared_ptr<Context>(new Context(spec, configuration));
+    auto context = std::make_shared<Context>(spec, configuration);
+    context->createBasicServices(true);
+    return context;
 }
 
 void Context::createBasicServices(bool initial_setup)
 {
+    auto self = shared_from_this();
     if (initial_setup) {
         // Initial objects construction
-        _time_service = std::make_shared<TimeService>(nullptr, _shared_mutex);
+        _time_service = std::make_shared<TimeService>(self);
         _signing_keys_factory = _specification->getSigningKeyPairFactory();
     }
     _session_data = std::make_shared<SessionData>();
-    
     if (protocolVersion() == Version_V4) {
         // V4
-        _key_provider = std::make_shared<v4::KeyProviderV4>(*this);
-        _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(*this);
+        _key_provider = std::make_shared<v4::KeyProviderV4>(self);
+        _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
+        _shared_secret = SharedSecret::getInstance(specification()->sharedSecret());
     } else {
         // V3
         throw Exception(EC_InternalError, "V3 is not implemented yet");
     }
+    
+    _services.push_back(_key_provider->asService());
+    _services.push_back(_encryptor_factory->asService());
 }
+
+void Context::destroyServices()
+{
+    for (auto& service : _services) {
+        service->destroyService();
+    }
+    _services.clear();
+    _shared_secret = nullptr;
+}
+
+// MARK: - Public interface
+
+void Context::clearSensitiveData()
+{
+    for (auto& service : _services) {
+        service->clearSensitiveData();
+    }
+}
+
+void Context::restoreSensitiveData()
+{
+    for (auto& service : _services) {
+        service->restoreSensitiveData();
+    }
+}
+
+void Context::updateAfterProtocolVersionChange()
+{
+    PowerAuthSpecPtr new_spec = _session_data->getSpecification();
+    if (!new_spec) {
+        // No persistent data available, fallback to specification from the configuration.
+        new_spec = PowerAuthSpec::specForAlgorithm(_configuration->algorithm());
+    }
+    _specification = new_spec;
+    destroyServices();
+    createBasicServices(false);
+}    
 
 } // namespace powerAuth

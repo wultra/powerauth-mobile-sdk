@@ -46,7 +46,7 @@ RequestBuilder& RequestBuilder::withBody(const cc7::ByteRange& body)
     return *this;
 }
 
-RequestBuilder& RequestBuilder::withHeaders(const std::vector<HttpHeader> &headers)
+RequestBuilder& RequestBuilder::withHeaders(const HttpHeaderList &headers)
 {
     _request->_request_headers.insert(_request->_request_headers.end(), headers.begin(), headers.end());
     return *this;
@@ -58,6 +58,16 @@ RequestBuilder& RequestBuilder::withAuthentication(const CredentialsPtr &authent
         throw Exception(EC_WrongParameter, "Endpoint is not authenticated");
     }
     _request->_authentication = authentication;
+    return *this;
+}
+
+RequestBuilder& RequestBuilder::withPrepareCallback(PrepareRequestCallback callback)
+{
+    if (_has_body) {
+        throw Exception(EC_WrongParameter, "Body is already set");
+    }
+    _request->_on_prepare = callback;
+    _has_body = true;
     return *this;
 }
 

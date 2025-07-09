@@ -24,8 +24,11 @@ namespace powerAuth {
 
 // MARK: - Support objects -
 
+/// Type definition for mutex shared between multiple objects. The mutex
+/// implementation must support recursive locking.
 typedef std::recursive_mutex SharedMutex;
-typedef std::shared_ptr<std::recursive_mutex> SharedMutexPtr;
+
+CC7_SHARED_PTR(SharedMutex)
 
 
 /// The ProtocolVersion enum defines PowerAuth protocol version.
@@ -53,14 +56,81 @@ enum ProtocolVersion
 extern const std::string& ProtocolVersion_GetHttpHeaderVersion(ProtocolVersion protocol_version);
 
 
-
-// MARK: - New "Engine" types
-
 /// Type for millisecond precise timestamp.
 typedef int64_t Timestamp;
 
 /// Type for seconds precise timestamp represented as floating point precision value.
 typedef double TimeInterval;
+
+/// The `HttpHeader` structure contains information for HTTP header construction.
+struct HttpHeader
+{
+    /// Header's name.
+    std::string headerName;
+    /// Header's value.
+    std::string headerValue;
+};
+
+/// List of headers.
+typedef std::vector<HttpHeader> HttpHeaderList;
+
+// Encryption
+
+/// The `EncryptorScope` enumeration defines scope of the encryptor.
+enum class EncryptorScope
+{
+    /// Application scoped encryptor. This type of encryptor can be used before
+    /// the activation is created. It's cryptographically bound to PowerAuth application's
+    /// secret.
+    APPLICATION = 1,
+    /// Activation scoped encryptor. This type of encryptor is cryptographically bound to
+    /// user's activation. So, it's available only while the Session has a valid activation data.
+    ACTIVATION  = 2
+};
+
+/// The `EncryptorId` enumeration defines encryptors used in the PowerAuth protocol.
+enum class EncryptorId
+{
+    /// No encryptor is used. The constant is used in situations when you have to specify
+    /// that no encryptor is involved. For example, in endpoint specification.
+    /// This value should not be used in API functions that require actual encryptors.
+    NONE,
+    /// General purpose encryptor for application scope. This encryptor is exposed to public API
+    /// and the mobile application can use it for its own purposes.
+    APPLICATION_SCOPE_GENERIC,
+    /// General purpose encryptor for activation scope. This encryptor is exposed to public API
+    /// and the mobile application can use it for its own purposes.
+    ACTIVATION_SCOPE_GENERIC,
+    /// Application scoped encryptor for encrypting "Layer 2" activation data.
+    ACTIVATION_LAYER_2,
+    /// Activation scoped encryptor for encrypting the vault key.
+    VAULT_UNLOCK,
+    /// Activation scoped encryptor for creating a PowerAuth token.
+    CREATE_TOKEN,
+    /// Application scoped encryptor for starting the upgrade to protocol V4+.
+    UPGRADE_START
+};
+
+// Authentication
+
+/// Authentication factor for authentication code calculation.
+enum class AuthFactors
+{
+    /// The authentication code will contain only the component with the possession factor.
+    POSSESSION,
+    /// The authentication code will contain components with the possession and the knowledge factors.
+    POSSESSION_KNOWLEDGE,
+    /// The authentication code will contain components with the possession and the biometry factors.
+    POSSESSION_BIOMETRY
+};
+
+// Forward declarations for internal objects
+
+class Context;
+
+
+
+// TODO: missing documentation, unfinished API
 
 struct AuthenticationHeaderData
 {
@@ -86,22 +156,5 @@ struct TokenHeaderData
     Timestamp timestamp = 0;
 };
 
-struct HttpHeader
-{
-    std::string headerName;
-    std::string headerValue;
-};
-
-// Authentication
-
-enum class AuthFactors
-{
-    POSSESSION,
-    POSSESSION_KNOWLEDGE,
-    POSSESSION_BIOMETRY
-};
-
-// Context's forward declaration
-class Context;
 
 } // namespace powerAuth

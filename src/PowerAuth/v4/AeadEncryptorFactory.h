@@ -23,23 +23,32 @@ namespace powerAuth {
 namespace v4 {
 
 class AeadEncryptorFactory :
-    public IEncryptorFactory,
+    public Service,
+    public IClientEncryptorFactory,
     public std::enable_shared_from_this<AeadEncryptorFactory>
 {
 public:
     
-    AeadEncryptorFactory(Context& context);
+    AeadEncryptorFactory(const ContextPtr& context);
+    
+    // IEncryptorFactory
+    IServicePtr asService() override;
     
     void resetAllData() override;
     void resetActivationData() override;
     
-    bool hasTemporaryKey(EncryptorScope scope) noexcept override;
+    bool hasTemporaryKey(EncryptorScope scope) override;
     void deleteTemporaryKey(EncryptorScope scope) override;
     
-    RequestPtr getTemporaryKeyRequest(Context& context, EncryptorScope scope) override;
-    bool hasPendingTemporaryKeyRequest(EncryptorScope scope) noexcept override;
+    RequestPtr getTemporaryKeyRequest(EncryptorScope scope) override;
+    bool hasPendingTemporaryKeyRequest(EncryptorScope scope) override;
     
     IClientEncryptorPtr getClientEncryptor(EncryptorId encryptor_id) override;
+    
+protected:
+    
+    // Service
+    void doServiceDestroy() override;
 
 private:
     /// We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
@@ -110,7 +119,7 @@ private:
     void cancelPendingTemporaryKeyRequest(EncryptorScope scope);
     std::string activationId() const noexcept;
     
-    const SharedMutexPtr _lock;
+    const ContextWeakPtr _context;
     const ConfigurationPtr _configuration;
     const SessionDataPtr _session_data;
     const IKeyProviderPtr _key_provider;
@@ -119,7 +128,6 @@ private:
     
     TemporaryKeyData _application_key_info;
     TemporaryKeyData _activation_key_info;
-
 };
 
 } // namespace v4

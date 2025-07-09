@@ -17,6 +17,7 @@
 #pragma once
 
 #include <PowerAuth/Types.h>
+#include <PowerAuth/Encryptor.h>
 #include "../v4/HybridKeyPair.h"
 
 namespace powerAuth {
@@ -34,6 +35,7 @@ public:
         cc7::crypto::KeyPairPtr deviceKeyPair;
         cc7::crypto::PublicKeyPtr serverPublicKey;
         
+        IClientEncryptorPtr requestEncryptor;
         ISharedSecretPtr sharedSecretAlgorithm;
         SharedSecretContextPtr sharedSecretContext;
         cc7::ByteArray calculatedSharedSecret;

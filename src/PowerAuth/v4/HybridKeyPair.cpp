@@ -163,7 +163,16 @@ public:
     {
         return std::make_shared<HybridPublicKey>(_key1, _key2);
     }
+    
+    const PublicKeyPtr& getKey1() const noexcept
+    {
+        return _key1;
+    }
 
+    const PublicKeyPtr& getKey2() const noexcept
+    {
+        return _key1;
+    }
     
 private:
     PublicKeyPtr _key1;
@@ -232,6 +241,16 @@ public:
     std::shared_ptr<Key> duplicate() const override
     {
         return std::make_shared<HybridPrivateKey>(_key1, _key2);
+    }
+    
+    const PrivateKeyPtr& getKey1() const noexcept
+    {
+        return _key1;
+    }
+
+    const PrivateKeyPtr& getKey2() const noexcept
+    {
+        return _key1;
     }
 
 
@@ -303,6 +322,78 @@ void HybridKeyPairFactory::setParameter(int param_id, const cc7::crypto::Paramet
 cc7::crypto::Parameter HybridKeyPairFactory::getParameter(int param_id) const
 {
     throw std::invalid_argument("Unsupported parameter ID=" + std::to_string(param_id));
+}
+
+bool HybridKeyPairFactory::isHybrid() const noexcept
+{
+    return _key2Factory != nullptr;
+}
+
+// MARK: - Helper functions
+
+const crypto::PublicKey& HybridKey_GetKey1(const crypto::PublicKey& hybrid_key)
+{
+    auto hybrid = dynamic_cast<const HybridPublicKey*>(&hybrid_key);
+    if (!hybrid) {
+        throw Exception(EC_InternalError, "Key is not HybridPublicKey");
+    }
+    return *hybrid->getKey1();
+}
+
+const crypto::PublicKey& HybridKey_GetKey2(const crypto::PublicKey& hybrid_key)
+{
+    auto hybrid = dynamic_cast<const HybridPublicKey*>(&hybrid_key);
+    if (!hybrid) {
+        throw Exception(EC_InternalError, "Key is not HybridPublicKey");
+    }
+    const auto& key_ptr = hybrid->getKey2();
+    if (!key_ptr) {
+        throw Exception(EC_InternalError, "Hybrid key doesn't contain key #2");
+    }
+    return *key_ptr;
+}
+
+const crypto::PrivateKey& HybridKey_GetKey1(const crypto::PrivateKey& hybrid_key)
+{
+    auto hybrid = dynamic_cast<const HybridPrivateKey*>(&hybrid_key);
+    if (!hybrid) {
+        throw Exception(EC_InternalError, "Key is not HybridPrivateKey");
+    }
+    return *hybrid->getKey1();
+}
+
+const crypto::PrivateKey& HybridKey_GetKey2(const crypto::PrivateKey& hybrid_key)
+{
+    auto hybrid = dynamic_cast<const HybridPrivateKey*>(&hybrid_key);
+    if (!hybrid) {
+        throw Exception(EC_InternalError, "Key is not HybridPrivateKey");
+    }
+    const auto& key_ptr = hybrid->getKey2();
+    if (!key_ptr) {
+        throw Exception(EC_InternalError, "Hybrid key doesn't contain key #2");
+    }
+    return *key_ptr;
+}
+
+json::JsonValue HybridKey_ToJson(const crypto::PublicKey& hybrid_key, PowerAuthSpecPtr specification)
+{
+    auto result = cc7::json::JsonValue::object();
+    result["ecdsa"] = cc7::json::JsonValue::base64(HybridKey_GetKey1(hybrid_key).exportKey(KEY_FORMAT_X963));
+    if (specification->isHybrid()) {
+        result["mldsa"] = cc7::json::JsonValue::base64(HybridKey_GetKey2(hybrid_key).exportKey(KEY_FORMAT_SPKI));
+    }
+    return result;
+}
+
+cc7::crypto::PublicKeyPtr HybridKey_FromJson(const cc7::json::JsonValue& key_data, const crypto::KeyPairFactory& key_pair_factory)
+{
+    auto hybrid_factory = dynamic_cast<const HybridKeyPairFactory*>(&key_pair_factory);
+    if (!hybrid_factory) {
+        throw Exception(EC_InternalError, "Factory is not HybridKeyPairFactory");
+    }
+    auto key1_data = key_data["ecdsa"].asBase64();
+    auto key2_data = hybrid_factory->isHybrid() ? key_data["mldsa"].asBase64() : ByteArray();
+    return hybrid_factory->newPublicKeyFromData(key1_data, KEY_FORMAT_X963, key2_data, KEY_FORMAT_SPKI);
 }
 
 } // namespace v4

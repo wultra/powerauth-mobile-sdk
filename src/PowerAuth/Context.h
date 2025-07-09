@@ -29,15 +29,30 @@
 
 namespace powerAuth {
 
-class Context {
+class Context : public std::enable_shared_from_this<Context>
+{
 public:
+
+    /// Create instance of context object.
+    /// - Parameters:
+    ///   - specification: PowerAuth algorithm specification.
+    ///   - configuration: Instance configuration.
+    static std::shared_ptr<Context> getInstance(PowerAuthSpec::Algorithm algorithm,
+                                                ConfigurationPtr configuration);
+
+    /// Construct context object. Please use `getInstance()` method to properly construct context.
+    /// - Parameters:
+    ///   - specification: PowerAuth algorithm specification.
+    ///   - configuration: Instance configuration.
+    Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
     
+
     ProtocolVersion protocolVersion() const noexcept;
     const Configuration& configuration() const noexcept;
     PowerAuthSpecPtr specification() const noexcept;
 
     TimeService& timeService();
-    IEncryptorFactory& encryptorFactory();
+    IClientEncryptorFactory& encryptorFactory();
     ISharedSecret& sharedSecret();
     IKeyProvider& keyProvider();
     SessionData& sessionData();
@@ -48,21 +63,22 @@ public:
     const SessionDataPtr& getSessionDataPtr() const noexcept;
     
     const TimeServicePtr& getTimeServicePtr() const noexcept;
-    const IEncryptorFactoryPtr& getEncryptorFactoryPtr() const noexcept;
+    const IClientEncryptorFactoryPtr& getEncryptorFactoryPtr() const noexcept;
     const ISharedSecretPtr& getSharedSecretPtr() const noexcept;
     const IKeyProviderPtr& getKeyProviderPtr() const noexcept;
     
     const IAuthHeaderCalculatorPtr& getAuthHeaderCalculatorPtr() const noexcept;
     const cc7::crypto::KeyPairFactoryPtr& getSigningKeyPairFactoryPtr() const noexcept;
+        
+    void updateAfterProtocolVersionChange();
     
-    static std::shared_ptr<Context> getInstance(PowerAuthSpec::Algorithm algorithm,
-                                                ConfigurationPtr configuration);
+    void clearSensitiveData();
+    void restoreSensitiveData();
     
 private:
     
-    Context(PowerAuthSpecPtr specification, ConfigurationPtr configuration);
-    
     void createBasicServices(bool initial_setup);
+    void destroyServices();
     
     mutable SharedMutexPtr _shared_mutex;
     const ConfigurationPtr _configuration;
@@ -71,10 +87,12 @@ private:
     cc7::crypto::KeyPairFactoryPtr _signing_keys_factory;
     
     TimeServicePtr _time_service;
-    IEncryptorFactoryPtr _encryptor_factory;
+    IClientEncryptorFactoryPtr _encryptor_factory;
     ISharedSecretPtr _shared_secret;
     IKeyProviderPtr _key_provider;
     IAuthHeaderCalculatorPtr _auth_header_calculator;
+    
+    std::vector<IServicePtr> _services;
 };
 
 CC7_SHARED_PTR(Context)

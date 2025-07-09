@@ -15,7 +15,7 @@
  */
 
 #include <cc7tests/CC7Tests.h>
-#include <PowerAuth/PowerAuth.h>
+#include <PowerAuth/Session.h>
 #include <cc7/CC7.h>
 #include <cc7/utils/DataWriter.h>
 #include <cc7/detail/StringUtils.h>

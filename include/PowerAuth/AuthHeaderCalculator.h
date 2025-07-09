@@ -18,6 +18,7 @@
 
 #include <PowerAuth/Types.h>
 #include <PowerAuth/Credentials.h>
+#include <map>
 
 namespace powerAuth {
 
@@ -43,6 +44,8 @@ public:
     
     virtual HttpHeader calculateOnlineAuthenticationHeader(const Credentials& auth, const AuthHeaderRequestData& request) = 0;
     virtual std::string calculateOfflineAuthenticationCode(const Credentials& auth, const OfflineCodeRequestData& request) = 0;
+    
+    virtual cc7::ByteArray normalizeGetRequestParameters(std::map<std::string, std::string>& map) const;
 };
 
 CC7_SHARED_PTR(IAuthHeaderCalculator)

@@ -43,6 +43,7 @@ AeadClientEncryptor::AeadClientEncryptor(EncryptorParametersPtr& parameters,
     _secrets(std::move(secrets)),
     _nonce(nonce),
     _time_service(time_service),
+    _fail_on_nosync_time(true),
     _time_sync_task(-1)
 {
 #if DEBUG
@@ -73,6 +74,9 @@ EncryptedRequest AeadClientEncryptor::encryptRequest(const ByteRange &data)
 {
     if (!canEncryptRequest()) {
         throw Exception(EC_NotAllowed, "Cannot encrypt request");
+    }
+    if (!_time_service->isTimeSynchronized() && _fail_on_nosync_time) {
+        throw Exception(EC_TimeNotSynchronized, "Encryption required time synchronized with server");
     }
     
     const auto& aead = aeadAlg();
@@ -114,10 +118,10 @@ ByteArray AeadClientEncryptor::decryptResponse(const EncryptedResponse &response
         timestamp = response.responsePayload["timestamp"].asInteger();
         ciphertext = Base64::decode(response.responsePayload["encryptedData"].asString());
         if (!ConstTimeEqual(responseNonce(), aead.extractNonce(ciphertext))) {
-            throw Exception(EC_InvalidData, "Unexpected response nonce");
+            throw Exception(EC_InvalidResponse, "Unexpected response nonce");
         }
     } catch (...) {
-        Exception::reThrowWrapped(EC_InvalidData, "Invalid encrypted response");
+        Exception::reThrowWrapped(EC_InvalidResponse, "Invalid encrypted response");
     }
     
     auto key = getKey();
@@ -130,6 +134,15 @@ ByteArray AeadClientEncryptor::decryptResponse(const EncryptedResponse &response
     _time_sync_task = 0.0;
 
     return plaintext;
+}
+
+void AeadClientEncryptor::disableFailWhenTimeIsNotSynchronized()
+{
+#if DEBUG
+    _fail_on_nosync_time = false;
+#else
+    throw Exception(EC_InternalError, "Not implemented");
+#endif
 }
 
 SymmetricKeyPtr AeadClientEncryptor::getKey() const

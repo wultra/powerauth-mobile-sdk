@@ -35,9 +35,9 @@ Request::~Request()
     cancel();
 }
 
-const std::string& Request::getLocalPath() const noexcept
+const std::string& Request::getRelativePath() const noexcept
 {
-    return _endpoint.localPath;
+    return _endpoint.relativePath;
 }
 
 const std::string& Request::getHttpMethod() const noexcept
@@ -70,6 +70,12 @@ bool Request::isAuthenticated() const noexcept
     return _endpoint.isAuthenticated();
 }
 
+EncryptorScope Request::encryptorScope() const
+{
+    return EncryptorSpec::specForId(_endpoint.encryptorId)->scope;
+}
+
+
 bool Request::isCompleted() const noexcept
 {
     LOCK_GUARD();
@@ -101,10 +107,16 @@ void Request::cancel()
         return;
     }
     _state = CANCELED;
-    if (_on_cancel) {
-        _on_cancel();
+    // Execute cancel handler in safe way.
+    try {
+        if (_on_cancel) {
+            _on_cancel();
+        }
+        cleanup();
+    } catch (...) {
+        cleanup();
+        Exception::reThrowWrapped(EC_Canceled, "Internal cancel processing in request failed");
     }
-    cleanup();
 }
 
 const cc7::ByteArray& Request::getRequestBody() const
@@ -116,7 +128,7 @@ const cc7::ByteArray& Request::getRequestBody() const
     return _request_body;
 }
 
-const std::vector<HttpHeader>& Request::getRequestHeaders() const
+const HttpHeaderList& Request::getRequestHeaders() const
 {
     LOCK_GUARD();
     if (_state != PENDING) {
@@ -132,6 +144,15 @@ const cc7::ByteArray& Request::getResponseBody() const
         throw Exception(EC_NotAllowed, "Response body is not available");
     }
     return _response_body;
+}
+
+const ResponseObjectPtr& Request::getResponseObject() const
+{
+    LOCK_GUARD();
+    if (_state != PROCESSED) {
+        throw Exception(EC_NotAllowed, "Response body is not available");
+    }
+    return _response_object;
 }
 
 void Request::processFailure(ErrorCode ec, const std::string& msg, std::exception_ptr failure)
@@ -150,6 +171,7 @@ void Request::cleanup()
 {
     _encryptor = nullptr;
     _authenticator = nullptr;
+    _on_prepare = nullptr;
     _on_cancel = nullptr;
     _on_response = nullptr;
 }
@@ -204,6 +226,10 @@ void Request::doPrepareRequest()
 
 void Request::prepareRequestBody()
 {
+    if (_on_prepare) {
+        _request_json = _on_prepare(*this);
+        _on_prepare = nullptr;
+    }
     if (_request_json.isValid()) {
         if (_endpoint.requireWrappedRequestResponse()) {
             auto wrapper = cc7::json::JsonValue::object();
@@ -212,6 +238,9 @@ void Request::prepareRequestBody()
         } else {
             _request_body = cc7::json::JsonWriter::toJsonData(_request_json);
         }
+        // Request and response is JSON, so add appropriate headers
+        _request_headers.push_back({ "Content-Type", "application/json" });
+        _request_headers.push_back({ "Accept",       "application/json" });
     }
 }
 

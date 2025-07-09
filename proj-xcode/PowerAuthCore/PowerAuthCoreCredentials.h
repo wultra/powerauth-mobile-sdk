@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Wultra s.r.o.
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-#import <PowerAuthCore/PowerAuthCoreTimeService.h>
+#import <PowerAuthCore/PowerAuthCorePassword.h>
+#import <PowerAuthCore/PowerAuthCoreData.h>
 
-/**
- Class provide simple time service implementation for core tests purposes.
- */
-@interface TestTimeService : NSObject<PowerAuthCoreTimeService>
+@interface PowerAuthCoreCredentials : NSObject
+
++ (nonnull PowerAuthCoreCredentials*) possession;
++ (nullable PowerAuthCoreCredentials*) knowledge:(nonnull PowerAuthCorePassword*)password;
++ (nullable PowerAuthCoreCredentials*) biometry:(nonnull PowerAuthCoreData*)biometryKek;
+
 @end
-

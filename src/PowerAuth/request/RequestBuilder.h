@@ -31,9 +31,10 @@ public:
     
     RequestBuilder& withJson(const cc7::json::JsonValue& json_payload);
     RequestBuilder& withBody(const cc7::ByteRange& body);
-    RequestBuilder& withHeaders(const std::vector<HttpHeader>& headers);
+    RequestBuilder& withHeaders(const HttpHeaderList& headers);
     RequestBuilder& withAuthentication(const CredentialsPtr& authentication);
     
+    RequestBuilder& withPrepareCallback(PrepareRequestCallback callback);
     RequestBuilder& withResponseCallback(ResponseCallback callback);
     RequestBuilder& withCancelCallback(CancelCallback callback);
     

@@ -19,6 +19,11 @@
 namespace powerAuth {
 namespace v3 {
 
+EciesEncryptorFactory::EciesEncryptorFactory(const ContextPtr & context) :
+    Service("EciesEncryptorFactory", context->getSharedMutexPtr()),
+    _configuration(context->getConfigurationPtr())
+{
+}
 
 } // namespace v3
 } // namespace powerAuth

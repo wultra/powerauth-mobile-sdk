@@ -155,6 +155,7 @@ EciesClientEncryptor::EciesClientEncryptor(EncryptorParametersPtr& parameters,
     _parameters(std::move(parameters)),
     _secrets(std::move(secrets)),
     _time_service(time_service),
+    _fail_on_nosync_time(true),
     _request_nonce(nonce),
     _time_sync_task(-1)
 {
@@ -176,7 +177,10 @@ EncryptedRequest EciesClientEncryptor::encryptRequest(const ByteRange &data)
     if (!canEncryptRequest()) {
         throw Exception(EC_NotAllowed, "Cannot encrypt request");
     }
-    
+    if (!_time_service->isTimeSynchronized() && _fail_on_nosync_time) {
+        throw Exception(EC_TimeNotSynchronized, "Encryption required time synchronized with server");
+    }
+
     auto timestamp = _time_service->currentTimeMillis();
     auto key = EciesEnvelopeKey(_secrets->envelopeKey);
     auto aad = getAAD(timestamp, _request_nonce, _secrets->ephemeralKey);
@@ -214,10 +218,10 @@ ByteArray EciesClientEncryptor::decryptResponse(const EncryptedResponse &respons
         mac = response.responsePayload["mac"].asBase64();
         timestamp = response.responsePayload["timestamp"].asInteger();
     } catch (...) {
-        Exception::reThrowWrapped(EC_InvalidData, "Invalid encrypted response");
+        Exception::reThrowWrapped(EC_InvalidResponse, "Invalid encrypted response");
     }
     if (ConstTimeEqual(_request_nonce, nonce)) {
-        throw Exception(EC_InvalidData, "Request and response nonces are equal");
+        throw Exception(EC_InvalidResponse, "Request and response nonces are equal");
     }
     
     auto key = EciesEnvelopeKey(_secrets->envelopeKey);
@@ -232,6 +236,15 @@ ByteArray EciesClientEncryptor::decryptResponse(const EncryptedResponse &respons
     _time_sync_task = 0.0;
 
     return plaintext;
+}
+
+void EciesClientEncryptor::disableFailWhenTimeIsNotSynchronized()
+{
+#if DEBUG
+    _fail_on_nosync_time = false;
+#else
+    throw Exception(EC_InternalError, "Not implemented");
+#endif
 }
 
 ByteArray EciesClientEncryptor::getAAD(Timestamp timestamp, const ByteRange & nonce, const ByteRange& ephemeral_key) const

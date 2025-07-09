@@ -52,28 +52,20 @@ static bool _UTF8Encode(cc7::U32 codepoint, cc7::ByteArray & out)
 
 // MARK: - Construction / Destruction -
 
-Password::Password() :
-    _char_pos(nullptr)
+Password::Password() noexcept
 {
 }
 
-Password::Password(const cc7::ByteRange & data) :
-    _char_pos(nullptr)
+Password::Password(const cc7::ByteRange & data) noexcept
 {
     initAsImmutable(data);
-}
-
-Password::~Password()
-{
-    delete _char_pos;
 }
 
 
 // MARK: - Initialization -
 
-void Password::initAsImmutable(const cc7::ByteRange & data)
+void Password::initAsImmutable(const cc7::ByteRange & data) noexcept
 {
-    delete _char_pos;
     _char_pos = nullptr;
     // We're very paranoid here, Let's clear previous content
     // and assign new one
@@ -86,12 +78,12 @@ void Password::initAsImmutable(const cc7::ByteRange & data)
     inplaceXor(randomKeySize);
 }
 
-void Password::initAsMutable()
+void Password::initAsMutable() noexcept
 {
     if (_char_pos) {
         _char_pos->clear();
     } else {
-        _char_pos = new PosVector();
+        _char_pos = std::make_unique<PosVector>();
     }
     _pass.secureClear();
     // Generate twice as required random bytes
@@ -104,12 +96,12 @@ void Password::initAsMutable()
 
 // MARK: - Immutable methods -
 
-bool Password::isMutable() const
+bool Password::isMutable() const noexcept
 {
     return _char_pos != nullptr;
 }
 
-size_t Password::length() const
+size_t Password::length() const noexcept
 {
     if (isMutable()) {
         return _char_pos->size();
@@ -118,7 +110,7 @@ size_t Password::length() const
     }
 }
 
-cc7::ByteArray Password::passwordData() const
+cc7::ByteArray Password::passwordData() const noexcept
 {
     // Pre-allocate ByteArray with actual stored password size.
     const size_t data_size = _pass.size() - randomKeySize;
@@ -130,19 +122,19 @@ cc7::ByteArray Password::passwordData() const
     return plaintext;
 }
 
-bool Password::isEqualToPassword(const Password & p) const
+bool Password::isEqualToPassword(const Password & p) const noexcept
 {
     return passwordData() == p.passwordData();
 }
 
-Password::operator cc7::ByteArray() const
+Password::operator cc7::ByteArray() const noexcept
 {
     return passwordData();
 }
 
 // MARK: - Mutable operations -
 
-bool Password::clear()
+bool Password::clear() noexcept
 {
     if (isMutable()) {
         initAsMutable();
@@ -151,7 +143,7 @@ bool Password::clear()
     return false;
 }
 
-bool Password::addCharacter(cc7::U32 utf_codepoint)
+bool Password::addCharacter(cc7::U32 utf_codepoint) noexcept
 {
     if (isMutable()) {
         cc7::ByteArray bytes;
@@ -170,7 +162,7 @@ bool Password::addCharacter(cc7::U32 utf_codepoint)
     return false;
 }
 
-bool Password::insertCharacter(cc7::U32 utf_codepoint, size_t index)
+bool Password::insertCharacter(cc7::U32 utf_codepoint, size_t index) noexcept
 {
     if (isMutable()) {
         if (index <= _char_pos->size()) {
@@ -195,7 +187,7 @@ bool Password::insertCharacter(cc7::U32 utf_codepoint, size_t index)
     return false;
 }
 
-bool Password::removeLastCharacter()
+bool Password::removeLastCharacter() noexcept
 {
     if (isMutable()) {
         if (length() > 0) {
@@ -210,7 +202,7 @@ bool Password::removeLastCharacter()
     return false;
 }
 
-bool Password::removeCharacter(size_t index)
+bool Password::removeCharacter(size_t index) noexcept
 {
     if (isMutable()) {
         if (index < _char_pos->size()) {
@@ -232,7 +224,7 @@ bool Password::removeCharacter(size_t index)
     return false;
 }
 
-void Password::secureClear()
+void Password::secureClear() noexcept
 {
     if (isMutable()) {
         initAsMutable();
@@ -243,7 +235,7 @@ void Password::secureClear()
 
 // MARK: - Private interface -
 
-size_t Password::indexToPos(size_t index)
+size_t Password::indexToPos(size_t index) noexcept
 {
     if (index < _char_pos->size()) {
         return _char_pos->operator[](index);
@@ -251,7 +243,7 @@ size_t Password::indexToPos(size_t index)
     return _pass.size();
 }
 
-void Password::updateIndexes(size_t begin, ptrdiff_t offset)
+void Password::updateIndexes(size_t begin, ptrdiff_t offset) noexcept
 {
     while (begin < _char_pos->size()) {
         _char_pos->operator[](begin) += offset;
@@ -261,7 +253,7 @@ void Password::updateIndexes(size_t begin, ptrdiff_t offset)
 
 // MARK: Password protection
 
-void Password::inplaceXor(size_t begin)
+void Password::inplaceXor(size_t begin) noexcept
 {
     while (begin < _pass.size()) {
         _pass[begin] ^= _pass[begin % randomKeySize];

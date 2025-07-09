@@ -25,19 +25,32 @@ namespace v4 {
 static const std::string KC_DEVICE_PUBLIC_KEY("enc/device-public-key");
 static const std::string KC_SERVER_PUBLIC_KEY("enc/server-public-key");
 
-KeyProviderV4::KeyProviderV4(Context& context) :
-    _configuration(context.getConfigurationPtr()),
-    _session_data(context.getSessionDataPtr()),
-    _specification(context.specification()),
-    _signing_key_factory(context.getSigningKeyPairFactoryPtr()),
+KeyProviderV4::KeyProviderV4(const ContextPtr& context) :
+    Service("KeyProviderV4", context->getSharedMutexPtr()),
+    _configuration(context->getConfigurationPtr()),
+    _session_data(context->getSessionDataPtr()),
+    _specification(context->specification()),
+    _signing_key_factory(context->getSigningKeyPairFactoryPtr()),
     _sec_key_created(false),
     _sec_key_token(1)
 {
     restoreSensitiveData();
 }
 
+IServicePtr KeyProviderV4::asService()
+{
+    return shared_from_this();
+}
+
+void KeyProviderV4::doServiceDestroy()
+{
+    clearSensitiveData();
+}
+
 void KeyProviderV4::clearSensitiveData()
 {
+    Service::clearSensitiveData();
+    
     _device_public_key = nullptr;
     _server_public_key = nullptr;
     _local_data_key.secureClear();
@@ -45,6 +58,8 @@ void KeyProviderV4::clearSensitiveData()
 
 void KeyProviderV4::restoreSensitiveData()
 {
+    Service::restoreSensitiveData();
+    
     if (_session_data->hasPersistentData()) {
         updateKeyLocalData(nullptr);
     }
@@ -57,6 +72,7 @@ ProtocolVersion KeyProviderV4::protocolVersion() const noexcept
 
 cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getMasterServerPublicKeyPtr()
 {
+    checkNotDestroyed();
     if (!_master_server_public_key) {
         _master_server_public_key = getKeyPairFactory().newPublicKeyFromData(_configuration->ecdsaMasterServerPublicKey(),
                                                                              cc7::crypto::KEY_FORMAT_X963,
@@ -68,6 +84,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getMasterServerPublicKeyPtr()
 
 cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getDevicePublicKeyPtr()
 {
+    checkNotDestroyed();
     if (!_device_public_key) {
         if (_session_data->hasPersistentData()) {
             _device_public_key = decryptPublicKey(_session_data->persistentData().v4().cDevicePublicKey, KC_DEVICE_PUBLIC_KEY);
@@ -82,6 +99,7 @@ cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getDevicePublicKeyPtr()
 
 cc7::crypto::ConstPublicKeyPtr KeyProviderV4::getServerPublicKeyPtr()
 {
+    checkNotDestroyed();
     if (!_server_public_key) {
         if (_session_data->hasPersistentData()) {
             _server_public_key = decryptPublicKey(_session_data->persistentData().v4().cServerPublicKey, KC_SERVER_PUBLIC_KEY);
@@ -199,6 +217,7 @@ HybridKeyPairFactory& KeyProviderV4::getKeyPairFactory()
 
 std::unique_ptr<SecretKeysV4> KeyProviderV4::createSecretKeys()
 {
+    checkNotDestroyed();
     if (_sec_key_created) {
         throw Exception(EC_NotAllowed, "Secret keys already created");
     }
@@ -214,7 +233,7 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
     // create new V4 persistent data
     auto pd = std::make_unique<PersistentData::V4>();
     
-    pd->sharedSecretAlgorithm = spec->algorithmId();
+    pd->algorithmId = spec->algorithmId();
     pd->activationId = rd.activationId;
     pd->authCodeCounterByte = 0;
     pd->authCodeCounterData = rd.authCodeCounterData;

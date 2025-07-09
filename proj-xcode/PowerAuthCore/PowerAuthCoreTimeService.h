@@ -15,11 +15,14 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreMacros.h>
+#import <PowerAuthCore/PowerAuthCoreRequest.h>
 
 /// The `PowerAuthCoreTimeService` protocol provides functionality for getting
 /// time synchronized with the server and allows synchronize time with the server.
-@protocol PowerAuthCoreTimeService <NSObject>
-@required
+@interface PowerAuthCoreTimeService : NSObject
+
+/// Default construction is unavailable
+- (nonnull instancetype) init NS_UNAVAILABLE;
 
 /// Contains information whether the service has its time synchronized with the server.
 @property (nonatomic, readonly) BOOL isTimeSynchronized;
@@ -28,18 +31,25 @@
 /// reference date 1.1.1970 (e.g. unix timestamp.) If the local time is not synchronized, then returns
 /// the current local time (e.g. `Date().timeIntervalSince1970`.) You can test `isTimeSynchronized` property if
 /// this is not sufficient for your purposes.
-- (NSTimeInterval) currentTime;
+@property (nonatomic, readonly) NSTimeInterval currentTime;
 
-/// Start time synchronization task and return object representing such task. The same object must be later
-/// provided to `completeTimeSynchronizationTask:withServerTime:` function.
-- (id) startTimeSynchronizationTask;
+/// Return calculated local time difference against the server. The value  is informational and is provided only
+/// for the testing or the debugging purposes.
+@property (nonatomic, readonly) NSTimeInterval localTimeAdjustment;
 
-/// Complete the time synchronization task with time received from the server.
-/// - Parameters:
-///   - task: Task object created in `startTimeSynchronizationTask` function.
-///   - serverTime: Timestamp received from the server.
-/// - Returns: YES if the server time has been processed and time is now synchronized.
-- (BOOL) completeTimeSynchronizationTask:(id)task withServerTime:(NSTimeInterval)serverTime;
+/// Return value representing a maximum absolute deviation of synchronized time against the actual time on the server.
+/// Depending on this value you can determine whether this deviation is within your expected margins. If the current
+/// synchronized time is out of your expectations, then try to synchronize the time again.
+@property (nonatomic, readonly) NSTimeInterval localTimeAdjustmentPrecision;
+
+/// Creates HTTP request for time synchronization.
+/// - Parameter error: Pointer where the error will be stored in case of failure.
+/// - Returns: HTTP request or `nil` in case of failure.
+- (nullable PowerAuthCoreRequest*) createTimeSynchronizationRequest:(NSError*_Nullable*_Nullable)error;
+
+/// Get information whether there's already pending request for time synchronization.
+/// - Returns: YES in there's pending request for time synchronization.
+- (BOOL) hasPendingTimeSynchronizationRequest;
 
 @end
 

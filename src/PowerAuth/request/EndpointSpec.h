@@ -30,7 +30,7 @@ struct EndpointSpec
         FL_NOT_WRAPPED          = 1 << 3,
     };
     ProtocolVersion version;
-    std::string localPath;
+    std::string relativePath;
     std::string method;
     std::string uriId;
     EncryptorId encryptorId;
@@ -69,8 +69,9 @@ struct EndpointSpec
 
 namespace v4 {
 
+extern const EndpointSpec Endpoint_SystemStatus;
 extern const EndpointSpec Endpoint_TemporaryKey;
-extern const EndpointSpec Endpoint_ActivationStart;
+extern const EndpointSpec Endpoint_ActivationCreate;
 extern const EndpointSpec Endpoint_ActivationConfirm;
 extern const EndpointSpec Endpoint_ActivationStatus;
 extern const EndpointSpec Endpoint_PasswordChange;

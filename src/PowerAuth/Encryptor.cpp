@@ -51,12 +51,12 @@ static const EncryptorSpec spec_ACTIVATION_LAYER_2 {
     FL_PROTO_ALL
 };
 
-static const EncryptorSpec spec_UPGRADE {
-    EncryptorId::UPGRADE,
+static const EncryptorSpec spec_UPGRADE_START {
+    EncryptorId::UPGRADE_START,
     EncryptorScope::ACTIVATION,
-    "UPGRADE",
-    "/pa/upgrade",
-    FL_PROTO_ALL
+    "UPGRADE_START",
+    "/pa/upgrade/start",
+    FL_PROTO_V4
 };
 
 static const EncryptorSpec spec_VAULT_UNLOCK {
@@ -79,7 +79,7 @@ static const EncryptorSpec * spec_list[] = {
     &spec_APPLICATION_SCOPE_GENERIC,
     &spec_ACTIVATION_SCOPE_GENERIC,
     &spec_ACTIVATION_LAYER_2,
-    &spec_UPGRADE,
+    &spec_UPGRADE_START,
     &spec_VAULT_UNLOCK,
     &spec_CREATE_TOKEN,
 };
@@ -93,14 +93,19 @@ EncryptorSpecPtr EncryptorSpec::specForId(EncryptorId identifier)
             return &spec_ACTIVATION_SCOPE_GENERIC;
         case EncryptorId::ACTIVATION_LAYER_2:
             return &spec_ACTIVATION_LAYER_2;
-        case EncryptorId::UPGRADE:
-            return &spec_UPGRADE;
+        case EncryptorId::UPGRADE_START:
+            return &spec_UPGRADE_START;
         case EncryptorId::VAULT_UNLOCK:
             return &spec_VAULT_UNLOCK;
         case EncryptorId::CREATE_TOKEN:
             return &spec_CREATE_TOKEN;
         case EncryptorId::NONE:
-            throw Exception(EC_InternalError, "NONE encryptor has no specification");
+            // This situation
+            throw Exception(EC_NotAllowed, "No encryptor is set");
+        default:
+            // Formally this should never happen (switch contains all cases from enum class),
+            // but we're very paranoid here.
+            throw Exception(EC_NotAllowed, "Unknown encryptor ID");
     }
 }
 
@@ -111,17 +116,7 @@ EncryptorSpecPtr EncryptorSpec::specForName(const std::string &identifier_name)
             return spec_list[i];
         }
     }
-    return nullptr;
-}
-
-EncryptorSpecPtr EncryptorSpec::specForSharedInfo(const std::string &shared_info)
-{
-    for (int i = 0; i < sizeof(spec_list)/sizeof(spec_list[0]); i++) {
-        if (spec_list[i]->sharedInfo == shared_info) {
-            return spec_list[i];
-        }
-    }
-    return nullptr;
+    throw Exception(EC_WrongParameter, "Encryptor `" + identifier_name + "` not found");
 }
 
 bool EncryptorSpec::isActivationScoped() const noexcept
@@ -192,11 +187,11 @@ EncryptedResponse IServerEncryptor::encryptJsonResponse(const cc7::json::JsonVal
     }
 }
 
-// MARK: - Secrets & Parameters
+// MARK: - Encryptor parameters and secrets
 
-EncryptorSecretsPtr EncryptorSecrets::makeSecrets(const cc7::ByteRange& envelope_key,
-                                                  const cc7::ByteRange& shared_info_2,
-                                                  const cc7::ByteRange& ephemeral_key)
+std::unique_ptr<EncryptorSecrets> EncryptorSecrets::makeSecrets(const cc7::ByteRange& envelope_key,
+                                                                const cc7::ByteRange& shared_info_2,
+                                                                const cc7::ByteRange& ephemeral_key) noexcept
 {
     return std::unique_ptr<EncryptorSecrets>(new EncryptorSecrets { envelope_key, shared_info_2, ephemeral_key });
 }
@@ -210,7 +205,7 @@ EncryptorParametersPtr EncryptorParameters::makeParameters(ProtocolVersion proto
 {
     auto spec = EncryptorSpec::specForId(encryptorId);
     if (spec->isActivationScoped() && activationIdentifier.empty()) {
-        throw Exception(EC_InternalError, "Activation ID is required for activation scoped parameters");
+        throw Exception(EC_MissingActivation, "Activation scoped encryptor require activation");
     }
     return std::unique_ptr<EncryptorParameters>(new EncryptorParameters {
         protocolVersion,
@@ -242,5 +237,6 @@ cc7::ByteArray EncryptorParameters::buildAssociatedData() const noexcept
         });
     }
 }
+
 
 } // namespace powerAuth

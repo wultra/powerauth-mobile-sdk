@@ -34,32 +34,50 @@ public:
 
 CC7_SHARED_PTR(ResponseObject)
 
+using PrepareRequestCallback = std::function<cc7::json::JsonValue(const Request&)>;
 using ResponseCallback = std::function<ResponseObjectPtr(const Request&, const cc7::json::JsonValue&)>;
 using CancelCallback   = std::function<void()>;
-
 
 struct EndpointSpec;
 class IClientEncryptor;
 class IAuthHeaderCalculator;
 class Credentials;
 
+/// The `Request` class contains information about HTTP request created in the core module.
+/// The core module doesn't perform any networking, so the higher level SDK is responsible
+/// for the request execution and the response delegate back to this request object.
+///
+/// Be aware, that the Request is designed only to process a successful responses, and therefore
+/// non-200 responses has to be processed in the networking code.
 class Request
 {
 public:
     
+    /// Object's destructor.
     ~Request();
     
+    /// Cancel the request. The networking code should call this method also when the
+    /// non-200 response code is received.
     void cancel();
     
+    /// Prepare the request body and the headers. You have to call this method before you
+    /// call `getRequestBody()` or `getRequestHeaders()`.
+    ///
+    /// The method should be called from the background thread dedicated for the networking,
+    /// because preparation may take a significant amount of CPU time (for example, if activation
+    /// is being created).
     void prepareRequest();
-    void processResponse(const cc7::ByteRange& response_data);
     
+    /// Process response and set request completed.
+    /// - Parameter response_data: Response data.
+    void processResponse(const cc7::ByteRange& response_data);
+        
     bool isCompleted() const noexcept;
     bool isCanceled() const noexcept;
     bool isFailed() const noexcept;
     bool isDone() const noexcept;
     
-    const std::string& getLocalPath() const noexcept;
+    const std::string& getRelativePath() const noexcept;
     const std::string& getHttpMethod() const noexcept;
         
     bool requireSynchronizedTime() const noexcept;
@@ -67,9 +85,10 @@ public:
     bool isAllowedInUpgrade() const noexcept;
     bool isEncrypted() const noexcept;
     bool isAuthenticated() const noexcept;
-
+    EncryptorScope encryptorScope() const;
+    
     const cc7::ByteArray& getRequestBody() const;
-    const std::vector<HttpHeader>& getRequestHeaders() const;
+    const HttpHeaderList& getRequestHeaders() const;
 
     const cc7::ByteArray& getResponseBody() const;
     
@@ -77,7 +96,16 @@ public:
     
     template <typename T> std::shared_ptr<T> getTypedResponseObject() const
     {
-        return std::dynamic_pointer_cast<T>(_response_object);
+        return std::dynamic_pointer_cast<T>(getResponseObject());
+    }
+    
+    /// Execute operation while internal lock is granted.
+    /// - Parameter operation: Operation to execute.
+    /// - Returns: Value returned from operation function.
+    template <typename T> T executeOperation(std::function<T()> operation)
+    {
+        std::lock_guard<std::recursive_mutex> _lock_guard(*_mutex);
+        return operation();
     }
     
 private:
@@ -103,6 +131,7 @@ private:
     void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
     
     const EndpointSpec & _endpoint;
+    PrepareRequestCallback _on_prepare;
     ResponseCallback _on_response;
     CancelCallback _on_cancel;
     
@@ -112,7 +141,7 @@ private:
     
     SharedMutexPtr _mutex;
     State _state;
-    std::vector<HttpHeader> _request_headers;
+    HttpHeaderList _request_headers;
 
     cc7::ByteArray _request_body;
     cc7::json::JsonValue _request_json;

@@ -22,39 +22,92 @@
 
 namespace powerAuth {
 
+
+/// The `Configuration` class contains configuration for `Session` object.
 class Configuration
 {
 public:
     
+    /// Contains PowerAuth algorithm used in the instance.
     PowerAuthSpec::Algorithm algorithm() const noexcept;
+    
+    /// Contains instance identifier.
     const std::string& instanceId() const noexcept;
+    
+    /// Contains PowerAuth application's key in Base64 format.
     const std::string& applicationKey() const noexcept;
+    
+    /// Contains PowerAuth application's secret in Base64 format.
     const std::string& applicationSecret() const noexcept;
     
+    /// Contains PowerAuth application's key.
     const cc7::ByteArray& applicationKeyBytes() const noexcept;
+    
+    /// Contains PowerAuth application's secret.
     const cc7::ByteArray& applicationSecretBytes() const noexcept;
     
+    /// Contains P-384 master server's public key.
     const cc7::ByteArray& ecdsaMasterServerPublicKey() const noexcept;
+    
+    /// Contains ML-DSA-65 master server's public key.
     const cc7::ByteArray& mldsaMasterServerPublicKey() const noexcept;
+    
+    /// Contains legacy P-256 master server's public key.
     const cc7::ByteArray& legacyMasterServerPublicKey() const noexcept;
     
+    /// Contains device specific data.
     const cc7::ByteArray& deviceSpecificData() const noexcept;
     
+    /// Validate public keys and throw exception if some required key is invalid.
+    /// - Throws: `Exception` with `EC_InvalidData` if some key is invalid.
     void validatePublicKeys() const;
     
+    /// The `Builder` class build and validate `Configuration`.
     class Builder {
     public:
+        /// Construct builder with SDK configuration string.
+        /// - Parameter sdk_config: SDK configuration string.
+        /// - Throws: `Exception` with `EC_InvalidData` if configuration string is invalid.
         Builder(const std::string& sdk_config);
         
-        Builder& withInstanceId(const std::string& instance_id);
-        Builder& withAlgorithm(PowerAuthSpec::Algorithm algorithm);
+        /// Configure device specific data. This parameter is required for `Configuration` construction.
+        ///
+        /// The device specific data affects KEK (key encryption key) protecting possession factor.
+        ///
+        /// - Parameter data: Required device specific data.
+        /// - Returns: Builder reference.
         Builder& withDeviceSpecificData(const cc7::ByteRange& data);
         
+        /// Configure instance identifier for future `Configuration` object. If instance identifier
+        /// is not specified, then `"default"` string is applied to future configuration.
+        ///
+        /// - Parameter data: Device specific data.
+        /// - Returns: Builder reference.
+        Builder& withInstanceId(const std::string& instance_id);
+        
+        /// Configure PowerAuth algorithm for future `Configuration` object. If algorithm is
+        /// not specified, then `EC_P384_ML_L3` is used.
+        /// - Parameter algorithm: Algorithm to use.
+        /// - Returns: Builder reference.
+        Builder& withAlgorithm(PowerAuthSpec::Algorithm algorithm);
+        
+        
+        /// Build configuration from given parameters.
+        ///
+        /// Be aware that this method doesn't validate whether public keys are valid. The validation must be
+        /// performed afterwards by calling `validatePublicKeys()` on created instance of configuration.
+        ///
+        /// - Returns: Shared pointer with `Configuration` instance.
+        /// - Throws:
+        ///   - `Exception` with `EC_WrongParameter` if some required parameter is missing or has unsupported value.
         std::shared_ptr<Configuration> build() const;
         
     private:
         
-        bool loadFromSdkConfig(const std::string& sdk_config);
+        /// Load configuration string into internal properties.
+        /// - Parameter sdk_config: SDK configuration string.
+        /// - Returns: `true` if load succeeded, `false` otherwise.
+        bool loadFromSdkConfig(const std::string& sdk_config) noexcept;
         
         PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
@@ -65,6 +118,15 @@ public:
         cc7::ByteArray _mldsa_master_server_public_key;
         cc7::ByteArray _legacy_master_server_public_key;
     };
+    
+    /// Function validates whether the provided SDK configuration string is correct.
+    ///
+    /// Be aware that this method doesn't validate whether public keys are valid. The validation must be
+    /// performed afterwards by calling `validatePublicKeys()` on created instance of configuration.
+    ///
+    /// - Parameter sdk_config: SDK configuration string to validate.
+    /// - Returns: `true` if SDK configuration is correct.
+    static bool validateSdkConfig(const std::string& sdk_config) noexcept;
     
 private:
     

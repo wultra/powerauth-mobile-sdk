@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <PowerAuth/MemoryCleanupListener.h>
 #include <PowerAuth/Credentials.h>
+#include <PowerAuth/Service.h>
 #include <cc7/crypto/Crypto.h>
 
 namespace powerAuth {
@@ -101,12 +101,12 @@ enum class VaultKeyType
 
 /// The `IKeyProvider` abstract class defines interface for retrieving keys for various
 /// cryptographic operations.
-class IKeyProvider : public MemoryCleanupListener
+class IKeyProvider
 {
 public:
-    
-    using MemoryCleanupListener::clearSensitiveData;
-    using MemoryCleanupListener::restoreSensitiveData;
+    /// Return instance of this `IKeyProvider` implementing `IService` interface.
+    /// This means that class implementing the key provider interface must be also a service.
+    virtual IServicePtr asService() = 0;
     
     /// Return protocol version supported by the instance of the object.
     virtual ProtocolVersion protocolVersion() const noexcept = 0;

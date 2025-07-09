@@ -21,6 +21,7 @@
 #include "v4/PowerAuthUKE.h"
 
 #include "v3/LegacyKDF.h"
+#include "v3/LegacyUKE.h"
 
 using namespace cc7;
 using namespace cc7::crypto;

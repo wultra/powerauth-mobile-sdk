@@ -31,6 +31,22 @@ ProtocolVersion SessionData::getProtocolVersion() const noexcept
     return Version_Latest;
 }
 
+ConstPowerAuthSpecPtr SessionData::getSpecification() const noexcept
+{
+    switch (getProtocolVersion()) {
+        case Version_V4:
+            if (hasPersistentData()) {
+                return PowerAuthSpec::specForAlgorithmId(persistentData().v4().algorithmId);
+            }
+            break;
+        case Version_V3:
+            return PowerAuthSpec::specForAlgorithm(PowerAuthSpec::LEGACY_P256);
+        default:
+            break;
+    }
+    return nullptr;
+}
+
 bool SessionData::isModified() const noexcept
 {
     return _pd ? _pd->isModified() : false;
@@ -67,7 +83,7 @@ void SessionData::resetSessionData()
 const RegistrationData& SessionData::registrationData() const
 {
     if (!_rd) {
-        throw Exception(EC_InternalError, "ActivationData not available");
+        throw Exception(EC_InternalError, "RegistrationData not available");
     }
     return *_rd;
 }
@@ -75,7 +91,7 @@ const RegistrationData& SessionData::registrationData() const
 RegistrationData& SessionData::registrationData()
 {
     if (!_rd) {
-        throw Exception(EC_InternalError, "ActivationData not available");
+        throw Exception(EC_InternalError, "RegistrationData not available");
     }
     return *_rd;
 }

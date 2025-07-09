@@ -99,9 +99,23 @@ const cc7::ByteArray& Configuration::legacyMasterServerPublicKey() const noexcep
 
 void Configuration::validatePublicKeys() const
 {
-    algorithms().v3.p256().newPublicKey(_legacy_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
-    algorithms().v4.p384().newPublicKey(_ecdsa_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
-    algorithms().v4.mldsa65key().newPublicKey(_mldsa_master_server_public_key, cc7::crypto::KEY_FORMAT_SPKI);
+    try {
+        algorithms().v3.p256().newPublicKey(_legacy_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
+        algorithms().v4.p384().newPublicKey(_ecdsa_master_server_public_key, cc7::crypto::KEY_FORMAT_X963);
+        algorithms().v4.mldsa65key().newPublicKey(_mldsa_master_server_public_key, cc7::crypto::KEY_FORMAT_SPKI);
+    } catch (...) {
+        Exception::reThrowWrapped(EC_InvalidData, "Configuration contains invalid public key");
+    }
+}
+
+bool Configuration::validateSdkConfig(const std::string& sdk_config) noexcept
+{
+    try {
+        auto foo = Builder(sdk_config);
+        return true;
+    } catch (Exception & e) {
+        return false;
+    }
 }
 
 // MARK: - Builder
@@ -160,7 +174,7 @@ static const cc7::byte P256_KEY_ID = 0x01;
 static const cc7::byte P384_KEY_ID = 0x02;
 static const cc7::byte MLDSA65_KEY_ID = 0x03;
 
-bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config)
+bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) noexcept
 {
     auto reader = cc7::utils::DataReader(cc7::Base64::decode(sdk_config), true);
     cc7::byte data_version;

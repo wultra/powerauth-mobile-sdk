@@ -18,7 +18,7 @@
 
 namespace powerAuth {
 
-SessionData::SessionData()
+SessionData::SessionData() : _modified(true)
 {
 }
 
@@ -49,11 +49,12 @@ ConstPowerAuthSpecPtr SessionData::getSpecification() const noexcept
 
 bool SessionData::isModified() const noexcept
 {
-    return _pd ? _pd->isModified() : false;
+    return _modified || ( _pd ? _pd->isModified() : false);
 }
 
 void SessionData::setRegistrationData(RegistrationDataPtr &ptr)
 {
+    _modified = _pd != nullptr;
     _rd = std::move(ptr);
     _pd = nullptr;
 }
@@ -65,6 +66,7 @@ bool SessionData::hasRegistrationData() const noexcept
 
 void SessionData::setPersistentData(PersistentDataPtr &ptr)
 {
+    _modified = true;
     _rd = nullptr;
     _pd = std::move(ptr);
 }
@@ -76,6 +78,7 @@ bool SessionData::hasPersistentData() const noexcept
 
 void SessionData::resetSessionData()
 {
+    _modified = _pd != nullptr;
     _rd = nullptr;
     _pd = nullptr;
 }
@@ -122,7 +125,7 @@ static const cc7::byte SD_VER1_FLAG_PD    = 1 << 1;   // PersistentData included
 
 
 
-cc7::ByteArray SessionData::serialize() const
+cc7::ByteArray SessionData::serialize()
 {
     bool has_pd = hasPersistentData();
     cc7::utils::DataWriter writer;
@@ -132,7 +135,9 @@ cc7::ByteArray SessionData::serialize() const
         _pd->serialize(writer);
     }
     writer.closeVersion();
-    return writer.serializedData();
+    auto result = writer.serializedData();
+    _modified = false;
+    return result;
 }
 
 void SessionData::deserialize(const cc7::ByteRange& serialized_data)
@@ -145,6 +150,8 @@ void SessionData::deserialize(const cc7::ByteRange& serialized_data)
     if (flags & SD_VER1_FLAG_PD) {
         auto pd = PersistentData::deserialize(reader);
         setPersistentData(pd);
+    } else {
+        resetSessionData();
     }
     if (!reader.closeVersion()) {
         throw Exception(EC_InternalError, "Cannot close DataReader");

@@ -26,13 +26,14 @@ namespace powerAuth {
 
 Request::Request(const SharedMutexPtr& mutex, const EndpointSpec& endpoint) :
     _mutex(mutex),
-    _endpoint(endpoint)
+    _endpoint(endpoint),
+    _state(WAITING)
 {
 }
 
 Request::~Request()
 {
-    cancel();
+    cancelImpl(true);
 }
 
 const std::string& Request::getRelativePath() const noexcept
@@ -103,6 +104,11 @@ bool Request::isDone() const noexcept
 void Request::cancel()
 {
     LOCK_GUARD();
+    cancelImpl(false);
+}
+
+void Request::cancelImpl(bool destruct)
+{
     if (_state < PROCESSED) {
         return;
     }
@@ -115,7 +121,11 @@ void Request::cancel()
         cleanup();
     } catch (...) {
         cleanup();
-        Exception::reThrowWrapped(EC_Canceled, "Internal cancel processing in request failed");
+        if (destruct) {
+            CC7_LOG("Internal cancel processing in request failed");
+        } else {
+            Exception::reThrowWrapped(EC_Canceled, "Internal cancel processing in request failed");
+        }
     }
 }
 

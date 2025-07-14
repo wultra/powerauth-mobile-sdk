@@ -21,6 +21,12 @@
 namespace powerAuth {
 namespace v4 {
 
+/// Create encryptor secrets for AEAD End-To-End encryption scheme.
+/// - Parameters:
+///   - parameters: Encryptor parameters.
+///   - shared_secret: Temporary shared secret
+///   - e2ee_shared_info2_key: If this is activation scoped encryption, then parameter contains value of `KEY_E2EE_SHARED_INFO2`.
+/// - Throws: `Exception` with `EC_InternalError` if `e2ee_shared_info2_key` is required but is not provided.
 extern EncryptorSecretsPtr AEAD_BuildSecrets(const EncryptorParameters& parameters,
                                              const cc7::ByteRange& shared_secret,
                                              const cc7::ByteRange& e2ee_shared_info2_key);

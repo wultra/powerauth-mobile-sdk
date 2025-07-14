@@ -32,41 +32,76 @@ public:
     
     /// Return protocol version currently used for this instance of session data.
     ProtocolVersion getProtocolVersion() const noexcept;
+    
     /// Return PowerAuth specification currently used for this instance of session data
     /// or `nullptr` if specification is not known. This is regular state of session data
     /// if there's no persistent data structure available.
     ConstPowerAuthSpecPtr getSpecification() const noexcept;
     
+    /// Return `true` if session data contains persistent data (e.g. activation is created).
     bool hasPersistentData() const noexcept;
+    
+    /// Returns `true` if session data contains registration data (e.g. activation is in progress).
     bool hasRegistrationData() const noexcept;
     
+    /// Returns `true` if session data is modified and needs to be serialized.
     bool isModified() const noexcept;
     
+    /// Set new registration data.
+    ///
+    /// Method also removes previous instance of registration or persistent data. The method effectively
+    /// sets the session into "pending activation" state.
+    ///
+    /// - Parameter ptr: New registration data.
     void setRegistrationData(RegistrationDataPtr& ptr);
-    void setPersistentData(PersistentDataPtr& ptr);
-    void setActivationStatus(const ActivationStatusPtr& ptr);
-    void setDeviceKey(const cc7::ByteRange& device_key);
     
+    
+    /// Set new persistent data
+    ///
+    /// Method also removes previous instance of registration or persistent data. The method effectively
+    /// sets the session into "has activation" state.
+    ///
+    /// - Parameter ptr: New persistent data.
+    void setPersistentData(PersistentDataPtr& ptr);
+    
+    /// Reset session data and remove any instance of registration or persistent data.
     void resetSessionData();
     
+    /// Get reference to registration data.
+    /// - Returns: Reference to registration data.
+    /// - Throws: `Exception` with `EC_InternalError` if no registration data is set in object.
     const RegistrationData& registrationData() const;
+    
+    /// Get reference to registration data.
+    /// - Returns: Reference to registration data.
+    /// - Throws: `Exception` with `EC_InternalError` if no registration data is set in object.
     RegistrationData& registrationData();
     
+    /// Get reference to persistent data.
+    /// - Returns: Reference to persistent data.
+    /// - Throws: `Exception` with `EC_InternalError` if no persistent data is set in object.
     const PersistentData& persistentData() const;
+    
+    /// Get reference to persistent data.
+    /// - Returns: Reference to persistent data.
+    /// - Throws: `Exception` with `EC_InternalError` if no persistent data is set in object.
     PersistentData& persistentData();
     
-    const cc7::ByteArray& deviceKey() const;
+    /// Serialize session data.
+    /// - Returns: Array of bytes with serialized state of session data.
+    /// - Throws: `Exception` with `EC_InternalError` if persistent data contains invalid values.
+    cc7::ByteArray serialize();
     
-    const ActivationStatusPtr lastKnownActivationStatus() const;
-    
-    
-    cc7::ByteArray serialize() const;
+    /// Restore state of the object from the sequence of bytes.
+    /// - Parameter serialized_data: Sequence of bytes with previous state.
+    /// - Throws: `Exception` with `EC_InvalidData` if sequence of bytes contains invalid or unsupported data.
     void deserialize(const cc7::ByteRange& serialized_data);
     
     
 private:
     RegistrationDataPtr _rd;
     PersistentDataPtr _pd;
+    bool _modified;
 };
 
 CC7_SHARED_PTR(SessionData)

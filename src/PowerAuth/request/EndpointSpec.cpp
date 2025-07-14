@@ -21,19 +21,19 @@ namespace powerAuth {
 namespace v4 {
 
 const EndpointSpec Endpoint_SystemStatus {
-    Version_V4, "/pa/v4/status", "POST", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
+    Version_V4, "/pa/v4/status", "", EncryptorId::NONE, EndpointSpec::FL_ALLOWED_IN_UPGRADE
 };
 
 const EndpointSpec Endpoint_TemporaryKey {
-    Version_V4, "/pa/v4/keystore/create", "POST", "", EncryptorId::NONE
+    Version_V4, "/pa/v4/keystore/create", "", EncryptorId::NONE
 };
 
 const EndpointSpec Endpoint_ActivationCreate {
-    Version_V4, "/pa/v4/activation/create", "POST", "", EncryptorId::APPLICATION_SCOPE_GENERIC
+    Version_V4, "/pa/v4/activation/create", "", EncryptorId::APPLICATION_SCOPE_GENERIC
 };
 
 const EndpointSpec Endpoint_ActivationConfirm {
-    Version_V4, "/pa/v4/activation/confirm", "POST", "/activation/confirm", EncryptorId::NONE
+    Version_V4, "/pa/v4/activation/confirm", "/pa/activation/confirm", EncryptorId::NONE
 };
 
 const EndpointSpec Endpoint_ActivationStatus {

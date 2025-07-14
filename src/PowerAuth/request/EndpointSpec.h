@@ -29,12 +29,13 @@ struct EndpointSpec
         FL_SYNCHRONIZE_TIME     = 1 << 2,
         FL_NOT_WRAPPED          = 1 << 3,
     };
+    
     ProtocolVersion version;
     std::string relativePath;
-    std::string method;
     std::string uriId;
     EncryptorId encryptorId;
-    cc7::U32 flags;
+    cc7::U32 flags = 0;
+    std::string method = "POST";
     
     bool isEncrypted() const noexcept
     {

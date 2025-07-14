@@ -73,7 +73,7 @@ void Session::loadState(const cc7::ByteRange &serialized_state)
     }
 }
 
-cc7::ByteArray Session::saveState() const
+cc7::ByteArray Session::saveState()
 {
     LOCK_GUARD();
     return sessionData().serialize();

@@ -21,18 +21,26 @@
 namespace powerAuth {
 namespace v3 {
 
+/// Create client secrets for ECIES End-To-End encryption scheme.
+/// - Parameters:
+///   - parameters: Encryptor parameters.
+///   - temporary_public_key: Temporary public key received from the server.
+///   - transport_key: If activation scoped encryptor is being created, then this must contain value of `KEY_TRANSPORT`.
+/// - Returns: `EncryptorSecrets` configured for ECIES scheme.
+/// - Throws: `Exception` with `EC_InternalError` if transport key is required and is not provided.
 extern EncryptorSecretsPtr ECIES_MakeClientSecrets(const EncryptorParameters& parameters,
                                                    const cc7::crypto::PublicKey& temporary_public_key,
                                                    const cc7::ByteRange& transport_key);
 
+/// Create client secrets for testing purposes.
+/// - Parameters:
+///   - parameters: Encryptor parameters.
+///   - ephemeral_public_key: Already created ephemeral public key.
+///   - envelope_key: Already calculated envelope key.
+///   - transport_key: Transport key, required for activation scoped encryptor.
 extern EncryptorSecretsPtr ECIES_TestClientSecrets(const EncryptorParameters& parameters,
                                                    const cc7::ByteRange& ephemeral_public_key,
                                                    const cc7::ByteRange& envelope_key,
-                                                   const cc7::ByteRange& transport_key);
-
-extern EncryptorSecretsPtr ECIES_MakeServerSecrets(const EncryptorParameters& parameters,
-                                                   const cc7::crypto::PrivateKey& temporary_private_key,
-                                                   const cc7::ByteRange& ephemeral_pub_key_data,
                                                    const cc7::ByteRange& transport_key);
 
 } // namespace v3

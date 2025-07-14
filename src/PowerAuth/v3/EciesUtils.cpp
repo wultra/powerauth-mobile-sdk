@@ -55,6 +55,9 @@ static ByteArray CalculateSH2(const EncryptorParameters& parameters,
         if (transport_key.empty()) {
             throw Exception(EC_InternalError, "Transport key not provided for activation scoped encryptor");
         }
+        if (transport_key.size() != v3::FACTOR_KEY_SIZE) {
+            throw Exception(EC_InternalError, "Transport key has wrong size");
+        }
         return algorithms().v3.hmacWithSha256().token(transport_key, MakeRange(parameters.applicationSecret));
     }
 }
@@ -79,16 +82,16 @@ EncryptorSecretsPtr ECIES_TestClientSecrets(const EncryptorParameters& parameter
     return EncryptorSecrets::makeSecrets(envelope_key, sh2, ephemeral_public_key);
 }
 
-EncryptorSecretsPtr ECIES_MakeServerSecrets(const EncryptorParameters& parameters,
-                                            const cc7::crypto::PrivateKey& temporary_private_key,
-                                            const cc7::ByteRange& ephemeral_pub_key_data,
-                                            const cc7::ByteRange& transport_key)
-{
-    auto public_key = algorithms().v3.p256().newPublicKey(ephemeral_pub_key_data, cc7::crypto::KEY_FORMAT_X963);
-    auto envelope_key = CalculateEnvelopeKey(parameters, temporary_private_key, *public_key, ephemeral_pub_key_data);
-    auto sh2 = CalculateSH2(parameters, transport_key);
-    return EncryptorSecrets::makeSecrets(envelope_key, sh2, ephemeral_pub_key_data);
-}
+//EncryptorSecretsPtr ECIES_MakeServerSecrets(const EncryptorParameters& parameters,
+//                                            const cc7::crypto::PrivateKey& temporary_private_key,
+//                                            const cc7::ByteRange& ephemeral_pub_key_data,
+//                                            const cc7::ByteRange& transport_key)
+//{
+//    auto public_key = algorithms().v3.p256().newPublicKey(ephemeral_pub_key_data, cc7::crypto::KEY_FORMAT_X963);
+//    auto envelope_key = CalculateEnvelopeKey(parameters, temporary_private_key, *public_key, ephemeral_pub_key_data);
+//    auto sh2 = CalculateSH2(parameters, transport_key);
+//    return EncryptorSecrets::makeSecrets(envelope_key, sh2, ephemeral_pub_key_data);
+//}
 
 } // namespace v3
 } // namespace powerAuth

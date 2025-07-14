@@ -42,6 +42,9 @@ EncryptorSecretsPtr AEAD_BuildSecrets(const EncryptorParameters& parameters,
         if (e2ee_shared_info2_key.empty()) {
             throw Exception(EC_InternalError, "e2ee_shared_info2_key not provided for activation scope");
         }
+        if (e2ee_shared_info2_key.size() != v4::FACTOR_KEY_SIZE) {
+            throw Exception(EC_InternalError, "e2ee_shared_info2_key has wrong size");
+        }
         sh2 = algorithms().v4.kmac256().token(e2ee_shared_info2_key, app_secret_bytes, KMAC_PARAMS);
     }
     return EncryptorSecrets::makeSecrets(shared_secret, sh2, ByteRange());

@@ -85,7 +85,7 @@ public:
     /// - Returns: Sequence of bytes with the state of the session.
     /// - Throws:
     ///   - `Exception` in case the internal data is inconsistent.
-    cc7::ByteArray saveState() const;
+    cc7::ByteArray saveState();
     
     
     /// Get information whether internal state is modified and should be saved into the persistent

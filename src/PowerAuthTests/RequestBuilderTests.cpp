@@ -35,7 +35,7 @@ public:
     }
     
     const EndpointSpec SPEC1 {
-        Version_V4, "/pa/hello/world", "GET", "", EncryptorId::NONE, 0
+        Version_V4, "/pa/hello/world", "", EncryptorId::NONE, 0, "GET"
     };
     
     void testRequestBuilder()

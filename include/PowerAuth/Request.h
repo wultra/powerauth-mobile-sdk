@@ -46,7 +46,7 @@ class Credentials;
 /// The `Request` class contains information about HTTP request created in the core module.
 /// The core module doesn't perform any networking, so the higher level SDK is responsible
 /// for the request execution and the response delegate back to this request object.
-///
+///  
 /// Be aware, that the Request is designed only to process a successful responses, and therefore
 /// non-200 responses has to be processed in the networking code.
 class Request
@@ -171,42 +171,79 @@ private:
     
     enum State
     {
+        /// Request is waiting to prepare request body and headers.
         WAITING,
+        /// Request is awaiting response from the server.
         PENDING,
+        /// Request successfully processed the response.
         PROCESSED,
+        /// Request failed.
         FAILED,
+        /// Request is canceled.
         CANCELED,
     };
     
     friend class RequestBuilder;
     
+    /// Request constructor.
+    /// - Parameters:
+    ///   - mutex: Shared mutex.
+    ///   - endpoint: Endpoint specification.
     Request(const SharedMutexPtr& mutex, const EndpointSpec& endpoint);
 
+    /// Prepare request body and headers.
     void doPrepareRequest();
+    
+    /// Process response data.
+    /// - Parameter response_data: Response data to process.
     void doProcessResponse(const cc7::ByteRange& response_data);
 
+    /// Cleanup request. The method clears all pointers to callbacks and breaks possible retain loops.
     void cleanup();
+    
+    /// Prepares request body.
     void prepareRequestBody();
+    
+    /// Process failure and re-throw the provided exception.
     void processFailure [[noreturn]] (ErrorCode ec, const std::string& msg, std::exception_ptr failure);
     
+    /// Cancel implementation.
+    /// - Parameter destruct: Indicate that cancel is called from object's destructor.
+    void cancelImpl(bool destruct);
+    
+    /// Endpoint specification.
     const EndpointSpec & _endpoint;
+    
+    /// Prepare callback.
     PrepareRequestCallback _on_prepare;
+    /// Response callback.
     ResponseCallback _on_response;
+    /// Cancel callback.
     CancelCallback _on_cancel;
     
+    /// If request is encrypted then contains encryptor.
     std::shared_ptr<IClientEncryptor> _encryptor;
+    /// If request is authenticated then contains authentication code calculator.
     std::shared_ptr<IAuthHeaderCalculator> _authenticator;
+    /// If request is authenticated then contains user's credentials.
     std::shared_ptr<Credentials> _authentication;
     
+    /// Shared mutex.
     SharedMutexPtr _mutex;
+    /// State of the request.
     State _state;
+    /// Request headers.
     HttpHeaderList _request_headers;
 
+    /// Request body.
     cc7::ByteArray _request_body;
+    /// Request JSON.
     cc7::json::JsonValue _request_json;
-
+    /// Response body.
     cc7::ByteArray _response_body;
+    /// Response JSON.
     cc7::json::JsonValue _response_json;
+    /// Response object, if created.
     ResponseObjectPtr _response_object;
 };
 

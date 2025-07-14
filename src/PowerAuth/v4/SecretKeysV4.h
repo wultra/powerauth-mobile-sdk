@@ -18,7 +18,6 @@
 #include "../common/SecretKeysPool.h"
 #include "../Context.h"
 
-
 namespace powerAuth {
 namespace v4 {
 

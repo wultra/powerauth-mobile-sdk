@@ -195,6 +195,10 @@
 		BFC92DF22073E3860087851C /* pa2CryptoECDHKDFTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BF99D8C82073E00D00735ED2 /* pa2CryptoECDHKDFTests.cpp */; };
 		BFCA38362E1D5E4B002F595F /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38352E1D5E4B002F595F /* Service.cpp */; };
 		BFCA38372E1D5E4B002F595F /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38352E1D5E4B002F595F /* Service.cpp */; };
+		BFCA383B2E255987002F595F /* SecretKeysV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383A2E255987002F595F /* SecretKeysV3.cpp */; };
+		BFCA383C2E255987002F595F /* SecretKeysV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383A2E255987002F595F /* SecretKeysV3.cpp */; };
+		BFCA383F2E255A18002F595F /* KeyProviderV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */; };
+		BFCA38402E255A18002F595F /* KeyProviderV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */; };
 		BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
@@ -604,6 +608,10 @@
 		BFB6E7772DD7565F00F18982 /* ECDHE_P384_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ECDHE_P384_Test_Vectors.json; sourceTree = "<group>"; };
 		BFB6E7782DD7574600F18982 /* SharedSecretTests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SharedSecretTests.cpp; sourceTree = "<group>"; };
 		BFCA38352E1D5E4B002F595F /* Service.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
+		BFCA38392E255987002F595F /* SecretKeysV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecretKeysV3.h; sourceTree = "<group>"; };
+		BFCA383A2E255987002F595F /* SecretKeysV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SecretKeysV3.cpp; sourceTree = "<group>"; };
+		BFCA383D2E255A18002F595F /* KeyProviderV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyProviderV3.h; sourceTree = "<group>"; };
+		BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3.cpp; sourceTree = "<group>"; };
 		BFE5C9192DDCABA8008CC73A /* ECDHE_P384_MLKEM_768_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ECDHE_P384_MLKEM_768_Test_Vectors.json; sourceTree = "<group>"; };
 		BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ByteUtils.cpp; sourceTree = "<group>"; };
 		BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ByteUtils.h; sourceTree = "<group>"; };
@@ -797,6 +805,10 @@
 		BF4D86052DEDB5D800D32F55 /* v3 */ = {
 			isa = PBXGroup;
 			children = (
+				BFCA38392E255987002F595F /* SecretKeysV3.h */,
+				BFCA383A2E255987002F595F /* SecretKeysV3.cpp */,
+				BFCA383D2E255A18002F595F /* KeyProviderV3.h */,
+				BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */,
 				BF0825D42E01630D00B89A68 /* EciesEncryptorFactory.h */,
 				BF0825D52E01630D00B89A68 /* EciesEncryptorFactory.cpp */,
 				BF4D86782DFACA6600D32F55 /* EciesEncryptor.h */,
@@ -1510,6 +1522,7 @@
 				BF0825D22E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
 				BF4D869C2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86702DF8307800D32F55 /* AeadUtils.cpp in Sources */,
+				BFCA383C2E255987002F595F /* SecretKeysV3.cpp in Sources */,
 				BF4D85F42DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
 				BFF21B772E12C3A7000BF450 /* LegacyKDF.cpp in Sources */,
 				BF4D855D2DE48AA900D32F55 /* Credentials.cpp in Sources */,
@@ -1536,6 +1549,7 @@
 				BF99D9022073E14100735ED2 /* Debug.cpp in Sources */,
 				BFF21B802E12FD0B000BF450 /* Session.cpp in Sources */,
 				BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
+				BFCA38402E255A18002F595F /* KeyProviderV3.cpp in Sources */,
 				BF75F9C32E05764900D1E4F0 /* PowerAuthUKE.cpp in Sources */,
 				BF4D86172DEEFBD200D32F55 /* KeyProviderV4.cpp in Sources */,
 				BF4D851D2DDDE5C600D32F55 /* Exception.cpp in Sources */,
@@ -1608,6 +1622,7 @@
 				BF0825D32E01629500B89A68 /* AeadEncryptorFactory.cpp in Sources */,
 				BF4D869B2E00397900D32F55 /* Request.cpp in Sources */,
 				BF4D86712DF8307800D32F55 /* AeadUtils.cpp in Sources */,
+				BFCA383B2E255987002F595F /* SecretKeysV3.cpp in Sources */,
 				BF4D85F52DED99DC00D32F55 /* KeyProvider.cpp in Sources */,
 				BFF21B782E12C3A7000BF450 /* LegacyKDF.cpp in Sources */,
 				BF4D855B2DE48AA900D32F55 /* Credentials.cpp in Sources */,
@@ -1634,6 +1649,7 @@
 				BF6ADD7D24C84C0C001B3E5E /* Debug.cpp in Sources */,
 				BFF21B7F2E12FD0B000BF450 /* Session.cpp in Sources */,
 				BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */,
+				BFCA383F2E255A18002F595F /* KeyProviderV3.cpp in Sources */,
 				BF75F9C22E05764900D1E4F0 /* PowerAuthUKE.cpp in Sources */,
 				BF4D86182DEEFBD200D32F55 /* KeyProviderV4.cpp in Sources */,
 				BF4D851C2DDDE5C600D32F55 /* Exception.cpp in Sources */,

@@ -23,52 +23,217 @@
 namespace powerAuth {
 
 /// The `ISecretKeys` class defines interface that provide access to the various secret keys.
-///
+/// Each method providing key returns `ByteRange` and therefore the lifetime of range is limited
+/// by the lifetime of this object.
+/// 
+/// The interface provides methods for getting keys for both, V3 and V4 versions, but the actual
+/// interface implementations support only specific protocol version. If this is important, then
+/// call `protocolVersion()` to determine the actual protocol supported.
+/// 
 /// All methods throws the following exceptions:
-///
+///  
 /// - `PowerAuthException` with `EC_NotAllowed` if the key is not available at the time.
 class ISecretKeys : public cc7::BaseObject
 {
 public:
+    
     /// Return protocol version supported by the instance of the object.
     virtual ProtocolVersion protocolVersion() const = 0;
     
+    
     // Authentication
+    
+    /// Get possession factor key for authentication code calculation.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4:`KEY_AUTHENTICATION_CODE_POSSESSION`
+    /// - V3:`KEY_SIGNATURE_POSSESSION`
     virtual cc7::ByteRange keyAuthenticationCodePossession() = 0;
+    /// Get knowledge factor key for authentication code calculation.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_AUTHENTICATION_CODE_KNOWLEDGE`
+    /// - V3: `KEY_SIGNATURE_KNOWLEDGE`
     virtual cc7::ByteRange keyAuthenticationCodeKnowledge() = 0;
+    /// Get biometry factor key for authentication code calculation.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_AUTHENTICATION_CODE_BIOMETRY`
+    /// - V3: `KEY_SIGNATURE_BIOMETRY`
     virtual cc7::ByteRange keyAuthenticationCodeBiometry() = 0;
 
+    /// Update knowledge factor keys.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Updated keys:
+    /// - V4: `KEY_AUTHENTICATION_CODE_KNOWLEDGE`, `KEK_AUTHENTICATION_CODE_KNOWLEDGE`, `CKEY_AUTHENTICATION_CODE_KNOWLEDGE`
+    /// - V3: key protecting `KEY_SIGNATURE_KNOWLEDGE`, `CKEY_SIGNATURE_KNOWLEDGE`
+    ///
+    /// - Parameters:
+    ///   - new_key: New knowledge factor key. The parameter is mandatory for V4 and ignored in V3 protocol.
+    ///   - new_kek: New password protecting knowledge factor key. The parameter is mandatory for V4 and V3 protocols.
     virtual void updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& new_key,
                                                       const cc7::ByteRange& new_kek) = 0;
+    /// Update biometry factor keys.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Updated keys:
+    /// - V4: `KEY_AUTHENTICATION_CODE_BIOMETRY`, `KEK_AUTHENTICATION_CODE_BIOMETRY`, `CKEY_AUTHENTICATION_CODE_BIOMETRY`
+    /// - V3: key protecting `KEY_SIGNATURE_BIOMETRY`, `CKEY_SIGNATURE_BIOMETRY`
+    ///
+    /// - Parameters:
+    ///   - new_key: New biometry factor key. The parameter is mandatory for V4 and ignored in V3 protocol.
+    ///   - new_kek: New key encryption key protecting the knowledge factor key. The parameter is mandatory for V4 and V3 protocols.
     virtual void updateKeyAuthenticationCodeBiometry(const cc7::ByteRange& new_key,
                                                      const cc7::ByteRange& new_kek) = 0;
+    
+    /// Remove the biometry factor key and KEK protecting the key.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Updated keys: `KEY_AUTHENTICATION_CODE_BIOMETRY`, `KEK_AUTHENTICATION_CODE_BIOMETRY`
     virtual void removeKeyAuthenticationCodeBiometry() = 0;
 
     // Encryption
+    
+    /// Get the key derived from the device specific data.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KEK_DEVICE_PRIVATE`
     virtual cc7::ByteRange keyDeviceSpecific() = 0;
+    
+    /// Get key for local data encryption.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KEY_LOCAL_DATA`
     virtual cc7::ByteRange keyLocalData() = 0;
+    
+    
     // Vault
+    
+    /// Get the key encrypting device private key.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEK_DEVICE_PRIVATE`
+    /// - V3: `KEY_ENCRYPTION_VAULT`
     virtual cc7::ByteRange kekDevicePrivate() = 0;
+    
+    /// Get the key encrypting application specific data after successful authentication
+    /// with the knowledge factor.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KDK_APP_VAULT_KNOWLEDGE`
     virtual cc7::ByteRange kdkAppVaultKnowledge() = 0;
+    
+    /// Get the key encrypting application specific data after successful authentication
+    /// with knowledge or biometry factor.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KDK_APP_VAULT_2FA`
     virtual cc7::ByteRange kdkAppVault2FA() = 0;
     
+    
     // Utility
+    
+    /// Get the key for computing MAC from hash based counter.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_MAC_CTR_DATA`
+    /// - V3: `KEY_TRANSPORT_CTR`
     virtual cc7::ByteRange keyMacCtrData() = 0;
+    
+    /// Get the key for computing MAC from activation status blob.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KEY_MAC_STATUS`.
     virtual cc7::ByteRange keyMacStatus() = 0;
+    
+    /// Get the key for signing payload in getting temporary key request in application scope.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_MAC_GET_APP_TEMP_KEY`.
+    /// - V3: name not defined
     virtual cc7::ByteRange keyMacGetAppTempKey() = 0;
+    
+    /// Get the key for signing payload in getting temporary key request in activation scope.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_MAC_GET_ACT_TEMP_KEY`.
+    /// - V3: name not defined
     virtual cc7::ByteRange keyMacGetActTempKey() = 0;
+    
+    /// Get the key for validate MAC for personalized data, typically displayed as QR code.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KEY_MAC_PERSONALIZED_DATA`.
     virtual cc7::ByteRange keyMacPersonalizedData() = 0;
+    
+    /// Get the key for `SHARED_INFO_2` calculation for End-To-End Encryption.
+    ///
+    /// Protocol versions: V3, V4
+    ///
+    /// Key name:
+    /// - V4: `KEY_MAC_PERSONALIZED_DATA`
+    /// - V3: name not defined
     virtual cc7::ByteRange keyE2EESharedInfo2() = 0;
+    
+    /// Get the key derivation key for application specific purposes.
+    ///
+    /// Protocol versions: V4
+    ///
+    /// Key name: `KDK_APP_UTILITY`.
     virtual cc7::ByteRange kdkAppUtility() = 0;
     
+    
     // Other
+    
+    /// Get the device private key.
+    ///
+    /// - Warning: It's forbidden to make copy from the returned key.
+    ///
+    /// Protocol version V3, V4
+    ///
+    /// Key name: `KEY_DEVICE_PRIVATE`
     virtual const cc7::crypto::PrivateKey& devicePrivateKey() = 0;
     
+    
     // Legacy
-    virtual cc7::ByteRange legacyKeyVault() = 0;
+    
+    /// Get the legacy transport key.
+    ///
+    /// Protocol version: V3
+    ///
+    /// Key name: `KEY_TRANSPORT`
     virtual cc7::ByteRange legacyKeyTransport() = 0;
+    
+    /// Get the legacy key for computing IV for activation status blob encryption.
+    ///
+    /// Protocol version: V3
+    ///
+    /// Key name: `KEY_TRANSPORT_IV`
     virtual cc7::ByteRange legacyKeyTransportIV() = 0;
-    virtual cc7::ByteRange legacyKeyTransportCTR() = 0;
 };
 
 

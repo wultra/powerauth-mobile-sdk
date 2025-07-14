@@ -628,19 +628,11 @@ cc7::ByteRange SecretKeysV4::ckeyDevicePrivate()
 
 // Legacy
 
-cc7::ByteRange SecretKeysV4::legacyKeyVault()
-{
-    throwNotSupported();
-}
 cc7::ByteRange SecretKeysV4::legacyKeyTransport()
 {
     throwNotSupported();
 }
 cc7::ByteRange SecretKeysV4::legacyKeyTransportIV()
-{
-    throwNotSupported();
-}
-cc7::ByteRange SecretKeysV4::legacyKeyTransportCTR()
 {
     throwNotSupported();
 }

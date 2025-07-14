@@ -163,10 +163,8 @@ public:
     const cc7::crypto::PrivateKey& devicePrivateKey() override;
     
     // Legacy
-    cc7::ByteRange legacyKeyVault() override;
     cc7::ByteRange legacyKeyTransport() override;
     cc7::ByteRange legacyKeyTransportIV() override;
-    cc7::ByteRange legacyKeyTransportCTR() override;
     
     // Construction
     

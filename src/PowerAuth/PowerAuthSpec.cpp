@@ -48,7 +48,7 @@ const PowerAuthSpec PowerAuthSpec::spec_EC_P384_ML_L3 {
     { "P-384", "ML-DSA-65" }
 };
 
-ConstPowerAuthSpecPtr PowerAuthSpec::specForAlgorithm(Algorithm algorithm)
+ConstPowerAuthSpecPtr PowerAuthSpec::specForAlgorithm(Algorithm algorithm) noexcept
 {
     switch (algorithm) {
         case EC_P384:       return &spec_EC_P384;
@@ -58,7 +58,7 @@ ConstPowerAuthSpecPtr PowerAuthSpec::specForAlgorithm(Algorithm algorithm)
     }
 }
 
-ConstPowerAuthSpecPtr PowerAuthSpec::specForAlgorithmId(cc7::byte algorithm)
+ConstPowerAuthSpecPtr PowerAuthSpec::specForAlgorithmId(cc7::byte algorithm) noexcept
 {
     return specForAlgorithm(static_cast<Algorithm>(algorithm));
 }

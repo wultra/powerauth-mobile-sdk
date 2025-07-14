@@ -60,6 +60,9 @@ public:
     /// non-200 response code is received.
     void cancel();
     
+    /// Set request as failed.
+    void setFailed() noexcept;
+
     /// Prepare the request body and the headers. You have to call this method before you
     /// call `getRequestBody()` or `getRequestHeaders()`.
     ///
@@ -71,32 +74,88 @@ public:
     /// Process response and set request completed.
     /// - Parameter response_data: Response data.
     void processResponse(const cc7::ByteRange& response_data);
-        
+            
+    /// Returns `true` if request completed with success.
     bool isCompleted() const noexcept;
+    
+    /// Returns `true` if request was canceled.
     bool isCanceled() const noexcept;
+    
+    /// Returns `true` if request completed with failure.
     bool isFailed() const noexcept;
+    
+    /// Returns `true` if request is completed with any type of result (success, cancel, failure).
     bool isDone() const noexcept;
     
+    /// Returns relative part of path to endpoint's URL.
     const std::string& getRelativePath() const noexcept;
+    
+    /// Returns HTTP method.
     const std::string& getHttpMethod() const noexcept;
         
+    /// Returns `true` if request require synchronized time for proper processing.
     bool requireSynchronizedTime() const noexcept;
+    
+    /// Returns `true` if request must be executed in serial queue.
     bool requireSerialQueue() const noexcept;
+    
+    /// Returns `true` if request is allowed during the protocol upgrade.
     bool isAllowedInUpgrade() const noexcept;
+    
+    /// Returns `true` if request is encrypted.
     bool isEncrypted() const noexcept;
+    
+    /// Returns `true` if request is authenticated with authentication header.
     bool isAuthenticated() const noexcept;
+    
+    /// Returns scope of temporary key required for proper processing. If request is not
+    /// encrypted, then throws exception.
     EncryptorScope encryptorScope() const;
     
+    
+    /// Returns request's body.
+    ///
+    /// You have to call `prepareRequest()` from the processing queue, before you
+    /// get the body, otherwise exception is raised.
     const cc7::ByteArray& getRequestBody() const;
+    
+    /// Returns request's headers.
+    ///
+    /// You have to call `prepareRequest()` from the processing queue, before you
+    /// get the headers, otherwise exception is raised.
     const HttpHeaderList& getRequestHeaders() const;
 
+    
+    /// Returns response body.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
     const cc7::ByteArray& getResponseBody() const;
     
+    /// Returns response object or `nullptr` if response object was not created in the response
+    /// processing.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
     const ResponseObjectPtr& getResponseObject() const;
     
-    template <typename T> std::shared_ptr<T> getTypedResponseObject() const
+    /// Get typed response object.
+    ///
+    /// - Parameter required: If true, then exception is raised if type of object is different
+    ///                       or no response object was created during the processing.
+    /// - Returns: Smart pointer to typed response object.
+    template <typename T> std::shared_ptr<T> getTypedResponseObject(bool required = true) const
     {
-        return std::dynamic_pointer_cast<T>(getResponseObject());
+        auto response = getResponseObject();
+        auto typed = std::dynamic_pointer_cast<T>(response);
+        if (required && typed == nullptr) {
+            if (response != nullptr) {
+                throw Exception(EC_InvalidResponse, "Wrong response object type created");
+            } else {
+                throw Exception(EC_InvalidResponse, "Response object is null");
+            }
+        }
+        return typed;
     }
     
     /// Execute operation while internal lock is granted.

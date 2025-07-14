@@ -246,6 +246,15 @@ void Request::prepareRequestBody()
 
 // MARK: - Response process
 
+void Request::setFailed() noexcept
+{
+    LOCK_GUARD();
+    if (!isDone()) {
+        CC7_LOG("Request set as failed");
+        _state = FAILED;
+    }
+}
+
 void Request::processResponse(const cc7::ByteRange& response_data)
 {
     LOCK_GUARD();

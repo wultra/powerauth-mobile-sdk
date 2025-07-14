@@ -22,6 +22,8 @@
 
 namespace powerAuth {
 
+/// The `PowerAuthSpec` class contains algorithms specification
+/// for selected PowerAuth algorithm.
 class PowerAuthSpec
 {
 public:
@@ -42,26 +44,54 @@ public:
         EC_P384_ML_L3
     };
     
+    /// Type defining two algorithm identifiers. If hybrid scheme is used,
+    /// then `first` and `second` contains valid identifiers. For non-hybrid schemes,
+    /// only `first` is set.
     typedef std::pair<std::string, std::string> AlgorithmPair;
     
+    /// Returns `true` if this is legacy protocol.
     bool isLegacy() const noexcept;
+    
+    /// Returns `true` if uses hybrid signatures and shared secret.
     bool isHybrid() const noexcept;
+    
+    /// Returns `true` if activation process is supported for this algorithm.
     bool isActivationSupported() const noexcept;
 
+    /// Returns protocol version for this specification.
     ProtocolVersion protocolVersion() const noexcept;
+    
+    /// Returns PowerAuth algorithm for this specification.
     Algorithm algorithm() const noexcept;
+    
+    /// Returns byte identifier for this specification.
     cc7::byte algorithmId() const noexcept;
+    
+    /// Returns string representation of algorithm for this specification.
     const std::string& algorithmName() const noexcept;
 
+    /// Returns shared secret algorithm for this specification. If this is legacy specification,
+    /// then throws exception.
     SharedSecret::Algorithm sharedSecret() const;
     
+    /// Get algorithm(s) for digital signature calculation.
     const AlgorithmPair& getSignatureAlgorithms() const noexcept;
+    
+    /// Get algorithm(s) for constructing key-pairs.
     const AlgorithmPair& getSigningKeyPairAlgorithms() const noexcept;
     
+    /// Get new KeyPairFactory instance that allows you to construct key-pair for signature
+    /// calculation or verification.
     const cc7::crypto::KeyPairFactoryPtr getSigningKeyPairFactory() const;
         
-    static PowerAuthSpec const * const specForAlgorithm(Algorithm algorithm);
-    static PowerAuthSpec const * const specForAlgorithmId(cc7::byte algorithm);
+    /// Look for specification by algorithm enumeration.
+    /// - Parameter algorithm: Algorithm to look for.
+    /// - Returns: Pointer to specification or `nullptr` if no such algorithm exists.
+    static PowerAuthSpec const * const specForAlgorithm(Algorithm algorithm) noexcept;
+    /// Look for specification by byte representing algorithm identifier.
+    /// - Parameter algorithm: Algorithm to look for.
+    /// - Returns: Pointer to specification or `nullptr` if no such algorithm exists.
+    static PowerAuthSpec const * const specForAlgorithmId(cc7::byte algorithm) noexcept;
     
 private:
     
@@ -86,4 +116,5 @@ private:
 
 typedef PowerAuthSpec const * PowerAuthSpecPtr;
 typedef PowerAuthSpec const * const ConstPowerAuthSpecPtr;
+
 } // namespace powerAuth

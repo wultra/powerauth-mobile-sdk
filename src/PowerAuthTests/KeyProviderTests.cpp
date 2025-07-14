@@ -393,10 +393,8 @@ public:
         ccstAssertEqual(V4_KDF(configuration().applicationSecretBytes(), { "util/mac/get-app-temp-key" }), secrets->keyMacGetAppTempKey());
         
         // Legacy must throw
-        ccstMustThrow(Exception, secrets->legacyKeyVault());
         ccstMustThrow(Exception, secrets->legacyKeyTransport());
         ccstMustThrow(Exception, secrets->legacyKeyTransportIV());
-        ccstMustThrow(Exception, secrets->legacyKeyTransportCTR());
     }
         
     void verifyUtilityKeysV4(ISecretKeysPtr& secrets, bool public_available)

@@ -19,6 +19,8 @@
 #include "../v4/PowerAuthKDF.h"
 #include "../v4/PowerAuthAEAD.h"
 #include "../v4/PowerAuthUKE.h"
+#include "../v3/LegacyUKE.h"
+#include "../v3/LegacyKDF.h"
 
 using namespace cc7;
 
@@ -38,6 +40,12 @@ static void _KDump(const std::string& name, const KT::PKDF& tr, const KT::PKDFKe
 static void _KDump(const std::string& name, const KT::AEAD& tr, const KT::AEADKeys& src, const KT::KeyRef& out);
 static void _KDump(const std::string& name, const KT::UKE& tr, const KT::UKEKeys& src, const KT::KeyRef& out);
 static void _KDump(const std::string& name, const KT::CUSTOM& tr, const KT::KeyRef& out);
+static void _KDump(const std::string& name, const KT::Cipher& tr, const KT::CipherKeys& src, const KT::KeyRef& out);
+// Legacy
+static void _KDump(const std::string& name, const KT::LegacyUKE& tr, const KT::LegacyUKEKeys& src, const KT::KeyRef& out);
+static void _KDump(const std::string& name, const KT::LegacyKDF& tr, const KT::KeyRef& src, const KT::KeyRef& out);
+static void _KDump(const std::string& name, const KT::LegacyKDFIntKeys& src, const KT::KeyRef& out);
+static void _KDump(const std::string& name, const KT::LegacyPBKDF2Keys& src, const KT::KeyRef& out);
 #else
 #define _KDump(...)
 #endif
@@ -174,6 +182,83 @@ cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::CUSTOM& tr, const KT
         throwError(EC_NotAllowed, "Custom derived key " + keyName(key_id) + " has wrong size");
     }
     _KDump(keyName(key_id), tr, derived);
+    return allocateKey(key_id, derived);
+}
+
+cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::Cipher& tr, const KT::CipherProvider& keys_provider)
+{
+    if (isSet(key_id)) {
+        _KDump(keyName(key_id), keyRange(key_id));
+        return keyRange(key_id);
+    }
+    auto keys = keys_provider();
+    cc7::ByteArray out;
+    if (tr.mode == KT::ENCRYPT) {
+        out = tr.cipher->encrypt(keys.key, keys.iv, keys.data);
+    } else {
+        out = tr.cipher->decrypt(keys.key, keys.iv, keys.data);
+    }
+    _KDump(keyName(key_id), tr, keys, out);
+    return allocateKey(key_id, out);
+}
+
+// MARK: - Legacy algorithms
+
+cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::LegacyUKE& tr, const KT::LegacyUKEProvider& keys_provider)
+{
+    if (isSet(key_id)) {
+        _KDump(keyName(key_id), keyRange(key_id));
+        return keyRange(key_id);
+    }
+    auto keys = keys_provider();
+    const auto& uke = algorithms().v3.uke();
+    ByteArray out;
+    if (tr.mode == KT::ENCRYPT) {
+        out = uke.wrap(keys.kek, keys.data);
+    } else {
+        out = uke.unwrap(keys.kek, keys.data);
+    }
+    _KDump(keyName(key_id), tr, keys, out);
+    return allocateKey(key_id, out);
+
+}
+
+cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::LegacyKDF& tr, const KT::LegacyKDFProvider& source_key)
+{
+    if (isSet(key_id)) {
+        _KDump(keyName(key_id), keyRange(key_id));
+        return keyRange(key_id);
+    }
+    auto source = source_key();
+    auto derived = algorithms().v3.kdf().derive(source, tr.index);
+    _KDump(keyName(key_id), tr, source, derived);
+    return allocateKey(key_id, derived);
+}
+
+cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::LegacyKDFIntProvider& keys_provider)
+{
+    if (isSet(key_id)) {
+        _KDump(keyName(key_id), keyRange(key_id));
+        return keyRange(key_id);
+    }
+    auto keys = keys_provider();
+    auto derived = algorithms().v3.kdfInternal().derive(keys.key, keys.index);
+    _KDump(keyName(key_id), keys, derived);
+    return allocateKey(key_id, derived);
+}
+
+cc7::ByteRange SecretKeysPool::getKey(int key_id, const KT::LegacyPBKDF2Provider& keys_provider)
+{
+    if (isSet(key_id)) {
+        _KDump(keyName(key_id), keyRange(key_id));
+        return keyRange(key_id);
+    }
+    auto keys = keys_provider();
+    auto derived = algorithms().v3.pbkdf2WithSha1().deriveKeyBytes(keys.password, {
+        { crypto::KDF_PARAM_SALT, crypto::Parameter::ref(keys.salt) },
+        { crypto::KDF_PARAM_ITERATIONS, crypto::Parameter::take((size_t)keys.iterations) },
+    });
+    _KDump(keyName(key_id), keys, derived);
     return allocateKey(key_id, derived);
 }
 
@@ -329,10 +414,72 @@ static void _KDump(const std::string& name, const KT::UKE& tr, const KT::UKEKeys
     }
 }
 
+static void _KDump(const std::string& name, const KT::Cipher& tr, const KT::CipherKeys& src, const KT::KeyRef& out)
+{
+    if (tr.mode == KT::ENCRYPT) {
+        fprintf(stdout, "    get %s:  -> %s\n"
+                        "          = %s.encrypt\n"
+                        "              K: %s\n"
+                        "              I: %s\n"
+                        "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), tr.cipher->getAlgorithmName().c_str(), src.key.hexadecimal().c_str(), src.iv.hexadecimal().c_str(), src.data.hexadecimal().c_str());
+
+    } else {
+        fprintf(stdout, "    get %s:  -> %s\n"
+                        "          = %s.decrypt\n"
+                        "              K: %s\n"
+                        "              I: %s\n"
+                        "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), tr.cipher->getAlgorithmName().c_str(), src.key.hexadecimal().c_str(), src.iv.hexadecimal().c_str(), src.data.hexadecimal().c_str());
+    }
+}
+
 static void _KDump(const std::string& name, const KT::CUSTOM& tr, const KT::KeyRef& out)
 {
     fprintf(stdout, "    get %s: [#] -> %s\n", name.c_str(), out.hexadecimal().c_str());
 }
+
+// Legacy
+
+static void _KDump(const std::string& name, const KT::LegacyUKE& tr, const KT::LegacyUKEKeys& src, const KT::KeyRef& out)
+{
+    if (tr.mode == KT::ENCRYPT) {
+        fprintf(stdout, "    get %s:  -> %s\n"
+                        "          = LegacyUKE.wrap\n"
+                        "              K: %s\n"
+                        "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
+
+    } else {
+        fprintf(stdout, "    get %s:  -> %s\n"
+                        "          = LegacyUKE.unwrap\n"
+                        "              K: %s\n"
+                        "              D: %s\n", name.c_str(), out.hexadecimal().c_str(), src.kek.hexadecimal().c_str(), src.data.hexadecimal().c_str());
+    }
+}
+
+static void _KDump(const std::string& name, const KT::LegacyKDF& tr, const KT::KeyRef& src, const KT::KeyRef& out)
+{
+    fprintf(stdout, "    get %s:  -> %s\n"
+                    "          = LegacyKDF\n"
+                    "              K: %s\n"
+                    "              I: %lld\n", name.c_str(), out.hexadecimal().c_str(), src.hexadecimal().c_str(), tr.index);
+}
+
+static void _KDump(const std::string& name, const KT::LegacyKDFIntKeys& src, const KT::KeyRef& out)
+{
+    fprintf(stdout, "    get %s:  -> %s\n"
+                    "          = LegacyKDFInternal\n"
+                    "              K: %s\n"
+                    "              I: %s\n", name.c_str(), out.hexadecimal().c_str(), src.key.hexadecimal().c_str(), src.index.hexadecimal().c_str());
+}
+
+static void _KDump(const std::string& name, const KT::LegacyPBKDF2Keys& src, const KT::KeyRef& out)
+{
+    fprintf(stdout, "    get %s:  -> %s\n"
+                    "          = LegacyPBKDF2\n"
+                    "              P: %s\n"
+                    "              S: %s\n"
+                    "              I: %zu\n", name.c_str(), out.hexadecimal().c_str(), src.password.hexadecimal().c_str(), src.salt.hexadecimal().c_str(), src.iterations);
+}
+
 #endif
 
 #if ENABLE_EDUMP

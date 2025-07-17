@@ -33,6 +33,7 @@ struct KT
     
     typedef cc7::ByteRange KeyRef;
     typedef cc7::ByteArray Key;
+    typedef cc7::ByteArray Data;
     
 
     struct INPUT
@@ -73,7 +74,7 @@ struct KT
     struct AEADKeys
     {
         KeyRef kek;
-        KeyRef data;
+        Data data;
         KeyRef aad;
     };
     
@@ -87,12 +88,64 @@ struct KT
         KeyRef kek;
         KeyRef data;
     };
-
+    
+    struct Cipher
+    {
+        Mode mode;
+        cc7::crypto::CipherPtr cipher;
+    };
+    
+    struct CipherKeys
+    {
+        KeyRef key;
+        KeyRef iv;
+        Data data;
+    };
+    
     typedef std::function<Key()> CustomKeyProvider;
     typedef std::function<KeyRef()> KeyProvider;
     typedef std::function<PKDFKeys()> PKDFProvider;
     typedef std::function<AEADKeys()> AEADProvider;
     typedef std::function<UKEKeys()> UKEProvider;
+    typedef std::function<CipherKeys()> CipherProvider;
+    
+    // Legacy
+    
+    struct LegacyUKE
+    {
+        Mode mode;
+    };
+    
+    struct LegacyUKEKeys
+    {
+        KeyRef kek;
+        KeyRef data;
+    };
+    
+    struct LegacyKDF
+    {
+        int64_t index;
+    };
+    
+    struct LegacyKDFIntKeys
+    {
+        KeyRef key;
+        KeyRef index;
+    };
+
+    struct LegacyPBKDF2Keys
+    {
+        KeyRef password;
+        KeyRef salt;
+        size_t iterations;
+    };
+
+        
+    typedef std::function<KeyRef()> LegacyKDFProvider;
+    typedef std::function<LegacyPBKDF2Keys()> LegacyPBKDF2Provider;
+    typedef std::function<LegacyKDFIntKeys()> LegacyKDFIntProvider;
+    typedef std::function<LegacyUKEKeys()> LegacyUKEProvider;
+    
     
     KT() = delete;
 };
@@ -135,6 +188,17 @@ public:
     
     cc7::ByteRange getKey(int key_id, const KT::CUSTOM& tr, const KT::CustomKeyProvider& derived_key);
     
+    // TR::Cipher
+
+    cc7::ByteRange getKey(int key_id, const KT::Cipher& tr, const KT::CipherProvider& keys_provider);
+    
+    // Legacy
+    
+    cc7::ByteRange getKey(int key_id, const KT::LegacyUKE& tr, const KT::LegacyUKEProvider& keys_provider);
+    cc7::ByteRange getKey(int key_id, const KT::LegacyKDF& tr, const KT::LegacyKDFProvider& source_key);
+    cc7::ByteRange getKey(int key_id, const KT::LegacyKDFIntProvider& keys_provider);
+    cc7::ByteRange getKey(int key_id, const KT::LegacyPBKDF2Provider& keys_provider);
+    
     
     bool isSet(int key_id) const;
     void clearKey(int key_id);
@@ -147,7 +211,7 @@ private:
     std::vector<std::unique_ptr<cc7::ByteArray>> _heap;
     std::vector<std::unique_ptr<cc7::ByteArray>> _to_destroy;
     std::unique_ptr<cc7::ByteRange[]> _keys;
-
+    
     void validateKeyId(int key_id, bool for_write) const;
     bool validateSize(size_t expected_size, bool allow_empty, size_t actual_size) const noexcept;
     

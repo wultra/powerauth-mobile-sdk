@@ -40,7 +40,10 @@ cc7::tests::UnitTestCreationInfoList GetPowerAuthTestCreationInfoList()
     CC7_ADD_UNIT_TEST(PowerAuthAEADTests, list);
     CC7_ADD_UNIT_TEST(SharedSecretTests, list);
     CC7_ADD_UNIT_TEST(HybridKeyPairTests, list);
-    CC7_ADD_UNIT_TEST(KeyProviderTests, list);
+    CC7_ADD_UNIT_TEST(KeyProviderV4Tests, list);
+    // v3
+    CC7_ADD_UNIT_TEST(KeyProviderV3Tests, list);
+    
     // legacy
     CC7_ADD_UNIT_TEST(pa2CryptoAESTests, list);
     CC7_ADD_UNIT_TEST(pa2CryptoHMACTests, list);

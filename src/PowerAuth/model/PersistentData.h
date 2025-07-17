@@ -113,6 +113,9 @@ public:
     /// Returns activation identifier.
     const std::string& getActivationId() const noexcept;
     
+    /// Returns information whether biometric factor key is set.
+    bool hasBiometricFactorKey() const noexcept;
+    
     // Versioned data
     ProtocolVersion getProtocolVersion() const noexcept;
     

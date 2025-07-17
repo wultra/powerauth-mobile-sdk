@@ -201,7 +201,7 @@ public:
         {
             return *pointers.sha256;
         }
-        
+                
         const cc7::crypto::KeyPairFactory & p256() const
         {
             return *pointers.p256;

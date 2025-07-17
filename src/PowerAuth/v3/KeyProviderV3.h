@@ -38,9 +38,12 @@ public:
     cc7::crypto::ConstPublicKeyPtr getServerPublicKeyPtr() override;
     void clearActivationKeys() noexcept override;
     
-    ISecretKeysPtr unlockInitialSecretKeys(const InitialCredentials &credentials, const cc7::ByteArray &shared_secret) override;
+    ISecretKeysPtr unlockInitialSecretKeys(const InitialCredentials &credentials,
+                                           const cc7::ByteArray &shared_secret) override;
     ISecretKeysPtr unlockSecretKeys() override;
     ISecretKeysPtr unlockSecretKeys(const Credentials &credentials) override;
+    ISecretKeysPtr unlockVaultKey(VaultKeyType vault_key_type,
+                                  const cc7::ByteRange &vault_key) override;
     ISecretKeysPtr unlockVaultAndSecretKeys(const Credentials &credentials,
                                             VaultKeyType vault_key_type,
                                             const cc7::ByteRange &vault_key) override;
@@ -49,7 +52,7 @@ public:
     
     // IService
     void clearSensitiveData() override;
-    void restoreSensitiveData() override;
+    //void restoreSensitiveData() override;
     
     // Custom methods
 
@@ -72,12 +75,15 @@ private:
     bool     _sec_key_created;
     cc7::U64 _sec_key_token;
     
-    cc7::ByteArray _local_data_key;
     cc7::crypto::PublicKeyPtr _master_server_public_key;
     cc7::crypto::PublicKeyPtr _device_public_key;
     cc7::crypto::PublicKeyPtr _server_public_key;
     
     cc7::crypto::KeyPairFactoryPtr _key_pair_factory;
+    
+    std::unique_ptr<SecretKeysV3> createSecretKeys();
+    std::unique_ptr<PersistentData> createPDFromSecretKeys(SecretKeysV3& secret_keys);
+    void updateSessionData(SecretKeysV3& secret_keys);
 };
 
 } // namespace v3

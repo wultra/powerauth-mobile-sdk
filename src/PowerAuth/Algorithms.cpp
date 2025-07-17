@@ -110,7 +110,6 @@ Algorithms::V3::Pointers Algorithms::V3::build()
     auto pbkdf2_sha1        = KeyDerivation::getInstance("PBKDF2-HMAC-SHA-1");
     
     // Configure
-    
     aes128_cbc_no_pad->setParameter(CIPHER_PARAM_USE_PADDING, Parameter::take(false));
     // set P-256 public key encoding to compressed
     p256->setParameter(KEY_PARAM_EC_POINT_CONVERSION, Parameter::ref(EC_PUBLIC_KEY_CONVERSION_COMPRESSED));

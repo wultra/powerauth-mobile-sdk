@@ -59,7 +59,6 @@ void KeyProviderV4::clearSensitiveData()
 void KeyProviderV4::restoreSensitiveData()
 {
     Service::restoreSensitiveData();
-    
     if (_session_data->hasPersistentData()) {
         updateKeyLocalData(nullptr);
     }
@@ -140,6 +139,13 @@ ISecretKeysPtr KeyProviderV4::unlockSecretKeys(const Credentials &credentials)
     return keys;
 }
 
+ISecretKeysPtr KeyProviderV4::unlockVaultKey(VaultKeyType vault_key_type, const cc7::ByteRange &vault_key)
+{
+    auto keys = createSecretKeys();
+    keys->loadVaultKey(*_session_data, vault_key_type, vault_key);
+    return keys;
+}
+
 ISecretKeysPtr KeyProviderV4::unlockVaultAndSecretKeys(const Credentials &credentials, VaultKeyType vault_key_type, const cc7::ByteRange &vault_key)
 {
     auto keys = createSecretKeys();
@@ -165,12 +171,16 @@ void KeyProviderV4::lockSecretKeys(ISecretKeysPtr &secret_keys)
             break;
         }
         case SecretKeysV4::CM_ACTIVE:
-            // passthrough
-        case SecretKeysV4::CM_VAULT:
             // Apply potential changes to persistent data
             updateSessionData(*typed_keys);
             break;
-            
+        case SecretKeysV4::CM_VAULT:
+            // Apply potential changes to persistent data,
+            // only if persistent data is available
+            if (_session_data->hasPersistentData()) {
+                updateSessionData(*typed_keys);
+            }
+            break;
         default:
             break;
     }
@@ -251,7 +261,7 @@ std::unique_ptr<PersistentData> KeyProviderV4::createPDFromSecretKeys(SecretKeys
     // public and private keys
     updateKeyLocalData(&secret_keys);
     pd->cDevicePublicKey = encryptPublicKey(*rd.serverPublicKey, KC_SERVER_PUBLIC_KEY, rd.activationId);
-    pd->cServerPublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_SERVER_PUBLIC_KEY, rd.activationId);
+    pd->cServerPublicKey = encryptPublicKey(rd.deviceKeyPair->getPublicKey(), KC_DEVICE_PUBLIC_KEY, rd.activationId);
     pd->cDevicePrivateKey = secret_keys.ckeyDevicePrivate();
     
     return PersistentData::create(pd);

@@ -93,9 +93,8 @@ bool PowerAuthSpec::isHybrid() const noexcept
 
 bool PowerAuthSpec::isActivationSupported() const noexcept
 {
-    // The current implementation disables only legacy protocol (so V3), but this may
-    // be changed in the future. For example, if we discontinue some V4 algorithms, then
-    return !isLegacy();
+    // The current implementation supports activation for all specs
+    return true;
 }
 
 PowerAuthSpec::Algorithm PowerAuthSpec::algorithm() const noexcept

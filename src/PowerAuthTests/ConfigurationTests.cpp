@@ -89,10 +89,6 @@ public:
             .withDeviceSpecificData(MakeRange("device-specific-data"))
             .build());
         ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
-            .withAlgorithm(PowerAuthSpec::LEGACY_P256)
-            .withDeviceSpecificData(MakeRange("device-specific-data"))
-            .build());
-        ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
             .withAlgorithm(PowerAuthSpec::EC_P384)
             .withDeviceSpecificData(ByteRange())
             .build());

@@ -86,10 +86,7 @@ public:
         KEY_DEVICE_SPECIFIC,
 
         // Number of keys
-        KID_COUNT,
-        
-        // ID for no-source key
-        KID_NONE = 1000
+        KID_COUNT
     };
     
     enum CreationMode
@@ -110,7 +107,7 @@ public:
         AL_VAULT,
     };
     
-    ProtocolVersion protocolVersion() const override;
+    ProtocolVersion protocolVersion() const noexcept override;
     
     // Authentication
     cc7::ByteRange kdkAuthenticationCode();
@@ -123,7 +120,7 @@ public:
 
     cc7::ByteRange ckeyAuthenticationCodePossession();
     cc7::ByteRange ckeyAuthenticationCodeKnowledge();
-    cc7::ByteRange  ckeyAuthenticationCodeBiometry();
+    cc7::ByteRange ckeyAuthenticationCodeBiometry();
 
     void updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& new_key,
                                               const cc7::ByteRange& new_kek) override;
@@ -178,6 +175,10 @@ public:
     
     void loadCredentials(const SessionData& session_data,
                          const Credentials& credentials);
+
+    void loadVaultKey(const SessionData& session_data,
+                      VaultKeyType key_type,
+                      const cc7::ByteRange& key_data);
     
     void loadCredentialsWithVaultKey(const SessionData& session_data,
                                      const Credentials& credentials,
@@ -204,6 +205,7 @@ private:
     AccessLevel _access_level = AL_BASIC;
     bool _loaded = false;
     bool _has_activation = false;
+    bool _has_credentials = false;
     bool _has_biometry = false;
     bool _knowledge_key_update = false;
     bool _biometry_key_update = false;
@@ -213,15 +215,17 @@ private:
     cc7::crypto::PrivateKeyPtr _device_private;
 
     void setupCreationMode(CreationMode mode);
-    void checkAccessLevel(int key_id, AccessLevel al) const;
+    void checkAccessLevel(int key_id, AccessLevel al, bool with_credentials = false) const;
     
     void setupSessionData(const SessionData& session_data);
     void setupCredentials(const SessionData& session_data, const Credentials& credentials);
+    void setupVaultKey(VaultKeyType key_type, const cc7::ByteRange& key_data);
     
     cc7::ByteRange deriveKdkUtility(int key_id, const common::KT::KDF& kdf);
     cc7::ByteRange deriveKdkVault(int key_id, const common::KT::KDF& kdf);
     void setupNewPassword(const cc7::ByteRange& password);
     
+    // constants
     static const common::KT::INPUT any_input;
     static const common::KT::INPUT default_input;
     static const common::KT::INPUT input_16;
@@ -233,10 +237,11 @@ private:
     static const common::KT::UKE   uke_encrypt;
     static const common::KT::UKE   uke_decrypt;
     
-    static void throwNotSupported [[noreturn]] ();
-    static void throwNotImplemented [[noreturn]] ();
+    // static functions
     
-    static std::string keyNameResolver(int key_id);
+    static void throwNotSupported [[noreturn]] ();
+    
+    static std::string keyNameResolver(int key_id) noexcept;
 };
 
 

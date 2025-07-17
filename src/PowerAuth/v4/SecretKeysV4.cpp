@@ -24,7 +24,7 @@ namespace v4 {
 using namespace cc7;
 using namespace common;
 
-// Constants
+// MARK: - Constants
 
 const KT::INPUT SecretKeysV4::any_input     { 0 };
 const KT::INPUT SecretKeysV4::input_16      { 16 };
@@ -38,7 +38,7 @@ const KT::INPUT SecretKeysV4::aead_generic_encrypted { v4::FACTOR_KEY_SIZE + Pow
 const KT::UKE SecretKeysV4::uke_encrypt     { KT::ENCRYPT };
 const KT::UKE SecretKeysV4::uke_decrypt     { KT::DECRYPT };
 
-// Construction
+// MARK: - Construction
 
 SecretKeysV4::SecretKeysV4(std::shared_ptr<KeyProviderV4> owner, cc7::U64 instance_token) :
     _owner(owner),
@@ -90,6 +90,7 @@ void SecretKeysV4::loadInitialCredentials(const SessionData& session_data,
     if ((_has_biometry = credentials.hasBiometryKEK())) {
         _pool.setKey(KEK_AUTHENTICATION_BIOMETRY, default_input, credentials.biometryKEK());
     }
+    _has_credentials = true;
 }
 
 void SecretKeysV4::loadCredentials(const SessionData& session_data,
@@ -99,26 +100,21 @@ void SecretKeysV4::loadCredentials(const SessionData& session_data,
     setupCredentials(session_data, credentials);
 }
 
+void SecretKeysV4::loadVaultKey(const SessionData &session_data, VaultKeyType key_type, const cc7::ByteRange &key_data)
+{
+    setupCreationMode(CM_VAULT);
+    setupSessionData(session_data);
+    setupVaultKey(key_type, key_data);
+}
+
 void SecretKeysV4::loadCredentialsWithVaultKey(const SessionData& session_data,
-                                               const Credentials &credentials,
+                                               const Credentials& credentials,
                                                VaultKeyType key_type,
                                                const cc7::ByteRange &key_data)
 {
     setupCreationMode(CM_VAULT);
     setupCredentials(session_data, credentials);
-    switch (key_type) {
-        case VaultKeyType::KEK_DEVICE_PRIVATE:
-            _pool.setKey(KEK_DEVICE_PRIVATE, default_input, key_data);
-            break;
-        case VaultKeyType::KDK_APP_VAULT_KNOWLEDGE:
-            _pool.setKey(KDK_APP_VAULT_KNOWLEDGE, default_input, key_data);
-            break;
-        case VaultKeyType::KDK_APP_VAULT_2FA:
-            _pool.setKey(KDK_APP_VAULT_2FA, default_input, key_data);
-            break;
-        case VaultKeyType::LEGACY:
-            throwNotSupported();
-    }
+    setupVaultKey(key_type, key_data);
 }
 
 void SecretKeysV4::setupSessionData(const SessionData &session_data)
@@ -198,6 +194,22 @@ void SecretKeysV4::setupCredentials(const SessionData& session_data, const Crede
     if (credentials_with_biometry && !_has_biometry) {
         throw Exception(EC_BiometryNotAllowed, "Biometric factor is not configured");
     }
+    _has_credentials = true;
+}
+
+void SecretKeysV4::setupVaultKey(VaultKeyType key_type, const cc7::ByteRange &key_data)
+{
+    switch (key_type) {
+        case VaultKeyType::KEK_DEVICE_PRIVATE:
+            _pool.setKey(KEK_DEVICE_PRIVATE, default_input, key_data);
+            break;
+        case VaultKeyType::KDK_APP_VAULT_KNOWLEDGE:
+            _pool.setKey(KDK_APP_VAULT_KNOWLEDGE, default_input, key_data);
+            break;
+        case VaultKeyType::KDK_APP_VAULT_2FA:
+            _pool.setKey(KDK_APP_VAULT_2FA, default_input, key_data);
+            break;
+    }
 }
 
 SecretKeysV4::CreationMode SecretKeysV4::setReturned(cc7::U64 instance_token)
@@ -215,14 +227,14 @@ void SecretKeysV4::setupNewPassword(const cc7::ByteRange &password)
     _pool.setKey(IN_PASSWORD_SALT, default_input, crypto::GetRandomData(v4::PASSKDF_SALT_SIZE));
 }
 
-// Methods
+// MARK: - Methods
 
-ProtocolVersion SecretKeysV4::protocolVersion() const
+ProtocolVersion SecretKeysV4::protocolVersion() const noexcept
 {
     return Version_V4;
 }
 
-// Authentication
+// MARK: - Authentication
 
 cc7::ByteRange SecretKeysV4::kdkAuthenticationCode()
 {
@@ -253,7 +265,7 @@ cc7::ByteRange SecretKeysV4::kekAuthenticationCodeKnowledge()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodePossession()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_POSSESSION, AL_ACTIVE);
+    checkAccessLevel(KEY_AUTHENTICATION_POSSESSION, AL_ACTIVE, false);
     
     if (_pool.isSet(CKEY_AUTHENTICATION_POSSESSION)) {
         // Encrypted key is set, so try to decrypt key
@@ -274,7 +286,7 @@ cc7::ByteRange SecretKeysV4::keyAuthenticationCodePossession()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodeKnowledge()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE);
+    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, true);
     
     if (_pool.isSet(CKEY_AUTHENTICATION_KNOWLEDGE)) {
         // Encrypted key is set, so try to decrypt key
@@ -295,7 +307,7 @@ cc7::ByteRange SecretKeysV4::keyAuthenticationCodeKnowledge()
 
 cc7::ByteRange SecretKeysV4::keyAuthenticationCodeBiometry()
 {
-    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE);
+    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, true);
     
     if (!_has_biometry) {
         throw Exception(EC_BiometryNotAllowed);
@@ -356,7 +368,7 @@ cc7::ByteRange SecretKeysV4::ckeyAuthenticationCodeBiometry()
 void SecretKeysV4::updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& new_key,
                                                         const cc7::ByteRange& new_kek)
 {
-    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE);
+    checkAccessLevel(KEY_AUTHENTICATION_KNOWLEDGE, AL_ACTIVE, true);
     
     // cleanup
     _pool.clearKey(CKEY_AUTHENTICATION_KNOWLEDGE);
@@ -365,6 +377,7 @@ void SecretKeysV4::updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& ne
     _pool.clearKey(IN_PASSWORD);
     _pool.clearKey(IN_PASSWORD_SALT);
     
+    // new key
     _pool.setKey(KEY_AUTHENTICATION_KNOWLEDGE, default_input, new_key);   // factor key
     setupNewPassword(new_kek);
     
@@ -374,17 +387,20 @@ void SecretKeysV4::updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& ne
 void SecretKeysV4::updateKeyAuthenticationCodeBiometry(const cc7::ByteRange& new_key,
                                                        const cc7::ByteRange& new_kek)
 {
-    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE);
+    checkAccessLevel(KEY_AUTHENTICATION_BIOMETRY, AL_ACTIVE, false);
     
+    // cleanup
     _pool.clearKey(CKEY_AUTHENTICATION_BIOMETRY);
     _pool.clearKey(KEY_AUTHENTICATION_BIOMETRY);
     _pool.clearKey(KEK_AUTHENTICATION_BIOMETRY);
 
+    // new key
     _pool.setKey(KEY_AUTHENTICATION_BIOMETRY, default_input, new_key);    // factor key
     _pool.setKey(KEK_AUTHENTICATION_BIOMETRY, default_input, new_kek);    // kek
     
     _biometry_key_update = true;
     _has_biometry = true;
+    _has_credentials = true;
 }
 
 void SecretKeysV4::removeKeyAuthenticationCodeBiometry()
@@ -414,7 +430,7 @@ cc7::ByteRange SecretKeysV4::getInputData(KeyId key_id)
     return _pool.getKey(key_id, any_input);
 }
 
-// Encryption
+// MARK: - Encryption
 
 cc7::ByteRange SecretKeysV4::kdkEncryption()
 {
@@ -466,7 +482,7 @@ cc7::ByteRange SecretKeysV4::keyLocalData()
     });
 }
 
-// Vault
+// MARK: - Vault
 
 cc7::ByteRange SecretKeysV4::kdkVault()
 {
@@ -501,7 +517,7 @@ cc7::ByteRange SecretKeysV4::kdkAppVault2FA()
     return deriveKdkVault(KDK_APP_VAULT_2FA, derive);
 }
 
-// Utility
+// MARK: - Utility
 
 cc7::ByteRange SecretKeysV4::kdkUtility()
 {
@@ -589,7 +605,7 @@ cc7::ByteRange SecretKeysV4::kdkAppUtility()
 }
 
 
-// Other
+// MARK: - Other
 
 cc7::ByteRange SecretKeysV4::keyActivationSecret()
 {
@@ -626,7 +642,7 @@ cc7::ByteRange SecretKeysV4::ckeyDevicePrivate()
 }
 
 
-// Legacy
+// MARK: - Legacy
 
 cc7::ByteRange SecretKeysV4::legacyKeyTransport()
 {
@@ -637,7 +653,7 @@ cc7::ByteRange SecretKeysV4::legacyKeyTransportIV()
     throwNotSupported();
 }
 
-// Private
+// MARK: - Private
 
 void SecretKeysV4::setupCreationMode(CreationMode mode)
 {
@@ -662,10 +678,13 @@ void SecretKeysV4::setupCreationMode(CreationMode mode)
     }
 }
 
-void SecretKeysV4::checkAccessLevel(int key_id, AccessLevel al) const
+void SecretKeysV4::checkAccessLevel(int key_id, AccessLevel al, bool with_credentials) const
 {
     if (al > _access_level) {
         throw Exception(EC_NotAllowed, "Access to key " + keyNameResolver(key_id) + " is denied");
+    }
+    if (with_credentials && !_has_credentials) {
+        throw Exception(EC_NotAllowed, "Access to key " + keyNameResolver(key_id) + " require user credentials");
     }
 }
 
@@ -674,7 +693,7 @@ void SecretKeysV4::throwNotSupported()
     throw Exception(EC_NotAllowed, "V3 key not available");
 }
 
-std::string SecretKeysV4::keyNameResolver(int key_id)
+std::string SecretKeysV4::keyNameResolver(int key_id) noexcept
 {
 #if DEBUG
     switch (key_id) {

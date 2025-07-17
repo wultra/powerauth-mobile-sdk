@@ -42,6 +42,7 @@ public:
     ISecretKeysPtr unlockInitialSecretKeys(const InitialCredentials &credentials, const cc7::ByteArray &shared_secret) override;
     ISecretKeysPtr unlockSecretKeys() override;
     ISecretKeysPtr unlockSecretKeys(const Credentials &credentials) override;
+    ISecretKeysPtr unlockVaultKey(VaultKeyType vault_key_type, const cc7::ByteRange &vault_key) override;
     ISecretKeysPtr unlockVaultAndSecretKeys(const Credentials &credentials,
                                             VaultKeyType vault_key_type,
                                             const cc7::ByteRange &vault_key) override;

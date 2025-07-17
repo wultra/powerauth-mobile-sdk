@@ -40,7 +40,7 @@ class LegacyKDFInternal
 public:
     LegacyKDFInternal(const cc7::crypto::MACPtr& hmacSha256);
     
-    cc7::ByteArray derive(const cc7::ByteRange& key, cc7::ByteRange& index) const;
+    cc7::ByteArray derive(const cc7::ByteRange& key, const cc7::ByteRange& index) const;
     
 private:
     const cc7::crypto::MACPtr _mac;

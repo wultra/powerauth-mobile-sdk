@@ -38,7 +38,7 @@ class ISecretKeys : public cc7::BaseObject
 public:
     
     /// Return protocol version supported by the instance of the object.
-    virtual ProtocolVersion protocolVersion() const = 0;
+    virtual ProtocolVersion protocolVersion() const noexcept = 0;
     
     
     // Authentication
@@ -70,6 +70,23 @@ public:
 
     /// Update knowledge factor keys.
     ///
+    /// Be aware that the secret keys object has to be created with credentials
+    /// with the knowledge KEK set to old, verified password. This is the typical
+    /// "change password" sequence:
+    ///
+    /// ```cpp
+    /// auto old_credentials = Credentials::knowledge(old_password);
+    /// auto secrets = keyProvider->unlockSecretKeys(*credentials);
+    /// if (secrets->protocolVersion() == Version_V3) {
+    ///    // V3 doesn't use new factor key
+    ///    secrets->updateKeyAuthenticationCodeKnowledge(cc7::ByteRange(), new_password);
+    /// } else {
+    ///    // V4 require new factor key. The key is deduced with using "shared secret" protocol.
+    ///    secrets->updateKeyAuthenticationCodeKnowledge(new_factor_key, new_password);
+    /// }
+    /// keyProvider->lockSecretKeys(secrets);
+    /// ```
+    ///
     /// Protocol versions: V3, V4
     ///
     /// Updated keys:
@@ -82,6 +99,25 @@ public:
     virtual void updateKeyAuthenticationCodeKnowledge(const cc7::ByteRange& new_key,
                                                       const cc7::ByteRange& new_kek) = 0;
     /// Update biometry factor keys.
+    ///
+    /// Be aware that biometry key update differs between protocol versions:
+    /// - For V4, we receive `new_key` from the server.
+    /// - For V3, we have to deduce `new_key` from shared secret, so `kekDevicePrivate()` must be available.
+    ///
+    /// Here's example of processing:
+    /// ```cpp
+    /// if (keyProvider->protocolVersion() == Version_V3) {
+    ///    // V3 must deduce biometric factor key from the shared secret.
+    ///    auto secrets = keyProvider->unlockVaultKey(VaultKeyType::KEK_DEVICE_PRIVATE, ckey_encryption_vault);
+    ///    secrets->updateKeyAuthenticationCodeBiometry(ByteRange(), new_kek);
+    ///    keyProvider->lockSecretKeys(secrets);
+    /// } else {
+    ///    // V4 require new factor key. The key is deduced with using "shared secret" protocol.
+    ///    auto secrets = keyProvider->unlockSecretKeys();
+    ///    secrets->updateKeyAuthenticationCodeBiometry(new_key, new_kek);
+    ///    keyProvider->lockSecretKeys(secrets);
+    /// }
+    /// ```
     ///
     /// Protocol versions: V3, V4
     ///
@@ -113,9 +149,11 @@ public:
     
     /// Get key for local data encryption.
     ///
-    /// Protocol versions: V4
+    /// Protocol versions: V3, V4
     ///
-    /// Key name: `KEY_LOCAL_DATA`
+    /// Key name:
+    /// - V4: `KEY_LOCAL_DATA`
+    /// - V3: Name not specified, but key is identical to KEK protecting knowledge factor key.
     virtual cc7::ByteRange keyLocalData() = 0;
     
     
@@ -246,22 +284,21 @@ typedef std::unique_ptr<ISecretKeys> ISecretKeysPtr;
 enum class VaultKeyType
 {
     /// Key encryption key for accessing device private key.
-    /// This key is defined in protocol version 4.0.
+    ///
+    /// This key is defined in protocol version 4 and is equal to `KEY_ENCRYPTION_VAULT`
+    /// for protocol version 3.
     KEK_DEVICE_PRIVATE,
     /// Application specific key derivation key, available after user authenticate
     /// on the server with possession and knowledge factors.
-    /// /// This key is defined in protocol version 4.0.
+    ///
+    /// This key is defined in protocol version 4.0.
     KDK_APP_VAULT_KNOWLEDGE,
     /// Application specific key derivation key, available after user authenticate
     /// on the server with with possession and knowledge, or possession and biometry
     /// factors.
-    /// /// This key is defined in protocol version 4.0.
-    KDK_APP_VAULT_2FA,
-    /// Legacy vault key for accessing device private key and factor keys in protocol
-    /// version 3.0.
-    ///
-    /// The legacy vault key was replaced with other vault key types in protocol 4.0.
-    LEGACY,
+    /// 
+    /// This key is defined in protocol version 4.0.
+    KDK_APP_VAULT_2FA
 };
 
 /// The `IKeyProvider` abstract class defines interface for retrieving keys for various
@@ -346,6 +383,19 @@ public:
     ///     - `PowerAuthException` with code `EC_MissingActivation` if there's no activation available.
     ///     - `PowerAuthException` with code `EC_NotAllowed` if secret keys are already acquired.
     virtual ISecretKeysPtr unlockSecretKeys(const Credentials& auth) = 0;
+
+    /// Acquire interface providing vault key. If the secret keys are no longer required for performed
+    /// cryptographic operation, then you must call `lockSecretKeys()` and give the object back
+    /// to the `KeyProvider`.
+    ///
+    /// - Parameter vault_key_type: Type of vault key to unlock.
+    /// - Parameter vault_key: Vault key data received from the server.
+    /// - Returns: Unique pointer to `ISecretKeys` interface.
+    /// - Throws:
+    ///     - `PowerAuthException` with code `EC_MissingActivation` if there's no activation available.
+    ///     - `PowerAuthException` with code `EC_NotAllowed` if secret keys are already acquired.
+    virtual ISecretKeysPtr unlockVaultKey(VaultKeyType vault_key_type,
+                                          const cc7::ByteRange& vault_key) = 0;
     
     /// Acquire interface providing secret keys and vault key. The provided authentication object
     /// determine what keys will be available in the returned structure. If the secret keys are no
@@ -353,11 +403,12 @@ public:
     /// and give the object back to the `KeyProvider`.
     ///
     /// - Parameter credentials: Authentication object that determine level of available keys.
+    /// - Parameter vault_key_type: Type of vault key to unlock.
+    /// - Parameter vault_key: Vault key data received from the server.
     /// - Returns: Unique pointer to `ISecretKeys` interface.
     /// - Throws:
     ///     - `PowerAuthException` with code `EC_MissingActivation` if there's no activation available.
     ///     - `PowerAuthException` with code `EC_NotAllowed` if secret keys are already acquired.
-
     virtual ISecretKeysPtr unlockVaultAndSecretKeys(const Credentials& credentials,
                                                     VaultKeyType vault_key_type,
                                                     const cc7::ByteRange& vault_key) = 0;

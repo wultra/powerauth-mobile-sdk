@@ -51,7 +51,7 @@ LegacyKDFInternal::LegacyKDFInternal(const cc7::crypto::MACPtr& hmacSha256) :
 #endif
 }
 
-cc7::ByteArray LegacyKDFInternal::derive(const cc7::ByteRange& key, cc7::ByteRange& index) const
+cc7::ByteArray LegacyKDFInternal::derive(const cc7::ByteRange& key, const cc7::ByteRange& index) const
 {
     auto result = _mac->token(key, index);
     // xor the result and shrink to 16B

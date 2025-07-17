@@ -20,8 +20,8 @@ namespace powerAuthTests
      * pa2/v4-pbkdf.json
      * pa2/v4-aead.json
      * pa2/session-setup-v4.json
-     * pa2/compute-derived-keys.json
-     * pa2/compute-master-secret-key.json
+     * pa2/compute-derived-keys-v3.json
+     * pa2/compute-master-secret-key-v3.json
      * pa2/public-key-fingerprint.json
      * pa2/signatures-v2.json
      * pa2/signatures-v3.json
@@ -6540,9 +6540,9 @@ static cc7::tests::TestResource session_setup_v4_json
 	);
 //
 // -----------------------------------------------------------------------------
-// File: pa2/compute-derived-keys.json
+// File: pa2/compute-derived-keys-v3.json
 // -----------------------------------------------------------------------------
-static const char compute_derived_keys_json_bytes[] = R"cc7resourcxx({
+static const char compute_derived_keys_v3_json_bytes[] = R"cc7resourcxx({
 	"description": "For \"/pa/activation/prepare\", client needs to be able to derive standard PowerAuth keys from master shared secret key (masterSecretKey) => (signaturePossessionKey, signatureKnowledgeKey, signatureBiometryKey, transportKey, vaultEncryptionKey).",
 	"data": [{
 		"input": {
@@ -6767,20 +6767,20 @@ static const char compute_derived_keys_json_bytes[] = R"cc7resourcxx({
 	}]
 }
 )cc7resourcxx";
-static const size_t compute_derived_keys_json_size = 7439;
+static const size_t compute_derived_keys_v3_json_size = 7439;
 // -----------------------------------------------------------------------------
 //
-static cc7::tests::TestResource compute_derived_keys_json
+static cc7::tests::TestResource compute_derived_keys_v3_json
 	(
-		reinterpret_cast<const cc7::byte*>(compute_derived_keys_json_bytes),
-		compute_derived_keys_json_size,
-		"pa2/compute-derived-keys.json"
+		reinterpret_cast<const cc7::byte*>(compute_derived_keys_v3_json_bytes),
+		compute_derived_keys_v3_json_size,
+		"pa2/compute-derived-keys-v3.json"
 	);
 //
 // -----------------------------------------------------------------------------
-// File: pa2/compute-master-secret-key.json
+// File: pa2/compute-master-secret-key-v3.json
 // -----------------------------------------------------------------------------
-static const char compute_master_secret_key_json_bytes[] = R"cc7resourcxx({
+static const char compute_master_secret_key_v3_json_bytes[] = R"cc7resourcxx({
 	"description": "For \"/pa/activation/prepare\", client needs to be able to compute the master shared secret key from its private key and server's public key (devicePrivateKey, serverPublicKey) => masterSecretKey <= (serverPrivateKey, devicePublicKey).",
 	"data": [{
 		"input": {
@@ -6985,14 +6985,14 @@ static const char compute_master_secret_key_json_bytes[] = R"cc7resourcxx({
 	}]
 }
 )cc7resourcxx";
-static const size_t compute_master_secret_key_json_size = 9469;
+static const size_t compute_master_secret_key_v3_json_size = 9469;
 // -----------------------------------------------------------------------------
 //
-static cc7::tests::TestResource compute_master_secret_key_json
+static cc7::tests::TestResource compute_master_secret_key_v3_json
 	(
-		reinterpret_cast<const cc7::byte*>(compute_master_secret_key_json_bytes),
-		compute_master_secret_key_json_size,
-		"pa2/compute-master-secret-key.json"
+		reinterpret_cast<const cc7::byte*>(compute_master_secret_key_v3_json_bytes),
+		compute_master_secret_key_v3_json_size,
+		"pa2/compute-master-secret-key-v3.json"
 	);
 //
 // -----------------------------------------------------------------------------
@@ -22072,8 +22072,8 @@ cc7::tests::TestDirectory g_pa2Files({
 	&v4_pbkdf_json,
 	&v4_aead_json,
 	&session_setup_v4_json,
-	&compute_derived_keys_json,
-	&compute_master_secret_key_json,
+	&compute_derived_keys_v3_json,
+	&compute_master_secret_key_v3_json,
 	&public_key_fingerprint_json,
 	&signatures_v2_json,
 	&signatures_v3_json,

@@ -29,11 +29,11 @@ using namespace powerAuth;
 
 namespace powerAuthTests {
 
-class KeyProviderTests : public UnitTest
+class KeyProviderV4Tests : public UnitTest
 {
 public:
     
-    KeyProviderTests()
+    KeyProviderV4Tests()
     {
         CC7_REGISTER_TEST_METHOD(test_EC_P384)
         CC7_REGISTER_TEST_METHOD(test_EC_P384_Bio)
@@ -146,56 +146,70 @@ public:
     void test_EC_P384_Bio()
     {
         setUp(PowerAuthSpec::EC_P384, true);
-        testKeyProviderV4();
+        testKeyProvider();
     }
     
     void test_EC_P384()
     {
         setUp(PowerAuthSpec::EC_P384, false);
-        testKeyProviderV4();
+        testKeyProvider();
     }
     
     void test_EC_P384_ML_L3_Bio()
     {
         setUp(PowerAuthSpec::EC_P384_ML_L3, true);
-        testKeyProviderV4();
+        testKeyProvider();
     }
     
     void test_EC_P384_ML_L3()
     {
         setUp(PowerAuthSpec::EC_P384_ML_L3, false);
-        testKeyProviderV4();
+        testKeyProvider();
     }
 
-    void testKeyProviderV4()
+    void testKeyProvider()
     {
-        testPublicKeysV4();
-        testBasicUnlockedKeysV4();
+        testPublicKeys();
+        testBasicUnlockedKeys();
         
         // pending activation
-        createRegistrationDataV4();
+        createRegistrationData();
         
-        testPublicKeysV4();
-        testBasicUnlockedKeysV4();
+        testPublicKeys();
+        testBasicUnlockedKeys();
+        testVaultKeyUnlock(true);
         
         // activation commit
-        testInitialCredentialsV4();
+        testInitialCredentials();
         
-        testPublicKeysV4();
-        testBasicUnlockedKeysV4();
-        testCredentialsV4();
-        testChangeCredentialsV4();
-        testCredentialsV4();
+        testPublicKeys();
+        testBasicUnlockedKeys();
+        testCredentials();
         
+        testChangeCredentials();
+        testCredentials();
+        
+        testUpdateBiometry();
+        
+        testVaultKeyUnlock(false);
+        
+        keyProvider().asService()->clearSensitiveData();
+        keyProvider().asService()->restoreSensitiveData();
+        testCredentials();
+        testUpdateBiometry();
+        testVaultKeyUnlock(false);
+
         // serialize and deserialize state
         auto serialized = context->sessionData().serialize();
         context->sessionData().resetSessionData();
         context->sessionData().deserialize(serialized);
         
-        testCredentialsV4();
+        testCredentials();
+        testUpdateBiometry();
+        testVaultKeyUnlock(false);
     }
     
-    void testPublicKeysV4()
+    void testPublicKeys()
     {
         const auto& key = keyProvider().masterServerPublicKey();
         auto key1 = std::dynamic_pointer_cast<cc7::crypto::PublicKey>(key.getKeyParameter(v4::KEY_PARAM_HYBRID_KEY_1).asObject());
@@ -218,7 +232,7 @@ public:
         }
     }
     
-    void createRegistrationDataV4()
+    void createRegistrationData()
     {
         auto rd = RegistrationData::create(Version_V4);
         rd->v4() = {
@@ -233,25 +247,25 @@ public:
         sessionData().setRegistrationData(rd);
     }
     
-    void testBasicUnlockedKeysV4()
+    void testBasicUnlockedKeys()
     {
         auto secrets = keyProvider().unlockSecretKeys();
         ccstAssertNotNull(secrets);
         {
             // always available keys
-            verifyBasicKeysV4(secrets);
+            verifyBasicKeys(secrets);
             
             if (hasActivation()) {
                 // has activation. Access level is equal to possession only factor
-                verifyFactorKeysV4(secrets, true, false, false);
-                verifyUtilityKeysV4(secrets, true);
-                verifyVaultKeysV4(secrets, false);
+                verifyFactorKeys(secrets, true, false, false);
+                verifyUtilityKeys(secrets, true);
+                verifyVaultKeys(secrets, false);
 
             } else if (hasPendingActivation()) {
                 // has pending activation, factor keys unavailable, public utility keys unavailable
-                verifyFactorKeysV4(secrets, false, false, false);
-                verifyUtilityKeysV4(secrets, false);
-                verifyVaultKeysV4(secrets, false);
+                verifyFactorKeys(secrets, false, false, false);
+                verifyUtilityKeys(secrets, false);
+                verifyVaultKeys(secrets, false);
                 
                 ccstMustThrow(Exception, secrets->updateKeyAuthenticationCodeBiometry(key_biometry_new, kek_biometry_new));
                 ccstMustThrow(Exception, secrets->updateKeyAuthenticationCodeKnowledge(key_knowledge_new, kek_knowledge_new));
@@ -267,7 +281,7 @@ public:
         ccstAssertNull(secrets);
     }
     
-    void testInitialCredentialsV4()
+    void testInitialCredentials()
     {
         auto creds = has_biometry ? InitialCredentials::credentials(kek_knowledge, kek_biometry)
                                   : InitialCredentials::credentials(kek_knowledge);
@@ -278,10 +292,10 @@ public:
             ccstAssertNotNull(typed_secrets);
             
             // basic
-            verifyBasicKeysV4(secrets);
-            verifyUtilityKeysV4(secrets, true);
-            verifyVaultKeysV4(secrets, true);
-            verifyFactorKeysV4(secrets, true, true, has_biometry);
+            verifyBasicKeys(secrets);
+            verifyUtilityKeys(secrets, true);
+            verifyVaultKeys(secrets, true);
+            verifyFactorKeys(secrets, true, true, has_biometry);
             
             // capture important keys
             keyAuthenticationCodePossession = secrets->keyAuthenticationCodePossession();
@@ -299,15 +313,15 @@ public:
         ccstAssertNull(secrets);
     }
     
-    void testCredentialsV4()
+    void testCredentials()
     {
         // possession
         auto secrets = keyProvider().unlockSecretKeys(*Credentials::possession());
         {
-            verifyBasicKeysV4(secrets);
-            verifyUtilityKeysV4(secrets, true);
-            verifyVaultKeysV4(secrets, false);
-            verifyFactorKeysV4(secrets, true, false, false);
+            verifyBasicKeys(secrets);
+            verifyUtilityKeys(secrets, true);
+            verifyVaultKeys(secrets, false);
+            verifyFactorKeys(secrets, true, false, false);
             
             ccstAssertEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
         }
@@ -316,10 +330,10 @@ public:
         // knowledge (good)
         secrets = keyProvider().unlockSecretKeys(*Credentials::knowledge(kek_knowledge));
         {
-            verifyBasicKeysV4(secrets);
-            verifyUtilityKeysV4(secrets, true);
-            verifyVaultKeysV4(secrets, false);
-            verifyFactorKeysV4(secrets, true, true, false);
+            verifyBasicKeys(secrets);
+            verifyUtilityKeys(secrets, true);
+            verifyVaultKeys(secrets, false);
+            verifyFactorKeys(secrets, true, true, false);
     
             ccstAssertEqual(V4_KDF(shared_secret, { "auth", "auth/possession" }), keyAuthenticationCodePossession);
             ccstAssertEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
@@ -340,10 +354,10 @@ public:
         if (has_biometry) {
             secrets = keyProvider().unlockSecretKeys(*Credentials::biometry(kek_biometry));
             {
-                verifyBasicKeysV4(secrets);
-                verifyUtilityKeysV4(secrets, true);
-                verifyVaultKeysV4(secrets, false);
-                verifyFactorKeysV4(secrets, true, false, true);
+                verifyBasicKeys(secrets);
+                verifyUtilityKeys(secrets, true);
+                verifyVaultKeys(secrets, false);
+                verifyFactorKeys(secrets, true, false, true);
                 
                 ccstAssertEqual(keyAuthenticationCodePossession, secrets->keyAuthenticationCodePossession());
                 ccstAssertEqual(keyAuthenticationCodeBiometry, secrets->keyAuthenticationCodeBiometry());
@@ -361,8 +375,8 @@ public:
             keyProvider().lockSecretKeys(secrets);
         }
     }
-    
-    void testChangeCredentialsV4()
+        
+    void testChangeCredentials()
     {
         // change password
         
@@ -371,7 +385,7 @@ public:
         ccstAssertFalse(serialized_before.empty());
         ccstAssertFalse(context->sessionData().isModified());
         
-        auto secrets = keyProvider().unlockSecretKeys();
+        auto secrets = keyProvider().unlockSecretKeys(*Credentials::knowledge(key_knowledge));
         {
             secrets->updateKeyAuthenticationCodeKnowledge(key_knowledge_new, kek_knowledge_new);
             key_knowledge = keyAuthenticationCodeKnowledge = key_knowledge_new;
@@ -383,9 +397,145 @@ public:
         // test dirty flag
         ccstAssertTrue(context->sessionData().isModified());
     }
-
     
-    void verifyBasicKeysV4(ISecretKeysPtr & secrets)
+    void testUpdateBiometry()
+    {
+        if (!has_biometry) {
+            ccstAssertFalse(sessionData().persistentData().hasBiometricFactorKey());
+            return;
+        }
+        
+        ccstAssertTrue(sessionData().persistentData().hasBiometricFactorKey());
+        
+        // clear dirty flag
+        auto serialized_before = sessionData().serialize();
+        ccstAssertFalse(serialized_before.empty());
+        ccstAssertFalse(sessionData().isModified());
+        
+        // remove biometry factor
+        auto secrets = keyProvider().unlockSecretKeys();
+        {
+            secrets->removeKeyAuthenticationCodeBiometry();
+        }
+        keyProvider().lockSecretKeys(secrets);
+        
+        // test dirty flag
+        ccstAssertTrue(sessionData().isModified());
+        // clear dirty flag
+        context->sessionData().serialize();
+        ccstAssertFalse(sessionData().isModified());
+        
+        ccstAssertFalse(sessionData().persistentData().hasBiometricFactorKey());
+        
+        // try to use biometry
+        ccstMustThrow(Exception, keyProvider().unlockSecretKeys(*Credentials::biometry(kek_biometry)));
+        
+        // add biometry factor
+        secrets = keyProvider().unlockSecretKeys();
+        {
+            secrets->updateKeyAuthenticationCodeBiometry(key_biometry_new, kek_biometry_new);
+            key_biometry = keyAuthenticationCodeBiometry = key_biometry_new;
+            kek_biometry = kek_biometry_new;
+            ccstAssertEqual(key_biometry, secrets->keyAuthenticationCodeBiometry());
+        }
+        keyProvider().lockSecretKeys(secrets);
+        
+        // test dirty flag
+        ccstAssertTrue(sessionData().isModified());
+        ccstAssertTrue(sessionData().persistentData().hasBiometricFactorKey());
+        
+        // test new biometry
+        secrets = keyProvider().unlockSecretKeys(*Credentials::biometry(kek_biometry));
+        {
+            verifyFactorKeys(secrets, true, false, true);
+        }
+        keyProvider().lockSecretKeys(secrets);
+    }
+    
+    void testVaultKeyUnlock(bool initial)
+    {
+        // vault only
+        auto vault_key = V4_KDF(shared_secret, { "vault", "vault/kek-device-private" });
+        auto secrets = keyProvider().unlockVaultKey(VaultKeyType::KEK_DEVICE_PRIVATE, vault_key);
+        {
+            verifyBasicKeys(secrets);
+            verifyVaultKeys(secrets, initial, VaultKeyType::KEK_DEVICE_PRIVATE);
+            verifyFactorKeys(secrets, true, false, false);
+        }
+        keyProvider().lockSecretKeys(secrets);
+        //
+        vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-knowledge" });
+        secrets = keyProvider().unlockVaultKey(VaultKeyType::KDK_APP_VAULT_KNOWLEDGE, vault_key);
+        {
+            verifyBasicKeys(secrets);
+            verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_KNOWLEDGE);
+            verifyFactorKeys(secrets, true, false, false);
+        }
+        keyProvider().lockSecretKeys(secrets);
+        //
+        vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-2fa" });
+        secrets = keyProvider().unlockVaultKey(VaultKeyType::KDK_APP_VAULT_2FA, vault_key);
+        {
+            verifyBasicKeys(secrets);
+            verifyVaultKeys(secrets, initial, VaultKeyType::KDK_APP_VAULT_2FA);
+            verifyFactorKeys(secrets, true, false, false);
+        }
+        keyProvider().lockSecretKeys(secrets);
+
+        if (!initial) {
+            // vault + credentials
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kek-device-private" });
+            secrets = keyProvider().unlockVaultAndSecretKeys(*Credentials::possession(), VaultKeyType::KEK_DEVICE_PRIVATE, vault_key);
+            {
+                verifyBasicKeys(secrets);
+                verifyVaultKeys(secrets, false, VaultKeyType::KEK_DEVICE_PRIVATE);
+                verifyFactorKeys(secrets, true, false, false);
+            }
+            keyProvider().lockSecretKeys(secrets);
+            //
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-knowledge" });
+            secrets = keyProvider().unlockVaultAndSecretKeys(*Credentials::knowledge(kek_knowledge), VaultKeyType::KDK_APP_VAULT_KNOWLEDGE, vault_key);
+            {
+                verifyBasicKeys(secrets);
+                verifyVaultKeys(secrets, false, VaultKeyType::KDK_APP_VAULT_KNOWLEDGE);
+                verifyFactorKeys(secrets, true, true, false);
+            }
+            keyProvider().lockSecretKeys(secrets);
+            //
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-2fa" });
+            if (has_biometry) {
+                secrets = keyProvider().unlockVaultAndSecretKeys(*Credentials::biometry(kek_biometry), VaultKeyType::KDK_APP_VAULT_2FA, vault_key);
+                {
+                    verifyBasicKeys(secrets);
+                    verifyVaultKeys(secrets, false, VaultKeyType::KDK_APP_VAULT_2FA);
+                    verifyFactorKeys(secrets, true, false, true);
+                }
+                keyProvider().lockSecretKeys(secrets);
+            } else {
+                secrets = keyProvider().unlockVaultAndSecretKeys(*Credentials::knowledge(kek_knowledge), VaultKeyType::KDK_APP_VAULT_2FA, vault_key);
+                {
+                    verifyBasicKeys(secrets);
+                    verifyVaultKeys(secrets, false, VaultKeyType::KDK_APP_VAULT_2FA);
+                    verifyFactorKeys(secrets, true, true, false);
+                }
+                keyProvider().lockSecretKeys(secrets);
+            }
+        } else {
+            // In initial sequence, credential based unlock must fail
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kek-device-private" });
+            ccstMustThrow(Exception, keyProvider().unlockVaultAndSecretKeys(*Credentials::possession(), VaultKeyType::KEK_DEVICE_PRIVATE, vault_key));
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-knowledge" });
+            ccstMustThrow(Exception, keyProvider().unlockVaultAndSecretKeys(*Credentials::knowledge(kek_knowledge), VaultKeyType::KDK_APP_VAULT_KNOWLEDGE, vault_key));
+            vault_key = V4_KDF(shared_secret, { "vault", "vault/kdk-app-vault-2fa" });
+            if (has_biometry) {
+                ccstMustThrow(Exception, keyProvider().unlockVaultAndSecretKeys(*Credentials::biometry(kek_biometry), VaultKeyType::KDK_APP_VAULT_2FA, vault_key));
+            } else {
+                ccstMustThrow(Exception, keyProvider().unlockVaultAndSecretKeys(*Credentials::knowledge(kek_knowledge), VaultKeyType::KDK_APP_VAULT_2FA, vault_key));
+            }
+        }
+    }
+    
+    void verifyBasicKeys(ISecretKeysPtr & secrets)
     {
         auto keyDeviceSpecific = algorithms().v4.sha3_256().digest(configGenerator->deviceSpecificData);
         ccstAssertEqual(keyDeviceSpecific, secrets->keyDeviceSpecific());
@@ -397,7 +547,7 @@ public:
         ccstMustThrow(Exception, secrets->legacyKeyTransportIV());
     }
         
-    void verifyUtilityKeysV4(ISecretKeysPtr& secrets, bool public_available)
+    void verifyUtilityKeys(ISecretKeysPtr& secrets, bool public_available)
     {
         ccstAssertEqual(V4_KDF(shared_secret, { "util", "util/mac/ctr-data" }), secrets->keyMacCtrData());
         ccstAssertEqual(V4_KDF(shared_secret, { "util", "util/mac/status" }), secrets->keyMacStatus());
@@ -412,7 +562,7 @@ public:
         }
     }
     
-    void verifyVaultKeysV4(ISecretKeysPtr& secrets, bool initial, VaultKeyType type = VaultKeyType::LEGACY)
+    void verifyVaultKeys(ISecretKeysPtr& secrets, bool initial, std::optional<VaultKeyType> type = std::nullopt)
     {
         if (initial || type == VaultKeyType::KEK_DEVICE_PRIVATE) {
             ccstAssertEqual(V4_KDF(shared_secret, { "vault", "vault/kek-device-private" }), secrets->kekDevicePrivate());
@@ -436,7 +586,7 @@ public:
         }
     }
         
-    void verifyFactorKeysV4(ISecretKeysPtr& secrets, bool is_possession, bool is_knowledge, bool is_biometry)
+    void verifyFactorKeys(ISecretKeysPtr& secrets, bool is_possession, bool is_knowledge, bool is_biometry)
     {
         if (is_possession) {
             ccstAssertEqual(V4_KDF(shared_secret, { "auth", "auth/possession" }), secrets->keyAuthenticationCodePossession());
@@ -498,6 +648,6 @@ public:
     }
 };
 
-CC7_CREATE_UNIT_TEST(KeyProviderTests, "pa2")
+CC7_CREATE_UNIT_TEST(KeyProviderV4Tests, "pa2")
     
 } // namespace powerAuthTests

@@ -43,8 +43,14 @@ public:
     
     struct V3
     {
+        std::string activationId;
+        cc7::ByteArray authCodeCounterData;
+        cc7::ByteArray legacyServerPublicKey;
+
         cc7::crypto::KeyPairPtr deviceKeyPair;
         cc7::crypto::PublicKeyPtr serverPublicKey;
+        
+        cc7::ByteArray calculatedSharedSecret;
     };
     
     V4& v4();

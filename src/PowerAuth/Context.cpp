@@ -17,6 +17,8 @@
 #include "Context.h"
 #include "v4/KeyProviderV4.h"
 #include "v4/AeadEncryptorFactory.h"
+#include "v3/KeyProviderV3.h"
+#include "v3/EciesEncryptorFactory.h"
 
 namespace powerAuth {
 
@@ -157,11 +159,13 @@ void Context::createBasicServices(bool initial_setup)
         _shared_secret = SharedSecret::getInstance(specification()->sharedSecret());
     } else {
         // V3
-        throw Exception(EC_InternalError, "V3 is not implemented yet");
+        _key_provider = std::make_shared<v3::KeyProviderV3>(self);
+        //throw Exception(EC_InternalError, "V3 is not implemented yet");
     }
     
     _services.push_back(_key_provider->asService());
-    _services.push_back(_encryptor_factory->asService());
+    // TODO: uncomment when ECIES encryptor is implemented
+    // _services.push_back(_encryptor_factory->asService());
 }
 
 void Context::destroyServices()

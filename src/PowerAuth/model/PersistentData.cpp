@@ -62,6 +62,12 @@ const std::string& PersistentData::getActivationId() const noexcept
     return (_version == Version_V4) ? _v4->activationId : _v3->activationId;
 }
 
+bool PersistentData::hasBiometricFactorKey() const noexcept
+{
+    const auto& factor_key = (_version == Version_V4) ? _v4->cBiometryKey : _v3->cBiometryKey;
+    return !factor_key.empty();
+}
+
 PersistentData::V3& PersistentData::v3()
 {
     if (_v3 == nullptr) {

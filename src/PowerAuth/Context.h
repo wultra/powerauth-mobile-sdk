@@ -23,6 +23,7 @@
 #include <PowerAuth/KeyProvider.h>
 #include <PowerAuth/SharedSecret.h>
 #include <PowerAuth/PowerAuthSpec.h>
+#include <PowerAuth/ActivationService.h>
 #include <PowerAuth/AuthHeaderCalculator.h>
 
 #include "model/SessionData.h"
@@ -51,8 +52,10 @@ public:
     const Configuration& configuration() const noexcept;
     PowerAuthSpecPtr specification() const noexcept;
 
-    TimeService& timeService();
-    IClientEncryptorFactory& encryptorFactory();
+    TimeService& timeService() noexcept;
+    IClientEncryptorFactory& encryptorFactory() noexcept;
+    IActivationService& activationService() noexcept;
+    
     ISharedSecret& sharedSecret();
     IKeyProvider& keyProvider();
     SessionData& sessionData();
@@ -67,6 +70,7 @@ public:
     const ISharedSecretPtr& getSharedSecretPtr() const noexcept;
     const IKeyProviderPtr& getKeyProviderPtr() const noexcept;
     
+    const IActivationServicePtr& getActivationServicePtr() const noexcept;
     const IAuthHeaderCalculatorPtr& getAuthHeaderCalculatorPtr() const noexcept;
     const cc7::crypto::KeyPairFactoryPtr& getSigningKeyPairFactoryPtr() const noexcept;
         
@@ -88,6 +92,7 @@ private:
     
     TimeServicePtr _time_service;
     IClientEncryptorFactoryPtr _encryptor_factory;
+    IActivationServicePtr _activation_service;
     ISharedSecretPtr _shared_secret;
     IKeyProviderPtr _key_provider;
     IAuthHeaderCalculatorPtr _auth_header_calculator;

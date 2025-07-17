@@ -15,8 +15,11 @@
  */
 
 #include "Context.h"
+
 #include "v4/KeyProviderV4.h"
 #include "v4/AeadEncryptorFactory.h"
+#include "v4/ActivationServiceV4.h"
+
 #include "v3/KeyProviderV3.h"
 #include "v3/EciesEncryptorFactory.h"
 
@@ -42,14 +45,19 @@ PowerAuthSpecPtr Context::specification() const noexcept
 
 // MARK: - Basic services
 
-TimeService& Context::timeService()
+TimeService& Context::timeService() noexcept
 {
     return *_time_service;
 }
 
-IClientEncryptorFactory& Context::encryptorFactory()
+IClientEncryptorFactory& Context::encryptorFactory() noexcept
 {
     return *_encryptor_factory;
+}
+
+IActivationService& Context::activationService() noexcept
+{
+    return *_activation_service;
 }
 
 ISharedSecret& Context::sharedSecret()
@@ -112,6 +120,11 @@ const IKeyProviderPtr& Context::getKeyProviderPtr() const noexcept
     return _key_provider;
 }
 
+const IActivationServicePtr& Context::getActivationServicePtr() const noexcept
+{
+    return _activation_service;
+}
+
 const IAuthHeaderCalculatorPtr& Context::getAuthHeaderCalculatorPtr() const noexcept
 {
     return _auth_header_calculator;
@@ -156,6 +169,7 @@ void Context::createBasicServices(bool initial_setup)
         // V4
         _key_provider = std::make_shared<v4::KeyProviderV4>(self);
         _encryptor_factory = std::make_shared<v4::AeadEncryptorFactory>(self);
+        _activation_service = std::make_shared<v4::ActivationServiceV4>(self);
         _shared_secret = SharedSecret::getInstance(specification()->sharedSecret());
     } else {
         // V3
@@ -164,8 +178,9 @@ void Context::createBasicServices(bool initial_setup)
     }
     
     _services.push_back(_key_provider->asService());
-    // TODO: uncomment when ECIES encryptor is implemented
+    // TODO: uncomment when V3 services are implemented
     // _services.push_back(_encryptor_factory->asService());
+    //_services.push_back(_activation_service->asService());
 }
 
 void Context::destroyServices()

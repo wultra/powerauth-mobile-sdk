@@ -201,6 +201,8 @@
 		BFCA38402E255A18002F595F /* KeyProviderV3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */; };
 		BFCA38442E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
 		BFCA38452E26C03C002F595F /* KeyProviderV3Tests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */; };
+		BFCA38492E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
+		BFCA384A2E295176002F595F /* ActivationServiceV4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFCA38482E295176002F595F /* ActivationServiceV4.cpp */; };
 		BFEEEBE12A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBE22A3ADEA8007C6737 /* ByteUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */; };
 		BFEEEBEB2A3B067B007C6737 /* pa2ByteUtilsTests.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BFEEEBEA2A3B067B007C6737 /* pa2ByteUtilsTests.cpp */; };
@@ -615,6 +617,9 @@
 		BFCA383D2E255A18002F595F /* KeyProviderV3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KeyProviderV3.h; sourceTree = "<group>"; };
 		BFCA383E2E255A18002F595F /* KeyProviderV3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3.cpp; sourceTree = "<group>"; };
 		BFCA38432E26C03C002F595F /* KeyProviderV3Tests.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KeyProviderV3Tests.cpp; sourceTree = "<group>"; };
+		BFCA38462E293E13002F595F /* ActivationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationService.h; sourceTree = "<group>"; };
+		BFCA38472E295176002F595F /* ActivationServiceV4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActivationServiceV4.h; sourceTree = "<group>"; };
+		BFCA38482E295176002F595F /* ActivationServiceV4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ActivationServiceV4.cpp; sourceTree = "<group>"; };
 		BFE5C9192DDCABA8008CC73A /* ECDHE_P384_MLKEM_768_Test_Vectors.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ECDHE_P384_MLKEM_768_Test_Vectors.json; sourceTree = "<group>"; };
 		BFEEEBDF2A3ADEA7007C6737 /* ByteUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ByteUtils.cpp; sourceTree = "<group>"; };
 		BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ByteUtils.h; sourceTree = "<group>"; };
@@ -800,6 +805,7 @@
 				BFEEEBE02A3ADEA7007C6737 /* ByteUtils.h */,
 				BF3ACC9E2073DF5F00B8107E /* OtpUtil.h */,
 				BF14D4552DD1C99000BA7F51 /* SharedSecret.h */,
+				BFCA38462E293E13002F595F /* ActivationService.h */,
 				BF4D86542DF3747600D32F55 /* Request.h */,
 			);
 			path = PowerAuth;
@@ -831,6 +837,8 @@
 		BF4D86062DEDB5DF00D32F55 /* v4 */ = {
 			isa = PBXGroup;
 			children = (
+				BFCA38472E295176002F595F /* ActivationServiceV4.h */,
+				BFCA38482E295176002F595F /* ActivationServiceV4.cpp */,
 				BF75F9A62E0490DF00D1E4F0 /* SecretKeysV4.h */,
 				BF75F9A72E0490DF00D1E4F0 /* SecretKeysV4.cpp */,
 				BF4D86152DEEFBD200D32F55 /* KeyProviderV4.h */,
@@ -1517,6 +1525,7 @@
 				BF4D86582DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
 				BF4D86862DFAD29D00D32F55 /* HttpHeaderHelper.cpp in Sources */,
 				BF4D862A2DF0481B00D32F55 /* Constants.cpp in Sources */,
+				BFCA38492E295176002F595F /* ActivationServiceV4.cpp in Sources */,
 				BF14D4582DD1C9A400BA7F51 /* SharedSecret.cpp in Sources */,
 				BF99D9052073E14100735ED2 /* OtpUtil.cpp in Sources */,
 				BFCA38372E1D5E4B002F595F /* Service.cpp in Sources */,
@@ -1617,6 +1626,7 @@
 				BF4D86592DF4F37D00D32F55 /* RequestBuilder.cpp in Sources */,
 				BF4D86872DFAD29D00D32F55 /* HttpHeaderHelper.cpp in Sources */,
 				BF4D862B2DF0481B00D32F55 /* Constants.cpp in Sources */,
+				BFCA384A2E295176002F595F /* ActivationServiceV4.cpp in Sources */,
 				BF14D4572DD1C9A400BA7F51 /* SharedSecret.cpp in Sources */,
 				BF6ADD6D24C84C0C001B3E5E /* OtpUtil.cpp in Sources */,
 				BFCA38362E1D5E4B002F595F /* Service.cpp in Sources */,

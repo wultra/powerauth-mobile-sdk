@@ -17,7 +17,6 @@
 #pragma once
 
 #include <PowerAuth/Types.h>
-#include <cc7/json/Json.h>
 
 #include <functional>
 #include <memory>

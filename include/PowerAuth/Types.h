@@ -18,6 +18,7 @@
 
 #include <cc7/ByteArray.h>
 #include <cc7/BaseObject.h>
+#include <cc7/json/Json.h>
 #include <PowerAuth/Exception.h>
 
 namespace powerAuth {

@@ -16,8 +16,6 @@
 
 #include <PowerAuth/Session.h>
 #include "Context.h"
-#include "request/RequestBuilder.h"
-#include "v4/HybridKeyPair.h"
 
 namespace powerAuth {
 
@@ -82,8 +80,9 @@ cc7::ByteArray Session::saveState()
 void Session::resetState()
 {
     LOCK_GUARD();
-    sessionData().resetSessionData();
+    _context->activationService().resetState();
 }
+
 
 // MARK: - Activation
 
@@ -100,79 +99,8 @@ RequestPtr Session::createActivation(cc7::json::JsonValue L1_data, cc7::json::Js
     if (!canCreateActivation()) {
         throw Exception(EC_WrongActivationState, "Cannot create activation");
     }
-    auto new_rd = RegistrationData::create(Version_V4);
-    sessionData().setRegistrationData(new_rd);
-    auto self = shared_from_this();
-    return RequestBuilder(*_context, v4::Endpoint_ActivationCreate)
-        .withJson(L1_data)
-        .withPrepareCallback([self, L1_data, L2_data](const Request& request) -> cc7::json::JsonValue {
-            return self->prepareRequestActivationData(L1_data, L2_data);
-        })
-        .withResponseCallback([self](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
-            return self->processResponseActivationData(body);
-        })
-        .withCancelCallback([self]() {
-            self->resetState();
-        })
-        .build();
+    return _context->activationService().createActivation(L1_data, L2_data);
 }
-
-cc7::json::JsonValue Session::prepareRequestActivationData(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data)
-{
-    LOCK_GUARD();
-    auto& rd = sessionData().registrationData().v4();
-    
-    // generate device public key-pairs
-    rd.deviceKeyPair = _context->getSigningKeyPairFactoryPtr()->generateKeyPair();
-    // prepare shared secret
-    auto shared_secret = _context->sharedSecret().generateRequestCryptogram();
-    
-    rd.sharedSecretAlgorithm = _context->getSharedSecretPtr();
-    rd.sharedSecretContext   = shared_secret.second;
-    
-    // Prepare L2 data
-    L2_data["sharedSecretRequest"] = shared_secret.first.toJson();
-    L2_data["devicePublicKeys"]    = v4::HybridKey_ToJson(rd.deviceKeyPair->getPublicKey(), _context->specification());
-    
-    // Encrypt L2 data
-    rd.requestEncryptor = encryptorFactory().getClientEncryptor(EncryptorId::ACTIVATION_LAYER_2);
-    auto L2_request_cryptogram = rd.requestEncryptor->encryptJsonRequest(L2_data);
-    
-    // Prepare L1 data
-    L1_data["activationData"]      = L2_request_cryptogram.requestPayload;
-    return L1_data;
-}
-
-ResponseObjectPtr Session::processResponseActivationData(const cc7::json::JsonValue& L1_data)
-{
-    LOCK_GUARD();
-    auto& rd = sessionData().registrationData().v4();
-    
-    // Decrypt L2 data
-    auto L2_data = rd.requestEncryptor->decryptJsonResponse({ L1_data["activationData"] });
-    
-    // Extract public keys and calculate shared secret
-    auto server_public_key = v4::HybridKey_FromJson(L2_data["serverPublicKeys"], *_context->getSigningKeyPairFactoryPtr());
-    auto shared_secret     = rd.sharedSecretAlgorithm->computeSharedSecret(rd.sharedSecretContext, SharedSecretResponse::fromJson(L2_data["sharedSecretResponse"]));
-    
-    // Extract other values
-    auto activation_id = L2_data["activationId"].asString();
-    auto ctr_data = L2_data["ctrData"].asBase64();
-    if (activation_id.empty() || ctr_data.size() != v4::HASH_COUNTER_SIZE) {
-        throw Exception(EC_InvalidData, "Invalid activation data");
-    }
-    // Keep values in RD
-    rd.activationId             = activation_id;
-    rd.authCodeCounterData      = ctr_data;
-    rd.serverPublicKey          = server_public_key;
-    rd.calculatedSharedSecret   = shared_secret;
-    // Clear shared secret context and algorithm
-    rd.sharedSecretContext = nullptr;
-    rd.sharedSecretAlgorithm = nullptr;
-    
-    return nullptr;
-}
-
 
 RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
 {
@@ -185,41 +113,7 @@ RequestPtr Session::confirmActivation(InitialCredentialsPtr credentials)
     if (rd.activationId.empty()) {
         throw Exception(EC_WrongActivationState, "Cannot confirm activation. Key-exchange is not completed yet");
     }
-    auto request = cc7::json::JsonValue::object({
-        { "enableBiometry", cc7::json::JsonValue(credentials->hasBiometryKEK()) }
-    });
-    auto auth = Credentials::knowledge(credentials->knowledgeKEK());
-    
-    auto self = shared_from_this();
-    return RequestBuilder(*_context, v4::Endpoint_ActivationConfirm)
-        .withJson(request)
-        .withAuthentication(auth)
-        .withResponseCallback([self, credentials](const Request& request, const cc7::json::JsonValue& body) -> ResponseObjectPtr {
-            return self->processResponseActivationConfirm(credentials);
-        })
-        .build();
-}
-
-ResponseObjectPtr Session::processResponseActivationConfirm(InitialCredentialsPtr credentials)
-{
-    LOCK_GUARD();
-    auto& rd = sessionData().registrationData().v4();
-    
-    if (rd.calculatedSharedSecret.empty()) {
-        throw Exception(EC_InternalError, "Shared secret is not calculated");
-    }
-
-    auto secrets = keyProvider().unlockInitialSecretKeys(*credentials, rd.calculatedSharedSecret);
-    // We don't need to use initial secrets at all. The operation is automatically done in the key provider,
-    // which is responsible for the persistent data creation at the operation end.
-    keyProvider().lockSecretKeys(secrets);
-    
-    if (!sessionData().hasPersistentData()) {
-        throw Exception(EC_InternalError, "PersistentData not created after lock");
-    }
-
-    // No specific object is created at the end
-    return nullptr;
+    return _context->activationService().confirmActivation(credentials);
 }
 
 bool Session::hasValidActivationData() const noexcept
@@ -237,6 +131,55 @@ std::string Session::activationId() const noexcept
     }
     return std::string();
 }
+
+RequestPtr Session::fetchActivationStatus()
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->activationService().fetchActivationStatus();
+}
+
+RequestPtr Session::removeActivation(CredentialsPtr credentials)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->activationService().removeActivation(credentials);
+}
+
+RequestPtr Session::changePassword(PasswordPtr old_password, PasswordPtr new_password)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    return _context->activationService().changePassword(old_password, new_password);
+}
+
+RequestPtr Session::addBiometricFactor(PasswordPtr password)
+{
+    LOCK_GUARD();
+    checkActivationData();
+    if (sessionData().persistentData().hasBiometricFactorKey()) {
+        throw Exception(EC_NotAllowed, "Biometric factor is already set");
+    }
+    return _context->activationService().addBiometricFactor(password);
+}
+
+RequestPtr Session::removeBiometricFactor()
+{
+    LOCK_GUARD();
+    checkActivationData();
+    if (!sessionData().persistentData().hasBiometricFactorKey()) {
+        throw Exception(EC_NotAllowed, "Biometric factor is not set");
+    }
+    return _context->activationService().removeBiometricFactor();
+}
+
+void Session::checkActivationData() const
+{
+    if (!sessionData().hasPersistentData()) {
+        throw Exception(EC_MissingActivation);
+    }
+}
+
 
 // MARK: - Services
 

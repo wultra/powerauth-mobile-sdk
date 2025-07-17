@@ -93,14 +93,14 @@ public:
     /// - Returns: `true` if state is modified and should be saved into the persistent storage.
     bool isModifiedState() const noexcept;
     
-    /// Reset session's state. You should call `saveState()`
+    /// Reset session's state. You should call `saveState()` after this.
     void resetState();
         
 public:
     // --------------------------------------------------------------------------------------------
     // Activation
     // --------------------------------------------------------------------------------------------
-    
+
     /// Get information whether the activation can be created.
     /// - Returns: `true` if activation can be created.
     bool canCreateActivation() const noexcept;
@@ -116,45 +116,65 @@ public:
     
     /// Confirm PowerAuth activation with initial credentials.
     /// - Parameter credentials: Initial credentials.
-    /// - Returns: Request data for confirm activation endpoint.
+    /// - Returns: Request data for confirm activation endpoint. If returned pointer is `nullptr`
+    ///            then the protocol doesn't support activation confirmation.
     /// - Throws:
     ///   - `Exception` in case that activation cannot be confirmed.
     RequestPtr confirmActivation(InitialCredentialsPtr credentials);
-    
+
     /// Get information whether the session contains valid activation data.
     bool hasValidActivationData() const noexcept;
     
     /// Get activation identifier.
     /// - Returns: Activation identifier or empty string if there's no activation.
     std::string activationId() const noexcept;
+    
+    /// Fetch activation status.
+    ///
+    /// - Returns: Request data for getting activation status endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr fetchActivationStatus();
+    
+    /// Remove activation status.
+    ///
+    /// - Parameter credentials: Credentials for authentication on the server.
+    /// - Returns: Request data for remove activation endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr removeActivation(CredentialsPtr credentials);
+    
+    /// Change user's password from old to new one.
+    ///
+    /// - Parameters:
+    ///   - old_password: Old password.
+    ///   - new_password: New password.
+    /// - Returns: Request data for change password endpoint. If returned pointer is `nullptr`
+    ///            then the protocol has no such endpoint defined and password is changed immediately.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr changePassword(PasswordPtr old_password, PasswordPtr new_password);
+    
+    /// Remove biometric factor.
+    ///
+    /// - Returns: Request data for remove biometric factor endpoint.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr addBiometricFactor(PasswordPtr password);
+
+    /// Remove biometric factor.
+    ///
+    /// - Returns: Request data for add biometric factor endpoint. If returned pointer is `nullptr`
+    ///            then the protocol has no such endpoint defined and the factor is removed immediately.
+    /// - Throws:
+    ///   - `Exception` in case of failure.
+    RequestPtr removeBiometricFactor();
 
 private:
     
-    /// The method prepares activation data and creates L1 request body for the activation creation endpoint.
-    ///
-    /// The returned body contains encrypted L2 activation data and original L1 data provided at input.
-    ///
-    /// - Parameters:
-    ///   - L1_data: L1 activation data.
-    ///   - L2_data: L2 activation data.
-    /// - Returns: Request body for confirm activation endpoint.
-    /// - Throws:
-    ///   - `Exception` in case that activation cannot be created.
-    cc7::json::JsonValue prepareRequestActivationData(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data);
-    
-    /// The method processes response from the activation create endpoint, received from the server.
-    /// - Parameter L1_data: L1 activation response.
-    /// - Returns: `nullptr` in the current implementation.
-    /// - Throws:
-    ///   - `Exception` in case that response is invalid, or the session is no longer in .
-    ResponseObjectPtr processResponseActivationData(const cc7::json::JsonValue& L1_data);
-
-    /// The method complete the activation after successful response is received from the confirm activation endpoint.
-    /// - Parameter credentials: Initial user's credentials.
-    /// - Returns: `nullptr` in the current implementation.
-    ResponseObjectPtr processResponseActivationConfirm(InitialCredentialsPtr credentials);
-    
-    
+    /// Throw exception if no activation data is present.
+    void checkActivationData() const;
+        
 public:
     // --------------------------------------------------------------------------------------------
     // Services

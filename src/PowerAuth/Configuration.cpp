@@ -120,8 +120,8 @@ bool Configuration::validateSdkConfig(const std::string& sdk_config) noexcept
 
 // MARK: - Builder
 
-Configuration::Builder::Builder(const std::string &sdk_config) :
-    _algorithm(PowerAuthSpec::EC_P384_ML_L3),
+Configuration::Builder::Builder(const std::string &sdk_config, PowerAuthSpec::Algorithm algorithm) :
+    _algorithm(algorithm),
     _instance_id("default")
 {
     if (!loadFromSdkConfig(sdk_config)) {
@@ -132,12 +132,6 @@ Configuration::Builder::Builder(const std::string &sdk_config) :
 Configuration::Builder& Configuration::Builder::withInstanceId(const std::string& instance_id)
 {
     _instance_id = instance_id;
-    return *this;
-}
-
-Configuration::Builder& Configuration::Builder::withAlgorithm(PowerAuthSpec::Algorithm algorithm)
-{
-    _algorithm = algorithm;
     return *this;
 }
 
@@ -206,6 +200,12 @@ bool Configuration::Builder::loadFromSdkConfig(const std::string &sdk_config) no
             _mldsa_master_server_public_key = key_data;
         }
     }
+    if (_algorithm == PowerAuthSpec::LEGACY_P256) {
+        // If legacy algorithm is used, then only legacy master server public key
+        // is required
+        return !_legacy_master_server_public_key.empty();
+    }
+    // New algorithms require all public keys
     return !(_legacy_master_server_public_key.empty() ||
              _ecdsa_master_server_public_key.empty() ||
              _mldsa_master_server_public_key.empty());

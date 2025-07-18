@@ -69,8 +69,7 @@ public:
         
         sdkConfiguration = writer.serializedData().base64();
         
-        configuration = powerAuth::Configuration::Builder(sdkConfiguration)
-                            .withAlgorithm(algorithm)
+        configuration = powerAuth::Configuration::Builder(sdkConfiguration, algorithm)
                             .withDeviceSpecificData(deviceSpecificData)
                             .withInstanceId(instance_id)
                             .build();

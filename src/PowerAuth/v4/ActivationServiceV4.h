@@ -47,14 +47,34 @@ public:
 private:
     
     // Create
-    ResponseObjectPtr processResponseActivationData(Context& context, const cc7::json::JsonValue& L1_data);
+    
+    /// Prepare data for create activation request.
+    /// - Parameters:
+    ///   - context: Context reference.
+    ///   - L1_data: L1 activation data.
+    ///   - L2_data: L2 activation data.
+    /// - Returns: JSON representation with activation data.
     cc7::json::JsonValue prepareRequestActivationData(Context& context, cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data);
+    
+    /// Process response received from activation creation endpoint.
+    /// - Parameters:
+    ///   - context: Context reference.
+    ///   - L1_data: L1 activation data received from the server
+    /// - Returns: Response object. The current implementation always returns `nullptr`.
+    ResponseObjectPtr processResponseActivationData(Context& context, const cc7::json::JsonValue& L1_data);
+    
+    /// Process response received from activation confirm endpoint.
+    /// - Parameters:
+    ///   - context: Context reference.
+    ///   - credentials: Initial credentials.
+    /// - Returns: Response object. The current implementation always returns `nullptr`.
     ResponseObjectPtr processResponseActivationConfirm(Context& context, InitialCredentialsPtr credentials);
     
+    /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
     ContextPtr lockContext();
     
-    ContextWeakPtr _weak_context;
-    SessionDataPtr _session_data;
+    const ContextWeakPtr _weak_context;
+    const SessionDataPtr _session_data;
 };
 
 } // namespace v4

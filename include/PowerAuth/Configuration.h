@@ -67,8 +67,9 @@ public:
     public:
         /// Construct builder with SDK configuration string.
         /// - Parameter sdk_config: SDK configuration string.
+        /// - Parameter algorithm: Algorithm to use.
         /// - Throws: `Exception` with `EC_InvalidData` if configuration string is invalid.
-        Builder(const std::string& sdk_config);
+        Builder(const std::string& sdk_config, PowerAuthSpec::Algorithm algorithm = PowerAuthSpec::EC_P384_ML_L3);
         
         /// Configure device specific data. This parameter is required for `Configuration` construction.
         ///
@@ -84,13 +85,6 @@ public:
         /// - Parameter data: Device specific data.
         /// - Returns: Builder reference.
         Builder& withInstanceId(const std::string& instance_id);
-        
-        /// Configure PowerAuth algorithm for future `Configuration` object. If algorithm is
-        /// not specified, then `EC_P384_ML_L3` is used.
-        /// - Parameter algorithm: Algorithm to use.
-        /// - Returns: Builder reference.
-        Builder& withAlgorithm(PowerAuthSpec::Algorithm algorithm);
-        
         
         /// Build configuration from given parameters.
         ///
@@ -109,7 +103,7 @@ public:
         /// - Returns: `true` if load succeeded, `false` otherwise.
         bool loadFromSdkConfig(const std::string& sdk_config) noexcept;
         
-        PowerAuthSpec::Algorithm _algorithm;
+        const PowerAuthSpec::Algorithm _algorithm;
         std::string _instance_id;
         cc7::ByteArray _device_specific_data;
         cc7::ByteArray _application_key;

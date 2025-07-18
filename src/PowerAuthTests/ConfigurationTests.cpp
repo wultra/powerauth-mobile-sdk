@@ -74,9 +74,8 @@ public:
         ccstAssertEqual("instance-id", config->instanceId());
         ccstAssertEqual(MakeRange("device-specific"), config->deviceSpecificData());
         
-        config = Configuration::Builder(data["config"].asString())
+        config = Configuration::Builder(data["config"].asString(), PowerAuthSpec::EC_P384)
             .withInstanceId("instance4")
-            .withAlgorithm(PowerAuthSpec::EC_P384)
             .withDeviceSpecificData(MakeRange("device-specific-data"))
             .build();
         ccstAssertEqual("instance4", config->instanceId());
@@ -88,8 +87,7 @@ public:
             .withInstanceId("")
             .withDeviceSpecificData(MakeRange("device-specific-data"))
             .build());
-        ccstMustThrow(Exception, Configuration::Builder(data["config"].asString())
-            .withAlgorithm(PowerAuthSpec::EC_P384)
+        ccstMustThrow(Exception, Configuration::Builder(data["config"].asString(), PowerAuthSpec::EC_P384)
             .withDeviceSpecificData(ByteRange())
             .build());
     }
@@ -102,9 +100,10 @@ public:
             auto sdk_config = item.stringAtPath("config");
             auto success = item.booleanAtPath("success");
             auto comment = item.stringAtPath("info");
-            
+            auto protocol = item["protocol"].asInteger() == 4 ? PowerAuthSpec::EC_P384_ML_L3 : PowerAuthSpec::LEGACY_P256;
             if (success) {
-                Configuration::Builder(sdk_config)
+                
+                Configuration::Builder(sdk_config, protocol)
                     .withDeviceSpecificData(MakeRange("data"))
                     .build();
             } else {
@@ -156,6 +155,9 @@ public:
         array.push_back(buildConfig("validV4 - different order 2", 2));
         array.push_back(buildConfig("validV4 - different order 3", 3));
         array.push_back(buildConfig("validV4 - unknown key",       4));
+        array.push_back(buildConfig("validV3",                     5));
+        array.push_back(buildConfig("validV3 - unknown key",       6));
+        array.push_back(buildConfig("validV3 - different order",   7));
         // broken
         array.push_back(buildConfig("badVersion       ", 11));
         array.push_back(buildConfig("appKeyTooLong    ", 12));
@@ -178,8 +180,11 @@ public:
     }
 
     // Broken step:
-    //  0 - OK
+    //  0 - Valid V4
     //  1,2,3 - OK but different order
+    //  5 - Valid V3
+    //  6 - V3 with unknown key
+    //  7 - V3 same as 6, different order
     //
     //  11 - Bad version
     //  12 - App key too long
@@ -199,6 +204,7 @@ public:
     
     cc7::json::JsonValue buildConfig(const std::string& comment, int broken_step, bool out_params = false) {
         
+        int64_t proto_version = 4;
         cc7::byte version = 0x01;
         size_t app_key_len = 16;
         size_t app_sec_len = 16;
@@ -233,6 +239,18 @@ public:
                 break;
             case 4:
                 keys_order.push_back(other_key_id);
+                break;
+            case 5:
+                proto_version = 3;
+                keys_order = { p256_key_id };
+                break;
+            case 6:
+                proto_version = 3;
+                keys_order = { p256_key_id, other_key_id };
+                break;
+            case 7:
+                proto_version = 3;
+                keys_order = { other_key_id, p256_key_id };
                 break;
 
             case 11:
@@ -325,9 +343,10 @@ public:
         } while(false);
         
         auto obj = json::JsonValue::object();
-        obj["info"]    = json::JsonValue(comment);
-        obj["success"] = json::JsonValue(broken_step < 11);
-        obj["config"]  = json::JsonValue(writer.serializedData().base64String());
+        obj["info"]     = json::JsonValue(comment);
+        obj["success"]  = json::JsonValue(broken_step < 11);
+        obj["config"]   = json::JsonValue(writer.serializedData().base64String());
+        obj["protocol"] = json::JsonValue(proto_version);
         if (out_params) {
             obj["app_key"] = json::JsonValue(app_key.base64());
             obj["app_secret"] = json::JsonValue(app_sec.base64());

@@ -61,10 +61,10 @@
                                                       error:(NSError*_Nullable*_Nullable)error
 {
     try {
-        auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(sdkConfiguration))
+        auto config = powerAuth::Configuration::Builder(cc7::objc::CopyFromNSString(sdkConfiguration),
+                                                        static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm))
             .withInstanceId(cc7::objc::CopyFromNSString(instanceId))
             .withDeviceSpecificData(cc7::objc::CopyFromNSData(deviceSpecificData))
-            .withAlgorithm(static_cast<powerAuth::PowerAuthSpec::Algorithm>(algorithm))
             .build();
         return [[PowerAuthCoreConfig alloc] initWithConfig:config];
     } catch (...) {

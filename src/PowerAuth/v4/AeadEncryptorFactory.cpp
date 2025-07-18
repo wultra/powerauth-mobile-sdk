@@ -310,10 +310,10 @@ AeadEncryptorFactory::GetTemporaryKeyResponse AeadEncryptorFactory::GetTemporary
         json["applicationKey"].asString(),
         json.containsValueAtPath("activationId") ? json["activationId"].asString() : std::string(),
         json["challenge"].asString(),
-        json["keyId"].asString(),
+        json["sub"].asString(),     // keyId
         SharedSecretResponse::fromJson(json["sharedSecretResponse"]),
-        json["expiration"].asInteger(),
-        json["serverTime"].asInteger()
+        json["exp_ms"].asInteger(), // expiration
+        json["iat_ms"].asInteger()  // server time
     };
 }
 

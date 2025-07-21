@@ -33,13 +33,14 @@ import io.getlime.security.powerauth.networking.interfaces.IExecutorProvider;
 public class DefaultExecutorProvider implements IExecutorProvider {
 
     private Executor serialExecutor;
+    private Executor biometricExecutor;
 
     public DefaultExecutorProvider() {
     }
 
     @NonNull
     @Override
-    public Executor getSerialExecutor() {
+    public synchronized Executor getSerialExecutor() {
         if (serialExecutor == null) {
             serialExecutor = new SerialExecutor();
         }
@@ -50,6 +51,15 @@ public class DefaultExecutorProvider implements IExecutorProvider {
     @Override
     public Executor getConcurrentExecutor() {
         return AsyncTask.THREAD_POOL_EXECUTOR;
+    }
+
+    @NonNull
+    @Override
+    public synchronized Executor getBiometricExecutor() {
+        if (null == biometricExecutor) {
+            biometricExecutor = new SerialExecutor();
+        }
+        return biometricExecutor;
     }
 
     /**

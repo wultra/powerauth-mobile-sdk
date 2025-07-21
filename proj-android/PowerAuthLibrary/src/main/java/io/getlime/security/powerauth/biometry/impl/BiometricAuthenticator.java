@@ -284,7 +284,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
                 biometricPromptIsProbablyVisible = true;
-                // Acquire cipher from the result. This is a bit over-paranoid, but let's check everything
+                // Acquire cipher from the result. This is a bit over-paranoid, but let us check everything
                 // returned from the system.
                 final Cipher cipher;
                 if (result.getCryptoObject() != null) {

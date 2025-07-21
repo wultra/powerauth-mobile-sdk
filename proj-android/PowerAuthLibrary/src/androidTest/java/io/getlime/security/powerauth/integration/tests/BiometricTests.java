@@ -95,7 +95,7 @@ public class BiometricTests implements PowerAuthTestHelper.IConfigurationObserve
         powerAuthSDK = testHelper.getSharedSdk();
         activationHelper = new ActivationHelper(testHelper);
 
-        // Tun test in the same thread
+        // Run test in the same thread
         execution.execute();
     }
 

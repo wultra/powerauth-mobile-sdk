@@ -56,7 +56,7 @@ public class DefaultExecutorProvider implements IExecutorProvider {
     @NonNull
     @Override
     public synchronized Executor getBiometricExecutor() {
-        if (null == biometricExecutor) {
+        if (biometricExecutor == null) {
             biometricExecutor = new SerialExecutor();
         }
         return biometricExecutor;

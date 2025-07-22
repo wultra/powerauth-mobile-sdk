@@ -35,4 +35,9 @@ public interface IExecutorProvider {
      * @return {@link Executor} for concurrent task execution.
      */
     @NonNull Executor getConcurrentExecutor();
+
+    /**
+     * @return Serial {@link Executor} dedicated for biometric tasks.
+     */
+    @NonNull Executor getBiometricExecutor();
 }

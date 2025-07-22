@@ -21,6 +21,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import io.getlime.security.powerauth.integration.support.client.PowerAuthClientFactory;
@@ -28,11 +30,7 @@ import io.getlime.security.powerauth.integration.support.model.Application;
 import io.getlime.security.powerauth.integration.support.model.ApplicationDetail;
 import io.getlime.security.powerauth.integration.support.model.ApplicationVersion;
 import io.getlime.security.powerauth.networking.ssl.HttpClientSslNoValidationStrategy;
-import io.getlime.security.powerauth.sdk.PowerAuthAuthenticationHelper;
-import io.getlime.security.powerauth.sdk.PowerAuthClientConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthKeychainConfiguration;
-import io.getlime.security.powerauth.sdk.PowerAuthSDK;
+import io.getlime.security.powerauth.sdk.*;
 import io.getlime.security.powerauth.system.PowerAuthLog;
 import io.getlime.security.powerauth.system.PowerAuthSystem;
 
@@ -46,6 +44,8 @@ public class PowerAuthTestHelper {
     private final @NonNull PowerAuthTestConfig testConfig;
     private final @NonNull PowerAuthServerApi serverApi;
     private final @NonNull RandomGenerator randomGenerator;
+    private final @Nullable FragmentActivity testFragmentActivity;
+    private final @Nullable Fragment testFragment;
 
     private @NonNull PowerAuthSDK sharedSdk;
     private final @NonNull PowerAuthConfiguration sharedConfiguration;
@@ -91,6 +91,9 @@ public class PowerAuthTestHelper {
         private PowerAuthConfiguration sharedConfiguration;
         private PowerAuthKeychainConfiguration sharedKeychainConfiguration;
         private PowerAuthClientConfiguration sharedClientConfiguration;
+
+        private FragmentActivity testFragmentActivity;
+        private Fragment testFragment;
 
         private ApplicationDetail sharedApplication;
         private ApplicationVersion sharedApplicationVersion;
@@ -172,6 +175,16 @@ public class PowerAuthTestHelper {
             return this;
         }
 
+        public @NonNull Builder testFragmentActivity(@NonNull FragmentActivity activity) {
+            this.testFragmentActivity = activity;
+            return this;
+        }
+
+        public @NonNull Builder testFragment(@NonNull Fragment fragment) {
+            this.testFragment = fragment;
+            return this;
+        }
+
         /**
          * Build {@link PowerAuthTestHelper} instance. Note that the method does a synchronous communication with
          * PowerAuth Server REST API.
@@ -223,7 +236,9 @@ public class PowerAuthTestHelper {
                     keychainConfiguration,
                     clientConfiguration,
                     sharedApplication,
-                    sharedApplicationVersion);
+                    sharedApplicationVersion,
+                    testFragmentActivity,
+                    testFragment);
         }
 
         /**
@@ -322,7 +337,9 @@ public class PowerAuthTestHelper {
             @NonNull PowerAuthKeychainConfiguration sharedKeychainConfiguration,
             @NonNull PowerAuthClientConfiguration sharedClientConfiguration,
             @NonNull ApplicationDetail sharedApplication,
-            @NonNull ApplicationVersion sharedApplicationVersion) {
+            @NonNull ApplicationVersion sharedApplicationVersion,
+            @Nullable FragmentActivity fragmentActivity,
+            @Nullable Fragment fragment) {
         this.context = context;
         this.testConfig = testConfig;
         this.serverApi = serverApi;
@@ -333,6 +350,8 @@ public class PowerAuthTestHelper {
         this.sharedApplication = sharedApplication;
         this.sharedApplicationVersion = sharedApplicationVersion;
         this.randomGenerator = new RandomGenerator();
+        this.testFragment = fragment;
+        this.testFragmentActivity = fragmentActivity;
     }
 
     /**
@@ -433,6 +452,26 @@ public class PowerAuthTestHelper {
      */
     public @NonNull PowerAuthKeychainConfiguration getSharedPowerAuthKeychainConfiguration() {
         return sharedKeychainConfiguration;
+    }
+
+    /**
+     * @return Fragment activity for tests. If not set, then throws {@link IllegalStateException}.
+     */
+    public @NonNull FragmentActivity getFragmentActivity() {
+        if (testFragmentActivity == null) {
+            throw new IllegalStateException("Fragment activity is not set");
+        }
+        return testFragmentActivity;
+    }
+
+    /**
+     * @return Fragment for tests. If not set, then throws {@link IllegalStateException}.
+     */
+    public @NonNull Fragment getFragment() {
+        if (testFragment == null) {
+            throw new IllegalStateException("Fragment is not set");
+        }
+        return testFragment;
     }
 
     /**

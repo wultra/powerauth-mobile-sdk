@@ -191,7 +191,7 @@ public class BiometricAuthenticator implements IBiometricAuthenticator {
         } else if (request.getFragmentActivity() != null) {
             prompt = new BiometricPrompt(request.getFragmentActivity(), request.getBackgroundTaskExecutor(), authenticationCallback);
         } else {
-            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Both Fragment and FragmentActivity for biometric prompt presentation are set.");
+            throw new PowerAuthErrorException(PowerAuthErrorCodes.WRONG_PARAMETER, "Neither a Fragment nor a FragmentActivity is set for the biometric prompt.");
         }
 
         // Authenticate with the prompt

@@ -2496,7 +2496,7 @@ public class PowerAuthSDK {
                 .setKeystoreAlias(biometricDataMapping.keystoreId)
                 .setForceGenerateNewKey(forceGenerateNewKey, mKeychainConfiguration.isLinkBiometricItemsToCurrentSet(), mKeychainConfiguration.isAuthenticateOnBiometricKeySetup())
                 .setUserConfirmationRequired(mKeychainConfiguration.isConfirmBiometricAuthentication())
-                .setBackgroundTaskExecutor(mExecutorProvider.getConcurrentExecutor());
+                .setBackgroundTaskExecutor(mExecutorProvider.getBiometricExecutor());
         if (fragmentHelper.getFragment() != null) {
             authenticationRequestBuilder.setFragment(fragmentHelper.getFragment());
         } else if (fragmentHelper.getFragmentActivity() != null) {

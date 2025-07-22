@@ -199,8 +199,7 @@ public class BiometricAuthentication {
             @NonNull final Context context,
             @NonNull final PrivateRequestData requestData,
             @NonNull final BiometricResultDispatcher dispatcher) {
-        // Prepare an encryption task
-        final Runnable encryptTask = () -> {
+        requestData.getRequest().getBackgroundTaskExecutor().execute(() -> {
             try {
                 // Acquire encryptor and initialize the cipher
                 final IBiometricKeyEncryptor encryptor = requestData.getBiometricKeyEncryptorProvider().getBiometricKeyEncryptor();
@@ -218,20 +217,13 @@ public class BiometricAuthentication {
                     // Application should display reason to the user
                     dispatcher.dispatchError(BiometricErrorInfo.addToException(exception, true));
                 } else {
-                    // Display the error dialog
-                    MainThreadExecutor.getInstance().dispatchCallback(() -> {
+                    // Display the error dialog on main thread
+                    dispatcher.dispatchRunnable(() -> {
                         showErrorDialog(BiometricStatus.NOT_AVAILABLE, BiometricErrorInfo.addToException(exception, false), context, requestData);
                     });
                 }
             }
-        };
-        // Execute the task on the background or on the current thread.
-        final Executor executor = requestData.getRequest().getBackgroundTaskExecutor();
-        if (executor != null) {
-            executor.execute(encryptTask);
-        } else {
-            encryptTask.run();
-        }
+        });
         return dispatcher.getCancelableTask();
     }
 

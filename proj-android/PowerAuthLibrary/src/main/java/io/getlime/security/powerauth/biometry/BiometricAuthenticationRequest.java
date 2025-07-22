@@ -45,7 +45,7 @@ public class BiometricAuthenticationRequest {
     private final boolean useSymmetricCipher;
     private final @NonNull byte[] rawKeyData;
     private final @Nullable IBiometricKeyEncryptor biometricKeyEncryptor;
-    private final @Nullable Executor backgroundTaskExecutor;
+    private final @NonNull Executor backgroundTaskExecutor;
 
     private BiometricAuthenticationRequest(
             @NonNull CharSequence title,
@@ -60,7 +60,7 @@ public class BiometricAuthenticationRequest {
             boolean useSymmetricCipher,
             @NonNull byte[] rawKeyData,
             @Nullable IBiometricKeyEncryptor biometricKeyEncryptor,
-            @Nullable Executor backgroundTaskExecutor) {
+            @NonNull Executor backgroundTaskExecutor) {
         this.title = title;
         this.subtitle = subtitle;
         this.description = description;
@@ -166,7 +166,7 @@ public class BiometricAuthenticationRequest {
     /**
      * @return {@link Executor} that can execute computational heavy tasks on background thread.
      */
-    public @Nullable Executor getBackgroundTaskExecutor() {
+    public @NonNull Executor getBackgroundTaskExecutor() {
         return backgroundTaskExecutor;
     }
 
@@ -226,6 +226,9 @@ public class BiometricAuthenticationRequest {
             }
             if (fragment != null && fragmentActivity != null) {
                 throw new IllegalArgumentException("Both Fragment and FragmentActivity are set.");
+            }
+            if (backgroundTaskExecutor == null) {
+                throw new IllegalArgumentException("Background task executor must be set.");
             }
             return new BiometricAuthenticationRequest(
                     title,

@@ -214,7 +214,7 @@ function DEPLOY_BUILD
     LOG "We're still need to wait for PowerAuthCore.podspec publication."
     LOG "              Meanwhile, you can to go to"
     LOG ""
-    LOG "          --> https://s01.oss.sonatype.org <--"
+    LOG "  --> https://central.sonatype.com/publishing/deployments <--"
     LOG ""
     LOG "    and switch Android build to the production manually."
     LOG_LINE

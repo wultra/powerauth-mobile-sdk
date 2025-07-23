@@ -1860,6 +1860,12 @@ powerAuthSDK.authenticateUsingBiometrics(context, fragment, "Sign in", "Use the 
 <!-- end -->
 
 <!-- begin box warning -->
+Disable all interactive UI elements while biometric authentication is in progress. After you call `authenticateUsingBiometrics()`, display a non-interactive “Verifying…” (or similar) progress state and do not accept user input until the SDK callback fires.
+
+Why: Once the system biometric prompt is dismissed, your app regains focus before the PowerAuth SDK finishes its post-authentication cryptographic work on a background thread. During this brief window, your UI is visible but the authentication result is not ready. If you re-enable buttons or accept gestures too early, the user could trigger actions that assume authentication succeeded (or failed) prematurely. Wait for the callback, then update the UI based on the actual result.
+<!-- end -->
+
+<!-- begin box warning -->
 Note that if the biometric authentication fails with too many attempts in a row (e.g. biometry is temporarily or permanently locked out), then PowerAuth SDK will generate an invalid biometry factor related key, and the success is reported. This is an intended behavior and as a result, it typically leads to unsuccessful authentication on the server and an increased counter of failed attempts. The purpose of this is to limit the number of attempts for attackers to deceive the biometry sensor.
 <!-- end -->
 

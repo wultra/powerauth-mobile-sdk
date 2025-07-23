@@ -207,4 +207,15 @@ DEBUG_LOG "Gradle command line >> ./gradlew $GRADLE_CMD_LINE"
 ####
 POP_DIR
 
+if [ $DO_REPO == 'central' ]; then
+    # Publishing to "central" require one more step
+    LOG_LINE -a
+    LOG "Publishing with staging API"
+    LOG_LINE
+    curl --silent --fail-with-body          \
+        -X POST                             \
+        -u ${NEXUS_USER}:${NEXUS_PASSWORD}  \
+        https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/com.wultra
+fi
+
 EXIT_SUCCESS -l

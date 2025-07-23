@@ -129,8 +129,8 @@ publishing {
         maven {
             name = 'sonatype'
 
-            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            def releasesRepoUrl = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://central.sonatype.com/repository/maven-snapshots/"
             url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
 
             credentials {
@@ -157,8 +157,8 @@ nexusPublishing {
             stagingProfileId = NEXUS_STAGING_PROFILE
             username = NEXUS_USERNAME
             password = NEXUS_PASSWORD
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
         }
     }
 }

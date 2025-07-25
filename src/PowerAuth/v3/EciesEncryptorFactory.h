@@ -30,10 +30,99 @@ class EciesEncryptorFactory :
 public:
     
     EciesEncryptorFactory(const ContextPtr & context);
+
+    // IEncryptorFactory
+    IServicePtr asService() override;
+
+    void resetAllData() override;
+    void resetActivationData() override;
+
+    bool hasTemporaryKey(EncryptorScope scope) override;
+    void deleteTemporaryKey(EncryptorScope scope) override;
+
+    RequestPtr getTemporaryKeyRequest(EncryptorScope scope) override;
+    bool hasPendingTemporaryKeyRequest(EncryptorScope scope) override;
+
+    IClientEncryptorPtr getClientEncryptor(EncryptorId encryptor_id) override;
+
+protected:
+    // Service
+    void doServiceDestroy() override;
     
 private:
+    /// We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
+    /// we move the expiration time to backward.
+    static const Timestamp KEY_EXPIRATION_THRESHOLD;
     
+    /// Size of challenge for getting temporary key.
+    static const size_t GET_TEMP_KEY_CHALLENGE_SIZE;
+    
+    struct GetTemporaryKeyRequest
+    {
+        std::string applicationKey;
+        std::string activationId;
+        std::string challenge;
+        
+        cc7::json::JsonValue toJson() const noexcept;
+    };
+
+    struct GetTemporaryKeyResponse
+    {
+        std::string applicationKey;
+        std::string activationId;
+        std::string challenge;
+        std::string keyId;
+        std::string publicKey;
+        int64_t expiration = 0;
+        int64_t serverTime = 0;
+        
+        static GetTemporaryKeyResponse fromJson(const cc7::json::JsonValue& json);
+    };
+    
+    struct GetKeyData
+    {
+        TimeService::TaskId timeSynchronization;
+        GetTemporaryKeyRequest request;
+    };
+    
+    struct TemporaryKeyData
+    {
+        const EncryptorScope keyScope;
+        
+        std::unique_ptr<GetKeyData> creationData;
+        
+        std::string keyIdentifier;
+        cc7::crypto::PublicKeyPtr publicKey;
+        TimeInterval created = -1.0;
+        TimeInterval expires = -1.0;
+        
+        bool isValid() const noexcept;
+        bool isExpired(TimeInterval now) const noexcept;
+        void clear() noexcept;
+        
+        bool hasPendingRequest() const noexcept;
+    };
+    
+    const TemporaryKeyData& keyInfo(EncryptorScope scope) const noexcept;
+    TemporaryKeyData& keyInfo(EncryptorScope scope) noexcept;
+    
+    TemporaryKeyData& validKeyInfo(EncryptorScope scope);
+    
+    void clearDataForScope(EncryptorScope scope);
+    
+    cc7::json::JsonValue createTemporaryKeyRequest(EncryptorScope scope);
+    void completeTemporaryKeyRequest(EncryptorScope scope, const cc7::json::JsonValue& response);
+    void cancelPendingTemporaryKeyRequest(EncryptorScope scope);
+    std::string activationId() const noexcept;
+    
+    const ContextWeakPtr _context;
     const ConfigurationPtr _configuration;
+    const SessionDataPtr _session_data;
+    const IKeyProviderPtr _key_provider;
+    const TimeServicePtr _time_service;
+    
+    TemporaryKeyData _application_key_info;
+    TemporaryKeyData _activation_key_info;
 };
 
 } // namespace v3

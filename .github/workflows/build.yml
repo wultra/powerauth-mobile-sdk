@@ -6,6 +6,7 @@ on:
       - develop
       - master
       - releases/*
+      - feature/crypto4
   pull_request:
   schedule:
     - cron: '30 6 * * 1'

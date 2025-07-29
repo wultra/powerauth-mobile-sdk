@@ -67,6 +67,10 @@ namespace v3 {
 //extern const EndpointSpec Endpoint_RemoveActivation;
 //extern const EndpointSpec Endpoint_ValidateSignature;
 
+const EndpointSpec Endpoint_TemporaryKey {
+    Version_V3, "/pa/v3/keystore/create", "", EncryptorId::NONE
+};
+
 } // namespace v3
 
 } // namespace powerAuth

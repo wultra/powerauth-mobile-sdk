@@ -88,6 +88,8 @@ namespace v3 {
 //extern const EndpointSpec Endpoint_RemoveActivation;
 //extern const EndpointSpec Endpoint_ValidateSignature;
 
+extern const EndpointSpec Endpoint_TemporaryKey;
+
 } // namespace v3
 
 } // namespace powerAuth

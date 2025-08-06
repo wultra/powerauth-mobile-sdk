@@ -16,7 +16,7 @@
 
 #import "PA2PrivateRemoteTokenProvider.h"
 
-@class PA2HttpClient;
+@class PA2CoreHttpClient;
 
 /**
  The `PA2PrivateHttpTokenProvider` class implements getting tokens from remote HTTP server.
@@ -26,12 +26,12 @@
 /**
  A reference to PA2HttpClient, owned by the PowerAuthSDK.
  */
-@property (nonatomic, strong, readonly) PA2HttpClient * httpClient;
+@property (nonatomic, strong, readonly) PA2CoreHttpClient * httpClient;
 
 /**
  Initializes remote token provider with HTTP client, providing
  communication with the server.
  */
-- (id) initWithHttpClient:(PA2HttpClient*)httpClient;
+- (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient;
 
 @end

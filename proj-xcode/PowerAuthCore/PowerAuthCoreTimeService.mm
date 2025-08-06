@@ -74,4 +74,13 @@ using namespace cc7;
     return _time_service->hasPendingSynchronizationRequest();
 }
 
+- (void) resetTimeSynchronization
+{
+    try {
+        _time_service->resetTimeSynchronization();
+    } catch (...) {
+        PowerAuthCoreLog(@"TimeService.resetTimeSynchronization failed: %@", BuildNSErrorFromException());
+    }
+}
+
 @end

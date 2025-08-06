@@ -182,19 +182,11 @@
 
 #pragma mark - Validation
 
-/**
- Validates activation data.
- 
- @return `YES` in case that object contains valid activation data.
- */
-- (BOOL) validate;
 
-/**
- Validates activation data and returns error if data is not valid.
- 
- @return `NSError` in case that object contains invalid activation data.
- */
-- (nullable NSError*) validateAndGetError;
+/// Validates activation data.
+/// - Parameter error: Pointer to output error instance where failure reason will be set.
+/// - Returns: `YES` in case that object contains valid activation data.
+- (BOOL) validate:(NSError*_Nullable*_Nullable)error;
 
 @end
 

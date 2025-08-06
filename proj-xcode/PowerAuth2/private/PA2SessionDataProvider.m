@@ -46,6 +46,7 @@
 
 - (void) saveSessionData:(NSData *)sessionData
 {
+    // TODO: report error to outside
     if (sessionData) {
         if ([_keychain containsDataForKey:_statusKey]) {
             PowerAuthKeychainStoreItemResult r = [_keychain updateValue:sessionData forKey:_statusKey];

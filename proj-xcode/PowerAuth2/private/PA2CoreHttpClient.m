@@ -16,6 +16,12 @@
 
 #import "PA2CoreHttpClient.h"
 #import "PA2CompositeTask.h"
+#import "PA2AsyncOperation.h"
+#import "PA2PrivateMacros.h"
+#import "PA2ErrorResponse+Decodable.h"
+
+#import <PowerAuth2/PowerAuthLog.h>
+
 
 @import PowerAuthCore;
 
@@ -25,9 +31,6 @@
     id<PA2SessionInterface> _sessionInterface;
     dispatch_queue_t _completionQueue;
     NSString * _baseUrl;
-    
-    PowerAuthCoreTimeService * _timeService;
-    PowerAuthCoreEncryptorFactory * _encryptorFactory;
 }
 
 /// Returns a shared, concurrent queue.
@@ -43,7 +46,7 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
 }
 
 - (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthClientConfiguration*)configuration
-                          coreSessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
+                              sessionInterface:(nonnull id<PA2SessionInterface>)sessionInterface
                                completionQueue:(nonnull dispatch_queue_t)queue
                                        baseUrl:(nonnull NSString*)baseUrl
 {
@@ -74,20 +77,16 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
         
         // And finally, construct the session. We can use the shared concurrent queue for
         // scheduling session's delegate messages.
-        _session = [NSURLSession sessionWithConfiguration:sessionConfiguration
-                                                 delegate:self
-                                            delegateQueue:_GetSharedConcurrentQueue()];
-        
-        [_sessionInterface readVoidTaskWithSession:^(PowerAuthCoreSession * _Nonnull session) {
-            
-        }];
+        _urlSession = [NSURLSession sessionWithConfiguration:sessionConfiguration
+                                                    delegate:self
+                                               delegateQueue:_GetSharedConcurrentQueue()];
     }
     return self;
 }
 
 - (void) dealloc
 {
-    [_session finishTasksAndInvalidate];
+    [_urlSession finishTasksAndInvalidate];
 }
 
 - (NSOperationQueue*) concurrentQueue
@@ -95,12 +94,72 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
     return _GetSharedConcurrentQueue();
 }
 
-- (nonnull id<PowerAuthOperationTask>) postCoreRequest:(nonnull PowerAuthCoreRequest*)request
-                                            completion:(void(^)(PowerAuthRestApiResponseStatus status, id response, NSError * error))completion
+#pragma mark - Debug Log
+
+#ifdef DEBUG
+// Functions implementing request-response logging.
+static void _LogHttpRequest(PowerAuthCoreRequest * coreRequest, NSURLRequest * request)
 {
+    if (PowerAuthLogIsEnabled()) {
+        // Warn if communication is not encrypted.
+        if ([request.URL.scheme isEqualToString:@"http"]) {
+            static BOOL s_warning = YES;
+            if (s_warning) {
+                PowerAuthLog(@"Warning: Using HTTP for communication may create a serious security issue! Use HTTPS in production.");
+                s_warning = NO;
+            }
+        }
+        
+        BOOL authCode = coreRequest.isAuthenticated;
+        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
+        
+        NSString * signedEncrypted = (authCode ? (encrypted ? @" (auth+enc)" : @" (auth)") : (encrypted ? @" (enc)" : @""));
+        NSString * msg = [NSString stringWithFormat:@"HTTP %@ request%@: → %@", request.HTTPMethod, signedEncrypted, request.URL.absoluteString];
+        if (PowerAuthLogIsVerbose()) {
+            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", request.allHTTPHeaderFields];
+            if (!encrypted) {
+                NSString * jsonBody = request.HTTPBody.length > 0 ? [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] : @"<empty>";
+                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonBody];
+            }
+        }
+        PowerAuthLog(@"%@", msg);
+    }
+}
+
+static void _LogHttpResponse(PowerAuthCoreRequest * coreRequest, NSHTTPURLResponse * response, NSData * data, NSError * error)
+{
+    if (PowerAuthLogIsEnabled()) {
+        BOOL encrypted = coreRequest.encryptorScope != PowerAuthCoreEncryptorScope_None;
+        NSNumber * statusCode = @(response.statusCode);
+        NSString * msg = [NSString stringWithFormat:@"HTTP %@ response %@: ← %@", coreRequest.httpMethod, statusCode, response.URL.absoluteString];
+        if (PowerAuthLogIsVerbose()) {
+            msg = [msg stringByAppendingFormat:@"\n+ Headers: %@", response.allHeaderFields];
+            if (!encrypted) {
+                NSString * jsonData = data.length > 0 ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"<empty>";
+                msg = [msg stringByAppendingFormat:@"\n+ Body: %@", jsonData];
+            }
+        }
+        if (error) {
+            msg = [msg stringByAppendingFormat:@"\n+ Error: %@", error];
+        }
+        PowerAuthLog(@"%@", msg);
+    }
+}
+#else
+// Turn-Off request-response logging
+#define _LogHttpRequest(coreRequest, request)
+#define _LogHttpResponse(coreRequest, response, data, error)
+#endif // DEBUG
+
+- (id<PowerAuthOperationTask>) postCoreRequest:(PowerAuthCoreRequest*)request
+                                    completion:(void(^)(PowerAuthCoreRequest * request, id response, NSError * error))completion
+{
+    PA2TimeSynchronizationService * timeService = [_sessionInterface timeSynchronizationService];
+    PA2KeystoreService * keystoreService = [_sessionInterface keystoreService];
     PowerAuthCoreEncryptorScope encryptorScope = request.encryptorScope;
-    BOOL requireSynchronizedTime = request.isRequireSynchronizedTime && ![_timeService isTimeSynchronized];
-    BOOL requireEncryptionKey = encryptorScope != PowerAuthCoreEncryptorScope_None && ![_encryptorFactory hasTemporaryKeyForScope:encryptorScope];
+
+    BOOL requireSynchronizedTime = request.isRequireSynchronizedTime && ![timeService isTimeSynchronized];
+    BOOL requireEncryptionKey = encryptorScope != PowerAuthCoreEncryptorScope_None && ![keystoreService hasKeyForEncryptorScope:encryptorScope];
     if (requireSynchronizedTime || requireEncryptionKey) {
         // Endpoint require encryption key or time is not synchronized yet. We have to create a composite task that handle multiple
         // requests before an actual request is executed.
@@ -108,18 +167,203 @@ static NSOperationQueue * _GetSharedConcurrentQueue(void)
             [request cancel];
         }];
         // Prepare common completion block with the composite task.
-        void (^compositeCompletion)(PowerAuthRestApiResponseStatus, id, NSError *) = ^(PowerAuthRestApiResponseStatus status, id response, NSError *error) {
+        void (^compositeCompletion)(PowerAuthCoreRequest *, id, NSError *) = ^(PowerAuthCoreRequest * request, id response, NSError *error) {
             // At first, dispatch the result to the dedicated queue.
             dispatch_async(_completionQueue, ^{
                 // Set composite operation as completed. The message returns YES if composite task was not completed or canceled before.
                 // If so, then simply call the completion block.
                 if ([compositeTask setCompleted]) {
-                    completion(status, response, error);
+                    completion(request, response, error);
                 }
             });
         };
-
+        // Now determine what type of task should be executed before an actual task
+        if (requireEncryptionKey) {
+            // Acquire temporary encryption key. This also synchronizes time as a side effect.
+            id<PowerAuthOperationTask> getKeyTask = [keystoreService createKeyForEncryptorScope:encryptorScope callback:^(NSError * _Nullable error) {
+                if (!error) {
+                    // The temporary encryption key has been successfully obtained, we can continue with the actual request.
+                    NSOperation* actualOperation = [self executeCoreRequest:request completion:compositeCompletion];
+                    [compositeTask replaceOperationTask:actualOperation];
+                } else {
+                    // Report error to composite completion.
+                    compositeCompletion(request, nil, error);
+                }
+            } callbackQueue:nil];
+            [compositeTask replaceOperationTask:getKeyTask];
+        } else {
+            // start the time synchronization
+            id<PowerAuthOperationTask> synchronizationTask = [timeService synchronizeTimeWithCallback:^(NSError * error) {
+                if (!error) {
+                    // The time has been successfully synchronized, we can continue with the actual request.
+                    NSOperation* actualOperation = [self executeCoreRequest:request completion:compositeCompletion];
+                    [compositeTask replaceOperationTask:actualOperation];
+                } else {
+                    // Report error to composite completion.
+                    compositeCompletion(request, nil, error);
+                }
+            } callbackQueue:_completionQueue];
+            [compositeTask replaceOperationTask:synchronizationTask];
+        }
+        return compositeTask;
     }
+    // Endpoint doesn't require time synchronization or encryption, or time is synchronized and key is available.
+    return [self executeCoreRequest:request completion:completion];
 }
+
+- (NSOperation*) executeCoreRequest:(PowerAuthCoreRequest*)request
+                         completion:(void(^)(PowerAuthCoreRequest * request, id response, NSError * error))completion
+{
+    // Construct asynchronous operation & associated request
+    PA2AsyncOperation * op = [[PA2AsyncOperation alloc] initWithReportQueue:_completionQueue];
+    // Setup execution block
+    op.executionBlock = ^id(PA2AsyncOperation *op) {
+        // Now it's time to construct HTTP request.
+        NSError * error = nil;
+        // Build URL request from core request
+        NSMutableURLRequest * urlRequest = [self buildUrlRequest:request error:&error];
+        if (error) {
+            [op completeWithResult:nil error:error];
+            return nil;
+        }
+        // Adjust user agent, if required
+        if (_configuration.userAgent) {
+            [urlRequest addValue:_configuration.userAgent forHTTPHeaderField:@"User-Agent"];
+        }
+        // Process all request interceptors
+        [_configuration.requestInterceptors enumerateObjectsUsingBlock:^(id<PowerAuthHttpRequestInterceptor> interceptor, NSUInteger idx, BOOL * stop) {
+            [interceptor processRequest:urlRequest];
+        }];
+        // Log request
+        _LogHttpRequest(request, urlRequest);
+        // Construct & return data task.
+        NSURLSessionDataTask * task = [_urlSession dataTaskWithRequest:urlRequest completionHandler:^(NSData * data, NSURLResponse * urlResponse, NSError * error) {
+            // DataTask completion
+            id object;
+            if (!error) {
+                object = [self buildResponse:request responseData:data response:(NSHTTPURLResponse*)urlResponse error:&error];
+            } else {
+                object = nil;
+            }
+            // Log response
+            _LogHttpResponse(request, (NSHTTPURLResponse*)urlResponse, data, error);
+            // Complete operation
+            [op completeWithResult:object error:error];
+        }];
+        [task resume];
+        return task;
+    };
+    // Reporting block
+    op.reportBlock = ^(PA2AsyncOperation *op) {
+        id<PA2Decodable> object = op.operationResult;
+        NSError * error = op.operationError;
+        completion(request, object, error);
+    };
+    // Setup cancellation block
+    op.cancelBlock = ^(PA2AsyncOperation *op, id task) {
+        [PA2ObjectAs(task, NSURLSessionDataTask) cancel];
+        [request cancel];
+    };
+    // Finally, add operation to the right queue
+    if (request.isRequireSerialQueue) {
+        // The request must be serialized in serial queue.
+        [_sessionInterface executeOutsideOfTask:^{
+            [_sessionInterface addOperation:op toSharedQueue:_serialQueue];
+        } queue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)];
+    } else {
+        // The concurrent queue can be used
+        [_GetSharedConcurrentQueue() addOperation:op];
+    }
+    return op;
+}
+
+- (NSMutableURLRequest*) buildUrlRequest:(PowerAuthCoreRequest*)coreRequest error:(NSError**)error
+{
+    NSError * localError = nil;
+    if (![coreRequest prepareRequest:&localError]) {
+        PA2WrapError(localError, error);
+        return nil;
+    }
+    NSData* requestBody = coreRequest.requestBody;
+    if (!requestBody) {
+        PA2WrapError(coreRequest.failure, error);
+        return nil;
+    }
+    NSDictionary<NSString*,NSString*>* requestHeaders = coreRequest.requestHeaders;
+    if (!requestHeaders) {
+        PA2WrapError(coreRequest.failure, error);
+        return nil;
+    }
+
+    // Build full URL & request object
+    NSURL* url = [NSURL URLWithString:[_baseUrl stringByAppendingString:coreRequest.relativePath]];
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+    if (!request) {
+        PA2SetError(error, PowerAuthErrorCode_NetworkError, @"Failed to build URLRequest");
+        return nil;
+    }
+    request.HTTPMethod = coreRequest.httpMethod;
+    request.HTTPBody = coreRequest.requestBody;
+    [requestHeaders enumerateKeysAndObjectsUsingBlock:^(NSString * key, NSString * obj, BOOL * stop) {
+        [request addValue:obj forHTTPHeaderField:key];
+    }];
+    return request;
+}
+
+/// Build success or failure response from the received data.
+/// - Parameters:
+///   - coreRequest: Core request.
+///   - responseData: Received response data.
+///   - httpResponse: HTTP response object
+///   - error: Pointer to output error object.
+/// - Returns: Response object (if present).
+- (id) buildResponse:(PowerAuthCoreRequest*)coreRequest responseData:(NSData*)responseData response:(NSHTTPURLResponse*)httpResponse error:(NSError**)error
+{
+    NSError * localError = nil;
+    if (httpResponse.statusCode == 200) {
+        if (![coreRequest processResponse:responseData error:&localError]) {
+            // failure
+            PA2WrapError(localError, error);
+            return nil;
+        }
+        // success, note that response object may be nil
+        return coreRequest.responseObject;
+    }
+    // build error
+    *error = [self buildErrorForData:responseData httpResponse:httpResponse];
+    return nil;
+}
+
+
+/// Private function builds `NSError` object from available data & HTTP response.
+/// The returned error has "domain" equal to `PA2ErrorDomain` and contains additional
+/// information bundled in the "userInfo" dictionary.
+/// - Parameters:
+///   - data: Body with error response
+///   - httpResponse: HTTP response object
+/// - Returns: NSError created from received data.
+- (NSError*) buildErrorForData:(NSData*)data
+                  httpResponse:(NSHTTPURLResponse*)httpResponse
+{
+    NSError * localError = nil;
+    // Try to deserialize JSON
+    id JSONData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&localError];
+    NSDictionary * responseDictionary = data ? PA2ObjectAs(JSONData, NSDictionary) : nil;
+    // Create PA2ErrorResponse object.
+    // If there was an error with JSON decoding, then use nil for object constuction.
+    PowerAuthRestApiErrorResponse * httpResponseObject = [[PowerAuthRestApiErrorResponse alloc] initWithDictionary:localError ? nil : responseDictionary];
+    // Keep status code in response object
+    httpResponseObject.httpStatusCode = httpResponse.statusCode;
+    
+    NSDictionary * additionalInfo =
+    @{
+        PowerAuthErrorDomain:                   httpResponseObject,
+        PowerAuthErrorInfoKey_AdditionalInfo:   responseDictionary ? responseDictionary : @{},
+        PowerAuthErrorInfoKey_ResponseData:     data ? data : [NSData data],
+        NSLocalizedDescriptionKey:              PA2MakeDefaultErrorDescription(PowerAuthErrorCode_NetworkError, nil)
+    };
+    return [NSError errorWithDomain:PowerAuthErrorDomain code:PowerAuthErrorCode_NetworkError userInfo:additionalInfo];
+}
+
 
 @end

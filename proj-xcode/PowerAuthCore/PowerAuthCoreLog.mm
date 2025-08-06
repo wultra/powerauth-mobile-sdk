@@ -15,7 +15,7 @@
  */
 
 #import <PowerAuthCore/PowerAuthCoreLog.h>
-#import <cc7/Platform.h>
+#import <PowerAuth/Debug.h>
 
 #ifdef ENABLE_POWERAUTH_CORE_LOG
 
@@ -42,4 +42,13 @@ void PowerAuthCoreLogSetEnabled(BOOL enabled)
 BOOL PowerAuthCoreLogIsEnabled(void)
 {
     return CC7_LOG_IS_ENABLED();
+}
+
+BOOL PowerAuthCoreHasDebugFeatures(void)
+{
+    BOOL debug_features = powerAuth::HasDebugFeaturesTurnedOn();
+#if defined(ENABLE_POWERAUTH_CORE_LOG) || defined(DEBUG)
+    debug_features |= YES;
+#endif
+    return debug_features;
 }

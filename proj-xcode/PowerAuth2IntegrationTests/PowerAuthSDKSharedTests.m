@@ -267,7 +267,7 @@
         XCTAssertEqual(PowerAuthExternalPendingOperationType_Activation, extOp2.externalOperationType);
         XCTAssertTrue([_app1 isEqualToString:extOp2.externalApplicationId]);
         
-        id task2 = [_altSdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
+        id<PowerAuthOperationTask> task2 = [_altSdk createActivation:activation callback:^(PowerAuthActivationResult * result, NSError * error) {
             XCTAssertEqual(PowerAuthErrorCode_ExternalPendingOperation, error.powerAuthErrorCode);
             XCTAssertEqual(PowerAuthExternalPendingOperationType_Activation, error.powerAuthExternalPendingOperation.externalOperationType);
             XCTAssertTrue([_app1 isEqualToString:error.powerAuthExternalPendingOperation.externalApplicationId]);

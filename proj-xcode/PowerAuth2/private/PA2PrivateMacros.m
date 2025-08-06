@@ -36,6 +36,13 @@ id PA2CastToProtoImpl(id instance, Protocol * proto)
     return nil;
 }
 
+void PA2DictionarySafeSet(NSMutableDictionary * dict, NSString * key, id value)
+{
+    if (value) {
+        [dict setValue:value forKey:key];
+    }
+}
+
 #if DEBUG
 void PA2PrintErrno(NSString * location)
 {

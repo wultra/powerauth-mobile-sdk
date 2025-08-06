@@ -19,6 +19,7 @@
 #include <PowerAuth/Service.h>
 #include <PowerAuth/Credentials.h>
 #include <PowerAuth/Request.h>
+#include <PowerAuth/ActivationResult.h>
 
 namespace powerAuth {
 
@@ -33,7 +34,8 @@ public:
     /// Return protocol version supported by the instance of the object.
     virtual ProtocolVersion protocolVersion() const noexcept = 0;
         
-    /// Create PowerAuth activation.
+    /// Create PowerAuth activation. In case of success, the `ActivationResult` object
+    /// is created in the response processing.
     ///
     /// - Parameters:
     ///   - L1_data: L1 activation data.
@@ -51,6 +53,13 @@ public:
     /// - Throws:
     ///   - `Exception` in case that activation cannot be confirmed.
     virtual RequestPtr confirmActivation(InitialCredentialsPtr credentials) = 0;
+    
+    /// Calculate human readable fingerprint from device's and server's public keys.
+    ///
+    /// - Returns: Human readable fingerprint calculated from device and server's public keys.
+    /// - Throws:
+    ///   - `Exception` in case that activation is in wrong state.
+    virtual std::string calculateActivationFingerprint() = 0;
     
     /// Reset underlying session's state.
     virtual void resetState() = 0;

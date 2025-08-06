@@ -60,21 +60,30 @@ typedef struct SharedMemory {
 
 + (nullable instancetype) namedSharedMemory:(nonnull NSString*)identifier
                                    withSize:(NSUInteger)size
-                                  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL created))setupBlock
+                                  setupOnce:(BOOL (NS_NOESCAPE^_Nonnull)(void * _Nonnull memory, NSUInteger size, BOOL created, NSError*_Nullable*_Nullable error))setupBlock
+                                      error:(NSError*_Nullable*_Nullable)error
 {
     // At first, try to initialize shared memory
     SharedMemory shm;
     int init_result = _SharedMemoryInit(&shm, identifier.UTF8String, size);
     if (init_result == SHM_INIT_FAIL) {
+        PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to initialize shared memory")
         return nil;
     }
     // Call setup block with just acquired shared memory.
-    if (setupBlock(shm.ptr, shm.size, init_result == SHM_INIT_CREATE) == NO) {
+    if (setupBlock(shm.ptr, shm.size, init_result == SHM_INIT_CREATE, error) == NO) {
+        if (error && !*error) {
+            PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to setup shared memory")
+        }
         _SharedMemoryDestroy(&shm, NO);
         return nil;
     }
     // Create PA2SharedMemory and take the ownership of the SharedMemory structure.
-    return [[PA2SharedMemory alloc] initWithSharedMemoryRef:&shm];
+    id instance = [[PA2SharedMemory alloc] initWithSharedMemoryRef:&shm];
+    if (!instance) {
+        PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to allocated PA2SharedMemory object");
+    }
+    return instance;
 }
 
 - (void) dealloc

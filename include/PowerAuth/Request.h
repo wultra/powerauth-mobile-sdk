@@ -28,7 +28,7 @@ class Request;
 class ResponseObject
 {
 public:
-    virtual ~ResponseObject();
+    virtual ~ResponseObject() = default;
 };
 
 CC7_SHARED_PTR(ResponseObject)
@@ -38,6 +38,7 @@ using ResponseCallback = std::function<ResponseObjectPtr(const Request&, const c
 using CancelCallback   = std::function<void()>;
 
 struct EndpointSpec;
+class IClientEncryptorFactory;
 class IClientEncryptor;
 class IAuthHeaderCalculator;
 class Credentials;
@@ -138,6 +139,12 @@ public:
     /// the exception is raised.
     const ResponseObjectPtr& getResponseObject() const;
     
+    /// Returns response JSON representation.
+    ///
+    /// You have to call `processResponse()` before you get the response, otherwise
+    /// the exception is raised.
+    const cc7::json::JsonValue& getResponseJson() const;
+    
     /// Get typed response object.
     ///
     /// - Parameter required: If true, then exception is raised if type of object is different
@@ -220,7 +227,9 @@ private:
     /// Cancel callback.
     CancelCallback _on_cancel;
     
-    /// If request is encrypted then contains encryptor.
+    /// If request is encrypted then contains encryptor factory.
+    std::shared_ptr<IClientEncryptorFactory> _encryptor_factory;
+    /// If request is encrypted then contains encryptor for response decryption.
     std::shared_ptr<IClientEncryptor> _encryptor;
     /// If request is authenticated then contains authentication code calculator.
     std::shared_ptr<IAuthHeaderCalculator> _authenticator;

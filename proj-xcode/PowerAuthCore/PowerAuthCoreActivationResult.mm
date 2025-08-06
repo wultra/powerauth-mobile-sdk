@@ -1,5 +1,5 @@
-/**
- * Copyright 2021 Wultra s.r.o.
+/*
+ * Copyright 2025 Wultra s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-#import "PA2EncryptedRequest.h"
-#import "PA2PrivateMacros.h"
+#import "PowerAuthCoreActivationResult.h"
+#import "PowerAuthCorePrivateImpl.h"
 
-@import PowerAuthCore;
+#include <cc7/objc/ObjcJson.h>
 
-@implementation PA2EncryptedRequest
+@implementation PowerAuthCoreActivationResult
 
-- (id) initWithCryptogram:(PowerAuthCoreEciesCryptogram*)cryptogram
+- (instancetype) initWithActivationResult:(const powerAuth::ActivationResult&)activationResult
 {
     self = [super init];
     if (self) {
-        _cryptogram = cryptogram;
+        _activationFingerprint = cc7::objc::CopyToNSString(activationResult.activationFingerprint());
+        _customAttributes = cc7::objc::JsonValueToObjC(activationResult.customAttributes());
+        _userInfo = cc7::objc::JsonValueToObjC(activationResult.userInfo());
     }
     return self;
-}
-
-- (NSDictionary*) toDictionary
-{
-    return [_cryptogram requestPayload];
 }
 
 @end

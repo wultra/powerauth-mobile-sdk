@@ -38,6 +38,11 @@ public:
     /// if there's no persistent data structure available.
     ConstPowerAuthSpecPtr getSpecification() const noexcept;
     
+    /// Get activation identifier.
+    /// - Returns: Activation identifier.
+    /// - Throws: `Exception` with `EC_MissingActivation` if no registration or persistent data is set.
+    std::string getActivationId() const;
+    
     /// Return `true` if session data contains persistent data (e.g. activation is created).
     bool hasPersistentData() const noexcept;
     

@@ -19,12 +19,14 @@
 
 #include <PowerAuth/Request.h>
 #include <cc7/objc/ObjcHelper.h>
+#include <cc7/objc/ObjcJson.h>
 
 @implementation PowerAuthCoreRequest
 {
     powerAuth::RequestPtr _request;
     PowerAuthCoreResponseBuilder _responseBuilder;
     id _responseObject;
+    id _responseJson;
 }
 
 - (id) initWithRequest:(powerAuth::RequestPtr&)request
@@ -64,6 +66,11 @@
         return static_cast<PowerAuthCoreEncryptorScope>(_request->encryptorScope());
     }
     return PowerAuthCoreEncryptorScope_None;
+}
+
+- (BOOL) isAuthenticated
+{
+    return _request->isAuthenticated();
 }
 
 - (NSString*) relativePath
@@ -151,6 +158,7 @@
             _responseObject = _responseBuilder(*_request);
             _responseBuilder = nil;
         }
+        _responseJson = cc7::objc::JsonValueToObjC(_request->getResponseJson());
         return YES;
     } catch (...) {
         _failure = powerAuth::BuildNSErrorFromException();
@@ -165,6 +173,14 @@
 {
     if (_request->isCompleted()) {
         return _responseObject;
+    }
+    return nil;
+}
+
+- (id) responseJson
+{
+    if (_request->isCompleted()) {
+        return _responseJson;
     }
     return nil;
 }

@@ -95,7 +95,7 @@ RequestPtr RequestBuilder::build()
         _request->_authenticator = _context.getAuthHeaderCalculatorPtr();
     }
     if (_request->_endpoint.isEncrypted()) {
-        _request->_encryptor = _context.encryptorFactory().getClientEncryptor(_request->_endpoint.encryptorId);
+        _request->_encryptor_factory = _context.getEncryptorFactoryPtr();
     }
     return std::move(_request);
 }

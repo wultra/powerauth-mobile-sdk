@@ -19,16 +19,16 @@
 
 #import "PA2PrivateCryptoHelper.h"
 #import "PA2GetActivationStatusTask.h"
-#import "PA2GetSystemStatusTask.h"
 #import "PowerAuthActivationStatus+Private.h"
 #import "PowerAuthActivationCode+Private.h"
 #import "PowerAuthAuthentication+Private.h"
 #import "PowerAuthUserInfo+Private.h"
+#import "PowerAuthActivationResult+Private.h"
 
 @import PowerAuthCore;
 
 // Exposing several private interfaces
-@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate, PA2SystemStatusProvider, PA2GetSystemStatusTaskDelegate>
+@interface PowerAuthSDK (Private) <PA2GetActivationStatusTaskDelegate>
 
 /**
  Contains instance identifier
@@ -38,11 +38,6 @@
  Contains instnace of keystore service.
  */
 @property (nonatomic, strong, readonly) PA2KeystoreService * keystoreService;
-
-/**
- Returns key required for unlok the possesion factor.
- */
-- (PowerAuthCoreData*) deviceRelatedKey;
 
 /**
  Low level authorization code calculation. Unlike the high level interface, this method doesn't check

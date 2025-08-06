@@ -171,7 +171,7 @@ public:
 
     const PublicKeyPtr& getKey2() const noexcept
     {
-        return _key1;
+        return _key2;
     }
     
 private:
@@ -250,7 +250,7 @@ public:
 
     const PrivateKeyPtr& getKey2() const noexcept
     {
-        return _key1;
+        return _key2;
     }
 
 

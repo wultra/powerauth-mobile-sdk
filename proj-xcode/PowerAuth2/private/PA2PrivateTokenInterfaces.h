@@ -41,7 +41,7 @@
 /**
  Store token data.
  */
-- (void) storeTokenData:(nonnull PA2PrivateTokenData*)tokenData;
+- (BOOL) storeTokenData:(nonnull PA2PrivateTokenData*)tokenData error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Remove task that crate a new token from the list of pending tasks.

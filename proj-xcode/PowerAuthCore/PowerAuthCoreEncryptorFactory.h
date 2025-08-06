@@ -96,22 +96,32 @@
 /// Default construction is unavailable
 - (nonnull instancetype) init NS_UNAVAILABLE;
 
-/// Create new application scoped encryptor for general application use.
-/// - Parameter error: Pointer where the error is stored in case of failure.
-/// - Returns: Instance of encryptor or `nil` in case of failure.
-- (nullable PowerAuthCoreEncryptor*) encryptorForApplicationScope:(NSError*_Nullable*_Nullable)error;
 
-/// Create new application scoped encryptor for general application use.
-/// - Parameter error: Pointer where the error is stored in case of failure.
-/// - Returns: Instance of encryptor or `nil` in case of failure.
-- (nullable PowerAuthCoreEncryptor*) encryptorForActivationScope:(NSError*_Nullable*_Nullable)error;
+/// Create encryptor with given scope. If the temporary key for requested scope is not valid, then
+/// error is reported.
+/// - Parameters:
+///   - scope: Scope of encryptor
+///   - error: Pointer where the error is stored in case of failure.
+/// - Returns: New instance of encryptor or `nil` in case of failure.
+- (nullable PowerAuthCoreEncryptor*) createEncryptorWithScope:(PowerAuthCoreEncryptorScope)scope
+                                                        error:(NSError*_Nullable*_Nullable)error;
 
-
+/// Fetch temporary key for given scope from the server.
+/// - Parameters:
+///   - scope: Scope of temporary key.
+///   - error: Pointer where the error is stored in case of failure.
+/// - Returns: Core HTTP request or `nil` in case of failure.
 - (nullable PowerAuthCoreRequest*) fetchTemporaryKeyForScope:(PowerAuthCoreEncryptorScope)scope
                                                        error:(NSError*_Nullable*_Nullable)error;
 
+/// Get information whether there's already pending request for fetching temporary key from the server.
+/// - Parameter scope: Scope of key.
+/// - Returns: `YES` if there's pending request.
 - (BOOL) hasPendingRequestForTemporaryKeyWithScope:(PowerAuthCoreEncryptorScope)scope;
 
+/// Get information whether there's temporary key with requested scope.
+/// - Parameter scope: Scope of temporary key.
+/// - Returns: `YES` if temporary key is present and is still valid.
 - (BOOL) hasTemporaryKeyForScope:(PowerAuthCoreEncryptorScope)scope;
 
 @end

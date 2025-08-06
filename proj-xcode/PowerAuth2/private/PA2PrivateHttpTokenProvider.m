@@ -18,8 +18,7 @@
 #import "PA2PrivateTokenData.h"
 #import "PA2PrivateMacros.h"
 
-#import "PA2HttpClient.h"
-#import "PA2RestApiEndpoint.h"
+#import "PA2CoreHttpClient.h"
 
 #import "PA2GetTokenResponse.h"
 #import "PA2RemoveTokenRequest.h"
@@ -28,7 +27,7 @@
 
 @implementation PA2PrivateHttpTokenProvider
 
-- (id) initWithHttpClient:(PA2HttpClient *)httpClient
+- (id) initWithHttpClient:(PA2CoreHttpClient *)httpClient
 {
     self = [super init];
     if (self) {
@@ -51,6 +50,7 @@
                                      authentication:(PowerAuthAuthentication *)authentication
                                          completion:(void (^)(PA2PrivateTokenData *, NSError *))completion
 {
+    /*
     return [_httpClient postObject:nil
                                 to:[PA2RestApiEndpoint getToken]
                               auth:authentication
@@ -75,11 +75,15 @@
                             // Call back to the application
                             completion(tokenData, error);
                         }];
+     */
+    // TODO: missing impl.
+    return nil;
 }
 
 - (id<PowerAuthOperationTask>) removeTokenData:(PA2PrivateTokenData*)tokenData
                                     completion:(void(^)(BOOL removed, NSError * error))completion
 {
+    /*
     PA2RemoveTokenRequest * removeRequest = [[PA2RemoveTokenRequest alloc] init];
     removeRequest.tokenId = tokenData.identifier;
     return [_httpClient postObject:removeRequest
@@ -90,6 +94,9 @@
                             BOOL removed = (status == PowerAuthRestApiResponseStatus_OK) && (error == nil);
                             completion(removed, error);
                         }];
+     */
+    // TODO: missing impl.
+    return nil;
 }
 
 @end

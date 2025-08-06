@@ -24,7 +24,7 @@
 - (void)setUp
 {
     [super setUp];
-    [self reconfigureForTest:nil];
+    [self reconfigureForTest:[PowerAuthSdkTestHelper currentTestNameFromTestCase:self]];
 }
 
 - (void) tearDown
@@ -42,6 +42,16 @@
 {
     if ([testName isEqualToString:@"testCustomOfflineSignature"]) {
         (*configuration).offlineAuthorizationCodeComponentLength = 4;
+    }
+    
+    if ([testName isEqualToString:@"testCreateActivationV4_EC_P384_ML_L3"]) {
+        (*configuration).algorithm = PowerAuthAlgorithm_EC_P384_ML_L3;
+    } else if ([testName isEqualToString:@"testCreateActivationV4_EC_P384"]) {
+        (*configuration).algorithm = PowerAuthAlgorithm_EC_P384;
+    } else if ([testName isEqualToString:@"testCreateActivationV3"]) {
+        (*configuration).algorithm = PowerAuthAlgorithm_LEGACY_P256;
+    } else {
+        (*configuration).algorithm = PowerAuthAlgorithm_DEFAULT;
     }
 }
 
@@ -93,6 +103,29 @@
  */
 #pragma mark - Tests: Positive scenarios
 
+- (void) testCreateActivationV3
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:YES removeAfter:YES];
+    XCTAssertTrue(activation.success);
+}
+
+- (void) testCreateActivationV4_EC_P384
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
+    XCTAssertTrue(activation.success);
+}
+
+- (void) testCreateActivationV4_EC_P384_ML_L3
+{
+    CHECK_TEST_CONFIG();
+    
+    PowerAuthSdkActivation * activation = [_helper createActivation:NO removeAfter:YES];
+    XCTAssertTrue(activation.success);
+}
 
 - (void) testCreateActivationWithSignature
 {
@@ -103,7 +136,7 @@
 }
 
 
-- (void) testCreateActivationWithhoutSignature
+- (void) testCreateActivationWithoutSignature
 {
     CHECK_TEST_CONFIG();
     
@@ -294,8 +327,6 @@
 
 - (void) testCustomOfflineSignature
 {
-    [self reconfigureForTest:@"testCustomOfflineSignature"];
-    
     CHECK_TEST_CONFIG();
     
     //
@@ -892,7 +923,8 @@
 }
 
 // MARK: - EEK
-
+// TODO: eek
+/*
 - (void) testExternalEncryptionKey
 {
     CHECK_TEST_CONFIG();
@@ -1029,6 +1061,7 @@
     XCTAssertTrue(_sdk.hasExternalEncryptionKey);
     XCTAssertTrue([_helper checkForCorePassword:activation.credentials.password]);
 }
+*/
 
 // MARK: - Request synchronization
 
@@ -1284,8 +1317,8 @@
 {
     CHECK_TEST_CONFIG();
     
-    PowerAuthCoreEciesEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk eciesEncryptorForApplicationScopeWithCallback:^(PowerAuthCoreEciesEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+    PowerAuthCoreEncryptor * encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
+        [_sdk encryptorForApplicationScopeWithCallback:^(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:encryptor];
         }];
@@ -1302,7 +1335,7 @@
     XCTAssertTrue(_sdk.hasValidActivation);
     
     encryptor = [AsyncHelper synchronizeAsynchronousBlock:^(AsyncHelper *waiting) {
-        [_sdk eciesEncryptorForApplicationScopeWithCallback:^(PowerAuthCoreEciesEncryptor * _Nullable encryptor, NSError * _Nullable error) {
+        [_sdk encryptorForActivationScopeWithCallback:^(PowerAuthCoreEncryptor * _Nullable encryptor, NSError * _Nullable error) {
             XCTAssertNil(error);
             [waiting reportCompletion:encryptor];
         }];

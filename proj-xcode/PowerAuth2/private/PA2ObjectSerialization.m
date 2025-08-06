@@ -16,8 +16,6 @@
 
 #import "PA2ObjectSerialization.h"
 #import "PA2Request.h"
-#import "PA2EncryptedRequest.h"
-#import "PA2EncryptedResponse.h"
 #import "PA2PrivateMacros.h"
 #import "PowerAuthLog.h"
 
@@ -110,73 +108,6 @@
 
 @end
 
-
-
-#pragma mark - E2EE -
-
-@implementation PA2ObjectSerialization (E2EE)
-
-+ (PA2EncryptedRequest*) encryptObject:(id<PA2Encodable>)object
-                             encryptor:(PowerAuthCoreEciesEncryptor*)encryptor
-                                 error:(NSError**)error
-{
-    // Serialize object
-    NSData * data = [self serializeObject:object];
-    // Encrypt data
-    PowerAuthCoreEciesCryptogram * cryptogram = [encryptor encryptRequest:data];
-    if (!cryptogram) {
-        if (error) *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to encrypt object data.");
-        return nil;
-    }
-    // Finally, construct a request body from cryptogram
-    return [[PA2EncryptedRequest alloc] initWithCryptogram:cryptogram];
-}
-
-
-+ (id<PA2Decodable>) decryptObject:(PA2EncryptedResponse*)response
-                          forClass:(Class)aClass
-                         decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
-                             error:(NSError**)error
-{
-    NSData * decryptedData = [decryptor decryptResponse:[response cryptogram]];
-    if (!decryptedData) {
-        if (error) *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to decrypt object data.");
-        return nil;
-    }
-    
-    // Handle unspecified response object
-    if (!aClass) {
-        // If response class is not specified, just return nil.
-        if (error) *error = nil;
-        return nil;
-    }
-    
-    // Now try to deserialize response
-    return [self deserializeObject:decryptedData forClass:aClass error:error];
-}
-
-
-+ (NSData*) decryptData:(NSData*)data
-              decryptor:(PowerAuthCoreEciesEncryptor*)decryptor
-                  error:(NSError**)error
-{
-    // Deserialize data to PA2EncryptedResponse
-    PA2EncryptedResponse * encryptedResponse = [self deserializeObject:data
-                                                              forClass:[PA2EncryptedResponse class]
-                                                                 error:error];
-    if (!encryptedResponse) {
-        return nil;
-    }
-    // Decrypt data
-    NSData * decryptedData = [decryptor decryptResponse:[encryptedResponse cryptogram]];
-    if (!decryptedData) {
-        if (error) *error = PA2MakeError(PowerAuthErrorCode_Encryption, @"Failed to decrypt object data.");
-        return nil;
-    }
-    return decryptedData;
-}
-
-@end
 
 #pragma mark - Base64Url
 

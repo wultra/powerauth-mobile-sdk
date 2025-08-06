@@ -60,6 +60,10 @@ public:
     const V3& v3() const;
     
     static std::unique_ptr<RegistrationData> create(ProtocolVersion version);
+
+    /// Get activation ID from registration data. If activation ID is not available yet,
+    /// then throws exception.
+    std::string getActivationId() const;
     
 private:
     

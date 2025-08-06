@@ -35,6 +35,7 @@ public:
     IServicePtr asService() override;
     RequestPtr createActivation(cc7::json::JsonValue L1_data, cc7::json::JsonValue L2_data) override;
     RequestPtr confirmActivation(InitialCredentialsPtr credentials) override;
+    std::string calculateActivationFingerprint() override;
     
     void resetState() override;
     RequestPtr fetchActivationStatus() override;
@@ -60,7 +61,7 @@ private:
     /// - Parameters:
     ///   - context: Context reference.
     ///   - L1_data: L1 activation data received from the server
-    /// - Returns: Response object. The current implementation always returns `nullptr`.
+    /// - Returns: `ActivationResult` object
     ResponseObjectPtr processResponseActivationData(Context& context, const cc7::json::JsonValue& L1_data);
     
     /// Process response received from activation confirm endpoint.
@@ -70,11 +71,23 @@ private:
     /// - Returns: Response object. The current implementation always returns `nullptr`.
     ResponseObjectPtr processResponseActivationConfirm(Context& context, InitialCredentialsPtr credentials);
     
+    /// Calculate human readable fingerprint from device and server's public keys.
+    /// - Parameters:
+    ///   - context: Context reference.
+    ///   - device_public_key: Device public key.
+    ///   - server_public_key: Server public key.
+    /// - Returns: Human readable activation fingerprint.
+    std::string calculateActivationFingerprint(Context& context,
+                                               const cc7::crypto::PublicKey& device_public_key,
+                                               const cc7::crypto::PublicKey& server_public_key) const;
+    
     /// Acquire context from weak context pointer. If context no longer exists, then throws exception.
     ContextPtr lockContext();
     
     const ContextWeakPtr _weak_context;
     const SessionDataPtr _session_data;
+    
+    std::string _activation_fingerprint;
 };
 
 } // namespace v4

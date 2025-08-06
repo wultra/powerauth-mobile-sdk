@@ -99,7 +99,9 @@ TimeInterval TimeService::localTimeAdjustmentPrecision() const
 
 TimeService::TaskId TimeService::startTimeSynchronizationTask()
 {
-    return _time_provider->getCurrentTime();
+    auto task = _time_provider->getCurrentTime();
+    //CC7_LOG("TimeService: Sync task %f started", task);
+    return task;
 }
 
 bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval server_time)
@@ -108,6 +110,7 @@ bool TimeService::completeTimeSynchronizationTask(TaskId task_id, TimeInterval s
     auto now = _time_provider->getCurrentTime();
     auto start = task_id;
     auto elapsedTime = now - start;
+    //CC7_LOG("TimeService: Sync task %f ended at %f (elapsed %f)", task_id, now, elapsedTime);
     if (elapsedTime < 0.0) {
         CC7_LOG("TimeService: Wrong task-id value used for the synchronization");
         return _is_synchronized;
@@ -191,7 +194,7 @@ ResponseObjectPtr TimeService::processTimeSynchronization(const cc7::json::JsonV
     _current_sync_task = -1;
     auto time = response["serverTime"].asInteger();
 
-    completeTimeSynchronizationTask(task, 0.001 * time);
+    completeTimeSynchronizationTask(task, TimestampToTimeInterval(time));
     
     return nullptr;
 }

@@ -32,8 +32,8 @@
 
 - (void) setUp
 {
-    self.customBiometryKey = [PowerAuthCoreSession generateSignatureUnlockKey];
-    self.customPossessionKey = [PowerAuthCoreSession generateSignatureUnlockKey];
+    self.customBiometryKey = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
+    self.customPossessionKey = [PowerAuthCoreSession generateFactorKekForProtocolVersion:PowerAuthCoreProtocolVersion_V3 error:nil];
     self.biometryPrompt = @"Authenticate with biometry";
     
 #if PA2_HAS_LACONTEXT

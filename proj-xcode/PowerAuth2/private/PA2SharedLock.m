@@ -75,12 +75,14 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
 
 #pragma mark - Public interface
 
-- (instancetype) initWithPath:(NSString *)path recursive:(BOOL)recursive
+- (instancetype) initWithPath:(NSString*)path
+                    recursive:(BOOL)recursive
+                        error:(NSError**)error
 {
     self = [super init];
     if (self) {
-        if (_LockInit(path, recursive, &_lockData) == NO) {
-            PowerAuthLog(@"PA2SharedLock: Failed to initialize %@ lock", recursive ? @"recursive" : @"simple");
+        if (!_LockInit(path, recursive, &_lockData)) {
+            PA2SetError(error, PowerAuthErrorCode_Other, @"Failed to initialize shared lock");
             return nil;
         }
         _recursive = recursive;
@@ -118,7 +120,7 @@ static BOOL _LockInit(NSString * lockPath, BOOL recursive, LockData * lockData);
     _UnlockRecursive(&_lockData, 0);
 }
 
-- (id<NSLocking>) createLocalRecusiveLock
+- (id<NSLocking>) createLocalRecursiveLock
 {
     return _recursive ? [[PA2InternalLock alloc] initWithSharedLock:self] : nil;
 }

@@ -51,6 +51,7 @@ typedef NS_OPTIONS(NSUInteger, TestActivationFlags) {
 
 @interface PowerAuthSdkTestHelper : NSObject
 
++ (NSString*) currentTestNameFromTestCase:(XCTestCase*)testCase;
 /**
  Create default helper.
  */

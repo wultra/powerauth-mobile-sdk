@@ -17,9 +17,7 @@
 #import "PA2GetActivationStatusTask.h"
 #import "PowerAuthActivationStatus+Private.h"
 #import "PA2PrivateMacros.h"
-#import "PA2RestApiObjects.h"
-#import "PA2RestApiEndpoint.h"
-#import "PA2HttpClient.h"
+#import "PA2CoreHttpClient.h"
 #import "PA2Result.h"
 
 #import <PowerAuth2/PowerAuthLog.h>
@@ -31,8 +29,7 @@
 
 @implementation PA2GetActivationStatusTask
 {
-    PA2HttpClient * _client;
-    PowerAuthCoreData * _deviceRelatedKey;
+    PA2CoreHttpClient * _client;
     id<PowerAuthCoreSessionProvider> _sessionProvider;
     __weak id<PA2GetActivationStatusTaskDelegate> _delegate;
     BOOL _disableUpgrade;
@@ -43,8 +40,7 @@
     PowerAuthActivationStatus * _receivedStatus;
 }
 
-- (id) initWithHttpClient:(PA2HttpClient*)httpClient
-         deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
+- (id) initWithHttpClient:(PA2CoreHttpClient*)httpClient
           sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
                  delegate:(id<PA2GetActivationStatusTaskDelegate>)delegate
                sharedLock:(id<NSLocking>)sharedLock
@@ -53,7 +49,6 @@
     self = [super initWithSharedLock:sharedLock taskName:@"GetActivationStatus"];
     if (self) {
         _client = httpClient;
-        _deviceRelatedKey = deviceRelatedKey;
         _sessionProvider = sessionProvider;
         _delegate = delegate;
         _disableUpgrade = disableUpgrade;
@@ -100,19 +95,21 @@
 - (void) fetchActivationStatusAndTestUpgrade
 {
     [self fetchActivationStatus:^(PowerAuthActivationStatus *status, NSError *error) {
-        // We have status. Test for protocol upgrade.
-        if (status.isProtocolUpgradeAvailable || _sessionProvider.hasPendingProtocolUpgrade) {
-            if (!_disableUpgrade) {
-                // If protocol upgrade is available, then simply switch to upgrade code.
-                [self continueUpgradeWith:status];
+        if (!error) {
+            // We have status. Test for protocol upgrade.
+            if (status.isProtocolUpgradeAvailable || _sessionProvider.hasPendingProtocolUpgrade) {
+                if (!_disableUpgrade) {
+                    // If protocol upgrade is available, then simply switch to upgrade code.
+                    [self continueUpgradeWith:status];
+                    return;
+                }
+                PowerAuthLog(@"WARNING: GetStatus: Upgrade to newer protocol version is disabled.");
+            }
+            // Now test whether the counter should be synchronized on the server.
+            if (status.isSignatureCalculationRecommended) {
+                [self synchronizeCounterWith:status];
                 return;
             }
-            PowerAuthLog(@"WARNING: GetStatus: Upgrade to newer protocol version is disabled.");
-        }
-        // Now test whether the counter should be synchronized on the server.
-        if (status.isSignatureCalculationRecommended) {
-            [self synchronizeCounterWith:status];
-            return;
         }
         // Otherwise return the result as usual.
         [self complete:status error:error];
@@ -126,6 +123,7 @@
  */
 - (void) fetchActivationStatus:(void(^)(PowerAuthActivationStatus *status, NSError *error))callback
 {
+    /*
     // Perform the server request
     PA2GetActivationStatusRequest * request = [[PA2GetActivationStatusRequest alloc] init];
     request.activationId = _sessionProvider.activationIdentifier;
@@ -160,6 +158,10 @@
         callback(statusObject, error);
     }];
     [self replaceCancelableOperation:fetchStatusTask];
+     */
+    
+    // TODO: missing impl.
+    callback(nil, PA2MakeError(PowerAuthErrorCode_InvalidActivationState, @"missing impl."));
 }
 
 #pragma mark - Counter synchronization
@@ -172,6 +174,7 @@
 {
     PowerAuthLog(@"GetStatus: Trying synchronize counter with server.");
     //
+    /*
     PA2ValidateSignatureRequest * request = [PA2ValidateSignatureRequest requestWithReason:@"COUNTER_SYNCHRONIZATION"];
     PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint validateSignature];
     PowerAuthAuthentication * auth = [PowerAuthAuthentication possession];
@@ -184,6 +187,7 @@
         }
     }];
     [self replaceCancelableOperation:validateTask];
+     */
 }
 
 #pragma mark - Protocol upgrade
@@ -211,6 +215,7 @@
  */
 - (void) continueUpgradeToV3:(PowerAuthActivationStatus*)status
 {
+    /*
     PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* (PowerAuthCoreSession * session) {
         PowerAuthCoreProtocolVersion serverVersion = status.currentActivationVersion;
         PowerAuthCoreProtocolVersion localVersion = session.protocolVersion;
@@ -282,6 +287,7 @@
         return [PA2Result failure:PA2MakeError(PowerAuthErrorCode_ProtocolUpgrade, @"Internal protocol upgrade error.")];
     }];
     [self completeWithResult:result];
+    */
 }
 
 /**
@@ -290,6 +296,7 @@
 - (void) startUpgradeToV3
 {
     // Disable auto cancel
+    /*
     _disableAutoCancel = YES;
     PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeStartV3];
     //
@@ -320,6 +327,7 @@
         [self completeWithResult:result];
     }];
     [self replaceCancelableOperation:startUpgradeTask];
+     */
 }
 
 /**
@@ -327,6 +335,7 @@
  */
 - (void) commitUpgradeToV3
 {
+    /*
     // Disable auto cancel
     _disableAutoCancel = YES;
     PA2RestApiEndpoint * endpoint = [PA2RestApiEndpoint upgradeCommitV3];
@@ -344,6 +353,7 @@
         }
     }];
     [self replaceCancelableOperation:commitUpgradeTask];
+     */
 }
 
 /**
@@ -351,6 +361,7 @@
  */
 - (void) finishUpgradeToV3
 {
+    /*
     PA2Result<PowerAuthActivationStatus*>* result = [_sessionProvider writeTaskWithSession:^PA2Result<PowerAuthActivationStatus*>* (PowerAuthCoreSession * session) {
         if ([session finishProtocolUpgrade]) {
             PowerAuthLog(@"Upgrade: Activation was successfully upgraded to protocol V3.");
@@ -361,6 +372,7 @@
         }
     }];
     [self completeWithResult:result];
+     */
 }
 
 /**

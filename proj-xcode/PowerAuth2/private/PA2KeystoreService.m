@@ -16,196 +16,195 @@
 
 #import "PA2KeystoreService.h"
 #import "PA2PrivateMacros.h"
-#import "PA2HttpClient.h"
-#import "PA2GetTemporaryKeyResponse.h"
+#import "PA2CoreHttpClient.h"
+#import "PA2GroupedTask.h"
+
 #import <PowerAuth2/PowerAuthLog.h>
 
-// We don't want to use the key that's close to its expiration on the server. This constant specifies for how much
-// we move the expiration time to backward.
-#define PUBLIC_KEY_EXPIRATION_THRESHOLD 10.0
+#pragma mark - Task interface
 
-#pragma mark - Service data
+@interface PA2GetTemporaryKeyTask : PA2GroupedTask<id>
 
-@interface PA2PublicKeyInfo : NSObject
-
-- (instancetype) initWithScope:(PowerAuthCoreEciesEncryptorScope)scope;
-
-@property (nonatomic, readonly) PowerAuthCoreEciesEncryptorScope scope;
-@property (nonatomic, strong) PA2GetTemporaryKeyTask * task;
-@property (nonatomic, assign) NSTimeInterval expiration;
-@property (nonatomic, strong) id timeSynchronizationTask;
-
-- (void) clearTask;
+- (nonnull instancetype) initWithHttpClient:(nonnull PA2CoreHttpClient*)httpClient
+                            sessionProvider:(nonnull id<PowerAuthCoreSessionProvider>)sessionProvider
+                                 sharedLock:(nonnull id<NSLocking>)sharedLock
+                             encryptorScope:(PowerAuthCoreEncryptorScope)encryptorScope
+                                   delegate:(nonnull id<PA2GetTemporaryKeyTaskDelegate>)delegate;
 
 @end
+
+
+#pragma mark - Task implementation
+
+@implementation PA2GetTemporaryKeyTask
+{
+    PA2CoreHttpClient * _client;
+    id<PowerAuthCoreSessionProvider> _sessionProvider;
+    __weak id<PA2GetTemporaryKeyTaskDelegate> _delegate;
+    PowerAuthCoreEncryptorScope _encryptorScope;
+    BOOL _isApplicationScope;
+}
+
+- (instancetype) initWithHttpClient:(PA2CoreHttpClient*)httpClient
+                    sessionProvider:(id<PowerAuthCoreSessionProvider>)sessionProvider
+                         sharedLock:(id<NSLocking>)sharedLock
+                     encryptorScope:(PowerAuthCoreEncryptorScope)encryptorScope
+                           delegate:(id<PA2GetTemporaryKeyTaskDelegate>)delegate
+{
+    BOOL isAppScope = encryptorScope ==  PowerAuthCoreEncryptorScope_Application;
+    self = [super initWithSharedLock:sharedLock
+                            taskName:isAppScope ? @"GetTempKey-App" : @"GetTempKey-Act"];
+    if (self) {
+        _client = httpClient;
+        _sessionProvider = sessionProvider;
+        _encryptorScope = encryptorScope;
+        _delegate = delegate;
+        _isApplicationScope = isAppScope;
+    }
+    return self;
+}
+
+- (void) onTaskStart
+{
+    [super onTaskStart];
+    
+    NSError * error = nil;
+    PowerAuthCoreRequest * request = [_sessionProvider readTaskWithSession:^PowerAuthCoreRequest*(PowerAuthCoreSession * session, NSError ** error) {
+        return [[session encryptorFactory] fetchTemporaryKeyForScope:_encryptorScope error:error];
+    } error:&error];
+    if (error) {
+        [self complete:nil error:error];
+        return;
+    }
+    id<PowerAuthOperationTask> cancelable = [_client postCoreRequest:request completion:^(PowerAuthCoreRequest * _Nonnull request, id  _Nullable response, NSError * _Nullable error) {
+        [self complete:nil error:error];
+    }];
+    [self replaceCancelableOperation:cancelable];
+}
+
+- (void) onTaskCompleteWithResult:(id)result error:(NSError*)error
+{
+    [super onTaskCompleteWithResult:result error:error];
+    [_delegate getTemporaryKeyTask:self didFinishWithError:error];
+}
+
+@end
+
+
 
 #pragma mark - Service implementation
 
 @implementation PA2KeystoreService
 {
-    id<PA2SessionInterface> _sessionInterface;
-    id<PowerAuthCoreTimeService> _timeService;
     id<NSLocking> _lock;
-    PA2HttpClient * _httpClient;
-    NSString * _applicationKey;
-    PowerAuthCoreData * _deviceRelatedKey;
-
-    PA2PublicKeyInfo * _pkiAppScope;
-    PA2PublicKeyInfo * _pkiActScope;
+    id<PA2SessionInterface> _sessionInterface;
+    PA2CoreHttpClient * _httpClient;
+    
+    PA2GetTemporaryKeyTask * _getAppKeyTask;
+    PA2GetTemporaryKeyTask * _getActKeyTask;
 }
 
-- (instancetype) initWithHttpClient:(PA2HttpClient*)httpClient
-                        timeService:(id<PowerAuthCoreTimeService>)timeService
-                   deviceRelatedKey:(PowerAuthCoreData*)deviceRelatedKey
-                       sessionSetup:(PowerAuthCoreSessionSetup*)sessionSetup
+- (instancetype) initWithHttpClient:(PA2CoreHttpClient*)httpClient
+                   sessionInterface:(id<PA2SessionInterface>)sessionInterface
                          sharedLock:(id<NSLocking>)sharedLock
 {
     self = [super init];
     if (self) {
-        _sessionInterface = httpClient.sessionInterface;
-        _timeService = timeService;
-        _httpClient = httpClient;
         _lock = sharedLock;
-        _applicationKey = sessionSetup.applicationKey;
-        _deviceRelatedKey = deviceRelatedKey;
-        _pkiAppScope = [[PA2PublicKeyInfo alloc] initWithScope:PowerAuthCoreEciesEncryptorScope_Application];
-        _pkiActScope = [[PA2PublicKeyInfo alloc] initWithScope:PowerAuthCoreEciesEncryptorScope_Activation];
+        _sessionInterface = sessionInterface;
+        _httpClient = httpClient;
     }
     return self;
 }
 
-- (id<PowerAuthOperationTask>) createKeyForEncryptorScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope callback:(void (^)(NSError *))callback
+- (id<PowerAuthOperationTask>) createKeyForEncryptorScope:(PowerAuthCoreEncryptorScope)encryptorScope
+                                                 callback:(void (^)(NSError *))callback
+                                            callbackQueue:(dispatch_queue_t)callbackQueue
 {
-    if (encryptorScope == PowerAuthCoreEciesEncryptorScope_Activation && ![self hasValidActivation]) {
-        callback(PA2MakeError(PowerAuthErrorCode_MissingActivation, nil));
-        return nil;
+    if (!callbackQueue) {
+        callbackQueue = dispatch_get_main_queue();
     }
-    
     [_lock lock];
     id<PowerAuthOperationTask> task = nil;
-    if ([self hasKeyForEncryptorScope:encryptorScope]) {
-        // Key already exist
-        callback(nil);
-    } else {
-        // Key must be received from the server
-        PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
-        PA2GetTemporaryKeyTask * mainTask = pki.task;
-        if (!mainTask) {
-            mainTask = [[PA2GetTemporaryKeyTask alloc] initWithHttpClient:_httpClient
-                                                          sessionProvider:_sessionInterface
-                                                               sharedLock:_lock
-                                                           applicationKey:_applicationKey
-                                                         deviceRelatedKey:_deviceRelatedKey
-                                                           encryptorScope:encryptorScope
-                                                                 delegate:self];
-            pki.task = mainTask;
-            pki.timeSynchronizationTask = [_timeService startTimeSynchronizationTask];
-        }
-        task = [mainTask createChildTask:^(PA2GetTemporaryKeyResponse * _Nullable result, NSError * _Nullable error) {
+    if (![self hasKeyForEncryptorScope:encryptorScope]) {
+        task = [self getTaskForScope:encryptorScope callback:^(id foo, NSError * error) {
             callback(error);
-        }];
+        } callbackQueue:callbackQueue];
     }
     [_lock unlock];
+    if (!task) {
+        // temporary key is available, call the callback immediately
+        callback(nil);
+    }
     return task;
 }
 
-- (PA2PublicKeyInfo*) pkiForScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope
+- (BOOL) hasKeyForEncryptorScope:(PowerAuthCoreEncryptorScope)encryptorScope
 {
-    return encryptorScope == PowerAuthCoreEciesEncryptorScope_Application ? _pkiAppScope : _pkiActScope;
-}
-
-- (BOOL) hasKeyForEncryptorScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope
-{
-    // This function is using access to two separately locked sections. The goal is to do not
-    // overlap the critical sections. So, we have to query information in two separate steps.
-    BOOL keyIsExpired;
-    BOOL keyIsSet;
-    
-    [_lock lock];
-    PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
-    NSTimeInterval expiration = pki.expiration;
-    keyIsSet = expiration >= 0.0;
-    keyIsExpired = [_timeService currentTime] >= expiration - PUBLIC_KEY_EXPIRATION_THRESHOLD;
-    if (keyIsExpired) {
-        pki.expiration = -1;
-    }
-    [_lock unlock];
-    
-    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-        BOOL hasKey = [session hasPublicKeyForEciesScope:encryptorScope];
-        if (hasKey && keyIsExpired && keyIsSet) {
-            PowerAuthLog(@"Removing expired public key for ECIES encryptor %d", encryptorScope);
-            [session removePublicKeyForEciesScope:encryptorScope];
-            hasKey = NO;
-        }
-        return hasKey;
-    }];
+    return [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session, NSError** error) {
+        return [[session encryptorFactory] hasTemporaryKeyForScope:encryptorScope];
+    } error:nil];
 }
 
 #pragma mark - PA2GetTemporaryKeyTaskDelegate
 
-- (void) getTemporaryKeyTask:(PA2GetTemporaryKeyTask *)task didFinishWithResponse:(PA2GetTemporaryKeyResponse *)response error:(NSError *)error
+- (void) getTemporaryKeyTask:(PA2GetTemporaryKeyTask *)task didFinishWithError:(NSError *)error
 {
-    // [_lock lock] is guaranteed, because this method is called from task's completion while locked with shared lock.
-    // So, we can freely mutate objects in this instance.
-    PowerAuthCoreEciesEncryptorScope scope = task.encryptorScope;
-    PA2PublicKeyInfo * pki = [self pkiForScope:scope];
-    if (pki.task == task) {
-        if (response) {
-            NSTimeInterval receivedServerTime = 0.001 * (NSTimeInterval)response.serverTime;
-            [_timeService completeTimeSynchronizationTask:pki.timeSynchronizationTask withServerTime:receivedServerTime];
-            [self updatePublicKeyForEncryptorScope:scope withResponse:response];
+    // Lock is acquired, because this is called from the task's completion that use the same shared lock internally.
+    BOOL keepReference;
+    if (task == _getActKeyTask) {
+        _getActKeyTask = nil;
+        keepReference = YES;
+    } else if (task == _getAppKeyTask) {
+        _getAppKeyTask = nil;
+        keepReference = YES;
+    } else {
+        keepReference = NO;
+    }
+    if (keepReference) {
+        // This is the reference to task which is going to finish its execution soon.
+        // The ivar no longer holds the reference to the task, but we should keep that reference
+        // for a little bit longer, to guarantee, that we don't destroy the object in the middle
+        // of callback processing.
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            // The following call does nothing, because the old task is no longer stored
+            // in the `_statusTask` ivar. It just guarantees that the object will be alive
+            // during waiting to execute the operation block.
+            [self getTemporaryKeyTask:task didFinishWithError:nil];
+        }];
+    }
+}
+
+- (id<PowerAuthOperationTask>) getTaskForScope:(PowerAuthCoreEncryptorScope)encryptorScope
+                                      callback:(void (^)(id, NSError *))callback
+                                 callbackQueue:(dispatch_queue_t)callbackQueue
+{
+    id<PowerAuthOperationTask> task;
+    if (encryptorScope == PowerAuthCoreEncryptorScope_Application) {
+        // application scope, use _getAppKeyTask
+        task = [_getAppKeyTask createChildTask:callback queue:callbackQueue];
+        if (!task) {
+            _getAppKeyTask = [self createGroupedTaskForScope:encryptorScope];
+            task = [_getAppKeyTask createChildTask:callback queue:callbackQueue];
         }
-        [pki clearTask];
-    }
-}
-
-- (BOOL) updatePublicKeyForEncryptorScope:(PowerAuthCoreEciesEncryptorScope)encryptorScope withResponse:(PA2GetTemporaryKeyResponse*)response
-{
-    BOOL success = [_sessionInterface readBoolTaskWithSession:^BOOL(PowerAuthCoreSession * session) {
-        PowerAuthCoreErrorCode ec = [session setPublicKeyForEciesScope:encryptorScope publicKey:response.publicKey publicKeyId:response.keyId];
-        if (ec != PowerAuthCoreErrorCode_Ok) {
-            PowerAuthLog(@"Failed to update public key for ECIES encryption. Code = %d", ec);
-            return NO;
+    } else {
+        // application scope, use _getActKeyTask
+        task = [_getActKeyTask createChildTask:callback queue:callbackQueue];
+        if (!task) {
+            _getActKeyTask = [self createGroupedTaskForScope:encryptorScope];
+            task = [_getActKeyTask createChildTask:callback queue:callbackQueue];
         }
-        return YES;
-    }];
-    if (success) {
-        PA2PublicKeyInfo * pki = [self pkiForScope:encryptorScope];
-        pki.expiration = 0.001 * response.expiration;
-        PowerAuthLog(@"Saving public key for ECIES encryptor %d", encryptorScope);
     }
-    return success;
+    return task;
 }
 
-
-#pragma mark - Support functions
-
-- (BOOL) hasValidActivation
+- (PA2GetTemporaryKeyTask*) createGroupedTaskForScope:(PowerAuthCoreEncryptorScope)encryptorScope
 {
-    return [[_sessionInterface readTaskWithSession:^id _Nullable(PowerAuthCoreSession * session) {
-        return @([session hasValidActivation]);
-    }] boolValue];
-}
-
-@end
-
-
-@implementation PA2PublicKeyInfo
-
-- (instancetype) initWithScope:(PowerAuthCoreEciesEncryptorScope)scope
-{
-    self = [super init];
-    if (self) {
-        _scope = scope;
-    }
-    return self;
-}
-
-- (void) clearTask
-{
-    _task = nil;
-    _timeSynchronizationTask = nil;
+    return [[PA2GetTemporaryKeyTask alloc] initWithHttpClient:_httpClient
+                                              sessionProvider:_sessionInterface
+                                                   sharedLock:_lock
+                                               encryptorScope:encryptorScope
+                                                     delegate:self];
 }
 
 @end

@@ -104,14 +104,16 @@
  @param biometricConfiguration to be used for biometric configuration. If nil is provided, then the default configuration is applied.
  @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is applied.
  @param keychainConfiguration to be used for keychain configuration. If nil is provided, then the default configuration is applied.
+ @param error Pointer where initialization error is set.
  
  @return Initialized instance.
  @exception NSException thrown in case configuration is not valid.
  */
-- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
-                        biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
-                           clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
-                         keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration;
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                         biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                          keychainConfiguration:(nullable PowerAuthKeychainConfiguration *)keychainConfiguration
+                                          error:(NSError*_Nullable*_Nullable)error;
 
 /**
  Creates an instance of SDK and initializes it with given configuration objects.
@@ -119,23 +121,39 @@
  @param configuration to be used for initialization.
  @param biometricConfiguration to be used for biometric configuration. If nil is provided, then the default configuration is applied.
  @param clientConfiguration to be used for HTTP client configuration. If nil is provided, then the default configuration is applied.
+ @param error Pointer where initialization error is set.
  
  @return Initialized instance.
  @exception NSException thrown in case configuration is not valid.
  */
-- (nonnull instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
-                        biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
-                           clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration;
-
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                         biometricConfiguration:(nullable PowerAuthBiometricConfiguration *)biometricConfiguration
+                            clientConfiguration:(nullable PowerAuthClientConfiguration *)clientConfiguration
+                                          error:(NSError*_Nullable*_Nullable)error;
 /**
  Creates an instance of SDK and initializes it with given configuration.
  The default configs are used for object's biometric, keychain and client configurations.
      
  @param configuration to be used for initialization.
+ @param error Pointer where initialization error is set.
  @return Initialized instance.
  @exception NSException thrown in case configuration is not valid.
  */
-- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration;
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                                          error:(NSError*_Nullable*_Nullable)error;
+
+/**
+ Creates an instance of SDK and initializes it with given configuration.
+ The default configs are used for object's biometric, keychain and client configurations.
+ 
+ This constructor is deprecated. Please use one of constructors that throws error in case of failure.
+     
+ @param configuration to be used for initialization.
+ @return Initialized instance.
+ @exception NSException thrown in case configuration is not valid.
+ */
+- (nullable instancetype) initWithConfiguration:(nonnull PowerAuthConfiguration *)configuration
+                                PA2_DEPRECATED(1.10.0);
 
 /** Creates an instance of SDK and initializes it with given configuration objects.
  

@@ -83,6 +83,213 @@
                <Test
                   Identifier = "PowerAuthInvalidCurveTests">
                </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testActivationStatusConcurrent">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testActivationStatusFailCounters">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testActivationStatusMaxFailAttempts">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testAddingBiometryFactor">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testBiometrySignatureWhenNotConfigured">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCallToCreateActivationInWrongState">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCancelEnqueuedHttpOperation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testChangePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCounterSync_ClientIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCounterSync_ServerIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationAndPersistWithCorePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationAndPersistWithPassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationWhenApplicationIsUnsupported">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationWithBiometry">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationWithOtpAndSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationWithSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCreateActivationWithoutSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testCustomOfflineSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testJwtSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testPasswordCorrect">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testPasswordCorrectWhenBlocked">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testSignDataWithDevicePrivateKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testTemporaryKeyExpiration">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testUserInfo">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testValidateSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testVerifyServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKDefaultTests/testWithWrongLAContext">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKProtocolUpgradeTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKProtocolUpgradeTests/testProtocolUpgrade">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testActivationStatus">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testActivationStatusConcurrent">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testActivationStatusFailCounters">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testActivationStatusMaxFailAttempts">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testAddingBiometryFactor">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testBiometrySignatureWhenNotConfigured">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCallToCreateActivationInWrongState">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCancelEnqueuedHttpOperation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testChangePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testConcurrentActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testConcurrentSignatureCalculations">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testConcurrentTokens">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCounterSync_ClientIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCounterSync_ServerIsAhead">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationAndPersistWithCorePassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationAndPersistWithPassword">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationWhenApplicationIsUnsupported">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationWithBiometry">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationWithOtpAndSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationWithSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCreateActivationWithoutSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testCustomOfflineSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testEncryptorCreation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testJwtSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testPasswordCorrect">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testPasswordCorrectWhenBlocked">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testRemoveActivation">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testSignDataWithDevicePrivateKey">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testTemporaryKeyExpiration">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testUserInfo">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testValidateSignature">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testVerifyServerSignedData">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthSDKSharedTests/testWithWrongLAContext">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthTokenTests">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthTokenTests/testBasicTokenOperations">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthTokenTests/testCreateTokenWithDifferentAuth">
+               </Test>
+               <Test
+                  Identifier = "PowerAuthTokenTests/testGroupedCreateTokenRequests">
+               </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>

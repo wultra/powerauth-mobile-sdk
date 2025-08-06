@@ -15,14 +15,21 @@
  */
 
 #import "PowerAuthServerStatus+Private.h"
+#import "PA2PrivateMacros.h"
 
 @implementation PowerAuthServerStatus
 
-- (instancetype) initWithGetServerStatusResponse:(PA2GetServerStatusResponse*)response
+- (instancetype) initWithJsonResponse:(id)response
 {
     self = [super init];
     if (self) {
-        _serverTime = [NSDate dateWithTimeIntervalSince1970:0.001 * (NSTimeInterval)response.serverTime];
+        NSDictionary * dict   = PA2ObjectAs(response, NSDictionary);
+        NSNumber * serverTime = PA2ObjectAs(dict[@"serverTime"], NSNumber);
+        if (serverTime) {
+            _serverTime = [NSDate dateWithTimeIntervalSince1970:0.001 * [serverTime longLongValue]];
+        } else {
+            return nil;
+        }
     }
     return self;
 }
